@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis
             Action<Solution, Solution>? onBeforeUpdate = null,
             Action<Solution, Solution>? onAfterUpdate = null)
         {
-            return SetCurrentSolution(
+            var (oldSolution, newSolution) = SetCurrentSolution(
                 transformation: static (oldSolution, data) => data.transformation(oldSolution),
                 data: (@this: this, transformation, onBeforeUpdate, onAfterUpdate, kind, projectId, documentId),
                 onBeforeUpdate: static (oldSolution, newSolution, data) =>
@@ -218,6 +218,8 @@ namespace Microsoft.CodeAnalysis
                     // as the order of the changes made to the solution.
                     data.@this.RaiseWorkspaceChangedEventAsync(data.kind, oldSolution, newSolution, data.projectId, data.documentId);
                 });
+
+            return oldSolution != newSolution;
         }
 
         /// <summary>
@@ -236,7 +238,7 @@ namespace Microsoft.CodeAnalysis
         /// was replaced with. The latter may be different than the solution returned by <paramref
         /// name="transformation"/> as it will have its <see cref="Solution.WorkspaceVersion"/> updated
         /// accordingly.</param>
-        private protected bool SetCurrentSolution<TData>(
+        private protected (Solution oldSolution, Solution newSolution) SetCurrentSolution<TData>(
             Func<Solution, TData, Solution> transformation,
             TData data,
             Action<Solution, Solution, TData>? onBeforeUpdate = null,
@@ -257,7 +259,7 @@ namespace Microsoft.CodeAnalysis
 
                 // if it did nothing, then no need to proceed.
                 if (oldSolution == newSolution)
-                    return false;
+                    return (oldSolution, newSolution);
 
                 // Now, take the lock and try to update our internal state.
                 using (_serializationLock.DisposableWait())
@@ -278,7 +280,7 @@ namespace Microsoft.CodeAnalysis
 
                     // Once we've updated _latesSolution, perform any requested callbacks.
                     onAfterUpdate?.Invoke(oldSolution, newSolution, data);
-                    return true;
+                    return (oldSolution, newSolution);
                 }
             }
         }

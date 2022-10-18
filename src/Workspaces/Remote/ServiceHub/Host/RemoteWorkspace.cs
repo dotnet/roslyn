@@ -332,10 +332,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 // if either solution id or file path changed, then we consider it as new solution. Otherwise,
                 // update the current solution in place.
 
-                this.SetCurrentSolution(
-                    (oldSolution, data) => newSolution,
+                // Ensure we update newSolution with the result of SetCurrentSolution.  It will be the one appropriately
+                // 'attached' to this workspace.
+                (_, newSolution) = this.SetCurrentSolution(
+                    (oldSolution, _) => newSolution,
                     data: /*unused*/0,
-                    onBeforeUpdate: (oldSolution, newSolution, data) =>
+                    onBeforeUpdate: (oldSolution, newSolution, _) =>
                     {
                         if (IsAddingSolution(oldSolution, newSolution))
                         {
@@ -345,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Remote
                             this.ClearSolutionData();
                         }
                     },
-                    onAfterUpdate: (oldSolution, newSolution, data) =>
+                    onAfterUpdate: (oldSolution, newSolution, _) =>
                     {
                         RaiseWorkspaceChangedEventAsync(
                             IsAddingSolution(oldSolution, newSolution) ? WorkspaceChangeKind.SolutionAdded : WorkspaceChangeKind.SolutionChanged,
