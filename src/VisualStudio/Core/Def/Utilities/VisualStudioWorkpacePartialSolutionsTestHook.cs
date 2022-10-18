@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices;
 /// <summary>
 /// Allows integration tests to disable partial solutions.
 /// </summary>
-[ExportWorkspaceService(typeof(IWorkspaceTestLogger), ServiceLayer.Host), Shared]
+[ExportWorkspaceService(typeof(IWorkpacePartialSolutionsTestHook), ServiceLayer.Host), Shared]
 internal class VisualStudioWorkpacePartialSolutionsTestHook : IWorkpacePartialSolutionsTestHook
 {
     public bool IsPartialSolutionDisabled { get; set; }
