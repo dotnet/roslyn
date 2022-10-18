@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         /// many in a document to matter.
         /// </para>
         /// </summary>
-        protected override bool Equals(InlineDiagnosticsTag tag1, InlineDiagnosticsTag tag2)
+        protected override bool TagEquals(InlineDiagnosticsTag tag1, InlineDiagnosticsTag tag2)
             => false;
     }
 }

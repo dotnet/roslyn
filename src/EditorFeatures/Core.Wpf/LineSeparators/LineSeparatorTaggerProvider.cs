@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         /// We create and cache a separator tag to use (unless the format mapping changes).  So we can just use identity
         /// comparisons here.
         /// </summary>
-        protected override bool Equals(LineSeparatorTag tag1, LineSeparatorTag tag2)
+        protected override bool TagEquals(LineSeparatorTag tag1, LineSeparatorTag tag2)
             => tag1 == tag2;
     }
 }

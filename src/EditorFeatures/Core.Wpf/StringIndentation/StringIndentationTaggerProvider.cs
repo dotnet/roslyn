@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
             }
         }
 
-        protected override bool Equals(StringIndentationTag tag1, StringIndentationTag tag2)
+        protected override bool TagEquals(StringIndentationTag tag1, StringIndentationTag tag2)
             => tag1.Equals(tag2);
     }
 }

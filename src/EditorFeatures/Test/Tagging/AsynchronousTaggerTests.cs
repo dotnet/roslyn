@@ -184,7 +184,7 @@ class Program
                 return Task.CompletedTask;
             }
 
-            protected override bool Equals(TestTag tag1, TestTag tag2)
+            protected override bool TagEquals(TestTag tag1, TestTag tag2)
                 => tag1 == tag2;
         }
 

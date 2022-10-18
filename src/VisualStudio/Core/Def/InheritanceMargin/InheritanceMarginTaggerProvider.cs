@@ -151,7 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             }
         }
 
-        protected override bool Equals(InheritanceMarginTag tag1, InheritanceMarginTag tag2)
+        protected override bool TagEquals(InheritanceMarginTag tag1, InheritanceMarginTag tag2)
             => tag1.Equals(tag2);
     }
 }
