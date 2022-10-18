@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         protected override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
 
+        protected override IEqualityComparer<IErrorTag> TagEqualityComparer => this;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DiagnosticsSquiggleTaggerProvider(

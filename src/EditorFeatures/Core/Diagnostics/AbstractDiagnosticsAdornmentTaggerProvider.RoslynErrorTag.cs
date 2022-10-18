@@ -11,9 +11,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal partial class DiagnosticsSquiggleTaggerProvider
+    internal partial class AbstractDiagnosticsAdornmentTaggerProvider<TTag>
     {
-        private sealed class RoslynErrorTag : ErrorTag, IEquatable<RoslynErrorTag>
+        protected sealed class RoslynErrorTag : ErrorTag, IEquatable<RoslynErrorTag>
         {
             private readonly DiagnosticData _data;
 
@@ -50,10 +50,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         new ClassifiedTextRun(ClassificationTypeNames.Text, diagnostic.Message)));
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
                 => Equals(obj as RoslynErrorTag);
 
-            public bool Equals(RoslynErrorTag other)
+            public bool Equals(RoslynErrorTag? other)
             {
                 return other != null &&
                     this.ErrorType == other.ErrorType &&

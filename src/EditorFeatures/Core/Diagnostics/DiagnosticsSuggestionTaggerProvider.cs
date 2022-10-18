@@ -25,12 +25,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [ContentType(ContentTypeNames.XamlContentType)]
     [TagType(typeof(IErrorTag))]
     internal sealed partial class DiagnosticsSuggestionTaggerProvider :
-        AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
+        AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>, IEqualityComparer<IErrorTag>
     {
         private static readonly IEnumerable<Option2<bool>> s_tagSourceOptions =
             ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles);
 
         protected override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
+
+        protected override IEqualityComparer<IErrorTag> TagEqualityComparer => this;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -56,14 +58,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         protected override IErrorTag CreateTag(Workspace workspace, DiagnosticData diagnostic)
-            => new ErrorTag(
-                PredefinedErrorTypeNames.HintedSuggestion,
-                CreateToolTipContent(workspace, diagnostic));
+            => new RoslynErrorTag(PredefinedErrorTypeNames.HintedSuggestion, workspace, diagnostic);
 
         protected override SnapshotSpan AdjustSnapshotSpan(SnapshotSpan snapshotSpan)
         {
             // We always want suggestion tags to be two characters long.
             return AdjustSnapshotSpan(snapshotSpan, minimumLength: 2, maximumLength: 2);
         }
+
+        bool IEqualityComparer<IErrorTag>.Equals(IErrorTag? x, IErrorTag? y)
+            => EqualityComparer<RoslynErrorTag>.Default.Equals(x as RoslynErrorTag, y as RoslynErrorTag);
+
+        int IEqualityComparer<IErrorTag>.GetHashCode(IErrorTag obj)
+            => EqualityComparer<RoslynErrorTag>.Default.GetHashCode(obj as RoslynErrorTag);
     }
 }
