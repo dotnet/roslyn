@@ -123,8 +123,39 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
                 context.AddTag(new TagSpan<InlineHintDataTag>(
                     hint.Span.ToSnapshotSpan(snapshotSpan.Snapshot),
-                    new InlineHintDataTag(hint)));
+                    new InlineHintDataTag(snapshotSpan.Snapshot, hint)));
             }
+        }
+
+        protected override bool Equals(ITextSnapshot snapshot, InlineHintDataTag tag1, InlineHintDataTag tag2)
+        {
+            // they have to match if they're going to change text.
+            if (tag1.Hint.ReplacementTextChange is null != tag2.Hint.ReplacementTextChange is null)
+                return false;
+
+            // the text change text has to match.
+            if (tag1.Hint.ReplacementTextChange?.NewText != tag2.Hint.ReplacementTextChange?.NewText)
+                return false;
+
+            // Ensure both hints are talking about the same snapshot.
+            var span1 = tag1.Hint.Span.ToSnapshotSpan(tag1.Snapshot).TranslateTo(snapshot, this.SpanTrackingMode);
+            var span2 = tag1.Hint.Span.ToSnapshotSpan(tag1.Snapshot).TranslateTo(snapshot, this.SpanTrackingMode);
+
+            if (span1.Span != span2.Span)
+                return false;
+
+            if (tag1.Hint.ReplacementTextChange != null && tag2.Hint.ReplacementTextChange != null)
+            {
+                // ensure both changes are talking about the same span.
+                var replacementSpan1 = tag1.Hint.ReplacementTextChange.Value.Span.ToSnapshotSpan(tag1.Snapshot).TranslateTo(snapshot, this.SpanTrackingMode);
+                var replacementSpan2 = tag2.Hint.ReplacementTextChange.Value.Span.ToSnapshotSpan(tag2.Snapshot).TranslateTo(snapshot, this.SpanTrackingMode);
+
+                if (replacementSpan1.Span != replacementSpan2.Span)
+                    return false;
+            }
+
+            // ensure all the display parts are the same.
+            return tag1.Hint.DisplayParts.SequenceEqual(tag2.Hint.DisplayParts);
         }
     }
 }

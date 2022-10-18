@@ -11,6 +11,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis
     /// A piece of text with a descriptive tag.
     /// </summary>
     [DataContract]
-    public readonly struct TaggedText
+    public readonly struct TaggedText : IEquatable<TaggedText>
     {
         /// <summary>
         /// A descriptive tag from <see cref="TextTags"/>.
@@ -83,6 +84,20 @@ namespace Microsoft.CodeAnalysis
 
         public override string ToString()
             => Text;
+
+        public bool Equals(TaggedText other)
+            => this.Tag == other.Tag &&
+               this.Text == other.Text &&
+               this.Style == other.Style &&
+               this.NavigationTarget == other.NavigationTarget &&
+               this.NavigationHint == other.NavigationHint;
+
+        public override bool Equals(object obj)
+            => obj is TaggedText taggedText && Equals(taggedText);
+
+        // Only implement this if we have a need to.
+        public override int GetHashCode()
+            => throw new NotImplementedException();
     }
 
     internal static class TaggedTextExtensions
