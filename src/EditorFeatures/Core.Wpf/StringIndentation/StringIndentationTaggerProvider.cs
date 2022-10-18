@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
         /// then the span of the tag will grow to the right and the line will immediately redraw in the correct position
         /// while we're in the process of recomputing the up to date tags.
         /// </summary>
-        protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeInclusive;
+        public override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeInclusive;
 
         protected override ITaggerEventSource CreateEventSource(
             ITextView? textView, ITextBuffer subjectBuffer)
@@ -117,5 +117,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
                         region.OrderedHoleSpans.SelectAsArray(s => s.ToSnapshotSpan(snapshot)))));
             }
         }
+
+        protected override bool Equals(StringIndentationTag tag1, StringIndentationTag tag2)
+            => tag1.Equals(tag2);
     }
 }
