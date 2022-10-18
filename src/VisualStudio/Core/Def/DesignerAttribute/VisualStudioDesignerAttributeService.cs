@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
         /// <summary>
         /// Keep track of the last version we were at when we processed a project.  We'll skip reprocessing projects if
-        /// that version hasn't changed. don't change.
+        /// that version hasn't changed.
         /// </summary>
         private readonly ConcurrentDictionary<ProjectId, VersionStamp> _projectToLastComputedDependentSemanticVersion = new();
 
