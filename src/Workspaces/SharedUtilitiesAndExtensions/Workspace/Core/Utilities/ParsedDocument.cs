@@ -4,15 +4,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using static System.Net.Mime.MediaTypeNames;
-using static Humanizer.In;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -60,6 +58,12 @@ internal readonly record struct ParsedDocument(DocumentId Id, SourceText Text, S
         var text = root.SyntaxTree.GetText(cancellationToken);
         return new ParsedDocument(Id, text, root, HostLanguageServices);
     }
+
+    public ParsedDocument WithChange(TextChange change, CancellationToken cancellationToken)
+        => WithChangedText(Text.WithChanges(change), cancellationToken);
+
+    public ParsedDocument WithChanges(IEnumerable<TextChange> changes, CancellationToken cancellationToken)
+        => WithChangedText(Text.WithChanges(changes), cancellationToken);
 
     /// <summary>
     /// Equivalent semantics to <see cref="Document.GetTextChangesAsync(Document, CancellationToken)"/>
