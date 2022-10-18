@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         private partial class TagSource : IEqualityComparer<ITagSpan<TTag>>
         {
             public bool Equals(ITagSpan<TTag>? x, ITagSpan<TTag>? y)
-                => x != null && y != null && x.Span == y.Span && _dataSource.Equals(x.Tag, y.Tag);
+                => x != null && y != null && x.Span == y.Span && _dataSource.TagEquals(x.Tag, y.Tag);
 
             /// <summary>
             /// For the purposes of hashing, just hash spans.  This will prevent most collisions.  And the rare

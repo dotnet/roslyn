@@ -86,9 +86,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// Comparer used to check if two tags are the same.  Used so that when new tags are produced, they can be
         /// appropriately 'diffed' to determine what changes to actually report in <see cref="ITagger{T}.TagsChanged"/>.
         /// </summary>
-        protected abstract bool Equals(TTag tag1, TTag tag2);
+        protected abstract bool TagEquals(TTag tag1, TTag tag2);
 
-        [Obsolete("Make sure you're calling Equals(TTag tag1, TTag tag2) instead", error: true)]
+        [Obsolete("Did you mean to call TagEquals(TTag tag1, TTag tag2) instead", error: true)]
         public static new bool Equals(object objA, object objB)
             => throw ExceptionUtilities.Unreachable();
 

@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         }
                         else
                         {
-                            if (!_dataSource.Equals(latest.Tag, previous.Tag))
+                            if (!_dataSource.TagEquals(latest.Tag, previous.Tag))
                                 added.Add(latestSpan);
 
                             latest = NextOrNull(latestEnumerator);
