@@ -22436,7 +22436,7 @@ ref struct A
     Span<byte> GetSpan() => default;
 }
 ";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.Net50, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 );
         }
