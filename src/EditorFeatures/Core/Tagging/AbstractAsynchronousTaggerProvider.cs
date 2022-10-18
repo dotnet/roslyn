@@ -88,6 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// </summary>
         protected abstract bool TagEquals(TTag tag1, TTag tag2);
 
+        // Prevent accidental usage of object.Equals instead of TagEquals when comparing tags.
         [Obsolete("Did you mean to call TagEquals(TTag tag1, TTag tag2) instead", error: true)]
         public static new bool Equals(object objA, object objB)
             => throw ExceptionUtilities.Unreachable();
