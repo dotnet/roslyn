@@ -52,17 +52,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// </summary>
         private IVSMDDesignerService? _legacyDesignerService;
 
+        /// <summary>
+        /// Queue that tells us to recompute designer attributes when workspace changes happen.  This queue is
+        /// cancellable and will be restarted when new changes come in.  That way we can be quickly update the designer
+        /// attribute for a file when a user edits it.
+        /// </summary>
         private readonly AsyncBatchingWorkQueue _workQueue;
 
-        // We'll get notifications from the OOP server about new attribute arguments. Collect those notifications and
-        // deliver them to VS in batches to prevent flooding the UI thread.
+        /// <summary>
+        /// We'll get notifications from the OOP server about new attribute arguments. Collect those notifications and
+        /// deliver them to VS in batches to prevent flooding the UI thread.  Importantly, we do not cancel this queue.
+        /// Once we've decided to update the project system, we want to allow that to proceed.
+        /// </summary>
         private readonly AsyncBatchingWorkQueue<DesignerAttributeData> _projectSystemNotificationQueue;
 
         /// <summary>
-        /// Keep track of the last information we reported.  We will avoid notifying the host if we recompute and these
-        /// don't change.
+        /// Keep track of the last version we were at when we processed a project.  We'll skip reprocessing projects if
+        /// that version hasn't changed. don't change.
         /// </summary>
-        private readonly ConcurrentDictionary<DocumentId, (string? category, VersionStamp projectVersion)> _documentToLastReportedInformation = new();
+        private readonly ConcurrentDictionary<ProjectId, VersionStamp> _projectToLastComputedDependentSemanticVersion = new();
+
+        /// <summary>
+        /// Keep track of the last information we reported per document.  We will avoid notifying the host if we
+        /// recompute and these don't change.
+        /// </summary>
+        private readonly ConcurrentDictionary<DocumentId, DesignerAttributeData> _documentToLastReportedData = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -101,12 +115,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             if (workspace != _workspace)
                 return;
 
+            // Register for changes, and kick off hte initial scan.
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
             _workQueue.AddWork(cancelExistingWork: true);
         }
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
+            // cancel any existing work and start rescanning.  this way we can respond to edits to a file very quickly.
             _workQueue.AddWork(cancelExistingWork: true);
         }
 
@@ -117,80 +133,118 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var solution = _workspace.CurrentSolution;
-
-            // remove any data for projects that are no longer around.
-            foreach (var (projectId, _) in _cpsProjects)
-            {
-                if (!solution.ContainsProject(projectId))
-                    _cpsProjects.TryRemove(projectId, out _);
-            }
-
-            foreach (var documentId in _documentToLastReportedInformation.Keys)
-            {
-                if (!solution.ContainsProject(documentId.ProjectId))
-                    _documentToLastReportedInformation.TryRemove(documentId, out _);
-            }
-
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
                 return;
 
-            // Handle the priority doc first.
-            var trackingService = _workspace.Services.GetRequiredService<IDocumentTrackingService>();
-            var priorityDocumentId = trackingService.TryGetActiveDocument();
-            var priorityDocument = solution.GetDocument(priorityDocumentId);
+            var solution = _workspace.CurrentSolution;
 
+            // remove any data for projects that are no longer around.
+            await HandRemovedProjectsAsync(solution).ConfigureAwait(false);
+
+            // Now process all the projects we do have, prioritizing the active project/document first.
+            var trackingService = _workspace.Services.GetRequiredService<IDocumentTrackingService>();
+
+            var priorityDocument = solution.GetDocument(trackingService.TryGetActiveDocument());
             if (priorityDocument != null)
-                await ProcessProjectAsync(client, priorityDocument.Project, priorityDocumentId, cancellationToken).ConfigureAwait(false);
+                await ProcessProjectAsync(client, priorityDocument.Project, priorityDocument.Id, cancellationToken).ConfigureAwait(false);
 
             // Process the rest of the projects in dependency order so that their data is ready when we hit the 
             // projects that depend on them.
             var dependencyGraph = solution.GetProjectDependencyGraph();
             foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects(cancellationToken))
             {
-                if (projectId == priorityDocumentId?.ProjectId)
+                // skip the prioritized project we handled above.
+                if (projectId == priorityDocument?.Id.ProjectId)
                     continue;
 
                 await ProcessProjectAsync(client, solution.GetRequiredProject(projectId), priorityDocumentId: null, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private Task ProcessProjectAsync(
+        private async Task HandRemovedProjectsAsync(CodeAnalysis.Solution solution)
+        {
+            foreach (var projectId in _projectToLastComputedDependentSemanticVersion.Keys)
+            {
+                if (!solution.ContainsProject(projectId))
+                {
+                    // when a project is removed, flush out all the data we have for it.  We can simulate this by just
+                    // acting as if we got no results back at all for this project.
+                    await ProcessResultsDataAsync(projectId, AsyncEnumerable<DesignerAttributeData>.Empty).ConfigureAwait(false);
+                    _projectToLastComputedDependentSemanticVersion.TryRemove(projectId, out _);
+                }
+            }
+
+            foreach (var (projectId, _) in _cpsProjects)
+            {
+                if (!solution.ContainsProject(projectId))
+                    _cpsProjects.TryRemove(projectId, out _);
+            }
+        }
+
+        private async Task ProcessProjectAsync(
             RemoteHostClient client,
             CodeAnalysis.Project project,
             DocumentId? priorityDocumentId,
             CancellationToken cancellationToken)
         {
+            // We need to recompute the designer attributes for a project if it's own semantic-version changes, or the
+            // semantic-version of any dependent projects change.  The reason for checking dependent projects is that we
+            // look for the designer attribute on subclasses as well (so we have to walk the inheritance tree).  This
+            // tree may be unfortunately be affected by dependent projects.  In an ideal design we would require the
+            // attribute be on the declaration point so we could only check things that are known to directly have an
+            // attribute on them, and we wouldn't have to look up the inheritance hierarchy.
+            var dependentSemanticVersion = await project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
+            if (!_projectToLastComputedDependentSemanticVersion.TryGetValue(project.Id, out var lastComputedVersion) ||
+                lastComputedVersion != dependentSemanticVersion)
+            {
+                var stream = client.TryInvokeStreamAsync<IRemoteDesignerAttributeDiscoveryService, DesignerAttributeData>(
+                    project,
+                    (service, checksum, cancellationToken) => service.DiscoverDesignerAttributesAsync(checksum, project.Id, priorityDocumentId, cancellationToken),
+                    cancellationToken);
 
-            var stream = client.TryInvokeStreamAsync<IRemoteDesignerAttributeDiscoveryService, DesignerAttributeData>(
-                project,
-                (service, checksum, cancellationToken) => service.DiscoverDesignerAttributesAsync(checksum, project.Id, priorityDocumentId, cancellationToken),
-                cancellationToken);
+                await ProcessResultsDataAsync(project.Id, stream).ConfigureAwait(false);
 
+                // now that we're done processing the project, record this version-stamp so we don't have to process it again in the future.
+                _projectToLastComputedDependentSemanticVersion[project.Id] = dependentSemanticVersion;
+            }
+        }
+
+        private async Task ProcessResultsDataAsync(ProjectId projectId, IAsyncEnumerable<DesignerAttributeData> stream)
+        {
+            using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenDocuments);
+
+            // get the results and add all the documents we hear about to the notification queue so they can be batched up.
             await foreach (var data in stream.ConfigureAwait(false))
+            {
+                seenDocuments.Add(data.DocumentId);
                 _projectSystemNotificationQueue.AddWork(data);
-            var stream = client.TryInvokeStreamAsync<IRemoteDesignerAttributeDiscoveryService, DesignerAttributeData>(
-        solution,
-        (service, checksum, cancellationToken) => service.DiscoverDesignerAttributesAsync(checksum, priorityDocument, cancellationToken),
-        cancellationToken);
+            }
 
-            await foreach (var data in stream.ConfigureAwait(false))
-                _projectSystemNotificationQueue.AddWork(data);
+            // now, if we didn't hear about some document that we previous reported, then go through and notify the project system
+            // that the document is no longer designable.
+            foreach (var (documentId, lastReportedData) in _documentToLastReportedData)
+            {
+                if (documentId.ProjectId == projectId &&
+                    !seenDocuments.Contains(documentId))
+                {
+                    _projectSystemNotificationQueue.AddWork(lastReportedData.WithCategory(null));
+                }
+            }
         }
 
         private async ValueTask NotifyProjectSystemAsync(
-            ImmutableSegmentedList<DesignerAttributeData> data, CancellationToken cancellationToken)
+            ImmutableSegmentedList<DesignerAttributeData> dataList, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var _1 = ArrayBuilder<DesignerAttributeData>.GetInstance(out var filteredInfos);
-            AddFilteredInfos(data, filteredInfos);
+            using var _1 = ArrayBuilder<DesignerAttributeData>.GetInstance(out var filteredData);
+            AddFilteredData(dataList, filteredData);
 
             // Now, group all the notifications by project and update all the projects in parallel.
             using var _2 = ArrayBuilder<Task>.GetInstance(out var tasks);
-            foreach (var group in filteredInfos.GroupBy(a => a.DocumentId.ProjectId))
+            foreach (var group in filteredData.GroupBy(a => a.DocumentId.ProjectId))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 tasks.Add(NotifyProjectSystemAsync(group.Key, group, cancellationToken));
@@ -198,40 +252,57 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             // Wait until all project updates have happened before processing the next batch.
             await Task.WhenAll(tasks).ConfigureAwait(false);
+
+            // now that we've reported this data, record that we've done so so that we don't report the same data again in the future.
+            foreach (var data in filteredData)
+                _documentToLastReportedData[data.DocumentId] = data;
         }
 
-        private static void AddFilteredInfos(ImmutableSegmentedList<DesignerAttributeData> data, ArrayBuilder<DesignerAttributeData> filteredData)
+        private void AddFilteredData(ImmutableSegmentedList<DesignerAttributeData> dataList, ArrayBuilder<DesignerAttributeData> filteredData)
         {
-            using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenDocumentIds);
+            using var _1 = PooledHashSet<DocumentId>.GetInstance(out var seenDocumentIds);
+            using var _2 = ArrayBuilder<DesignerAttributeData>.GetInstance(out var initialData);
 
-            // Walk the list of designer items in reverse, and skip any items for a project once
-            // we've already seen it once.  That way, we're only reporting the most up to date
-            // information for a project, and we're skipping the stale information.
-            for (var i = data.Count - 1; i >= 0; i--)
+            // Walk the list of designer items in reverse, and skip any items for a document once we've already seen it
+            // once.  That way, we're only reporting the most up to date information for a document, and we're skipping
+            // the stale information.
+            for (var i = dataList.Count - 1; i >= 0; i--)
             {
-                var info = data[i];
-                if (seenDocumentIds.Add(info.DocumentId))
-                    filteredData.Add(info);
+                var data = dataList[i];
+                if (seenDocumentIds.Add(data.DocumentId))
+                    initialData.Add(data);
+            }
+
+            // Don't bother re-reporting a designer category equivalent to what we last reported.
+            foreach (var data in initialData)
+            {
+                if (_documentToLastReportedData.TryGetValue(data.DocumentId, out var existingData) &&
+                    existingData.Category == data.Category)
+                {
+                    continue;
+                }
+
+                filteredData.Add(data);
             }
         }
 
         private async Task NotifyProjectSystemAsync(
             ProjectId projectId,
-            IEnumerable<DesignerAttributeData> data,
+            IEnumerable<DesignerAttributeData> dataList,
             CancellationToken cancellationToken)
         {
             // Delegate to the CPS or legacy notification services as necessary.
             var cpsUpdateService = await GetUpdateServiceIfCpsProjectAsync(projectId, cancellationToken).ConfigureAwait(false);
             var task = cpsUpdateService == null
-                ? NotifyLegacyProjectSystemAsync(projectId, data, cancellationToken)
-                : NotifyCpsProjectSystemAsync(projectId, cpsUpdateService, data, cancellationToken);
+                ? NotifyLegacyProjectSystemAsync(projectId, dataList, cancellationToken)
+                : NotifyCpsProjectSystemAsync(projectId, cpsUpdateService, dataList, cancellationToken);
 
             await task.ConfigureAwait(false);
         }
 
         private async Task NotifyLegacyProjectSystemAsync(
             ProjectId projectId,
-            IEnumerable<DesignerAttributeData> data,
+            IEnumerable<DesignerAttributeData> dataList,
             CancellationToken cancellationToken)
         {
             // legacy project system can only be talked to on the UI thread.
@@ -247,10 +318,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             if (hierarchy == null)
                 return;
 
-            foreach (var info in data)
+            foreach (var data in dataList)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                NotifyLegacyProjectSystemOnUIThread(designerService, hierarchy, info);
+                NotifyLegacyProjectSystemOnUIThread(designerService, hierarchy, data);
             }
         }
 
@@ -292,7 +363,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         private async Task NotifyCpsProjectSystemAsync(
             ProjectId projectId,
             IProjectItemDesignerTypeUpdateService updateService,
-            IEnumerable<DesignerAttributeData> data,
+            IEnumerable<DesignerAttributeData> dataList,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -307,10 +378,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
 
-            foreach (var info in data)
+            foreach (var data in dataList)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                tasks.Add(NotifyCpsProjectSystemAsync(updateService, info, cancellationToken));
+                tasks.Add(NotifyCpsProjectSystemAsync(updateService, data, cancellationToken));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);

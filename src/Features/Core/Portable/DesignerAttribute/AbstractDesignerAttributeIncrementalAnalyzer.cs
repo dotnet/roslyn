@@ -27,9 +27,10 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
 
         public async IAsyncEnumerable<DesignerAttributeData> ProcessProjectAsync(
             Project project,
-            DocumentId? specificDocumentId,
+            DocumentId? priorityDocumentId,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
+            // Ignore projects that don't support compilation or don't even have the DesignerCategoryAttribute in it.
             if (!project.SupportsCompilation)
                 yield break;
 
@@ -38,41 +39,20 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             if (designerCategoryType == null)
                 yield break;
 
-            var specificDocument = project.GetDocument(specificDocumentId);
-            await foreach (var item in ScanForDesignerCategoryUsageAsync(
-                project, specificDocument, designerCategoryType, cancellationToken).ConfigureAwait(false))
+            // If there is a priority doc, then scan that first.
+            var priorityDocument = priorityDocumentId == null ? null : project.GetDocument(priorityDocumentId);
+            if (priorityDocument is { FilePath: not null })
             {
-                yield return item;
+                var data = await ComputeDesignerAttributeDataAsync(designerCategoryType, priorityDocument, cancellationToken).ConfigureAwait(false);
+                if (data != null)
+                    yield return data.Value;
             }
 
-            // If we scanned just a specific document in the project, now scan the rest of the files.
-            if (specificDocument != null)
-            {
-                await foreach (var item in ScanForDesignerCategoryUsageAsync(
-                    project, specificDocument: null, designerCategoryType, cancellationToken).ConfigureAwait(false))
-                {
-                    yield return item;
-                }
-            }
-        }
-
-        private static async IAsyncEnumerable<DesignerAttributeData> ScanForDesignerCategoryUsageAsync(
-            Project project,
-            Document? specificDocument,
-            INamedTypeSymbol designerCategoryType,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
-        {
-            // Kick off the work in parallel across the documents of interest.
-            using var _1 = ArrayBuilder<Task<DesignerAttributeData?>>.GetInstance(out var tasks);
+            // now process the rest of the documents.
+            using var _ = ArrayBuilder<Task<DesignerAttributeData?>>.GetInstance(out var tasks);
             foreach (var document in project.Documents)
             {
-                // If we're only analyzing a specific document, then skip the rest.
-                if (specificDocument != null && document != specificDocument)
-                    continue;
-
-                // If we don't have a path for this document, we cant proceed with it.
-                // We need that path to inform the project system which file we're referring to.
-                if (document.FilePath == null)
+                if (document == priorityDocument || document.FilePath is null)
                     continue;
 
                 tasks.Add(ComputeDesignerAttributeDataAsync(designerCategoryType, document, cancellationToken));
@@ -81,10 +61,8 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             // Convert the tasks into one final stream we can read all the results from.
             await foreach (var dataOpt in tasks.ToImmutable().StreamAsync(cancellationToken).ConfigureAwait(false))
             {
-                if (dataOpt is null)
-                    continue;
-
-                yield return dataOpt.Value;
+                if (dataOpt != null)
+                    yield return dataOpt.Value;
             }
         }
 
@@ -95,18 +73,16 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             {
                 Contract.ThrowIfNull(document.FilePath);
 
-                // We either haven't computed the designer info, or our data was out of date.  We need
-                // So recompute here.  Figure out what the current category is, and if that's different
-                // from what we previously stored.
                 var category = await DesignerAttributeHelpers.ComputeDesignerAttributeCategoryAsync(
                     designerCategoryType, document, cancellationToken).ConfigureAwait(false);
 
-                return new DesignerAttributeData
-                {
-                    Category = category,
-                    DocumentId = document.Id,
-                    FilePath = document.FilePath,
-                };
+                // If there's no category (the common case) don't return anything.  The host itself will see no results
+                // returned and can handle that case (for example, if a type previously had the attribute but doesn't
+                // any longer).
+                if (category == null)
+                    return null;
+
+                return new DesignerAttributeData(category, document.Id, document.FilePath);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
