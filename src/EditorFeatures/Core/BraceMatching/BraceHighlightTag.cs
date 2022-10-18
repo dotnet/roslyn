@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.BraceMatching
 {
-    internal class BraceHighlightTag : TextMarkerTag
+    internal sealed class BraceHighlightTag : TextMarkerTag, IEquatable<BraceHighlightTag>
     {
         public static readonly BraceHighlightTag StartTag = new(navigateToStart: true);
         public static readonly BraceHighlightTag EndTag = new(navigateToStart: false);
@@ -20,5 +19,14 @@ namespace Microsoft.CodeAnalysis.BraceMatching
         {
             this.NavigateToStart = navigateToStart;
         }
+
+        public override bool Equals(object obj)
+            => Equals(obj as BraceHighlightTag);
+
+        public bool Equals(BraceHighlightTag other)
+            => other != null && NavigateToStart == other.NavigateToStart;
+
+        public override int GetHashCode()
+            => NavigateToStart.GetHashCode();
     }
 }

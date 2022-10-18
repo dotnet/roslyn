@@ -47,6 +47,10 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveAllTags;
         protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.ReferenceHighlighting);
 
+        // Fine to use EqualityComparer<>.Default here as all the NavigableHighlightTag subclasses are singletons and thus works properly here.
+        protected override IEqualityComparer<NavigableHighlightTag> TagEqualityComparer
+            => EqualityComparer<NavigableHighlightTag>.Default;
+
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public ReferenceHighlightingViewTaggerProvider(

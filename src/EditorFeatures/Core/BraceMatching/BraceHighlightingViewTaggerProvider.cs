@@ -36,6 +36,10 @@ namespace Microsoft.CodeAnalysis.BraceMatching
 
         protected override IEnumerable<Option2<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.BraceMatching);
 
+        // Fine to use EqualityComparer<>.Default here as BraceHighlightTag is IEquatable.
+        protected override IEqualityComparer<BraceHighlightTag> TagEqualityComparer
+            => EqualityComparer<BraceHighlightTag>.Default;
+
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public BraceHighlightingViewTaggerProvider(

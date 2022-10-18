@@ -81,6 +81,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// </summary>
         protected virtual TaggerDelay AddedTagNotificationDelay => TaggerDelay.NearImmediate;
 
+        /// <summary>
+        /// Comparer used to check if two tags are the same.  Used so that when new tags are produced, they can be
+        /// appropriately 'diffed' to determine what changes to actually report in <see cref="ITagger{T}.TagsChanged"/>.
+        /// </summary>
+        protected abstract IEqualityComparer<TTag> TagEqualityComparer { get; }
+
 #if DEBUG
         public readonly string StackTrace;
 #endif
