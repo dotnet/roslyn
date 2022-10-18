@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
     /// Information used to decided the margin image and responsible for performing navigations
     /// </summary>
     [DataContract]
-    internal readonly struct InheritanceTargetItem : IEquatable<InheritanceTargetItem>
+    internal readonly record struct InheritanceTargetItem
     {
         /// <summary>
         /// Indicate the inheritance relationship between the target and member.
@@ -67,19 +67,5 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             DisplayName = displayName;
             ProjectName = projectName;
         }
-
-        public override int GetHashCode()
-            => throw ExceptionUtilities.Unreachable();
-
-        public override bool Equals(object? obj)
-            => obj is InheritanceTargetItem item && Equals(item);
-
-        public bool Equals(InheritanceTargetItem other)
-            => this.RelationToMember == other.RelationToMember &&
-               this.Glyph == other.Glyph &&
-               this.LanguageGlyph == other.LanguageGlyph &&
-               this.DisplayName == other.DisplayName &&
-               this.ProjectName == other.ProjectName &&
-               this.DefinitionItem.Equals(other.DefinitionItem);
     }
 }
