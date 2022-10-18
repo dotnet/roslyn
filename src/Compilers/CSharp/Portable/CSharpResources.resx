@@ -7280,6 +7280,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NewConstraintCannotHaveRequiredMembers" xml:space="preserve">
     <value>'{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</value>
   </data>
+  <data name="ERR_FieldKeywordInsideNameOf" xml:space="preserve">
+    <value>Cannot use 'field' keyword inside 'nameof' expressions.</value>
+  </data>
   <data name="ERR_FileTypeDisallowedInSignature" xml:space="preserve">
     <value>File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</value>
   </data>

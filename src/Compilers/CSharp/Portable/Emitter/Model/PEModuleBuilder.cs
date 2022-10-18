@@ -389,6 +389,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                                     case SymbolKind.Property:
                                         AddSymbolLocation(result, member);
+                                        FieldSymbol fieldKeywordBackingField = (member as SourcePropertySymbolBase)?.FieldKeywordBackingField;
+                                        if (fieldKeywordBackingField is not null)
+                                        {
+                                            AddSymbolLocation(result, fieldKeywordBackingField);
+                                        }
+
                                         break;
                                     case SymbolKind.Field:
                                         if (member is TupleErrorFieldSymbol)

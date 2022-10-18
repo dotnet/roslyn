@@ -2268,6 +2268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_RefReturnOnlyParameter2:
                 case ErrorCode.ERR_RefAssignValEscapeWider:
                 case ErrorCode.WRN_RefAssignValEscapeWider:
+                case ErrorCode.ERR_FieldKeywordInsideNameOf:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

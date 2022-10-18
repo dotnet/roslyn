@@ -142,7 +142,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Optional data collected during testing only.
         /// Used for instance for nullable analysis (<see cref="NullableWalker.NullableAnalysisData"/>)
-        /// and inferred delegate types (<see cref="InferredDelegateTypeData"/>).
+        /// and inferred delegate types (<see cref="InferredDelegateTypeData"/>)
+        /// and semi auto implemented properties (<see cref="SourcePropertySymbolBase.AccessorBindingData"/>.
         /// </summary>
         internal object? TestOnlyCompilationData;
 
@@ -2588,7 +2589,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// A bag in which circular struct diagnostics should be reported.
+        /// </summary>
+        internal BindingDiagnosticBag CircularStructDiagnostics
+        {
+            get
+            {
+                return _circularStructDiagnostics;
+            }
+        }
+
         private readonly DiagnosticBag _additionalCodegenWarnings = new DiagnosticBag();
+        private readonly BindingDiagnosticBag _circularStructDiagnostics = new BindingDiagnosticBag(new DiagnosticBag(), new ConcurrentSet<AssemblySymbol>());
 
         internal DeclarationTable Declarations
         {

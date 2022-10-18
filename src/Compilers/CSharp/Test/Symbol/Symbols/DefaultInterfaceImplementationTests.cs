@@ -3244,14 +3244,17 @@ public interface I1
                                                      targetFramework: TargetFramework.Net60);
                 Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 compilation1.VerifyEmitDiagnostics(
-                    // (4,13): error CS1014: A get, set or init accessor expected
-                    //     int P1 {add; remove;} = 0;
+                    // (4,28): error CS1014: A get or set accessor expected
+                    //     static virtual int P1 {add; remove;} = 0;
                     Diagnostic(ErrorCode.ERR_GetOrSetExpected, "add").WithLocation(4, 28),
-                    // (4,18): error CS1014: A get, set or init accessor expected
-                    //     int P1 {add; remove;} = 0;
+                    // (4,33): error CS1014: A get or set accessor expected
+                    //     static virtual int P1 {add; remove;} = 0;
                     Diagnostic(ErrorCode.ERR_GetOrSetExpected, "remove").WithLocation(4, 33),
-                    // (4,9): error CS0548: 'I1.P1': property or indexer must have at least one accessor
-                    //     int P1 {add; remove;} = 0;
+                    // (4,24): error CS8050: Only auto-implemented properties can have initializers.
+                    //     static virtual int P1 {add; remove;} = 0;
+                    Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(4, 24),
+                    // (4,24): error CS0548: 'I1.P1': property or indexer must have at least one accessor
+                    //     static virtual int P1 {add; remove;} = 0;
                     Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P1").WithArguments("I1.P1").WithLocation(4, 24)
                     );
 

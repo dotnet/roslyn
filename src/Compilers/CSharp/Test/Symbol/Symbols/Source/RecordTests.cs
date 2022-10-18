@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static CSharpCompilation CreateCompilation(CSharpTestSource source)
             => CSharpTestBase.CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
 
-        private CompilationVerifier CompileAndVerify(CSharpTestSource src, string? expectedOutput = null)
+        private CompilationVerifier CompileAndVerify(CSharpTestSource src, string expectedOutput = null)
             => base.CompileAndVerify(new[] { src, IsExternalInitTypeDefinition },
                 expectedOutput: expectedOutput,
                 parseOptions: TestOptions.Regular9,
@@ -150,7 +152,7 @@ record C(int x, string y)
 
             var x = (SourcePropertySymbolBase)c.GetProperty("x");
             Assert.NotNull(x.GetMethod);
-            Assert.Equal(MethodKind.PropertyGet, x.GetMethod!.MethodKind);
+            Assert.Equal(MethodKind.PropertyGet, x.GetMethod.MethodKind);
             Assert.Equal(SpecialType.System_Int32, x.Type.SpecialType);
             Assert.False(x.IsReadOnly);
             Assert.False(x.IsWriteOnly);
@@ -175,7 +177,7 @@ record C(int x, string y)
             Assert.Equal(Accessibility.Public, getAccessor.DeclaredAccessibility);
 
             var setAccessor = x.SetMethod;
-            Assert.Equal(x, setAccessor!.AssociatedSymbol);
+            Assert.Equal(x, setAccessor.AssociatedSymbol);
             Assert.True(setAccessor.IsImplicitlyDeclared);
             Assert.Equal(c, setAccessor.ContainingSymbol);
             Assert.Equal(c, setAccessor.ContainingType);
@@ -184,7 +186,7 @@ record C(int x, string y)
 
             var y = (SourcePropertySymbolBase)c.GetProperty("y");
             Assert.NotNull(y.GetMethod);
-            Assert.Equal(MethodKind.PropertyGet, y.GetMethod!.MethodKind);
+            Assert.Equal(MethodKind.PropertyGet, y.GetMethod.MethodKind);
             Assert.Equal(SpecialType.System_Int32, y.Type.SpecialType);
             Assert.False(y.IsReadOnly);
             Assert.False(y.IsWriteOnly);
@@ -208,7 +210,7 @@ record C(int x, string y)
             Assert.Equal(c, getAccessor.ContainingType);
 
             setAccessor = y.SetMethod;
-            Assert.Equal(y, setAccessor!.AssociatedSymbol);
+            Assert.Equal(y, setAccessor.AssociatedSymbol);
             Assert.True(setAccessor.IsImplicitlyDeclared);
             Assert.Equal(c, setAccessor.ContainingSymbol);
             Assert.Equal(c, setAccessor.ContainingType);
@@ -1123,7 +1125,7 @@ partial record C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int X, int Y)").WithLocation(13, 17)
                 );
 
-            Assert.Equal(new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C original)" }, comp.GetTypeByMetadataName("C")!.Constructors.Select(m => m.ToTestDisplayString()));
+            Assert.Equal(new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C original)" }, comp.GetTypeByMetadataName("C").Constructors.Select(m => m.ToTestDisplayString()));
         }
 
         [Fact]
@@ -1152,7 +1154,7 @@ partial record C(int X)
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int X)").WithLocation(13, 17)
                 );
 
-            Assert.Equal(new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C original)" }, comp.GetTypeByMetadataName("C")!.Constructors.Select(m => m.ToTestDisplayString()));
+            Assert.Equal(new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C original)" }, comp.GetTypeByMetadataName("C").Constructors.Select(m => m.ToTestDisplayString()));
         }
 
         [Fact]

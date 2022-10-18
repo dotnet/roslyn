@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override Location TypeLocation
             => ContainingType.Locations[0];
 
-        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool bodyShouldBeSynthesizedForSemicolonOnly, BindingDiagnosticBag diagnostics)
         {
-            return SourcePropertyAccessorSymbol.CreateAccessorSymbol(
+            return new GetAccessorSymbol(
                 ContainingType,
                 this,
                 _modifiers,
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics);
         }
 
-        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool bodyShouldBeSynthesizedForSemicolonOnly, BindingDiagnosticBag diagnostics)
         {
             throw ExceptionUtilities.Unreachable();
         }
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed class GetAccessorSymbol : SourcePropertyAccessorSymbol
+        private sealed class GetAccessorSymbol : SourcePropertyAccessorSymbol
         {
             internal GetAccessorSymbol(
                 NamedTypeSymbol containingType,
@@ -139,13 +139,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                        propertyModifiers,
                        location,
                        syntax,
-                       hasBody: true,
+                       hasBlockBody: true,
                        hasExpressionBody: false,
                        isIterator: false,
                        modifiers: new SyntaxTokenList(),
                        MethodKind.PropertyGet,
                        usesInit: false,
-                       isAutoPropertyAccessor: false,
+                       bodyShouldBeSynthesized: false,
                        isNullableAnalysisEnabled: false,
                        diagnostics)
             {

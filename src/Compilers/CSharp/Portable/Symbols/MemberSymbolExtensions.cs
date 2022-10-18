@@ -641,6 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Event:
                     field = ((EventSymbol)member).AssociatedField;
                     return (object)field != null;
+                // PROTOTYPE(semi-auto-props): Revise if we need to do something for FieldKeywordBackingfield.
                 default:
                     field = null;
                     return false;
@@ -657,6 +658,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return member.IsIndexer() ? member.MetadataName :
                 member.IsExplicitInterfaceImplementation() ? ExplicitInterfaceHelpers.GetMemberNameWithoutInterfaceName(member.Name) :
                 member.Name;
+        }
+
+        internal static bool CanHaveFieldKeywordBackingField(this Symbol symbol)
+        {
+            Debug.Assert(symbol.ContainingSymbol.Kind is SymbolKind.NamedType or SymbolKind.Namespace or SymbolKind.NetModule, $"Unexpected SymbolKind '{symbol.ContainingSymbol.Kind}'.");
+            return symbol is SourcePropertyAccessorSymbol { Property.IsIndexer: false };
         }
     }
 }

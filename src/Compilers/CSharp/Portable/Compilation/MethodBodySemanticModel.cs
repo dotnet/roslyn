@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)owner != null);
             Debug.Assert(owner.Kind == SymbolKind.Method);
+            Debug.Assert(owner.MethodKind is not (MethodKind.LocalFunction or MethodKind.AnonymousFunction));
             Debug.Assert(syntax != null);
             Debug.Assert(parentRemappedSymbolsOpt is null || IsSpeculativeSemanticModel);
             Debug.Assert((syntax.Kind() == SyntaxKind.CompilationUnit) == (!IsSpeculativeSemanticModel && owner is SynthesizedSimpleProgramEntryPointSymbol));
@@ -168,7 +169,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             position = CheckAndAdjustPosition(position);
 
             var methodSymbol = (MethodSymbol)this.MemberSymbol;
-
             // Strip off ExecutableCodeBinder (see ctor).
             Binder binder = this.RootBinder;
 
@@ -185,8 +185,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (binder != null);
 
             Debug.Assert(binder != null);
-
             Binder executablebinder = new WithNullableContextBinder(SyntaxTree, position, binder ?? this.RootBinder);
+
+            Debug.Assert(executablebinder.ContainingMember().Equals(methodSymbol, TypeCompareKind.ConsiderEverything));
+            executablebinder = AddSpeculativeFieldKeywordBinderIfNeeded(executablebinder);
+
             executablebinder = new ExecutableCodeBinder(body, methodSymbol, executablebinder);
             var blockBinder = executablebinder.GetBinder(body).WithAdditionalFlags(GetSemanticModelBinderFlags());
             // We don't pass the snapshot manager along here, because we're speculating about an entirely new body and it should not
@@ -213,6 +216,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var methodSymbol = (MethodSymbol)this.MemberSymbol;
             binder = new WithNullableContextBinder(SyntaxTree, position, binder);
+
+            Debug.Assert(methodSymbol.MethodKind is not (MethodKind.LocalFunction or MethodKind.AnonymousFunction));
+            Debug.Assert(binder.ContainingMember().Equals(methodSymbol, TypeCompareKind.ConsiderEverything));
+            binder = AddSpeculativeFieldKeywordBinderIfNeeded(binder);
+
             binder = new ExecutableCodeBinder(statement, methodSymbol, binder);
             speculativeModel = CreateSpeculative(parentModel, methodSymbol, statement, binder, GetSnapshotManager(), GetRemappedSymbols(), position);
             return true;
@@ -231,6 +239,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var methodSymbol = (MethodSymbol)this.MemberSymbol;
             binder = new WithNullableContextBinder(SyntaxTree, position, binder);
+
+            Debug.Assert(binder.ContainingMember().Equals(methodSymbol, TypeCompareKind.ConsiderEverything));
+            binder = AddSpeculativeFieldKeywordBinderIfNeeded(binder);
+
             binder = new ExecutableCodeBinder(expressionBody, methodSymbol, binder);
 
             speculativeModel = CreateSpeculative(parentModel, methodSymbol, expressionBody, binder, position);

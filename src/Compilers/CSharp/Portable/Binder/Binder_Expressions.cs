@@ -1585,6 +1585,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Cannot escape out of the current expression, as it's a compiler-synthesized location.
                         expression = new BoundDiscardExpression(node, LocalScopeDepth, type: null);
                     }
+                    else if (node.Identifier.ContextualKind() == SyntaxKind.FieldKeyword &&
+                        ContainingMember().CanHaveFieldKeywordBackingField())
+                    {
+                        if (GetSymbolForPossibleFieldKeyword() is { } backingField)
+                        {
+                            expression = BindNonMethod(node, backingField, diagnostics, LookupResultKind.Viable, indexed: false, isError: false);
+                            if (IsInsideNameof)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_FieldKeywordInsideNameOf, node);
+                            }
+                            else if (backingField.ContainingType.IsInterface && !backingField.IsStatic)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_InterfacesCantContainFields, node);
+                            }
+                        }
+                    }
                 }
 
                 // Otherwise, the simple-name is undefined and a compile-time error occurs.

@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -20,6 +19,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal abstract class SourcePropertySymbolBase : PropertySymbol, IAttributeTargetSymbol
     {
+        /// <summary>
+        /// This is used for testing only.
+        /// </summary>
+        internal sealed class AccessorBindingData
+        {
+            private int _numberOfPerformedAccessorBinding;
+
+            public int NumberOfPerformedAccessorBinding => _numberOfPerformedAccessorBinding;
+
+            internal void NoteBinding()
+            {
+                Interlocked.Increment(ref _numberOfPerformedAccessorBinding);
+            }
+        }
+
         protected const string DefaultIndexerName = "Item";
 
         /// <summary>
@@ -33,6 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             IsAutoProperty = 1 << 1,
             IsExplicitInterfaceImplementation = 1 << 2,
             HasInitializer = 1 << 3,
+            HasGetAccessor = 1 << 4,
+            HasSetAccessor = 1 << 5,
+            IsInitOnly = 1 << 6,
         }
 
         // TODO (tomat): consider splitting into multiple subclasses/rare data.
@@ -45,6 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable enable
         private readonly SourcePropertyAccessorSymbol? _getMethod;
         private readonly SourcePropertyAccessorSymbol? _setMethod;
+        private object? _lazyBackingFieldSymbol = _lazyBackingFieldSymbolSentinel;
 #nullable disable
         private readonly TypeSymbol _explicitInterfaceType;
         private ImmutableArray<PropertySymbol> _lazyExplicitInterfaceImplementations;
@@ -62,6 +80,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
         private SynthesizedSealedPropertyAccessor _lazySynthesizedSealedAccessor;
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
+
+        /// <summary>
+        /// Represents that <see cref="_lazyBackingFieldSymbol"/> value is unknown.
+        /// </summary>
+        private static readonly object _lazyBackingFieldSymbolSentinel = new object();
 
         // CONSIDER: if the parameters were computed lazily, ParameterCount could be overridden to fall back on the syntax (as in SourceMemberMethodSymbol).
 
@@ -125,6 +148,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _propertyFlags |= Flags.IsExpressionBodied;
             }
 
+            if (hasGetAccessor)
+            {
+                _propertyFlags |= Flags.HasGetAccessor;
+            }
+
+            if (hasSetAccessor)
+            {
+                _propertyFlags |= Flags.HasSetAccessor;
+            }
+
+            if (isInitOnly)
+            {
+                _propertyFlags |= Flags.IsInitOnly;
+            }
+
             if (isIndexer)
             {
                 if (indexerNameAttributeLists.Count == 0 || isExplicitInterfaceImplementation)
@@ -146,23 +184,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((isAutoProperty && hasGetAccessor) || hasInitializer)
             {
                 Debug.Assert(!IsIndexer);
-                string fieldName = GeneratedNames.MakeBackingFieldName(_name);
-                BackingField = new SynthesizedBackingFieldSymbol(this,
-                                                                      fieldName,
-                                                                      isReadOnly: (hasGetAccessor && !hasSetAccessor) || isInitOnly,
-                                                                      this.IsStatic,
-                                                                      hasInitializer);
+                // PROTOTYPE(semi-auto-props): Make sure that TestSemiAutoPropertyWithInitializer (when enabled back) is affected by this.
+                // That is, if we removed "hasInitializer", the test should fail, or any other test should get affected.
+                GetOrCreateBackingField(isCreatedForFieldKeyword: hasInitializer && !isAutoProperty, isEarlyConstructed: true);
             }
 
             if (hasGetAccessor)
             {
-                _getMethod = CreateGetAccessorSymbol(isAutoPropertyAccessor: isAutoProperty, diagnostics);
+                _getMethod = CreateGetAccessorSymbol(bodyShouldBeSynthesizedForSemicolonOnly: isAutoProperty, diagnostics);
             }
-
             if (hasSetAccessor)
             {
-                _setMethod = CreateSetAccessorSymbol(isAutoPropertyAccessor: isAutoProperty, diagnostics);
+                _setMethod = CreateSetAccessorSymbol(bodyShouldBeSynthesizedForSemicolonOnly: isAutoProperty, diagnostics);
             }
+        }
+
+        private SynthesizedBackingFieldSymbol? GetOrCreateBackingField(bool isCreatedForFieldKeyword, bool isEarlyConstructed)
+        {
+            Debug.Assert(!IsIndexer);
+            if (_lazyBackingFieldSymbol == _lazyBackingFieldSymbolSentinel)
+            {
+                var backingField = new SynthesizedBackingFieldSymbol(this,
+                                              GeneratedNames.MakeBackingFieldName(_name),
+                                              isReadOnly: (HasGetAccessor && !HasSetAccessor) || IsInitOnly,
+                                              this.IsStatic,
+                                              hasInitializer: (_propertyFlags & Flags.HasInitializer) != 0,
+                                              isCreatedForFieldKeyword: isCreatedForFieldKeyword,
+                                              isEarlyConstructed: isEarlyConstructed);
+                Interlocked.CompareExchange(ref _lazyBackingFieldSymbol, backingField, _lazyBackingFieldSymbolSentinel);
+            }
+
+            return (SynthesizedBackingFieldSymbol?)_lazyBackingFieldSymbol;
+        }
+
+        internal SynthesizedBackingFieldSymbol? GetOrCreateBackingFieldForFieldKeyword()
+        {
+            return GetOrCreateBackingField(isCreatedForFieldKeyword: true, isEarlyConstructed: false);
         }
 
         private void EnsureSignatureGuarded(BindingDiagnosticBag diagnostics)
@@ -263,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => (_propertyFlags & Flags.IsExpressionBodied) != 0;
 
         private void CheckInitializer(
-            bool isAutoProperty,
+            bool allowsInitializer,
             bool isInterface,
             bool isStatic,
             Location location,
@@ -273,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_InstancePropertyInitializerInInterface, location);
             }
-            else if (!isAutoProperty)
+            else if (!allowsInitializer)
             {
                 diagnostics.Add(ErrorCode.ERR_InitializerOnNonAutoProperty, location);
             }
@@ -345,6 +402,76 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // reentrant lock to avoid deadlock and cannot assert that at this point the work
                         // has completed (_state.HasComplete(CompletionPart.FinishPropertyEnsureSignature)).
                     }
+                }
+            }
+        }
+
+        /// <summary>
+        /// If the backing field is unknown, set it to null.
+        /// </summary>
+        /// <remarks>
+        /// This should be called only if we're sure the backing field can't become non-null value if it's not already.
+        /// </remarks>
+        internal void MarkBackingFieldAsCalculated(BindingDiagnosticBag? diagnostics)
+        {
+            Interlocked.CompareExchange(ref _lazyBackingFieldSymbol, null, _lazyBackingFieldSymbolSentinel);
+            if (diagnostics is null || !IsOverride || _lazyBackingFieldSymbol is null)
+            {
+                return;
+            }
+
+            var fieldSymbol = (SynthesizedBackingFieldSymbol)_lazyBackingFieldSymbol;
+            if (fieldSymbol.IsCreatedForFieldKeyword)
+            {
+                // semi auto property should override all accessors.
+                if ((!HasSetAccessor && !this.IsReadOnly) ||
+                    (!HasGetAccessor && !this.IsWriteOnly))
+                {
+                    diagnostics.Add(ErrorCode.ERR_AutoPropertyMustOverrideSet, Location);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Ensures that <see cref="_lazyBackingFieldSymbol" /> is set if necessary.
+        /// </summary>
+        /// <remarks>
+        /// This method *may* trigger binding to figure out if we have a field keyword in an accessor.
+        /// </remarks>
+        private void EnsureBackingFieldIsSynthesized()
+        {
+            // The backing field is already set.
+            if (_lazyBackingFieldSymbol != _lazyBackingFieldSymbolSentinel)
+            {
+                return;
+            }
+
+            if (this is SourcePropertySymbol propertySymbol)
+            {
+                if (propertySymbol.GetMethod is SourcePropertyAccessorSymbol { ContainsFieldIdentifier: true } getMethod)
+                {
+                    noteAccessorBinding();
+                    var binder = getMethod.TryGetBodyBinder();
+                    binder?.BindMethodBody(getMethod.SyntaxNode, BindingDiagnosticBag.Discarded);
+                }
+
+                // If we still don't have a backing field after binding the getter, try binding the setter.
+                if (_lazyBackingFieldSymbol == _lazyBackingFieldSymbolSentinel &&
+                    propertySymbol.SetMethod is SourcePropertyAccessorSymbol { ContainsFieldIdentifier: true } setMethod)
+                {
+                    noteAccessorBinding();
+                    setMethod.TryGetBodyBinder()?.BindMethodBody(setMethod.SyntaxNode, BindingDiagnosticBag.Discarded);
+                }
+            }
+
+            // If binding both the getter and setter didn't get a backing field, set it to null so that we don't re-calculate.
+            MarkBackingFieldAsCalculated(diagnostics: null);
+
+            void noteAccessorBinding()
+            {
+                if (DeclaringCompilation.TestOnlyCompilationData is AccessorBindingData accessorBindingData)
+                {
+                    accessorBindingData.NoteBinding();
                 }
             }
         }
@@ -534,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The implementation may depend only on information available from the <see cref="SourcePropertySymbolBase"/> type.
         /// </summary>
         protected abstract SourcePropertyAccessorSymbol CreateGetAccessorSymbol(
-            bool isAutoPropertyAccessor,
+            bool bodyShouldBeSynthesizedForSemicolonOnly,
             BindingDiagnosticBag diagnostics);
 
         /// <summary>
@@ -542,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The implementation may depend only on information available from the <see cref="SourcePropertySymbolBase"/> type.
         /// </summary>
         protected abstract SourcePropertyAccessorSymbol CreateSetAccessorSymbol(
-            bool isAutoPropertyAccessor,
+            bool bodyShouldBeSynthesizedForSemicolonOnly,
             BindingDiagnosticBag diagnostics);
 
         public sealed override MethodSymbol? GetMethod
@@ -579,6 +706,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsExplicitInterfaceImplementation
             => (_propertyFlags & Flags.IsExplicitInterfaceImplementation) != 0;
+
+        private bool HasGetAccessor => (_propertyFlags & Flags.HasGetAccessor) != 0;
+
+        private bool HasSetAccessor => (_propertyFlags & Flags.HasSetAccessor) != 0;
+
+        private bool IsInitOnly => (_propertyFlags & Flags.IsInitOnly) != 0;
 
         public sealed override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations
         {
@@ -626,14 +759,79 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool IsAutoPropertyWithGetAccessor
             => IsAutoProperty && _getMethod is object;
 
-        protected bool IsAutoProperty
-            => (_propertyFlags & Flags.IsAutoProperty) != 0;
+        internal bool IsAutoProperty
+        {
+            get
+            {
+                return (_propertyFlags & Flags.IsAutoProperty) != 0;
+            }
+        }
 
+#nullable enable
         /// <summary>
         /// Backing field for automatically implemented property, or
         /// for a property with an initializer.
         /// </summary>
-        internal SynthesizedBackingFieldSymbol BackingField { get; }
+        internal SynthesizedBackingFieldSymbol? BackingField
+        {
+            get
+            {
+                if (_lazyBackingFieldSymbol is SynthesizedBackingFieldSymbol { IsEarlyConstructed: true } backingField)
+                {
+                    return backingField;
+                }
+
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Backing field for a semi automatically implemented property.
+        /// </summary>
+        internal SynthesizedBackingFieldSymbol? FieldKeywordBackingField
+        {
+            get
+            {
+                EnsureBackingFieldIsSynthesized();
+                if (_lazyBackingFieldSymbol is SynthesizedBackingFieldSymbol { IsCreatedForFieldKeyword: true } backingField)
+                {
+                    return backingField;
+                }
+
+                return null;
+            }
+        }
+
+        private bool AllowInitializer
+        {
+            get
+            {
+                // PROTOTYPE(semi-auto-props): Fix implementation for semi auto properties.
+                return (_setMethod is null && _getMethod?.BodyShouldBeSynthesized == true) ||
+                    _setMethod?.BodyShouldBeSynthesized == true;
+            }
+        }
+
+        private bool AllowFieldAttributeTarget
+        {
+            get
+            {
+                // PROTOTYPE(semi-auto-props): Fix implementation for semi auto properties. Consider also the BackingField?.GetAttributes() call in GetAttributesBag. Should it handle FieldKeywordBackingField? Add a test.
+                return _getMethod?.BodyShouldBeSynthesized == true ||
+                    _setMethod?.BodyShouldBeSynthesized == true;
+            }
+        }
+
+        private bool DisallowRefLikeTypes
+        {
+            get
+            {
+                // PROTOTYPE(semi-auto-props): Fix implementation for semi auto properties.
+                return _getMethod?.BodyShouldBeSynthesized == true ||
+                    _setMethod?.BodyShouldBeSynthesized == true;
+            }
+        }
+#nullable disable
 
         internal override bool MustCallMethodsDirectly
         {
@@ -674,7 +872,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasInitializer = (_propertyFlags & Flags.HasInitializer) != 0;
             if (hasInitializer)
             {
-                CheckInitializer(IsAutoProperty, ContainingType.IsInterface, IsStatic, Location, diagnostics);
+                CheckInitializer(AllowInitializer, ContainingType.IsInterface, IsStatic, Location, diagnostics);
             }
 
             if (RefKind != RefKind.None && IsRequired)
@@ -1046,7 +1244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.Property;
 
         AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations
-            => IsAutoPropertyWithGetAccessor
+            => AllowFieldAttributeTarget
                 ? AttributeLocation.Property | AttributeLocation.Field
                 : AttributeLocation.Property;
 
@@ -1471,6 +1669,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 {
                                     var diagnostics = BindingDiagnosticBag.GetInstance();
                                     var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
+
                                     foreach (var parameter in this.Parameters)
                                     {
                                         parameter.ForceComplete(locationOpt, cancellationToken);
@@ -1537,7 +1736,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeLocation, type);
             }
-            else if (this.IsAutoPropertyWithGetAccessor && type.IsRefLikeType && (this.IsStatic || !this.ContainingType.IsRefLikeType))
+            else if (DisallowRefLikeTypes && type.IsRefLikeType && (this.IsStatic || !this.ContainingType.IsRefLikeType))
             {
                 diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeLocation, type);
             }

@@ -1451,7 +1451,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 yield return valueField;
             }
 
-            foreach (var m in this.GetMembers())
+            var members = this.GetMembers();
+            foreach (var m in members)
             {
                 switch (m.Kind)
                 {
@@ -1468,6 +1469,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if ((object?)associatedField != null)
                         {
                             yield return associatedField;
+                        }
+                        break;
+                    case SymbolKind.Property:
+                        if (m is SourcePropertySymbol { FieldKeywordBackingField: { } backingField })
+                        {
+                            Debug.Assert(backingField.IsCreatedForFieldKeyword);
+                            Debug.Assert(!members.Contains(backingField));
+                            yield return backingField;
                         }
                         break;
                 }
@@ -1592,6 +1601,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Backing fields for field-like events are not added to the members list.
                 member = e;
             }
+            else if (member is SynthesizedBackingFieldSymbol { IsCreatedForFieldKeyword: true } backingField && backingField.AssociatedSymbol is PropertySymbol p)
+            {
+                RoslynDebug.AssertOrFailFast(forDiagnostics);
+                // Backing fields for semi auto properties are not added to the members list.
+                member = p;
+            }
 
             var membersAndInitializers = Volatile.Read(ref _lazyMembersAndInitializers);
 
@@ -1669,10 +1684,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyMembersDictionary;
         }
 
-        internal override IEnumerable<Symbol> GetInstanceFieldsAndEvents()
+        internal override IEnumerable<Symbol> GetInstanceFieldsAndEventsAndProperties()
         {
             var membersAndInitializers = this.GetMembersAndInitializers();
-            return membersAndInitializers.NonTypeMembers.Where(IsInstanceFieldOrEvent);
+            return membersAndInitializers.NonTypeMembers.Where(IsInstanceFieldOrEventOrProperty);
         }
 
         protected void AfterMembersChecks(BindingDiagnosticBag diagnostics)
@@ -1688,8 +1703,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckSpecialMemberErrors(diagnostics);
             CheckTypeParameterNameConflicts(diagnostics);
             CheckAccessorNameConflicts(diagnostics);
-
-            bool unused = KnownCircularStruct;
 
             CheckSequentialOnPartialType(diagnostics);
             CheckForProtectedInStaticClass(diagnostics);
@@ -2238,11 +2251,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     else
                     {
                         var diagnostics = BindingDiagnosticBag.GetInstance();
+                        Debug.Assert(diagnostics.DiagnosticBag is not null);
                         var value = (int)CheckStructCircularity(diagnostics).ToThreeState();
 
                         if (Interlocked.CompareExchange(ref _lazyKnownCircularStruct, value, (int)ThreeState.Unknown) == (int)ThreeState.Unknown)
                         {
-                            AddDeclarationDiagnostics(diagnostics);
+                            DeclaringCompilation.CircularStructDiagnostics.AddRange(diagnostics);
                         }
 
                         Debug.Assert(value == _lazyKnownCircularStruct);
@@ -2268,16 +2282,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var member in valuesByName)
                 {
-                    if (member.Kind != SymbolKind.Field)
+                    FieldSymbol field;
+                    if (member is SourcePropertySymbolBase { IsStatic: false, FieldKeywordBackingField: { } fieldKeywordField })
+                    {
+                        field = fieldKeywordField;
+                    }
+                    else if (member.Kind == SymbolKind.Field && !member.IsStatic)
+                    {
+                        field = (FieldSymbol)member;
+                    }
+                    else
                     {
                         // NOTE: don't have to check field-like events, because they can't have struct types.
                         continue;
                     }
-                    var field = (FieldSymbol)member;
-                    if (field.IsStatic)
-                    {
-                        continue;
-                    }
+
+                    Debug.Assert(!field.IsStatic);
                     var type = field.NonPointerType();
                     if (((object)type != null) &&
                         (type.TypeKind == TypeKind.Struct) &&
@@ -4583,15 +4603,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             AddAccessorIfAvailable(builder.NonTypeMembers, property.GetMethod);
                             AddAccessorIfAvailable(builder.NonTypeMembers, property.SetMethod);
-                            FieldSymbol backingField = property.BackingField;
+                            var backingField = property.BackingField;
 
                             // TODO: can we leave this out of the member list?
                             // From the 10/12/11 design notes:
                             //   In addition, we will change autoproperties to behavior in
                             //   a similar manner and make the autoproperty fields private.
-                            if ((object)backingField != null)
+                            if (backingField is object)
                             {
-                                builder.NonTypeMembers.Add(backingField);
+                                if (!backingField.IsCreatedForFieldKeyword)
+                                {
+                                    builder.NonTypeMembers.Add(backingField);
+                                }
+
                                 builder.UpdateIsNullableEnabledForConstructorsAndFields(useStatic: backingField.IsStatic, compilation, propertySyntax);
 
                                 var initializer = propertySyntax.Initializer;
@@ -4604,7 +4628,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                       initializer,
                                                                                       this,
                                                                                       DeclarationModifiers.Private | (property.IsStatic ? DeclarationModifiers.Static : 0),
-                                                                                      backingField);
+                                                                                      backingField); // PROTOTYPE(semi-auto-props): Is field-keyword BackingField needed here?
+                                                                                                     // Add test proving whether is is needed or not needed for field keyword.
                                     }
 
                                     if (property.IsStatic)

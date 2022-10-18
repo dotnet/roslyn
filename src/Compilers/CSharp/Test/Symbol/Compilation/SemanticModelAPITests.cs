@@ -2005,14 +2005,16 @@ foreach(short ele in a)
             Assert.Equal("void System.IDisposable.Dispose()", info.DisposeMethod.ToTestDisplayString());
         }
 
-        [Fact]
-        public void TestGetSpeculativeSemanticModelInAutoPropInitializer1()
+        [Theory]
+        [InlineData("int X { get; } = 1;")]
+        [InlineData("int X { get => field; } = 1;")]
+        public void TestGetSpeculativeSemanticModelInAutoPropInitializer1(string property)
         {
-            var source = @"class C
-{
+            var source = $@"class C
+{{
     int y = 0;
-    int X { get; } = 1;
-}";
+    {property}
+}}";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular);
             var tree = comp.SyntaxTrees.Single();

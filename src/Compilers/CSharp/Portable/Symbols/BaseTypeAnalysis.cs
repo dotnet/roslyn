@@ -92,9 +92,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var member in type.GetMembersUnordered())
                 {
-                    var field = member as FieldSymbol;
-                    var fieldType = field?.NonPointerType();
-                    if (fieldType is null || fieldType.TypeKind != TypeKind.Struct || field.IsStatic)
+                    if (member.IsStatic)
+                    {
+                        continue;
+                    }
+
+                    FieldSymbol field;
+                    if (member is SourcePropertySymbolBase { FieldKeywordBackingField: { } fieldKeywordField })
+                    {
+                        field = fieldKeywordField;
+                    }
+                    else if (member.Kind == SymbolKind.Field)
+                    {
+                        field = (FieldSymbol)member;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+
+                    var fieldType = field.NonPointerType();
+                    if (fieldType is null || fieldType.TypeKind != TypeKind.Struct)
                     {
                         continue;
                     }
@@ -154,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var hasGenerics = false;
                 if (partialClosure.Add(type))
                 {
-                    foreach (var member in type.GetInstanceFieldsAndEvents())
+                    foreach (var member in type.GetInstanceFieldsAndEventsAndProperties())
                     {
                         // Only instance fields (including field-like events) affect the outcome.
                         FieldSymbol field;
@@ -164,9 +182,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 field = (FieldSymbol)member;
                                 Debug.Assert((object)(field.AssociatedSymbol as EventSymbol) == null,
                                     "Didn't expect to find a field-like event backing field in the member list.");
+                                Debug.Assert(field is not SynthesizedBackingFieldSymbol { IsCreatedForFieldKeyword: true });
                                 break;
                             case SymbolKind.Event:
                                 field = ((EventSymbol)member).AssociatedField;
+                                break;
+                            case SymbolKind.Property:
+                                field = (member as SourcePropertySymbolBase)?.FieldKeywordBackingField;
                                 break;
                             default:
                                 throw ExceptionUtilities.UnexpectedValue(member.Kind);

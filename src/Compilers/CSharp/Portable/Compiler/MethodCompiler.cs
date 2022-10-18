@@ -202,6 +202,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     new LocalizableResourceString(messageResourceName, CodeAnalysisResources.ResourceManager, typeof(CodeAnalysisResources)));
             }
 
+            addCircularStructDiagnostics(compilation.SourceModule.GlobalNamespace);
+            methodCompiler.WaitForWorkers();
+            diagnostics.AddRange(compilation.CircularStructDiagnostics, allowMismatchInDependencyAccumulation: true);
             diagnostics.AddRange(compilation.AdditionalCodegenWarnings);
 
             // we can get unused field warnings only if compiling whole compilation.
@@ -213,6 +216,45 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     moduleBeingBuiltOpt.SetPEEntryPoint(entryPoint, diagnostics.DiagnosticBag);
                 }
+            }
+
+            void addCircularStructDiagnostics(NamespaceOrTypeSymbol symbol)
+            {
+                if (symbol is SourceMemberContainerTypeSymbol sourceMemberContainerTypeSymbol && PassesFilter(filterOpt, symbol))
+                {
+                    _ = sourceMemberContainerTypeSymbol.KnownCircularStruct;
+                }
+
+                foreach (var member in symbol.GetMembersUnordered())
+                {
+                    if (member is NamespaceOrTypeSymbol namespaceOrTypeSymbol)
+                    {
+                        if (compilation.Options.ConcurrentBuild)
+                        {
+                            Task worker = addCircularStructDiagnosticsAsAsync(namespaceOrTypeSymbol);
+                            methodCompiler._compilerTasks.Push(worker);
+                        }
+                        else
+                        {
+                            addCircularStructDiagnostics(namespaceOrTypeSymbol);
+                        }
+                    }
+                }
+            }
+
+            Task addCircularStructDiagnosticsAsAsync(NamespaceOrTypeSymbol symbol)
+            {
+                return Task.Run(UICultureUtilities.WithCurrentUICulture(() =>
+                {
+                    try
+                    {
+                        addCircularStructDiagnostics(symbol);
+                    }
+                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+                    {
+                        throw ExceptionUtilities.Unreachable();
+                    }
+                }), methodCompiler._cancellationToken);
             }
         }
 
@@ -476,6 +518,43 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var members = containingType.GetMembers();
+
+            // We first compile the accessors that contain 'field' keyword to avoid extra bindings for 'field' keyword when compiling other members.
+            for (int memberOrdinal = 0; memberOrdinal < members.Length; memberOrdinal++)
+            {
+                var member = members[memberOrdinal];
+
+                //When a filter is supplied, limit the compilation of members passing the filter.
+                if (member is not SourcePropertyAccessorSymbol { ContainsFieldIdentifier: true } accessor ||
+                    !PassesFilter(_filterOpt, member))
+                {
+                    continue;
+                }
+
+                Debug.Assert(member.Kind == SymbolKind.Method);
+                Binder.ProcessedFieldInitializers processedInitializers = default;
+                CompileMethod(accessor, memberOrdinal, ref processedInitializers, synthesizedSubmissionFields, compilationState);
+            }
+
+            // After compiling accessors containing 'field' keyword, we mark the backing field of the corresponding property as calculated.
+            foreach (var member in members)
+            {
+                if (member is SourcePropertySymbolBase property)
+                {
+                    // PROTOTYPE(semi-auto-props): This can be optimized by checking for field keyword syntactically first.
+                    // If we don't have field keyword, we can safely ignore the filter check.
+                    // This will require more tests.
+                    var getMethod = property.GetMethod;
+                    var setMethod = property.SetMethod;
+                    if ((getMethod is null || PassesFilter(_filterOpt, getMethod)) &&
+                        (setMethod is null || PassesFilter(_filterOpt, setMethod)))
+                    {
+                        property.MarkBackingFieldAsCalculated(_diagnostics);
+                    }
+                }
+            }
+
+            // Then we compile everything, excluding the accessors that contain field keyword we already compiled in the loop above.
             for (int memberOrdinal = 0; memberOrdinal < members.Length; memberOrdinal++)
             {
                 var member = members[memberOrdinal];
@@ -495,6 +574,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SymbolKind.Method:
                         {
                             MethodSymbol method = (MethodSymbol)member;
+                            if (method.MethodKind is MethodKind.PropertyGet or MethodKind.PropertySet)
+                            {
+                                // The loop for compiling accessors was written with these valid assumptions.
+                                // If this requirement has changed, the loop above may need to be modified (e.g, if partial accessors was allowed in future)
+                                Debug.Assert(!method.IsScriptConstructor);
+                                Debug.Assert((object)method != scriptEntryPoint);
+                                Debug.Assert(!IsFieldLikeEventAccessor(method));
+                                Debug.Assert(!method.IsPartialDefinition());
+                            }
+
+                            if (member is SourcePropertyAccessorSymbol { ContainsFieldIdentifier: true })
+                            {
+                                // We already compiled these accessors in the loop above.
+                                continue;
+                            }
+
                             if (method.IsScriptConstructor)
                             {
                                 Debug.Assert(scriptCtorOrdinal == -1);
@@ -1866,8 +1961,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var property = sourceMethod.AssociatedSymbol as SourcePropertySymbolBase;
-                    if (property is not null && property.IsAutoPropertyWithGetAccessor)
+                    if (sourceMethod is SourcePropertyAccessorSymbol { BodyShouldBeSynthesized: true })
                     {
                         return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);
                     }

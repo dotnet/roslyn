@@ -699,12 +699,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// For source symbols may be called while calculating
         /// <see cref="NamespaceOrTypeSymbol.GetMembersUnordered"/>.
         /// </remarks>
-        internal virtual IEnumerable<Symbol> GetInstanceFieldsAndEvents()
+        internal virtual IEnumerable<Symbol> GetInstanceFieldsAndEventsAndProperties()
         {
-            return GetMembersUnordered().Where(IsInstanceFieldOrEvent);
+            return GetMembersUnordered().Where(IsInstanceFieldOrEventOrProperty);
         }
 
-        protected static Func<Symbol, bool> IsInstanceFieldOrEvent = symbol =>
+        protected static Func<Symbol, bool> IsInstanceFieldOrEventOrProperty = symbol =>
         {
             if (!symbol.IsStatic)
             {
@@ -712,6 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     case SymbolKind.Field:
                     case SymbolKind.Event:
+                    case SymbolKind.Property:
                         return true;
                 }
             }

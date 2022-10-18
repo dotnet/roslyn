@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return mods;
         }
 
-        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool bodyShouldBeSynthesizedForSemicolonOnly, BindingDiagnosticBag diagnostics)
         {
             var syntax = (BasePropertyDeclarationSyntax)CSharpSyntaxNode;
             ArrowExpressionClauseSyntax? arrowExpression = GetArrowExpression(syntax);
@@ -382,21 +382,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                return CreateAccessorSymbol(GetGetAccessorDeclaration(syntax), isAutoPropertyAccessor, diagnostics);
+                return CreateAccessorSymbol(GetGetAccessorDeclaration(syntax), bodyShouldBeSynthesizedForSemicolonOnly, diagnostics);
             }
         }
 
-        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool bodyShouldBeSynthesizedForSemicolonOnly, BindingDiagnosticBag diagnostics)
         {
             var syntax = (BasePropertyDeclarationSyntax)CSharpSyntaxNode;
             Debug.Assert(!(syntax.AccessorList is null && GetArrowExpression(syntax) != null));
 
-            return CreateAccessorSymbol(GetSetAccessorDeclaration(syntax), isAutoPropertyAccessor, diagnostics);
+            return CreateAccessorSymbol(GetSetAccessorDeclaration(syntax), bodyShouldBeSynthesizedForSemicolonOnly, diagnostics);
         }
 
         private SourcePropertyAccessorSymbol CreateAccessorSymbol(
             AccessorDeclarationSyntax syntax,
-            bool isAutoPropertyAccessor,
+            bool bodyShouldBeSynthesizedForSemicolonOnly,
             BindingDiagnosticBag diagnostics)
         {
             return SourcePropertyAccessorSymbol.CreateAccessorSymbol(
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this,
                 _modifiers,
                 syntax,
-                isAutoPropertyAccessor,
+                bodyShouldBeSynthesizedForSemicolonOnly,
                 diagnostics);
         }
 
