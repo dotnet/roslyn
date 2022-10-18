@@ -2174,6 +2174,44 @@ class C {
         }
 
         [Fact]
+        public void TestDefaultValue_TypedSimpleLambda()
+        {
+            UsingDeclaration("var f = int x = 3 => x;",
+                null,
+                // (1,9): error CS1525: Invalid expression term 'int'
+                // var f = int x = 3 => x;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 9),
+                // (1,13): error CS1003: Syntax error, ',' expected
+                // var f = int x = 3 => x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 13));
+
+            N(SyntaxKind.FieldDeclaration);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "f");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void TestDefaultValueParenthesizedLambda1()
         {
             UsingDeclaration("Func<string, string> func0 = (x = null) => x;");
@@ -2234,6 +2272,55 @@ class C {
                     }
                 }
                 N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestImplicitDefaultValue_DelegateSyntax()
+        {
+            UsingExpression("delegate(x = 3) { return x; }",
+                // (1,12): error CS1001: Identifier expected
+                // delegate(x = 3) { return x; }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=").WithLocation(1, 12));
+            N(SyntaxKind.AnonymousMethodExpression);
+            {
+                N(SyntaxKind.DelegateKeyword);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "3");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ReturnStatement);
+                    {
+                        N(SyntaxKind.ReturnKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
             }
             EOF();
         }
@@ -2594,6 +2681,64 @@ class C {
         }
 
         [Fact]
+        public void TestDefaultMissingValueClauseSyntax_DelegateSyntax1()
+        {
+            UsingExpression("delegate(int x = , int y) { return x; }",
+                // (1,18): error CS1525: Invalid expression term ','
+                // delegate(int x = , int y) { return x; }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 18));
+            N(SyntaxKind.AnonymousMethodExpression);
+            {
+                N(SyntaxKind.DelegateKeyword);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ReturnStatement);
+                    {
+                        N(SyntaxKind.ReturnKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
         public void TestDefaultMissingValueClause2()
         {
             string source = "(int x = , int y) => x + y";
@@ -2651,6 +2796,65 @@ class C {
         }
 
         [Fact]
+        public void TestDefaultMissingValueClause_DelegateSyntax2()
+        {
+            UsingExpression("delegate(int x = , int y) { return x; }",
+                // (1,18): error CS1525: Invalid expression term ','
+                // delegate(int x = , int y) { return x; }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 18));
+            N(SyntaxKind.AnonymousMethodExpression);
+            {
+                N(SyntaxKind.DelegateKeyword);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ReturnStatement);
+                    {
+                        N(SyntaxKind.ReturnKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
         public void TestDefaultValueMissingRestOfLambda1()
         {
             string source = "(int x =";
@@ -2677,6 +2881,52 @@ class C {
             EOF();
         }
 
+        [Fact]
+        public void TestDefaultValueMissingRestOfLambda_DelegateSyntax1()
+        {
+            string source = "delegate (int x =";
+            UsingExpression(source,
+                // (1,18): error CS1733: Expected expression
+                // delegate (int x =
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 18),
+                // (1,18): error CS1026: ) expected
+                // delegate (int x =
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 18),
+                // (1,18): error CS1514: { expected
+                // delegate (int x =
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 18));
+            N(SyntaxKind.AnonymousMethodExpression);
+            {
+                N(SyntaxKind.DelegateKeyword);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    M(SyntaxKind.CloseParenToken);
+                }
+                M(SyntaxKind.Block);
+                {
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
 
         [Fact]
         public void TestDefaultValueMissingRestOfLambda2()
@@ -2705,6 +2955,50 @@ class C {
             EOF();
         }
 
+        [Fact]
+        public void TestDefaultValueMissingRestOfLambda_DelegateSyntax2()
+        {
+            string source = "delegate (int x = 5";
+            UsingExpression(source,
+                // (1,20): error CS1026: ) expected
+                // delegate (int x = 5
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 20),
+                // (1,20): error CS1514: { expected
+                // delegate (int x = 5
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 20));
+
+            N(SyntaxKind.AnonymousMethodExpression);
+            {
+                N(SyntaxKind.DelegateKeyword);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "5");
+                            }
+                        }
+                    }
+                    M(SyntaxKind.CloseParenToken);
+                }
+                M(SyntaxKind.Block);
+                {
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
 
         [Fact]
         public void TestDefaultValueMissingRestOfLambda3()
@@ -2729,6 +3023,67 @@ class C {
                     N(SyntaxKind.IntKeyword);
                 }
                 M(SyntaxKind.CloseParenToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueMissingRestOfLambda_DelegateSyntax3()
+        {
+            string source = "delegate (int x = 3,";
+            UsingExpression(source,
+                // (1,21): error CS1031: Type expected
+                // delegate (int x = 3,
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 21),
+                // (1,21): error CS1001: Identifier expected
+                // delegate (int x = 3,
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 21),
+                // (1,21): error CS1026: ) expected
+                // delegate (int x = 3,
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 21),
+                // (1,21): error CS1514: { expected
+                // delegate (int x = 3,
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 21));
+
+            N(SyntaxKind.AnonymousMethodExpression);
+            {
+                N(SyntaxKind.DelegateKeyword);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "3");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    M(SyntaxKind.Parameter);
+                    {
+                        M(SyntaxKind.IdentifierName);
+
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.CloseParenToken);
+                }
+                M(SyntaxKind.Block);
+                {
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
             }
             EOF();
         }
@@ -2768,6 +3123,57 @@ class C {
                 N(SyntaxKind.NumericLiteralExpression);
                 {
                     N(SyntaxKind.NumericLiteralToken, "4");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueNoIdentifier_DelegateSyntax()
+        {
+            string source = "delegate(int = 3) { return 4; }";
+            UsingExpression(source,
+                // (1,14): error CS1001: Identifier expected
+                // delegate(int = 3) { return 4; }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=").WithLocation(1, 14));
+
+            N(SyntaxKind.AnonymousMethodExpression);
+            {
+                N(SyntaxKind.DelegateKeyword);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "3");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ReturnStatement);
+                    {
+                        N(SyntaxKind.ReturnKeyword);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "4");
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
                 }
             }
             EOF();
@@ -2972,6 +3378,97 @@ class C {
                 N(SyntaxKind.IdentifierName);
                 {
                     N(SyntaxKind.IdentifierToken, "x");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueWithAttributeOnParam_DelegateSyntax()
+        {
+            UsingExpression("delegate ([MyAttribute(3, arg1=true)] int x = -1) { return x; }");
+            N(SyntaxKind.AnonymousMethodExpression);
+            {
+                N(SyntaxKind.DelegateKeyword);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.AttributeList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Attribute);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "MyAttribute");
+                                }
+                                N(SyntaxKind.AttributeArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.AttributeArgument);
+                                    {
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "3");
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.AttributeArgument);
+                                    {
+                                        N(SyntaxKind.NameEquals);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "arg1");
+                                            }
+                                            N(SyntaxKind.EqualsToken);
+                                        }
+                                        N(SyntaxKind.TrueLiteralExpression);
+                                        {
+                                            N(SyntaxKind.TrueKeyword);
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.UnaryMinusExpression);
+                            {
+
+                                N(SyntaxKind.MinusToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ReturnStatement);
+                    {
+                        N(SyntaxKind.ReturnKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
                 }
             }
             EOF();
@@ -4099,6 +4596,84 @@ class C {
                     }
                 }
                 N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestGreaterThanTokenInEqualsValueClause()
+        {
+            UsingExpression("(int x = > 0) => x;",
+                // (1,1): error CS1073: Unexpected token ';'
+                // (int x = > 0) => x;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(int x = > 0) => x").WithArguments(";").WithLocation(1, 1),
+                // (1,10): error CS1525: Invalid expression term '>'
+                // (int x = > 0) => x;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(1, 10));
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.GreaterThanExpression);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.GreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestArgListWithDefaultParameterValue()
+        {
+            UsingExpression("(__arglist = null) => { }",
+                // (1,1): error CS1073: Unexpected token '=>'
+                // (__arglist = null) => { }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(__arglist = null)").WithArguments("=>").WithLocation(1, 1));
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.ArgListExpression);
+                    {
+                        N(SyntaxKind.ArgListKeyword);
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.NullLiteralExpression);
+                    {
+                        N(SyntaxKind.NullKeyword);
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
             }
             EOF();
         }
