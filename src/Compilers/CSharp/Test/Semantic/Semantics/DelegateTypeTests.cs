@@ -13518,7 +13518,7 @@ $$"""
 	} // end of method '<>f__AnonymousDelegate0'::.ctor
 	.method public hidebysig newslot virtual 
 		instance void Invoke (
-			[opt] object ''
+			[opt] object arg
 		) runtime managed 
 	{
 		.param [1] = nullref
@@ -13566,9 +13566,8 @@ $$"""
 	} // end of method '<>F{00000001}`3'::.ctor
 	.method public hidebysig newslot virtual 
 		instance !TResult Invoke (
-			!T1& '',
-
-			!T2 ''
+			!T1& arg1,
+			!T2 arg2
 		) runtime managed 
 	{
 	} // end of method '<>F{00000001}`3'::Invoke
