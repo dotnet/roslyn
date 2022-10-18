@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 context, spanToTag, classificationService, _typeMap, classificationOptions, _type, cancellationToken);
         }
 
-        protected override bool Equals(IClassificationTag tag1, IClassificationTag tag2)
+        protected override bool TagEquals(IClassificationTag tag1, IClassificationTag tag2)
             => tag1.ClassificationType.Classification == tag2.ClassificationType.Classification;
     }
 }

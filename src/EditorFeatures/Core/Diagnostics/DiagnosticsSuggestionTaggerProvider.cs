@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return AdjustSnapshotSpan(snapshotSpan, minimumLength: 2, maximumLength: 2);
         }
 
-        protected override bool Equals(IErrorTag tag1, IErrorTag tag2)
+        protected override bool TagEquals(IErrorTag tag1, IErrorTag tag2)
         {
             Contract.ThrowIfFalse(tag1 is RoslynErrorTag);
             Contract.ThrowIfFalse(tag2 is RoslynErrorTag);

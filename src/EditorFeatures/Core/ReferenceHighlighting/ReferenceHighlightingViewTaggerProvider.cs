@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
         }
 
         // Safe to directly reference compare as all the NavigableHighlightTag subclasses are singletons.
-        protected override bool Equals(NavigableHighlightTag tag1, NavigableHighlightTag tag2)
+        protected override bool TagEquals(NavigableHighlightTag tag1, NavigableHighlightTag tag2)
             => tag1 == tag2;
     }
 }

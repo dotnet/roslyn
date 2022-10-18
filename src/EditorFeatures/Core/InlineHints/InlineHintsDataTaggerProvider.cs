@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             }
         }
 
-        protected override bool Equals(InlineHintDataTag tag1, InlineHintDataTag tag2)
+        protected override bool TagEquals(InlineHintDataTag tag1, InlineHintDataTag tag2)
             => tag1.Equals(tag2);
     }
 }

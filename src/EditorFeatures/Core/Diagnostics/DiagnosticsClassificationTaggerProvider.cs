@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return base.GetLocationsToTag(diagnosticData);
         }
 
-        protected override bool Equals(ClassificationTag tag1, ClassificationTag tag2)
+        protected override bool TagEquals(ClassificationTag tag1, ClassificationTag tag2)
             => tag1.ClassificationType.Classification == tag2.ClassificationType.Classification;
     }
 }

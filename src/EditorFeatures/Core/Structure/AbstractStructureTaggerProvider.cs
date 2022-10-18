@@ -224,11 +224,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             }
         }
 
-        protected override bool Equals(IStructureTag tag1, IStructureTag tag2)
+        protected override bool TagEquals(IStructureTag tag1, IStructureTag tag2)
         {
-            return tag1 is StructureTag structureTag1 &&
-                tag2 is StructureTag structureTag2 &&
-                structureTag1.Equals(structureTag2);
+            Contract.ThrowIfFalse(tag1 is StructureTag);
+            Contract.ThrowIfFalse(tag2 is StructureTag);
+            return tag1.Equals(tag2);
         }
 
         internal abstract object? GetCollapsedHintForm(StructureTag structureTag);

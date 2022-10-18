@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             context.SetSpansTagged(ImmutableArray.Create(spanToTag.SnapshotSpan));
         }
 
-        protected override bool Equals(ITextMarkerTag tag1, ITextMarkerTag tag2)
+        protected override bool TagEquals(ITextMarkerTag tag1, ITextMarkerTag tag2)
         {
             Contract.ThrowIfFalse(tag1 == tag2, "ActiveStatementTag is a supposed to be a singleton");
             return true;
