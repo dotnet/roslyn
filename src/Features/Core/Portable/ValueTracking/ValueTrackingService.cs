@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             Document document,
             CancellationToken cancellationToken)
         {
-            using var logger = Logger.LogBlock(FunctionId.ValueTracking_TrackValueSource, cancellationToken, LogLevel.Information);
+            using var logger = Logger.LogTelemetryBlock(FunctionId.ValueTracking_TrackValueSource, cancellationToken);
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             ValueTrackedItem previousTrackedItem,
             CancellationToken cancellationToken)
         {
-            using var logger = Logger.LogBlock(FunctionId.ValueTracking_TrackValueSource, cancellationToken, LogLevel.Information);
+            using var logger = Logger.LogTelemetryBlock(FunctionId.ValueTracking_TrackValueSource, cancellationToken);
             var project = solution.GetRequiredProject(previousTrackedItem.DocumentId.ProjectId);
             var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             if (client != null)

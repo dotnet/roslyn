@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 Contract.ThrowIfNull(_storage);
 
-                using (Logger.LogBlock(FunctionId.Workspace_Recoverable_RecoverRootAsync, _containingTree.FilePath, cancellationToken, LogLevel.Information))
+                using (Logger.LogTelemetryBlock(FunctionId.Workspace_Recoverable_RecoverRootAsync, _containingTree.FilePath, cancellationToken))
                 {
                     using var stream = await _storage.ReadStreamAsync(cancellationToken).ConfigureAwait(false);
                     return RecoverRoot(stream, cancellationToken);
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 Contract.ThrowIfNull(_storage);
 
-                using (Logger.LogBlock(FunctionId.Workspace_Recoverable_RecoverRoot, _containingTree.FilePath, cancellationToken, LogLevel.Information))
+                using (Logger.LogTelemetryBlock(FunctionId.Workspace_Recoverable_RecoverRoot, _containingTree.FilePath, cancellationToken))
                 {
                     using var stream = _storage.ReadStream(cancellationToken);
                     return RecoverRoot(stream, cancellationToken);

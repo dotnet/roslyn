@@ -260,7 +260,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 phwnd = _documentOutlineViewHost.Handle;
                 ppCmdTarget = null;
 
-                Logger.Log(FunctionId.DocumentOutline_WindowOpen, logLevel: LogLevel.Information);
+                Logger.LogTelemetry(FunctionId.DocumentOutline_WindowOpen);
 
                 return VSConstants.S_OK;
             }

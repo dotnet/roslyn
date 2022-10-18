@@ -61,9 +61,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
             {
                 var result = workspace.TryApplyChanges(changedSolution, progressTracker);
 
-                Logger.Log(
-                    result ? FunctionId.ApplyChangesOperation_WorkspaceVersionMatch_ApplicationSucceeded : FunctionId.ApplyChangesOperation_WorkspaceVersionMatch_ApplicationFailed,
-                    logLevel: LogLevel.Information);
+                Logger.LogTelemetry(
+                    result ? FunctionId.ApplyChangesOperation_WorkspaceVersionMatch_ApplicationSucceeded : FunctionId.ApplyChangesOperation_WorkspaceVersionMatch_ApplicationFailed);
 
                 return result;
             }
@@ -87,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 solutionChanges.GetRemovedProjects().Any() ||
                 solutionChanges.GetRemovedAnalyzerReferences().Any())
             {
-                Logger.Log(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_IncompatibleSolutionChange, logLevel: LogLevel.Information);
+                Logger.LogTelemetry(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_IncompatibleSolutionChange);
                 return false;
             }
 
@@ -111,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                     changedProject.GetRemovedMetadataReferences().Any() ||
                     changedProject.GetRemovedProjectReferences().Any())
                 {
-                    Logger.Log(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_IncompatibleProjectChange, logLevel: LogLevel.Information);
+                    Logger.LogTelemetry(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_IncompatibleProjectChange);
                     return false;
                 }
 
@@ -122,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
                 if (changedDocuments.Length == 0)
                 {
-                    Logger.Log(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_NoChangedDocument, logLevel: LogLevel.Information);
+                    Logger.LogTelemetry(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_NoChangedDocument);
                     return false;
                 }
 
@@ -135,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                     // sort of change, we can't merge this operation in.
                     if (!changedDocument.HasTextChanged(originalDocument, ignoreUnchangeableDocument: false))
                     {
-                        Logger.Log(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_NoTextChange, logLevel: LogLevel.Information);
+                        Logger.LogTelemetry(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_NoTextChange);
                         return false;
                     }
 
@@ -143,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                     var currentDocument = currentSolution.GetTextDocument(documentId);
                     if (currentDocument is null)
                     {
-                        Logger.Log(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_DocumentRemoved, logLevel: LogLevel.Information);
+                        Logger.LogTelemetry(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_DocumentRemoved);
                         return false;
                     }
 
@@ -152,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                     // with that.  For now though, we'll leave that out of scope.
                     if (originalDocument.HasTextChanged(currentDocument, ignoreUnchangeableDocument: false))
                     {
-                        Logger.Log(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_TextChangeConflict, logLevel: LogLevel.Information);
+                        Logger.LogTelemetry(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_TextChangeConflict);
                         return false;
                     }
 
@@ -160,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 }
             }
 
-            Logger.Log(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationSucceeded, logLevel: LogLevel.Information);
+            Logger.LogTelemetry(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationSucceeded);
             return workspace.TryApplyChanges(forkedSolution, progressTracker);
         }
     }

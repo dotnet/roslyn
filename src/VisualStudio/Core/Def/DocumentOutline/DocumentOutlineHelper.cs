@@ -174,13 +174,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             cancellationToken.ThrowIfCancellationRequested();
 
             // Log which sort option was used
-            Logger.Log(sortOption switch
+            Logger.LogTelemetry(sortOption switch
             {
                 SortOption.Name => FunctionId.DocumentOutline_SortByName,
                 SortOption.Location => FunctionId.DocumentOutline_SortByOrder,
                 SortOption.Type => FunctionId.DocumentOutline_SortByType,
                 _ => throw new NotImplementedException(),
-            }, logLevel: LogLevel.Information);
+            });
 
             return SortDocumentSymbols(documentSymbolData, sortOption, cancellationToken);
 

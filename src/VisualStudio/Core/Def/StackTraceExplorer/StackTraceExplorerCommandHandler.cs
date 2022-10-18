@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                     await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
                     var windowFrame = (IVsWindowFrame)window.Frame;
                     ErrorHandler.ThrowOnFailure(windowFrame.Show());
-                    Logger.Log(FunctionId.StackTraceToolWindow_ShowOnActivated, logLevel: LogLevel.Information);
+                    Logger.LogTelemetry(FunctionId.StackTraceToolWindow_ShowOnActivated);
                 }
             });
 

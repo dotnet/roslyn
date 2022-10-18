@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
         public bool ExecuteCommand(ValueTrackingEditorCommandArgs args, CommandExecutionContext executionContext)
         {
-            using var logger = Logger.LogBlock(FunctionId.ValueTracking_Command, CancellationToken.None, LogLevel.Information);
+            using var logger = Logger.LogTelemetryBlock(FunctionId.ValueTracking_Command, CancellationToken.None);
 
             var cancellationToken = executionContext.OperationContext.UserCancellationToken;
             var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer);
