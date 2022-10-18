@@ -48,34 +48,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         public ImmutableArray<string> EvaluationPropertyNames
             => BuildPropertyNames.InitialEvaluationPropertyNames;
 
-        public async Task<IWorkspaceProjectContext> CreateProjectContextAsync(Guid id, string uniqueName, string languageName, EvaluationData data, object? hostObject, CancellationToken cancellationToken)
-        {
-            // Read all required properties from EvaluationData before we start updating anything.
+        public Task<IWorkspaceProjectContext> CreateProjectContextAsync(Guid id, string uniqueName, string languageName, EvaluationData data, object? hostObject, CancellationToken cancellationToken)
+            => CreateProjectContextAsync(
+                languageName: languageName,
+                projectUniqueName: uniqueName,
+                projectFilePath: data.GetRequiredPropertyAbsolutePathValue(BuildPropertyNames.MSBuildProjectFullPath),
+                projectGuid: id,
+                hierarchy: hostObject,
+                binOutputPath: (languageName is LanguageNames.CSharp or LanguageNames.VisualBasic) ?
+                    data.GetRequiredPropertyAbsolutePathValue(BuildPropertyNames.TargetPath) :
+                    data.GetPropertyValue(BuildPropertyNames.TargetPath),
+                assemblyName: data.GetPropertyValue(BuildPropertyNames.AssemblyName),
+                cancellationToken);
 
+        public async Task<IWorkspaceProjectContext> CreateProjectContextAsync(
+            string languageName,
+            string projectUniqueName,
+            string? projectFilePath,
+            Guid projectGuid,
+            object? hierarchy,
+            string? binOutputPath,
+            string? assemblyName,
+            CancellationToken cancellationToken)
+        {
             var creationInfo = new VisualStudioProjectCreationInfo
             {
-                AssemblyName = data.GetPropertyValue(BuildPropertyNames.AssemblyName),
-                FilePath = data.GetRequiredPropertyAbsolutePathValue(BuildPropertyNames.MSBuildProjectFullPath),
-                Hierarchy = hostObject as IVsHierarchy,
-                ProjectGuid = id,
+                AssemblyName = assemblyName,
+                FilePath = projectFilePath,
+                Hierarchy = hierarchy as IVsHierarchy,
+                ProjectGuid = projectGuid,
             };
 
-            string? binOutputPath, objOutputPath, commandLineArgs;
-            if (languageName is LanguageNames.CSharp or LanguageNames.VisualBasic)
-            {
-                binOutputPath = data.GetRequiredPropertyAbsolutePathValue(BuildPropertyNames.TargetPath);
-                objOutputPath = data.GetRequiredPropertyAbsolutePathValue(BuildPropertyNames.OutputAssemblyForDesignTimeEvaluation);
-                commandLineArgs = data.GetRequiredPropertyValue(BuildPropertyNames.CommandLineArgsForDesignTimeEvaluation);
-            }
-            else
-            {
-                binOutputPath = data.GetPropertyValue(BuildPropertyNames.TargetPath);
-                objOutputPath = null;
-                commandLineArgs = null;
-            }
-
             var visualStudioProject = await _projectFactory.CreateAndAddToWorkspaceAsync(
-                uniqueName, languageName, creationInfo, cancellationToken).ConfigureAwait(false);
+                projectUniqueName, languageName, creationInfo, cancellationToken).ConfigureAwait(false);
 
             // At this point we've mutated the workspace.  So we're no longer cancellable.
             cancellationToken = CancellationToken.None;
@@ -95,24 +100,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 await TaskScheduler.Default;
             }
 
-            var project = new CPSProject(visualStudioProject, _workspace, _projectCodeModelFactory, id);
+            var project = new CPSProject(visualStudioProject, _workspace, _projectCodeModelFactory, projectGuid);
 
-            // Set the properties in a batch; if we set the property directly we'll be taking a synchronous lock here and
+            // Set the output path in a batch; if we set the property directly we'll be taking a synchronous lock here and
             // potentially block up thread pool threads. Doing this in a batch means the global lock will be acquired asynchronously.
             project.StartBatch();
-
-            if (commandLineArgs != null)
-            {
-                project.SetOptions(commandLineArgs);
-            }
-
-            if (objOutputPath != null)
-            {
-                project.CompilationOutputAssemblyFilePath = objOutputPath;
-            }
-
             project.BinOutputPath = binOutputPath;
-
             await project.EndBatchAsync().ConfigureAwait(false);
 
             return project;
