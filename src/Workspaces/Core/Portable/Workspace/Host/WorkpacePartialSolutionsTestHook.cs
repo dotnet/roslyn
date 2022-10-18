@@ -3,28 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.VisualStudio.LanguageServices;
+namespace Microsoft.CodeAnalysis.UnitTests;
 
-/// <summary>
-/// Allows integration tests to disable partial solutions.
-/// </summary>
 [ExportWorkspaceService(typeof(IWorkpacePartialSolutionsTestHook), ServiceLayer.Host), Shared]
-internal class VisualStudioWorkpacePartialSolutionsTestHook : IWorkpacePartialSolutionsTestHook
+internal class WorkpacePartialSolutionsTestHook : IWorkpacePartialSolutionsTestHook
 {
     public bool IsPartialSolutionDisabled { get; set; }
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VisualStudioWorkpacePartialSolutionsTestHook()
+    public WorkpacePartialSolutionsTestHook()
     {
     }
 }
