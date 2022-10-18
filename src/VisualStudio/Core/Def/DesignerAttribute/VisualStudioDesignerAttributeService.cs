@@ -226,11 +226,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             cancellationToken.ThrowIfCancellationRequested();
 
             using var _1 = ArrayBuilder<DesignerAttributeData>.GetInstance(out var changedData);
+            using var _2 = ArrayBuilder<Task>.GetInstance(out var tasks);
 
             var latestSolution = AddChangedData(dataList, changedData);
 
             // Now, group all the notifications by project and update all the projects in parallel.
-            using var _3 = ArrayBuilder<Task>.GetInstance(out var tasks);
             foreach (var group in changedData.GroupBy(a => a.DocumentId.ProjectId))
             {
                 cancellationToken.ThrowIfCancellationRequested();
