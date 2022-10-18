@@ -95,7 +95,7 @@ class Test { }", "Form", host);
             var documentId = hostDocument.Id;
 
             var service = solution.Services.GetRequiredService<IDesignerAttributeDiscoveryService>();
-            var stream = service.ProcessSolutionAsync(solution, priorityDocumentId: null, CancellationToken.None);
+            var stream = service.ProcessProjectAsync(solution.GetRequiredProject(documentId.ProjectId), priorityDocumentId: null, CancellationToken.None);
 
             var items = new List<DesignerAttributeData>();
             await foreach (var item in stream)
