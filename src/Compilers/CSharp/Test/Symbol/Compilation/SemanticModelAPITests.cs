@@ -1466,6 +1466,7 @@ enum C
             bool success = model.TryGetSpeculativeSemanticModel(equalsValue.SpanStart, newEqualsValue, out speculativeModel);
             Assert.True(success);
             Assert.NotNull(speculativeModel);
+            Assert.False(speculativeModel.IgnoresAccessibility);
 
             var typeInfo = speculativeModel.GetTypeInfo(expr);
             Assert.NotNull(typeInfo.Type);
@@ -1475,6 +1476,10 @@ enum C
             var constantInfo = speculativeModel.GetConstantValue(expr);
             Assert.True(constantInfo.HasValue, "must be a constant");
             Assert.Equal((short)0, constantInfo.Value);
+
+            model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+            model.TryGetSpeculativeSemanticModel(equalsValue.SpanStart, newEqualsValue, out speculativeModel);
+            Assert.True(speculativeModel.IgnoresAccessibility);
         }
 
         [Fact]
@@ -2699,6 +2704,7 @@ class C
             var success = model.TryGetSpeculativeSemanticModel(position, speculatedTypeSyntax, out speculativeModel, bindingOption);
             Assert.True(success);
             Assert.NotNull(speculativeModel);
+            Assert.False(speculativeModel.IgnoresAccessibility);
 
             Assert.True(speculativeModel.IsSpeculativeSemanticModel);
             Assert.Equal(model, speculativeModel.ParentModel);
@@ -2830,6 +2836,11 @@ class MyException : System.Exception
             var speculatedTypeExpression = SyntaxFactory.ParseName("System.ArgumentException");
             TestGetSpeculativeSemanticModelForTypeSyntax_Common(model, baseList.SpanStart,
                 speculatedTypeExpression, SpeculativeBindingOption.BindAsTypeOrNamespace, SymbolKind.NamedType, "System.ArgumentException");
+
+            model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+            SemanticModel speculativeModel;
+            model.TryGetSpeculativeSemanticModel(baseList.SpanStart, speculatedTypeExpression, out speculativeModel);
+            Assert.True(speculativeModel.IgnoresAccessibility);
         }
 
         [Fact]

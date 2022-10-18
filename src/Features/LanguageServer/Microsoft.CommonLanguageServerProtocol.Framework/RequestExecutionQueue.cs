@@ -49,6 +49,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
 {
     protected readonly ILspLogger _logger;
     private readonly IHandlerProvider _handlerProvider;
+    private readonly AbstractLanguageServer<TRequestContext> _languageServer;
 
     /// <summary>
     /// The queue containing the ordered LSP requests along with the trace activityId (to associate logs with a request) and
@@ -65,8 +66,9 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
 
     public CancellationToken CancellationToken => _cancelSource.Token;
 
-    public RequestExecutionQueue(ILspLogger logger, IHandlerProvider handlerProvider)
+    public RequestExecutionQueue(AbstractLanguageServer<TRequestContext> languageServer, ILspLogger logger, IHandlerProvider handlerProvider)
     {
+        _languageServer = languageServer;
         _logger = logger;
         _handlerProvider = handlerProvider;
     }
@@ -77,18 +79,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
         _queueProcessingTask = ProcessQueueAsync();
     }
 
-    protected ITextDocumentIdentifierHandler? GetTextDocumentIdentifierHandler<TRequest, TResponse>(string methodName)
-    {
-        var handler = GetMethodHandler<TRequest, TResponse>(methodName);
-
-        ITextDocumentIdentifierHandler? textDocument = null;
-        if (handler is ITextDocumentIdentifierHandler textDocumentIdentifierHandler)
-            textDocument = textDocumentIdentifierHandler;
-
-        return textDocument;
-    }
-
-    private IMethodHandler GetMethodHandler<TRequest, TResponse>(string methodName)
+    protected IMethodHandler GetMethodHandler<TRequest, TResponse>(string methodName)
     {
         var requestType = typeof(TRequest) == typeof(VoidReturn) ? null : typeof(TRequest);
         var responseType = typeof(TResponse) == typeof(VoidReturn) ? null : typeof(TResponse);
@@ -107,7 +98,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
     /// <param name="requestCancellationToken">A cancellation token that will cancel the handing of this request.
     /// The request could also be cancelled by the queue shutting down.</param>
     /// <returns>A task that can be awaited to observe the results of the handing of this request.</returns>
-    public Task<TResponse> ExecuteAsync<TRequest, TResponse>(
+    public virtual Task<TResponse> ExecuteAsync<TRequest, TResponse>(
         TRequest request,
         string methodName,
         ILspServices lspServices,
@@ -197,7 +188,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
                     {
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
                         // Since we're explicitly awaiting exceptions to mutating requests will bubble up here.
-                        await work.StartRequestAsync(context, cancellationToken).ConfigureAwait(false);
+                        await WrapStartRequestTaskAsync(work.StartRequestAsync(context, cancellationToken), rethrowExceptions: true).ConfigureAwait(false);
                     }
                     else
                     {
@@ -206,7 +197,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
                         // though these errors don't put us into a bad state as far as the rest of the queue goes.
                         // Furthermore we use Task.Run here to protect ourselves against synchronous execution of work
                         // blocking the request queue for longer periods of time (it enforces parallelizabilty).
-                        _ = Task.Run(() => HandleNonMutatingRequestErrorAsync(work.StartRequestAsync(context, cancellationToken)), cancellationToken);
+                        _ = WrapStartRequestTaskAsync(Task.Run(() => work.StartRequestAsync(context, cancellationToken), cancellationToken), rethrowExceptions: false);
                     }
                 }
                 catch (OperationCanceledException ex) when (ex.CancellationToken == queueItem.cancellationToken)
@@ -226,9 +217,8 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
             var message = $"Error occurred processing queue: {ex.Message}.";
             if (lspServices is not null)
             {
-                var lifecycleManager = lspServices.GetRequiredService<ILifeCycleManager>();
-                await lifecycleManager.ShutdownAsync(message).ConfigureAwait(false);
-                await lifecycleManager.ExitAsync().ConfigureAwait(false);
+                await _languageServer.ShutdownAsync("Error processing queue, shutting down").ConfigureAwait(false);
+                await _languageServer.ExitAsync().ConfigureAwait(false);
             }
 
             await DisposeAsync().ConfigureAwait(false);
@@ -242,7 +232,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
     /// </summary>
     /// <param name="nonMutatingRequestTask">The task to be inspected.</param>
     /// <returns>The task from <paramref name="nonMutatingRequestTask"/>, to allow chained calls if needed.</returns>
-    public virtual Task HandleNonMutatingRequestErrorAsync(Task nonMutatingRequestTask)
+    public virtual Task WrapStartRequestTaskAsync(Task nonMutatingRequestTask, bool rethrowExceptions)
     {
         return nonMutatingRequestTask;
     }

@@ -6594,6 +6594,56 @@ static T I1.operator checked >>>(T a, T b)
 
         [Theory]
         [CombinatorialData]
+        public async Task ScopedParameter(TestHost testHost)
+        {
+            await TestInMethodAsync(@"interface I { void F(scoped R r); }",
+                testHost,
+                Keyword("interface"),
+                Interface("I"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("F"),
+                Punctuation.OpenParen,
+                Keyword("scoped"),
+                Identifier("R"),
+                Parameter("r"),
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task ScopedLocalDeclaration(TestHost testHost)
+        {
+            await TestInMethodAsync(@"scoped var v;",
+                testHost,
+                Keyword("scoped"),
+                Identifier("var"),
+                Local("v"),
+                Punctuation.Semicolon);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task ScopedOutDeclaration(TestHost testHost)
+        {
+            await TestInMethodAsync(@"F(x, out scoped R y);",
+                testHost,
+                Identifier("F"),
+                Punctuation.OpenParen,
+                Identifier("x"),
+                Punctuation.Comma,
+                Keyword("out"),
+                Keyword("scoped"),
+                Identifier("R"),
+                Local("y"),
+                Punctuation.CloseParen,
+                Punctuation.Semicolon);
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task LambdaDefaultParameter_01(TestHost testHost)
         {
             await TestAsync(

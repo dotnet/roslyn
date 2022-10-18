@@ -19,10 +19,10 @@ internal static class CodeCleanupOptionsStorage
         => document.GetCodeCleanupOptionsAsync(globalOptions.GetCodeCleanupOptions(document.Project.Services), cancellationToken);
 
     public static CodeCleanupOptions GetCodeCleanupOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
-        => new(
-            globalOptions.GetSyntaxFormattingOptions(languageServices),
-            globalOptions.GetSimplifierOptions(languageServices))
+        => new()
         {
+            FormattingOptions = globalOptions.GetSyntaxFormattingOptions(languageServices),
+            SimplifierOptions = globalOptions.GetSimplifierOptions(languageServices),
             AddImportOptions = globalOptions.GetAddImportPlacementOptions(languageServices),
             DocumentFormattingOptions = globalOptions.GetDocumentFormattingOptions(languageServices.Language)
         };

@@ -11,14 +11,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal class RoslynRequestExecutionQueue : RequestExecutionQueue<RequestContext>
     {
-        public RoslynRequestExecutionQueue(ILspLogger logger, IHandlerProvider handlerProvider)
-            : base(logger, handlerProvider)
+        public RoslynRequestExecutionQueue(AbstractLanguageServer<RequestContext> languageServer, ILspLogger logger, IHandlerProvider handlerProvider)
+            : base(languageServer, logger, handlerProvider)
         {
         }
 
-        public override Task HandleNonMutatingRequestErrorAsync(Task nonMutatingRequestTask)
+        public override Task WrapStartRequestTaskAsync(Task nonMutatingRequestTask, bool rethrowExceptions)
         {
-            return nonMutatingRequestTask.ReportNonFatalErrorAsync();
+            if (rethrowExceptions)
+            {
+                return nonMutatingRequestTask;
+            }
+            else
+            {
+                return nonMutatingRequestTask.ReportNonFatalErrorAsync();
+            }
         }
     }
 }

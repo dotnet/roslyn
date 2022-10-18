@@ -3976,10 +3976,8 @@ class Program
             a = (IdentifierNameSyntax)newTree.GetRoot().DescendantNodes().OfType<AttributeSyntax>().Single().Name;
             Assert.Equal("A", a.Identifier.Text);
 
-            // If we aren't using the right binder here, the compiler crashes going through the binder factory
             var info = model.GetSymbolInfo(a);
-            // This behavior is wrong. See https://github.com/dotnet/roslyn/issues/24135
-            Assert.Equal(attrType, info.Symbol);
+            Assert.Equal(attrCtor, info.Symbol);
         }
 
         [Fact]
@@ -6988,6 +6986,64 @@ class Program
             AssertEx.Equal("System.Action", model.GetTypeInfo(action).Type.ToTestDisplayString());
         }
 
+        [Fact]
+        [WorkItem(64392, "https://github.com/dotnet/roslyn/issues/64392")]
+        public void ReferToFieldWithinLambdaInTypeAttribute_01()
+        {
+            var source = @"
+[Display(x => $""{Name}"")]
+public class Test
+{
+    [Display(Name = ""Name"")]
+    public string Name { get; }
+}
+
+public class DisplayAttribute : System.Attribute
+{
+    public DisplayAttribute() { }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,2): error CS1729: 'DisplayAttribute' does not contain a constructor that takes 1 arguments
+                // [Display(x => $"{Name}")]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"Display(x => $""{Name}"")").WithArguments("DisplayAttribute", "1").WithLocation(2, 2),
+                // (5,14): error CS0246: The type or namespace name 'Name' could not be found (are you missing a using directive or an assembly reference?)
+                //     [Display(Name = "Name")]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Name").WithArguments("Name").WithLocation(5, 14)
+                );
+        }
+
+        [Fact]
+        [WorkItem(64392, "https://github.com/dotnet/roslyn/issues/64392")]
+        public void ReferToFieldWithinLambdaInTypeAttribute_02()
+        {
+            var source = @"
+[Display(x => Name)]
+public class Test
+{
+    [Display(Name = ""Name"")]
+    public string Name { get; }
+}
+
+public class DisplayAttribute : System.Attribute
+{
+    public DisplayAttribute() { }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,2): error CS1729: 'DisplayAttribute' does not contain a constructor that takes 1 arguments
+                // [Display(x => Name)]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Display(x => Name)").WithArguments("DisplayAttribute", "1").WithLocation(2, 2),
+                // (5,14): error CS0246: The type or namespace name 'Name' could not be found (are you missing a using directive or an assembly reference?)
+                //     [Display(Name = "Name")]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Name").WithArguments("Name").WithLocation(5, 14)
+                );
+        }
+
         // PROTOTYPE: Add separate test cases for lang version 11 vs. lang version 11 preview
         [Fact]
         public void LambdaWithExplicitDefaultParam()
@@ -7621,7 +7677,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "s").WithArguments("s").WithLocation(5, 33));
         }
 
-        [Fact(Skip = "PROTOTYPE: Nullable walker code needs to be updated so that this doesn't cause a cycle")]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void LambdaDefaultSelfReference()
         {
             var source = """
@@ -7636,10 +7692,16 @@ class Program
 }
 """;
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (7,29): error CS1750: A value of type 'var' cannot be used as a default parameter because there are no standard conversions to type 'Delegate'
+                //         var lam = (Delegate d = lam) => { };
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "d").WithArguments("var", "System.Delegate").WithLocation(7, 29),
+                // (7,33): error CS0841: Cannot use local variable 'lam' before it is declared
+                //         var lam = (Delegate d = lam) => { };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "lam").WithArguments("lam").WithLocation(7, 33));
         }
 
-        [Fact(Skip = "PROTOTYPE: Nullable walker code needs to be updated so that this doesn't cause a cycle")]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void LambdaDefaultSelfReference_ParameterBefore()
         {
             var source = """
@@ -7654,10 +7716,16 @@ class Program
 }
 """;
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (7,36): error CS1750: A value of type 'var' cannot be used as a default parameter because there are no standard conversions to type 'Delegate'
+                //         var lam = (int x, Delegate d = lam) => { };
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "d").WithArguments("var", "System.Delegate").WithLocation(7, 36),
+                // (7,40): error CS0841: Cannot use local variable 'lam' before it is declared
+                //         var lam = (int x, Delegate d = lam) => { };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "lam").WithArguments("lam").WithLocation(7, 40));
         }
 
-        [Fact(Skip = "PROTOTYPE: Nullable walker code needs to be updated so that this doesn't cause a cycle")]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void LambdaDefaultSelfReference_ParameterAfter()
         {
             var source = """
@@ -7672,7 +7740,16 @@ class Program
 }
 """;
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (7,29): error CS1750: A value of type 'var' cannot be used as a default parameter because there are no standard conversions to type 'Delegate'
+                //         var lam = (Delegate d = lam, int x) => { };
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "d").WithArguments("var", "System.Delegate").WithLocation(7, 29),
+                // (7,33): error CS0841: Cannot use local variable 'lam' before it is declared
+                //         var lam = (Delegate d = lam, int x) => { };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "lam").WithArguments("lam").WithLocation(7, 33),
+                // (7,43): error CS1737: Optional parameters must appear after all required parameters
+                //         var lam = (Delegate d = lam, int x) => { };
+                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(7, 43));
         }
 
         [Fact]
@@ -7773,9 +7850,9 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,9): error CS7036: There is no argument given that corresponds to the required parameter '' of '<anonymous delegate>'
+                // (6,9): error CS7036: There is no argument given that corresponds to the required parameter 'arg2' of '<anonymous delegate>'
                 //         lam(5);
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam").WithArguments("", "<anonymous delegate>").WithLocation(6, 9));
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam").WithArguments("arg2", "<anonymous delegate>").WithLocation(6, 9));
         }
     }
 }

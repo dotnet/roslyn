@@ -1686,10 +1686,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NoteWrite(parameter, value: null, read: true);
             }
 
-            if (parameter is SourceComplexParameterSymbolBase { ContainingSymbol: LocalFunctionSymbol or LambdaSymbol } sourceComplexParam &&
-                    sourceComplexParam.BindParameterEqualsValue() is { } boundValue)
+            if (parameter is SourceComplexParameterSymbolBase { ContainingSymbol: LocalFunctionSymbol or LambdaSymbol } sourceComplexParam)
             {
-                VisitRvalue(boundValue.Value);
+                // Mark attribute arguments as used.
+                if (sourceComplexParam.BindParameterAttributes() is { IsDefaultOrEmpty: false } boundAttributes)
+                {
+                    foreach (var boundAttribute in boundAttributes)
+                    {
+                        foreach (var attributeArgument in boundAttribute.ConstructorArguments)
+                        {
+                            VisitRvalue(attributeArgument);
+                        }
+                        foreach (var attributeNamedArgumentAssignment in boundAttribute.NamedArguments)
+                        {
+                            VisitRvalue(attributeNamedArgumentAssignment.Right);
+                        }
+                    }
+                }
+
+                // Mark default parameter values as used.
+                if (sourceComplexParam.BindParameterEqualsValue() is { } boundValue)
+                {
+                    VisitRvalue(boundValue.Value);
+                }
             }
         }
 

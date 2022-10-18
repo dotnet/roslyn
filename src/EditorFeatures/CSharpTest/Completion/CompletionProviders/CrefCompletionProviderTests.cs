@@ -427,13 +427,13 @@ class C
 class C
 {
 }";
-            using var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }, exportProvider: ExportProvider);
+            using var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }, composition: GetComposition());
             var called = false;
 
             var hostDocument = workspace.DocumentWithCursor;
             var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
             var service = GetCompletionService(document.Project);
-            var provider = Assert.IsType<CrefCompletionProvider>(service.GetTestAccessor().GetAllProviders(ImmutableHashSet<string>.Empty).Single());
+            var provider = Assert.IsType<CrefCompletionProvider>(service.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet<string>.Empty).Single());
             provider.GetTestAccessor().SetSpeculativeNodeCallback(n =>
             {
                 // asserts that we aren't be asked speculate on nodes inside documentation trivia.

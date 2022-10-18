@@ -22,8 +22,9 @@ internal static class ExtractMethodOptionsStorage
         };
 
     public static ExtractMethodGenerationOptions GetExtractMethodGenerationOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
-        => new(globalOptions.GetCodeGenerationOptions(languageServices))
+        => new()
         {
+            CodeGenerationOptions = globalOptions.GetCodeGenerationOptions(languageServices),
             ExtractOptions = globalOptions.GetExtractMethodOptions(languageServices.Language),
             AddImportOptions = globalOptions.GetAddImportPlacementOptions(languageServices),
             LineFormattingOptions = globalOptions.GetLineFormattingOptions(languageServices.Language)

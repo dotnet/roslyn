@@ -409,10 +409,8 @@ class C
             a = newTree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().ElementAt(2);
             Assert.Equal("A", a.Identifier.Text);
 
-            // If we aren't using the right binder here, the compiler crashes going through the binder factory
             var info = model.GetSymbolInfo(a);
-            // This behavior is wrong. See https://github.com/dotnet/roslyn/issues/24135
-            Assert.Equal(attrType, info.Symbol);
+            Assert.Equal(attrCtor, info.Symbol);
         }
 
         [Theory]
@@ -4838,10 +4836,7 @@ class Test : System.Attribute
             compilation.VerifyDiagnostics(
                 // (10,23): error CS0103: The name 'b2' does not exist in the current context
                 //             [Test(p = b2)]
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "b2").WithArguments("b2").WithLocation(10, 23),
-                // (6,20): warning CS0219: The variable 'b1' is assigned but its value is never used
-                //         const bool b1 = true;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b1").WithArguments("b1").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b2").WithArguments("b2").WithLocation(10, 23)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -8594,6 +8589,7 @@ public class MyAttribute : System.Attribute
         }
 
         [Fact]
+        [WorkItem(60801, "https://github.com/dotnet/roslyn/issues/60801")]
         public void ParameterScope_InMethodAttributeNameOf_GetSymbolInfoOnSpeculativeMethodBodySemanticModel()
         {
             var source = @"
