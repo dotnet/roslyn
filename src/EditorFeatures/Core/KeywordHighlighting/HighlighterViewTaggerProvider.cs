@@ -46,10 +46,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveAllTags;
         protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.KeywordHighlighting);
 
-        // Fine to use EqualityComparer<>.Default here as KeywordHighlightTag is a singleton and thus works properly here.
-        protected override IEqualityComparer<KeywordHighlightTag> TagEqualityComparer
-            => EqualityComparer<KeywordHighlightTag>.Default;
-
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public HighlighterViewTaggerProvider(
@@ -126,6 +122,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
                     context.AddTag(new TagSpan<KeywordHighlightTag>(span.ToSnapshotSpan(snapshot), KeywordHighlightTag.Instance));
                 }
             }
+        }
+
+        protected override bool Equals(ITextSnapshot snapshot, KeywordHighlightTag tag1, KeywordHighlightTag tag2)
+        {
+            Contract.ThrowIfFalse(tag1 == tag2, "KeywordHighlightTag is supposed to be a singleton");
+            return true;
         }
     }
 }
