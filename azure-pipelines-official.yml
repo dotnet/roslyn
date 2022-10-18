@@ -294,9 +294,9 @@ stages:
       publishUsingPipelines: true
       dependsOn:
         - OfficialBuild
-    pool:
-      name: NetCore1ESPool-Svc-Internal
-      demands: ImageOverride -equals windows.vs2019.amd64
+      pool:
+        name: NetCore1ESPool-Svc-Internal
+        demands: ImageOverride -equals windows.vs2019.amd64
 
 - stage: insert
   dependsOn:
