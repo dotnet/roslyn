@@ -11,7 +11,7 @@
     <PackageLicenseExpression></PackageLicenseExpression>
     <PackageLicenseFile>License.txt</PackageLicenseFile>
   </PropertyGroup>
-
+  
   <ItemGroup>
     <None Include="License.txt" PackagePath="" Pack="true" />
   </ItemGroup>
