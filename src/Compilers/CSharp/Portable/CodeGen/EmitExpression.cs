@@ -48,7 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return;
                 }
 
-                if ((object)expression.Type == null || expression.Type.SpecialType != SpecialType.System_Decimal)
+                if ((object)expression.Type == null ||
+                    (expression.Type.SpecialType != SpecialType.System_Decimal &&
+                     !expression.Type.IsNullableType()))
                 {
                     EmitConstantExpression(expression.Type, constantValue, used, expression.Syntax);
                     return;
