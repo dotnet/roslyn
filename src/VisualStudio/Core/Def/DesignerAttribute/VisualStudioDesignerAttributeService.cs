@@ -63,8 +63,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// We'll get notifications from the OOP server about new attribute arguments. Collect those notifications and
         /// deliver them to VS in batches to prevent flooding the UI thread.  Importantly, we do not cancel this queue.
         /// Once we've decided to update the project system, we want to allow that to proceed.
+        /// <para>
+        /// This queue both sends the individual data objects we get back, or the project instance once we're done with
+        /// it.  The latter is used so that we can determine which documents are now gone, so we can dump our cached
+        /// data for them.
+        /// </para>
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<DesignerAttributeData> _projectSystemNotificationQueue;
+        private readonly AsyncBatchingWorkQueue<(CodeAnalysis.Project? project, DesignerAttributeData? data)> _projectSystemNotificationQueue;
 
         /// <summary>
         /// Keep track of the last version we were at when we processed a project.  We'll skip reprocessing projects if
@@ -98,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 listener,
                 ThreadingContext.DisposalToken);
 
-            _projectSystemNotificationQueue = new AsyncBatchingWorkQueue<DesignerAttributeData>(
+            _projectSystemNotificationQueue = new AsyncBatchingWorkQueue<(CodeAnalysis.Project? project, DesignerAttributeData? data)>(
                 TimeSpan.FromSeconds(1),
                 this.NotifyProjectSystemAsync,
                 listener,
@@ -208,38 +213,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                     (service, checksum, cancellationToken) => service.DiscoverDesignerAttributesAsync(checksum, project.Id, priorityDocumentId, cancellationToken),
                     cancellationToken);
 
-                await ProcessResultsDataAsync(project.Id, stream).ConfigureAwait(false);
+                // get the results and add all the documents we hear about to the notification queue so they can be batched up.
+                await foreach (var data in stream.ConfigureAwait(false))
+                    _projectSystemNotificationQueue.AddWork((project: null, data));
+
+                // once done, also enqueue the project we just completed so that the project-system queue can cleanup any stale data about it.
+                _projectSystemNotificationQueue.AddWork((project, data: null));
 
                 // now that we're done processing the project, record this version-stamp so we don't have to process it again in the future.
                 _projectToLastComputedDependentSemanticVersion[project.Id] = dependentSemanticVersion;
             }
         }
 
-        private async Task ProcessResultsDataAsync(ProjectId projectId, IAsyncEnumerable<DesignerAttributeData> stream)
-        {
-            using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenDocuments);
-
-            // get the results and add all the documents we hear about to the notification queue so they can be batched up.
-            await foreach (var data in stream.ConfigureAwait(false))
-            {
-                seenDocuments.Add(data.DocumentId);
-                _projectSystemNotificationQueue.AddWork(data);
-            }
-
-            // now, if we didn't hear about some document that we previous reported, then go through and notify the project system
-            // that the document is no longer designable.
-            foreach (var (documentId, lastReportedData) in _documentToLastReportedData)
-            {
-                if (documentId.ProjectId == projectId &&
-                    !seenDocuments.Contains(documentId))
-                {
-                    _projectSystemNotificationQueue.AddWork(lastReportedData.WithCategory(null));
-                }
-            }
-        }
-
         private async ValueTask NotifyProjectSystemAsync(
-            ImmutableSegmentedList<DesignerAttributeData> dataList, CancellationToken cancellationToken)
+            ImmutableSegmentedList<(CodeAnalysis.Project? project, DesignerAttributeData? data)> dataList, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
