@@ -183,12 +183,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 if (!solution.ContainsProject(projectId))
                     _projectToLastComputedDependentSemanticVersion.TryRemove(projectId, out _);
             }
-
-            foreach (var (documentId, _) in _documentToLastReportedData)
-            {
-                if (!solution.ContainsProject(documentId.ProjectId))
-                    _documentToLastReportedData.TryRemove(documentId, out _);
-            }
         }
 
         private async Task ProcessProjectAsync(
@@ -213,12 +207,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                     (service, checksum, cancellationToken) => service.DiscoverDesignerAttributesAsync(checksum, project.Id, priorityDocumentId, cancellationToken),
                     cancellationToken);
 
+                // once done, also enqueue the project we are processing so that the project-system queue can cleanup
+                // any stale data about it.
+                _projectSystemNotificationQueue.AddWork((project, data: null));
+
                 // get the results and add all the documents we hear about to the notification queue so they can be batched up.
                 await foreach (var data in stream.ConfigureAwait(false))
                     _projectSystemNotificationQueue.AddWork((project: null, data));
-
-                // once done, also enqueue the project we just completed so that the project-system queue can cleanup any stale data about it.
-                _projectSystemNotificationQueue.AddWork((project, data: null));
 
                 // now that we're done processing the project, record this version-stamp so we don't have to process it again in the future.
                 _projectToLastComputedDependentSemanticVersion[project.Id] = dependentSemanticVersion;
@@ -230,12 +225,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var _1 = ArrayBuilder<DesignerAttributeData>.GetInstance(out var filteredData);
-            AddFilteredData(dataList, filteredData);
+            // We will always get a sequence of `project1, p1-data1, p1-data2, p1-data3, project2, p2-data1, p2-data2, p2-data3, ...`
+            //
+            // Note that this list may be in an arbitrary range of the above.  e.g.:
+            //
+            // `p1-data3, project2, p2-data1`
+
+            using var _1 = PooledHashSet<CodeAnalysis.Project>.GetInstance(out var changedProjects);
+            using var _2 = ArrayBuilder<DesignerAttributeData>.GetInstance(out var changedData);
+
+            GetChangedData(dataList, changedProjects, changedData);
 
             // Now, group all the notifications by project and update all the projects in parallel.
-            using var _2 = ArrayBuilder<Task>.GetInstance(out var tasks);
-            foreach (var group in filteredData.GroupBy(a => a.DocumentId.ProjectId))
+            using var _3 = ArrayBuilder<Task>.GetInstance(out var tasks);
+            foreach (var group in changedData.GroupBy(a => a.DocumentId.ProjectId))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 tasks.Add(NotifyProjectSystemAsync(group.Key, group, cancellationToken));
@@ -245,8 +248,53 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
             // now that we've reported this data, record that we've done so so that we don't report the same data again in the future.
-            foreach (var data in filteredData)
+            foreach (var data in changedData)
                 _documentToLastReportedData[data.DocumentId] = data;
+
+            // Now, check the documents we've stored against the changed projects to see if they're no longer around.
+            // If so, dump what we have.
+        }
+
+        private void GetChangedData(
+            ImmutableSegmentedList<(CodeAnalysis.Project? project, DesignerAttributeData? data)> dataList,
+            HashSet<CodeAnalysis.Project> changedProjects,
+            ArrayBuilder<DesignerAttributeData> changedData)
+        {
+            using var _1 = PooledHashSet<DocumentId>.GetInstance(out var seenDocumentIds);
+            using var _2 = PooledDictionary<ProjectId, CodeAnalysis.Project>.GetInstance(out var seenProjects);
+            using var _3 = ArrayBuilder<DesignerAttributeData>.GetInstance(out var latestData);
+
+            for (var i = dataList.Count - 1; i >= 0; i--)
+            {
+                // go in reverse order so that results about the same document only take the later value.
+                var (project, data) = dataList[i];
+
+                if (data != null)
+                {
+                    if (seenDocumentIds.Add(data.Value.DocumentId))
+                        latestData.Add(data.Value);
+                }
+                else if (project != null)
+                {
+                    if (!seenProjects.ContainsKey(project.Id))
+                        seenProjects.Add(project.Id, project);
+                }
+                else
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
+            }
+
+            changedProjects.AddRange(seenProjects.Values);
+
+            foreach (var data in latestData)
+            {
+                if (!_documentToLastReportedData.TryGetValue(data.DocumentId, out var existingData) ||
+                    existingData.Category != data.Category)
+                {
+                    changedData.Add(data);
+                }
+            }
         }
 
         private void AddFilteredData(ImmutableSegmentedList<DesignerAttributeData> dataList, ArrayBuilder<DesignerAttributeData> filteredData)
