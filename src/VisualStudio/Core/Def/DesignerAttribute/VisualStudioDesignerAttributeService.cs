@@ -140,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             var solution = _workspace.CurrentSolution;
 
             // remove any data for projects that are no longer around.
-            HandRemovedProjects(solution).ConfigureAwait(false);
+            HandRemovedProjects(solution);
 
             // Now process all the projects we do have, prioritizing the active project/document first.
             var trackingService = _workspace.Services.GetRequiredService<IDocumentTrackingService>();
