@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Information = 2,
 
         /// <summary>
+        /// Logs that track the general flow of the application. These logs should have long-term value.
+        /// </summary>
+        Telemetry = Information,
+
+        /// <summary>
         /// Logs that highlight an abnormal or unexpected event in the application flow, but do not otherwise cause the application execution to stop.
         /// </summary>
         Warning = 3,

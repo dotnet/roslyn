@@ -148,6 +148,60 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         }
 
         /// <summary>
+        /// log a specific event at the <see cref="LogLevel.Telemetry"/> severity level with a simple context message which should be very cheap to create.
+        /// </summary>
+        public static void LogTelemetry(FunctionId functionId, string? message = null)
+        {
+            Log(functionId, message, LogLevel.Telemetry);
+        }
+
+        /// <summary>
+        /// log a specific event at the <see cref="LogLevel.Telemetry"/> severity level with a context message that will only be created when it is needed.
+        /// the messageGetter should be cheap to create. in another word, it shouldn't capture any locals
+        /// </summary>
+        public static void LogTelemetry(FunctionId functionId, Func<string> messageGetter)
+        {
+            Log(functionId, messageGetter, LogLevel.Telemetry);
+        }
+
+        /// <summary>
+        /// log a specific event at the <see cref="LogLevel.Telemetry"/> severity level with a context message that requires some arguments to be created when requested.
+        /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
+        /// </summary>
+        public static void LogTelemetry<TArg>(FunctionId functionId, Func<TArg, string> messageGetter, TArg arg)
+        {
+            Log(functionId, messageGetter, arg, LogLevel.Telemetry);
+        }
+
+        /// <summary>
+        /// log a specific event at the <see cref="LogLevel.Telemetry"/> severity level with a context message that requires some arguments to be created when requested.
+        /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
+        /// </summary>
+        public static void LogTelemetry<TArg0, TArg1>(FunctionId functionId, Func<TArg0, TArg1, string> messageGetter, TArg0 arg0, TArg1 arg1)
+        {
+            Log(functionId, messageGetter, arg0, arg1, LogLevel.Telemetry);
+        }
+
+        /// <summary>
+        /// log a specific event at the <see cref="LogLevel.Telemetry"/> severity level with a context message that requires some arguments to be created when requested.
+        /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
+        /// </summary>
+        public static void LogTelemetry<TArg0, TArg1, TArg2>(FunctionId functionId, Func<TArg0, TArg1, TArg2, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2)
+        {
+            Log(functionId, messageGetter, arg0, arg1, arg2, LogLevel.Telemetry);
+        }
+
+
+        /// <summary>
+        /// log a specific event at the <see cref="LogLevel.Telemetry"/> severity level with a context message that requires some arguments to be created when requested.
+        /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
+        /// </summary>
+        public static void LogTelemetry<TArg0, TArg1, TArg2, TArg3>(FunctionId functionId, Func<TArg0, TArg1, TArg2, TArg3, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2, TArg3 arg3)
+        {
+            Log(functionId, messageGetter, arg0, arg1, arg2, arg3, LogLevel.Telemetry);
+        }
+
+        /// <summary>
         /// return next unique pair id
         /// </summary>
         private static int GetNextUniqueBlockId()
@@ -219,5 +273,66 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             => TryGetActiveLogger(functionId, out _) ?
                 CreateLogBlock(functionId, logMessage, GetNextUniqueBlockId(), token) :
                 EmptyLogBlock.Instance;
+
+        /// <summary>
+        /// simplest way to log a start and end pair at the <see cref="LogLevel.Telemetry"/> severity level.
+        /// </summary>
+        public static IDisposable LogTelemetryBlock(FunctionId functionId, CancellationToken token)
+        {
+            return LogBlock(functionId, token, LogLevel.Telemetry);
+        }
+
+        /// <summary>
+        /// simplest way to log a start and end pair at the <see cref="LogLevel.Telemetry"/> severity level with a simple context message which should be very cheap to create
+        /// </summary>
+        public static IDisposable LogTelemetryBlock(FunctionId functionId, string? message, CancellationToken token)
+        {
+            return LogBlock(functionId, message, token, LogLevel.Telemetry);
+        }
+
+        /// <summary>
+        /// log a start and end pair at the <see cref="LogLevel.Telemetry"/> severity level with a context message that requires some arguments to be created when requested.
+        /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
+        /// </summary>
+        public static IDisposable LogTelemetryBlock(FunctionId functionId, Func<string> messageGetter, CancellationToken token)
+        {
+            return LogBlock(functionId, messageGetter, token, LogLevel.Telemetry);
+        }
+
+        /// <summary>
+        /// log a start and end pair  at the <see cref="LogLevel.Telemetry"/> severity level with a context message that requires some arguments to be created when requested.
+        /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
+        /// </summary>
+        public static IDisposable LogTelemetryBlock<TArg>(FunctionId functionId, Func<TArg, string> messageGetter, TArg arg, CancellationToken token)
+        {
+            return LogBlock(functionId, messageGetter, arg, token, LogLevel.Telemetry);
+        }
+
+        /// <summary>
+        /// log a start and end pair  at the <see cref="LogLevel.Telemetry"/> severity level with a context message that requires some arguments to be created when requested.
+        /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
+        /// </summary>
+        public static IDisposable LogTelemetryBlock<TArg0, TArg1>(FunctionId functionId, Func<TArg0, TArg1, string> messageGetter, TArg0 arg0, TArg1 arg1, CancellationToken token)
+        {
+            return LogBlock(functionId, messageGetter, arg0, arg1, token, LogLevel.Telemetry);
+        }
+
+        /// <summary>
+        /// log a start and end pair  at the <see cref="LogLevel.Telemetry"/> severity level with a context message that requires some arguments to be created when requested.
+        /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
+        /// </summary>
+        public static IDisposable LogTelemetryBlock<TArg0, TArg1, TArg2>(FunctionId functionId, Func<TArg0, TArg1, TArg2, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2, CancellationToken token)
+        {
+            return LogBlock(functionId, messageGetter, arg0, arg1, arg2, token, LogLevel.Telemetry);
+        }
+
+        /// <summary>
+        /// log a start and end pair at the <see cref="LogLevel.Telemetry"/> severity level with a context message that requires some arguments to be created when requested.
+        /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
+        /// </summary>
+        public static IDisposable LogTelemetryBlock<TArg0, TArg1, TArg2, TArg3>(FunctionId functionId, Func<TArg0, TArg1, TArg2, TArg3, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2, TArg3 arg3, CancellationToken token)
+        {
+            return LogBlock(functionId, messageGetter, arg0, arg1, arg2, arg3, token, LogLevel.Telemetry);
+        }
     }
 }
