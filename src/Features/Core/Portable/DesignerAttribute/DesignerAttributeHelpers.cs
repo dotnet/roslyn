@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             return null;
 
             static string? GetArgumentString(TypedConstant argument)
-                => argument is { Type.SpecialType: SpecialType.System_String, Value: string stringValue } ? stringValue.Trim() : null;
+                => argument is { IsNull: false, Type.SpecialType: SpecialType.System_String, Value: string stringValue } ? stringValue.Trim() : null;
         }
 
         private static SyntaxNode? FindFirstNonNestedClass(
