@@ -39,7 +39,7 @@ public static class EncodingTestHelpers
     }
 
     public static IEnumerable<object?[]> GetEncodingTestCases()
-        => GetEncodings().Select(e => new object[] { e });
+        => GetEncodings().Select(e => new object?[] { e });
 
     public static void AssertEncodingsEqual(Encoding? expected, Encoding? actual)
     {
@@ -49,8 +49,9 @@ public static class EncodingTestHelpers
         }
         else
         {
-            Debug.Assert(actual != null);
-            Assert.Equal(expected.CodePage, actual.CodePage);
+            Assert.NotNull(actual);
+
+            Assert.Equal(expected.CodePage, actual!.CodePage);
             Assert.Equal(expected.WebName, actual.WebName);
             Assert.Equal(expected.GetPreamble(), actual.GetPreamble());
             Assert.Equal(expected, actual);
