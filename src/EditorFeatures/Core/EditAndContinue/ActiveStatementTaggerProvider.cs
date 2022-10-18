@@ -103,7 +103,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             context.SetSpansTagged(ImmutableArray.Create(spanToTag.SnapshotSpan));
         }
 
-        // ActiveStatementTag is a singleton, so fine to 
         protected override bool Equals(ITextMarkerTag tag1, ITextMarkerTag tag2)
         {
             Contract.ThrowIfFalse(tag1 == tag2, "ActiveStatementTag is a supposed to be a singleton");
