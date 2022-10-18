@@ -161,8 +161,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             _metadataAsSourceFileService?.CleanupGeneratedFiles();
 
-            this.ClearSolution();
-
             foreach (var document in Documents)
             {
                 document.CloseTextView();

@@ -350,10 +350,23 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected void ClearSolution()
         {
+            this.ClearSolution(reportChangeEvent: true);
+        }
+
+        /// <param name="reportChangeEvent">Used so that while disposing we can clear the solution without issuing more
+        /// events. As we are disposing, we don't want to cause any current listeners to do work on us as we're in the
+        /// process of going away.</param>
+        private void ClearSolution(bool reportChangeEvent)
+        {
             this.SetCurrentSolution(
-                oldSolution => this.CreateSolution(oldSolution.Id),
-                WorkspaceChangeKind.SolutionCleared,
-                onBeforeUpdate: (_, _) => this.ClearSolutionData());
+                (oldSolution, data) => this.CreateSolution(oldSolution.Id),
+                data: /*unused*/ 0,
+                onBeforeUpdate: (_, _, _) => this.ClearSolutionData(),
+                onAfterUpdate: (oldSolution, newSolution, _) =>
+                {
+                    if (reportChangeEvent)
+                        this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionCleared, oldSolution, newSolution);
+                });
         }
 
         /// <summary>
@@ -404,11 +417,9 @@ namespace Microsoft.CodeAnalysis
         {
             if (!finalize)
             {
-                // do not call ClearSolution as we do not want to issue an event here.  However, do clear out our data
-                // and reset the CurrentSolution to an empty one.
-
-                this.ClearSolutionData();
-                this.SetCurrentSolutionEx(this.CreateSolution(this.CurrentSolution.Id));
+                // Use `reportChangeEvent` as we do not want to issue an event here since we're in the process of
+                // tearing ourselves down.
+                this.ClearSolution(reportChangeEvent: false);
 
                 this.Services.GetService<IWorkspaceEventListenerService>()?.Stop();
             }
@@ -459,8 +470,6 @@ namespace Microsoft.CodeAnalysis
             this.SetCurrentSolution(
                 oldSolution =>
                 {
-                    CheckSolutionIsEmpty(oldSolution);
-
                     var newSolution = this.CreateSolution(reloadedSolutionInfo);
 
                     foreach (var project in reloadedSolutionInfo.Projects)
