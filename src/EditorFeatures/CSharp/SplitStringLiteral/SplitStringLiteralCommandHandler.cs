@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             foreach (var span in spans.Reverse())
             {
                 using var transaction = CaretPreservingEditTransaction.TryCreate(
-                CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
+                    CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
 
                 var splitter = StringSplitter.TryCreate(parsedDocument, span.Start.Position, options, CancellationToken.None);
                 if (splitter?.TrySplit(out var newRoot, out var newPosition) != true)

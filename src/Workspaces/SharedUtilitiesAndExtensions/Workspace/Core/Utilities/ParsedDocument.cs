@@ -80,7 +80,8 @@ internal readonly record struct ParsedDocument(DocumentId Id, SourceText Text, S
         var textChanges = Text.GetTextChanges(oldDocument.Text);
 
         // if changes are significant (not the whole document being replaced) then use these changes
-        if (textChanges.Count > 1 || textChanges.Count == 1 && textChanges[0].Span != new TextSpan(0, oldDocument.Text.Length))
+        if (textChanges.Count > 1 ||
+            textChanges.Count == 1 && textChanges[0].Span != new TextSpan(0, oldDocument.Text.Length))
         {
             return textChanges;
         }
