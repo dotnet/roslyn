@@ -182,11 +182,6 @@
         <target state="translated">İçeri aktarılmayan ad alanlarındaki öğeleri göster</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_new_snippet_experience_experimental">
-        <source>Show new snippet experience (experimental)</source>
-        <target state="translated">Yeni kod parçacığı deneyimini göster (deneysel)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
         <source>Show remarks in Quick Info</source>
         <target state="translated">Hızlı Bilgi notlarını göster</target>

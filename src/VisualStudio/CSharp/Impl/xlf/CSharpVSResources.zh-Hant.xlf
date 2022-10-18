@@ -182,11 +182,6 @@
         <target state="translated">顯示來自未匯入命名空間的項目</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_new_snippet_experience_experimental">
-        <source>Show new snippet experience (experimental)</source>
-        <target state="translated">顯示新的程式碼片段體驗 (實驗性)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
         <source>Show remarks in Quick Info</source>
         <target state="translated">在快速諮詢中顯示備註</target>

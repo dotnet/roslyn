@@ -29,8 +29,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public bool UpdateImportCompletionCacheInBackground { get; init; } = false;
         public bool FilterOutOfScopeLocals { get; init; } = true;
         public bool ShowXmlDocCommentCompletion { get; init; } = true;
-        public bool? ShowNewSnippetExperience { get; init; } = null;
-        public bool SnippetCompletion { get; init; } = true;
+        public bool SnippetCompletion { get; init; } = false;
         public ExpandedCompletionMode ExpandedCompletionBehavior { get; init; } = ExpandedCompletionMode.AllItems;
         public NamingStylePreferences? NamingStyleFallbackOptions { get; init; } = null;
 
@@ -57,23 +56,9 @@ namespace Microsoft.CodeAnalysis.Completion
         /// This takes into consideration the experiment we are running in addition to the value
         /// from user facing options.
         /// </summary>
-        public bool ShouldShowNewSnippetExperience(Document document)
+        public bool ShouldShowNewSnippetExperience()
         {
-            // Will be removed once semantic snippets will be added to razor.
-            var solution = document.Project.Solution;
-            var documentSupportsFeatureService = solution.Services.GetRequiredService<IDocumentSupportsFeatureService>();
-            if (!documentSupportsFeatureService.SupportsSemanticSnippets(document))
-            {
-                return false;
-            }
-
-            if (document.IsRazorDocument())
-            {
-                return false;
-            }
-
-            // Don't trigger snippet completion if the option value is "default" and the experiment is disabled for the user. 
-            return ShowNewSnippetExperience ?? SnippetCompletion;
+            return SnippetCompletion;
         }
     }
 }

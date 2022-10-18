@@ -182,11 +182,6 @@
         <target state="translated">显示 unimported 命名空间中的项</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_new_snippet_experience_experimental">
-        <source>Show new snippet experience (experimental)</source>
-        <target state="translated">显示新的代码片段体验(试验)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
         <source>Show remarks in Quick Info</source>
         <target state="translated">在快速信息中显示备注</target>

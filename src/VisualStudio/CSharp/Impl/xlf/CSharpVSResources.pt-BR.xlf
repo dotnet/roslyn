@@ -182,11 +182,6 @@
         <target state="translated">Mostrar os itens de namespaces não importados</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_new_snippet_experience_experimental">
-        <source>Show new snippet experience (experimental)</source>
-        <target state="translated">Mostrar nova experiência de snippet de código (experimental)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
         <source>Show remarks in Quick Info</source>
         <target state="translated">Mostrar os comentários nas Informações Rápidas</target>

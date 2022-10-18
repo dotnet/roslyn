@@ -182,11 +182,6 @@
         <target state="translated">インポートされていない名前空間の項目を表示する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_new_snippet_experience_experimental">
-        <source>Show new snippet experience (experimental)</source>
-        <target state="translated">新しいスニペット エクスペリエンスの表示 (試験段階)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
         <source>Show remarks in Quick Info</source>
         <target state="translated">クイック ヒントに注釈を表示する</target>

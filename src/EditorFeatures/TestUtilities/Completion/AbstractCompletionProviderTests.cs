@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected bool? ForceExpandedCompletionIndexCreation { get; set; }
         protected bool? HideAdvancedMembers { get; set; }
         protected bool? ShowNameSuggestions { get; set; }
-        protected bool? ShowNewSnippetExperience { get; set; }
+        protected bool? SnippetCompletion { get; set; }
 
         protected AbstractCompletionProviderTests()
         {
@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             if (ShowNameSuggestions.HasValue)
                 options = options with { ShowNameSuggestions = ShowNameSuggestions.Value };
 
-            if (ShowNewSnippetExperience.HasValue)
-                options = options with { ShowNewSnippetExperience = ShowNewSnippetExperience.Value };
+            if (SnippetCompletion.HasValue)
+                options = options with { SnippetCompletion = SnippetCompletion.Value };
 
             return options;
         }

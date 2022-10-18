@@ -29,8 +29,6 @@ internal static class CompletionOptionsStorage
             ForceExpandedCompletionIndexCreation = options.GetOption(ForceExpandedCompletionIndexCreation),
             UpdateImportCompletionCacheInBackground = options.GetOption(UpdateImportCompletionCacheInBackground),
             NamingStyleFallbackOptions = options.GetNamingStylePreferences(language),
-            ShowNewSnippetExperience = options.GetOption(ShowNewSnippetExperience, language),
-            SnippetCompletion = options.GetOption(ShowNewSnippetExperienceFeatureFlag)
         };
 
     // feature flags
@@ -42,10 +40,6 @@ internal static class CompletionOptionsStorage
     public static readonly Option2<bool> UnnamedSymbolCompletionDisabledFeatureFlag = new(nameof(CompletionOptions), nameof(UnnamedSymbolCompletionDisabledFeatureFlag),
         CompletionOptions.Default.UnnamedSymbolCompletionDisabled,
         new FeatureFlagStorageLocation("Roslyn.UnnamedSymbolCompletionDisabled"));
-
-    public static readonly Option2<bool> ShowNewSnippetExperienceFeatureFlag = new(nameof(CompletionOptions), nameof(ShowNewSnippetExperienceFeatureFlag),
-        CompletionOptions.Default.SnippetCompletion,
-        new FeatureFlagStorageLocation("Roslyn.SnippetCompletion"));
 
     public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new(
         "CompletionOptions", "HideAdvancedMembers", CompletionOptions.Default.HideAdvancedMembers,
@@ -109,7 +103,4 @@ internal static class CompletionOptionsStorage
             CompletionOptions.Default.ProvideDateAndTimeCompletions,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ProvideDateAndTimeCompletions"));
 
-    public static readonly PerLanguageOption2<bool?> ShowNewSnippetExperience
-        = new(nameof(CompletionOptions), nameof(ShowNewSnippetExperience), CompletionOptions.Default.ShowNewSnippetExperience,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowNewSnippetExperience"));
 }

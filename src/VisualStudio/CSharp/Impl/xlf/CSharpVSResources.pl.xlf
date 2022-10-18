@@ -182,11 +182,6 @@
         <target state="translated">Pokaż elementy z nieimportowanych przestrzeni nazw</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_new_snippet_experience_experimental">
-        <source>Show new snippet experience (experimental)</source>
-        <target state="translated">Pokaż nowe środowisko fragmentu kodu (eksperymentalne)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
         <source>Show remarks in Quick Info</source>
         <target state="translated">Pokaż uwagi w szybkich podpowiedziach</target>
