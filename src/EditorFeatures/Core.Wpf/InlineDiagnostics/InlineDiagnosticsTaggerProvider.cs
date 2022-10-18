@@ -128,6 +128,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         /// way to reuse any of these currently.  Ideally we could do something similar to inline-hints where there's a
         /// data tagger portion (which is async and has clean equality semantics), and then the UI portion which just
         /// translates those data-tags to the UI tags.
+        /// <para>
+        /// Returning false here means we'll always end up regenerating all tags.  But hopefully there won't be that
+        /// many in a document to matter.
+        /// </para>
         /// </summary>
         protected override bool Equals(InlineDiagnosticsTag tag1, InlineDiagnosticsTag tag2)
             => false;
