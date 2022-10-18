@@ -9,6 +9,10 @@
     <PlatformTarget>ARM64</PlatformTarget>
     <TargetFramework>net472</TargetFramework>
     <DisableNullableWarnings>true</DisableNullableWarnings>
+
+    <!-- Package used for symbol publishing -->
+    <IsPackable>true</IsPackable>
+    <PackageId>csc.arm64</PackageId>
   </PropertyGroup>
 
   <!-- Can't put this in shared project due to https://github.com/dotnet/project-system/issues/8157 -->

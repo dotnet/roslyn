@@ -9,6 +9,10 @@
     <PlatformTarget>ARM64</PlatformTarget>
     <TargetFramework>net472</TargetFramework>
     <DisableNullableWarnings>true</DisableNullableWarnings>
+
+    <!-- Package used for symbol publishing -->
+    <IsPackable>true</IsPackable>
+    <PackageId>VBCSCompiler.arm64</PackageId>
   </PropertyGroup>
   <Import Project="..\VBCSCompilerCommandLine.projitems" Label="Shared" />
 </Project>

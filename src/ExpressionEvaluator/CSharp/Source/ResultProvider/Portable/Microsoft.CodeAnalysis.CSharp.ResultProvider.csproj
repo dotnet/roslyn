@@ -7,6 +7,8 @@
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider</AssemblyName>
     <TargetFramework>netstandard2.0</TargetFramework>
     <ApplyNgenOptimization>full</ApplyNgenOptimization>
+
+    <!-- Package used for symbol publishing -->
     <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">

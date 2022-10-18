@@ -7,6 +7,9 @@
     <RootNamespace>CSharpInteractive</RootNamespace>
     <TargetFrameworks>net6.0;net472</TargetFrameworks>
     <UseAppHost Condition="'$(DotNetBuildFromSource)' == 'true'">false</UseAppHost>
+
+    <!-- Package used for symbol publishing -->
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />

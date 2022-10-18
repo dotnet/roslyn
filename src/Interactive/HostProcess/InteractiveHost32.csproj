@@ -8,6 +8,9 @@
     <TargetFramework>net472</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+
+    <!-- Package used for symbol publishing -->
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />

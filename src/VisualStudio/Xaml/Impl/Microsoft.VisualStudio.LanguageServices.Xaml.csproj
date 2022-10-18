@@ -7,6 +7,9 @@
     <DeployExtension>false</DeployExtension>
     <TargetFramework>net472</TargetFramework>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+
+    <!-- Package used for symbol publishing -->
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />

@@ -5,6 +5,9 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net6.0;net472</TargetFrameworks>
     <UseAppHost>false</UseAppHost>
+
+    <!-- Package used for symbol publishing -->
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
   <Import Project="..\VBCSCompilerCommandLine.projitems" Label="Shared" />
 </Project>
