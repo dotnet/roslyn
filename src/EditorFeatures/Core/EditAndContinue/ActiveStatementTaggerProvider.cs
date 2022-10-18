@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
 
         // Fine to use EqualityComparer<>.Default here as all ActiveStatementTag is a singleton and thus works properly here.
-        protected override IEqualityComparer<ITextMarkerTag> TagEqualityComparer
+        protected override IEqualityComparer<ITextMarkerTag> GetTagEqualityComparer(ITextSnapshot snapshot)
             => EqualityComparer<ITextMarkerTag>.Default;
 
         [ImportingConstructor]
