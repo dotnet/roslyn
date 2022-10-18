@@ -8978,6 +8978,67 @@ class Program
         }
 
         [Fact]
+        [WorkItem(60807, "https://github.com/dotnet/roslyn/issues/60807")]
+        public void RefAndOut_PropertiesAndIndexers_As_ValuesAndParameters()
+        {
+            var source =
+@"
+var c = new C();
+var r = new R();
+//expressions
+ref int n = ref c.N;  //CS0206
+ref var l = ref c[0]; //CS0206
+ref var l2 = ref r[0];//OK
+_ = M(ref c.N);       //CS0206
+_ = M(ref r.N);       //OK
+_ = M(ref c[0]);      //CS0206
+_ = M(ref r[0]);      //OK
+_ = M2(out c.N);      //CS0206
+_ = M2(out r.N);      //OK
+_ = M2(out c[0]);     //CS0206
+_ = M2(out r[0]);     //OK
+//definitions
+static string M(ref int number) { return """"; }
+static string M2(out int number) { number = 42; return """"; }
+class C
+{
+    public int N { get; set; }    
+    private int[] arr = new int[100];
+    public int this[int i] => arr[i];
+}
+ref struct R
+{
+    public R(){}
+    private ref int n;
+    public ref int N => ref n;
+    private ref int[] arr = new int[1];
+    public ref int this[int i] => ref arr[i];
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (5,17): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                // ref int n = ref c.N;  //CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "c.N").WithLocation(5, 17),
+                // (6,17): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                // ref var l = ref c[0]; //CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "c[0]").WithLocation(6, 17),
+                // (8,11): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                // _ = M(ref c.N);       //CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "c.N").WithLocation(8, 11),
+                // (10,11): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                // _ = M(ref c[0]);      //CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "c[0]").WithLocation(10, 11),
+                // (12,12): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                // _ = M2(out c.N);      //CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "c.N").WithLocation(12, 12),
+                // (14,12): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                // _ = M2(out c[0]);     //CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "c[0]").WithLocation(14, 12)
+            );
+        }
+
+        [Fact]
         public void RefAccessor_Value()
         {
             var source =
