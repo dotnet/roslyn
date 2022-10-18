@@ -4865,6 +4865,34 @@ class Program
             Assert.Equal(2, parameter.DefaultValueFromAttributes.Value);
         }
 
+        [Fact]
+        public void LambdaParameterAttributes_OptionalAndDateTimeConstantAttributes()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+class Program
+{
+    static void Main()
+    {
+        var lam = ([Optional, DateTimeConstant(638004778421967416L)] DateTime d) => d;
+        Console.Write(lam().Ticks);
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "638004778421967416").VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().ToImmutableArray();
+            var lambda = exprs.SelectAsArray(e => GetLambdaSymbol(model, e)).Single();
+            var parameter = (SourceParameterSymbol)lambda.Parameters[0];
+            Assert.True(parameter.HasOptionalAttribute);
+            Assert.True(parameter.HasExplicitDefaultValue);
+            Assert.Equal(new DateTime(638004778421967416L), parameter.DefaultValueFromAttributes.Value);
+        }
+
         [ConditionalFact(typeof(DesktopOnly))]
         public void LambdaParameterAttributes_WellKnownAttributes()
         {
@@ -7041,7 +7069,7 @@ class Program
                 // (5,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
                 //         var lam = (string s = null, x = 7, double d = 3.14) => { };
                 Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "x").WithLocation(5, 37),
-                // (5,37): error CS9500:  Default not allowed for implicitly typed lambda parameter 'x' 
+                // (5,37): error CS9500: Implicitly typed lambda parameter 'x' cannot have a default value.
                 //         var lam = (string s = null, x = 7, double d = 3.14) => { };
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedDefaultParameter, "x").WithArguments("x").WithLocation(5, 37));
         }
@@ -7528,6 +7556,71 @@ class Program
             comp.VerifyDiagnostics();
         }
 
+        [Fact]
+        public void LambdaDefaultInDifferentNestedScope()
+        {
+            var source = """
+class Program
+{
+    void M()
+    {
+        {
+            const string s = "abcdef";
+        }
+        var _ = (string str = s) => str;
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,26): warning CS0219: The variable 's' is assigned but its value is never used
+                //             const string s = "abcdef";
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s").WithArguments("s").WithLocation(6, 26),
+                // (8,31): error CS0103: The name 's' does not exist in the current context
+                //         var _ = (string str = s) => s;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "s").WithArguments("s").WithLocation(8, 31));
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void LambdaDefaultLocalConstantSameScope_PreDefinition()
+        {
+            var source = """
+class Program
+{
+    void M()
+    {
+        const string s = "abcdef";
+        var _ = (string str = s) => s;
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void LambdaDefaultLocalConstantSameScope_PostDefinition()
+        {
+            var source = """
+class Program
+{
+    void M()
+    {
+        var lam = (string str = s) => { };
+        const string s = "abcdef";
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,27): error CS1750: A value of type 'var' cannot be used as a default parameter because there are no standard conversions to type 'string'
+                //         var lam = (string str = s) => { };
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "str").WithArguments("var", "string").WithLocation(5, 27),
+                // (5,33): error CS0841: Cannot use local variable 's' before it is declared
+                //         var lam = (string str = s) => { };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "s").WithArguments("s").WithLocation(5, 33));
+        }
+
         [Fact(Skip = "PROTOTYPE: Nullable walker code needs to be updated so that this doesn't cause a cycle")]
         public void LambdaDefaultSelfReference()
         {
@@ -7539,6 +7632,42 @@ class Program
     public static void Main(string[] args)
     {
         var lam = (Delegate d = lam) => { };
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact(Skip = "PROTOTYPE: Nullable walker code needs to be updated so that this doesn't cause a cycle")]
+        public void LambdaDefaultSelfReference_ParameterBefore()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        var lam = (int x, Delegate d = lam) => { };
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact(Skip = "PROTOTYPE: Nullable walker code needs to be updated so that this doesn't cause a cycle")]
+        public void LambdaDefaultSelfReference_ParameterAfter()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        var lam = (Delegate d = lam, int x) => { };
     }
 }
 """;
@@ -7589,6 +7718,64 @@ class Program
                 // (7,27): error CS9501: Parameter 1 has default value '"0123456..."' in lambda and '"abc"' in the target delegate type.
                 //         Del del = (string s = "0123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899") => { };
                 Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "s").WithArguments("1", @"""0123456...""", @"""abc""").WithLocation(7, 27));
+        }
+
+        [Fact]
+        public void LambdaDefault_InvalidConstantConversion()
+        {
+            var source = @"
+class Program
+{
+    public static void Main()
+    {
+        var lam = (string s = 1) => s;
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,27): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'string'
+                //         var lam = (string s = 1) => s;
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("int", "string").WithLocation(6, 27));
+        }
+
+        [Fact]
+        public void LambdaWithDefaultParameterAndParams()
+        {
+            var source = """
+class Program
+{
+    public static void Main()
+    {
+        var lam = (int i = 3, params int[] args) => i;
+    }   
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,31): error CS1670: params is not valid in this context
+                //         var lam = (int i = 3, params int[] args) => i;
+                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(5, 31),
+                // (5,48): error CS1737: Optional parameters must appear after all required parameters
+                //         var lam = (int i = 3, params int[] args) => i;
+                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(5, 48));
+        }
+
+        [Fact]
+        public void LambdaWithDefaultParameter_RequiredMissing()
+        {
+            var source = """
+class Program
+{
+    public static void Main()
+    {
+        var lam = (int a, int b, int c = 3) => a + b * c;
+        lam(5);
+    }   
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,9): error CS7036: There is no argument given that corresponds to the required parameter '' of '<anonymous delegate>'
+                //         lam(5);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam").WithArguments("", "<anonymous delegate>").WithLocation(6, 9));
         }
     }
 }

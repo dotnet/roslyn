@@ -64,6 +64,7 @@ static class Utils
             "System.Linq.Expressions.Expression`1" :
             "System.Linq.Expressions.Expression1`1";
         private static readonly string s_libPrefix = ExecutionConditionUtil.IsDesktop ? "mscorlib" : "netstandard";
+        private static readonly string s_corePrefix = ExecutionConditionUtil.IsDesktop ? "System.Core" : "netstandard";
 
         [Fact]
         public void LanguageVersion()
@@ -12043,7 +12044,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaWithDefaultNamedDelegateConversion_RequiredOptionalMismatch()
+        public void LambdaWithDefaultNamedDelegateConversion_TargetMissingOptional()
         {
             var source = """
 class Program
@@ -12064,7 +12065,23 @@ class Program
         }
 
         [Fact]
-        public void LambdaWithDefaultNamedDelegateConversion_RequiredOptionalMismatch_WithParameterError()
+        public void LambdWithDefaultNamedDelegateConversion_LambdaMissingOptional()
+        {
+            var source = """
+class Program
+{
+    delegate int D(int x = 3);
+    public static void Main()
+    {
+        D d = (int x) => x;
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaWithDefaultNamedDelegateConversion_TargetDelegateMissingOptionalParameter_WithParameterError()
         {
             var source = """
 class Program
@@ -12086,27 +12103,6 @@ class Program
         }
 
         [Fact]
-        public void LambdaWithDefault_WithParameterError_EmptyBody()
-        {
-            var source = """
-class Program
-{
-    // Named delegate has required parameter x
-    public static int f(int x) => 2 * x;
-    public static void Main()
-    {
-        // lambda has optional parameter x
-        var lam = (int x = f(1000)) => { };
-    }
-}
-""";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (8,28): error CS1736: Default parameter value for 'x' must be a compile-time constant
-                //         var lam = (int x = f(1000)) => { };
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "f(1000)").WithArguments("x").WithLocation(8, 28));
-        }
-
-        [Fact]
         public void LambdaOptionalBeforeRequiredBadConversion()
         {
 
@@ -12115,7 +12111,7 @@ class Program
 {
     public static void Main()
     {
-        // lambda has optional parameter x
+        // lambda has optional parameter y
         var lam1 = (int x, int y = 10, int z) => x * x + y * y + z * z;
         var lam2 = (int x, int y, int z) => x * x + y * y + z * z;
 
@@ -12658,7 +12654,7 @@ class Program
         }
 
         [Fact]
-        public void MethodGroupTargetConversion_DefaultRequiredMismatch()
+        public void MethodGroupTargetConversion_ParameterOptionalInMethodGroupOnly()
         {
             var source = """
 using System;
@@ -12915,8 +12911,6 @@ public class Program
 10 b 1");
         }
 
-        // PROTOTYPE: Add this change to type inference for method groups to the breaking
-        // changes doc.
         [Fact]
         public void MethodGroupInferenceCompatBreak()
         {
@@ -12966,7 +12960,7 @@ class Program
                 // (8,27): error CS9501: Parameter 2 has default value '3' in lambda and '<missing>' in the target delegate type.
                 //         D d = (int _, int _ = 3) => 10;
                 Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "_").WithArguments("2", "3", "<missing>").WithLocation(8, 27),
-                // (9,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'Program.D'
+                // (9,27): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'Program.D'
                 //         Console.WriteLine(d(4));
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "d").WithArguments("y", "Program.D").WithLocation(9, 27));
         }
@@ -13016,7 +13010,7 @@ class Program
                 // (8,27): error CS9501: Parameter 2 has default value '4' in lambda and '<missing>' in the target delegate type.
                 //         D d = (int x, int y = 4) => {
                 Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "y").WithArguments("2", "4", "<missing>").WithLocation(8, 27),
-                // (12,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'Program.D'
+                // (12,27): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'Program.D'
                 //         Console.WriteLine(d(4));
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "d").WithArguments("y", "Program.D").WithLocation(12, 27));
         }
@@ -13065,13 +13059,13 @@ class Program
                 // (9,18): error CS9501: Parameter 1 has default value '4' in lambda and '<missing>' in the target delegate type.
                 //         m = (int i = 4) => i;
                 Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "i").WithArguments("1", "4", "<missing>").WithLocation(9, 18),
-                // (10,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'arg' of 'Func<int, int>'
+                // (10,27): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of 'Func<int, int>'
                 //         Console.WriteLine(m());
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "m").WithArguments("arg", "System.Func<int, int>").WithLocation(10, 27));
         }
 
         [Fact]
-        public void MethodGroup_LambdaAssignment_DefaultParameterMismatch_03()
+        public void MethodGroup_LambdaAssignment_DefaultParameterValueMismatch_03()
         {
             var source = """
 using System;
@@ -13091,7 +13085,7 @@ class Program
         }
 
         [Fact]
-        public void MethodGroup_LambdaAssignment_DefaultParameterMatch()
+        public void MethodGroup_LambdaAssignment_DefaultParameterValueMatch()
         {
             var source = """
 using System;
@@ -13108,6 +13102,499 @@ class Program
 }
 """;
             CompileAndVerify(source, expectedOutput: "3").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("sbyte")]
+        [InlineData("byte")]
+        [InlineData("short")]
+        [InlineData("ushort")]
+        [InlineData("int")]
+        [InlineData("uint")]
+        [InlineData("long")]
+        [InlineData("ulong")]
+        [InlineData("nint")]
+        [InlineData("nuint")]
+        [InlineData("float")]
+        [InlineData("double")]
+        [InlineData("decimal")]
+        [InlineData("E", "E.FIELD", "FIELD")]
+        [InlineData("bool", "true", "True")]
+        [InlineData("char", "'a'", "a")]
+        [InlineData("string", @"""a string""", "a string")]
+        [InlineData("C", "null", "")]
+        public void LambdaDefaultParameter_AllConstantValueTypes(string parameterType, string defaultValue = "0", string expectedOutput = "0")
+        {
+            var source = $$"""
+using System;
+public class Program
+{
+    public enum E 
+    {
+        FIELD
+    }
+    
+    class C {}
+
+    public static void Main()
+    {
+        var lam = ({{parameterType}} p = {{defaultValue}}) => p;
+        Console.WriteLine(lam());
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_TargetTypedValidLiteralConversion()
+        {
+            var source = """
+                var lam = (short s = 1) => { };
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_TargetTypeInvalidLiteralConversion()
+        {
+            var source = """
+                var lam = (short s = 32768) => { };
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,18): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'short'
+                // var lam = (short s = 32768) => { };
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("int", "short").WithLocation(1, 18));
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void LambdaDefaultParameter_TargetTypedValidNonLiteralConversion()
+        {
+            var source = """
+                const float floatConst = 1f;
+                var lam = (double d = floatConst) => { };
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void LambdaDefaultParameter_InterpolatedStringHandler()
+        {
+            var source = """
+using System;
+
+public class Program
+{
+     public static void Main()
+     {
+        int i = 0;
+        var lam = (CustomHandler h = $"i: {i}") =>
+        {
+            Console.WriteLine(h.ToString());
+        };
+        lam();
+     }
+}
+""";
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false);
+
+            CreateCompilation(new[] { source, handler }).VerifyDiagnostics(
+                // (8,38): error CS1736: Default parameter value for 'h' must be a compile-time constant
+                //         var lam = (CustomHandler h = $"i: {i}") =>
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"$""i: {i}""").WithArguments("h").WithLocation(8, 38));
+        }
+
+        [Fact]
+        public void LambdaWithDefault_InvalidConstantConversion()
+        {
+            var source = """
+                var lam = (string s = 1) => { };
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,19): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'string'
+                // var lam = (string s = 1) => { };
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("int", "string").WithLocation(1, 19));
+        }
+
+        [Fact]
+        public void LambdaWithDefault_NonConstantNonLiteral()
+        {
+            var source = """
+class Program
+{
+    // Named delegate has required parameter x
+    public static int f(int x) => 2 * x;
+    public static void Main()
+    {
+        // lambda has optional parameter x
+        var lam = (int x = f(1000)) => { };
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,28): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //         var lam = (int x = f(1000)) => { };
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "f(1000)").WithArguments("x").WithLocation(8, 28));
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void LambdaWithDefault_NonConstantLiteral_InterpolatedString()
+        {
+            var source = """
+class Program
+{
+    public static void Main()
+    {
+        int n = 42;
+        // lambda has optional parameter x
+        var lam = (string s = $"n: {n}") => { };
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,31): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //         var lam = (string s = $"n: {n}") => { };
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"$""n: {n}""").WithArguments("s").WithLocation(7, 31));
+        }
+
+        [Fact]
+        public void LambdaWithDefault_NonConstantLiteral_U8String()
+        {
+            var source = """
+                var lam = (ReadOnlySpan<byte> s = "u8 string"u8) => { };
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,12): error CS0246: The type or namespace name 'ReadOnlySpan<>' could not be found (are you missing a using directive or an assembly reference?)
+                // var lam = (ReadOnlySpan<byte> s = "u8 string"u8) => { };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ReadOnlySpan<byte>").WithArguments("ReadOnlySpan<>").WithLocation(1, 12));
+        }
+
+        [Fact]
+        public void LambdaWithParameterDefaultValueAttribute()
+        {
+            var source = """
+using System;
+using System.Runtime.InteropServices;
+
+class Program
+{
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+    public static void Main()
+    {
+        var lam = ([DefaultParameterValue(3)] int x) => x;
+        Console.WriteLine(lam());
+        Report(lam);
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+@"3
+<>f__AnonymousDelegate0").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_UnsafeNull()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static unsafe void Main()
+    {
+        var lam = (int *ptr = null) => ptr;
+        Console.WriteLine(lam() == (int*) null);
+    }
+}
+""";
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput: "True").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_UnsafeSizeof()
+        {
+            var source = """
+                using System;
+                unsafe
+                {
+                    var lam = (int sz = sizeof(int)) => sz;
+                    Console.WriteLine(lam());
+                }
+                """;
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "4").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_Dynamic()
+        {
+            var source = """
+using System;
+class Program
+{
+    public static void Main()
+    {
+        var lam = (dynamic d = null) => { };
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, expectedOutput: "");
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0",
+$$"""
+.class private auto ansi sealed '<>f__AnonymousDelegate0'
+	extends [{{s_libPrefix}}]System.MulticastDelegate
+{
+	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor (
+			object 'object',
+			native int 'method'
+		) runtime managed 
+	{
+	} // end of method '<>f__AnonymousDelegate0'::.ctor
+	.method public hidebysig newslot virtual 
+		instance void Invoke (
+			[opt] object ''
+		) runtime managed 
+	{
+		.param [1] = nullref
+			.custom instance void [{{s_corePrefix}}]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
+				01 00 00 00
+			)
+	} // end of method '<>f__AnonymousDelegate0'::Invoke
+} // end of class <>f__AnonymousDelegate0
+""");
+        }
+
+        [Fact]
+        public void LambdaRefParameterWithDynamicParameter()
+        {
+            var source = """
+using System;
+class Program
+{
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+    public static void Main()
+    {
+        var lam = (ref int i, dynamic d) => i;
+        Report(lam);
+    }
+}
+""";
+            var verifier = CompileAndVerify(source);
+            verifier.VerifyTypeIL(
+                "<>F{00000001}`3",
+$$"""
+.class private auto ansi sealed '<>F{00000001}`3'<T1, T2, TResult>
+	extends [{{s_libPrefix}}]System.MulticastDelegate
+{
+	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor (
+			object 'object',
+			native int 'method'
+		) runtime managed 
+	{
+
+	} // end of method '<>F{00000001}`3'::.ctor
+	.method public hidebysig newslot virtual 
+		instance !TResult Invoke (
+			!T1& '',
+
+			!T2 ''
+		) runtime managed 
+	{
+	} // end of method '<>F{00000001}`3'::Invoke
+} // end of class <>F{00000001}`3
+""");
+            verifier.VerifyTypeIL("<>c",
+$$"""
+.class nested private auto ansi sealed serializable beforefieldinit '<>c'
+	extends [{{s_libPrefix}}]System.Object
+{
+	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public static initonly class Program/'<>c' '<>9'
+	.field public static class '<>F{00000001}`3'<int32, object, int32> '<>9__1_0'
+	// Methods
+	.method private hidebysig specialname rtspecialname static 
+		void .cctor () cil managed 
+	{
+		// Method begins at RVA 0x20a2
+		// Code size 11 (0xb)
+		.maxstack 8
+		IL_0000: newobj instance void Program/'<>c'::.ctor()
+		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+		IL_000a: ret
+	} // end of method '<>c'::.cctor
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x209a
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c'::.ctor
+	.method assembly hidebysig 
+		instance int32 '<Main>b__1_0' (
+			int32& i,
+			object d
+		) cil managed 
+	{
+		.param [2]
+			.custom instance void [{{s_corePrefix}}]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
+				01 00 00 00
+			)
+		// Method begins at RVA 0x20ae
+		// Code size 3 (0x3)
+		.maxstack 8
+		IL_0000: ldarg.1
+		IL_0001: ldind.i4
+		IL_0002: ret
+	} // end of method '<>c'::'<Main>b__1_0'
+} // end of class <>c
+""");
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_TypeArgumentDefaultNull()
+        {
+            var source = """
+using System;
+class C<T> where T : class
+{
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+    public void Test()
+    {
+        var lam1 = (int a, T b = default) => b;
+        var lam2 = (int a, T b = null) => b;
+        Report(lam1);
+        Report(lam2);
+    }
+}
+class Program
+{
+    public static void Main()
+    {
+        new C<string>().Test();
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+@"<>f__AnonymousDelegate0`1[System.String]
+<>f__AnonymousDelegate0`1[System.String]").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_GenericDelegateDefaultNull()
+        {
+            var source = """
+delegate void D<T>(T t = default);
+class Program
+{
+    static void M<T>(D<T> p) { }
+    public static void Main()
+    {
+        M((object o = null) => {});
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_OptionalAndCustomConstantAttributes()
+        {
+            var source = """
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+class Program
+{
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+    public static void Main()
+    {
+        var lam1 = ([Optional, DecimalConstant(0, 0, 0, 0, 100)] decimal d) => d;
+        var lam2 = (decimal d = 100m) => d;
+        Report(lam1);
+        Report(lam2);
+        Console.WriteLine(lam1());
+        Console.WriteLine(lam2());
+        Console.WriteLine(lam1(5));
+        Console.WriteLine(lam2(5));
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+@"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate0
+100
+100
+5
+5").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_ArrayCommonType_DefaultValueMismatch()
+        {
+            var source = """
+                var arr = new[] { (int i = 1) => { }, (int i = 2) => { } };
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,11): error CS0826: No best type found for implicitly-typed array
+                // var arr = new[] { (int i = 1) => { }, (int i = 2) => { } };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { (int i = 1) => { }, (int i = 2) => { } }").WithLocation(1, 11));
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_ArrayCommonType_DefaultValueMatch()
+        {
+            var source = """
+using System;
+class Program
+{
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+    public static void Main()
+    {
+        var arr = new[] { (int i = 1) => { }, (int i = 1) => { } };
+        Report(arr);
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+@"<>f__AnonymousDelegate0[]").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_InsideExpressionTree()
+        {
+            var source = """
+using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+    public static void Main()
+    {
+        Expression e1 = (int x = 1) => x;
+        Expression e2 = (int x) => (int y = 1) => y;
+        Report(e1);
+        Report(e2);
+    }   
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+$@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
+{s_expressionOfTDelegate1ArgTypeName}[System.Func`2[System.Int32,<>f__AnonymousDelegate0]]").VerifyDiagnostics();
         }
     }
 }
