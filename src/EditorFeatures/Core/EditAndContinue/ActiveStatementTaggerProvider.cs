@@ -40,10 +40,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         // all edits were contained within one.
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
 
-        // Fine to use EqualityComparer<>.Default here as all ActiveStatementTag is a singleton and thus works properly here.
-        protected override IEqualityComparer<ITextMarkerTag> GetTagEqualityComparer(ITextSnapshot snapshot)
-            => EqualityComparer<ITextMarkerTag>.Default;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ActiveStatementTaggerProvider(
@@ -105,6 +101,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // Let the context know that this was the span we actually tried to tag.
             context.SetSpansTagged(ImmutableArray.Create(spanToTag.SnapshotSpan));
+        }
+
+        // ActiveStatementTag is a singleton, so fine to 
+        protected override bool Equals(ITextSnapshot snapshot, ITextMarkerTag tag1, ITextMarkerTag tag2)
+        {
+            Contract.ThrowIfFalse(tag1 == tag2, "ActiveStatementTag is a supposed to be a singleton");
+            return true;
         }
     }
 }

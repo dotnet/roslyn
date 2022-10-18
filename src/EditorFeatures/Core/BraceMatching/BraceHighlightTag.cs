@@ -4,10 +4,11 @@
 
 using System;
 using Microsoft.VisualStudio.Text.Tagging;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.BraceMatching
 {
-    internal sealed class BraceHighlightTag : TextMarkerTag, IEquatable<BraceHighlightTag>
+    internal sealed class BraceHighlightTag : TextMarkerTag
     {
         public static readonly BraceHighlightTag StartTag = new(navigateToStart: true);
         public static readonly BraceHighlightTag EndTag = new(navigateToStart: false);
@@ -19,14 +20,5 @@ namespace Microsoft.CodeAnalysis.BraceMatching
         {
             this.NavigateToStart = navigateToStart;
         }
-
-        public override bool Equals(object? obj)
-            => Equals(obj as BraceHighlightTag);
-
-        public bool Equals(BraceHighlightTag? other)
-            => other != null && NavigateToStart == other.NavigateToStart;
-
-        public override int GetHashCode()
-            => NavigateToStart.GetHashCode();
     }
 }

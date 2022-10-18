@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Classification
     /// in the editor.  We use a view tagger so that we can only classify what's in view, and not
     /// the whole file.
     /// </summary>
-    internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvider : AsynchronousViewTaggerProvider<IClassificationTag>, IEqualityComparer<IClassificationTag>
+    internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvider : AsynchronousViewTaggerProvider<IClassificationTag>
     {
         private readonly ClassificationTypeMap _typeMap;
         private readonly IGlobalOptionService _globalOptions;
@@ -40,8 +40,6 @@ namespace Microsoft.CodeAnalysis.Classification
         // all edits were contained within one.
         protected sealed override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
         protected sealed override IEnumerable<Option2<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.SemanticColorizer);
-
-        protected override IEqualityComparer<IClassificationTag> TagEqualityComparer => this;
 
         protected AbstractSemanticOrEmbeddedClassificationViewTaggerProvider(
             IThreadingContext threadingContext,
@@ -128,10 +126,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 context, spanToTag, classificationService, _typeMap, classificationOptions, _type, cancellationToken);
         }
 
-        bool IEqualityComparer<IClassificationTag>.Equals(IClassificationTag? x, IClassificationTag? y)
-            => x?.ClassificationType.Classification == y?.ClassificationType.Classification;
-
-        int IEqualityComparer<IClassificationTag>.GetHashCode(IClassificationTag obj)
-            => obj.ClassificationType.Classification.GetHashCode();
+        protected override bool Equals(ITextSnapshot snapshot, IClassificationTag tag1, IClassificationTag tag2)
+            => tag1.ClassificationType.Classification == tag2.ClassificationType.Classification;
     }
 }

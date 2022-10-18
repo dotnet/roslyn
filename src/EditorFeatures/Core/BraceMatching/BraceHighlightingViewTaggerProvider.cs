@@ -36,10 +36,6 @@ namespace Microsoft.CodeAnalysis.BraceMatching
 
         protected override IEnumerable<Option2<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.BraceMatching);
 
-        // Fine to use EqualityComparer<>.Default here as BraceHighlightTag is IEquatable.
-        protected override IEqualityComparer<BraceHighlightTag> TagEqualityComparer
-            => EqualityComparer<BraceHighlightTag>.Default;
-
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public BraceHighlightingViewTaggerProvider(
@@ -178,5 +174,9 @@ namespace Microsoft.CodeAnalysis.BraceMatching
                 context.AddTag(snapshot.GetTagSpan(braces.Value.RightSpan.ToSpan(), BraceHighlightTag.EndTag));
             }
         }
+
+        // Safe to directly compare as BraceHighlightTag uses singleton instances.
+        protected override bool Equals(ITextSnapshot snapshot, BraceHighlightTag tag1, BraceHighlightTag tag2)
+            => tag1 == tag2;
     }
 }

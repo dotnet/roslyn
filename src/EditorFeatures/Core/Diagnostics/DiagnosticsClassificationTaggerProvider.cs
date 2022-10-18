@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [TagType(typeof(ClassificationTag))]
-    internal partial class DiagnosticsClassificationTaggerProvider : AbstractDiagnosticsTaggerProvider<ClassificationTag>, IEqualityComparer<ClassificationTag>
+    internal partial class DiagnosticsClassificationTaggerProvider : AbstractDiagnosticsTaggerProvider<ClassificationTag>
     {
         private static readonly IEnumerable<Option2<bool>> s_tagSourceOptions = ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Classification);
 
@@ -40,8 +40,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly EditorOptionsService _editorOptionsService;
 
         protected override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
-
-        protected override IEqualityComparer<ClassificationTag> TagEqualityComparer => this;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -102,10 +100,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return base.GetLocationsToTag(diagnosticData);
         }
 
-        bool IEqualityComparer<ClassificationTag>.Equals(ClassificationTag? x, ClassificationTag? y)
-            => x?.ClassificationType.Classification == y?.ClassificationType.Classification;
-
-        int IEqualityComparer<ClassificationTag>.GetHashCode(ClassificationTag obj)
-            => obj.ClassificationType.Classification.GetHashCode();
+        protected override bool Equals(ITextSnapshot snapshot, ClassificationTag tag1, ClassificationTag tag2)
+            => x.ClassificationType.Classification == y.ClassificationType.Classification;
     }
 }

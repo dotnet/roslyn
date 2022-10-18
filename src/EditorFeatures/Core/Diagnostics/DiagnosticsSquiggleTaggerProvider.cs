@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
@@ -25,14 +26,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [TagType(typeof(IErrorTag))]
-    internal partial class DiagnosticsSquiggleTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>, IEqualityComparer<IErrorTag>
+    internal partial class DiagnosticsSquiggleTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
     {
         private static readonly IEnumerable<Option2<bool>> s_tagSourceOptions =
             ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles);
 
         protected override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
-
-        protected override IEqualityComparer<IErrorTag> TagEqualityComparer => this;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -129,10 +128,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        bool IEqualityComparer<IErrorTag>.Equals(IErrorTag? x, IErrorTag? y)
-            => EqualityComparer<RoslynErrorTag>.Default.Equals(x as RoslynErrorTag, y as RoslynErrorTag);
-
-        int IEqualityComparer<IErrorTag>.GetHashCode(IErrorTag obj)
-            => EqualityComparer<RoslynErrorTag>.Default.GetHashCode(obj as RoslynErrorTag);
+        protected override bool Equals(ITextSnapshot snapshot, IErrorTag tag1, IErrorTag tag2)
+        {
+            return tag1 is RoslynErrorTag errorTag1 &&
+                tag2 is RoslynErrorTag errorTag2 &&
+                errorTag1.Equals(errorTag2);
+        }
     }
 }

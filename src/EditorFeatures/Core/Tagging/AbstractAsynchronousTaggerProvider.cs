@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// appropriately 'diffed' to determine what changes to actually report in <see cref="ITagger{T}.TagsChanged"/>.
         /// </summary>
         /// <param name="snapshot">The snapshot the document is currently at when trying to perform the equality comparison.</param>
-        protected abstract IEqualityComparer<TTag> GetTagEqualityComparer(ITextSnapshot snapshot);
+        protected abstract bool Equals(ITextSnapshot snapshot, TTag tag1, TTag tag2);
 
 #if DEBUG
         public readonly string StackTrace;

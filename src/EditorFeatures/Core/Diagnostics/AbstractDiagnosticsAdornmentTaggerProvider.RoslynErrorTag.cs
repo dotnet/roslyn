@@ -63,9 +63,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             public override int GetHashCode()
-                => Hash.Combine(this.ErrorType,
-                   Hash.Combine(_data.GetValidHelpLinkUri(),
-                   Hash.Combine(_data.Id, _data.Message.GetHashCode())));
+                => throw ExceptionUtilities.Unreachable();
         }
     }
 }

@@ -25,14 +25,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [ContentType(ContentTypeNames.XamlContentType)]
     [TagType(typeof(IErrorTag))]
     internal sealed partial class DiagnosticsSuggestionTaggerProvider :
-        AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>, IEqualityComparer<IErrorTag>
+        AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
     {
         private static readonly IEnumerable<Option2<bool>> s_tagSourceOptions =
             ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles);
 
         protected override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
-
-        protected override IEqualityComparer<IErrorTag> TagEqualityComparer => this;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -66,10 +64,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return AdjustSnapshotSpan(snapshotSpan, minimumLength: 2, maximumLength: 2);
         }
 
-        bool IEqualityComparer<IErrorTag>.Equals(IErrorTag? x, IErrorTag? y)
-            => EqualityComparer<RoslynErrorTag>.Default.Equals(x as RoslynErrorTag, y as RoslynErrorTag);
-
-        int IEqualityComparer<IErrorTag>.GetHashCode(IErrorTag obj)
-            => EqualityComparer<RoslynErrorTag>.Default.GetHashCode(obj as RoslynErrorTag);
+        protected override bool Equals(ITextSnapshot snapshot, IErrorTag tag1, IErrorTag tag2)
+        {
+            return tag1 is RoslynErrorTag errorTag1 &&
+                tag2 is RoslynErrorTag errorTag2 &&
+                errorTag1.Equals(errorTag2);
+        }
     }
 }
