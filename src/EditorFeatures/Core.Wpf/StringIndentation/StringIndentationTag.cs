@@ -54,18 +54,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
 
             for (int i = 0, n = this.OrderedHoleSpans.Length; i < n; i++)
             {
-                if (!SpanEquals(this.OrderedHoleSpans[i], other.OrderedHoleSpans[i]))
+                if (!_provider.SpanEquals(this.OrderedHoleSpans[i], other.OrderedHoleSpans[i]))
                     return false;
             }
 
             return true;
-        }
-
-        private bool SpanEquals(SnapshotSpan snapshotSpan1, SnapshotSpan snapshotSpan2)
-        {
-            // Map span1 over to span2
-            var span1 = snapshotSpan1.TranslateTo(snapshotSpan2.Snapshot, _provider.SpanTrackingMode);
-            return span1.Span == snapshotSpan2.Span;
         }
     }
 }
