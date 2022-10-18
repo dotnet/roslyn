@@ -64,12 +64,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// deliver them to VS in batches to prevent flooding the UI thread.  Importantly, we do not cancel this queue.
         /// Once we've decided to update the project system, we want to allow that to proceed.
         /// <para>
-        /// This queue both sends the individual data objects we get back, or the project instance once we're done with
-        /// it.  The latter is used so that we can determine which documents are now gone, so we can dump our cached
-        /// data for them.
+        /// This queue both sends the individual data objects we get back, or the solution instance once we're done with
+        /// a particular project request.  The latter is used so that we can determine which documents are now gone, so
+        /// we can dump our cached data for them.
         /// </para>
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<(CodeAnalysis.Project? project, DesignerAttributeData? data)> _projectSystemNotificationQueue;
+        private readonly AsyncBatchingWorkQueue<(CodeAnalysis.Solution? solution, DesignerAttributeData? data)> _projectSystemNotificationQueue;
 
         /// <summary>
         /// Keep track of the last version we were at when we processed a project.  We'll skip reprocessing projects if
@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 listener,
                 ThreadingContext.DisposalToken);
 
-            _projectSystemNotificationQueue = new AsyncBatchingWorkQueue<(CodeAnalysis.Project? project, DesignerAttributeData? data)>(
+            _projectSystemNotificationQueue = new AsyncBatchingWorkQueue<(CodeAnalysis.Solution? solution, DesignerAttributeData? data)>(
                 TimeSpan.FromSeconds(1),
                 this.NotifyProjectSystemAsync,
                 listener,
@@ -207,13 +207,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                     (service, checksum, cancellationToken) => service.DiscoverDesignerAttributesAsync(checksum, project.Id, priorityDocumentId, cancellationToken),
                     cancellationToken);
 
-                // once done, also enqueue the project we are processing so that the project-system queue can cleanup
-                // any stale data about it.
-                _projectSystemNotificationQueue.AddWork((project, data: null));
-
                 // get the results and add all the documents we hear about to the notification queue so they can be batched up.
                 await foreach (var data in stream.ConfigureAwait(false))
-                    _projectSystemNotificationQueue.AddWork((project: null, data));
+                    _projectSystemNotificationQueue.AddWork((solution: null, data));
+
+                // once done, also enqueue the solution as well so that the project-system queue can cleanup
+                // any stale data about it.
+                _projectSystemNotificationQueue.AddWork((project.Solution, data: null));
 
                 // now that we're done processing the project, record this version-stamp so we don't have to process it again in the future.
                 _projectToLastComputedDependentSemanticVersion[project.Id] = dependentSemanticVersion;
@@ -221,7 +221,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         }
 
         private async ValueTask NotifyProjectSystemAsync(
-            ImmutableSegmentedList<(CodeAnalysis.Project? project, DesignerAttributeData? data)> dataList, CancellationToken cancellationToken)
+            ImmutableSegmentedList<(CodeAnalysis.Solution? solution, DesignerAttributeData? data)> dataList, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -231,10 +231,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             //
             // `p1-data3, project2, p2-data1`
 
-            using var _1 = PooledHashSet<CodeAnalysis.Project>.GetInstance(out var changedProjects);
-            using var _2 = ArrayBuilder<DesignerAttributeData>.GetInstance(out var changedData);
+            using var _1 = ArrayBuilder<DesignerAttributeData>.GetInstance(out var changedData);
 
-            GetChangedData(dataList, changedProjects, changedData);
+            var latestSolution = AddChangedData(dataList, changedData);
 
             // Now, group all the notifications by project and update all the projects in parallel.
             using var _3 = ArrayBuilder<Task>.GetInstance(out var tasks);
@@ -253,39 +252,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             // Now, check the documents we've stored against the changed projects to see if they're no longer around.
             // If so, dump what we have.
+            if (latestSolution != null)
+            {
+                foreach (var (documentId, _) in _documentToLastReportedData)
+                {
+                    if (!latestSolution.ContainsDocument(documentId))
+                        _documentToLastReportedData.TryRemove(documentId, out _);
+                }
+            }
         }
 
-        private void GetChangedData(
-            ImmutableSegmentedList<(CodeAnalysis.Project? project, DesignerAttributeData? data)> dataList,
-            HashSet<CodeAnalysis.Project> changedProjects,
+        private CodeAnalysis.Solution? AddChangedData(
+            ImmutableSegmentedList<(CodeAnalysis.Solution? solution, DesignerAttributeData? data)> dataList,
             ArrayBuilder<DesignerAttributeData> changedData)
         {
             using var _1 = PooledHashSet<DocumentId>.GetInstance(out var seenDocumentIds);
-            using var _2 = PooledDictionary<ProjectId, CodeAnalysis.Project>.GetInstance(out var seenProjects);
-            using var _3 = ArrayBuilder<DesignerAttributeData>.GetInstance(out var latestData);
+            using var _2 = ArrayBuilder<DesignerAttributeData>.GetInstance(out var latestData);
+
+            CodeAnalysis.Solution? lastSolution = null;
 
             for (var i = dataList.Count - 1; i >= 0; i--)
             {
                 // go in reverse order so that results about the same document only take the later value.
-                var (project, data) = dataList[i];
+                var (solution, data) = dataList[i];
 
                 if (data != null)
                 {
                     if (seenDocumentIds.Add(data.Value.DocumentId))
                         latestData.Add(data.Value);
                 }
-                else if (project != null)
-                {
-                    if (!seenProjects.ContainsKey(project.Id))
-                        seenProjects.Add(project.Id, project);
-                }
-                else
-                {
-                    throw ExceptionUtilities.Unreachable();
-                }
-            }
 
-            changedProjects.AddRange(seenProjects.Values);
+                lastSolution ??= solution;
+            }
 
             foreach (var data in latestData)
             {
@@ -295,34 +293,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                     changedData.Add(data);
                 }
             }
-        }
 
-        private void AddFilteredData(ImmutableSegmentedList<DesignerAttributeData> dataList, ArrayBuilder<DesignerAttributeData> filteredData)
-        {
-            using var _1 = PooledHashSet<DocumentId>.GetInstance(out var seenDocumentIds);
-            using var _2 = ArrayBuilder<DesignerAttributeData>.GetInstance(out var initialData);
-
-            // Walk the list of designer items in reverse, and skip any items for a document once we've already seen it
-            // once.  That way, we're only reporting the most up to date information for a document, and we're skipping
-            // the stale information.
-            for (var i = dataList.Count - 1; i >= 0; i--)
-            {
-                var data = dataList[i];
-                if (seenDocumentIds.Add(data.DocumentId))
-                    initialData.Add(data);
-            }
-
-            // Don't bother re-reporting a designer category equivalent to what we last reported.
-            foreach (var data in initialData)
-            {
-                if (_documentToLastReportedData.TryGetValue(data.DocumentId, out var existingData) &&
-                    existingData.Category == data.Category)
-                {
-                    continue;
-                }
-
-                filteredData.Add(data);
-            }
+            return lastSolution;
         }
 
         private async Task NotifyProjectSystemAsync(
