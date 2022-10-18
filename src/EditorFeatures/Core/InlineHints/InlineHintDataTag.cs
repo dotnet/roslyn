@@ -45,9 +45,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             if (other is null)
                 return false;
 
-            // We arbitrarily choose to map from tag1's snapshot to tag2's.
-            var snapshotToMapTo = other._snapshot;
-
             // they have to match if they're going to change text.
             if (this.Hint.ReplacementTextChange is null != other.Hint.ReplacementTextChange is null)
                 return false;
@@ -57,20 +54,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 return false;
 
             // Ensure both hints are talking about the same snapshot.
-            var span1 = this.Hint.Span.ToSnapshotSpan(_snapshot).TranslateTo(snapshotToMapTo, _provider.SpanTrackingMode);
-            var span2 = other.Hint.Span.ToSpan();
-
-            if (span1.Span != span2)
+            if (!_provider.SpanEquals(_snapshot, this.Hint.Span, other._snapshot, other.Hint.Span))
                 return false;
 
-            if (this.Hint.ReplacementTextChange != null && this.Hint.ReplacementTextChange != null)
+            if (this.Hint.ReplacementTextChange != null &&
+                this.Hint.ReplacementTextChange != null &&
+                !_provider.SpanEquals(_snapshot, this.Hint.ReplacementTextChange.Value.Span, other._snapshot, other.Hint.ReplacementTextChange.Value.Span))
             {
-                // ensure both changes are talking about the same span.
-                var replacementSpan1 = this.Hint.ReplacementTextChange.Value.Span.ToSnapshotSpan(_snapshot).TranslateTo(snapshotToMapTo, _provider.SpanTrackingMode);
-                var replacementSpan2 = other.Hint.ReplacementTextChange.Value.Span.ToSpan();
-
-                if (replacementSpan1.Span != replacementSpan2)
-                    return false;
+                return false;
             }
 
             // ensure all the display parts are the same.
