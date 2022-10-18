@@ -121,5 +121,15 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 return null;
             }
         }
+
+        /// <summary>
+        /// TODO: is there anything we can do better here? Inline diagnostic tags are not really data, but more UI
+        /// elements with specific constrols, positions and events attached to them.  There doesn't seem to be a safe
+        /// way to reuse any of these currently.  Ideally we could do something similar to inline-hints where there's a
+        /// data tagger portion (which is async and has clean equality semantics), and then the UI portion which just
+        /// translates those data-tags to the UI tags.
+        /// </summary>
+        protected override bool Equals(InlineDiagnosticsTag tag1, InlineDiagnosticsTag tag2)
+            => false;
     }
 }
