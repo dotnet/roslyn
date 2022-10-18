@@ -140,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             var solution = _workspace.CurrentSolution;
 
             // remove any data for projects that are no longer around.
-            await HandRemovedProjectsAsync(solution).ConfigureAwait(false);
+            HandRemovedProjects(solution).ConfigureAwait(false);
 
             // Now process all the projects we do have, prioritizing the active project/document first.
             var trackingService = _workspace.Services.GetRequiredService<IDocumentTrackingService>();
@@ -162,23 +162,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             }
         }
 
-        private async Task HandRemovedProjectsAsync(CodeAnalysis.Solution solution)
+        private void HandRemovedProjects(CodeAnalysis.Solution solution)
         {
-            foreach (var projectId in _projectToLastComputedDependentSemanticVersion.Keys)
-            {
-                if (!solution.ContainsProject(projectId))
-                {
-                    // when a project is removed, flush out all the data we have for it.  We can simulate this by just
-                    // acting as if we got no results back at all for this project.
-                    await ProcessResultsDataAsync(projectId, AsyncEnumerable<DesignerAttributeData>.Empty).ConfigureAwait(false);
-                    _projectToLastComputedDependentSemanticVersion.TryRemove(projectId, out _);
-                }
-            }
-
             foreach (var (projectId, _) in _cpsProjects)
             {
                 if (!solution.ContainsProject(projectId))
                     _cpsProjects.TryRemove(projectId, out _);
+            }
+
+            // when a project is removed, remove our cached attribute data for it.  No point in actually notifying the
+            // host as there isn't any project anymore to notify it about.
+
+            foreach (var (projectId, _) in _projectToLastComputedDependentSemanticVersion)
+            {
+                if (!solution.ContainsProject(projectId))
+                    _projectToLastComputedDependentSemanticVersion.TryRemove(projectId, out _);
+            }
+
+            foreach (var (documentId, _) in _documentToLastReportedData)
+            {
+                if (!solution.ContainsProject(documentId.ProjectId))
+                    _documentToLastReportedData.TryRemove(documentId, out _);
             }
         }
 
