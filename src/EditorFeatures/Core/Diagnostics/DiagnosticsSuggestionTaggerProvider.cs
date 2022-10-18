@@ -17,6 +17,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -66,9 +67,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         protected override bool Equals(IErrorTag tag1, IErrorTag tag2)
         {
-            return tag1 is RoslynErrorTag errorTag1 &&
-                tag2 is RoslynErrorTag errorTag2 &&
-                errorTag1.Equals(errorTag2);
+            Contract.ThrowIfFalse(tag1 is RoslynErrorTag);
+            Contract.ThrowIfFalse(tag2 is RoslynErrorTag);
+            return tag1.Equals(errorTag2);
         }
     }
 }
