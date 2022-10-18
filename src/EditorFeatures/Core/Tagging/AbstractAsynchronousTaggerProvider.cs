@@ -224,6 +224,19 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         protected virtual Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
+        public bool SpanEquals(SnapshotSpan? span1, SnapshotSpan? span2)
+        {
+            if (span1 is null && span2 is null)
+                return true;
+
+            if (span1 is null || span2 is null)
+                return false;
+
+            // map one span to the snapshot of the other and see if they match.
+            span1 = span1.Value.TranslateTo(span2.Value.Snapshot, this.SpanTrackingMode);
+            return span1.Value.Span == span2.Value.Span;
+        }
+
         internal TestAccessor GetTestAccessor()
             => new(this);
 
