@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         // ActiveStatementTag is a singleton, so fine to 
-        protected override bool Equals(ITextSnapshot snapshot, ITextMarkerTag tag1, ITextMarkerTag tag2)
+        protected override bool Equals(ITextMarkerTag tag1, ITextMarkerTag tag2)
         {
             Contract.ThrowIfFalse(tag1 == tag2, "ActiveStatementTag is a supposed to be a singleton");
             return true;

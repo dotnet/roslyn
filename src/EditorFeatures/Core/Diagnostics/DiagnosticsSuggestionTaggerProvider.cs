@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return AdjustSnapshotSpan(snapshotSpan, minimumLength: 2, maximumLength: 2);
         }
 
-        protected override bool Equals(ITextSnapshot snapshot, IErrorTag tag1, IErrorTag tag2)
+        protected override bool Equals(IErrorTag tag1, IErrorTag tag2)
         {
             return tag1 is RoslynErrorTag errorTag1 &&
                 tag2 is RoslynErrorTag errorTag2 &&

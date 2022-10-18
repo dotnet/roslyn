@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
             }
         }
 
-        protected override bool Equals(ITextSnapshot snapshot, KeywordHighlightTag tag1, KeywordHighlightTag tag2)
+        protected override bool Equals(KeywordHighlightTag tag1, KeywordHighlightTag tag2)
         {
             Contract.ThrowIfFalse(tag1 == tag2, "KeywordHighlightTag is supposed to be a singleton");
             return true;

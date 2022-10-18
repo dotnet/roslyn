@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.BraceMatching
         }
 
         // Safe to directly compare as BraceHighlightTag uses singleton instances.
-        protected override bool Equals(ITextSnapshot snapshot, BraceHighlightTag tag1, BraceHighlightTag tag2)
+        protected override bool Equals(BraceHighlightTag tag1, BraceHighlightTag tag2)
             => tag1 == tag2;
     }
 }

@@ -75,7 +75,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 this.IsCollapsible == other.IsCollapsible &&
                 this.IsDefaultCollapsed == other.IsDefaultCollapsed &&
                 this.IsImplementation == other.IsImplementation &&
-                SpanEquals()
+                false;
+                // SpanEquals()
         }
 
         public object? GetCollapsedForm()

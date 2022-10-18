@@ -85,8 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// Comparer used to check if two tags are the same.  Used so that when new tags are produced, they can be
         /// appropriately 'diffed' to determine what changes to actually report in <see cref="ITagger{T}.TagsChanged"/>.
         /// </summary>
-        /// <param name="snapshot">The snapshot the document is currently at when trying to perform the equality comparison.</param>
-        protected abstract bool Equals(ITextSnapshot snapshot, TTag tag1, TTag tag2);
+        protected abstract bool Equals(TTag tag1, TTag tag2);
 
 #if DEBUG
         public readonly string StackTrace;

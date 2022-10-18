@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var newTagTree = new TagSpanIntervalTree<TTag>(
                     buffer,
                     treeForBuffer.SpanTrackingMode,
-                    allTags.Except(tagsToRemove, new TagSpanComparer(_dataSource, snapshot)));
+                    allTags.Except(tagsToRemove, comparer: this));
 
                 this.CachedTagTrees = this.CachedTagTrees.SetItem(snapshot.TextBuffer, newTagTree);
 
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 return oldTagTree.GetSpans(snapshot).Except(
                     spansToInvalidate.SelectMany(oldTagTree.GetIntersectingSpans),
-                    comparer: new TagSpanComparer(_dataSource, snapshot));
+                    comparer: this);
             }
 
             private bool ShouldSkipTagProduction()
@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         }
                         else
                         {
-                            if (!this._dataSource.Equals(snapshot, latest.Tag, previous.Tag))
+                            if (!_dataSource.Equals(latest.Tag, previous.Tag))
                                 added.Add(latestSpan);
 
                             latest = NextOrNull(latestEnumerator);

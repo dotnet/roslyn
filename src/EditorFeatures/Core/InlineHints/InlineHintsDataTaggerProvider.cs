@@ -127,8 +127,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             }
         }
 
-        protected override bool Equals(ITextSnapshot snapshot, InlineHintDataTag tag1, InlineHintDataTag tag2)
+        protected override bool Equals(InlineHintDataTag tag1, InlineHintDataTag tag2)
         {
+            // We arbitrarily choose to map from tag1's snapshot to tag2's.
+            var snapshotToMapTo = tag2.Snapshot;
+
             // they have to match if they're going to change text.
             if (tag1.Hint.ReplacementTextChange is null != tag2.Hint.ReplacementTextChange is null)
                 return false;
@@ -138,8 +141,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 return false;
 
             // Ensure both hints are talking about the same snapshot.
-            var span1 = tag1.Hint.Span.ToSnapshotSpan(tag1.Snapshot).TranslateTo(snapshot, this.SpanTrackingMode);
-            var span2 = tag1.Hint.Span.ToSnapshotSpan(tag1.Snapshot).TranslateTo(snapshot, this.SpanTrackingMode);
+            var span1 = tag1.Hint.Span.ToSnapshotSpan(tag1.Snapshot).TranslateTo(snapshotToMapTo, this.SpanTrackingMode);
+            var span2 = tag2.Hint.Span.ToSnapshotSpan(tag2.Snapshot).TranslateTo(snapshotToMapTo, this.SpanTrackingMode);
 
             if (span1.Span != span2.Span)
                 return false;
@@ -147,8 +150,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             if (tag1.Hint.ReplacementTextChange != null && tag2.Hint.ReplacementTextChange != null)
             {
                 // ensure both changes are talking about the same span.
-                var replacementSpan1 = tag1.Hint.ReplacementTextChange.Value.Span.ToSnapshotSpan(tag1.Snapshot).TranslateTo(snapshot, this.SpanTrackingMode);
-                var replacementSpan2 = tag2.Hint.ReplacementTextChange.Value.Span.ToSnapshotSpan(tag2.Snapshot).TranslateTo(snapshot, this.SpanTrackingMode);
+                var replacementSpan1 = tag1.Hint.ReplacementTextChange.Value.Span.ToSnapshotSpan(tag1.Snapshot).TranslateTo(snapshotToMapTo, this.SpanTrackingMode);
+                var replacementSpan2 = tag2.Hint.ReplacementTextChange.Value.Span.ToSnapshotSpan(tag2.Snapshot).TranslateTo(snapshotToMapTo, this.SpanTrackingMode);
 
                 if (replacementSpan1.Span != replacementSpan2.Span)
                     return false;
