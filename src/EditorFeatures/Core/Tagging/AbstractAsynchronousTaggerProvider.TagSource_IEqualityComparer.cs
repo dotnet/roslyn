@@ -12,13 +12,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
     internal abstract partial class AbstractAsynchronousTaggerProvider<TTag>
     {
-        private partial class TagSource : IEqualityComparer<ITagSpan<TTag>>
+        private partial class TagSource
         {
             public bool Equals(ITagSpan<TTag> x, ITagSpan<TTag> y)
-                => x.Span == y.Span && _dataSource.GetTagEqualityComparer(x.Span.Snapshot).Equals(x.Tag, y.Tag);
-
-            public int GetHashCode(ITagSpan<TTag> obj)
-                => throw ExceptionUtilities.Unreachable();
+                => x.Span == y.Span && _dataSource.Equals(x.Span.Snapshot, x.Tag, y.Tag);
         }
     }
 }

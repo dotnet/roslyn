@@ -132,17 +132,18 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 if (!this.CachedTagTrees.TryGetValue(buffer, out var treeForBuffer))
                     return;
 
-                var tagsToRemove = e.Changes.SelectMany(c => treeForBuffer.GetIntersectingSpans(new SnapshotSpan(e.After, c.NewSpan)));
+                var snapshot = e.After;
+
+                var tagsToRemove = e.Changes.SelectMany(c => treeForBuffer.GetIntersectingSpans(new SnapshotSpan(snapshot, c.NewSpan)));
                 if (!tagsToRemove.Any())
                     return;
 
+                var tagComparer = new TagComparer(snapshot);
                 var allTags = treeForBuffer.GetSpans(e.After).ToList();
                 var newTagTree = new TagSpanIntervalTree<TTag>(
                     buffer,
                     treeForBuffer.SpanTrackingMode,
-                    allTags.Except(tagsToRemove, comparer: this));
-
-                var snapshot = e.After;
+                    allTags.Except(tagsToRemove, new TagSpanComparer(tagComparer)));
 
                 this.CachedTagTrees = this.CachedTagTrees.SetItem(snapshot.TextBuffer, newTagTree);
 
@@ -151,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 //
                 // treeForBuffer basically points to oldTagTrees. case where oldTagTrees not exist is already taken cared by
                 // CachedTagTrees.TryGetValue.
-                var difference = ComputeDifference(snapshot, newTagTree, treeForBuffer);
+                var difference = ComputeDifference(snapshot, tagComparer, newTagTree, treeForBuffer);
 
                 RaiseTagsChanged(snapshot.TextBuffer, difference);
             }
@@ -443,6 +444,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private static DiffResult ComputeDifference(
                 ITextSnapshot snapshot,
+                IEqualityComparer<TTag> tagComparer,
                 TagSpanIntervalTree<TTag> latestTree,
                 TagSpanIntervalTree<TTag> previousTree)
             {
@@ -488,7 +490,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         }
                         else
                         {
-                            if (!EqualityComparer<TTag>.Default.Equals(latest.Tag, previous.Tag))
+                            if (!tagComparer.Equals(latest.Tag, previous.Tag))
                                 added.Add(latestSpan);
 
                             latest = NextOrNull(latestEnumerator);
