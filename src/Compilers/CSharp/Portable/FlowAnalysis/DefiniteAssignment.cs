@@ -1685,6 +1685,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (slot > 0) SetSlotState(slot, true);
                 NoteWrite(parameter, value: null, read: true);
             }
+
+            if (parameter is SourceComplexParameterSymbolBase { ContainingSymbol: LocalFunctionSymbol or LambdaSymbol } sourceComplexParam &&
+                sourceComplexParam.BindParameterAttributes() is { IsDefaultOrEmpty: false } boundAttributes)
+            {
+                // Mark attribute arguments as used.
+                foreach (var boundAttribute in boundAttributes)
+                {
+                    foreach (var attributeArgument in boundAttribute.ConstructorArguments)
+                    {
+                        VisitRvalue(attributeArgument);
+                    }
+                    foreach (var attributeNamedArgumentAssignment in boundAttribute.NamedArguments)
+                    {
+                        VisitRvalue(attributeNamedArgumentAssignment.Right);
+                    }
+                }
+            }
         }
 
         protected override void LeaveParameters(ImmutableArray<ParameterSymbol> parameters, SyntaxNode syntax, Location location)

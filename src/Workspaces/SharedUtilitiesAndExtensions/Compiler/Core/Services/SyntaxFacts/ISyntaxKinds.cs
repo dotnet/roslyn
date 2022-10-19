@@ -151,6 +151,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int? OrPattern { get; }
         int? ParenthesizedPattern { get; }
         int? RecursivePattern { get; }
+        int? RelationalPattern { get; }
         int? TypePattern { get; }
         int? VarPattern { get; }
 

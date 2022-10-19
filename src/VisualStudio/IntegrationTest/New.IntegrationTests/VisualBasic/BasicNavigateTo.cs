@@ -36,7 +36,7 @@ End Class", cancellationToken: HangMitigatingCancellationToken);
 
             await TestServices.SolutionExplorer.AddFileAsync(project, "test2.vb", open: true, contents: @"
 ", cancellationToken: HangMitigatingCancellationToken);
-            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd12CmdID.NavigateTo, HangMitigatingCancellationToken);
+            await TestServices.Shell.ShowNavigateToDialogAsync(HangMitigatingCancellationToken);
             await TestServices.Input.SendToNavigateToAsync("FirstMethod", VirtualKeyCode.RETURN);
             await TestServices.Workarounds.WaitForNavigationAsync(HangMitigatingCancellationToken);
             Assert.Equal($"test1.vb", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
@@ -46,7 +46,7 @@ End Class", cancellationToken: HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.AddProjectAsync(csProject, WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp, HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.AddFileAsync(csProject, "csfile.cs", open: true, cancellationToken: HangMitigatingCancellationToken);
 
-            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd12CmdID.NavigateTo, HangMitigatingCancellationToken);
+            await TestServices.Shell.ShowNavigateToDialogAsync(HangMitigatingCancellationToken);
             await TestServices.Input.SendToNavigateToAsync("FirstClass", VirtualKeyCode.RETURN);
             await TestServices.Workarounds.WaitForNavigationAsync(HangMitigatingCancellationToken);
             Assert.Equal($"test1.vb", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));

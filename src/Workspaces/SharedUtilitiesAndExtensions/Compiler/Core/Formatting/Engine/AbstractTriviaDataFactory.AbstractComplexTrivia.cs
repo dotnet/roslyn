@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return this;
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public override TriviaData WithLine(
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     }
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public override TriviaData WithIndentation(

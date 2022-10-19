@@ -14839,13 +14839,6 @@ class Test
 
         private static bool Execute(bool isVirtual)
         {
-#if !NET7_0_OR_GREATER
-            if (isVirtual)
-            {
-                return false;
-            }
-#endif
-
             return ExecutionConditionUtil.IsMonoOrCoreClr;
         }
 

@@ -387,11 +387,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (this.TryGetCompilation(out var compilation))
                 {
-                    // PERF: This is a hot code path and Task<TResult> isn't cheap,
-                    // so cache the completed tasks to reduce allocations. We also
-                    // need to avoid keeping a strong reference to the Compilation,
-                    // so use a ConditionalWeakTable.
-                    return SpecializedTasks.FromResult(compilation);
+                    return Task.FromResult(compilation);
                 }
                 else if (cancellationToken.IsCancellationRequested)
                 {
@@ -453,7 +449,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -496,7 +492,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -571,7 +567,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -601,7 +597,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -639,7 +635,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -704,7 +700,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -834,7 +830,7 @@ namespace Microsoft.CodeAnalysis
 
                                 generatorInfo = generatorInfo.WithDriver(compilationFactory.CreateGeneratorDriver(
                                         this.ProjectState.ParseOptions!,
-                                        ProjectState.SourceGenerators,
+                                        ProjectState.SourceGenerators.ToImmutableArray(),
                                         this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider,
                                         additionalTexts));
                             }
@@ -880,7 +876,7 @@ namespace Microsoft.CodeAnalysis
 
                             generatorInfo = generatorInfo.WithDriver(generatorInfo.Driver!.RunGenerators(compilationToRunGeneratorsOn, cancellationToken));
 
-                            solution.Services.GetService<ISourceGeneratorTelemetryCollectorWorkspaceService>()?.CollectRunResult(generatorInfo.Driver!.GetRunResult(), generatorInfo.Driver!.GetTimingInfo());
+                            solution.Services.GetService<ISourceGeneratorTelemetryCollectorWorkspaceService>()?.CollectRunResult(generatorInfo.Driver!.GetRunResult(), generatorInfo.Driver!.GetTimingInfo(), ProjectState);
 
                             var runResult = generatorInfo.Driver!.GetRunResult();
 
@@ -907,11 +903,14 @@ namespace Microsoft.CodeAnalysis
                                     continue;
                                 }
 
+                                var generatorAnalyzerReference = this.ProjectState.GetAnalyzerReferenceForGenerator(generatorResult.Generator);
+
                                 foreach (var generatedSource in generatorResult.GeneratedSources)
                                 {
                                     var existing = FindExistingGeneratedDocumentState(
                                         generatorInfo.Documents,
                                         generatorResult.Generator,
+                                        generatorAnalyzerReference,
                                         generatedSource.HintName);
 
                                     if (existing != null)
@@ -933,14 +932,15 @@ namespace Microsoft.CodeAnalysis
                                             ProjectState.Id,
                                             generatedSource.HintName,
                                             generatorResult.Generator,
-                                            generatedSource.SyntaxTree.FilePath);
+                                            generatedSource.SyntaxTree.FilePath,
+                                            generatorAnalyzerReference);
 
                                         generatedDocumentsBuilder.Add(
                                             SourceGeneratedDocumentState.Create(
                                                 identity,
                                                 generatedSource.SourceText,
                                                 generatedSource.SyntaxTree.Options,
-                                                this.ProjectState.LanguageServices,
+                                                ProjectState.LanguageServices,
                                                 solution.Services));
 
                                         // The count of trees was the same, but something didn't match up. Since we're here, at least one tree
@@ -995,16 +995,17 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 // Local functions
                 static SourceGeneratedDocumentState? FindExistingGeneratedDocumentState(
                     TextDocumentStates<SourceGeneratedDocumentState> states,
                     ISourceGenerator generator,
+                    AnalyzerReference analyzerReference,
                     string hintName)
                 {
-                    var generatorIdentity = new SourceGeneratorIdentity(generator);
+                    var generatorIdentity = new SourceGeneratorIdentity(generator, analyzerReference);
 
                     foreach (var (_, state) in states.States)
                     {

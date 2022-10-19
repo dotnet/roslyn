@@ -5,6 +5,7 @@
 Imports System.Text
 Imports System.Reflection
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 
 Public Class VBParser
     Private ReadOnly _options As VisualBasicParseOptions
@@ -14,7 +15,7 @@ Public Class VBParser
     End Sub
 
     Public Function Parse(code As String) As SyntaxTree
-        Dim tree = VisualBasicSyntaxTree.ParseText(code, _options, "", Encoding.UTF8)
+        Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(code, Encoding.UTF8, SourceHashAlgorithms.Default), _options, path:="")
         Return tree
     End Function
 End Class

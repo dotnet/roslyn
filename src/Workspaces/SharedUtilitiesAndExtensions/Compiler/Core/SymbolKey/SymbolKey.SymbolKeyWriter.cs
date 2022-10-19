@@ -348,13 +348,13 @@ namespace Microsoft.CodeAnalysis
             }
 
             public override void VisitLabel(ILabelSymbol labelSymbol)
-                => throw ExceptionUtilities.Unreachable;
+                => throw ExceptionUtilities.Unreachable();
 
             public override void VisitLocal(ILocalSymbol localSymbol)
-                => throw ExceptionUtilities.Unreachable;
+                => throw ExceptionUtilities.Unreachable();
 
             public override void VisitRangeVariable(IRangeVariableSymbol rangeVariableSymbol)
-                => throw ExceptionUtilities.Unreachable;
+                => throw ExceptionUtilities.Unreachable();
 
             public override void VisitMethod(IMethodSymbol methodSymbol)
             {
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis
                             break;
 
                         case MethodKind.LocalFunction:
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
 
                         default:
                             WriteType(SymbolKeyType.Method);

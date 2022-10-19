@@ -3,10 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -98,6 +100,24 @@ namespace Microsoft.CodeAnalysis.Remote
             return result;
         }
 
+        protected async IAsyncEnumerable<T> StreamWithSolutionAsync<T>(
+            Checksum solutionChecksum,
+            Func<Solution, CancellationToken, IAsyncEnumerable<T>> implementation,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            var workspace = GetWorkspace();
+            var assetProvider = workspace.CreateAssetProvider(solutionChecksum, WorkspaceManager.SolutionAssetCache, SolutionAssetSource);
+
+            // Ensure the solution stays pinned while we're streaming results back.
+            var pinnedSolution = await workspace.GetPinnedSolutionAsync(
+                assetProvider, solutionChecksum, cancellationToken).ConfigureAwait(false);
+            await using (pinnedSolution.ConfigureAwait(false))
+            {
+                await foreach (var item in implementation(pinnedSolution.Solution, cancellationToken).ConfigureAwait(false))
+                    yield return item;
+            }
+        }
+
         protected ValueTask<T> RunServiceAsync<T>(Func<CancellationToken, ValueTask<T>> implementation, CancellationToken cancellationToken)
         {
             WorkspaceManager.SolutionAssetCache.UpdateLastActivityTime();
@@ -119,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -146,6 +166,21 @@ namespace Microsoft.CodeAnalysis.Remote
                 }, cancellationToken);
         }
 
+        protected ValueTask RunServiceAsync(
+            Checksum solutionChecksum1,
+            Checksum solutionChecksum2,
+            Func<Solution, Solution, ValueTask> implementation,
+            CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(
+                solutionChecksum1,
+                s1 => RunServiceAsync(
+                    solutionChecksum2,
+                    s2 => implementation(s1, s2),
+                    cancellationToken),
+                cancellationToken);
+        }
+
         internal static async ValueTask RunServiceImplAsync(Func<CancellationToken, ValueTask> implementation, CancellationToken cancellationToken)
         {
             try
@@ -154,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
-using static Microsoft.VisualStudio.Threading.ThreadingTools;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -99,12 +98,41 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunWithSolutionAsync(assetProvider, solutionChecksum, workspaceVersion: -1, updatePrimaryBranch: false, implementation, cancellationToken);
         }
 
+        public ValueTask<PinnedSolution> GetPinnedSolutionAsync(
+            AssetProvider assetProvider,
+            Checksum solutionChecksum,
+            CancellationToken cancellationToken)
+        {
+            return GetPinnedSolutionAsync(assetProvider, solutionChecksum, workspaceVersion: -1, updatePrimaryBranch: false, cancellationToken);
+        }
+
         private async ValueTask<(Solution solution, T result)> RunWithSolutionAsync<T>(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
             int workspaceVersion,
             bool updatePrimaryBranch,
             Func<Solution, ValueTask<T>> implementation,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                var pinnedSolution = await GetPinnedSolutionAsync(assetProvider, solutionChecksum, workspaceVersion, updatePrimaryBranch, cancellationToken).ConfigureAwait(false);
+                await using (pinnedSolution.ConfigureAwait(false))
+                    return (pinnedSolution.Solution, await implementation(pinnedSolution.Solution).ConfigureAwait(false));
+            }
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken, ErrorSeverity.Critical))
+            {
+                // Any non-cancellation exception is bad and needs to be reported.  We will still ensure that we cleanup
+                // below though no matter what happens so that other calls to OOP can properly work.
+                throw ExceptionUtilities.Unreachable();
+            }
+        }
+
+        private async ValueTask<PinnedSolution> GetPinnedSolutionAsync(
+            AssetProvider assetProvider,
+            Checksum solutionChecksum,
+            int workspaceVersion,
+            bool updatePrimaryBranch,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(solutionChecksum);
@@ -114,19 +142,21 @@ namespace Microsoft.CodeAnalysis.Remote
             // increment the in-flight of that solution until we decrement it at the end of our try/finally block.
             var (inFlightSolution, solutionTask) = await AcquireSolutionAndIncrementInFlightCountAsync().ConfigureAwait(false);
 
+            Exception? exception = null;
             try
             {
-                return await ProcessSolutionAsync(inFlightSolution, solutionTask).ConfigureAwait(false);
+                var solution = await GetSolutionAsync(inFlightSolution, solutionTask).ConfigureAwait(false);
+                return new PinnedSolution(this, inFlightSolution, solution);
             }
-            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken, ErrorSeverity.Critical))
+            catch (Exception ex) when ((exception = ex) == null)
             {
-                // Any non-cancellation exception is bad and needs to be reported.  We will still ensure that we cleanup
-                // below though no matter what happens so that other calls to OOP can properly work.
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
             finally
             {
-                await DecrementInFlightCountAsync(inFlightSolution).ConfigureAwait(false);
+                // Ensure we cleanup if an exception occurred.  Otherwise, we'll never release this data.
+                if (exception != null)
+                    await DecrementInFlightCountAsync(inFlightSolution).ConfigureAwait(false);
             }
 
             // Gets or creates a solution corresponding to the requested checksum.  This will always succeed, and will
@@ -150,12 +180,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         // Any exception thrown in the above (including cancellation) is critical and unrecoverable.  We
                         // will have potentially started work, while also leaving ourselves in some inconsistent state.
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
                 }
             }
 
-            async ValueTask<(Solution solution, T result)> ProcessSolutionAsync(InFlightSolution inFlightSolution, Task<Solution> solutionTask)
+            async ValueTask<Solution> GetSolutionAsync(InFlightSolution inFlightSolution, Task<Solution> solutionTask)
             {
                 // We must have at least 1 for the in-flight-count (representing this current in-flight call).
                 Contract.ThrowIfTrue(inFlightSolution.InFlightCount < 1);
@@ -174,48 +204,44 @@ namespace Microsoft.CodeAnalysis.Remote
                         _lastRequestedAnyBranchSolution = (solutionChecksum, solution);
                 }
 
-                // Now, pass it to the callback to do the work.  Any other callers into us will be able to benefit from
-                // using this same solution as well
-                var result = await implementation(solution).ConfigureAwait(false);
-
-                return (solution, result);
+                return solution;
             }
+        }
 
-            async ValueTask DecrementInFlightCountAsync(InFlightSolution inFlightSolution)
+        private async ValueTask DecrementInFlightCountAsync(InFlightSolution inFlightSolution)
+        {
+            // All this work is intentionally not cancellable.  We must do the decrement to ensure our cache state
+            // is consistent. This will block the calling thread.  However, this should only be for a short amount
+            // of time as nothing in RemoteWorkspace should ever hold this lock for long periods of time.
+
+            try
             {
-                // All this work is intentionally not cancellable.  We must do the decrement to ensure our cache state
-                // is consistent. This will block the calling thread.  However, this should only be for a short amount
-                // of time as nothing in RemoteWorkspace should ever hold this lock for long periods of time.
-
-                try
+                ImmutableArray<Task> solutionComputationTasks;
+                using (await _gate.DisposableWaitAsync(CancellationToken.None).ConfigureAwait(false))
                 {
-                    ImmutableArray<Task> solutionComputationTasks;
-                    using (await _gate.DisposableWaitAsync(CancellationToken.None).ConfigureAwait(false))
-                    {
 
-                        // finally, decrement our in-flight-count on the solution.  If we were the last one keeping it alive, it
-                        // will get removed from our caches.
-                        solutionComputationTasks = inFlightSolution.DecrementInFlightCount_NoLock();
-                    }
+                    // finally, decrement our in-flight-count on the solution.  If we were the last one keeping it alive, it
+                    // will get removed from our caches.
+                    solutionComputationTasks = inFlightSolution.DecrementInFlightCount_NoLock();
+                }
 
-                    // If we were the request that decremented the in-flight-count to 0, then ensure we wait for all the
-                    // solution-computation tasks to finish.  If we do not do this then it's possible for this call to
-                    // return all the way back to the host side unpinning the solution we have pinned there.  This may
-                    // happen concurrently with the solution-computation calls calling back into the host which will
-                    // then crash due to that solution no longer being pinned there.  While this does force this caller
-                    // to wait for those tasks to stop, this should ideally be fast as they will have been cancelled
-                    // when the in-flight-count went to 0.
-                    //
-                    // Use a NoThrowAwaitable as we want to await all tasks here regardless of how individual ones may cancel.
-                    foreach (var task in solutionComputationTasks)
-                        await task.NoThrowAwaitable(false);
-                }
-                catch (Exception ex) when (FatalError.ReportAndPropagate(ex, ErrorSeverity.Critical))
-                {
-                    // Similar to AcquireSolutionAndIncrementInFlightCountAsync Any exception thrown in the above
-                    // (including cancellation) is critical and unrecoverable.  We must clean up our state, and anything
-                    // that prevents that could leave us in an inconsistent position.
-                }
+                // If we were the request that decremented the in-flight-count to 0, then ensure we wait for all the
+                // solution-computation tasks to finish.  If we do not do this then it's possible for this call to
+                // return all the way back to the host side unpinning the solution we have pinned there.  This may
+                // happen concurrently with the solution-computation calls calling back into the host which will
+                // then crash due to that solution no longer being pinned there.  While this does force this caller
+                // to wait for those tasks to stop, this should ideally be fast as they will have been cancelled
+                // when the in-flight-count went to 0.
+                //
+                // Use a NoThrowAwaitable as we want to await all tasks here regardless of how individual ones may cancel.
+                foreach (var task in solutionComputationTasks)
+                    await task.NoThrowAwaitable(false);
+            }
+            catch (Exception ex) when (FatalError.ReportAndPropagate(ex, ErrorSeverity.Critical))
+            {
+                // Similar to AcquireSolutionAndIncrementInFlightCountAsync Any exception thrown in the above
+                // (including cancellation) is critical and unrecoverable.  We must clean up our state, and anything
+                // that prevents that could leave us in an inconsistent position.
             }
         }
 
@@ -262,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
