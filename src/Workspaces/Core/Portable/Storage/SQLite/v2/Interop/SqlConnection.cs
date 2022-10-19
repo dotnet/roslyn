@@ -277,8 +277,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             }
             catch (SqlException ex)
             {
-                // Some sql error occurred (like a constraint violation).  Rollback (throwing if that rollback failed
-                // for some reason).
+                // Some other sql error occurred (like a constraint violation).  Rollback (throwing if that rollback
+                // failed for some reason).
                 Rollback(throwOnError: true);
 
                 if (throwOnSqlException)
