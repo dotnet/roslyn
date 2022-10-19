@@ -91,6 +91,18 @@
     <EditorConfigFiles Condition="'$(IsShipping)' != 'true'" Include="$(RepositoryEngineeringDir)config\globalconfigs\NonShipping.globalconfig" />
   </ItemGroup>
 
+  <PropertyGroup Condition="'$(IsSymbolPublishingPackage)' == 'true'">
+    <IsPackable>true</IsPackable>
+    <IsShippingPackage>false</IsShippingPackage>
+    <PackageId>$(AssemblyName).Symbols</PackageId>
+    <PackageId Condition="'$(PlatformTarget)' != '' and '$(PlatformTarget)' != 'AnyCPU'">$(AssemblyName).$(PlatformTarget).Symbols</PackageId>
+  </PropertyGroup>
+
+  <!-- Check that all shipping assemblies are packaged -->
+  <Target Name="_CheckTestProjectTargetFileName" BeforeTargets="Build" Condition="'$(IsShippingAssembly)' == 'true' and '$(IsPackable)' != 'true'">
+    <Error Text="Project output assembly is shipping (IsShipping == $(IsShipping), IsShippingAssembly == '$(IsShippingAssembly)', IsShippingPackage == '$(IsShippingPackage)') but is not packaged (IsPackable == '$(IsPackable)')" />
+  </Target>
+
   <!--
     Some dependencies bring in references to UIAutomationClient and UIAutomationTypes. These conflict with the faster
     UIAComWrapper implementation used by the Roslyn integration tests. This target sets the alias for the slower

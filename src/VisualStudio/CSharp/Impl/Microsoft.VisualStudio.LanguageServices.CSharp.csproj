@@ -8,9 +8,7 @@
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.CSharp</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ApplyNgenOptimization>full</ApplyNgenOptimization>
-
-    <!-- Package used for symbol publishing -->
-    <IsPackable>true</IsPackable>
+    <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
 
     <!-- VSIX -->
     <CreateVsixContainer>false</CreateVsixContainer>
