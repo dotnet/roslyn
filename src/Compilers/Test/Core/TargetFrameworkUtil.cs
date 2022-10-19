@@ -7,11 +7,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using static TestReferences;
 using static Roslyn.Test.Utilities.TestMetadata;
 using Basic.Reference.Assemblies;
+using System.Diagnostics;
 
 namespace Roslyn.Test.Utilities
 {
@@ -88,35 +90,35 @@ namespace Roslyn.Test.Utilities
     /// </summary>
     public static class NetCoreApp
     {
-        public static ImmutableArray<Net50.ReferenceInfo> AllReferenceInfos { get; } = ImmutableArray.CreateRange(Net50.References.All);
-        public static ImmutableArray<MetadataReference> References { get; } = ImmutableArray.CreateRange<MetadataReference>(Net50.All);
+        public static ImmutableArray<Net70.ReferenceInfo> AllReferenceInfos { get; } = ImmutableArray.CreateRange(Net70.References.All);
+        public static ImmutableArray<MetadataReference> References { get; } = ImmutableArray.CreateRange<MetadataReference>(Net70.All);
 
         /// <summary>
         /// A subset of <see cref="References"/> that can compile 99% of our test code.
         /// </summary>
         public static ImmutableArray<MetadataReference> StandardReferences { get; } = ImmutableArray.Create<MetadataReference>(
-            Net50.netstandard,
-            Net50.mscorlib,
-            Net50.SystemRuntime,
-            Net50.SystemCore,
-            Net50.SystemConsole,
-            Net50.SystemLinq,
-            Net50.SystemLinqExpressions,
-            Net50.SystemThreadingTasks,
-            Net50.SystemCollections);
+            Net70.netstandard,
+            Net70.mscorlib,
+            Net70.SystemRuntime,
+            Net70.SystemCore,
+            Net70.SystemConsole,
+            Net70.SystemLinq,
+            Net70.SystemLinqExpressions,
+            Net70.SystemThreadingTasks,
+            Net70.SystemCollections);
 
-        public static PortableExecutableReference netstandard { get; } = Net50.netstandard;
-        public static PortableExecutableReference mscorlib { get; } = Net50.mscorlib;
-        public static PortableExecutableReference SystemRuntime { get; } = Net50.SystemRuntime;
-        public static PortableExecutableReference SystemCore { get; } = Net50.SystemCore;
-        public static PortableExecutableReference SystemConsole { get; } = Net50.SystemConsole;
-        public static PortableExecutableReference SystemLinq { get; } = Net50.SystemLinq;
-        public static PortableExecutableReference SystemLinqExpressions { get; } = Net50.SystemLinqExpressions;
-        public static PortableExecutableReference SystemThreadingTasks { get; } = Net50.SystemThreadingTasks;
-        public static PortableExecutableReference SystemCollections { get; } = Net50.SystemCollections;
-        public static PortableExecutableReference SystemRuntimeInteropServices { get; } = Net50.SystemRuntimeInteropServices;
-        public static PortableExecutableReference MicrosoftCSharp { get; } = Net50.MicrosoftCSharp;
-        public static PortableExecutableReference MicrosoftVisualBasic { get; } = Net50.MicrosoftVisualBasic;
+        public static PortableExecutableReference netstandard { get; } = Net70.netstandard;
+        public static PortableExecutableReference mscorlib { get; } = Net70.mscorlib;
+        public static PortableExecutableReference SystemRuntime { get; } = Net70.SystemRuntime;
+        public static PortableExecutableReference SystemCore { get; } = Net70.SystemCore;
+        public static PortableExecutableReference SystemConsole { get; } = Net70.SystemConsole;
+        public static PortableExecutableReference SystemLinq { get; } = Net70.SystemLinq;
+        public static PortableExecutableReference SystemLinqExpressions { get; } = Net70.SystemLinqExpressions;
+        public static PortableExecutableReference SystemThreadingTasks { get; } = Net70.SystemThreadingTasks;
+        public static PortableExecutableReference SystemCollections { get; } = Net70.SystemCollections;
+        public static PortableExecutableReference SystemRuntimeInteropServices { get; } = Net70.SystemRuntimeInteropServices;
+        public static PortableExecutableReference MicrosoftCSharp { get; } = Net70.MicrosoftCSharp;
+        public static PortableExecutableReference MicrosoftVisualBasic { get; } = Net70.MicrosoftVisualBasic;
     }
 
     /// <summary>
@@ -176,13 +178,22 @@ namespace Roslyn.Test.Utilities
         public static ImmutableArray<MetadataReference> MinimalReferences => ImmutableArray.Create(TestBase.MinCorlibRef);
         public static ImmutableArray<MetadataReference> MinimalAsyncReferences => ImmutableArray.Create(TestBase.MinAsyncCorlibRef);
 
+#if DEBUG
+
+        static TargetFrameworkUtil()
+        {
+            Debug.Assert(GetReferences(TargetFramework.NetCoreApp).SequenceEqual(NetCoreApp.References));
+        }
+
+#endif
+
         public static ImmutableArray<MetadataReference> GetReferences(TargetFramework targetFramework) => targetFramework switch
         {
             // Primary
             // Note: NetCoreApp should behave like latest Core TFM
             TargetFramework.Empty => ImmutableArray<MetadataReference>.Empty,
             TargetFramework.NetStandard20 => NetStandard20References,
-            TargetFramework.Net50 => NetCoreApp.StandardReferences,
+            TargetFramework.Net50 => ImmutableArray.CreateRange<MetadataReference>(Net50.All),
             TargetFramework.Net60 => ImmutableArray.CreateRange<MetadataReference>(Net60.All),
             TargetFramework.NetCoreApp or TargetFramework.Net70 => ImmutableArray.CreateRange<MetadataReference>(Net70.All),
             TargetFramework.NetCoreAppAndCSharp => NetCoreApp.StandardReferences.Add(NetCoreApp.MicrosoftCSharp),
