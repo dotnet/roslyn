@@ -206,6 +206,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             return new ResettableSqlStatement(statement);
         }
 
+        /// <inheritdoc cref="RunInTransaction{TState, TResult}(Func{TState, TResult}, TState, bool)"/>
         public SqlException? RunInTransaction<TState>(Action<TState> action, TState state, bool throwOnSqlException)
         {
             var (_, exception) = RunInTransaction(
@@ -220,8 +221,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             return exception;
         }
 
-        /// <param name="throwOnSqlException">If a <see cref="SqlException"/> should throw the exception or not.  If
-        /// <see langword="false"/>, then the exception will be returned in the result value.</param>
+        /// <param name="throwOnSqlException">If a <see cref="SqlException"/> that happens during excution of <paramref
+        /// name="action"/> should bubble out of this method or not.  If <see langword="false"/>, then the exception
+        /// will be returned in the result value instead</param>
         public (TResult? result, SqlException? exception) RunInTransaction<TState, TResult>(
             Func<TState, TResult> action, TState state, bool throwOnSqlException)
         {
