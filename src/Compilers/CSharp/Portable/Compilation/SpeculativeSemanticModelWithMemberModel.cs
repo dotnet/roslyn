@@ -129,8 +129,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override bool IgnoresAccessibility => _parentSemanticModel.IgnoresAccessibility;
 
-        internal sealed override SemanticModel ContainingModelOrSelf => this;
-
         private MemberSemanticModel GetEnclosingMemberModel(int position)
         {
             AssertPositionAdjusted(position);

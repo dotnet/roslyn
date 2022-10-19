@@ -5262,8 +5262,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefProperty">
-        <source>A property or indexer may not be passed as an out or ref parameter</source>
-        <target state="translated">Свойство или индексатор не могут передаваться как параметр out или ref.</target>
+        <source>A non ref-returning property or indexer may not be used as an out or ref value</source>
+        <target state="needs-review-translation">Свойство или индексатор не могут передаваться как параметр out или ref.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ManagedAddr">
