@@ -722,6 +722,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnType = TypeWithAnnotations.Create(Binder.Compilation.GetSpecialType(SpecialType.System_Void));
             }
 
+            var parameterSymbolsForAttributes = lambdaSymbol.Parameters.All(p => p is SourceComplexParameterSymbolBase)
+                ? lambdaSymbol.Parameters.SelectAsArray(p => (SourceComplexParameterSymbolBase)p) : default;
+
             return Binder.GetMethodGroupOrLambdaDelegateType(
                 _unboundLambda.Syntax,
                 returnRefKind,
@@ -729,7 +732,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterRefKinds,
                 parameterEffectiveScopesBuilder.ToImmutableAndFree(),
                 parameterTypes,
-                parameterDefaultValues);
+                parameterDefaultValues,
+                parameterSymbolsForAttributes);
 
             LambdaSymbol createLambdaSymbol()
             {

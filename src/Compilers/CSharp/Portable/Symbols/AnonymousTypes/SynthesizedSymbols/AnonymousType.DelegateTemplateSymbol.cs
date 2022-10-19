@@ -53,10 +53,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var typeParams = containingType.TypeParameters;
 
                     int parameterCount = typeParams.Length - (voidReturnTypeOpt is null ? 1 : 0);
-                    var parameters = ArrayBuilder<(TypeWithAnnotations, RefKind, DeclarationScope, ConstantValue?)>.GetInstance(parameterCount);
+                    var parameters = ArrayBuilder<(TypeWithAnnotations, RefKind, DeclarationScope, ConstantValue?, SourceComplexParameterSymbolBase?)>.GetInstance(parameterCount);
                     for (int i = 0; i < parameterCount; i++)
                     {
-                        parameters.Add((TypeWithAnnotations.Create(typeParams[i]), refKinds.IsNull ? RefKind.None : refKinds[i], DeclarationScope.Unscoped, null));
+                        parameters.Add((TypeWithAnnotations.Create(typeParams[i]), refKinds.IsNull ? RefKind.None : refKinds[i], DeclarationScope.Unscoped, null, null));
                     }
 
                     // if we are given Void type the method returns Void, otherwise its return type is the last type parameter of the delegate:
@@ -127,11 +127,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     TypeMap typeMap)
                 {
                     var parameterCount = fields.Length - 1;
-                    var parameters = ArrayBuilder<(TypeWithAnnotations, RefKind, DeclarationScope, ConstantValue?)>.GetInstance(parameterCount);
+                    var parameters = ArrayBuilder<(TypeWithAnnotations, RefKind, DeclarationScope, ConstantValue?, SourceComplexParameterSymbolBase?)>.GetInstance(parameterCount);
                     for (int i = 0; i < parameterCount; i++)
                     {
                         var field = fields[i];
-                        parameters.Add((typeMap.SubstituteType(field.Type), field.RefKind, field.Scope, field.DefaultValue));
+                        parameters.Add((typeMap.SubstituteType(field.Type), field.RefKind, field.Scope, field.DefaultValue, field.ParameterSymbolForAttributes));
                     }
 
                     var returnParameter = fields[^1];

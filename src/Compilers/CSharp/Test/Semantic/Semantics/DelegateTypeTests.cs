@@ -12538,11 +12538,6 @@ class Program
             CompileAndVerify(source, expectedOutput: "0.3333333333333333333333333333");
         }
 
-
-        // PROTOTYPE: Do we want to allow [Caller{MemberName, LineNumber, FilePath, ArgumentExpression}] attributes for lambdas since
-        // we now have default parameters? The current behavior is to ignore these attributes so that the provided
-        // default would always be used in these cases.
-
         [Fact]
         public void CallerAttributesOnLambdaWithDefaultParam()
         {
@@ -12559,9 +12554,8 @@ class Program
     }
 }
 """;
-            CompileAndVerify(source, expectedOutput: "file::member:0");
+            CompileAndVerify(source, expectedOutput: "::Main:9");
         }
-
 
         [Fact]
         public void CallerArgumentExpressionAttributeOnLambdaWithDefaultParam()
@@ -12581,7 +12575,7 @@ class Program
 """;
             CompileAndVerify(source, targetFramework: TargetFramework.Net60,
                                      verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Skipped,
-                                     expectedOutput: ExecutionConditionUtil.IsCoreClr ? "callerArgExpression" : null);
+                                     expectedOutput: ExecutionConditionUtil.IsCoreClr ? "3" : null);
         }
 
         [Fact]

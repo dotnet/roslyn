@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override int CallerArgumentExpressionParameterIndex
         {
-            get { return -1; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override MarshalPseudoCustomAttributeData? MarshallingInformation => _baseParameterForAttributes?.MarshallingInformation;
 
-        internal override bool IsMetadataOptional => _baseParameterForAttributes?.IsMetadataOptional ?? base.IsMetadataOptional;
+        internal override bool IsMetadataOptional => _defaultValue is not null || (_baseParameterForAttributes?.IsMetadataOptional ?? base.IsMetadataOptional);
 
         internal override bool IsCallerLineNumber
         {
@@ -335,28 +335,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get => _baseParameterForAttributes?.IsCallerMemberName ?? false;
         }
 
+        internal override int CallerArgumentExpressionParameterIndex
+        {
+            get => _baseParameterForAttributes?.CallerArgumentExpressionParameterIndex ?? -1;
+        }
+
         internal override bool IsMetadataIn => RefKind == RefKind.In || _baseParameterForAttributes?.GetDecodedWellKnownAttributeData()?.HasInAttribute == true;
 
         internal override bool IsMetadataOut => RefKind == RefKind.Out || _baseParameterForAttributes?.GetDecodedWellKnownAttributeData()?.HasOutAttribute == true;
 
-        internal override ConstantValue? ExplicitDefaultConstantValue => _baseParameterForAttributes?.ExplicitDefaultConstantValue ?? _defaultValue;
+        internal override ConstantValue? ExplicitDefaultConstantValue => _defaultValue ?? _baseParameterForAttributes?.ExplicitDefaultConstantValue;
 
-        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
-        {
-            get
-            {
-                Debug.Assert(_baseParameterForAttributes is null);
-                return base.FlowAnalysisAnnotations;
-            }
-        }
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations => _baseParameterForAttributes?.FlowAnalysisAnnotations ?? base.FlowAnalysisAnnotations;
 
-        internal override ImmutableHashSet<string> NotNullIfParameterNotNull
-        {
-            get
-            {
-                Debug.Assert(_baseParameterForAttributes is null);
-                return base.NotNullIfParameterNotNull;
-            }
-        }
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull => _baseParameterForAttributes?.NotNullIfParameterNotNull ?? base.NotNullIfParameterNotNull;
     }
 }
