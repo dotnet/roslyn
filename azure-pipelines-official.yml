@@ -320,7 +320,8 @@ stages:
   - job: insert
     displayName: Insert to VS
     pool:
-      vmImage: windows-2019
+      name: NetCore1ESPool-Svc-Internal
+      demands: ImageOverride -equals windows.vs2022.amd64
     steps:
     - download: current
       artifact: VSSetup
