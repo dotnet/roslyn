@@ -327,10 +327,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         firstDefault = i;
                     }
 
+                    ParameterHelpers.GetModifiers(paramSyntax.Modifiers, out _, out var paramsKeyword, out _, out _);
+                    var isParams = paramsKeyword.Kind() != SyntaxKind.None;
+
                     // UNDONE: Where do we report improper use of pointer types?
-                    // PROTOTYPE: Set `isParams` to report errors about them.
-                    ParameterHelpers.ReportParameterErrors(owner: null, paramSyntax, ordinal: i, isParams: false, lambda.ParameterTypeWithAnnotations(i),
-                         lambda.RefKind(i), lambda.DeclaredScope(i), containingSymbol: null, thisKeyword: default, paramsKeyword: default, firstDefault, diagnostics);
+                    ParameterHelpers.ReportParameterErrors(owner: null, paramSyntax, ordinal: i, parameterCount: lambda.ParameterCount, isParams: isParams, lambda.ParameterTypeWithAnnotations(i),
+                         lambda.RefKind(i), lambda.DeclaredScope(i), containingSymbol: null, thisKeyword: default, paramsKeyword: paramsKeyword, firstDefault, diagnostics);
                 }
             }
 
