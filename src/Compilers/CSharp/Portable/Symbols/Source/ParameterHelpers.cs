@@ -508,11 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SyntaxKind.ParamsKeyword when !parsingFunctionPointerParams:
-                        if (parsingLambdaParams)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_IllegalParams, modifier.GetLocation());
-                        }
-                        else if (seenParams)
+                        if (seenParams)
                         {
                             addERR_DupParamMod(diagnostics, modifier);
                         }

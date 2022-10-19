@@ -371,8 +371,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var name = unboundLambda.ParameterName(p);
                 var location = unboundLambda.ParameterLocation(p);
                 var locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create<Location>(location);
+                var isParams = unboundLambda.HasParamsArray && p == unboundLambda.ParameterCount - 1;
 
-                var parameter = new LambdaParameterSymbol(owner: this, paramSyntax?.GetReference(), attributeLists, type, ordinal: p, refKind, declaredScope, effectiveScope, name, unboundLambda.ParameterIsDiscard(p), locations);
+                var parameter = new LambdaParameterSymbol(owner: this, paramSyntax?.GetReference(), attributeLists, type, ordinal: p, refKind, declaredScope, effectiveScope, name, unboundLambda.ParameterIsDiscard(p), isParams, locations);
                 builder.Add(parameter);
             }
 

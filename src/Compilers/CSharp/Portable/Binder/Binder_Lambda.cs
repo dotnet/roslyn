@@ -92,6 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var isAsync = syntax.Modifiers.Any(SyntaxKind.AsyncKeyword);
             var isStatic = syntax.Modifiers.Any(SyntaxKind.StaticKeyword);
+            var hasParamsArray = false;
 
             if (parameterSyntaxList != null)
             {
@@ -140,7 +141,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         type = BindType(typeSyntax, diagnostics);
                         ParameterHelpers.CheckParameterModifiers(p, diagnostics, parsingFunctionPointerParams: false, parsingLambdaParams: true);
-                        refKind = ParameterHelpers.GetModifiers(p.Modifiers, out _, out _, out _, out scope);
+                        refKind = ParameterHelpers.GetModifiers(p.Modifiers, out _, out var paramsKeyword, out _, out scope);
+                        if (paramsKeyword.Kind() != SyntaxKind.None)
+                        {
+                            hasParamsArray = true;
+                        }
                     }
 
                     namesBuilder.Add(p.Identifier.ValueText);
@@ -192,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             namesBuilder.Free();
 
-            return UnboundLambda.Create(syntax, this, diagnostics.AccumulatesDependencies, returnRefKind, returnType, parameterAttributes, refKinds, scopes, types, names, discardsOpt, parameterSyntaxList, defaultValues, isAsync, isStatic);
+            return UnboundLambda.Create(syntax, this, diagnostics.AccumulatesDependencies, returnRefKind, returnType, parameterAttributes, refKinds, scopes, types, names, discardsOpt, parameterSyntaxList, defaultValues, isAsync, isStatic, hasParamsArray);
 
             static ImmutableArray<bool> computeDiscards(SeparatedSyntaxList<ParameterSyntax> parameters, int underscoresCount)
             {
