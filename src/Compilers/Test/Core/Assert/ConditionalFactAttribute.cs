@@ -86,11 +86,19 @@ namespace Roslyn.Test.Utilities
         {
             foreach (var skipCondition in skipConditions)
             {
-                ExecutionCondition condition = (ExecutionCondition)Activator.CreateInstance(skipCondition);
-                if (condition.ShouldSkip)
+                try
                 {
-                    base.Skip = Reason ?? condition.SkipReason;
-                    break;
+                    ExecutionCondition condition = (ExecutionCondition)Activator.CreateInstance(skipCondition);
+                    if (condition.ShouldSkip)
+                    {
+                        base.Skip = Reason ?? condition.SkipReason;
+                        break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    base.Skip = $"{nameof(ConditionalFactAttribute)} condition {skipCondition.Name} threw exception while being evaluated: {ex}";
+                    return;
                 }
             }
         }
@@ -126,11 +134,19 @@ namespace Roslyn.Test.Utilities
         {
             foreach (var skipCondition in skipConditions)
             {
-                ExecutionCondition condition = (ExecutionCondition)Activator.CreateInstance(skipCondition);
-                if (condition.ShouldSkip)
+                try
                 {
-                    base.Skip = Reason ?? condition.SkipReason;
-                    break;
+                    ExecutionCondition condition = (ExecutionCondition)Activator.CreateInstance(skipCondition);
+                    if (condition.ShouldSkip)
+                    {
+                        base.Skip = Reason ?? condition.SkipReason;
+                        break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    base.Skip = $"{nameof(ConditionalTheoryAttribute)} condition {skipCondition.Name} threw exception while being evaluated: {ex}";
+                    return;
                 }
             }
         }
