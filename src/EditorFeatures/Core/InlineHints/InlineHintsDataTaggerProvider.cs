@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     {
         private readonly IAsynchronousOperationListener _listener;
 
-        protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeInclusive;
+        public override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeInclusive;
 
         /// <summary>
         /// We want to make sure that if the user edits the space that the tag exists in that it goes away and they
@@ -123,8 +123,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
                 context.AddTag(new TagSpan<InlineHintDataTag>(
                     hint.Span.ToSnapshotSpan(snapshotSpan.Snapshot),
-                    new InlineHintDataTag(hint)));
+                    new InlineHintDataTag(this, snapshotSpan.Snapshot, hint)));
             }
         }
+
+        protected override bool TagEquals(InlineHintDataTag tag1, InlineHintDataTag tag2)
+            => tag1.Equals(tag2);
     }
 }

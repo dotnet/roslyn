@@ -10,24 +10,34 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
     /// Serialization typed used to pass information to/from OOP and VS.
     /// </summary>
     [DataContract]
-    internal struct DesignerAttributeData
+    internal readonly struct DesignerAttributeData
     {
         /// <summary>
         /// The category specified in a <c>[DesignerCategory("...")]</c> attribute.
         /// </summary>
         [DataMember(Order = 0)]
-        public string? Category;
+        public readonly string? Category;
 
         /// <summary>
         /// The document this <see cref="Category"/> applies to.
         /// </summary>
         [DataMember(Order = 1)]
-        public DocumentId DocumentId;
+        public readonly DocumentId DocumentId;
 
         /// <summary>
         /// Path for this <see cref="DocumentId"/>.
         /// </summary>
         [DataMember(Order = 2)]
-        public string FilePath;
+        public readonly string FilePath;
+
+        public DesignerAttributeData(string? category, DocumentId documentId, string filePath)
+        {
+            Category = category;
+            DocumentId = documentId;
+            FilePath = filePath;
+        }
+
+        public DesignerAttributeData WithCategory(string? category)
+            => new(category, DocumentId, FilePath);
     }
 }
