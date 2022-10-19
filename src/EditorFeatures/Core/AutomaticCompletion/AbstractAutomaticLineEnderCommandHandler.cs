@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
                 }
 
                 // Check if we could find the ending position
-                var endingInsertionPosition = GetInsertionPositionForEndingString(parsedDocument, subjectLineWhereCaretIsOn, cancellationToken);
+                var endingInsertionPosition = GetInsertionPositionForEndingString(parsedDocument, subjectLineWhereCaretIsOn);
                 if (endingInsertionPosition != null)
                 {
                     using var transaction = args.TextView.CreateEditTransaction(EditorFeaturesResources.Automatic_Line_Ender, _undoRegistry, _editorOperationsFactoryService);
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
         /// <summary>
         /// return insertion point for the ending string
         /// </summary>
-        private static int? GetInsertionPositionForEndingString(ParsedDocument document, ITextSnapshotLine line, CancellationToken cancellationToken)
+        private static int? GetInsertionPositionForEndingString(ParsedDocument document, ITextSnapshotLine line)
         {
             // find last token on the line
             var token = document.Root.FindTokenOnLeftOfPosition(line.End);
