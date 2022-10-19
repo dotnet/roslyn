@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis
         internal GeneratorInitializationContext(CancellationToken cancellationToken = default)
         {
             CancellationToken = cancellationToken;
-            InfoBuilder = new GeneratorInfo.Builder();
+            Callbacks = new CallbackHolder();
         }
 
         /// <summary>
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
-        internal GeneratorInfo.Builder InfoBuilder { get; }
+        internal CallbackHolder Callbacks { get; }
 
         /// <summary>
         /// Register a <see cref="SyntaxReceiverCreator"/> for this generator, which can be used to create an instance of an <see cref="ISyntaxReceiver"/>.
@@ -148,8 +148,8 @@ namespace Microsoft.CodeAnalysis
         /// <param name="receiverCreator">A <see cref="SyntaxReceiverCreator"/> that can be invoked to create an instance of <see cref="ISyntaxReceiver"/></param>
         public void RegisterForSyntaxNotifications(SyntaxReceiverCreator receiverCreator)
         {
-            CheckIsEmpty(InfoBuilder.SyntaxContextReceiverCreator, $"{nameof(SyntaxReceiverCreator)} / {nameof(SyntaxContextReceiverCreator)}");
-            InfoBuilder.SyntaxContextReceiverCreator = SyntaxContextReceiverAdaptor.Create(receiverCreator);
+            CheckIsEmpty(Callbacks.SyntaxContextReceiverCreator, $"{nameof(SyntaxReceiverCreator)} / {nameof(SyntaxContextReceiverCreator)}");
+            Callbacks.SyntaxContextReceiverCreator = SyntaxContextReceiverAdaptor.Create(receiverCreator);
         }
 
         /// <summary>
@@ -170,8 +170,8 @@ namespace Microsoft.CodeAnalysis
         /// <param name="receiverCreator">A <see cref="SyntaxContextReceiverCreator"/> that can be invoked to create an instance of <see cref="ISyntaxContextReceiver"/></param>
         public void RegisterForSyntaxNotifications(SyntaxContextReceiverCreator receiverCreator)
         {
-            CheckIsEmpty(InfoBuilder.SyntaxContextReceiverCreator, $"{nameof(SyntaxReceiverCreator)} / {nameof(SyntaxContextReceiverCreator)}");
-            InfoBuilder.SyntaxContextReceiverCreator = receiverCreator;
+            CheckIsEmpty(Callbacks.SyntaxContextReceiverCreator, $"{nameof(SyntaxReceiverCreator)} / {nameof(SyntaxContextReceiverCreator)}");
+            Callbacks.SyntaxContextReceiverCreator = receiverCreator;
         }
 
         /// <summary>
@@ -190,8 +190,8 @@ namespace Microsoft.CodeAnalysis
         /// <param name="callback">An <see cref="Action{T}"/> that accepts a <see cref="GeneratorPostInitializationContext"/> that will be invoked after initialization.</param>
         public void RegisterForPostInitialization(Action<GeneratorPostInitializationContext> callback)
         {
-            CheckIsEmpty(InfoBuilder.PostInitCallback);
-            InfoBuilder.PostInitCallback = (context) => callback(new GeneratorPostInitializationContext(context.AdditionalSources, context.CancellationToken));
+            CheckIsEmpty(Callbacks.PostInitCallback);
+            Callbacks.PostInitCallback = (context) => callback(new GeneratorPostInitializationContext(context.AdditionalSources, context.CancellationToken));
         }
 
         private static void CheckIsEmpty<T>(T x, string? typeName = null) where T : class?
@@ -200,6 +200,13 @@ namespace Microsoft.CodeAnalysis
             {
                 throw new InvalidOperationException(string.Format(CodeAnalysisResources.Single_type_per_generator_0, typeName ?? typeof(T).Name));
             }
+        }
+
+        internal sealed class CallbackHolder
+        {
+            internal SyntaxContextReceiverCreator? SyntaxContextReceiverCreator { get; set; }
+
+            internal Action<IncrementalGeneratorPostInitializationContext>? PostInitCallback { get; set; }
         }
     }
 

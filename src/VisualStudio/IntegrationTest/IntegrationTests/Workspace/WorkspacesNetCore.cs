@@ -31,7 +31,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
             base.OpenCSharpThenVBSolution();
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/55711"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Workspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         [WorkItem(34264, "https://github.com/dotnet/roslyn/issues/34264")]
         public override void MetadataReference()
@@ -40,7 +40,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
             VisualStudio.SolutionExplorer.EditProjectFile(project);
             VisualStudio.Editor.SetText(@"<Project Sdk=""Microsoft.NET.Sdk"">
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net46</TargetFramework>
   </PropertyGroup>
 </Project>");
             VisualStudio.SolutionExplorer.SaveAll();

@@ -3992,7 +3992,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedXmlEndCData">
         <source>Expected closing ']]&gt;' for XML CDATA section.</source>
-        <target state="translated">]]&gt;' de fechamento esperado para seção XML CDATA.</target>
+        <target state="translated">']]&gt;' de fechamento esperado para seção XML CDATA.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedSQuote">

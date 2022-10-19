@@ -311,7 +311,7 @@ class Program
     static int M3(int x, int y) => x;
 }}
 
-public enum color {{ Red, Blue, Green }};
+public enum @color {{ Red, Blue, Green }};
 
 class A {{ }}
 class B : A {{ public static implicit operator X(B self) => new X(); }}

@@ -1206,7 +1206,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
-        public void TestVerbatimIdentifierWithNoCharactersAndTrivia()
+        public void TestVerbatimIdentifierWithNoCharacters2()
+        {
+            var text = "@@";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.BadToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_ExpectedVerbatimLiteral, errors[0].Code);
+            Assert.Equal(text, token.Text);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestVerbatimIdentifierWithNoCharacters3()
+        {
+            var text = "@@@";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.BadToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_ExpectedVerbatimLiteral, errors[0].Code);
+            Assert.Equal(text, token.Text);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestVerbatimIdentifierWithNoCharactersAndTrivia1()
         {
             var text = "@  ";
             var token = LexToken(text);
@@ -1218,6 +1248,70 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal((int)ErrorCode.ERR_ExpectedVerbatimLiteral, errors[0].Code);
             Assert.Equal(text, token.ToFullString());
             var trivia = token.GetTrailingTrivia().ToList();
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestVerbatimIdentifierWithNoCharactersAndTrivia2()
+        {
+            var text = "@@  ";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.BadToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_ExpectedVerbatimLiteral, errors[0].Code);
+            Assert.Equal(text, token.ToFullString());
+            var trivia = token.GetTrailingTrivia().ToList();
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestVerbatimIdentifierWithNoCharactersAndTrivia3()
+        {
+            var text = "@@@  ";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.BadToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_ExpectedVerbatimLiteral, errors[0].Code);
+            Assert.Equal(text, token.ToFullString());
+            var trivia = token.GetTrailingTrivia().ToList();
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestVerbatimIdentifierWithMultipleAtSign1()
+        {
+            var text = "@@class";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal(ErrorCode.ERR_IllegalAtSequence, (ErrorCode)errors[0].Code);
+            Assert.Equal(text, token.Text);
+            Assert.Equal("class", token.ValueText);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestVerbatimIdentifierWithMultipleAtSign2()
+        {
+            var text = "@@@class";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal(ErrorCode.ERR_IllegalAtSequence, (ErrorCode)errors[0].Code);
+            Assert.Equal(text, token.Text);
+            Assert.Equal("class", token.ValueText);
         }
 
         [Fact]

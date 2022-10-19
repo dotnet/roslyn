@@ -256,12 +256,12 @@
       </trans-unit>
       <trans-unit id="InMemoryAssembly">
         <source>&lt;in-memory assembly&gt;</source>
-        <target state="translated">&lt; bellek içi derleme &gt;</target>
+        <target state="translated">&lt;bellek içi derleme&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="InMemoryModule">
         <source>&lt;in-memory module&gt;</source>
-        <target state="translated">&lt; bellek modülü &gt;</target>
+        <target state="translated">&lt;bellek modülü&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="SizeHasToBePositive">

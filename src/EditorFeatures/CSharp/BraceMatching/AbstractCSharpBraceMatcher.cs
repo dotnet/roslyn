@@ -4,8 +4,8 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.BraceMatching
 {

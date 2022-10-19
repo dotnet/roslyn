@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespac
 
         public override string Name => Location;
         public override string DisplayName => ServicesVSResources.Location;
-        public override double MinWidth => 80;
+        public override double MinWidth => 350;
         public override bool DefaultVisible => true;
         public override bool IsFilterable => true;
         public override bool IsSortable => true;

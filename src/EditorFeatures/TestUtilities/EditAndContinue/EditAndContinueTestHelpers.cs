@@ -37,8 +37,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             EditAndContinueCapabilities.ChangeCustomAttributes |
             EditAndContinueCapabilities.UpdateParameters;
 
+        public const EditAndContinueCapabilities AllRuntimeCapabilities =
+            Net6RuntimeCapabilities;
+
         public abstract AbstractEditAndContinueAnalyzer Analyzer { get; }
-        public abstract SyntaxNode FindNode(SyntaxNode root, TextSpan span);
+
         public abstract ImmutableArray<SyntaxNode> GetDeclarators(ISymbol method);
         public abstract string LanguageName { get; }
         public abstract TreeComparer<SyntaxNode> TopSyntaxComparer { get; }
@@ -84,13 +87,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             EditScript<SyntaxNode> editScript,
             SequencePointUpdates[] expectedLineEdits,
             SemanticEditDescription[]? expectedSemanticEdits,
-            RudeEditDiagnosticDescription[]? expectedDiagnostics)
+            RudeEditDiagnosticDescription[]? expectedDiagnostics,
+            EditAndContinueCapabilities? capabilities)
         {
             VerifySemantics(
                 new[] { editScript },
                 TargetFramework.NetStandard20,
                 new[] { new DocumentAnalysisResultsDescription(semanticEdits: expectedSemanticEdits, lineEdits: expectedLineEdits, diagnostics: expectedDiagnostics) },
-                capabilities: Net5RuntimeCapabilities);
+                capabilities);
         }
 
         internal void VerifySemantics(EditScript<SyntaxNode>[] editScripts, TargetFramework targetFramework, DocumentAnalysisResultsDescription[] expectedResults, EditAndContinueCapabilities? capabilities = null)
@@ -111,7 +115,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var testAccessor = Analyzer.GetTestAccessor();
             var allEdits = new List<SemanticEditInfo>();
-            var lazyCapabilities = AsyncLazy.Create(capabilities ?? Net5RuntimeCapabilities);
+
+            // include Baseline by default, unless no capabilities are explicitly specified:
+            var requiredCapabilities = capabilities.HasValue ?
+                (capabilities.Value == 0 ? 0 : capabilities.Value | EditAndContinueCapabilities.Baseline) :
+                expectedResults.Any(r => r.Diagnostics.Any()) ? AllRuntimeCapabilities : EditAndContinueCapabilities.Baseline;
+
+            var lazyCapabilities = AsyncLazy.Create(requiredCapabilities);
+            var actualRequiredCapabilities = EditAndContinueCapabilities.None;
+            var hasValidChanges = false;
 
             for (var documentIndex = 0; documentIndex < documentCount; documentIndex++)
             {
@@ -141,6 +153,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 var oldText = oldDocument.GetTextSynchronously(default);
                 var newText = newDocument.GetTextSynchronously(default);
 
+                actualRequiredCapabilities |= result.RequiredCapabilities;
+                hasValidChanges &= result.HasSignificantValidChanges;
+
                 VerifyDiagnostics(expectedResult.Diagnostics, result.RudeEditErrors.ToDescription(newText, includeFirstLineInDiagnostics), assertMessagePrefix);
 
                 if (!expectedResult.SemanticEdits.IsDefault)
@@ -162,6 +177,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 {
                     Assert.True(result.ExceptionRegions.IsDefault);
                     Assert.True(result.ActiveStatements.IsDefault);
+                    Assert.Equal(EditAndContinueCapabilities.None, result.RequiredCapabilities);
                 }
                 else
                 {
@@ -180,6 +196,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 {
                     Assert.True(result.LineEdits.IsDefault);
                     Assert.True(expectedResult.LineEdits.IsDefaultOrEmpty);
+                    Assert.Equal(EditAndContinueCapabilities.None, result.RequiredCapabilities);
                 }
                 else if (!expectedResult.LineEdits.IsDefault)
                 {
@@ -205,6 +222,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 }
             }
 
+            if (hasValidChanges)
+            {
+                Assert.Equal(requiredCapabilities, actualRequiredCapabilities);
+            }
+
             var duplicateNonPartial = allEdits
                 .Where(e => e.PartialType == null)
                 .GroupBy(e => e.Symbol, SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: true))
@@ -221,9 +243,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             => VerifyDiagnostics(expected, actual.ToDescription(newSource, expected.Any(d => d.FirstLine != null)));
 
         public static void VerifyDiagnostics(IEnumerable<RudeEditDiagnosticDescription> expected, IEnumerable<RudeEditDiagnosticDescription> actual, string? message = null)
-            => AssertEx.SetEqual(expected, actual, message: message, itemSeparator: ",\r\n");
+        {
+            // Assert that the diagnostics are actually what the test expects
+            AssertEx.SetEqual(expected, actual, message: message, itemSeparator: ",\r\n");
 
-        private void VerifySemanticEdits(
+            // Also make sure to realise each diagnostic to ensure its message is able to be formatted
+            foreach (var diagnostic in actual)
+            {
+                diagnostic.VerifyMessageFormat();
+            }
+        }
+
+        private static void VerifySemanticEdits(
             ImmutableArray<SemanticEditDescription> expectedSemanticEdits,
             ImmutableArray<SemanticEditInfo> actualSemanticEdits,
             Compilation oldCompilation,
@@ -284,7 +315,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }
         }
 
-        private void VerifySyntaxMap(
+        public static SyntaxNode FindNode(SyntaxNode root, TextSpan span)
+        {
+            var result = root.FindToken(span.Start).Parent!;
+            while (result.Span != span)
+            {
+                result = result.Parent!;
+            }
+
+            return result;
+        }
+
+        private static void VerifySyntaxMap(
             SyntaxNode oldRoot,
             SyntaxNode newRoot,
             IEnumerable<KeyValuePair<TextSpan, TextSpan>> expectedSyntaxMap,

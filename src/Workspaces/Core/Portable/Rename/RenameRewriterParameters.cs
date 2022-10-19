@@ -15,7 +15,8 @@ namespace Microsoft.CodeAnalysis.Rename
     {
         internal readonly CancellationToken CancellationToken;
         internal readonly ISet<TextSpan> ConflictLocationSpans;
-        internal readonly RenameOptionSet OptionSet;
+        internal readonly bool IsRenamingInStrings;
+        internal readonly bool IsRenamingInComments;
         internal readonly Solution OriginalSolution;
         internal readonly SyntaxTree OriginalSyntaxTree;
         internal readonly string OriginalText;
@@ -47,28 +48,30 @@ namespace Microsoft.CodeAnalysis.Rename
             ISymbol renameSymbol,
             bool replacementTextValid,
             RenamedSpansTracker renameSpansTracker,
-            RenameOptionSet optionSet,
+            bool isRenamingInStrings,
+            bool isRenamingInComments,
             AnnotationTable<RenameAnnotation> renameAnnotations,
             CancellationToken cancellationToken)
         {
-            this.RenamedSymbolDeclarationAnnotation = renamedSymbolDeclarationAnnotation;
-            this.Document = document;
-            this.SemanticModel = semanticModel;
-            this.SyntaxRoot = syntaxRoot;
-            this.OriginalSyntaxTree = semanticModel.SyntaxTree;
-            this.ReplacementText = replacementText;
-            this.OriginalText = originalText;
-            this.PossibleNameConflicts = possibleNameConflicts;
-            this.RenameLocations = renameLocations;
-            this.StringAndCommentTextSpans = stringAndCommentTextSpans;
-            this.ConflictLocationSpans = conflictLocationSpans;
-            this.OriginalSolution = originalSolution;
-            this.RenameSymbol = renameSymbol;
-            this.ReplacementTextValid = replacementTextValid;
-            this.CancellationToken = cancellationToken;
-            this.RenameSpansTracker = renameSpansTracker;
-            this.OptionSet = optionSet;
-            this.RenameAnnotations = renameAnnotations;
+            RenamedSymbolDeclarationAnnotation = renamedSymbolDeclarationAnnotation;
+            Document = document;
+            SemanticModel = semanticModel;
+            SyntaxRoot = syntaxRoot;
+            OriginalSyntaxTree = semanticModel.SyntaxTree;
+            ReplacementText = replacementText;
+            OriginalText = originalText;
+            PossibleNameConflicts = possibleNameConflicts;
+            RenameLocations = renameLocations;
+            StringAndCommentTextSpans = stringAndCommentTextSpans;
+            ConflictLocationSpans = conflictLocationSpans;
+            OriginalSolution = originalSolution;
+            RenameSymbol = renameSymbol;
+            ReplacementTextValid = replacementTextValid;
+            CancellationToken = cancellationToken;
+            RenameSpansTracker = renameSpansTracker;
+            IsRenamingInStrings = isRenamingInStrings;
+            IsRenamingInComments = isRenamingInComments;
+            RenameAnnotations = renameAnnotations;
         }
     }
 }

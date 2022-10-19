@@ -3992,7 +3992,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedXmlEndCData">
         <source>Expected closing ']]&gt;' for XML CDATA section.</source>
-        <target state="translated">Očekávalo se ukončení oddílu CDATA kódu XML znaky ]]&gt;.</target>
+        <target state="translated">Očekávalo se ukončení oddílu CDATA kódu XML znaky ']]&gt;'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedSQuote">
@@ -4007,7 +4007,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedLT">
         <source>Expected beginning '&lt;' for an XML tag.</source>
-        <target state="translated">Očekával se úvodní znak &lt; značky XML.</target>
+        <target state="translated">Očekával se úvodní znak '&lt;' značky XML.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StartAttributeValue">
@@ -7395,7 +7395,7 @@
       </trans-unit>
       <trans-unit id="ERR_XmlEndCDataNotAllowedInContent">
         <source>The literal string ']]&gt;' is not allowed in element content.</source>
-        <target state="translated">V obsahu elementu není povolený řetězec literálu ]]&gt;.</target>
+        <target state="translated">V obsahu elementu není povolený řetězec literálu ']]&gt;'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverloadsModifierInModule">

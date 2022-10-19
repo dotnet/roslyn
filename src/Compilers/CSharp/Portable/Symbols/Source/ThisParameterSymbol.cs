@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,15 +17,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal const string SymbolName = "this";
 
-        private readonly MethodSymbol _containingMethod;
+        private readonly MethodSymbol? _containingMethod;
         private readonly TypeSymbol _containingType;
 
         internal ThisParameterSymbol(MethodSymbol forMethod) : this(forMethod, forMethod.ContainingType)
         {
         }
 
-        internal ThisParameterSymbol(MethodSymbol forMethod, TypeSymbol containingType)
+        internal ThisParameterSymbol(MethodSymbol? forMethod, TypeSymbol containingType)
         {
+            Debug.Assert(containingType is not null);
             _containingMethod = forMethod;
             _containingType = containingType;
         }
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<Location> Locations
         {
-            get { return (object)_containingMethod != null ? _containingMethod.Locations : ImmutableArray<Location>.Empty; }
+            get { return _containingMethod is not null ? _containingMethod.Locations : ImmutableArray<Location>.Empty; }
         }
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
@@ -73,10 +73,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override Symbol ContainingSymbol
         {
-            get { return (Symbol)_containingMethod ?? _containingType; }
+            get { return (Symbol?)_containingMethod ?? _containingType; }
         }
 
-        internal override ConstantValue ExplicitDefaultConstantValue
+        internal override ConstantValue? ExplicitDefaultConstantValue
         {
             get { return null; }
         }
@@ -163,10 +163,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal override MarshalPseudoCustomAttributeData MarshallingInformation
+        internal override MarshalPseudoCustomAttributeData? MarshallingInformation
         {
             get { return null; }
         }
+
+        public override bool IsNullChecked => false;
 
         internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => ImmutableArray<int>.Empty;
 

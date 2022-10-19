@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using System.Windows;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.ViewModel;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Utilities;
@@ -39,7 +40,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
                 return false;
             }
 
-            var control = new CodeStyleSeverityControl(setting);
+            var viewModel = new CodeStyleSeverityViewModel(setting);
+            var control = new CodeStyleSeverityControl(viewModel);
             content = control;
             return true;
         }

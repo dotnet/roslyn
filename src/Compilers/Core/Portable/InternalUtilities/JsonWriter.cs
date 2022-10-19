@@ -88,18 +88,69 @@ namespace Roslyn.Utilities
             Write(value);
         }
 
+        public void Write(string key, int? value)
+        {
+            WriteKey(key);
+            Write(value);
+        }
+
         public void Write(string key, bool value)
         {
             WriteKey(key);
             Write(value);
         }
 
+        public void Write(string key, bool? value)
+        {
+            WriteKey(key);
+            Write(value);
+        }
+
+        public void Write<T>(string key, T value) where T : struct, Enum
+        {
+            WriteKey(key);
+            Write(value.ToString());
+        }
+
+        public void WriteInvariant<T>(T value)
+            where T : struct, IFormattable
+        {
+            Write(value.ToString(null, CultureInfo.InvariantCulture));
+        }
+
+        public void WriteInvariant<T>(string key, T value)
+            where T : struct, IFormattable
+        {
+            WriteKey(key);
+            WriteInvariant(value);
+        }
+
+        public void WriteNull(string key)
+        {
+            WriteKey(key);
+            WriteNull();
+        }
+
+        public void WriteNull()
+        {
+            WritePending();
+            _output.Write("null");
+            _pending = Pending.CommaNewLineAndIndent;
+        }
+
         public void Write(string? value)
         {
             WritePending();
-            _output.Write('"');
-            _output.Write(EscapeString(value));
-            _output.Write('"');
+            if (value is null)
+            {
+                _output.Write("null");
+            }
+            else
+            {
+                _output.Write('"');
+                _output.Write(EscapeString(value));
+                _output.Write('"');
+            }
             _pending = Pending.CommaNewLineAndIndent;
         }
 
@@ -110,11 +161,52 @@ namespace Roslyn.Utilities
             _pending = Pending.CommaNewLineAndIndent;
         }
 
+        public void Write(int? value)
+        {
+            if (value is { } i)
+            {
+                Write(i);
+            }
+            else
+            {
+                WriteNull();
+            }
+        }
+
         public void Write(bool value)
         {
             WritePending();
             _output.Write(value ? "true" : "false");
             _pending = Pending.CommaNewLineAndIndent;
+        }
+
+        public void Write(bool? value)
+        {
+            if (value is { } b)
+            {
+                Write(b);
+            }
+            else
+            {
+                WriteNull();
+            }
+        }
+
+        public void Write<T>(T value) where T : struct, Enum
+        {
+            Write(value.ToString());
+        }
+
+        public void Write<T>(T? value) where T : struct, Enum
+        {
+            if (value is { } e)
+            {
+                Write(e);
+            }
+            else
+            {
+                WriteNull();
+            }
         }
 
         private void WritePending()
@@ -165,7 +257,7 @@ namespace Roslyn.Utilities
         //
         // https://github.com/dotnet/corefx/blob/main/src/System.Private.DataContractSerialization/src/System/Runtime/Serialization/Json/JavaScriptString.cs
         //
-        private static string EscapeString(string? value)
+        internal static string EscapeString(string value)
         {
             PooledStringBuilder? pooledBuilder = null;
             StringBuilder? b = null;

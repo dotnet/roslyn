@@ -941,7 +941,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     New ClassifiedTextElement(
                         New ClassifiedTextRun(ClassificationTypeNames.Keyword, "readonly"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                        New ClassifiedTextRun(ClassificationTypeNames.NamespaceName, "System", navigationAction:=Sub() Return, "System"),
+                        New ClassifiedTextRun(ClassificationTypeNames.NamespaceName, "System"),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
                         New ClassifiedTextRun(ClassificationTypeNames.DelegateName, "Action", navigationAction:=Sub() Return, "Action"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),

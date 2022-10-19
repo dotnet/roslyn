@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                 Dim newImports = SyntaxFactory.List(oldImports.WhereNotNull())
 
                 If remainingTrivia.Count > 0 Then
-                    Dim nextToken = compilationUnit.Imports.Last().GetLastToken().GetNextToken()
+                    Dim nextToken = compilationUnit.Imports.Last().GetLastToken().GetNextTokenOrEndOfFile()
                     compilationUnit = compilationUnit.ReplaceToken(nextToken, nextToken.WithPrependedLeadingTrivia(remainingTrivia))
                 End If
 

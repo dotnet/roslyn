@@ -25,8 +25,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Public Sub New()
         End Sub
 
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
+
         Private Shared Function GetPreselectedSymbolsAsync(
-                context As VisualBasicSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
+                context As VisualBasicSyntaxContext, position As Integer, options As CompletionOptions, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
 
             If context.SyntaxTree.IsInNonUserCode(context.Position, cancellationToken) Then
                 Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
@@ -46,21 +52,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
             End If
 
-            Dim hideAdvancedMembers = options.GetOption(CodeAnalysis.Recommendations.RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language)
-
             ' We'll want to build a list of the actual enum members and all accessible instances of that enum, too
             Dim result = enumType.GetMembers().Where(
                 Function(m As ISymbol) As Boolean
                     Return m.Kind = SymbolKind.Field AndAlso
                         DirectCast(m, IFieldSymbol).IsConst AndAlso
-                        m.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation)
+                        m.IsEditorBrowsable(options.HideAdvancedMembers, context.SemanticModel.Compilation)
                 End Function).ToImmutableArray()
 
             Return Task.FromResult(result)
         End Function
 
         Private Shared Function GetNormalSymbolsAsync(
-                context As VisualBasicSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
+                context As VisualBasicSyntaxContext, position As Integer, options As CompletionOptions, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
 
             If context.SyntaxTree.IsInNonUserCode(context.Position, cancellationToken) OrElse
                 context.SyntaxTree.IsInSkippedText(position, cancellationToken) Then
@@ -79,11 +83,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
             End If
 
-            Dim hideAdvancedMembers = options.GetOption(CodeAnalysis.Recommendations.RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language)
-
             Dim otherSymbols = context.SemanticModel.LookupSymbols(position).WhereAsArray(
                 Function(s) s.MatchesKind(SymbolKind.Field, SymbolKind.Local, SymbolKind.Parameter, SymbolKind.Property) AndAlso
-                    s.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation))
+                            s.IsEditorBrowsable(options.HideAdvancedMembers, context.SemanticModel.Compilation))
 
             Dim otherInstances = otherSymbols.WhereAsArray(Function(s) Equals(enumType, GetTypeFromSymbol(s)))
 
@@ -94,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 completionContext As CompletionContext,
                 syntaxContext As VisualBasicSyntaxContext,
                 position As Integer,
-                options As OptionSet,
+                options As CompletionOptions,
                 cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (symbol As ISymbol, preselect As Boolean)))
             Dim normalSymbols = Await GetNormalSymbolsAsync(syntaxContext, position, options, cancellationToken).ConfigureAwait(False)
             Dim preselectSymbols = Await GetPreselectedSymbolsAsync(syntaxContext, position, options, cancellationToken).ConfigureAwait(False)
@@ -102,12 +104,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return normalSymbols.SelectAsArray(Function(s) (s, preselect:=False)).Concat(preselectSymbols.SelectAsArray(Function(s) (s, preselect:=True)))
         End Function
 
-        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
             Return text(characterPosition) = " "c OrElse
                 text(characterPosition) = "("c OrElse
                 (characterPosition > 1 AndAlso text(characterPosition) = "="c AndAlso text(characterPosition - 1) = ":"c) OrElse
                 SyntaxFacts.IsIdentifierStartCharacter(text(characterPosition)) AndAlso
-                options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.VisualBasic)
+                options.TriggerOnTypingLetters
         End Function
 
         Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create(" "c, "("c, "="c)

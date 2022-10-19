@@ -75,16 +75,16 @@ End Class
             Dim comp = CreateCompilation(source, references:={NetCoreApp.SystemRuntimeInteropServices}, targetFramework:=TargetFramework.NetCoreApp)
 
             comp.AssertTheseDiagnostics(<![CDATA[
-BC42365: 'UnmanagedCallersOnly' attribute is not supported.
+BC37316: 'UnmanagedCallersOnly' attribute is not supported.
     <UnmanagedCallersOnly>
      ~~~~~~~~~~~~~~~~~~~~
-BC42365: 'UnmanagedCallersOnly' attribute is not supported.
+BC37316: 'UnmanagedCallersOnly' attribute is not supported.
     <UnmanagedCallersOnly(CallConvs := { GetType(CallConvCdecl) })>
      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC42365: 'UnmanagedCallersOnly' attribute is not supported.
+BC37316: 'UnmanagedCallersOnly' attribute is not supported.
         <UnmanagedCallersOnly>
          ~~~~~~~~~~~~~~~~~~~~
-BC42365: 'UnmanagedCallersOnly' attribute is not supported.
+BC37316: 'UnmanagedCallersOnly' attribute is not supported.
         <UnmanagedCallersOnly>
          ~~~~~~~~~~~~~~~~~~~~
 ]]>)

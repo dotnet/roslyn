@@ -154,13 +154,16 @@ public class C2
         public async Task AnalyzerExceptionFromSupportedDiagnosticsCall()
         {
             var exception = new Exception();
+            const string AnalyzerName = "Microsoft.CodeAnalysis.UnitTests.Diagnostics.SuppressMessageAttributeTests+ThrowExceptionFromSupportedDiagnostics";
 
             var diagnostic = Diagnostic("AD0001", null)
                 .WithArguments(
-                    "Microsoft.CodeAnalysis.UnitTests.Diagnostics.SuppressMessageAttributeTests+ThrowExceptionFromSupportedDiagnostics",
+                    AnalyzerName,
                     "System.Exception",
                     exception.Message,
-                    (IFormattable)$@"{new LazyToString(() => exception.ToString().Substring(0, exception.ToString().IndexOf("---")))}-----")
+                    (IFormattable)$@"{new LazyToString(() =>
+                        exception.ToString().Substring(0, exception.ToString().IndexOf("---")) + "-----" + Environment.NewLine + Environment.NewLine +
+                        string.Format(CodeAnalysisResources.CompilerAnalyzerThrowsDescription, AnalyzerName, exception.ToString() + Environment.NewLine + "-----" + Environment.NewLine))}")
                 .WithLocation(1, 1);
 
             await VerifyCSharpAsync("public class C { }",

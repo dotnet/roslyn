@@ -6,7 +6,7 @@
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal class InlineRenameSessionInfo
+    internal sealed class InlineRenameSessionInfo
     {
         /// <summary>
         /// Whether or not the entity at the selected location can be renamed.

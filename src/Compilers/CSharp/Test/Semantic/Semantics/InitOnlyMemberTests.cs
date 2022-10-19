@@ -1438,9 +1438,9 @@ public class C
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             comp.VerifyDiagnostics();
 
-            // PE verification fails:  [ : C::set_Property] Cannot change initonly field outside its .ctor.
+            // PEVerify:  [ : C::set_Property] Cannot change initonly field outside its .ctor.
             CompileAndVerify(comp, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
-                verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails);
+                verify: Verification.FailsPEVerify);
 
             void symbolValidator(ModuleSymbol m)
             {
@@ -2730,9 +2730,9 @@ public class C
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition },
                 options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
-            // [ : C::set_Property] Cannot change initonly field outside its .ctor.
+            // PEVerify: [ : C::set_Property] Cannot change initonly field outside its .ctor.
             CompileAndVerify(comp, expectedOutput: "42 43",
-                verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails);
+                verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -4181,7 +4181,7 @@ class Program
                 targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             // PEVerify: [ : S::set_Property] Cannot change initonly field outside its .ctor.
             CompileAndVerify(comp1, expectedOutput: "42",
-                verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails);
+                verify: Verification.FailsPEVerify);
             var comp1Ref = new[] { comp1.ToMetadataReference() };
 
             var comp7 = CreateCompilation(source2, references: comp1Ref,
@@ -4205,7 +4205,7 @@ public readonly struct S
 {
     public int I { get; init; }
 }
-" }, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails, expectedOutput: "1");
+" }, verify: Verification.FailsPEVerify, expectedOutput: "1");
 
 
 
@@ -4243,7 +4243,7 @@ public readonly struct S
     private readonly int i;
     public int I { get => i; init => i = value; }
 }
-" }, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails, expectedOutput: "1");
+" }, verify: Verification.FailsPEVerify, expectedOutput: "1");
 
             var s = verifier.Compilation.GetTypeByMetadataName("S");
             var i = s.GetMember<IPropertySymbol>("I");
@@ -4282,7 +4282,7 @@ public struct S
 {
     public readonly int I { get; init; }
 }
-" }, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails, expectedOutput: "1");
+" }, verify: Verification.FailsPEVerify, expectedOutput: "1");
 
             var s = verifier.Compilation.GetTypeByMetadataName("S");
             var i = s.GetMember<IPropertySymbol>("I");
@@ -4322,7 +4322,7 @@ public struct S
     private readonly int i;
     public readonly int I { get => i; init => i = value; }
 }
-" }, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails, expectedOutput: "1");
+" }, verify: Verification.FailsPEVerify, expectedOutput: "1");
 
             var s = verifier.Compilation.GetTypeByMetadataName("S");
             var i = s.GetMember<IPropertySymbol>("I");
@@ -4417,7 +4417,7 @@ public readonly struct S
         }
     }
 }
-" }, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails, expectedOutput: @"I1 was 1
+" }, verify: Verification.FailsPEVerify, expectedOutput: @"I1 was 1
 I1 is 0");
 
             var s = verifier.Compilation.GetTypeByMetadataName("S");
@@ -4551,7 +4551,7 @@ public record Container(Person Person);
             var comp = CreateCompilation(new[] { IsExternalInitTypeDefinition, source }, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             // PEVerify: Cannot change initonly field outside its .ctor.
-            CompileAndVerify(comp, expectedOutput: "c", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails);
+            CompileAndVerify(comp, expectedOutput: "c", verify: Verification.FailsPEVerify);
         }
 
         [Fact]

@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 {
-    internal partial class DateAndTimeEmbeddedCompletionProvider : LSPCompletionProvider
+    internal sealed partial class DateAndTimeEmbeddedCompletionProvider : EmbeddedLanguageCompletionProvider
     {
         private const string StartKey = nameof(StartKey);
         private const string LengthKey = nameof(LengthKey);
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('"', ':');
 
-        public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
+        public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger)
         {
             if (trigger.Kind is CompletionTriggerKind.Invoke or
                 CompletionTriggerKind.InvokeAndCommitIfUnique)
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            if (!context.Options.GetOption(DateAndTimeOptions.ProvideDateAndTimeCompletions, context.Document.Project.Language))
+            if (!context.CompletionOptions.ProvideDateAndTimeCompletions)
                 return;
 
             if (context.Trigger.Kind is not CompletionTriggerKind.Invoke and
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
                 properties.Add(LengthKey, textChange.Span.Length.ToString());
                 properties.Add(NewTextKey, textChange.NewText!);
                 properties.Add(DescriptionKey, embeddedItem.FullDescription);
-                properties.Add(AbstractEmbeddedLanguageCompletionProvider.EmbeddedProviderName, Name);
+                properties.Add(AbstractAggregateEmbeddedLanguageCompletionProvider.EmbeddedProviderName, Name);
 
                 // Keep everything sorted in the order we just produced the items in.
                 var sortText = context.Items.Count.ToString("0000");
@@ -218,6 +218,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             var startString = item.Properties[StartKey];
             var lengthString = item.Properties[LengthKey];
             var newText = item.Properties[NewTextKey];
+
+            Contract.ThrowIfNull(startString);
+            Contract.ThrowIfNull(lengthString);
+            Contract.ThrowIfNull(newText);
 
             return Task.FromResult(CompletionChange.Create(
                 new TextChange(new TextSpan(int.Parse(startString), int.Parse(lengthString)), newText)));

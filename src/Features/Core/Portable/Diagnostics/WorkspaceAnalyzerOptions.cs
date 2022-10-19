@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -20,10 +21,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly Solution _solution;
 
-        public WorkspaceAnalyzerOptions(AnalyzerOptions options, Solution solution)
+        public IdeAnalyzerOptions IdeOptions { get; }
+
+        public WorkspaceAnalyzerOptions(AnalyzerOptions options, Solution solution, IdeAnalyzerOptions ideOptions)
             : base(options.AdditionalFiles, options.AnalyzerConfigOptionsProvider)
         {
             _solution = solution;
+            IdeOptions = ideOptions;
         }
 
         public HostWorkspaceServices Services => _solution.Workspace.Services;
@@ -60,9 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public override int GetHashCode()
-        {
-            return Hash.Combine(_solution.Workspace,
-                Hash.Combine(_solution.WorkspaceVersion, base.GetHashCode()));
-        }
+            => Hash.Combine(_solution.Workspace,
+               Hash.Combine(_solution.WorkspaceVersion, base.GetHashCode()));
     }
 }

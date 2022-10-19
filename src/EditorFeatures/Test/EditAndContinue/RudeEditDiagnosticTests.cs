@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 RudeEditKind.SwitchBetweenLambdaAndLocalFunction,
                 RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier,
                 RudeEditKind.NotSupportedByRuntime,
-                RudeEditKind.MakeMethodAsync,
-                RudeEditKind.MakeMethodIterator,
+                RudeEditKind.MakeMethodAsyncNotSupportedByRuntime,
+                RudeEditKind.MakeMethodIteratorNotSupportedByRuntime,
                 RudeEditKind.ChangeImplicitMainReturnType
             };
 

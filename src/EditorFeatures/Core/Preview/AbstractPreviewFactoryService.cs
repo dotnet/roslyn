@@ -14,7 +14,9 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.Utilities;
@@ -40,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
         private readonly ITextDifferencingSelectorService _differenceSelectorService;
         private readonly IDifferenceBufferFactoryService _differenceBufferService;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -51,7 +54,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             IEditorOptionsFactoryService editorOptionsFactoryService,
             ITextDifferencingSelectorService differenceSelectorService,
             IDifferenceBufferFactoryService differenceBufferService,
-            ITextViewRoleSet previewRoleSet)
+            ITextViewRoleSet previewRoleSet,
+            IGlobalOptionService globalOptions)
             : base(threadingContext)
         {
             Contract.ThrowIfFalse(ThreadingContext.HasMainThread);
@@ -64,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             _differenceBufferService = differenceBufferService;
 
             _previewRoleSet = previewRoleSet;
+            _globalOptions = globalOptions;
         }
 
         public SolutionPreviewResult? GetSolutionPreviews(Solution oldSolution, Solution? newSolution, CancellationToken cancellationToken)
@@ -678,8 +683,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 rightWorkspace = null;
             };
 
-            leftWorkspace?.EnableDiagnostic();
-            rightWorkspace?.EnableDiagnostic();
+            if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+            {
+                leftWorkspace?.EnableSolutionCrawler();
+                rightWorkspace?.EnableSolutionCrawler();
+            }
 
             return new DifferenceViewerPreview(diffViewer);
         }

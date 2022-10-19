@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -1384,14 +1385,18 @@ ref struct DisposableEnumerator
     public bool MoveNext() { return ++x < 4; }
     public void Dispose() { System.Console.WriteLine(""Done with DisposableEnumerator""); }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.MakeTypeMissing(SpecialType.System_IDisposable);
+
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            var verifier = CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput: @"
 1
 2
 3
 Done with DisposableEnumerator");
 
             // IL Should not contain any Box/unbox instructions as we're a ref struct 
-            compilation.VerifyIL("C.Main", @"
+            verifier.VerifyIL("C.Main", @"
 {
   // Code size       45 (0x2d)
   .maxstack  1
@@ -1447,7 +1452,8 @@ ref struct DisposableEnumerator
     public bool MoveNext() { return ++x < 4; }
     public void Dispose(params object[] args) { System.Console.WriteLine($""Done with DisposableEnumerator. args was {args}, length {args.Length}""); }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            var compilation = CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: @"
 1
 2
 3
@@ -1481,7 +1487,8 @@ ref struct DisposableEnumerator
     public bool MoveNext() { return ++x < 4; }
     public void Dispose(int arg = 1) { System.Console.WriteLine($""Done with DisposableEnumerator. arg was {arg}""); }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            var compilation = CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: @"
 1
 2
 3
@@ -1521,7 +1528,8 @@ static class DisposeExtension
 }
 ";
             // extension methods do not contribute to disposal
-            CompileAndVerify(source, expectedOutput: @"123");
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: @"123");
         }
 
         [Fact]
@@ -1561,7 +1569,8 @@ static class DisposeExtension2
 }
 ";
             // extension methods do not contribute to disposal
-            CompileAndVerify(source, expectedOutput: @"123");
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: @"123");
         }
 
         [Fact]
@@ -1597,7 +1606,8 @@ static class DisposeExtension
 }
 ";
             // extension methods do not contribute to disposal
-            CompileAndVerify(source, expectedOutput: @"123");
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: @"123");
         }
 
         [Fact]
@@ -1633,7 +1643,8 @@ static class DisposeExtension
 }
 ";
             // extension methods do not contribute to disposal
-            CompileAndVerify(source, expectedOutput: @"123");
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: @"123");
         }
 
         [Fact]
@@ -1703,7 +1714,7 @@ class DisposableEnumerator
         }
 
         [Fact]
-        public void TestForEachPatternDisposableIgnoredForCSharp7_3()
+        public void TestForEachPatternDisposableReportedForCSharp7_3()
         {
             var source = @"
 class C
@@ -1729,10 +1740,19 @@ ref struct DisposableEnumerator
     public bool MoveNext() { return ++x < 4; }
     public void Dispose() { System.Console.WriteLine(""Done with DisposableEnumerator""); }
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular7_3, expectedOutput: @"
-1
-2
-3");
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (6,27): error CS8370: Feature 'pattern-based disposal' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         foreach (var x in new Enumerable1())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "new Enumerable1()").WithArguments("pattern-based disposal", "8.0").WithLocation(6, 27)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.Equal("void DisposableEnumerator.Dispose()", info.DisposeMethod.ToTestDisplayString());
         }
 
         [Fact]
@@ -4725,7 +4745,8 @@ ref struct Enumerator
     public bool MoveNext() => Current++ != 3;
     public void Dispose() { Console.Write(""Disposed""); }
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: @"123Disposed")
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, verify: Verification.FailsILVerify, expectedOutput: @"123Disposed")
                 .VerifyIL("C.Main", @"
 {
   // Code size       45 (0x2d)

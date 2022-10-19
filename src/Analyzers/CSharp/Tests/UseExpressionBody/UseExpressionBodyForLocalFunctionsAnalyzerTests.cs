@@ -4,11 +4,13 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
@@ -828,6 +830,71 @@ class C
     }
 }";
             await TestWithUseExpressionBody(code, fixedCode);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [WorkItem(57570, "https://github.com/dotnet/roslyn/issues/57570")]
+        public async Task TestUseExpressionBodyTopLevelStatment()
+        {
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication,
+                    Sources =
+                    {
+                        @"
+{|IDE0061:int Bar(int x)
+{
+    return x;
+}|}
+"
+                    },
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        @"
+int Bar(int x) => x;
+"
+                    },
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+                Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, ExpressionBodyPreference.WhenPossible } },
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [WorkItem(57570, "https://github.com/dotnet/roslyn/issues/57570")]
+        public async Task TestUseBlockBodyTopLevelStatment()
+        {
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication,
+                    Sources =
+                    {
+                        @"
+{|IDE0061:int Bar(int x) => x;|}
+"
+                    },
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        @"
+int Bar(int x)
+{
+    return x;
+}"
+                    },
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+                Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, ExpressionBodyPreference.Never } },
+            }.RunAsync();
         }
     }
 }

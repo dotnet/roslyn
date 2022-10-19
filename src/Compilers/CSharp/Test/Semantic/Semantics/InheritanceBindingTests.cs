@@ -1327,7 +1327,7 @@ class Derived : Base
             // Override same virtual / abstract member more than once in different parts of a (partial) derived type
 
             var text = @"
-using str = System.String;
+using @str = System.String;
 
 class Base
 {
@@ -1353,13 +1353,13 @@ partial class Derived2
             CreateCompilation(text).VerifyDiagnostics(
                 // (13,28): error CS0111: Type 'Derived' already defines a member called 'Method1' with the same parameter types
                 //     public override string Method1() { return null; }
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Method1").WithArguments("Method1", "Derived"),
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Method1").WithArguments("Method1", "Derived").WithLocation(13, 28),
                 // (22,28): error CS0111: Type 'Derived2' already defines a member called 'Method2' with the same parameter types
                 //     public override string Method2() { return null; }
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Method2").WithArguments("Method2", "Derived2"),
-                // (2,1): info CS8019: Unnecessary using directive.
-                // using str = System.String;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using str = System.String;"));
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Method2").WithArguments("Method2", "Derived2").WithLocation(22, 28),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using @str = System.String;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @str = System.String;").WithLocation(2, 1));
         }
 
         [Fact]
@@ -1716,7 +1716,7 @@ class Derived2 : Derived
         public void TestChangeMethodReturnType()
         {
             var text = @"
-using str = System.String;
+using @str = System.String;
 
 class Base
 {
@@ -1784,8 +1784,8 @@ class Derived : Base
             // Change default value of optional argument in overridden member
 
             var text = @"
-using str = System.String;
-using integer = System.Int32;
+using @str = System.String;
+using @integer = System.Int32;
 abstract class Base
 {
     public virtual string Method1(int i) { return string.Empty; }
@@ -1863,7 +1863,7 @@ abstract class Derived : Base
         public void TestChangePropertyType()
         {
             var text = @"
-using str = System.String;
+using @str = System.String;
 
 class Base
 {
@@ -1922,7 +1922,7 @@ class Derived : Base
         public void TestChangeIndexerType()
         {
             var text = @"
-using str = System.String;
+using @str = System.String;
 
 class Base
 {
@@ -2242,7 +2242,7 @@ abstract class Derived : Base
         public void TestChangeEventType()
         {
             var text = @"
-using str = System.String;
+using @str = System.String;
 
 class Base
 {
@@ -7386,7 +7386,7 @@ class Outer<T>
                 void Inner<U>.Interface<U, T>.Method<K>(T a, U[] b, List<U> c, Dictionary<K, T> D)
                 {
                 }
-                internal class Derived6<u> : Outer<List<T>>.Inner<U>.Interface<List<u>, T>
+                internal class Derived6<@u> : Outer<List<T>>.Inner<U>.Interface<List<u>, T>
                 {
                     List<T> Outer<List<T>>.Inner<U>.Interface<List<U>, T>.Property
                     {
@@ -7396,7 +7396,7 @@ class Outer<T>
                     {
                     }
                 }
-                internal class Derived7<u> : Outer<List<T>>.Inner<U>.Interface<List<U>, T>
+                internal class Derived7<@u> : Outer<List<T>>.Inner<U>.Interface<List<U>, T>
                 {
                     List<u> Outer<List<T>>.Inner<U>.Interface<List<U>, T>.Property
                     {

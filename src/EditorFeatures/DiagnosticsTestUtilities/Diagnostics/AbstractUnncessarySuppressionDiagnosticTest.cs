@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             return await GetDiagnosticAndFixesAsync(
                 diagnostics, CodeFixProvider, testDriver, document,
-                span, annotation, parameters.index);
+                span, CodeActionOptions.Default, annotation, parameters.index);
         }
     }
 }

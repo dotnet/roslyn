@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ReplaceDiscardDeclarationsWithAssignments;
@@ -32,9 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDiscardDeclarationsWithAssignment
         {
         }
 
-        public Task<SyntaxNode> ReplaceAsync(SyntaxNode memberDeclaration, SemanticModel semanticModel, Workspace workspace, CancellationToken cancellationToken)
+        public Task<SyntaxNode> ReplaceAsync(SyntaxNode memberDeclaration, SemanticModel semanticModel, HostWorkspaceServices services, CancellationToken cancellationToken)
         {
-            var editor = new SyntaxEditor(memberDeclaration, workspace);
+            var editor = new SyntaxEditor(memberDeclaration, services);
             foreach (var child in memberDeclaration.DescendantNodes())
             {
                 switch (child)

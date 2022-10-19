@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Peek;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -24,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
     {
         private readonly IPeekableItemFactory _peekableItemFactory;
         private readonly IPeekResultFactory _peekResultFactory;
+        private readonly IThreadingContext _threadingContext;
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
 
         [ImportingConstructor]
@@ -31,14 +30,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
         public PeekableItemSourceProvider(
             IPeekableItemFactory peekableItemFactory,
             IPeekResultFactory peekResultFactory,
+            IThreadingContext threadingContext,
             IUIThreadOperationExecutor uiThreadOperationExecutor)
         {
             _peekableItemFactory = peekableItemFactory;
             _peekResultFactory = peekResultFactory;
+            _threadingContext = threadingContext;
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
         }
 
         public IPeekableItemSource TryCreatePeekableItemSource(ITextBuffer textBuffer)
-            => textBuffer.Properties.GetOrCreateSingletonProperty(() => new PeekableItemSource(textBuffer, _peekableItemFactory, _peekResultFactory, _uiThreadOperationExecutor));
+            => textBuffer.Properties.GetOrCreateSingletonProperty(() =>
+                new PeekableItemSource(textBuffer, _peekableItemFactory, _peekResultFactory, _threadingContext, _uiThreadOperationExecutor));
     }
 }

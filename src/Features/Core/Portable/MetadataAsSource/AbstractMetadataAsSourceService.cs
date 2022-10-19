@@ -34,14 +34,19 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             var newSemanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var rootNamespace = newSemanticModel.GetEnclosingNamespace(0, cancellationToken);
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var context = new CodeGenerationContext(
+                contextLocation: newSemanticModel.SyntaxTree.GetLocation(new TextSpan()),
+                generateMethodBodies: false,
+                generateDocumentationComments: true,
+                mergeAttributes: false,
+                autoInsertionLocation: false);
 
             // Add the interface of the symbol to the top of the root namespace
             document = await CodeGenerator.AddNamespaceOrTypeDeclarationAsync(
                 document.Project.Solution,
                 rootNamespace,
                 CreateCodeGenerationSymbol(document, symbol),
-                CreateCodeGenerationOptions(newSemanticModel.SyntaxTree.GetLocation(new TextSpan()), options),
+                context,
                 cancellationToken).ConfigureAwait(false);
 
             document = await AddNullableRegionsAsync(document, cancellationToken).ConfigureAwait(false);
@@ -51,8 +56,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             var docWithAssemblyInfo = await AddAssemblyInfoRegionAsync(docWithDocComments, symbolCompilation, symbol.GetOriginalUnreducedDefinition(), cancellationToken).ConfigureAwait(false);
             var node = await docWithAssemblyInfo.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var options = await SyntaxFormattingOptions.FromDocumentAsync(docWithAssemblyInfo, cancellationToken).ConfigureAwait(false);
+
             var formattedDoc = await Formatter.FormatAsync(
-                docWithAssemblyInfo, SpecializedCollections.SingletonEnumerable(node.FullSpan), options: null, rules: GetFormattingRules(docWithAssemblyInfo), cancellationToken: cancellationToken).ConfigureAwait(false);
+                docWithAssemblyInfo,
+                SpecializedCollections.SingletonEnumerable(node.FullSpan),
+                options,
+                GetFormattingRules(docWithAssemblyInfo),
+                cancellationToken).ConfigureAwait(false);
 
             var reducers = GetReducers();
             return await Simplifier.ReduceAsync(formattedDoc, reducers, null, cancellationToken).ConfigureAwait(false);
@@ -100,17 +111,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     topLevelNamespaceSymbol.ToDisplayString(SymbolDisplayFormats.NameFormat),
                     null,
                     new[] { wrappedType });
-        }
-
-        private static CodeGenerationOptions CreateCodeGenerationOptions(Location contextLocation, OptionSet options)
-        {
-            return new CodeGenerationOptions(
-                contextLocation: contextLocation,
-                generateMethodBodies: false,
-                generateDocumentationComments: true,
-                mergeAttributes: false,
-                autoInsertionLocation: false,
-                options: options);
         }
     }
 }

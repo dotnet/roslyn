@@ -16,25 +16,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ProjectDiagnosticAnalyzer _ => DiagnosticAnalyzerCategory.ProjectAnalysis,
                 IBuiltInAnalyzer builtInAnalyzer => builtInAnalyzer.GetAnalyzerCategory(),
 
-                // It is not possible to know the categorization for a public analyzer, so return a worst-case categorization.
-                _ => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis
+                // Compiler analyzer supports syntax diagnostics, span-based semantic diagnostics and project level diagnostics.
+                // For a public analyzer it is not possible to know the diagnostic categorization, so return a worst-case categorization.
+                _ => analyzer.IsCompilerAnalyzer()
+                    ? DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticSpanAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis
+                    : DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis
             };
 
         public static bool SupportAnalysisKind(this DiagnosticAnalyzer analyzer, AnalysisKind kind)
-        {
-            // compiler diagnostic analyzer always supports all kinds:
-            if (analyzer.IsCompilerAnalyzer())
-            {
-                return true;
-            }
-
-            return kind switch
+            => kind switch
             {
                 AnalysisKind.Syntax => analyzer.SupportsSyntaxDiagnosticAnalysis(),
                 AnalysisKind.Semantic => analyzer.SupportsSemanticDiagnosticAnalysis(),
                 _ => throw ExceptionUtilities.UnexpectedValue(kind)
             };
-        }
 
         public static bool SupportsSyntaxDiagnosticAnalysis(this DiagnosticAnalyzer analyzer)
         {

@@ -136,8 +136,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         UpdateLocalDiagnostics_NoLock(analyzer, syntaxDiagnostics, fullAnalysisResultForAnalyzersInScope, getSourceTree, ref _localSyntaxDiagnosticsOpt);
                         UpdateLocalDiagnostics_NoLock(analyzer, syntaxDiagnostics, fullAnalysisResultForAnalyzersInScope, getAdditionalTextKey, ref _localAdditionalFileDiagnosticsOpt);
-                        UpdateLocalDiagnostics_NoLock(analyzer, semanticDiagnostics, fullAnalysisResultForAnalyzersInScope, getSourceTree, ref _localSemanticDiagnosticsOpt);
                         UpdateNonLocalDiagnostics_NoLock(analyzer, compilationDiagnostics, fullAnalysisResultForAnalyzersInScope);
+
+                        // NOTE: We need to dedupe compiler analyzer semantic diagnostics as we might run the compiler analyzer multiple times for different spans in the tree.
+                        UpdateLocalDiagnostics_NoLock(analyzer, semanticDiagnostics, fullAnalysisResultForAnalyzersInScope, getSourceTree, ref _localSemanticDiagnosticsOpt,
+                            dedupeDiagnostics: analyzer is CompilerDiagnosticAnalyzer);
                     }
 
                     if (_analyzerExecutionTimeOpt != null)
@@ -189,7 +192,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<Diagnostic> diagnostics,
             bool overwrite,
             Func<Diagnostic, TKey?> getKeyFunc,
-            ref Dictionary<TKey, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? lazyLocalDiagnostics)
+            ref Dictionary<TKey, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? lazyLocalDiagnostics,
+            bool dedupeDiagnostics = false)
             where TKey : class
         {
             if (diagnostics.IsEmpty)
@@ -221,12 +225,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     allDiagnostics[analyzer] = analyzerDiagnostics;
                 }
 
+                // De-dupe diagnostic to add, if needed.
+                IEnumerable<Diagnostic> diagsToAdd = diagsByKey;
                 if (overwrite)
                 {
                     analyzerDiagnostics.Clear();
                 }
+                else if (dedupeDiagnostics)
+                {
+                    diagsToAdd = diagsByKey.Where(d => !analyzerDiagnostics.Contains(d));
+                }
 
-                analyzerDiagnostics.AddRange(diagsByKey);
+                analyzerDiagnostics.AddRange(diagsToAdd);
             }
         }
 
@@ -352,7 +362,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal AnalysisResult ToAnalysisResult(ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        internal AnalysisResult ToAnalysisResult(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalysisScope analysisScope, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -362,12 +372,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> nonLocalDiagnostics;
 
             var analyzersSet = analyzers.ToImmutableHashSet();
+            Func<Diagnostic, bool> shouldInclude = analysisScope.ShouldInclude;
             lock (_gate)
             {
-                localSyntaxDiagnostics = GetImmutable(analyzersSet, _localSyntaxDiagnosticsOpt);
-                localSemanticDiagnostics = GetImmutable(analyzersSet, _localSemanticDiagnosticsOpt);
-                localAdditionalFileDiagnostics = GetImmutable(analyzersSet, _localAdditionalFileDiagnosticsOpt);
-                nonLocalDiagnostics = GetImmutable(analyzersSet, _nonLocalDiagnosticsOpt);
+                localSyntaxDiagnostics = GetImmutable(analyzersSet, shouldInclude, _localSyntaxDiagnosticsOpt);
+                localSemanticDiagnostics = GetImmutable(analyzersSet, shouldInclude, _localSemanticDiagnosticsOpt);
+                localAdditionalFileDiagnostics = GetImmutable(analyzersSet, shouldInclude, _localAdditionalFileDiagnosticsOpt);
+                nonLocalDiagnostics = GetImmutable(analyzersSet, shouldInclude, _nonLocalDiagnosticsOpt);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -377,6 +388,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static ImmutableDictionary<TKey, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> GetImmutable<TKey>(
             ImmutableHashSet<DiagnosticAnalyzer> analyzers,
+            Func<Diagnostic, bool> shouldInclude,
             Dictionary<TKey, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? localDiagnosticsOpt)
             where TKey : class
         {
@@ -395,7 +407,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     if (analyzers.Contains(diagnosticsByAnalyzer.Key))
                     {
-                        perTreeBuilder.Add(diagnosticsByAnalyzer.Key, diagnosticsByAnalyzer.Value.ToImmutable());
+                        var diagnostics = diagnosticsByAnalyzer.Value.Where(shouldInclude).ToImmutableArray();
+                        if (!diagnostics.IsEmpty)
+                        {
+                            perTreeBuilder.Add(diagnosticsByAnalyzer.Key, diagnostics);
+                        }
                     }
                 }
 
@@ -408,6 +424,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> GetImmutable(
             ImmutableHashSet<DiagnosticAnalyzer> analyzers,
+            Func<Diagnostic, bool> shouldInclude,
             Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>? nonLocalDiagnosticsOpt)
         {
             if (nonLocalDiagnosticsOpt == null)
@@ -420,7 +437,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (analyzers.Contains(diagnosticsByAnalyzer.Key))
                 {
-                    builder.Add(diagnosticsByAnalyzer.Key, diagnosticsByAnalyzer.Value.ToImmutable());
+                    var diagnostics = diagnosticsByAnalyzer.Value.Where(shouldInclude).ToImmutableArray();
+                    if (!diagnostics.IsEmpty)
+                    {
+                        builder.Add(diagnosticsByAnalyzer.Key, diagnostics);
+                    }
                 }
             }
 

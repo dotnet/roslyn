@@ -33,51 +33,48 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public readonly string? Message;
 
         [DataMember(Order = 3)]
-        public readonly string? ENUMessageForBingSearch;
-
-        [DataMember(Order = 4)]
         public readonly DiagnosticSeverity Severity;
 
-        [DataMember(Order = 5)]
+        [DataMember(Order = 4)]
         public readonly DiagnosticSeverity DefaultSeverity;
 
-        [DataMember(Order = 6)]
+        [DataMember(Order = 5)]
         public readonly bool IsEnabledByDefault;
 
-        [DataMember(Order = 7)]
+        [DataMember(Order = 6)]
         public readonly int WarningLevel;
 
-        [DataMember(Order = 8)]
+        [DataMember(Order = 7)]
         public readonly ImmutableArray<string> CustomTags;
 
-        [DataMember(Order = 9)]
+        [DataMember(Order = 8)]
         public readonly ImmutableDictionary<string, string?> Properties;
 
-        [DataMember(Order = 10)]
+        [DataMember(Order = 9)]
         public readonly ProjectId? ProjectId;
 
-        [DataMember(Order = 11)]
+        [DataMember(Order = 10)]
         public readonly DiagnosticDataLocation? DataLocation;
 
-        [DataMember(Order = 12)]
+        [DataMember(Order = 11)]
         public readonly ImmutableArray<DiagnosticDataLocation> AdditionalLocations;
 
         /// <summary>
         /// Language name (<see cref="LanguageNames"/>) or null if the diagnostic is not associated with source code.
         /// </summary>
-        [DataMember(Order = 13)]
+        [DataMember(Order = 12)]
         public readonly string? Language;
 
-        [DataMember(Order = 14)]
+        [DataMember(Order = 13)]
         public readonly string? Title;
 
-        [DataMember(Order = 15)]
+        [DataMember(Order = 14)]
         public readonly string? Description;
 
-        [DataMember(Order = 16)]
+        [DataMember(Order = 15)]
         public readonly string? HelpLink;
 
-        [DataMember(Order = 17)]
+        [DataMember(Order = 16)]
         public readonly bool IsSuppressed;
 
         /// <summary>
@@ -90,7 +87,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             string id,
             string category,
             string? message,
-            string? enuMessageForBingSearch,
             DiagnosticSeverity severity,
             DiagnosticSeverity defaultSeverity,
             bool isEnabledByDefault,
@@ -109,7 +105,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Id = id;
             Category = category;
             Message = message;
-            ENUMessageForBingSearch = enuMessageForBingSearch;
 
             Severity = severity;
             DefaultSeverity = defaultSeverity;
@@ -228,7 +223,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 id: Id,
                 category: Category,
                 message: Message,
-                enuMessageForBingSearch: ENUMessageForBingSearch,
                 severity: Severity,
                 defaultSeverity: DefaultSeverity,
                 isEnabledByDefault: IsEnabledByDefault,
@@ -361,17 +355,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 mappedLineInfo.GetMappedFilePathIfExist(), mappedStartLine, mappedStartColumn, mappedEndLine, mappedEndColumn);
         }
 
-        public static DiagnosticData Create(Diagnostic diagnostic, OptionSet options)
-        {
-            Debug.Assert(diagnostic.Location == null || !diagnostic.Location.IsInSource);
-            return Create(diagnostic, projectId: null, language: null, options, location: null, additionalLocations: default, additionalProperties: null);
-        }
-
-        public static DiagnosticData Create(Diagnostic diagnostic, Project project)
-        {
-            Debug.Assert(diagnostic.Location == null || !diagnostic.Location.IsInSource);
-            return Create(diagnostic, project.Id, project.Language, project.Solution.Options, location: null, additionalLocations: default, additionalProperties: null);
-        }
+        public static DiagnosticData Create(Diagnostic diagnostic, Project? project)
+            => Create(diagnostic, project?.Id, project?.Language, location: null, additionalLocations: default, additionalProperties: null);
 
         public static DiagnosticData Create(Diagnostic diagnostic, TextDocument document)
         {
@@ -397,7 +382,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return Create(diagnostic,
                 project.Id,
                 project.Language,
-                project.Solution.Options,
                 location,
                 additionalLocations,
                 additionalProperties);
@@ -407,7 +391,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Diagnostic diagnostic,
             ProjectId? projectId,
             string? language,
-            OptionSet options,
             DiagnosticDataLocation? location,
             ImmutableArray<DiagnosticDataLocation> additionalLocations,
             ImmutableDictionary<string, string?>? additionalProperties)
@@ -416,7 +399,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 diagnostic.Id,
                 diagnostic.Descriptor.Category,
                 diagnostic.GetMessage(CultureInfo.CurrentUICulture),
-                diagnostic.GetBingHelpMessage(options),
                 diagnostic.Severity,
                 diagnostic.DefaultSeverity,
                 diagnostic.Descriptor.IsEnabledByDefault,
@@ -536,11 +518,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Returns true if the diagnostic was generated by an explicit build, not live analysis.
         /// </summary>
-        /// <returns></returns>
         internal bool IsBuildDiagnostic()
         {
             return Properties.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, out var value) &&
                 value == WellKnownDiagnosticTags.Build;
         }
+
+        // TODO: the value stored in HelpLink should already be valid URI (https://github.com/dotnet/roslyn/issues/59205)
+        internal Uri? GetValidHelpLinkUri()
+            => Uri.TryCreate(HelpLink, UriKind.Absolute, out var uri) ? uri : null;
     }
 }

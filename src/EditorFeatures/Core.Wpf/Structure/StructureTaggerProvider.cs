@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -35,8 +36,9 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
             IEditorOptionsFactoryService editorOptionsFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             ITextEditorFactoryService textEditorFactoryService,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, editorOptionsFactoryService, projectionBufferFactoryService, listenerProvider)
+            : base(threadingContext, editorOptionsFactoryService, projectionBufferFactoryService, globalOptions, listenerProvider)
         {
             _textEditorFactoryService = textEditorFactoryService;
         }

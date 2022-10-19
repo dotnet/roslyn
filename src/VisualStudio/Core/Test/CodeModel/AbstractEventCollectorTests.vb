@@ -75,7 +75,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                    End Sub
         End Function
 
-        Private Sub CheckCodeModelEvents(codeModelEvent As CodeModelEvent, codeModelService As ICodeModelService, node As String, parent As String)
+        Private Shared Sub CheckCodeModelEvents(codeModelEvent As CodeModelEvent, codeModelService As ICodeModelService, node As String, parent As String)
             If node IsNot Nothing Then
                 Assert.NotNull(codeModelEvent.Node)
                 Assert.Equal(node, codeModelService.GetName(codeModelEvent.Node))

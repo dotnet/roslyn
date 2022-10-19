@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.SyncNamespaces
@@ -39,7 +40,7 @@ namespace Test.Namespace.App
                 Dim document = project.Documents.Single()
 
                 Dim syncService = project.GetLanguageService(Of ISyncNamespacesService)()
-                Dim newSolution = Await syncService.SyncNamespacesAsync(ImmutableArray.Create(project), CancellationToken.None)
+                Dim newSolution = Await syncService.SyncNamespacesAsync(ImmutableArray.Create(project), CodeActionOptions.Default, CancellationToken.None)
 
                 Dim solutionChanges = workspace.CurrentSolution.GetChanges(newSolution)
 
@@ -75,7 +76,7 @@ namespace Test
                 Dim document = project.Documents.Single()
 
                 Dim syncService = project.GetLanguageService(Of ISyncNamespacesService)()
-                Dim newSolution = Await syncService.SyncNamespacesAsync(projects, CancellationToken.None)
+                Dim newSolution = Await syncService.SyncNamespacesAsync(projects, CodeActionOptions.Default, CancellationToken.None)
 
                 Dim solutionChanges = workspace.CurrentSolution.GetChanges(newSolution)
                 Dim projectChanges = solutionChanges.GetProjectChanges().Single()
@@ -132,7 +133,7 @@ namespace Test2.Namespace.App
                 Dim project = projects(0)
 
                 Dim syncService = project.GetLanguageService(Of ISyncNamespacesService)()
-                Dim newSolution = Await syncService.SyncNamespacesAsync(projects, CancellationToken.None)
+                Dim newSolution = Await syncService.SyncNamespacesAsync(projects, CodeActionOptions.Default, CancellationToken.None)
 
                 Dim solutionChanges = workspace.CurrentSolution.GetChanges(newSolution)
 
@@ -186,7 +187,7 @@ namespace Test2.Namespace.App
                 Dim document = project.Documents.Single()
 
                 Dim syncService = project.GetLanguageService(Of ISyncNamespacesService)()
-                Dim newSolution = Await syncService.SyncNamespacesAsync(projects, CancellationToken.None)
+                Dim newSolution = Await syncService.SyncNamespacesAsync(projects, CodeActionOptions.Default, CancellationToken.None)
 
                 Dim solutionChanges = workspace.CurrentSolution.GetChanges(newSolution)
                 Dim projectChanges = solutionChanges.GetProjectChanges().Single()
@@ -251,7 +252,7 @@ namespace Test2.Namespace
                 Dim document2 = project2.Documents.Single()
 
                 Dim syncService = project.GetLanguageService(Of ISyncNamespacesService)()
-                Dim newSolution = Await syncService.SyncNamespacesAsync(projects, CancellationToken.None)
+                Dim newSolution = Await syncService.SyncNamespacesAsync(projects, CodeActionOptions.Default, CancellationToken.None)
 
                 Dim solutionChanges = workspace.CurrentSolution.GetChanges(newSolution)
                 Dim projectChanges = solutionChanges.GetProjectChanges().ToImmutableArray()

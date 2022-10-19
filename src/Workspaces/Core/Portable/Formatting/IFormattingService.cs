@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// </summary>
         /// <param name="document">The document to format.</param>
         /// <param name="spans">The spans of the document's text to format. If null, the entire document should be formatted.</param>
-        /// <param name="options">An optional set of formatting options. If these options are not supplied the current set of options from the document's workspace will be used.</param>
-        /// <param name="cancellationToken">An optional cancellation token.</param>
+        /// <param name="options">Set of formatting options.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The formatted document.</returns>
-        Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, OptionSet? options, CancellationToken cancellationToken);
+        Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, OptionSet options, CancellationToken cancellationToken);
     }
 }

@@ -2,19 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
-using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.LanguageServices;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -31,18 +28,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             var projectId = ProjectId.CreateNewId();
 
             var project = workspace.CurrentSolution
-                .AddProject(projectId, languageName, $"{languageName}.dll", languageName).GetProject(projectId);
+                .AddProject(projectId, languageName, $"{languageName}.dll", languageName).GetRequiredProject(projectId);
 
             var normalizedSyntax = syntaxNode.NormalizeWhitespace().ToFullString();
             var document = project.AddMetadataReference(TestMetadata.Net451.mscorlib)
                 .AddDocument("Fake Document", SourceText.From(normalizedSyntax));
 
+            var root = document.GetRequiredSyntaxRootAsync(default).AsTask().Result;
             var annotatedDocument = document.WithSyntaxRoot(
-                    document.GetSyntaxRootAsync().Result.WithAdditionalAnnotations(Simplification.Simplifier.Annotation));
+                    root.WithAdditionalAnnotations(Simplifier.Annotation));
 
-            var simplifiedDocument = Simplification.Simplifier.ReduceAsync(annotatedDocument).Result;
+            var simplifiedDocument = Simplifier.ReduceAsync(annotatedDocument).Result;
 
-            var rootNode = simplifiedDocument.GetSyntaxRootAsync().Result;
+            var rootNode = simplifiedDocument.GetRequiredSyntaxRootAsync(default).AsTask().Result;
 
             return rootNode;
         }
@@ -78,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 
             if (cs != null || csSimple != null)
             {
-                var codeDefFactory = workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<SyntaxGenerator>();
+                var codeDefFactory = workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<SyntaxGenerator>();
 
                 var node = nodeCreator(codeDefFactory);
                 node = node.NormalizeWhitespace();
@@ -99,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 
             if (vb != null || vbSimple != null)
             {
-                var codeDefFactory = workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService<SyntaxGenerator>();
+                var codeDefFactory = workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetRequiredService<SyntaxGenerator>();
 
                 var node = nodeCreator(codeDefFactory);
                 node = node.NormalizeWhitespace();

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Host
                 ? throw new InvalidOperationException("Database was not supported")
                 : Instance;
 
-        public ValueTask<IChecksummedPersistentStorage> GetStorageAsync(SolutionKey solutionKey, bool checkBranchId, CancellationToken cancellationToken)
+        public ValueTask<IChecksummedPersistentStorage> GetStorageAsync(SolutionKey solutionKey, CancellationToken cancellationToken)
             => new(NoOpPersistentStorage.GetOrThrow(throwOnFailure: false));
     }
 }

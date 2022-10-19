@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             CancellationToken cancellationToken)
         {
             var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
-            var syntaxEditor = new SyntaxEditor(root, document.Project.Solution.Workspace);
+            var syntaxEditor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
             await MakeLocalFunctionStaticAsync(document, localFunction, captures, syntaxEditor, cancellationToken).ConfigureAwait(false);
             return document.WithSyntaxRoot(syntaxEditor.GetChangedRoot());
         }
@@ -138,15 +138,19 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 }
             }
 
+            var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
+            var options = await CodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, document, cancellationToken).ConfigureAwait(false);
+
             // Updates the local function declaration with variables passed in as parameters
             syntaxEditor.ReplaceNode(
                 localFunction,
                 (node, generator) =>
                 {
-                    var localFunctionWithNewParameters = CodeGenerator.AddParameterDeclarations(
+                    var localFunctionWithNewParameters = codeGenerator.AddParameters(
                         node,
                         parameterAndCapturedSymbols.SelectAsArray(p => p.symbol),
-                        document.Project.Solution.Workspace);
+                        options,
+                        cancellationToken);
 
                     if (shouldWarn)
                     {

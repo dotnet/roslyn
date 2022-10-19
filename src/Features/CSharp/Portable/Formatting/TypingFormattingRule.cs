@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private static bool TryAddSuppressionOnMissingCloseBraceCase(List<SuppressOperation> list, SyntaxNode node)
         {
             var bracePair = node.GetBracePair();
-            if (!bracePair.IsValidBracePair())
+            if (!bracePair.IsValidBracketOrBracePair())
             {
                 return false;
             }

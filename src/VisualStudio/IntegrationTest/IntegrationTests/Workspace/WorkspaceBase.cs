@@ -92,7 +92,6 @@ End Class");
     End Sub
 End Module");
             VisualStudio.Editor.PlaceCaret("(x)", charsOffset: -1);
-            VisualStudio.Workspace.SetQuickInfo(true);
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.Workspace.SetOptionInfer(project.Name, true);
             VisualStudio.Editor.InvokeQuickInfo();

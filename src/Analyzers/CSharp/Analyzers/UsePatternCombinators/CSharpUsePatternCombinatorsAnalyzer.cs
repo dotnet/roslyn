@@ -59,8 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 case IUnaryOperation { OperatorKind: UnaryOperatorKind.Not } op:
                     return Not.TryCreate(ParsePattern(op.Operand));
 
-                case IIsTypeOperation { Syntax: BinaryExpressionSyntax { Right: TypeSyntax type } } op:
-                    return new Type(type, op.ValueOperand);
+                case IIsTypeOperation { Syntax: BinaryExpressionSyntax binaryExpression } op:
+                    return Type.TryCreate(binaryExpression, op);
 
                 case IIsPatternOperation { Pattern: { Syntax: PatternSyntax pattern } } op:
                     return new Source(pattern, op.Value);

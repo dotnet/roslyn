@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     map["Capabilities"] = (int)editSessionData.Capabilities;
 
                     // Ids of all projects whose binaries were successfully updated during the session.
-                    map["ProjectsWithAppliedChanges"] = editSessionData.Committed ? string.Join(",", editSessionData.ProjectsWithValidDelta.Select(id => id.ToString("B").ToUpperInvariant())) : "";
+                    map["ProjectIdsWithAppliedChanges"] = editSessionData.Committed ? editSessionData.ProjectsWithValidDelta.Select(id => new PiiValue(id.ToString("B").ToUpperInvariant())) : "";
                 }));
 
                 foreach (var errorId in editSessionData.EmitErrorIds)

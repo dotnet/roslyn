@@ -6,7 +6,6 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.FindUsage
 {
     [Shared]
     [ExportLanguageService(typeof(IFindUsagesService), LanguageNames.FSharp)]
-    internal class FSharpFindUsagesService : IFindUsagesService
+    internal sealed class FSharpFindUsagesService : IFindUsagesService
     {
         private readonly IFSharpFindUsagesService _service;
 
@@ -24,10 +23,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.FindUsage
         public FSharpFindUsagesService(IFSharpFindUsagesService service)
             => _service = service;
 
-        public Task FindImplementationsAsync(Document document, int position, IFindUsagesContext context, CancellationToken cancellationToken)
+        public Task FindImplementationsAsync(IFindUsagesContext context, Document document, int position, CancellationToken cancellationToken)
             => _service.FindImplementationsAsync(document, position, new FSharpFindUsagesContext(context, cancellationToken));
 
-        public Task FindReferencesAsync(Document document, int position, IFindUsagesContext context, CancellationToken cancellationToken)
+        public Task FindReferencesAsync(IFindUsagesContext context, Document document, int position, CancellationToken cancellationToken)
             => _service.FindReferencesAsync(document, position, new FSharpFindUsagesContext(context, cancellationToken));
     }
 }

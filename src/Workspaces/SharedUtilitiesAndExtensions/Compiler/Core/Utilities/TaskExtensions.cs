@@ -356,5 +356,31 @@ namespace Roslyn.Utilities
 
             return task;
         }
+
+        public static Task ReportNonFatalErrorUnlessCancelledAsync(this Task task, CancellationToken cancellationToken)
+        {
+            task.ContinueWith(p => FatalError.ReportAndCatchUnlessCanceled(p.Exception!, cancellationToken),
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
+
+            return task;
+        }
+
+        /// <summary>
+        /// Asserts the <see cref="Task"/> passed has already been completed.
+        /// </summary>
+        /// <remarks>
+        /// This is useful for a specific case: sometimes you might be calling an API that is "sometimes" async, and you're
+        /// calling it from a synchronous method where you know it should have completed synchronously. This is an easy
+        /// way to assert that while silencing any compiler complaints.
+        /// </remarks>
+        public static void VerifyCompleted(this Task task)
+        {
+            Contract.ThrowIfFalse(task.IsCompleted);
+
+            // Propagate any exceptions that may have been thrown.
+            task.GetAwaiter().GetResult();
+        }
     }
 }

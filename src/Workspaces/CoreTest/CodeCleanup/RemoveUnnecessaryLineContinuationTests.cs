@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 
             var expected = @"
 
- _
+                       _
         ' test
         Console.WriteLine("")";
 
@@ -398,9 +398,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 
             var expected = @"
         Console.WriteLine() _
- _
+                            _
         ' test
- _
+        _
         Console.WriteLine()";
 
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 
             var expected = @"
         Dim i = _
- _
+                _
                 1 +
                 2";
 
@@ -811,7 +811,7 @@ End Module|]";
 
             var expected = @"Module Program
     Sub Main(
- _
+             _
         args _
         As String)
     End Sub

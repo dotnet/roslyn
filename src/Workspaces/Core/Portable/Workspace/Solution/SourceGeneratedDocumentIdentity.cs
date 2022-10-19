@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
 
         public static string GetGeneratorAssemblyName(ISourceGenerator generator)
         {
-            return generator.GetType().Assembly.FullName!;
+            return generator.GetGeneratorType().Assembly.FullName!;
         }
 
         public static SourceGeneratedDocumentIdentity Generate(ProjectId projectId, string hintName, ISourceGenerator generator, string filePath)

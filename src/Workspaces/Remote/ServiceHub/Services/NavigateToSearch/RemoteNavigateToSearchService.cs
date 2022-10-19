@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public ValueTask SearchFullyLoadedDocumentAsync(
+        public ValueTask SearchDocumentAsync(
             PinnedSolutionInfo solutionInfo,
             DocumentId documentId,
             string searchPattern,
@@ -63,12 +63,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 var document = solution.GetRequiredDocument(documentId);
                 var callback = GetCallback(callbackId, cancellationToken);
 
-                await AbstractNavigateToSearchService.SearchFullyLoadedDocumentInCurrentProcessAsync(
+                await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
                     document, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
-        public ValueTask SearchFullyLoadedProjectAsync(
+        public ValueTask SearchProjectAsync(
             PinnedSolutionInfo solutionInfo,
             ProjectId projectId,
             ImmutableArray<DocumentId> priorityDocumentIds,
@@ -85,8 +85,27 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var priorityDocuments = priorityDocumentIds.SelectAsArray(d => solution.GetRequiredDocument(d));
 
-                await AbstractNavigateToSearchService.SearchFullyLoadedProjectInCurrentProcessAsync(
+                await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
                     project, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
+        }
+
+        public ValueTask SearchGeneratedDocumentsAsync(
+            PinnedSolutionInfo solutionInfo,
+            ProjectId projectId,
+            string searchPattern,
+            ImmutableArray<string> kinds,
+            RemoteServiceCallbackId callbackId,
+            CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(async cancellationToken =>
+            {
+                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                var project = solution.GetRequiredProject(projectId);
+                var callback = GetCallback(callbackId, cancellationToken);
+
+                await AbstractNavigateToSearchService.SearchGeneratedDocumentsInCurrentProcessAsync(
+                    project, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
@@ -98,15 +117,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 // synchronizing the solution over to the remote side.  Instead, we just directly
                 // check whatever cached data we have from the previous vs session.
                 var callback = GetCallback(callbackId, cancellationToken);
-                var workspace = GetWorkspace();
-
-                // We translated a call from the host over to the OOP side.  We need to look up
-                // the data in OOP's storage system, not the host's storage system.
-                documentKeys = documentKeys.SelectAsArray(d => d.WithWorkspaceKind(workspace.Kind!));
-                priorityDocumentKeys = priorityDocumentKeys.SelectAsArray(d => d.WithWorkspaceKind(workspace.Kind!));
-
+                var storageService = GetWorkspaceServices().GetPersistentStorageService(database);
                 await AbstractNavigateToSearchService.SearchCachedDocumentsInCurrentProcessAsync(
-                    workspace.Services, documentKeys, priorityDocumentKeys, database, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
+                    storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
     }

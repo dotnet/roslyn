@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -25,20 +26,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             _info = info;
         }
 
-        public static void AddAll(bool isNullableEnabled, bool isGeneratedCode, TypeWithAnnotations type, Location location, DiagnosticBag diagnostics)
+#nullable enable
+        /// <summary>
+        /// A `?` annotation on a type that isn't a value type causes:
+        /// - an error before C# 8.0
+        /// - a warning outside of a NonNullTypes context
+        /// </summary>
+        public static void AddAll(Binder binder, SyntaxToken questionToken, TypeWithAnnotations? type, DiagnosticBag diagnostics)
         {
+            var location = questionToken.GetLocation();
+
             var rawInfos = ArrayBuilder<DiagnosticInfo>.GetInstance();
-            GetRawDiagnosticInfos(isNullableEnabled, isGeneratedCode, (CSharpSyntaxTree)location.SourceTree, rawInfos);
+            GetRawDiagnosticInfos(binder, questionToken, rawInfos);
             foreach (var rawInfo in rawInfos)
             {
-                diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(type, rawInfo), location);
+                var info = (type.HasValue) ? new LazyMissingNonNullTypesContextDiagnosticInfo(type.Value, rawInfo) : rawInfo;
+                diagnostics.Add(info, location);
             }
+
             rawInfos.Free();
         }
 
-#nullable enable
-        private static void GetRawDiagnosticInfos(bool isNullableEnabled, bool isGeneratedCode, CSharpSyntaxTree tree, ArrayBuilder<DiagnosticInfo> infos)
+        private static void GetRawDiagnosticInfos(Binder binder, SyntaxToken questionToken, ArrayBuilder<DiagnosticInfo> infos)
         {
+            Debug.Assert(questionToken.SyntaxTree != null);
+            var tree = (CSharpSyntaxTree)questionToken.SyntaxTree;
+
             const MessageID featureId = MessageID.IDS_FeatureNullableReferenceTypes;
             var info = featureId.GetFeatureAvailabilityDiagnosticInfo(tree.Options);
             if (info is object)
@@ -46,9 +59,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 infos.Add(info);
             }
 
-            if (!isNullableEnabled && info?.Severity != DiagnosticSeverity.Error)
+            if (info?.Severity != DiagnosticSeverity.Error && !binder.AreNullableAnnotationsEnabled(questionToken))
             {
-                var code = isGeneratedCode
+                var code = tree.IsGeneratedCode(binder.Compilation.Options.SyntaxTreeOptionsProvider, CancellationToken.None)
                     ? ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode
                     : ErrorCode.WRN_MissingNonNullTypesContextForAnnotation;
                 infos.Add(new CSDiagnosticInfo(code));
@@ -56,43 +69,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #nullable disable
 
-        private static bool IsNullableReference(TypeSymbol type)
+        internal static bool IsNullableReference(TypeSymbol type)
             => type is null || !(type.IsValueType || type.IsErrorType());
 
         protected override DiagnosticInfo ResolveInfo() => IsNullableReference(_type.Type) ? _info : null;
-
-        /// <summary>
-        /// A `?` annotation on a type that isn't a value type causes:
-        /// - an error before C# 8.0
-        /// - a warning outside of a NonNullTypes context
-        /// </summary>
-        public static void ReportNullableReferenceTypesIfNeeded(
-            bool isNullableEnabled,
-            bool isGeneratedCode,
-            TypeWithAnnotations type,
-            Location location,
-            DiagnosticBag diagnostics)
-        {
-            if (IsNullableReference(type.Type))
-            {
-                ReportNullableReferenceTypesIfNeeded(isNullableEnabled, isGeneratedCode, location, diagnostics);
-            }
-        }
-
-        public static void ReportNullableReferenceTypesIfNeeded(
-            bool isNullableEnabled,
-            bool isGeneratedCode,
-            Location location,
-            DiagnosticBag diagnostics)
-        {
-            var rawInfos = ArrayBuilder<DiagnosticInfo>.GetInstance();
-            GetRawDiagnosticInfos(isNullableEnabled, isGeneratedCode, (CSharpSyntaxTree)location.SourceTree, rawInfos);
-            foreach (var rawInfo in rawInfos)
-            {
-                diagnostics.Add(rawInfo, location);
-            }
-            rawInfos.Free();
-        }
     }
 }
 

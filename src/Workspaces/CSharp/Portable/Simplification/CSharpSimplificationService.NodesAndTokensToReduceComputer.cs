@@ -21,9 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             private readonly List<NodeOrTokenToReduce> _nodesAndTokensToReduce;
             private readonly Func<SyntaxNodeOrToken, bool> _isNodeOrTokenOutsideSimplifySpans;
 
-            private static readonly Func<SyntaxNode, bool> s_containsAnnotations = n => n.ContainsAnnotations;
-            private static readonly Func<SyntaxNodeOrToken, bool> s_hasSimplifierAnnotation = n => n.HasAnnotation(Simplifier.Annotation);
-
             private bool _simplifyAllDescendants;
             private bool _insideSpeculatedNode;
 
@@ -110,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                 if (_simplifyAllDescendants && !_insideSpeculatedNode && !token.IsKind(SyntaxKind.None))
                 {
-                    _nodesAndTokensToReduce.Add(new NodeOrTokenToReduce(token, simplifyAllDescendants: true, originalNodeOrToken: token));
+                    _nodesAndTokensToReduce.Add(new NodeOrTokenToReduce(token, SimplifyAllDescendants: true, token));
                 }
 
                 if (token.ContainsAnnotations || savedSimplifyAllDescendants)

@@ -27,20 +27,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return UpdateAsync(cancellationToken);
         }
 
-        public ValueTask ItemCompletedAsync(CancellationToken cancellationToken)
+        public ValueTask ItemsCompletedAsync(int count, CancellationToken cancellationToken)
         {
-            Interlocked.Increment(ref _completedItems);
+            Interlocked.Add(ref _completedItems, count);
             return UpdateAsync(cancellationToken);
         }
 
         private ValueTask UpdateAsync(CancellationToken cancellationToken)
-        {
-            if (_updateAction == null)
-            {
-                return default;
-            }
-
-            return _updateAction(_completedItems, _totalItems, cancellationToken);
-        }
+            => _updateAction?.Invoke(Volatile.Read(ref _completedItems), Volatile.Read(ref _totalItems), cancellationToken) ?? default;
     }
 }

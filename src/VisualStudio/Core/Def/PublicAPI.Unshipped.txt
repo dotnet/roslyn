@@ -1,1 +1,1 @@
-abstract Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace.TryGoToDefinitionAsync(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Project project, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<bool>
+

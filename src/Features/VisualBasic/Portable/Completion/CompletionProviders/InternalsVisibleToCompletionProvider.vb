@@ -23,6 +23,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Public Sub New()
         End Sub
 
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
+
         Protected Overrides Function GetAssemblyScopedAttributeSyntaxNodesOfDocument(documentRoot As SyntaxNode) As IImmutableList(Of SyntaxNode)
             Dim builder As ImmutableList(Of SyntaxNode).Builder = Nothing
             Dim compilationUnit = TryCast(documentRoot, CompilationUnitSyntax)

@@ -48,12 +48,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 {
                     case MethodGenerationKind.Member:
                         var text = generateProperty ?
-                            isAbstract ? FeaturesResources.Generate_abstract_property_1_0 : FeaturesResources.Generate_property_1_0 :
-                            isAbstract ? FeaturesResources.Generate_abstract_method_1_0 : FeaturesResources.Generate_method_1_0;
+                            isAbstract ? FeaturesResources.Generate_abstract_property_0 : FeaturesResources.Generate_property_0 :
+                            isAbstract ? FeaturesResources.Generate_abstract_method_0 : FeaturesResources.Generate_method_0;
 
                         var name = state.IdentifierToken.ValueText;
-                        var destination = state.TypeToGenerateIn.Name;
-                        return string.Format(text, name, destination);
+                        return string.Format(text, name);
                     case MethodGenerationKind.ImplicitConversion:
                         return _service.GetImplicitConversionDisplayText(_state);
                     case MethodGenerationKind.ExplicitConversion:
@@ -65,7 +64,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var syntaxTree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var syntaxFactory = _document.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language).GetService<SyntaxGenerator>();
 
                 if (_generateProperty)
@@ -76,7 +74,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                         _document.Project.Solution,
                         _state.TypeToGenerateIn,
                         property,
-                        new CodeGenerationOptions(
+                        new CodeGenerationContext(
                             afterThisLocation: _state.IdentifierToken.GetLocation(),
                             generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface),
                         cancellationToken)
@@ -92,10 +90,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                         _document.Project.Solution,
                         _state.TypeToGenerateIn,
                         method,
-                        new CodeGenerationOptions(
+                        new CodeGenerationContext(
                             afterThisLocation: _state.Location,
-                            generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface,
-                            parseOptions: syntaxTree.Options),
+                            generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface),
                         cancellationToken)
                         .ConfigureAwait(false);
 

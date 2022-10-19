@@ -2264,6 +2264,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        public override DataFlowAnalysis AnalyzeDataFlow(ConstructorInitializerSyntax constructorInitializer)
+        {
+            if (constructorInitializer == null)
+            {
+                throw new ArgumentNullException(nameof(constructorInitializer));
+            }
+
+            if (!IsInTree(constructorInitializer))
+            {
+                throw new ArgumentException("node not within tree");
+            }
+
+            var context = RegionAnalysisContext(constructorInitializer);
+            var result = new CSharpDataFlowAnalysis(context);
+            return result;
+        }
+
+        public override DataFlowAnalysis AnalyzeDataFlow(PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType)
+        {
+            if (primaryConstructorBaseType == null)
+            {
+                throw new ArgumentNullException(nameof(primaryConstructorBaseType));
+            }
+
+            if (!IsInTree(primaryConstructorBaseType))
+            {
+                throw new ArgumentException("node not within tree");
+            }
+
+            var context = RegionAnalysisContext(primaryConstructorBaseType);
+            var result = new CSharpDataFlowAnalysis(context);
+            return result;
+        }
+
         public override DataFlowAnalysis AnalyzeDataFlow(StatementSyntax firstStatement, StatementSyntax lastStatement)
         {
             ValidateStatementRange(firstStatement, lastStatement);
@@ -2493,6 +2527,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+        }
+
+        internal override bool ShouldSkipSyntaxNodeAnalysis(SyntaxNode node, ISymbol containingSymbol)
+        {
+            if (containingSymbol.Kind is SymbolKind.Method)
+            {
+                switch (node)
+                {
+                    case RecordDeclarationSyntax:
+                        // Skip the topmost record declaration syntax node when analyzing synthesized record declaration constructor
+                        // to avoid duplicate syntax node callbacks.
+                        // We will analyze this node when analyzing the record declaration type symbol.
+                        return true;
+
+                    case CompilationUnitSyntax:
+                        // Skip compilation unit syntax node when analyzing synthesized top level entry point method
+                        // to avoid duplicate syntax node callbacks.
+                        // We will analyze this node when analyzing the global namespace symbol.
+                        return true;
+                }
+            }
+
+            return false;
         }
     }
 }

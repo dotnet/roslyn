@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SyncNamespaces
@@ -28,8 +30,12 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
         /// <inheritdoc/>
         public async Task<Solution> SyncNamespacesAsync(
             ImmutableArray<Project> projects,
+            CodeActionOptions options,
             CancellationToken cancellationToken)
         {
+            // all projects must be of the same language
+            Debug.Assert(projects.All(project => project.Language == projects[0].Language));
+
             var solution = projects[0].Solution;
             var diagnosticAnalyzers = ImmutableArray.Create<DiagnosticAnalyzer>(DiagnosticAnalyzer);
             var diagnosticsByProject = await GetDiagnosticsByProjectAsync(projects, diagnosticAnalyzers, cancellationToken).ConfigureAwait(false);
@@ -40,7 +46,7 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
                 return solution;
             }
 
-            var fixAllContext = await GetFixAllContextAsync(solution, CodeFixProvider, diagnosticsByProject, cancellationToken).ConfigureAwait(false);
+            var fixAllContext = await GetFixAllContextAsync(solution, CodeFixProvider, diagnosticsByProject, options, cancellationToken).ConfigureAwait(false);
             var fixAllProvider = CodeFixProvider.GetFixAllProvider();
             RoslynDebug.AssertNotNull(fixAllProvider);
 
@@ -86,6 +92,7 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
             Solution solution,
             CodeFixProvider codeFixProvider,
             ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsByProject,
+            CodeActionOptions options,
             CancellationToken cancellationToken)
         {
             var diagnosticProvider = new DiagnosticProvider(diagnosticsByProject);
@@ -101,19 +108,26 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
             CodeAction? action = null;
             var context = new CodeFixContext(
                 document,
-                firstDiagnostic,
+                firstDiagnostic.Location.SourceSpan,
+                ImmutableArray.Create(firstDiagnostic),
                 (a, _) => action ??= a,
+                options,
                 cancellationToken);
             await codeFixProvider.RegisterCodeFixesAsync(context).ConfigureAwait(false);
 
             return new FixAllContext(
-                document: document,
-                codeFixProvider: codeFixProvider,
-                scope: FixAllScope.Solution,
-                codeActionEquivalenceKey: action?.EquivalenceKey!, // FixAllState supports null equivalence key. This should still be supported.
-                diagnosticIds: codeFixProvider.FixableDiagnosticIds,
-                fixAllDiagnosticProvider: diagnosticProvider,
-                cancellationToken: cancellationToken);
+                new FixAllState(
+                    fixAllProvider: null,
+                    document,
+                    document.Project,
+                    codeFixProvider,
+                    FixAllScope.Solution,
+                    codeActionEquivalenceKey: action?.EquivalenceKey!, // FixAllState supports null equivalence key. This should still be supported.
+                    diagnosticIds: codeFixProvider.FixableDiagnosticIds,
+                    fixAllDiagnosticProvider: diagnosticProvider,
+                    _ => options),
+                new ProgressTracker(),
+                cancellationToken);
         }
 
         private static async Task<Solution> ApplyCodeFixAsync(

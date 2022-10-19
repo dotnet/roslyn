@@ -37,7 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        internal override string Language => LanguageNames.CSharp;
+
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
@@ -48,7 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 var document = context.Document;
                 var position = context.Position;
-                var options = context.Options;
                 var cancellationToken = context.CancellationToken;
 
                 using (Logger.LogBlock(FunctionId.Completion_SnippetCompletionProvider_GetItemsWorker_CSharp, cancellationToken))
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         d => GetSnippetsForDocumentAsync(d, position, cancellationToken)).ConfigureAwait(false));
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
             {
                 // nop
             }
@@ -80,12 +81,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
 
-            var leftToken = syntaxTree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(position, includeDirectives: true);
+            var root = syntaxTree.GetRoot(cancellationToken);
+            var leftToken = root.FindTokenOnLeftOfPosition(position, includeDirectives: true);
             var targetToken = leftToken.GetPreviousTokenIfTouchingWord(position);
 
             if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken) ||
                 syntaxTree.IsRightOfDotOrArrowOrColonColon(position, targetToken, cancellationToken) ||
-                syntaxFacts.GetContainingTypeDeclaration(await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false), position) is EnumDeclarationSyntax)
+                syntaxFacts.GetContainingTypeDeclaration(root, position) is EnumDeclarationSyntax)
             {
                 return ImmutableArray<CompletionItem>.Empty;
             }
@@ -113,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
                     return GetSnippetCompletionItems(
                         document.Project.Solution.Workspace, semanticModel, isPreProcessorContext: true,
-                        isTupleContext: isPossibleTupleContext, cancellationToken: cancellationToken);
+                        isTupleContext: isPossibleTupleContext);
                 }
             }
             else
@@ -132,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 {
                     return GetSnippetCompletionItems(
                         document.Project.Solution.Workspace, semanticModel, isPreProcessorContext: false,
-                        isTupleContext: isPossibleTupleContext, cancellationToken: cancellationToken);
+                        isTupleContext: isPossibleTupleContext);
                 }
             }
 
@@ -143,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
           WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
 
         private static ImmutableArray<CompletionItem> GetSnippetCompletionItems(
-            Workspace workspace, SemanticModel semanticModel, bool isPreProcessorContext, bool isTupleContext, CancellationToken cancellationToken)
+            Workspace workspace, SemanticModel semanticModel, bool isPreProcessorContext, bool isTupleContext)
         {
             var service = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISnippetInfoService>();
             if (service == null)

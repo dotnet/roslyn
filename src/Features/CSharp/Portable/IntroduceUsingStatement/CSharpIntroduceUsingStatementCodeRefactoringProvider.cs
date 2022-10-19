@@ -46,16 +46,13 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceUsingStatement
                 throw ExceptionUtilities.UnexpectedValue(parentOfStatementsToSurround);
         }
 
-        protected override StatementSyntax CreateUsingStatement(LocalDeclarationStatementSyntax declarationStatement, SyntaxTriviaList sameLineTrivia, SyntaxList<StatementSyntax> statementsToSurround)
-        {
-            var usingStatement = SyntaxFactory.UsingStatement(
+        protected override StatementSyntax CreateUsingStatement(LocalDeclarationStatementSyntax declarationStatement, SyntaxList<StatementSyntax> statementsToSurround)
+            => SyntaxFactory.UsingStatement(
+                SyntaxFactory.Token(SyntaxKind.UsingKeyword).WithLeadingTrivia(declarationStatement.GetLeadingTrivia()),
+                SyntaxFactory.Token(SyntaxKind.OpenParenToken),
                 declaration: declarationStatement.Declaration.WithoutTrivia(),
                 expression: null, // Declaration already has equals token and expression
+                SyntaxFactory.Token(SyntaxKind.CloseParenToken).WithTrailingTrivia(declarationStatement.GetTrailingTrivia()),
                 statement: SyntaxFactory.Block(statementsToSurround));
-
-            return usingStatement
-                .WithCloseParenToken(usingStatement.CloseParenToken
-                    .WithTrailingTrivia(sameLineTrivia));
-        }
     }
 }

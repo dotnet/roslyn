@@ -19,12 +19,10 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         // This is the order that we look for used references. We set this processing order because we
         // want to favor transitive references when possible. For instance we process Projects before
         // Packages, since a particular Package could be brought in transitively by a Project reference.
-        private static readonly ReferenceType[] _processingOrder = new[]
-        {
+        private static readonly ImmutableArray<ReferenceType> s_processingOrder = ImmutableArray.Create(
             ReferenceType.Project,
             ReferenceType.Package,
-            ReferenceType.Assembly
-        };
+            ReferenceType.Assembly);
 
         public static async Task<ImmutableArray<ReferenceInfo>> GetUnusedReferencesAsync(
             Solution solution,
@@ -87,7 +85,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
             // assemblies brought in transitively by each reference.
 
             // Pass 1: Find all directly used references and remove them.
-            foreach (var referenceType in _processingOrder)
+            foreach (var referenceType in s_processingOrder)
             {
                 if (!referencesByType.TryGetValue(referenceType, out var referencesForReferenceType))
                 {
@@ -111,7 +109,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
             }
 
             // Pass 2: Find all transitively used refrences and remove them.
-            foreach (var referenceType in _processingOrder)
+            foreach (var referenceType in s_processingOrder)
             {
                 if (!referencesByType.TryGetValue(referenceType, out var referencesForReferenceType))
                 {

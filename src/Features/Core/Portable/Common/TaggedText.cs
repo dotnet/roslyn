@@ -103,8 +103,8 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayPartKindTags.GetTag(d.Kind),
                     d.ToString(),
                     style,
-                    includeNavigationHints ? GetNavigationTarget(d.Symbol) : null,
-                    includeNavigationHints ? getNavigationHint(d.Symbol) : null));
+                    includeNavigationHints && d.Kind != SymbolDisplayPartKind.NamespaceName ? GetNavigationTarget(d.Symbol) : null,
+                    includeNavigationHints && d.Kind != SymbolDisplayPartKind.NamespaceName ? getNavigationHint(d.Symbol) : null));
         }
 
         private static string GetNavigationTarget(ISymbol symbol)

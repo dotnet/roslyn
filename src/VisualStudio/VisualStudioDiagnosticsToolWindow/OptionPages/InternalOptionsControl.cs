@@ -165,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return null;
         }
 
-        private string GetAdditionalText(string additional)
+        private static string GetAdditionalText(string additional)
         {
             if (additional == null)
             {
@@ -175,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return " [" + additional + "]";
         }
 
-        private string GetLanguage(string languageName)
+        private static string GetLanguage(string languageName)
         {
             if (languageName == null)
             {

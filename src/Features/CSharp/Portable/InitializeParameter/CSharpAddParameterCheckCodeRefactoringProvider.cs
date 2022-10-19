@@ -2,17 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InitializeParameter;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -34,14 +37,21 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         {
         }
 
+        protected override ISyntaxFacts SyntaxFacts
+            => CSharpSyntaxFacts.Instance;
+
+        // We need to be at least on c# 11 to support using !! with records.
+        protected override bool SupportsRecords(ParseOptions options)
+            => options.LanguageVersion().IsCSharp11OrAbove();
+
         protected override bool IsFunctionDeclaration(SyntaxNode node)
             => InitializeParameterHelpers.IsFunctionDeclaration(node);
 
         protected override SyntaxNode GetBody(SyntaxNode functionDeclaration)
             => InitializeParameterHelpers.GetBody(functionDeclaration);
 
-        protected override void InsertStatement(SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid, SyntaxNode statementToAddAfterOpt, StatementSyntax statement)
-            => InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, returnsVoid, statementToAddAfterOpt, statement);
+        protected override void InsertStatement(SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid, SyntaxNode? statementToAddAfter, StatementSyntax statement)
+            => InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, returnsVoid, statementToAddAfter, statement);
 
         protected override bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
             => InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination);
@@ -91,6 +101,24 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 closeParenToken: closeParenToken,
                 statement: ifTrueStatement,
                 @else: null);
+        }
+
+        protected override async Task<Document?> TryAddNullCheckToParameterDeclarationAsync(Document document, ParameterSyntax parameterSyntax, CancellationToken cancellationToken)
+        {
+            var tree = parameterSyntax.SyntaxTree;
+            if (!tree.Options.LanguageVersion().IsCSharp11OrAbove())
+                return null;
+
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            if (!options.GetOption(CSharpCodeStyleOptions.PreferParameterNullChecking).Value)
+                return null;
+
+            // We expect the syntax tree to already be in memory since we already have a node from the tree
+            var syntaxRoot = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            syntaxRoot = syntaxRoot.ReplaceNode(
+                parameterSyntax,
+                parameterSyntax.WithExclamationExclamationToken(Token(SyntaxKind.ExclamationExclamationToken)));
+            return document.WithSyntaxRoot(syntaxRoot);
         }
     }
 }

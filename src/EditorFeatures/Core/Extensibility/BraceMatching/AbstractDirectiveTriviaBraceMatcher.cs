@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor
         internal abstract TDirectiveTriviaSyntax GetMatchingDirective(TDirectiveTriviaSyntax directive, CancellationToken cancellationToken);
         internal abstract TextSpan GetSpanForTagging(TDirectiveTriviaSyntax directive);
 
-        public async Task<BraceMatchingResult?> FindBracesAsync(Document document, int position, CancellationToken cancellationToken)
+        public async Task<BraceMatchingResult?> FindBracesAsync(Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position, findInsideTrivia: true);
@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis.Editor
             }
 
             return new BraceMatchingResult(
-                leftSpan: GetSpanForTagging(directive),
-                rightSpan: GetSpanForTagging(matchingDirective));
+                LeftSpan: GetSpanForTagging(directive),
+                RightSpan: GetSpanForTagging(matchingDirective));
         }
 
         private static bool IsConditionalDirective(TDirectiveTriviaSyntax directive)

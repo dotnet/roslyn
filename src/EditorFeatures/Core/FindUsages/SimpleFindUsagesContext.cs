@@ -8,29 +8,36 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.FindUsages
+namespace Microsoft.CodeAnalysis.FindUsages
 {
     /// <summary>
     /// Simple implementation of a <see cref="FindUsagesContext"/> that just aggregates the results
     /// for consumers that just want the data once it is finally computed.
     /// </summary>
-    internal class SimpleFindUsagesContext : FindUsagesContext
+    internal sealed class SimpleFindUsagesContext : FindUsagesContext
     {
         private readonly object _gate = new();
+        private readonly IGlobalOptionService _globalOptions;
+
         private readonly ImmutableArray<DefinitionItem>.Builder _definitionItems =
             ImmutableArray.CreateBuilder<DefinitionItem>();
 
         private readonly ImmutableArray<SourceReferenceItem>.Builder _referenceItems =
             ImmutableArray.CreateBuilder<SourceReferenceItem>();
 
-        public SimpleFindUsagesContext()
+        public SimpleFindUsagesContext(IGlobalOptionService globalOptions)
         {
+            _globalOptions = globalOptions;
         }
 
         public string Message { get; private set; }
         public string SearchTitle { get; private set; }
+
+        public override ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
+            => ValueTaskFactory.FromResult(_globalOptions.GetFindUsagesOptions(language));
 
         public override ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
         {

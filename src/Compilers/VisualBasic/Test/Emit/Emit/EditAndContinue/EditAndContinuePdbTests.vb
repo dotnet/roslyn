@@ -244,6 +244,9 @@ End Class", fileName:="C:\Enc1.vb")
                 </sequencePoints>
             </method>
         </methods>
+        <customDebugInfo>
+            <defaultnamespace name=""/>
+        </customDebugInfo>
     </symbols>, format:=DebugInformationFormat.PortablePdb)
 
             Dim syntaxMap2 = GetSyntaxMapFromMarkers(source1, source2)
@@ -326,6 +329,9 @@ End Class", fileName:="C:\Enc1.vb")
                 </sequencePoints>
             </method>
         </methods>
+        <customDebugInfo>
+            <defaultnamespace name=""/>
+        </customDebugInfo>
     </symbols>, format:=DebugInformationFormat.PortablePdb)
         End Sub
     End Class

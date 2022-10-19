@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             out string name,
             out INamespaceSymbol innermostNamespace)
         {
-            if (options.GenerateMembers && options.MergeNestedNamespaces && @namespace.Name != string.Empty)
+            if (options.Context.GenerateMembers && options.Context.MergeNestedNamespaces && @namespace.Name != string.Empty)
             {
                 var names = new List<string>();
                 names.Add(@namespace.Name);
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public static bool IsSpecialType(ITypeSymbol type, SpecialType specialType)
+        public static bool IsSpecialType([NotNullWhen(true)] ITypeSymbol? type, SpecialType specialType)
             => type != null && type.SpecialType == specialType;
 
         public static int GetPreferredIndex(int index, IList<bool>? availableIndices, bool forward)
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             Contract.ThrowIfNull(attribute);
 
-            return options != null && options.ReuseSyntax && attribute.ApplicationSyntaxReference != null ?
+            return options.Context.ReuseSyntax && attribute.ApplicationSyntaxReference != null ?
                 attribute.ApplicationSyntaxReference.GetSyntax() as T :
                 null;
         }
@@ -192,93 +192,90 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             SyntaxList<TDeclaration> declarationList,
             TDeclaration declaration,
             CodeGenerationOptions options,
-            IList<bool> availableIndices,
+            IList<bool>? availableIndices,
             IComparer<TDeclaration> comparerWithoutNameCheck,
             IComparer<TDeclaration> comparerWithNameCheck,
-            Func<SyntaxList<TDeclaration>, TDeclaration>? after = null,
-            Func<SyntaxList<TDeclaration>, TDeclaration>? before = null)
+            Func<SyntaxList<TDeclaration>, TDeclaration?>? after = null,
+            Func<SyntaxList<TDeclaration>, TDeclaration?>? before = null)
             where TDeclaration : SyntaxNode
         {
             Contract.ThrowIfTrue(availableIndices != null && availableIndices.Count != declarationList.Count + 1);
 
-            if (options != null)
+            // Try to strictly obey the after option by inserting immediately after the member containing the location
+            if (options.Context.AfterThisLocation != null)
             {
-                // Try to strictly obey the after option by inserting immediately after the member containing the location
-                if (options.AfterThisLocation != null)
+                var afterMember = declarationList.LastOrDefault(m => m.SpanStart <= options.Context.AfterThisLocation.SourceSpan.Start);
+                if (afterMember != null)
                 {
-                    var afterMember = declarationList.LastOrDefault(m => m.SpanStart <= options.AfterThisLocation.SourceSpan.Start);
-                    if (afterMember != null)
+                    var index = declarationList.IndexOf(afterMember);
+                    index = GetPreferredIndex(index + 1, availableIndices, forward: true);
+                    if (index != -1)
                     {
-                        var index = declarationList.IndexOf(afterMember);
-                        index = GetPreferredIndex(index + 1, availableIndices, forward: true);
-                        if (index != -1)
-                        {
-                            return index;
-                        }
+                        return index;
                     }
                 }
+            }
 
-                // Try to strictly obey the before option by inserting immediately before the member containing the location
-                if (options.BeforeThisLocation != null)
+            // Try to strictly obey the before option by inserting immediately before the member containing the location
+            if (options.Context.BeforeThisLocation != null)
+            {
+                var beforeMember = declarationList.FirstOrDefault(m => m.Span.End >= options.Context.BeforeThisLocation.SourceSpan.End);
+                if (beforeMember != null)
                 {
-                    var beforeMember = declarationList.FirstOrDefault(m => m.Span.End >= options.BeforeThisLocation.SourceSpan.End);
-                    if (beforeMember != null)
+                    var index = declarationList.IndexOf(beforeMember);
+                    index = GetPreferredIndex(index, availableIndices, forward: false);
+                    if (index != -1)
                     {
-                        var index = declarationList.IndexOf(beforeMember);
-                        index = GetPreferredIndex(index, availableIndices, forward: false);
-                        if (index != -1)
-                        {
-                            return index;
-                        }
+                        return index;
                     }
                 }
+            }
 
-                if (options.AutoInsertionLocation)
+            if (options.Context.AutoInsertionLocation)
+            {
+                if (declarationList.IsEmpty())
                 {
-                    if (declarationList.IsEmpty())
-                    {
-                        return 0;
-                    }
+                    return 0;
+                }
 
-                    var desiredIndex = TryGetDesiredIndexIfGrouped(
-                        declarationList, declaration, availableIndices,
-                        comparerWithoutNameCheck, comparerWithNameCheck);
-                    if (desiredIndex.HasValue)
-                    {
-                        return desiredIndex.Value;
-                    }
+                var desiredIndex = TryGetDesiredIndexIfGrouped(
+                    declarationList, declaration, availableIndices,
+                    comparerWithoutNameCheck, comparerWithNameCheck);
+                if (desiredIndex.HasValue)
+                {
+                    return desiredIndex.Value;
+                }
 
-                    if (after != null)
+                if (after != null)
+                {
+                    var member = after(declarationList);
+                    if (member != null)
                     {
-                        var member = after(declarationList);
-                        if (member != null)
+                        var index = declarationList.IndexOf(member);
+                        if (index >= 0)
                         {
-                            var index = declarationList.IndexOf(member);
-                            if (index >= 0)
+                            index = GetPreferredIndex(index + 1, availableIndices, forward: true);
+                            if (index != -1)
                             {
-                                index = GetPreferredIndex(index + 1, availableIndices, forward: true);
-                                if (index != -1)
-                                {
-                                    return index;
-                                }
+                                return index;
                             }
                         }
                     }
+                }
 
-                    if (before != null)
+                if (before != null)
+                {
+                    var member = before(declarationList);
+                    if (member != null)
                     {
-                        var member = before(declarationList);
-                        if (member != null)
-                        {
-                            var index = declarationList.IndexOf(member);
+                        var index = declarationList.IndexOf(member);
 
-                            if (index >= 0)
+                        if (index >= 0)
+                        {
+                            index = GetPreferredIndex(index, availableIndices, forward: false);
+                            if (index != -1)
                             {
-                                index = GetPreferredIndex(index, availableIndices, forward: false);
-                                if (index != -1)
-                                {
-                                    return index;
-                                }
+                                return index;
                             }
                         }
                     }

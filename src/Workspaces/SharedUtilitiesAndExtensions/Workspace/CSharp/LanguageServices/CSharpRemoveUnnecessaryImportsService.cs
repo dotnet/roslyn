@@ -9,7 +9,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -17,6 +19,12 @@ using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+
+#if CODE_STYLE
+using Formatter = Microsoft.CodeAnalysis.Formatting.FormatterHelper;
+#else
+using Formatter = Microsoft.CodeAnalysis.Formatting.Formatter;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
 {
@@ -29,6 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
         public CSharpRemoveUnnecessaryImportsService()
         {
         }
+
+#if CODE_STYLE
+        private static ISyntaxFormattingService GetSyntaxFormattingService()
+            => CSharpSyntaxFormattingService.Instance;
+#endif
 
         protected override IUnnecessaryImportsProvider UnnecessaryImportsProvider
             => CSharpUnnecessaryImportsProvider.Instance;
@@ -54,16 +67,19 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 var newRoot = (CompilationUnitSyntax)new Rewriter(document, unnecessaryImports, cancellationToken).Visit(oldRoot);
 
                 cancellationToken.ThrowIfCancellationRequested();
-                return document.WithSyntaxRoot(await FormatResultAsync(document, newRoot, cancellationToken).ConfigureAwait(false));
-            }
-        }
+#if CODE_STYLE
+                var provider = GetSyntaxFormattingService();
+                var options = provider.GetFormattingOptions(document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(oldRoot.SyntaxTree));
+#else
+                var provider = document.Project.Solution.Workspace.Services;
+                var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+#endif
+                var spans = new List<TextSpan>();
+                AddFormattingSpans(newRoot, spans, cancellationToken);
+                var formattedRoot = Formatter.Format(newRoot, spans, provider, options, rules: null, cancellationToken);
 
-        private async Task<SyntaxNode> FormatResultAsync(Document document, CompilationUnitSyntax newRoot, CancellationToken cancellationToken)
-        {
-            var spans = new List<TextSpan>();
-            AddFormattingSpans(newRoot, spans, cancellationToken);
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return Formatter.Format(newRoot, spans, document.Project.Solution.Workspace, options, cancellationToken: cancellationToken);
+                return document.WithSyntaxRoot(formattedRoot);
+            }
         }
 
         private void AddFormattingSpans(

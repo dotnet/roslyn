@@ -371,6 +371,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal NativeIntegerParameterSymbol(NativeIntegerTypeSymbol containingType, NativeIntegerMethodSymbol container, ParameterSymbol underlyingParameter) : base(underlyingParameter)
         {
+            Debug.Assert(container != null);
+
             _containingType = containingType;
             _container = container;
             NativeIntegerTypeSymbol.VerifyEquality(this, underlyingParameter);

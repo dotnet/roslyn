@@ -275,8 +275,14 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    // Check some ancient reserved device names, such as COM1,..9, LPT1..9, PRN, CON, or AUX etc., and bail out earlier
-                    // Win32 API - GetFullFileName - will resolve them, say 'COM1', as "\\.\COM1" 
+                    // Windows 10 and earlier placed restrictions on file names that originally appeared as device 
+                    // names. For example COM1, PRN, CON, AUX, etc ... Files could not be created with those names even 
+                    // with extensions like .txt. When those restricted names are passed to GetFullPath the 
+                    // runtime will escape them with \\.\. For example GetFullPath("aux.txt") will return "\\.\aux.txt".
+                    // The compiler detects these illegal names and bails out early
+                    //
+                    // Windows 11 removed this restriction though and hence the names are now legal. Cannot find documentation
+                    // to support this but experimentally it can be validated. 
                     resolvedPath = Path.GetFullPath(resolvedPath);
                     // preserve possible invalid path info for diagnostic purpose
                     invalidPath = resolvedPath;

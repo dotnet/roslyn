@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Linq;
+using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +12,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Wrapping
 {
-    using Microsoft.CodeAnalysis.Indentation;
 
     /// <summary>
     /// Common implementation of all <see cref="ISyntaxWrapper"/>.  This type takes care of a lot of common logic for
@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis.Wrapping
         protected AbstractSyntaxWrapper(IIndentationService indentationService)
             => IndentationService = indentationService;
 
-        public abstract Task<ICodeActionComputer> TryCreateComputerAsync(Document document, int position, SyntaxNode node, CancellationToken cancellationToken);
+        public abstract Task<ICodeActionComputer?> TryCreateComputerAsync(
+            Document document, int position, SyntaxNode node, SyntaxWrappingOptions options, bool containsSyntaxError, CancellationToken cancellationToken);
 
         protected static async Task<bool> ContainsUnformattableContentAsync(
             Document document, IEnumerable<SyntaxNodeOrToken> nodesAndTokens, CancellationToken cancellationToken)
@@ -46,25 +47,23 @@ namespace Microsoft.CodeAnalysis.Wrapping
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             foreach (var item in nodesAndTokens)
             {
-                if (item == null ||
-                    item.Span.IsEmpty)
-                {
+                if (item == null || item.Span.IsEmpty)
                     return true;
-                }
 
-                var firstToken = item.IsToken ? item.AsToken() : item.AsNode().GetFirstToken();
-                var lastToken = item.IsToken ? item.AsToken() : item.AsNode().GetLastToken();
+                var firstToken = item.IsToken ? item.AsToken() : item.AsNode()!.GetFirstToken();
+                var lastToken = item.IsToken ? item.AsToken() : item.AsNode()!.GetLastToken();
 
                 // Note: we check if things are on the same line, even in the case of a single token.
                 // This is so that we don't try to wrap multiline tokens either (like a multi-line 
                 // string).
                 if (!sourceText.AreOnSameLine(firstToken, lastToken))
-                {
                     return true;
-                }
             }
 
             return false;
         }
+
+        protected static bool ContainsOverlappingSyntaxErrror(SyntaxNode declaration, TextSpan headerSpan)
+            => declaration.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error && d.Location.SourceSpan.OverlapsWith(headerSpan));
     }
 }

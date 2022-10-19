@@ -255,6 +255,43 @@ class C
             Assert.Null(model.GetSymbolInfo(nullSyntax).Symbol);
         }
 
+        [Fact, WorkItem(18609, "https://github.com/dotnet/roslyn/issues/18609")]
+        public void InRawStringInterpolation()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        System.Console.Write($""""""({default}) ({null})"""""");
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "() ()");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(0);
+            Assert.Equal("default", def.ToString());
+            Assert.Equal("System.Object", model.GetTypeInfo(def).Type.ToTestDisplayString());
+            Assert.Equal("System.Object", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(def).Symbol);
+            Assert.True(model.GetConstantValue(def).HasValue);
+            Assert.False(model.GetConversion(def).IsNullLiteral);
+            Assert.True(model.GetConversion(def).IsDefaultLiteral);
+
+            var nullSyntax = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
+            Assert.Equal("null", nullSyntax.ToString());
+            Assert.Null(model.GetTypeInfo(nullSyntax).Type);
+            Assert.Equal("System.Object", model.GetTypeInfo(nullSyntax).ConvertedType.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(nullSyntax).Symbol);
+        }
+
         [Fact, WorkItem(35684, "https://github.com/dotnet/roslyn/issues/35684")]
         [WorkItem(40791, "https://github.com/dotnet/roslyn/issues/40791")]
         public void ComparisonWithGenericType_Unconstrained()
@@ -1885,7 +1922,7 @@ class C
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "123: True");
+            CompileAndVerify(comp, expectedOutput: "123: True", verify: Verification.FailsILVerify);
         }
 
         [Fact]

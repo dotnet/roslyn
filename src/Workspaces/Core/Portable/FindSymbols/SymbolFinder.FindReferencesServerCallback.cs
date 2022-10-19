@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -40,8 +41,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
                 => _progress.ProgressTracker.AddItemsAsync(count, cancellationToken);
 
-            public ValueTask ItemCompletedAsync(CancellationToken cancellationToken)
-                => _progress.ProgressTracker.ItemCompletedAsync(cancellationToken);
+            public ValueTask ItemsCompletedAsync(int count, CancellationToken cancellationToken)
+                => _progress.ProgressTracker.ItemsCompletedAsync(count, cancellationToken);
 
             public ValueTask OnStartedAsync(CancellationToken cancellationToken)
                 => _progress.OnStartedAsync(cancellationToken);

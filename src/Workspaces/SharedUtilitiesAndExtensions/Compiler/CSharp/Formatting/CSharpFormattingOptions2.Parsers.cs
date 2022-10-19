@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private static SpacingWithinParenthesesOption? ConvertToSpacingOption(string value)
             => s_spacingWithinParenthesisOptionsEditorConfigMap.TryGetValue(value, out var option)
                ? option
-               : (SpacingWithinParenthesesOption?)null;
+               : null;
 
         private static string GetSpacingWithParenthesesEditorConfigString(OptionSet optionSet)
         {

@@ -22,19 +22,22 @@ namespace Microsoft.CodeAnalysis.Host
             public readonly ValueSource<TextAndVersion> TextSource;
             public readonly Encoding Encoding;
             public readonly int Length;
+            public readonly bool ContainsDirectives;
 
             public SyntaxTreeInfo(
                 string filePath,
                 ParseOptions options,
                 ValueSource<TextAndVersion> textSource,
                 Encoding encoding,
-                int length)
+                int length,
+                bool containsDirectives)
             {
                 FilePath = filePath ?? string.Empty;
                 Options = options;
                 TextSource = textSource;
                 Encoding = encoding;
                 Length = length;
+                ContainsDirectives = containsDirectives;
             }
 
             internal bool TryGetText([NotNullWhen(true)] out SourceText? text)
@@ -62,7 +65,8 @@ namespace Microsoft.CodeAnalysis.Host
                     Options,
                     TextSource,
                     Encoding,
-                    Length);
+                    Length,
+                    ContainsDirectives);
             }
 
             internal SyntaxTreeInfo WithOptionsAndLength(ParseOptions options, int length)
@@ -72,7 +76,19 @@ namespace Microsoft.CodeAnalysis.Host
                     options,
                     TextSource,
                     Encoding,
-                    length);
+                    length,
+                    ContainsDirectives);
+            }
+
+            internal SyntaxTreeInfo WithOptions(ParseOptions options)
+            {
+                return new SyntaxTreeInfo(
+                    FilePath,
+                    options,
+                    TextSource,
+                    Encoding,
+                    Length,
+                    ContainsDirectives);
             }
         }
 
@@ -161,10 +177,16 @@ namespace Microsoft.CodeAnalysis.Host
         }
     }
 
-    internal interface IRecoverableSyntaxTree<TRoot> where TRoot : SyntaxNode
+    internal interface IRecoverableSyntaxTree<TRoot> : IRecoverableSyntaxTree where TRoot : SyntaxNode
+    {
+        TRoot CloneNodeAsRoot(TRoot root);
+    }
+
+    internal interface IRecoverableSyntaxTree
     {
         string FilePath { get; }
 
-        TRoot CloneNodeAsRoot(TRoot root);
+        bool ContainsDirectives { get; }
+        SyntaxTree WithOptions(ParseOptions parseOptions);
     }
 }

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -35,8 +36,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SnippetCommandHandler(IThreadingContext threadingContext, IExpansionServiceProvider expansionServiceProvider, IExpansionManager expansionManager)
-            : base(threadingContext, expansionServiceProvider, expansionManager)
+        public SnippetCommandHandler(
+            IThreadingContext threadingContext,
+            IExpansionServiceProvider expansionServiceProvider,
+            IExpansionManager expansionManager,
+            IGlobalOptionService globalOptions)
+            : base(threadingContext, expansionServiceProvider, expansionManager, globalOptions)
         {
         }
 

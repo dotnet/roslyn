@@ -2367,7 +2367,8 @@ interface I2
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
                 );
-            CompileAndVerify(compilation5);
+            // ILVerify: no corlib
+            CompileAndVerify(compilation5, verify: Verification.FailsILVerify);
 
             Assert.Equal(TypeKind.Struct, compilation5.GetTypeByMetadataName("A").TypeKind);
             Assert.Equal(TypeKind.Enum, compilation5.GetTypeByMetadataName("B").TypeKind);

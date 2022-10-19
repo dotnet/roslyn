@@ -286,7 +286,7 @@ class T
 {
     void M()
     {
-        var a = $""{ (object)new object}"";
+        var a = $""{(object)new object}"";
     }
 }");
         }
@@ -411,7 +411,7 @@ class T
     void M()
     {
         Decimal pricePerOunce = 17.36m;
-        String s = $""The current price is { pricePerOunce:C2} per ounce."";
+        String s = $""The current price is {pricePerOunce:C2} per ounce."";
     }
 }");
         }
@@ -490,7 +490,7 @@ class T
 {
     void M()
     {
-        var a = $""{ 126347.89m,-10:C}"";
+        var a = $""{126347.89m,-10:C}"";
     }
 }");
         }

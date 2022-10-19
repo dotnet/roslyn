@@ -87,6 +87,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// </summary>
         public int Value => SurrogateChar != 0 ? SurrogateChar : Rune.Value;
 
+        public bool IsDigit
+            => SurrogateChar != 0 ? char.IsDigit(SurrogateChar) : Rune.IsDigit(Rune);
+
+        public bool IsLetterOrDigit
+            => SurrogateChar != 0 ? char.IsLetterOrDigit(SurrogateChar) : Rune.IsLetterOrDigit(Rune);
+
+        public bool IsWhiteSpace
+            => SurrogateChar != 0 ? char.IsWhiteSpace(SurrogateChar) : Rune.IsWhiteSpace(Rune);
+
         #region equality
 
         public static bool operator ==(VirtualChar char1, VirtualChar char2)

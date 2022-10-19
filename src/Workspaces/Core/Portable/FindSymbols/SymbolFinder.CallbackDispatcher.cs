@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public ValueTask AddReferenceItemsAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken)
                 => GetFindReferencesCallback(callbackId).AddItemsAsync(count, cancellationToken);
 
-            public ValueTask ReferenceItemCompletedAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
-                => GetFindReferencesCallback(callbackId).ItemCompletedAsync(cancellationToken);
+            public ValueTask ReferenceItemsCompletedAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken)
+                => GetFindReferencesCallback(callbackId).ItemsCompletedAsync(count, cancellationToken);
 
             public ValueTask OnCompletedAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
                 => GetFindReferencesCallback(callbackId).OnCompletedAsync(cancellationToken);
@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public ValueTask AddLiteralItemsAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken)
                 => GetFindLiteralsCallback(callbackId).AddItemsAsync(count, cancellationToken);
 
-            public ValueTask LiteralItemCompletedAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
-                => GetFindLiteralsCallback(callbackId).ItemCompletedAsync(cancellationToken);
+            public ValueTask LiteralItemsCompletedAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken)
+                => GetFindLiteralsCallback(callbackId).ItemsCompletedAsync(count, cancellationToken);
 
             public ValueTask OnLiteralReferenceFoundAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, TextSpan span, CancellationToken cancellationToken)
                 => GetFindLiteralsCallback(callbackId).OnLiteralReferenceFoundAsync(documentId, span, cancellationToken);

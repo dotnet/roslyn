@@ -13,23 +13,16 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
-
-#if !CODE_STYLE
-using Microsoft.CodeAnalysis.Formatting;
-#endif
 
 namespace Microsoft.CodeAnalysis.FileHeaders
 {
     internal abstract class AbstractFileHeaderCodeFixProvider : CodeFixProvider
     {
         protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
-        protected abstract ISyntaxFacts SyntaxFacts { get; }
-        protected abstract ISyntaxKinds SyntaxKinds { get; }
-
-        protected abstract SyntaxTrivia EndOfLine(string text);
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.FileHeaderMismatch);
@@ -49,16 +42,20 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         private async Task<Document> GetTransformedDocumentAsync(Document document, CancellationToken cancellationToken)
             => document.WithSyntaxRoot(await GetTransformedSyntaxRootAsync(document, cancellationToken).ConfigureAwait(false));
 
-        private Task<SyntaxNode> GetTransformedSyntaxRootAsync(Document document, CancellationToken cancellationToken)
+        private async Task<SyntaxNode> GetTransformedSyntaxRootAsync(Document document, CancellationToken cancellationToken)
         {
 #if CODE_STYLE
-            var newLineText = Environment.NewLine;
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var options = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(root.SyntaxTree, cancellationToken);
 #else
-            var newLineText = document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, document.Project.Language);
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 #endif
-            var newLineTrivia = EndOfLine(newLineText);
 
-            return GetTransformedSyntaxRootAsync(SyntaxFacts, FileHeaderHelper, newLineTrivia, document, fileHeaderTemplate: null, cancellationToken);
+            var newLine = options.GetOption(FormattingOptions2.NewLine, document.Project.Language);
+            var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
+            var newLineTrivia = generator.EndOfLine(newLine);
+
+            return await GetTransformedSyntaxRootAsync(generator.SyntaxFacts, FileHeaderHelper, newLineTrivia, document, fileHeaderTemplate: null, cancellationToken).ConfigureAwait(false);
         }
 
         internal static async Task<SyntaxNode> GetTransformedSyntaxRootAsync(ISyntaxFacts syntaxFacts, AbstractFileHeaderHelper fileHeaderHelper, SyntaxTrivia newLineTrivia, Document document, string? fileHeaderTemplate, CancellationToken cancellationToken)

@@ -806,12 +806,12 @@ namespace A
             File.Delete(pathString)
         End Function
 
-        Private Function PopulateProjectFolders(list As List(Of String), ParamArray values As String()) As List(Of String)
+        Private Shared Function PopulateProjectFolders(list As List(Of String), ParamArray values As String()) As List(Of String)
             list.AddRange(values)
             Return list
         End Function
 
-        Private Function GetOneProjectWorkspace(
+        Private Shared Function GetOneProjectWorkspace(
             documentContent As XElement,
             languageName As String,
             projectName As String,
@@ -835,7 +835,7 @@ namespace A
             End If
         End Function
 
-        Private Async Function GetViewModelAsync(
+        Private Shared Async Function GetViewModelAsync(
             content As XElement,
             languageName As String,
             Optional isNewFile As Boolean = False,

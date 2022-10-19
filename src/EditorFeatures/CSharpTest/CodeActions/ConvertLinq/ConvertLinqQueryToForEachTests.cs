@@ -172,13 +172,13 @@ class Program
     {
         System.Collections.Generic.IEnumerable<int> enumerable()
         {
-            var vs1 = new int[] { 1, 2 };
-            var vs = new int[] { 3, 4 };
-            foreach (var num in vs1)
+            var ints1 = new int[] { 1, 2 };
+            var ints = new int[] { 3, 4 };
+            foreach (var num in ints1)
             {
                 foreach (var a in new int[] { 5, 6 })
                 {
-                    foreach (var x1 in vs)
+                    foreach (var x1 in ints)
                     {
                         if (object.Equals(num, x1))
                         {
@@ -221,18 +221,18 @@ class Program
     {
         System.Collections.Generic.IEnumerable<int> enumerable()
         {
-            var vs2 = new int[] { 1, 2 };
-            var vs1 = new int[] { 3, 4 };
-            var vs = new int[] { 7, 8 };
-            foreach (var num in vs2)
+            var ints2 = new int[] { 1, 2 };
+            var ints1 = new int[] { 3, 4 };
+            var ints = new int[] { 7, 8 };
+            foreach (var num in ints2)
             {
                 foreach (var a in new int[] { 5, 6 })
                 {
-                    foreach (var x1 in vs1)
+                    foreach (var x1 in ints1)
                     {
                         if (object.Equals(num, x1))
                         {
-                            foreach (var x2 in vs)
+                            foreach (var x2 in ints)
                             {
                                 if (object.Equals(num, x2))
                                 {

@@ -1214,5 +1214,207 @@ class C2_2 : I2
 </Workspace>
             Await TestAPI(input, host)
         End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestRecordProperty1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+record Goo(int x, int {|Definition:$$y|})
+{
+
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, [|y|]: 1);
+        Console.WriteLine(f.[|y|]);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestRecordProperty2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+record Goo(int x, int {|Definition:y|})
+{
+
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, [|$$y|]: 1);
+        Console.WriteLine(f.[|y|]);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestRecordProperty3(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+record Goo(int x, int {|Definition:y|})
+{
+
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, [|y|]: 1);
+        Console.WriteLine(f.[|$$y|]);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestRecordPropertyWithExplicitProperty1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+record Goo(int x, int y)
+{
+    public int {|Definition:$$y|} { get; } = y;
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, y: 1);
+        Console.WriteLine(f.[|y|]);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestRecordPropertyWithExplicitProperty2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+record Goo(int x, int y)
+{
+    public int {|Definition:y|} { get; } = y;
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, y: 1);
+        Console.WriteLine(f.[|$$y|]);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestRecordPropertyWithNotPrimaryConstructor1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+record Goo(int x, int y)
+{
+    public Goo(int {|Definition:$$y|})
+    {
+        this.y = [|y|];
+    }
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo([|y|]: 1);
+        Console.WriteLine(f.y);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestRecordPropertyWithNotPrimaryConstructor2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+record Goo(int x, int {|Definition:$$y|})
+{
+    public Goo(int y)
+    {
+        this.[|y|] = y;
+    }
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(y: 1);
+        Console.WriteLine(f.[|y|]);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
-        <target state="translated">İlişkisel işleçleri içinde: = Transfeleri'nin &lt; &gt; &lt;&gt; = nasıl olduğunu =</target>
+        <target state="translated">İlişkisel işleçleri içinde: = Transfeleri'nin &lt;&gt; &lt;&gt; = nasıl olduğunu =</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_apostrophe_at_the_start_of_new_lines_when_writing_apostrophe_comments">

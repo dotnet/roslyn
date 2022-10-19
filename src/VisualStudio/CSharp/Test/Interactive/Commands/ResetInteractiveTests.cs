@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
     [UseExportProvider]
     public class ResetInteractiveTests
     {
-        private string WorkspaceXmlStr =>
+        private const string WorkspaceXmlStr =
 @"<Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""ResetInteractiveVisualBasicSubproject"" CommonReferences=""true"">
         <Document FilePath=""VisualBasicDocument""></Document>

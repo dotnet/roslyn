@@ -251,5 +251,56 @@ class C
     }
 }");
         }
+
+        [WorkItem(31367, "https://github.com/dotnet/roslyn/issues/31367")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestMissingInCaseClause1()
+        {
+            await VerifyAbsenceAsync(
+@"
+class A
+{
+
+}
+
+class C
+{
+    void M(object o)
+    {
+        switch (o)
+        {
+            case A $$
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(31367, "https://github.com/dotnet/roslyn/issues/31367")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestMissingInCaseClause2()
+        {
+            await VerifyAbsenceAsync(
+@"
+namespace N
+{
+    class A
+    {
+
+    }
+}
+
+class C
+{
+    void M(object o)
+    {
+        switch (o)
+        {
+            case N.A $$
+        }
+    }
+}
+");
+        }
     }
 }

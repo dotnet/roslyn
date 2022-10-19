@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Shared
             return glyph.GetImageId();
         }
 
-        private ImageCompositionLayer CreateLayer(
+        private static ImageCompositionLayer CreateLayer(
             ImageMoniker imageMoniker,
             int virtualWidth = 16,
             int virtualYOffset = 0,

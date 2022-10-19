@@ -304,7 +304,7 @@ End Module")
             var newTempDir = _tempDirectory.CreateDirectory(new string('a', 100 - _tempDirectory.Path.Length));
             await ApplyEnvironmentVariables(
                 new[] { new KeyValuePair<string, string>("TMPDIR", newTempDir.Path) },
-                async () =>
+                async () => await Task.Run(async () =>
             {
                 using var serverData = await ServerUtil.CreateServer(_logger);
                 var result = RunCommandLineCompiler(
@@ -317,7 +317,7 @@ End Module")
 
                 var listener = await serverData.Complete();
                 Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
-            });
+            }));
         }
 
         [Fact]

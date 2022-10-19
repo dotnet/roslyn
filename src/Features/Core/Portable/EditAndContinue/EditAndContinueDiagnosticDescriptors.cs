@@ -142,8 +142,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddRudeEdit(RudeEditKind.ImplementRecordParameterWithSet, nameof(FeaturesResources.Implementing_a_record_positional_parameter_0_with_a_set_accessor_requires_restarting_the_application));
             AddRudeEdit(RudeEditKind.ExplicitRecordMethodParameterNamesMustMatch, nameof(FeaturesResources.Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0));
             AddRudeEdit(RudeEditKind.NotSupportedByRuntime, nameof(FeaturesResources.Applying_source_changes_while_the_application_is_running_is_not_supported_by_the_runtime));
-            AddRudeEdit(RudeEditKind.MakeMethodAsync, nameof(FeaturesResources.Making_a_method_asynchronous_requires_restarting_the_application));
-            AddRudeEdit(RudeEditKind.MakeMethodIterator, nameof(FeaturesResources.Making_a_method_an_iterator_requires_restarting_the_application));
+            AddRudeEdit(RudeEditKind.MakeMethodAsyncNotSupportedByRuntime, nameof(FeaturesResources.Making_a_method_asynchronous_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime));
+            AddRudeEdit(RudeEditKind.MakeMethodIteratorNotSupportedByRuntime, nameof(FeaturesResources.Making_a_method_an_iterator_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime));
             AddRudeEdit(RudeEditKind.InsertNotSupportedByRuntime, nameof(FeaturesResources.Adding_0_requires_restarting_the_application));
             AddRudeEdit(RudeEditKind.ChangingAttributesNotSupportedByRuntime, nameof(FeaturesResources.Updating_the_attributes_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime));
             AddRudeEdit(RudeEditKind.ChangingReloadableTypeNotSupportedByRuntime, nameof(FeaturesResources.Updating_reloadable_type_marked_by_0_attribute_or_its_member_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime));

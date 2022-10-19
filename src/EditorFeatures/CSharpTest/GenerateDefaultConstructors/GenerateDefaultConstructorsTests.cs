@@ -1409,5 +1409,51 @@ record B
     }
 }", index: 1);
         }
+
+        [WorkItem(58593, "https://github.com/dotnet/roslyn/issues/58593")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestStructWithFieldInitializer()
+        {
+            var source = @"
+struct [||]{|CS8983:S|}
+{
+    object X = 1;
+}
+";
+            var fixedSource = @"
+struct S
+{
+    object X = 1;
+
+    public S()
+    {
+    }
+}
+";
+
+            await new VerifyCodeFix.Test
+            {
+                TestCode = source.Replace("[||]", ""),
+                FixedCode = fixedSource,
+                LanguageVersion = LanguageVersion.Preview,
+            }.RunAsync();
+
+            await TestRefactoringMissingAsync(source);
+        }
+
+        [WorkItem(58593, "https://github.com/dotnet/roslyn/issues/58593")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestMissingInStructWithoutFieldInitializer()
+        {
+            var source = @"
+struct [||]S
+{
+    object X;
+}
+";
+
+            await TestCodeFixMissingAsync(source);
+            await TestRefactoringMissingAsync(source);
+        }
     }
 }

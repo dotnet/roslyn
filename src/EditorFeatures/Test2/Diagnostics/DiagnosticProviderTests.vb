@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Shared.Options
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -256,6 +256,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
         Private Shared Sub VerifyAllAvailableDiagnostics(test As XElement, diagnostics As XElement, Optional ordered As Boolean = True)
             Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_composition)
+                ' Ensure that diagnostic service computes diagnostics for all open files, not just the active file (default mode)
+                For Each language In workspace.Projects.Select(Function(p) p.Language).Distinct()
+                    workspace.GlobalOptions.SetGlobalOption(New OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, language), BackgroundAnalysisScope.OpenFiles)
+                Next
 
                 Dim registrationService = workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)()
                 registrationService.Register(workspace)
@@ -352,7 +356,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 id:=id,
                 category:="test",
                 message:=message,
-                enuMessageForBingSearch:=message,
                 severity:=severity,
                 defaultSeverity:=severity,
                 isEnabledByDefault:=True,

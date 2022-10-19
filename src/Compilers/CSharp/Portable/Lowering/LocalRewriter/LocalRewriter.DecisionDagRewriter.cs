@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// The label in the code for the beginning of code for each node of the dag.
             /// </summary>
-            protected readonly PooledDictionary<BoundDecisionDagNode, LabelSymbol> _dagNodeLabels = PooledDictionary<BoundDecisionDagNode, LabelSymbol>.GetInstance();
+            private readonly PooledDictionary<BoundDecisionDagNode, LabelSymbol> _dagNodeLabels = PooledDictionary<BoundDecisionDagNode, LabelSymbol>.GetInstance();
 
 #nullable enable
             // When different branches of the DAG share `when` expressions, the
@@ -222,6 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             default:
                                 if (!conversion.UnderlyingConversions.IsDefault)
                                 {
+                                    conversion.AssertUnderlyingConversionsChecked();
                                     foreach (var underlying in conversion.UnderlyingConversions)
                                     {
                                         visitConversion(underlying);
@@ -544,7 +545,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 HashSet<BoundDecisionDagNode> loweredNodes,
                 BoundDagTemp input)
             {
-                IValueSetFactory fac = ValueSetFactory.ForType(input.Type);
+                IValueSetFactory fac = ValueSetFactory.ForInput(input);
                 return GatherValueDispatchNodes(node, loweredNodes, input, fac);
             }
 

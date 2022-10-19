@@ -29,14 +29,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 completionContext As CompletionContext,
                 syntaxContext As VisualBasicSyntaxContext,
                 position As Integer,
-                options As OptionSet,
+                options As CompletionOptions,
                 cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (symbol As ISymbol, preselect As Boolean)))
 
             Dim symbols = Await GetPreselectedSymbolsAsync(syntaxContext, position, options, cancellationToken).ConfigureAwait(False)
             Return symbols.SelectAsArray(Function(s) (s, preselect:=True))
         End Function
 
-        Private Shared Function GetPreselectedSymbolsAsync(context As VisualBasicSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
+        Private Shared Function GetPreselectedSymbolsAsync(context As VisualBasicSyntaxContext, position As Integer, options As CompletionOptions, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
             If context.SyntaxTree.IsObjectCreationTypeContext(position, cancellationToken) OrElse
                 context.SyntaxTree.IsInNonUserCode(position, cancellationToken) Then
                 Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
@@ -59,13 +59,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
             End If
 
-            Dim hideAdvancedMembers = options.GetOption(CodeAnalysis.Recommendations.RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language)
-
             Return Task.FromResult(completionListType.GetAccessibleMembersInThisAndBaseTypes(Of ISymbol)(within) _
                                                 .WhereAsArray(Function(m) m.MatchesKind(SymbolKind.Field, SymbolKind.Property) AndAlso
                                                                     m.IsStatic AndAlso
                                                                     m.IsAccessibleWithin(within) AndAlso
-                                                                    m.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation)))
+                                                                    m.IsEditorBrowsable(options.HideAdvancedMembers, context.SemanticModel.Compilation)))
         End Function
 
         Private Shared Function GetCompletionListType(inferredType As ITypeSymbol, within As INamedTypeSymbol, compilation As Compilation, cancellationToken As CancellationToken) As ITypeSymbol

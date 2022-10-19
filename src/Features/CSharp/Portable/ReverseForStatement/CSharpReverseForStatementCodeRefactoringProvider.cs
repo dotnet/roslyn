@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
+            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
             var generator = editor.Generator;
             if (MatchesIncrementPattern(
                     variable, condition, after,

@@ -842,7 +842,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                       name)
         End Function
 
-        Private Function GetNormalizedName(node As SyntaxNode) As String
+        Private Shared Function GetNormalizedName(node As SyntaxNode) As String
             Dim nameBuilder = New StringBuilder()
 
             Dim token = node.GetFirstToken(includeSkipped:=True)
@@ -1155,7 +1155,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return False
         End Function
 
-        Private Overloads Function GetParameterNodes(methodStatement As MethodBaseSyntax) As IEnumerable(Of ParameterSyntax)
+        Private Overloads Shared Function GetParameterNodes(methodStatement As MethodBaseSyntax) As IEnumerable(Of ParameterSyntax)
             Return If(methodStatement.ParameterList IsNot Nothing,
                       methodStatement.ParameterList.Parameters,
                       SpecializedCollections.EmptyEnumerable(Of ParameterSyntax))
@@ -1264,7 +1264,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return False
         End Function
 
-        Private Function DeleteMember(document As Document, node As SyntaxNode) As Document
+        Private Shared Function DeleteMember(document As Document, node As SyntaxNode) As Document
             Dim text = document.GetTextSynchronously(CancellationToken.None)
 
             Dim deletionEnd = node.FullSpan.End
@@ -1337,7 +1337,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             End If
         End Function
 
-        Private Overloads Function Delete(document As Document, node As AttributeSyntax) As Document
+        Private Overloads Shared Function Delete(document As Document, node As AttributeSyntax) As Document
             Dim attributeList = node.FirstAncestorOrSelf(Of AttributeListSyntax)()
 
             ' If we don't have anything left, then just delete the whole attribute list.
@@ -1358,14 +1358,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             End If
         End Function
 
-        Private Overloads Function Delete(document As Document, node As ArgumentSyntax) As Document
+        Private Overloads Shared Function Delete(document As Document, node As ArgumentSyntax) As Document
             Dim argumentList = node.FirstAncestorOrSelf(Of ArgumentListSyntax)()
             Dim newArgumentList = argumentList.RemoveNode(node, SyntaxRemoveOptions.KeepEndOfLine).WithAdditionalAnnotations(Formatter.Annotation)
 
             Return document.ReplaceNodeSynchronously(argumentList, newArgumentList, CancellationToken.None)
         End Function
 
-        Private Overloads Function Delete(document As Document, node As ParameterSyntax) As Document
+        Private Overloads Shared Function Delete(document As Document, node As ParameterSyntax) As Document
             Dim parameterList = node.FirstAncestorOrSelf(Of ParameterListSyntax)()
             Dim newParameterList = parameterList.RemoveNode(node, SyntaxRemoveOptions.KeepEndOfLine).WithAdditionalAnnotations(Formatter.Annotation)
 
@@ -1558,7 +1558,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return member.UpdateModifiers(flags)
         End Function
 
-        Private Overloads Function GetDefaultAccessibility(node As SyntaxNode) As EnvDTE.vsCMAccess
+        Private Overloads Shared Function GetDefaultAccessibility(node As SyntaxNode) As EnvDTE.vsCMAccess
             If node.HasAncestor(Of StructureBlockSyntax)() Then
                 Return EnvDTE.vsCMAccess.vsCMAccessPublic
             End If
@@ -2036,7 +2036,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return parameter.WithModifiers(SyntaxFactory.TokenList(newModifierList))
         End Function
 
-        Private Function IsValidParameterKind(kind As EnvDTE80.vsCMParameterKind) As Boolean
+        Private Shared Function IsValidParameterKind(kind As EnvDTE80.vsCMParameterKind) As Boolean
             Select Case kind
                 Case EnvDTE80.vsCMParameterKind.vsCMParameterKindNone,
                      EnvDTE80.vsCMParameterKind.vsCMParameterKindIn,
@@ -2154,7 +2154,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return EnvDTE80.vsCMClassKind.vsCMClassKindMainClass
         End Function
 
-        Private Function IsValidClassKind(kind As EnvDTE80.vsCMClassKind) As Boolean
+        Private Shared Function IsValidClassKind(kind As EnvDTE80.vsCMClassKind) As Boolean
             Return kind = EnvDTE80.vsCMClassKind.vsCMClassKindMainClass OrElse
                    kind = EnvDTE80.vsCMClassKind.vsCMClassKindPartialClass
         End Function
@@ -2310,7 +2310,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return EnvDTE80.vsCMConstKind.vsCMConstKindNone
         End Function
 
-        Private Function IsValidConstKind(kind As EnvDTE80.vsCMConstKind) As Boolean
+        Private Shared Function IsValidConstKind(kind As EnvDTE80.vsCMConstKind) As Boolean
             Return kind = EnvDTE80.vsCMConstKind.vsCMConstKindConst OrElse
                    kind = EnvDTE80.vsCMConstKind.vsCMConstKindReadOnly OrElse
                    kind = EnvDTE80.vsCMConstKind.vsCMConstKindNone
@@ -2369,7 +2369,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return EnvDTE80.vsCMDataTypeKind.vsCMDataTypeKindMain
         End Function
 
-        Private Function IsValidDataTypeKind(kind As EnvDTE80.vsCMDataTypeKind, allowModule As Boolean) As Boolean
+        Private Shared Function IsValidDataTypeKind(kind As EnvDTE80.vsCMDataTypeKind, allowModule As Boolean) As Boolean
             Return kind = EnvDTE80.vsCMClassKind.vsCMClassKindMainClass OrElse
                    kind = EnvDTE80.vsCMClassKind.vsCMClassKindPartialClass OrElse
                    (allowModule AndAlso kind = EnvDTE80.vsCMDataTypeKind.vsCMDataTypeKindModule)
@@ -2585,7 +2585,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return result
         End Function
 
-        Private Function IsValidInheritanceKind(kind As EnvDTE80.vsCMInheritanceKind) As Boolean
+        Private Shared Function IsValidInheritanceKind(kind As EnvDTE80.vsCMInheritanceKind) As Boolean
             Return kind = EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindAbstract OrElse
                    kind = EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindNone OrElse
                    kind = EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindSealed OrElse
@@ -2688,7 +2688,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Throw New InvalidOperationException
         End Function
 
-        Private Function IsValidOverrideKind(kind As EnvDTE80.vsCMOverrideKind) As Boolean
+        Private Shared Function IsValidOverrideKind(kind As EnvDTE80.vsCMOverrideKind) As Boolean
             Return kind = EnvDTE80.vsCMOverrideKind.vsCMOverrideKindSealed OrElse
                    kind = EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNew OrElse
                    kind = EnvDTE80.vsCMOverrideKind.vsCMOverrideKindOverride OrElse
@@ -2961,7 +2961,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Throw Exceptions.ThrowEUnexpected()
         End Function
 
-        Private Function SetDelegateType(delegateStatement As DelegateStatementSyntax, typeSymbol As ITypeSymbol) As DelegateStatementSyntax
+        Private Shared Function SetDelegateType(delegateStatement As DelegateStatementSyntax, typeSymbol As ITypeSymbol) As DelegateStatementSyntax
             ' Remove the leading and trailing trivia and save it for reattachment later.
             Dim leadingTrivia = delegateStatement.GetLeadingTrivia()
             Dim trailingTrivia = delegateStatement.GetTrailingTrivia()
@@ -3011,7 +3011,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 .WithTrailingTrivia(trailingTrivia)
         End Function
 
-        Private Function SetEventType(eventStatement As EventStatementSyntax, typeSymbol As ITypeSymbol) As EventStatementSyntax
+        Private Shared Function SetEventType(eventStatement As EventStatementSyntax, typeSymbol As ITypeSymbol) As EventStatementSyntax
             If typeSymbol Is Nothing Then
                 Throw Exceptions.ThrowEInvalidArg()
             End If
@@ -3044,7 +3044,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 .WithTrailingTrivia(trailingTrivia)
         End Function
 
-        Private Function SetEventType(eventBlock As EventBlockSyntax, typeSymbol As ITypeSymbol) As EventBlockSyntax
+        Private Shared Function SetEventType(eventBlock As EventBlockSyntax, typeSymbol As ITypeSymbol) As EventBlockSyntax
             If typeSymbol Is Nothing Then
                 Throw Exceptions.ThrowEInvalidArg()
             End If
@@ -3125,7 +3125,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return eventBlock
         End Function
 
-        Private Function SetMethodType(declareStatement As DeclareStatementSyntax, typeSymbol As ITypeSymbol) As DeclareStatementSyntax
+        Private Shared Function SetMethodType(declareStatement As DeclareStatementSyntax, typeSymbol As ITypeSymbol) As DeclareStatementSyntax
             ' Remove the leading and trailing trivia and save it for reattachment later.
             Dim leadingTrivia = declareStatement.GetLeadingTrivia()
             Dim trailingTrivia = declareStatement.GetTrailingTrivia()
@@ -3181,7 +3181,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return declareStatement.WithLeadingTrivia(leadingTrivia).WithTrailingTrivia(trailingTrivia)
         End Function
 
-        Private Function SetMethodType(methodStatement As MethodStatementSyntax, typeSymbol As ITypeSymbol) As MethodStatementSyntax
+        Private Shared Function SetMethodType(methodStatement As MethodStatementSyntax, typeSymbol As ITypeSymbol) As MethodStatementSyntax
             ' Remove the leading and trailing trivia and save it for reattachment later.
             Dim leadingTrivia = methodStatement.GetLeadingTrivia()
             Dim trailingTrivia = methodStatement.GetTrailingTrivia()
@@ -3235,7 +3235,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 .WithTrailingTrivia(trailingTrivia)
         End Function
 
-        Private Function SetMethodType(methodBlock As MethodBlockSyntax, typeSymbol As ITypeSymbol) As MethodBlockSyntax
+        Private Shared Function SetMethodType(methodBlock As MethodBlockSyntax, typeSymbol As ITypeSymbol) As MethodBlockSyntax
             ' Remove the leading and trailing trivia and save it for reattachment later.
             Dim leadingTrivia = methodBlock.GetLeadingTrivia()
             Dim trailingTrivia = methodBlock.GetTrailingTrivia()
@@ -3264,7 +3264,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 .WithTrailingTrivia(trailingTrivia)
         End Function
 
-        Private Function SetParameterType(parameter As ParameterSyntax, typeSymbol As ITypeSymbol) As ParameterSyntax
+        Private Shared Function SetParameterType(parameter As ParameterSyntax, typeSymbol As ITypeSymbol) As ParameterSyntax
             If typeSymbol Is Nothing Then
                 Return parameter
             End If
@@ -3293,7 +3293,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 .WithTrailingTrivia(trailingTrivia)
         End Function
 
-        Private Function SetPropertyType(propertyStatement As PropertyStatementSyntax, typeSymbol As ITypeSymbol) As PropertyStatementSyntax
+        Private Shared Function SetPropertyType(propertyStatement As PropertyStatementSyntax, typeSymbol As ITypeSymbol) As PropertyStatementSyntax
             If typeSymbol Is Nothing Then
                 Throw Exceptions.ThrowEInvalidArg()
             End If
@@ -3322,7 +3322,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 .WithTrailingTrivia(trailingTrivia)
         End Function
 
-        Private Function SetPropertyType(propertyBlock As PropertyBlockSyntax, typeSymbol As ITypeSymbol) As PropertyBlockSyntax
+        Private Shared Function SetPropertyType(propertyBlock As PropertyBlockSyntax, typeSymbol As ITypeSymbol) As PropertyBlockSyntax
             If typeSymbol Is Nothing Then
                 Throw Exceptions.ThrowEInvalidArg()
             End If
@@ -3376,7 +3376,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 .WithTrailingTrivia(trailingTrivia)
         End Function
 
-        Private Function SetVariableType(variableDeclarator As VariableDeclaratorSyntax, typeSymbol As ITypeSymbol) As VariableDeclaratorSyntax
+        Private Shared Function SetVariableType(variableDeclarator As VariableDeclaratorSyntax, typeSymbol As ITypeSymbol) As VariableDeclaratorSyntax
             If typeSymbol Is Nothing Then
                 Throw Exceptions.ThrowEInvalidArg()
             End If
@@ -3784,7 +3784,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Throw Exceptions.ThrowEFail()
         End Function
 
-        Private Function InsertAttributeListInto(attributes As SyntaxList(Of AttributesStatementSyntax), index As Integer, attribute As AttributesStatementSyntax) As SyntaxList(Of AttributesStatementSyntax)
+        Private Shared Function InsertAttributeListInto(attributes As SyntaxList(Of AttributesStatementSyntax), index As Integer, attribute As AttributesStatementSyntax) As SyntaxList(Of AttributesStatementSyntax)
             ' we need to explicitly add end of line trivia here since both of them (with or without) are valid but parsed differently
             If index = 0 Then
                 Return attributes.Insert(index, attribute)
@@ -3924,7 +3924,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return compilationUnit.WithImports(importsList)
         End Function
 
-        Private Function InsertParameterIntoParameterList(index As Integer, parameter As ParameterSyntax, list As ParameterListSyntax) As ParameterListSyntax
+        Private Shared Function InsertParameterIntoParameterList(index As Integer, parameter As ParameterSyntax, list As ParameterListSyntax) As ParameterListSyntax
             If list Is Nothing Then
                 Return SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(parameter)) _
                     .WithAdditionalAnnotations(Formatter.Annotation)

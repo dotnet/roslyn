@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             if (index == 0)
             {
                 return aliasQualifier == null
-                     ? (NameSyntax)namePiece
+                     ? namePiece
                      : SyntaxFactory.AliasQualifiedName(aliasQualifier, namePiece);
             }
 

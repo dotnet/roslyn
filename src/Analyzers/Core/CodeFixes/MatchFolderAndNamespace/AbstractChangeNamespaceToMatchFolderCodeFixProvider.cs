@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
             var documentWithInvalidFolders = document.WithFolders(document.Folders.Concat("Force-Namespace-Change"));
             var renameActionSet = await Renamer.RenameDocumentAsync(
                 documentWithInvalidFolders,
+                new DocumentRenameOptions(),
                 documentWithInvalidFolders.Name,
                 newDocumentFolders: targetFolders,
                 cancellationToken: cancellationToken).ConfigureAwait(false);

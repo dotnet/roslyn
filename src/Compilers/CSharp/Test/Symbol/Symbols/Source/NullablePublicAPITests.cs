@@ -2527,7 +2527,7 @@ class C
     void M(object o1, object? o2)
     {
         foreach ((var o3, object? o4) in GetList(o1)) {}
-        foreach ((var o3, object o4) in GetList(o2)) { o3.ToString(); }
+        foreach ((var o3, object o4) in GetList(o2)) { o3.ToString(); } // 1
         o1 = null;
         foreach ((var o3, object o4) in GetList(o1)) {}
         _  = o2 ?? throw null!;
@@ -2536,15 +2536,16 @@ class C
 }";
 
             var comp = CreateCompilation(source, options: WithNullableEnable());
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (10,56): warning CS8602: Dereference of a possibly null reference.
+                //         foreach ((var o3, object o4) in GetList(o2)) { o3.ToString(); } // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o3").WithLocation(10, 56));
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
             var model = comp.GetSemanticModel(syntaxTree);
 
             var declarations = root.DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToList();
-
-            // Some annotations are incorrect because of https://github.com/dotnet/roslyn/issues/37491
 
             assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);

@@ -45,7 +45,7 @@ end class",
 "class C
     Public Function GetProp() As Integer
         return _
-0
+                0
     End Function
 end class")
         End Function
@@ -64,7 +64,7 @@ end class",
 "class C
     Public Function GetProp() As Integer
         return _ ' Test
-0
+                0
     End Function
 end class")
         End Function

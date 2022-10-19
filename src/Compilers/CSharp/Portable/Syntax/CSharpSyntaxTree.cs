@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a new syntax tree from a syntax node.
         /// </summary>
-        public static SyntaxTree Create(CSharpSyntaxNode root, CSharpParseOptions? options = null, string path = "", Encoding? encoding = null)
+        public static SyntaxTree Create(CSharpSyntaxNode root, CSharpParseOptions? options = null, string? path = "", Encoding? encoding = null)
         {
 #pragma warning disable CS0618 // We are calling into the obsolete member as that's the one that still does the real work
             return Create(root, options, path, encoding, diagnosticOptions: null);
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static SyntaxTree Create(
             CSharpSyntaxNode root,
             CSharpParseOptions? options,
-            string path,
+            string? path,
             Encoding? encoding,
             // obsolete parameter -- unused
             ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
@@ -927,7 +927,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static SyntaxTree Create(
             CSharpSyntaxNode root,
             CSharpParseOptions? options,
-            string path,
+            string? path,
             Encoding? encoding,
             ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions)
             => Create(root, options, path, encoding, diagnosticOptions, isGeneratedCode: null);

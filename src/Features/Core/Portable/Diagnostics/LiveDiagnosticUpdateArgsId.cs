@@ -11,9 +11,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly string _analyzerPackageName;
 
         public readonly object ProjectOrDocumentId;
-        public readonly int Kind;
+        public readonly AnalysisKind Kind;
 
-        public LiveDiagnosticUpdateArgsId(DiagnosticAnalyzer analyzer, object projectOrDocumentId, int kind, string analyzerPackageName)
+        public LiveDiagnosticUpdateArgsId(DiagnosticAnalyzer analyzer, object projectOrDocumentId, AnalysisKind kind, string analyzerPackageName)
             : base(analyzer)
         {
             Contract.ThrowIfNull(projectOrDocumentId);
@@ -37,6 +37,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public override int GetHashCode()
-            => Hash.Combine(ProjectOrDocumentId, Hash.Combine(Kind, base.GetHashCode()));
+            => Hash.Combine(ProjectOrDocumentId, Hash.Combine((int)Kind, base.GetHashCode()));
     }
 }

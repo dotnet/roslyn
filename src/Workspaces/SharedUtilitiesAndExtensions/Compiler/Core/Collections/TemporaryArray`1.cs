@@ -286,6 +286,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         private static void ThrowIndexOutOfRangeException()
             => throw new IndexOutOfRangeException();
 
+        [NonCopyable]
         public struct Enumerator
         {
             private readonly TemporaryArray<T> _array;

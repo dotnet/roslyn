@@ -2,32 +2,49 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Editor.InlineHints
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.InlineHints
+Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.[Shared].Utilities
+Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
     <[UseExportProvider]>
     Public MustInherit Class AbstractInlineHintsTests
-        Protected Async Function VerifyParamHints(test As XElement, Optional optionIsEnabled As Boolean = True) As Task
+        Protected Async Function VerifyParamHints(test As XElement, output As XElement, Optional optionIsEnabled As Boolean = True) As Task
             Using workspace = TestWorkspace.Create(test)
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineHintsTests)}.{NameOf(Me.VerifyParamHints)} creates asynchronous taggers")
 
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
-                    InlineHintsOptions.EnabledForParameters,
-                    workspace.CurrentSolution.Projects().First().Language,
-                    optionIsEnabled)))
+                Dim options = New InlineParameterHintsOptions(
+                    EnabledForParameters:=optionIsEnabled,
+                    ForLiteralParameters:=True,
+                    ForIndexerParameters:=True,
+                    ForObjectCreationParameters:=True,
+                    ForOtherParameters:=False,
+                    SuppressForParametersThatDifferOnlyBySuffix:=True,
+                    SuppressForParametersThatMatchMethodIntent:=True,
+                    SuppressForParametersThatMatchArgumentName:=True)
+
+                Dim displayOptions = New SymbolDescriptionOptions()
 
                 Dim hostDocument = workspace.Documents.Single()
                 Dim snapshot = hostDocument.GetTextBuffer().CurrentSnapshot
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim tagService = document.GetRequiredLanguageService(Of IInlineParameterNameHintsService)
-                Dim inlineHints = Await tagService.GetInlineHintsAsync(document, New Text.TextSpan(0, snapshot.Length), New CancellationToken())
+                Dim inlineHints = Await tagService.GetInlineHintsAsync(document, New Text.TextSpan(0, snapshot.Length), options, displayOptions, CancellationToken.None)
 
                 Dim producedTags = From hint In inlineHints
                                    Select hint.DisplayParts.GetFullText().TrimEnd() + hint.Span.ToString
 
                 ValidateSpans(hostDocument, producedTags)
+
+                Dim outWorkspace = TestWorkspace.Create(output)
+                Dim expectedDocument = outWorkspace.CurrentSolution.GetDocument(outWorkspace.Documents.Single().Id)
+                Await ValidateDoubleClick(document, expectedDocument, inlineHints)
             End Using
         End Function
 
@@ -45,25 +62,50 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             AssertEx.Equal(expectedTags, producedTags)
         End Sub
 
-        Protected Async Function VerifyTypeHints(test As XElement, Optional optionIsEnabled As Boolean = True, Optional ephemeral As Boolean = False) As Task
+        Private Shared Async Function ValidateDoubleClick(document As Document, expectedDocument As Document, inlineHints As ImmutableArray(Of InlineHint)) As Task
+            Dim textChanges = New List(Of TextChange)
+            For Each inlineHint In inlineHints
+                If inlineHint.ReplacementTextChange IsNot Nothing Then
+                    textChanges.Add(inlineHint.ReplacementTextChange.Value)
+                End If
+            Next
+
+            Dim value = Await document.GetTextAsync().ConfigureAwait(False)
+            Dim newText = value.WithChanges(textChanges).ToString()
+            Dim expectedText = Await expectedDocument.GetTextAsync().ConfigureAwait(False)
+
+            AssertEx.Equal(expectedText.ToString(), newText)
+        End Function
+
+        Protected Async Function VerifyTypeHints(test As XElement, output As XElement, Optional optionIsEnabled As Boolean = True, Optional ephemeral As Boolean = False) As Task
             Using workspace = TestWorkspace.Create(test)
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineHintsTests)}.{NameOf(Me.VerifyTypeHints)} creates asynchronous taggers")
 
-                Dim language = workspace.CurrentSolution.Projects().First().Language
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.Options.WithChangedOption(InlineHintsOptions.EnabledForTypes, language, optionIsEnabled AndAlso Not ephemeral).
-                                  WithChangedOption(InlineHintsOptions.DisplayAllOverride, ephemeral)))
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
+                globalOptions.SetGlobalOption(New OptionKey(InlineHintsGlobalStateOption.DisplayAllOverride), ephemeral)
+
+                Dim options = New InlineTypeHintsOptions(
+                    EnabledForTypes:=optionIsEnabled AndAlso Not ephemeral,
+                    ForImplicitVariableTypes:=True,
+                    ForLambdaParameterTypes:=True,
+                    ForImplicitObjectCreation:=True)
+
+                Dim displayOptions = New SymbolDescriptionOptions()
 
                 Dim hostDocument = workspace.Documents.Single()
                 Dim snapshot = hostDocument.GetTextBuffer().CurrentSnapshot
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim tagService = document.GetRequiredLanguageService(Of IInlineTypeHintsService)
-                Dim typeHints = Await tagService.GetInlineHintsAsync(document, New Text.TextSpan(0, snapshot.Length), New CancellationToken())
+                Dim typeHints = Await tagService.GetInlineHintsAsync(document, New Text.TextSpan(0, snapshot.Length), options, displayOptions, CancellationToken.None)
 
                 Dim producedTags = From hint In typeHints
                                    Select hint.DisplayParts.GetFullText() + ":" + hint.Span.ToString()
 
                 ValidateSpans(hostDocument, producedTags)
+
+                Dim outWorkspace = TestWorkspace.Create(output)
+                Dim expectedDocument = outWorkspace.CurrentSolution.GetDocument(outWorkspace.Documents.Single().Id)
+                Await ValidateDoubleClick(document, expectedDocument, typeHints)
             End Using
         End Function
     End Class

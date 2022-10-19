@@ -7,7 +7,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Fading;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
@@ -41,8 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
         private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
         {
-            var fadeCode = context.GetOption(FadingOptions.FadeOutUnreachableCode, LanguageNames.CSharp);
-
+            var fadeCode = context.Options.GetIdeOptions().FadeOutUnreachableCode;
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
 

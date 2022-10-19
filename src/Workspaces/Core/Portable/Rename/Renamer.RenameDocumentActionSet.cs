@@ -29,20 +29,20 @@ namespace Microsoft.CodeAnalysis.Rename
             private readonly DocumentId _documentId;
             private readonly string _documentName;
             private readonly ImmutableArray<string> _documentFolders;
-            private readonly OptionSet _optionSet;
+            private readonly DocumentRenameOptions _options;
 
             internal RenameDocumentActionSet(
                 ImmutableArray<RenameDocumentAction> actions,
                 DocumentId documentId,
                 string documentName,
                 ImmutableArray<string> documentFolders,
-                OptionSet optionSet)
+                DocumentRenameOptions options)
             {
                 ApplicableActions = actions;
                 _documentFolders = documentFolders;
                 _documentId = documentId;
                 _documentName = documentName;
-                _optionSet = optionSet;
+                _options = options;
             }
 
             /// <summary>
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 foreach (var action in actions)
                 {
                     document = solution.GetRequiredDocument(documentId);
-                    solution = await action.GetModifiedSolutionAsync(document, _optionSet, cancellationToken).ConfigureAwait(false);
+                    solution = await action.GetModifiedSolutionAsync(document, _options, cancellationToken).ConfigureAwait(false);
                 }
 
                 return solution;

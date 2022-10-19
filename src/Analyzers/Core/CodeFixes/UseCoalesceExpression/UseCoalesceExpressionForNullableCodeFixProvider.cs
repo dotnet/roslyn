@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var expressionTypeOpt = semanticModel.Compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
+            var expressionTypeOpt = semanticModel.Compilation.ExpressionOfTType();
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();

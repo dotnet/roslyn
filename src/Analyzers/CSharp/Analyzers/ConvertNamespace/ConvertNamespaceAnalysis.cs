@@ -4,14 +4,11 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 #if CODE_STYLE
@@ -48,6 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
         }
 
         internal static bool CanOfferUseFileScoped(OptionSet optionSet, CompilationUnitSyntax root, BaseNamespaceDeclarationSyntax declaration, bool forAnalyzer)
+            => CanOfferUseFileScoped(optionSet, root, declaration, forAnalyzer, root.SyntaxTree.Options.LanguageVersion());
+
+        internal static bool CanOfferUseFileScoped(
+            OptionSet optionSet,
+            CompilationUnitSyntax root,
+            BaseNamespaceDeclarationSyntax declaration,
+            bool forAnalyzer,
+            LanguageVersion version)
         {
             if (declaration is not NamespaceDeclarationSyntax namespaceDeclaration)
                 return false;
@@ -55,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             if (namespaceDeclaration.OpenBraceToken.IsMissing)
                 return false;
 
-            if (((CSharpParseOptions)root.SyntaxTree.Options).LanguageVersion < LanguageVersion.CSharp10)
+            if (version < LanguageVersion.CSharp10)
                 return false;
 
             var option = optionSet.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations);

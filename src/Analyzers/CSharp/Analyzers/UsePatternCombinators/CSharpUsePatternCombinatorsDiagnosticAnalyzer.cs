@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
 {
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 return;
 
             var syntaxTree = expression.SyntaxTree;
-            if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp9)
+            if (syntaxTree.Options.LanguageVersion() < LanguageVersion.CSharp9)
                 return;
 
             var cancellationToken = context.CancellationToken;
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 return;
 
             var semanticModel = context.SemanticModel;
-            var expressionType = semanticModel.Compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
+            var expressionType = semanticModel.Compilation.ExpressionOfTType();
             if (expression.IsInExpressionTree(semanticModel, expressionType, cancellationToken))
                 return;
 

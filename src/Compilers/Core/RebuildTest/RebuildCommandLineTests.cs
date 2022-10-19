@@ -21,13 +21,9 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     {
         private record CommandInfo(string CommandLine, string PeFileName, string? PdbFileName, string? CommandLineSuffix = null);
 
-        internal static string RootDirectory => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @"q:\" : "/";
-        internal static string ClientDirectory => Path.Combine(RootDirectory, "compiler");
-        internal static string WorkingDirectory => Path.Combine(RootDirectory, "rebuild");
-        internal static string SdkDirectory => Path.Combine(RootDirectory, "sdk");
-        internal static string OutputDirectory => Path.Combine(RootDirectory, "output");
-
-        internal static BuildPaths StandardBuildPaths => new BuildPaths(ClientDirectory, WorkingDirectory, SdkDirectory, tempDir: null);
+        internal static BuildPaths BuildPaths { get; } = TestableCompiler.StandardBuildPaths;
+        internal static string RootDirectory { get; } = TestableCompiler.RootDirectory;
+        internal static string OutputDirectory { get; } = Path.Combine(TestableCompiler.RootDirectory, "output");
 
         public ITestOutputHelper TestOutputHelper { get; }
         public Dictionary<string, TestableFile> FilePathToStreamMap { get; } = new Dictionary<string, TestableFile>(StringComparer.OrdinalIgnoreCase);
@@ -39,12 +35,12 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
         private void AddSourceFile(string filePath, string content)
         {
-            FilePathToStreamMap.Add(Path.Combine(WorkingDirectory, filePath), new TestableFile(content));
+            FilePathToStreamMap.Add(Path.Combine(BuildPaths.WorkingDirectory, filePath), new TestableFile(content));
         }
 
         private void AddReference(string filePath, byte[] imageBytes)
         {
-            FilePathToStreamMap.Add(Path.Combine(SdkDirectory, filePath), new TestableFile(imageBytes));
+            FilePathToStreamMap.Add(Path.Combine(BuildPaths.SdkDirectory!, filePath), new TestableFile(imageBytes));
         }
 
         private void AddOutputFile(ref string? filePath)
@@ -97,15 +93,14 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         private void VerifyRoundTrip(CommonCompiler commonCompiler, string peFilePath, string? pdbFilePath = null, CancellationToken cancellationToken = default)
         {
             Assert.True(commonCompiler.Arguments.CompilationOptions.Deterministic);
-            using var writer = new StringWriter();
-            commonCompiler.FileSystem = TestableFileSystem.CreateForMap(FilePathToStreamMap);
-            var result = commonCompiler.Run(writer, cancellationToken);
-            TestOutputHelper.WriteLine(writer.ToString());
+            var (result, output) = commonCompiler.Run(cancellationToken);
+            TestOutputHelper.WriteLine(output);
             Assert.Equal(0, result);
 
             var peStream = FilePathToStreamMap[peFilePath].GetStream();
             var pdbStream = pdbFilePath is object ? FilePathToStreamMap[pdbFilePath].GetStream() : null;
 
+            using var writer = new StringWriter();
             var compilation = commonCompiler.CreateCompilation(
                 writer,
                 touchedFilesLogger: null,
@@ -344,11 +339,6 @@ namespace Nested
             var args = new List<string>(commandLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
             args.Add("/nostdlib");
             args.Add("/deterministic");
-            foreach (var referenceInfo in NetCoreApp.AllReferenceInfos)
-            {
-                AddReference(referenceInfo.FileName, referenceInfo.ImageBytes);
-                args.Add($"/r:{referenceInfo.FileName}");
-            }
 
             AddOutputFile(ref peFilePath!);
             args.Add($"/out:{peFilePath}");
@@ -364,8 +354,11 @@ namespace Nested
             }
 
             TestOutputHelper.WriteLine($"Final Line: {string.Join(" ", args)}");
-            var compiler = new CSharpRebuildCompiler(args.ToArray());
-            VerifyRoundTrip(compiler, peFilePath, pdbFilePath);
+            var compiler = TestableCompiler.CreateCSharpNetCoreApp(
+                TestableFileSystem.CreateForMap(FilePathToStreamMap),
+                BuildPaths,
+                args);
+            VerifyRoundTrip(compiler.Compiler, peFilePath, pdbFilePath);
         }
 
         private void AddVisualBasicSourceFiles()
@@ -511,17 +504,6 @@ End Namespace
             var args = new List<string>(commandLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
             args.Add("/nostdlib");
             args.Add("/deterministic");
-            foreach (var referenceInfo in NetCoreApp.AllReferenceInfos)
-            {
-                AddReference(referenceInfo.FileName, referenceInfo.ImageBytes);
-
-                // The command line needs to make a decision about how to embed the VB runtime
-                if (referenceInfo.FileName != "Microsoft.VisualBasic.dll")
-                {
-                    args.Add($"/r:{referenceInfo.FileName}");
-                }
-            }
-
             AddOutputFile(ref peFilePath!);
             args.Add($"/out:{peFilePath}");
             AddOutputFile(ref pdbFilePath);
@@ -531,8 +513,12 @@ End Namespace
             }
 
             TestOutputHelper.WriteLine($"Final Line: {string.Join(" ", args)}");
-            var compiler = new VisualBasicRebuildCompiler(args.ToArray());
-            VerifyRoundTrip(compiler, peFilePath, pdbFilePath);
+            var compiler = TestableCompiler.CreateBasicNetCoreApp(
+                TestableFileSystem.CreateForMap(FilePathToStreamMap),
+                BuildPaths,
+                BasicRuntimeOption.Manual,
+                args);
+            VerifyRoundTrip(compiler.Compiler, peFilePath, pdbFilePath);
         }
     }
 }

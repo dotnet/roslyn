@@ -1503,6 +1503,36 @@ class C
 }");
         }
 
+        [WorkItem(56317, "https://github.com/dotnet/roslyn/issues/56317")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task NotImplementedException_NoDiagnostic4()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    private int Goo(int [|i|])
+        => throw new NotImplementedException();
+}");
+        }
+
+        [WorkItem(56317, "https://github.com/dotnet/roslyn/issues/56317")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task NotImplementedException_NoDiagnostic5()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    private int Goo(int [|i|])
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
         [WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task NotImplementedException_MultipleStatements1()

@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public partial class StackAllocArrayCreationExpressionSyntax
     {
         public StackAllocArrayCreationExpressionSyntax Update(SyntaxToken stackAllocKeyword, TypeSyntax type)
-            => Update(StackAllocKeyword, type, Initializer);
+            => Update(stackAllocKeyword, type, Initializer);
     }
 }
 

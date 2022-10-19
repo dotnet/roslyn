@@ -9,13 +9,17 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -210,12 +214,15 @@ namespace Roslyn.Test.Utilities.Desktop
             {
                 var mainImage = mainOutput.Value.Assembly;
                 var mainPdb = mainOutput.Value.Pdb;
+                var corLibIdentity = mainCompilation.GetSpecialType(SpecialType.System_Object).ContainingAssembly.Identity;
+                var identity = mainCompilation.Assembly.Identity;
                 _emitData.MainModule = new ModuleData(
-                    mainCompilation.Assembly.Identity,
+                    identity,
                     mainCompilation.Options.OutputKind,
                     mainImage,
                     pdb: usePdbForDebugging ? mainPdb : default(ImmutableArray<byte>),
-                    inMemoryModule: true);
+                    inMemoryModule: true,
+                    isCorLib: corLibIdentity == identity);
                 _emitData.MainModulePdb = mainPdb;
                 _emitData.AllModuleData = dependencies;
 
@@ -235,18 +242,21 @@ namespace Roslyn.Test.Utilities.Desktop
             }
         }
 
-        public int Execute(string moduleName, string[] args, string expectedOutput)
+        public int Execute(string moduleName, string[] args, string expectedOutput, bool trimOutput = true)
         {
             try
             {
                 var emitData = GetEmitData();
                 emitData.RuntimeData.ExecuteRequested = true;
-                var resultCode = emitData.Manager.Execute(moduleName, args, expectedOutput?.Length, out var output);
+                var resultCode = emitData.Manager.Execute(moduleName, args, expectedOutputLength: expectedOutput?.Length, out var output);
 
-                if (expectedOutput != null && expectedOutput.Trim() != output.Trim())
+                if (expectedOutput != null)
                 {
-                    GetEmitData().Manager.DumpAssemblyData(out var dumpDir);
-                    throw new ExecutionException(expectedOutput, output, dumpDir);
+                    if (trimOutput ? (expectedOutput.Trim() != output.Trim()) : (expectedOutput != output))
+                    {
+                        GetEmitData().Manager.DumpAssemblyData(out var dumpDir);
+                        throw new ExecutionException(expectedOutput, output, moduleName);
+                    }
                 }
 
                 return resultCode;
@@ -306,15 +316,16 @@ namespace Roslyn.Test.Utilities.Desktop
                 return;
             }
 
-            var shouldSucceed = verification == Verification.Passes;
+            var shouldSucceed = (verification & Verification.FailsPEVerify) == 0;
             var emitData = GetEmitData();
+
             try
             {
                 emitData.RuntimeData.PeverifyRequested = true;
                 emitData.Manager.PeVerifyModules(new[] { emitData.MainModule.FullName }, throwOnError: true);
                 if (!shouldSucceed)
                 {
-                    throw new Exception("Verification succeeded unexpectedly");
+                    throw new Exception("PE Verify succeeded unexpectedly");
                 }
             }
             catch (RuntimePeVerifyException ex)

@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
 
             public bool HasOverloads => false;
 
-            public bool ForceRenameOverloads => false;
+            public bool MustRenameOverloads => false;
 
             public string LocalizedErrorMessage => _renameInfo.LocalizedErrorMessage;
 
@@ -68,13 +68,13 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
             // This property isn't currently supported in XAML since it would involve modifying the IXamlRenameInfo interface.
             public ImmutableArray<CodeAnalysis.DocumentSpan> DefinitionLocations => default;
 
-            public async Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken)
+            public async Task<IInlineRenameLocationSet> FindRenameLocationsAsync(SymbolRenameOptions options, CancellationToken cancellationToken)
             {
                 var references = new List<InlineRenameLocation>();
 
                 var renameLocations = await _renameInfo.FindRenameLocationsAsync(
-                    renameInStrings: optionSet.GetOption(RenameOptions.RenameInStrings),
-                    renameInComments: optionSet.GetOption(RenameOptions.RenameInComments),
+                    renameInStrings: options.RenameInStrings,
+                    renameInComments: options.RenameInComments,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 references.AddRange(renameLocations.Select(
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
                     return _renameInfo.IsReplacementTextValid(replacementText);
                 }
 
-                public async Task<IInlineRenameReplacementInfo> GetReplacementsAsync(string replacementText, OptionSet optionSet, CancellationToken cancellationToken)
+                public async Task<IInlineRenameReplacementInfo> GetReplacementsAsync(string replacementText, SymbolRenameOptions options, CancellationToken cancellationToken)
                 {
                     var newSolution = _oldSolution;
                     foreach (var group in Locations.GroupBy(l => l.Document))

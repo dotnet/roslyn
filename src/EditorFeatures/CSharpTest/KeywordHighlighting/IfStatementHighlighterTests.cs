@@ -6,7 +6,7 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting;
+using Microsoft.CodeAnalysis.CSharp.KeywordHighlighting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 

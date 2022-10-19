@@ -19,6 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
     /// <summary>
     /// Handle the command that adds an event handler method in code
     /// </summary>
+    [Command(StringConstants.CreateEventHandlerCommand)]
     internal class CreateEventCommandHandler : AbstractExecuteWorkspaceCommandHandler
     {
         public override string Command => StringConstants.CreateEventHandlerCommand;

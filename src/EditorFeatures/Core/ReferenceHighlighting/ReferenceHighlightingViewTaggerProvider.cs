@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -21,7 +22,6 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -38,6 +38,8 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
     internal partial class ReferenceHighlightingViewTaggerProvider : AsynchronousViewTaggerProvider<NavigableHighlightTag>
     {
+        private readonly IGlobalOptionService _globalOptions;
+
         // Whenever an edit happens, clear all highlights.  When moving the caret, preserve 
         // highlights if the caret stays within an existing tag.
         protected override TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag;
@@ -48,9 +50,11 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public ReferenceHighlightingViewTaggerProvider(
             IThreadingContext threadingContext,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.ReferenceHighlighting))
+            : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.ReferenceHighlighting))
         {
+            _globalOptions = globalOptions;
         }
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.Medium;
@@ -88,7 +92,8 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
                               .ToList();
         }
 
-        protected override Task ProduceTagsAsync(TaggerContext<NavigableHighlightTag> context)
+        protected override Task ProduceTagsAsync(
+            TaggerContext<NavigableHighlightTag> context, CancellationToken cancellationToken)
         {
             // NOTE(cyrusn): Normally we'd limit ourselves to producing tags in the span we were
             // asked about.  However, we want to produce all tags here so that the user can actually
@@ -100,10 +105,6 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             }
 
             var caretPosition = context.CaretPosition.Value;
-            if (!Workspace.TryGetWorkspace(caretPosition.Snapshot.AsText().Container, out var workspace))
-            {
-                return Task.CompletedTask;
-            }
 
             // GetSpansToTag may have produced no actual spans to tag.  Be resilient to that.
             var document = context.SpansToTag.FirstOrDefault(vt => vt.SnapshotSpan.Snapshot == caretPosition.Snapshot).Document;
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             }
 
             // Don't produce tags if the feature is not enabled.
-            if (!workspace.Options.GetOption(FeatureOnOffOptions.ReferenceHighlighting, document.Project.Language))
+            if (!_globalOptions.GetOption(FeatureOnOffOptions.ReferenceHighlighting, document.Project.Language))
             {
                 return Task.CompletedTask;
             }
@@ -125,21 +126,22 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             var existingTags = context.GetExistingContainingTags(caretPosition);
             if (!existingTags.IsEmpty())
             {
-                context.SetSpansTagged(SpecializedCollections.EmptyEnumerable<DocumentSnapshotSpan>());
+                context.SetSpansTagged(ImmutableArray<SnapshotSpan>.Empty);
                 return Task.CompletedTask;
             }
 
             // Otherwise, we need to go produce all tags.
-            return ProduceTagsAsync(context, caretPosition, document);
+            var options = _globalOptions.GetHighlightingOptions(document.Project.Language);
+            return ProduceTagsAsync(context, caretPosition, document, options, cancellationToken);
         }
 
-        internal static async Task ProduceTagsAsync(
+        private static async Task ProduceTagsAsync(
             TaggerContext<NavigableHighlightTag> context,
             SnapshotPoint position,
-            Document document)
+            Document document,
+            HighlightingOptions options,
+            CancellationToken cancellationToken)
         {
-            var cancellationToken = context.CancellationToken;
-
             var solution = document.Project.Solution;
 
             using (Logger.LogBlock(FunctionId.Tagger_ReferenceHighlighting_TagProducer_ProduceTags, cancellationToken))
@@ -153,12 +155,12 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
                         // we're looking at
                         var documentsToSearch = ImmutableHashSet.CreateRange(context.SpansToTag.Select(vt => vt.Document).WhereNotNull());
                         var documentHighlightsList = await service.GetDocumentHighlightsAsync(
-                            document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
+                            document, position, documentsToSearch, options, cancellationToken).ConfigureAwait(false);
                         if (documentHighlightsList != null)
                         {
                             foreach (var documentHighlights in documentHighlightsList)
                             {
-                                AddTagSpans(context, documentHighlights);
+                                AddTagSpans(context, documentHighlights, cancellationToken);
                             }
                         }
                     }
@@ -168,9 +170,9 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
 
         private static void AddTagSpans(
             TaggerContext<NavigableHighlightTag> context,
-            DocumentHighlights documentHighlights)
+            DocumentHighlights documentHighlights,
+            CancellationToken cancellationToken)
         {
-            var cancellationToken = context.CancellationToken;
             var document = documentHighlights.Document;
 
             var textSnapshot = context.SpansToTag.FirstOrDefault(s => s.Document == document).SnapshotSpan.Snapshot;
@@ -190,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
                         textSnapshot.GetSpan(Span.FromBounds(span.TextSpan.Start, span.TextSpan.End)), tag));
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
             {
                 // report NFW and continue.
                 // also, rather than return partial results, return nothing

@@ -46,7 +46,7 @@ Block[B1] - Block
               Left: 
                 IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: C.S) (Syntax: 's')
               Right: 
-                IOperation:  (OperationKind.None, Type: null) (Syntax: '*sp')
+                IOperation:  (OperationKind.None, Type: C.S) (Syntax: '*sp')
                   Children(1):
                       IParameterReferenceOperation: sp (OperationKind.ParameterReference, Type: C.S*) (Syntax: 'sp')
 
@@ -90,7 +90,7 @@ Block[B1] - Block
               Left: 
                 IFieldReferenceOperation: System.Int32 C.S.x (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'sp->x')
                   Instance Receiver: 
-                    IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'sp')
+                    IOperation:  (OperationKind.None, Type: C.S, IsImplicit) (Syntax: 'sp')
                       Children(1):
                           IParameterReferenceOperation: sp (OperationKind.ParameterReference, Type: C.S*) (Syntax: 'sp')
               Right: 
@@ -104,7 +104,7 @@ Block[B1] - Block
               Right: 
                 IFieldReferenceOperation: System.Int32 C.S.x (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'sp->x')
                   Instance Receiver: 
-                    IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'sp')
+                    IOperation:  (OperationKind.None, Type: C.S, IsImplicit) (Syntax: 'sp')
                       Children(1):
                           IParameterReferenceOperation: sp (OperationKind.ParameterReference, Type: C.S*) (Syntax: 'sp')
 

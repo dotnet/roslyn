@@ -4,6 +4,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
@@ -20,28 +21,28 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(nameof(InlineHintsKeyProcessorProvider))]
-    internal class InlineHintsKeyProcessorProvider : IKeyProcessorProvider
+    internal sealed class InlineHintsKeyProcessorProvider : IKeyProcessorProvider
     {
-        private readonly IGlobalOptionService _globalOptionService;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InlineHintsKeyProcessorProvider(IGlobalOptionService globalOptionService)
+        public InlineHintsKeyProcessorProvider(IGlobalOptionService globalOptions)
         {
-            _globalOptionService = globalOptionService;
+            _globalOptions = globalOptions;
         }
 
         public KeyProcessor GetAssociatedProcessor(IWpfTextView wpfTextView)
-            => new InlineHintsKeyProcessor(_globalOptionService, wpfTextView);
+            => new InlineHintsKeyProcessor(_globalOptions, wpfTextView);
 
-        private class InlineHintsKeyProcessor : KeyProcessor
+        private sealed class InlineHintsKeyProcessor : KeyProcessor
         {
-            private readonly IGlobalOptionService _globalOptionService;
+            private readonly IGlobalOptionService _globalOptions;
             private readonly IWpfTextView _view;
 
-            public InlineHintsKeyProcessor(IGlobalOptionService globalOptionService, IWpfTextView view)
+            public InlineHintsKeyProcessor(IGlobalOptionService globalOptions, IWpfTextView view)
             {
-                _globalOptionService = globalOptionService;
+                _globalOptions = globalOptions;
                 _view = view;
                 _view.Closed += OnViewClosed;
                 _view.LostAggregateFocus += OnLostFocus;
@@ -108,14 +109,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             private void Toggle(bool on)
             {
                 // No need to do anything if we're already in the requested state
-                var state = _globalOptionService.GetOption(InlineHintsOptions.DisplayAllOverride);
+                var state = _globalOptions.GetOption(InlineHintsGlobalStateOption.DisplayAllOverride);
                 if (state == on)
                     return;
 
                 // We can only enter the on-state if the user has the chord feature enabled.  We can always enter the
                 // off state though.
-                on = on && _globalOptionService.GetOption(InlineHintsOptions.DisplayAllHintsWhilePressingAltF1);
-                _globalOptionService.RefreshOption(new OptionKey(InlineHintsOptions.DisplayAllOverride), on);
+                on = on && _globalOptions.GetOption(InlineHintsViewOptions.DisplayAllHintsWhilePressingAltF1);
+                _globalOptions.RefreshOption(new OptionKey(InlineHintsGlobalStateOption.DisplayAllOverride), on);
             }
         }
     }

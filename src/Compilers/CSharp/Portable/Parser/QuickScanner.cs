@@ -206,14 +206,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             //localize frequently accessed fields
             var charWindow = TextWindow.CharacterWindow;
-            var charPropLength = s_charProperties.Length;
+            var charPropLength = CharProperties.Length;
 
             for (; i < n; i++)
             {
                 char c = charWindow[i];
                 int uc = unchecked((int)c);
 
-                var flags = uc < charPropLength ? (CharFlags)s_charProperties[uc] : CharFlags.Complex;
+                var flags = uc < charPropLength ? (CharFlags)CharProperties[uc] : CharFlags.Complex;
 
                 state = (QuickScanState)s_stateTransitions[(int)state, (int)flags];
                 // NOTE: that Bad > Done and it is the only state like that
@@ -273,7 +273,7 @@ exitWhile:
         // # is marked complex as it may start directives.
         // PERF: Use byte instead of CharFlags so the compiler can use array literal initialization.
         //       The most natural type choice, Enum arrays, are not blittable due to a CLR limitation.
-        private static readonly byte[] s_charProperties = new[]
+        private static ReadOnlySpan<byte> CharProperties => new[]
         {
             // 0 .. 31
             (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex,

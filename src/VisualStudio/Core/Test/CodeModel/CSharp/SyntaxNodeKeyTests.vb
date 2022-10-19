@@ -226,7 +226,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
             Await TestAsync(input, "C.#op_Implicit_int(C)", 1)
         End Function
 
-        Private Async Function TestAsync(definition As XElement, expectedName As String, expectedOrdinal As Integer) As Task
+        Private Shared Async Function TestAsync(definition As XElement, expectedName As String, expectedOrdinal As Integer) As Task
             Using workspace = TestWorkspace.Create(definition, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim project = workspace.CurrentSolution.Projects.First()
                 Dim codeModelService = project.LanguageServices.GetService(Of ICodeModelService)()

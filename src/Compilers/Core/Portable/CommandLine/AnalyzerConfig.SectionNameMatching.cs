@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis
                 numberRangePairs.ToImmutableAndFree());
         }
 
-        internal static bool TryUnescapeSectionName(string sectionName, out string? escapedSectionName)
+        internal static string UnescapeSectionName(string sectionName)
         {
             var sb = new StringBuilder();
             SectionNameLexer lexer = new SectionNameLexer(sectionName);
@@ -125,9 +125,14 @@ namespace Microsoft.CodeAnalysis
                 {
                     sb.Append(lexer.EatCurrentCharacter());
                 }
+                else
+                {
+                    // We only call this on strings that were already passed through IsAbsoluteEditorConfigPath, so
+                    // we shouldn't have any other token kinds here.
+                    throw ExceptionUtilities.UnexpectedValue(tokenKind);
+                }
             }
-            escapedSectionName = sb.ToString();
-            return true;
+            return sb.ToString();
         }
 
         /// <summary>

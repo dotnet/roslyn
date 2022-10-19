@@ -4,6 +4,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
@@ -25,5 +26,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     internal interface IWorkspaceThreadingService
     {
         TResult Run<TResult>(Func<Task<TResult>> asyncMethod);
+    }
+
+    internal interface IWorkspaceThreadingServiceProvider : IWorkspaceService
+    {
+        IWorkspaceThreadingService Service { get; }
     }
 }

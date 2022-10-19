@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Test.Utilities;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.CSharp.Analyzers.MatchFolderAndNamespace.CSharpMatchFolderAndNamespaceDiagnosticAnalyzer,
@@ -885,6 +886,96 @@ $@"namespace Test.Root.Namespace.A.B.C
             fixedProject2.Sources.Add((Path.Combine(folder1, "P.cs"), project2FixedSource));
 
             await testState.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(58372, "https://github.com/dotnet/roslyn/issues/58372")]
+        public async Task InvalidProjectName_ChangeNamespace()
+        {
+            var defaultNamespace = "Invalid-Namespace";
+            var editorConfig = @$"
+is_global=true
+build_property.ProjectDir = {Directory}
+build_property.RootNamespace = {defaultNamespace}
+";
+
+            var folder = CreateFolderPath(new[] { "B", "C" });
+            var code =
+@"
+namespace [|A.B|]
+{    
+    class Class1
+    {
+    }
+}";
+
+            // The project name is invalid so the default namespace is not prepended
+            var fixedCode =
+@$"namespace B.C
+{{
+    class Class1
+    {{
+    }}
+}}";
+
+            await RunTestAsync(
+                "Class1.cs",
+                fileContents: code,
+                fixedCode: fixedCode,
+                directory: folder,
+                editorConfig: editorConfig,
+                defaultNamespace: defaultNamespace);
+        }
+
+        [Fact]
+        public async Task InvalidProjectName_DocumentAtRoot_ChangeNamespace()
+        {
+            var defaultNamespace = "Invalid-Namespace";
+            var editorConfig = @$"
+is_global=true
+build_property.ProjectDir = {Directory}
+build_property.RootNamespace = {defaultNamespace}
+";
+
+            var folder = CreateFolderPath();
+
+            var code =
+$@"namespace Test.Code
+{{
+    class C {{ }}
+}}";
+
+            await RunTestAsync(
+                "Class1.cs",
+                fileContents: code,
+                directory: folder,
+                editorConfig: editorConfig,
+                defaultNamespace: defaultNamespace);
+        }
+
+        [Fact]
+        public async Task InvalidRootNamespace_DocumentAtRoot_ChangeNamespace()
+        {
+            var editorConfig = @$"
+is_global=true
+build_property.ProjectDir = {Directory}
+build_property.RootNamespace = Test.Code # not an editorconfig comment even though it looks like one
+";
+
+            var folder = CreateFolderPath();
+
+            var code =
+$@"namespace Test.Code
+{{
+    class C {{ }}
+}}";
+
+            await RunTestAsync(
+                "Class1.cs",
+                fileContents: code,
+                directory: folder,
+                editorConfig: editorConfig,
+                defaultNamespace: "Invalid-Namespace");
         }
     }
 }

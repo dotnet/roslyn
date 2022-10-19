@@ -272,7 +272,7 @@ public class $$MyClass
             Assert.Equal("Goo(string)", viewModel.MemberContainers.ElementAt(4).SymbolName)
         End Function
 
-        Private Async Function GetViewModelAsync(markup As XElement,
+        Private Shared Async Function GetViewModelAsync(markup As XElement,
                               languageName As String,
                               defaultInterfaceName As String,
                               Optional defaultNamespace As String = "",

@@ -5,7 +5,9 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Telemetry;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -27,10 +29,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public void ShowDetailedErrorInfo(Exception exception)
             => OnError(exception.Message);
 
-        public void ShowGlobalErrorInfo(string message, Exception? exception, params InfoBarUI[] items)
+        public void ShowGlobalErrorInfo(string message, TelemetryFeatureName featureName, Exception? exception, params InfoBarUI[] items)
             => OnError(message);
 
-        public void ShowFeatureNotAvailableErrorInfo(string message, Exception? exception)
+        public void ShowFeatureNotAvailableErrorInfo(string message, TelemetryFeatureName featureName, Exception? exception)
             => OnError($"{message} {exception}");
     }
 }

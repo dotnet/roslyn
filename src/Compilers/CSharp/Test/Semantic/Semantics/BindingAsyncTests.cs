@@ -853,7 +853,7 @@ class Test
 {
     static Task t = new Task(null);
 
-    class await { }
+    class @await { }
 
     static int Goo(int[] arr = await t)
     {

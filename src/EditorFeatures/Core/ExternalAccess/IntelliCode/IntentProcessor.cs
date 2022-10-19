@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.IntelliCode.Api;
@@ -63,11 +64,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
             var originalDocument = currentDocument.WithText(currentText.WithChanges(intentRequestContext.PriorTextEdits));
 
             var selectionTextSpan = intentRequestContext.PriorSelection;
+
             var results = await provider.Value.ComputeIntentAsync(
                 originalDocument,
                 selectionTextSpan,
                 currentDocument,
-                intentRequestContext.IntentData,
+                new IntentDataProvider(intentRequestContext.IntentData),
                 cancellationToken).ConfigureAwait(false);
             if (results.IsDefaultOrEmpty)
             {

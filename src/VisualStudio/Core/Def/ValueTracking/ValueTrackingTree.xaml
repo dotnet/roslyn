@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.ValueTracking"
+             xmlns:utils="clr-namespace:Microsoft.VisualStudio.LanguageServices.Utilities"
              mc:Ignorable="d" 
              xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              d:DesignHeight="450" d:DesignWidth="800"
@@ -59,7 +60,7 @@
                 <HierarchicalDataTemplate DataType="{x:Type local:TreeItemViewModel}" ItemsSource="{Binding ChildItems}">
                     <StackPanel Orientation="Horizontal">
                         <Image Source="{Binding GlyphImage}" />
-                        <local:BindableTextBlock InlineCollection="{Binding Inlines}" Margin="0 0 5 0" AutomationProperties.Name="{Binding AutomationName}" />
+                        <utils:BindableTextBlock InlineCollection="{Binding Inlines}" Margin="0 0 5 0" />
                     </StackPanel>
                 </HierarchicalDataTemplate>
                 <DataTemplate DataType="{x:Type local:EmptyTreeViewItem}">

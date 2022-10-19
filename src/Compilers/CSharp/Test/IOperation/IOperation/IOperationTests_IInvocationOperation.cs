@@ -86,7 +86,7 @@ class C
             string expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'C.M1()')
   Children(1):
-      IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'C')
+      IOperation:  (OperationKind.None, Type: C, IsInvalid) (Syntax: 'C')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // file.cs(8,19): error CS0120: An object reference is required for the non-static field, method, or property 'C.M1()'

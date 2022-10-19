@@ -147,9 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             ' instead of an 'As' clause.
             delegateType.AssociatedSymbol = generatedEvent
 
-            Return New GenerateEventCodeAction(
-                document.Project.Solution, targetType, generatedEvent,
-                codeGenService, CodeGenerationOptions.Default)
+            Return New GenerateEventCodeAction(document.Project.Solution, targetType, generatedEvent, codeGenService)
         End Function
 
         Private Shared Function GetHandlerExpression(handlerStatement As AddRemoveHandlerStatementSyntax) As ExpressionSyntax
@@ -298,14 +296,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
                 ' instead of an 'As' clause.
                 eventHandlerType.AssociatedSymbol = generatedEvent
 
-                Return New GenerateEventCodeAction(
-                        document.Project.Solution, targetType, generatedEvent,
-                        codeGenService, New CodeGenerationOptions())
+                Return New GenerateEventCodeAction(document.Project.Solution, targetType, generatedEvent, codeGenService)
             Else
                 ' Event with no parameters.
                 Dim generatedMember = CodeGenerationSymbolFactory.CreateEventSymbol(boundEvent, name:=actualEventName)
-                Return New GenerateEventCodeAction(
-                    document.Project.Solution, targetType, generatedMember, codeGenService, New CodeGenerationOptions())
+                Return New GenerateEventCodeAction(document.Project.Solution, targetType, generatedMember, codeGenService)
             End If
         End Function
 
@@ -402,7 +397,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
 
             Return New GenerateEventCodeAction(
                 document.Project.Solution, originalTargetType, generatedEvent,
-                codeGenService, New CodeGenerationOptions())
+                codeGenService)
         End Function
     End Class
 End Namespace

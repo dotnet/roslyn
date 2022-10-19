@@ -8,10 +8,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Partial Public Class AutomationObject
         Public Property AutoComment As Boolean
             Get
-                Return GetBooleanOption(DocumentationCommentOptions.AutoXmlDocCommentGeneration)
+                Return GetBooleanOption(DocumentationCommentOptions.Metadata.AutoXmlDocCommentGeneration)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(DocumentationCommentOptions.AutoXmlDocCommentGeneration, value)
+                SetBooleanOption(DocumentationCommentOptions.Metadata.AutoXmlDocCommentGeneration, value)
             End Set
         End Property
     End Class

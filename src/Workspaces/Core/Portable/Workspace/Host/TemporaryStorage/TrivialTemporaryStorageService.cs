@@ -39,31 +39,31 @@ namespace Microsoft.CodeAnalysis
 
             public Stream ReadStream(CancellationToken cancellationToken = default)
             {
-                if (_stream == null)
+                var stream = _stream;
+                if (stream is null)
                 {
                     throw new InvalidOperationException();
                 }
 
-                _stream.Position = 0;
-                return _stream;
+                // Return a read-only view of the underlying buffer to prevent users from overwriting or directly
+                // disposing the backing storage.
+                return new MemoryStream(stream.GetBuffer(), 0, (int)stream.Length, writable: false);
             }
 
             public Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default)
             {
-                if (_stream == null)
-                {
-                    throw new InvalidOperationException();
-                }
-
-                _stream.Position = 0;
-                return Task.FromResult((Stream)_stream);
+                return Task.FromResult(ReadStream(cancellationToken));
             }
 
             public void WriteStream(Stream stream, CancellationToken cancellationToken = default)
             {
                 var newStream = new MemoryStream();
                 stream.CopyTo(newStream);
-                _stream = newStream;
+                var existingValue = Interlocked.CompareExchange(ref _stream, newStream, null);
+                if (existingValue is not null)
+                {
+                    throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
+                }
             }
 
             public async Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default)
@@ -74,7 +74,11 @@ namespace Microsoft.CodeAnalysis
 # else
                 await stream.CopyToAsync(newStream).ConfigureAwait(false);
 #endif
-                _stream = newStream;
+                var existingValue = Interlocked.CompareExchange(ref _stream, newStream, null);
+                if (existingValue is not null)
+                {
+                    throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
+                }
             }
         }
 
@@ -96,7 +100,11 @@ namespace Microsoft.CodeAnalysis
                 // This is a trivial implementation, indeed. Note, however, that we retain a strong
                 // reference to the source text, which defeats the intent of RecoverableTextAndVersion, but
                 // is appropriate for this trivial implementation.
-                _sourceText = text;
+                var existingValue = Interlocked.CompareExchange(ref _sourceText, text, null);
+                if (existingValue is not null)
+                {
+                    throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
+                }
             }
 
             public Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default)

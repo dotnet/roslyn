@@ -43,7 +43,7 @@ namespace Roslyn.Utilities
             /// always end in the <see cref="TaskStatus.RanToCompletion"/> state; if the delegate throws
             /// an exception, it'll be allowed to propagate on the thread, crashing the process.
             /// </summary>
-            public static Task<object?> QueueAsync(Func<object?> threadStart) => QueueAsync((Delegate)threadStart, state: null);
+            public static Task<object?> QueueAsync(Func<object?> threadStart) => QueueAsync(threadStart, state: null);
 
             /// <summary>
             /// Queues a <see cref="Func{T, TResult}"/> delegate and associated state to be executed immediately on

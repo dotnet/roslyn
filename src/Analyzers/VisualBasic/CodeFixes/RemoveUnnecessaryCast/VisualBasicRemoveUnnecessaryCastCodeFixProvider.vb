@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
             ' Now, find the cast nodes again in the expanded document
             Dim currentCastNodes = root.GetCurrentNodes(originalCastNodes)
 
-            Dim innerEditor = New SyntaxEditor(root, document.Project.Solution.Workspace)
+            Dim innerEditor = New SyntaxEditor(root, document.Project.Solution.Workspace.Services)
             Await innerEditor.ApplyExpressionLevelSemanticEditsAsync(
                 document, currentCastNodes.ToImmutableArray(),
                 Function(semanticModel, castExpression) IsUnnecessaryCast(castExpression, semanticModel, cancellationToken),
@@ -122,7 +122,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
                 document As Document, originalNodes As ImmutableArray(Of ExpressionSyntax),
                 cancellationToken As CancellationToken) As Task(Of SyntaxNode)
 
-            Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             ' Note: we not only get the containing statement, but also the next statement after
@@ -140,13 +139,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
                         {containingStatement, nextStatement})
                 End Function).Distinct()
 
-            Dim workspace = document.Project.Solution.Workspace
-            Dim editor = New SyntaxEditor(root, workspace)
+            Dim editor = New SyntaxEditor(root, document.Project.Solution.Workspace.Services)
 
             For Each containingStatement In containingAndNextStatements
-                Dim expandedStatement = Simplifier.Expand(
-                    containingStatement, semanticModel, workspace,
-                    cancellationToken:=cancellationToken)
+                Dim expandedStatement = Await Simplifier.ExpandAsync(containingStatement, document, cancellationToken:=cancellationToken).ConfigureAwait(False)
                 editor.ReplaceNode(containingStatement, expandedStatement)
             Next
 

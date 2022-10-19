@@ -75,6 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // ... this.state = FinishedState; ...
 
             // if (this.combinedTokens != null) { this.combinedTokens.Dispose(); this.combinedTokens = null; } // for enumerables only
+            // _current = default;
             // this.builder.Complete();
             // this.promiseOfValueOrEnd.SetResult(false);
             // return;
@@ -90,6 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddDisposeCombinedTokensIfNeeded(builder);
 
             builder.AddRange(
+                // _current = default;
+                GenerateClearCurrent(),
                 GenerateCompleteOnBuilder(),
                 // this.promiseOfValueOrEnd.SetResult(false);
                 generateSetResultOnPromise(false),
@@ -107,6 +110,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundFieldAccess promiseField = F.InstanceField(_asyncIteratorInfo.PromiseOfValueOrEndField);
                 return F.ExpressionStatement(F.Call(promiseField, _asyncIteratorInfo.SetResultMethod, F.Literal(result)));
             }
+        }
+
+        private BoundExpressionStatement GenerateClearCurrent()
+        {
+            // _current = default;
+            var currentField = _asyncIteratorInfo.CurrentField;
+            return F.Assignment(F.InstanceField(currentField), F.Default(currentField.Type));
         }
 
         private BoundExpressionStatement GenerateCompleteOnBuilder()
@@ -142,6 +152,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // if (this.combinedTokens != null) { this.combinedTokens.Dispose(); this.combinedTokens = null; } // for enumerables only
             AddDisposeCombinedTokensIfNeeded(builder);
+
+            // _current = default;
+            builder.Add(GenerateClearCurrent());
 
             // this.builder.Complete();
             builder.Add(GenerateCompleteOnBuilder());

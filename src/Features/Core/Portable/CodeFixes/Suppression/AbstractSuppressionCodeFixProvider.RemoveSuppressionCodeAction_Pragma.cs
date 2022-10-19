@@ -25,11 +25,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             private class PragmaRemoveAction : RemoveSuppressionCodeAction, IPragmaBasedCodeAction
             {
                 private readonly Document _document;
+                private readonly SyntaxFormattingOptions _options;
                 private readonly SuppressionTargetInfo _suppressionTargetInfo;
 
                 public static PragmaRemoveAction Create(
                     SuppressionTargetInfo suppressionTargetInfo,
                     Document document,
+                    SyntaxFormattingOptions options,
                     Diagnostic diagnostic,
                     AbstractSuppressionCodeFixProvider fixer)
                 {
@@ -37,23 +39,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     // the trailing trivia on its previous token (and similarly normalize trailing trivia for end token).
                     PragmaHelpers.NormalizeTriviaOnTokens(fixer, ref document, ref suppressionTargetInfo);
 
-                    return new PragmaRemoveAction(suppressionTargetInfo, document, diagnostic, fixer);
+                    return new PragmaRemoveAction(suppressionTargetInfo, document, options, diagnostic, fixer);
                 }
 
                 private PragmaRemoveAction(
                     SuppressionTargetInfo suppressionTargetInfo,
                     Document document,
+                    SyntaxFormattingOptions options,
                     Diagnostic diagnostic,
                     AbstractSuppressionCodeFixProvider fixer,
                     bool forFixMultipleContext = false)
                     : base(diagnostic, fixer, forFixMultipleContext)
                 {
                     _document = document;
+                    _options = options;
                     _suppressionTargetInfo = suppressionTargetInfo;
                 }
 
                 public override RemoveSuppressionCodeAction CloneForFixMultipleContext()
-                    => new PragmaRemoveAction(_suppressionTargetInfo, _document, _diagnostic, Fixer, forFixMultipleContext: true);
+                    => new PragmaRemoveAction(_suppressionTargetInfo, _document, _options, _diagnostic, Fixer, forFixMultipleContext: true);
 
                 public override SyntaxTree SyntaxTreeToModify => _suppressionTargetInfo.StartToken.SyntaxTree;
 
@@ -81,11 +85,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     }
 
                     SyntaxToken getNewStartToken(SyntaxToken startToken, TextSpan currentDiagnosticSpan) => includeStartTokenChange
-                        ? GetNewTokenWithModifiedPragma(startToken, currentDiagnosticSpan, add, toggle, indexOfLeadingPragmaDisableToRemove, isStartToken: true)
+                        ? GetNewTokenWithModifiedPragma(startToken, currentDiagnosticSpan, add, toggle, indexOfLeadingPragmaDisableToRemove, isStartToken: true, cancellationToken)
                         : startToken;
 
                     SyntaxToken getNewEndToken(SyntaxToken endToken, TextSpan currentDiagnosticSpan) => includeEndTokenChange
-                        ? GetNewTokenWithModifiedPragma(endToken, currentDiagnosticSpan, add, toggle, indexOfTrailingPragmaEnableToRemove, isStartToken: false)
+                        ? GetNewTokenWithModifiedPragma(endToken, currentDiagnosticSpan, add, toggle, indexOfTrailingPragmaEnableToRemove, isStartToken: false, cancellationToken)
                         : endToken;
 
                     return await PragmaHelpers.GetChangeDocumentWithPragmaAdjustedAsync(
@@ -151,22 +155,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     return false;
                 }
 
-                private SyntaxToken GetNewTokenWithModifiedPragma(SyntaxToken token, TextSpan currentDiagnosticSpan, bool add, bool toggle, int indexOfTriviaToRemoveOrToggle, bool isStartToken)
+                private SyntaxToken GetNewTokenWithModifiedPragma(SyntaxToken token, TextSpan currentDiagnosticSpan, bool add, bool toggle, int indexOfTriviaToRemoveOrToggle, bool isStartToken, CancellationToken cancellationToken)
                 {
                     return add
-                        ? GetNewTokenWithAddedPragma(token, currentDiagnosticSpan, isStartToken)
+                        ? GetNewTokenWithAddedPragma(token, currentDiagnosticSpan, isStartToken, cancellationToken)
                         : GetNewTokenWithRemovedOrToggledPragma(token, indexOfTriviaToRemoveOrToggle, isStartToken, toggle);
                 }
 
-                private SyntaxToken GetNewTokenWithAddedPragma(SyntaxToken token, TextSpan currentDiagnosticSpan, bool isStartToken)
+                private SyntaxToken GetNewTokenWithAddedPragma(SyntaxToken token, TextSpan currentDiagnosticSpan, bool isStartToken, CancellationToken cancellationToken)
                 {
                     if (isStartToken)
                     {
-                        return PragmaHelpers.GetNewStartTokenWithAddedPragma(token, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, isRemoveSuppression: true);
+                        return PragmaHelpers.GetNewStartTokenWithAddedPragma(token, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, isRemoveSuppression: true, cancellationToken);
                     }
                     else
                     {
-                        return PragmaHelpers.GetNewEndTokenWithAddedPragma(token, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, isRemoveSuppression: true);
+                        return PragmaHelpers.GetNewEndTokenWithAddedPragma(token, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, isRemoveSuppression: true, cancellationToken);
                     }
                 }
 
@@ -213,8 +217,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 public SyntaxToken StartToken_TestOnly => _suppressionTargetInfo.StartToken;
                 public SyntaxToken EndToken_TestOnly => _suppressionTargetInfo.EndToken;
 
-                private SyntaxNode FormatNode(SyntaxNode node)
-                    => Formatter.Format(node, _document.Project.Solution.Workspace);
+                private SyntaxNode FormatNode(SyntaxNode node, CancellationToken cancellationToken)
+                    => Formatter.Format(node, _document.Project.Solution.Workspace.Services, _options, cancellationToken);
             }
         }
     }

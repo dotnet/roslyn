@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -19,8 +20,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
-    using static SyntaxFactory;
-
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseNotPattern), Shared]
     internal partial class CSharpUseNotPatternCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
@@ -43,20 +42,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             return Task.CompletedTask;
         }
 
-        protected override Task FixAllAsync(
+        protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                ProcessDiagnostic(editor, diagnostic, cancellationToken);
+                ProcessDiagnostic(semanticModel, editor, diagnostic, cancellationToken);
             }
-
-            return Task.CompletedTask;
         }
 
         private static void ProcessDiagnostic(
+            SemanticModel semanticModel,
             SyntaxEditor editor,
             Diagnostic diagnostic,
             CancellationToken cancellationToken)
@@ -65,20 +64,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             var notExpression = (PrefixUnaryExpressionSyntax)notExpressionLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
             var parenthesizedExpression = (ParenthesizedExpressionSyntax)notExpression.Operand;
-            var oldExpression = parenthesizedExpression.Expression;
 
-            var updatedPattern = oldExpression switch
-            {
-                IsPatternExpressionSyntax isPattern => isPattern.WithPattern(UnaryPattern(Token(SyntaxKind.NotKeyword), isPattern.Pattern)),
-                BinaryExpressionSyntax { Right: TypeSyntax type } binaryIsExpression
-                    => IsPatternExpression(binaryIsExpression.Left, UnaryPattern(Token(SyntaxKind.NotKeyword), TypePattern(type))),
-                _ => throw ExceptionUtilities.UnexpectedValue(oldExpression)
-            };
+            var negated = editor.Generator.Negate(
+                CSharpSyntaxGeneratorInternal.Instance,
+                parenthesizedExpression.Expression,
+                semanticModel,
+                cancellationToken);
 
             editor.ReplaceNode(
                 notExpression,
-                updatedPattern.WithPrependedLeadingTrivia(notExpression.GetLeadingTrivia())
-                              .WithAppendedTrailingTrivia(notExpression.GetTrailingTrivia()));
+                negated.WithPrependedLeadingTrivia(notExpression.GetLeadingTrivia())
+                       .WithAppendedTrailingTrivia(notExpression.GetTrailingTrivia()));
         }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction

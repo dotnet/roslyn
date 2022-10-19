@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             result.AddRange(await FindDocumentsAsync(
                 project, documents, symbol.SpecialType.ToPredefinedType(), cancellationToken).ConfigureAwait(false));
 
-            result.AddRange(await FindDocumentsWithGlobalAttributesAsync(
+            result.AddRange(await FindDocumentsWithGlobalSuppressMessageAttributeAsync(
                 project, documents, cancellationToken).ConfigureAwait(false));
 
             return result.ToImmutable();

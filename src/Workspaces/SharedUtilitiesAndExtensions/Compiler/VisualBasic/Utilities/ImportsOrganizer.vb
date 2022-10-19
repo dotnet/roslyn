@@ -9,13 +9,12 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
     Partial Friend Class ImportsOrganizer
-        Private Shared ReadOnly s_newLine As SyntaxTrivia = SyntaxFactory.CarriageReturnLineFeed
-
         Public Shared Function Organize([imports] As SyntaxList(Of ImportsStatementSyntax),
                                         placeSystemNamespaceFirst As Boolean,
-                                        separateGroups As Boolean) As SyntaxList(Of ImportsStatementSyntax)
+                                        separateGroups As Boolean,
+                                        newLineTrivia As SyntaxTrivia) As SyntaxList(Of ImportsStatementSyntax)
 
-            [imports] = OrganizeWorker([imports], placeSystemNamespaceFirst)
+            [imports] = OrganizeWorker([imports], placeSystemNamespaceFirst, newLineTrivia)
 
             If separateGroups Then
                 For i = 1 To [imports].Count - 1
@@ -25,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                     If NeedsGrouping(lastImport, currentImport) AndAlso
                        Not currentImport.GetLeadingTrivia().Any(Function(t) t.IsEndOfLine()) Then
                         [imports] = [imports].Replace(
-                        currentImport, currentImport.WithPrependedLeadingTrivia(s_newLine))
+                        currentImport, currentImport.WithPrependedLeadingTrivia(newLineTrivia))
                     End If
                 Next
             End If
@@ -71,7 +70,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         End Function
 
         Public Shared Function OrganizeWorker([imports] As SyntaxList(Of ImportsStatementSyntax),
-                                              placeSystemNamespaceFirst As Boolean) As SyntaxList(Of ImportsStatementSyntax)
+                                              placeSystemNamespaceFirst As Boolean,
+                                              newLineTrivia As SyntaxTrivia) As SyntaxList(Of ImportsStatementSyntax)
             If [imports].Count > 1 Then
                 Dim initialList = New List(Of ImportsStatementSyntax)([imports])
                 If Not [imports].SpansPreprocessorDirective() Then
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                     ' not, then we don't need to make any changes to the file.
                     If Not finalList.SequenceEqual(initialList) Then
                         '' Make sure newlines are correct between nodes.
-                        EnsureNewLines(finalList)
+                        EnsureNewLines(finalList, newLineTrivia)
 
                         ' Reattach the banner.
                         finalList(0) = finalList(0).WithLeadingTrivia(leadingTrivia.Concat(finalList(0).GetLeadingTrivia()).ToSyntaxTriviaList())
@@ -101,9 +101,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             Return [imports]
         End Function
 
-        Private Shared Sub EnsureNewLines(list As List(Of ImportsStatementSyntax))
+        Private Shared Sub EnsureNewLines(list As List(Of ImportsStatementSyntax), newLineTrivia As SyntaxTrivia)
             Dim endOfLine = GetExistingEndOfLineTrivia(list)
-            endOfLine = If(endOfLine.Kind = SyntaxKind.None, s_newLine, endOfLine)
+            endOfLine = If(endOfLine.Kind = SyntaxKind.None, newLineTrivia, endOfLine)
 
             For i = 0 To list.Count - 1
                 If Not list(i).GetTrailingTrivia().Any(SyntaxKind.EndOfLineTrivia) Then

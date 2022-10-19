@@ -7121,6 +7121,18 @@ class C
     Diagnostic("IDE0059"));
         }
 
+        [WorkItem(60030, "https://github.com/dotnet/roslyn/issues/60030")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task UnusedLocal_ForEach_TopLevelStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"var items = new[] { new { x = 1 } };
+
+foreach (var [|item|] in items)
+{
+}", PreferDiscard, new CSharpParseOptions(LanguageVersion.CSharp9));
+        }
+
         [WorkItem(32923, "https://github.com/dotnet/roslyn/issues/32923")]
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData("_", nameof(PreferDiscard))]

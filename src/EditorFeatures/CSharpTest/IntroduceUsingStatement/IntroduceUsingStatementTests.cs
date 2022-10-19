@@ -143,6 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         using (var name = disposable)
         {
         }
+
         var ignore = disposable;
     }
 }");
@@ -167,6 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         using (var name = disposable)
         {
         }
+
         var ignore = disposable;
     }
 }");
@@ -417,6 +419,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
             M(null);
             M(x);
         }
+
         M(null);
     }
 }");
@@ -478,6 +481,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
                 {
                     M(x);
                 }
+
                 break;
         }
     }
@@ -549,6 +553,7 @@ class C
             var buffer = reader.GetBuffer();
             buffer.Clone();
         }
+
         var a = 1;
     }
 }");
@@ -592,6 +597,7 @@ class C
             var a = number;
             var b = a;
         }
+
         var c = 1;
     }
 }");
@@ -635,6 +641,7 @@ class C
             var a = number;
             var b = a;
         }
+
         var c = 1;
     }
 }");
@@ -670,6 +677,7 @@ class C
             int a = buffer[0], b = a;
             var c = b;
         }
+
         var d = 1;
     }
 }");

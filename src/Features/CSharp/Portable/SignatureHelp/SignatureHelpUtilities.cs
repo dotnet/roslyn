@@ -46,6 +46,17 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     ? argument.NameColon.Name.Identifier.ValueText
                     : argument.NameEquals?.Name.Identifier.ValueText);
 
+        internal static SignatureHelpState? GetSignatureHelpState(BaseArgumentListSyntax argumentList, int position, int parameterIndex)
+        {
+            var result = GetSignatureHelpState(argumentList, position);
+            if (result is not null && parameterIndex >= 0)
+            {
+                result.ArgumentIndex = parameterIndex;
+            }
+
+            return result;
+        }
+
         internal static SignatureHelpState? GetSignatureHelpState(BaseArgumentListSyntax argumentList, int position)
         {
             return CommonSignatureHelpUtilities.GetSignatureHelpState(

@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.ArgumentProv
 
                 // Built-in providers
                 typeof(ContextVariableArgumentProvider),
+                typeof(OutVariableArgumentProvider),
                 typeof(DefaultArgumentProvider),
 
                 // Marker for end of built-in argument providers

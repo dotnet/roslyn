@@ -27,7 +27,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
         Protected Overrides Sub AddReplacements(semanticModel As SemanticModel,
                                                 root As SyntaxNode,
                                                 spans As ImmutableArray(Of TextSpan),
-                                                workspace As Workspace,
                                                 replacements As ConcurrentDictionary(Of SyntaxToken, SyntaxToken),
                                                 cancellationToken As CancellationToken)
             For Each span In spans

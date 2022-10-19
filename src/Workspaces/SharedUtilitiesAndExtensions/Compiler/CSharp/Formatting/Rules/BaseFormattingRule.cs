@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         protected static void AddBraceSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
             var bracePair = node.GetBracePair();
-            if (!bracePair.IsValidBracePair())
+            if (!bracePair.IsValidBracketOrBracePair())
             {
                 return;
             }

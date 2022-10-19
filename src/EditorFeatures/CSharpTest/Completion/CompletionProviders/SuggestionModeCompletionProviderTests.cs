@@ -1474,7 +1474,7 @@ class P
             {
                 var completionList = await service.GetTestAccessor().GetContextAsync(
                     provider, document, position, triggerInfo,
-                    options: null, cancellationToken: CancellationToken.None);
+                    options: CompletionOptions.Default, cancellationToken: CancellationToken.None);
 
                 if (isBuilder)
                 {

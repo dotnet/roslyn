@@ -2241,7 +2241,7 @@ using System;
 class B
 {
 
-    delegate int del(int i);
+    delegate int @del(int i);
     static void Main(string[] args)
     {
         del myDelegate = x =>

@@ -703,7 +703,7 @@ public class C
     }
     static void TestMethod() => Console.WriteLine(""In TestMethod"");
 }
-", expectedOutput: @"
+", parseOptions: TestOptions.Regular10, expectedOutput: @"
 In TestMethod
 In TestMethod
 ").VerifyIL("C.Main()", @"

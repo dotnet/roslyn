@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Host
             // and .NET Core Windows. For non-Windows .NET Core scenarios, we can return the TrivialTemporaryStorageService
             // until https://github.com/dotnet/runtime/issues/30878 is fixed.
             return PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono
-                ? (ITemporaryStorageService)new TemporaryStorageService(textFactory)
+                ? new TemporaryStorageService(textFactory)
                 : TrivialTemporaryStorageService.Instance;
         }
 
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     if (_memoryMappedInfo != null)
                     {
-                        throw new InvalidOperationException();
+                        throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
                     }
 
                     using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteText, cancellationToken))

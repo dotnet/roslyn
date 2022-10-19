@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             End If
 
             Dim typeStatement = typeBlock.BlockStatement
-            typeDeclaration = typeStatement
+            typeDeclaration = typeBlock
 
             Dim lastToken = If(typeStatement.TypeParameterList?.GetLastToken(), typeStatement.Identifier)
             If fullHeader Then

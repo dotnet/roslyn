@@ -32,8 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var namespaces = GetNamespacesToReplace(document, root, optionSet);
-            return await document.ReplaceNodesAsync(namespaces, (oldNode, newNode) => ConvertNamespaceTransform.Convert((BaseNamespaceDeclarationSyntax)newNode), cancellationToken).ConfigureAwait(false);
+            var namespaces = GetNamespacesToReplace(document, root, optionSet).ToList();
+            if (namespaces.Count != 1)
+                return document;
+
+            return await ConvertNamespaceTransform.ConvertAsync(document, namespaces[0], cancellationToken).ConfigureAwait(false);
         }
 
         private static IEnumerable<BaseNamespaceDeclarationSyntax> GetNamespacesToReplace(Document document, CompilationUnitSyntax root, DocumentOptionSet optionSet)

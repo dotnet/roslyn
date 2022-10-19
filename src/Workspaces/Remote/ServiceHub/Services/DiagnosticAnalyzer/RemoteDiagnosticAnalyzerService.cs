@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
@@ -32,6 +33,21 @@ namespace Microsoft.CodeAnalysis.Remote
         public RemoteDiagnosticAnalyzerService(in ServiceConstructionArguments arguments)
             : base(arguments)
         {
+        }
+
+        /// <summary>
+        /// Remote API.
+        /// </summary>
+        public ValueTask StartSolutionCrawlerAsync(CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(cancellationToken =>
+            {
+                // register solution crawler:
+                var workspace = GetWorkspace();
+                workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Register(workspace);
+
+                return ValueTaskFactory.CompletedTask;
+            }, cancellationToken);
         }
 
         /// <summary>
@@ -58,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         : null;
                     var documentSpan = arguments.DocumentSpan;
                     var documentAnalysisKind = arguments.DocumentAnalysisKind;
-                    var diagnosticComputer = new DiagnosticComputer(document, project, documentSpan, documentAnalysisKind, _analyzerInfoCache);
+                    var diagnosticComputer = new DiagnosticComputer(document, project, arguments.IdeOptions, documentSpan, documentAnalysisKind, _analyzerInfoCache);
 
                     var result = await diagnosticComputer.GetDiagnosticsAsync(
                         arguments.AnalyzerIds,

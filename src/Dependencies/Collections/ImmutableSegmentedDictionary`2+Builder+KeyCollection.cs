@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Collections
                     => _dictionary.ContainsKey(item);
 
                 public void CopyTo(TKey[] array, int arrayIndex)
-                    => ((ICollection<TKey>)_dictionary.ReadOnlyDictionary.Keys).CopyTo(array, arrayIndex);
+                    => _dictionary.ReadOnlyDictionary.Keys.CopyTo(array, arrayIndex);
 
                 public ImmutableSegmentedDictionary<TKey, TValue>.KeyCollection.Enumerator GetEnumerator()
                     => new(_dictionary.GetEnumerator());

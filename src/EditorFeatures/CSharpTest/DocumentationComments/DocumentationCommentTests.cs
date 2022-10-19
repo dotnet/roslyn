@@ -706,6 +706,48 @@ C()
             VerifyTypingCharacter(code, expected);
         }
 
+        [WorkItem(59081, "https://github.com/dotnet/roslyn/issues/59081")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_NotInTopLevel()
+        {
+            var code = @"
+using System;
+
+//$$
+Console.WriteLine();
+";
+
+            var expected = @"
+using System;
+
+///$$
+Console.WriteLine();
+";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WorkItem(59081, "https://github.com/dotnet/roslyn/issues/59081")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_NotInNamespace()
+        {
+            var code = @"
+using System;
+
+//$$
+namespace NS { }
+";
+
+            var expected = @"
+using System;
+
+///$$
+namespace NS { }
+";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertComment_Class1()
         {
@@ -2246,6 +2288,46 @@ class C { }";
                 TestWorkspace.CreateCSharp("").GetService<IEditorOptionsFactoryService>().GlobalOptions
                         .SetOptionValue(DefaultOptions.TrimTrailingWhiteSpaceOptionName, false);
             }
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_Class_WithComment()
+        {
+            var code =
+@"//$$ This is my class and it does great things.
+class C
+{
+}";
+
+            var expected =
+@"/// <summary>
+/// $$This is my class and it does great things.
+/// </summary>
+class C
+{
+}";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_Class_WithComment_NoSpace()
+        {
+            var code =
+@"//$$This is my class and it does great things.
+class C
+{
+}";
+
+            var expected =
+@"/// <summary>
+/// $$This is my class and it does great things.
+/// </summary>
+class C
+{
+}";
+
+            VerifyTypingCharacter(code, expected);
         }
 
         protected override char DocumentationCommentCharacter

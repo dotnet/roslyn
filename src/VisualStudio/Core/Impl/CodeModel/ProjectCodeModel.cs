@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
@@ -110,5 +109,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         EnvDTE.FileCodeModel IProjectCodeModel.GetOrCreateFileCodeModel(string filePath, object parent)
             => this.GetOrCreateFileCodeModel(filePath, parent).Handle;
+
+        public EnvDTE.FileCodeModel CreateFileCodeModel(SourceGeneratedDocument sourceGeneratedDocument)
+        {
+            // Unlike for "regular" documents, we make no effort to cache these between callers or hold them for longer lifetimes with
+            // events.
+            return FileCodeModel.Create(GetCodeModelCache().State, parent: null, sourceGeneratedDocument.Id, isSourceGeneratorOutput: true, new TextManagerAdapter()).Handle;
+        }
     }
 }

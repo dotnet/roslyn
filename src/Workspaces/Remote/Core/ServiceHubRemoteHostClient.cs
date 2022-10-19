@@ -7,12 +7,14 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.ServiceHub.Client;
 using Microsoft.ServiceHub.Framework;
@@ -32,12 +34,11 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly IRemoteHostClientShutdownCancellationService? _shutdownCancellationService;
         private readonly IRemoteServiceCallbackDispatcherProvider _callbackDispatcherProvider;
 
-        private readonly bool _isRemoteHostServerGC;
-        private readonly bool _isRemoteHostCoreClr;
+        public readonly RemoteProcessConfiguration Configuration;
 
         private ServiceHubRemoteHostClient(
             HostWorkspaceServices services,
-            IGlobalOptionService globalOptions,
+            RemoteProcessConfiguration configuration,
             ServiceBrokerClient serviceBrokerClient,
             HubClient hubClient,
             IRemoteServiceCallbackDispatcherProvider callbackDispatcherProvider)
@@ -53,13 +54,12 @@ namespace Microsoft.CodeAnalysis.Remote
             _assetStorage = services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
             _errorReportingService = services.GetService<IErrorReportingService>();
             _shutdownCancellationService = services.GetService<IRemoteHostClientShutdownCancellationService>();
-            _isRemoteHostServerGC = RemoteHostOptions.IsServiceHubProcessServerGC(globalOptions);
-            _isRemoteHostCoreClr = RemoteHostOptions.IsServiceHubProcessCoreClr(globalOptions);
+            Configuration = configuration;
         }
 
         public static async Task<RemoteHostClient> CreateAsync(
             HostWorkspaceServices services,
-            IGlobalOptionService globalOptions,
+            RemoteProcessConfiguration configuration,
             AsynchronousOperationListenerProvider listenerProvider,
             IServiceBroker serviceBroker,
             RemoteServiceCallbackDispatcherRegistry callbackDispatchers,
@@ -74,7 +74,22 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var hubClient = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
 
-                var client = new ServiceHubRemoteHostClient(services, globalOptions, serviceBrokerClient, hubClient, callbackDispatchers);
+                var client = new ServiceHubRemoteHostClient(services, configuration, serviceBrokerClient, hubClient, callbackDispatchers);
+
+                var syntaxTreeConfigurationService = services.GetService<ISyntaxTreeConfigurationService>();
+                if (syntaxTreeConfigurationService != null)
+                {
+                    await client.TryInvokeAsync<IRemoteProcessTelemetryService>(
+                        (service, cancellationToken) => service.SetSyntaxTreeConfigurationOptionsAsync(syntaxTreeConfigurationService.DisableRecoverableTrees, syntaxTreeConfigurationService.DisableProjectCacheService, syntaxTreeConfigurationService.EnableOpeningSourceGeneratedFilesInWorkspace, cancellationToken),
+                        cancellationToken).ConfigureAwait(false);
+                }
+
+                if (configuration.HasFlag(RemoteProcessConfiguration.EnableSolutionCrawler))
+                {
+                    await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService>(
+                        (service, cancellationToken) => service.StartSolutionCrawlerAsync(cancellationToken),
+                        cancellationToken).ConfigureAwait(false);
+                }
 
                 await client.TryInvokeAsync<IRemoteAsynchronousOperationListenerService>(
                     (service, cancellationToken) => service.EnableAsync(AsynchronousOperationListenerProvider.IsEnabled, listenerProvider.DiagnosticTokensEnabled, cancellationToken),
@@ -96,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         internal RemoteServiceConnection<T> CreateConnection<T>(ServiceDescriptors descriptors, IRemoteServiceCallbackDispatcherProvider callbackDispatcherProvider, object? callbackTarget) where T : class
         {
-            var descriptor = descriptors.GetServiceDescriptor(typeof(T), _isRemoteHostServerGC, _isRemoteHostCoreClr);
+            var descriptor = descriptors.GetServiceDescriptor(typeof(T), Configuration);
             var callbackDispatcher = (descriptor.ClientInterface != null) ? callbackDispatcherProvider.GetDispatcher(typeof(T)) : null;
 
             return new BrokeredServiceConnection<T>(

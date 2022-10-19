@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Returns a sequence of sets, where each set contains items with shared interdependency,
-        /// and there is no dependency between sets.
+        /// and there is no dependency between sets.  Each set returned will sorted in topological order.
         /// </summary>
         public IEnumerable<IEnumerable<ProjectId>> GetDependencySets(CancellationToken cancellationToken = default)
         {

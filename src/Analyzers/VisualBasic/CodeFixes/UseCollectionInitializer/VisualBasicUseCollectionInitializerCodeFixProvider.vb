@@ -59,12 +59,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             Return UseInitializerHelpers.GetNewObjectCreation(
                 objectCreation,
                 SyntaxFactory.ObjectCollectionInitializer(
-                    CreateCollectionInitializer(matches)))
+                    CreateCollectionInitializer(objectCreation, matches)))
         End Function
 
         Private Shared Function CreateCollectionInitializer(
+                objectCreation As ObjectCreationExpressionSyntax,
                 matches As ImmutableArray(Of ExpressionStatementSyntax)) As CollectionInitializerSyntax
-            Dim nodesAndTokens = New List(Of SyntaxNodeOrToken)
+            Dim nodesAndTokens = ArrayBuilder(Of SyntaxNodeOrToken).GetInstance()
+
+            AddExistingItems(objectCreation, nodesAndTokens)
 
             For i = 0 To matches.Length - 1
                 Dim expressionStatement = matches(i)
@@ -94,10 +97,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
                 End If
             Next
 
-            Return SyntaxFactory.CollectionInitializer(
+            Dim result = SyntaxFactory.CollectionInitializer(
                 SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed),
                 SyntaxFactory.SeparatedList(Of ExpressionSyntax)(nodesAndTokens),
                 SyntaxFactory.Token(SyntaxKind.CloseBraceToken))
+            nodesAndTokens.Free()
+            Return result
         End Function
     End Class
 End Namespace

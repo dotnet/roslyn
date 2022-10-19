@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -19,7 +17,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Debugging
 {
     [ExportLanguageService(typeof(IBreakpointResolutionService), LanguageNames.CSharp), Shared]
-    internal partial class CSharpBreakpointResolutionService : IBreakpointResolutionService
+    internal sealed class CSharpBreakpointResolutionService : IBreakpointResolutionService
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -30,12 +28,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
         /// <summary>
         /// Returns null if a breakpoint can't be placed at the specified position.
         /// </summary>
-        public async Task<BreakpointResolutionResult> ResolveBreakpointAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        public async Task<BreakpointResolutionResult?> ResolveBreakpointAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             try
             {
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                if (!BreakpointSpans.TryGetBreakpointSpan(tree, textSpan.Start, cancellationToken, out var span))
+                if (tree == null || !BreakpointSpans.TryGetBreakpointSpan(tree, textSpan.Start, cancellationToken, out var span))
                 {
                     return null;
                 }

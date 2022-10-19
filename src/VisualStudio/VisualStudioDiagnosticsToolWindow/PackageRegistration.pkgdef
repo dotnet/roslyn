@@ -7,42 +7,6 @@
 
 // The option page configuration is duplicated on VisualStudioDiagnosticsWindowPackage type definition.
 
-[$RootKey$\ToolsOptionsPages\Roslyn\Diagnostics]
-@="#0"
-"Package"="{49e24138-9ee3-49e0-8ede-6b39f49303bf}"
-
-[$RootKey$\ToolsOptionsPages\Roslyn\Diagnostics\Internal]
-@="#0"
-"Package"="{49e24138-9ee3-49e0-8ede-6b39f49303bf}"
-"Page"="{48993c4c-c619-42ad-b1c8-79378ad8bef2}"
-
-[$RootKey$\AutomationProperties\Roslyn\Diagnostics]
-"Package"="{49e24138-9ee3-49e0-8ede-6b39f49303bf}"
-
-[$RootKey$\AutomationProperties\Roslyn\Diagnostics\Internal]
-"Package"="{49e24138-9ee3-49e0-8ede-6b39f49303bf}"
-
-[$RootKey$\AutomationProperties\Roslyn\Diagnostics\Internal]
-"Name"="Roslyn\Diagnostics.Internal"
-
-[$RootKey$\ToolsOptionsPages\Roslyn\Experimentation]
-@="#0"
-"Package"="{49e24138-9ee3-49e0-8ede-6b39f49303bf}"
-
-[$RootKey$\ToolsOptionsPages\Roslyn\Experimentation\Internal]
-@="#0"
-"Package"="{49e24138-9ee3-49e0-8ede-6b39f49303bf}"
-"Page"="{d5aa7ed7-85e2-42a0-9bf6-22aef1c1ed8c}"
-
-[$RootKey$\AutomationProperties\Roslyn\Experimentation]
-"Package"="{49e24138-9ee3-49e0-8ede-6b39f49303bf}"
-
-[$RootKey$\AutomationProperties\Roslyn\Experimentation\Internal]
-"Package"="{49e24138-9ee3-49e0-8ede-6b39f49303bf}"
-
-[$RootKey$\AutomationProperties\Roslyn\Experimentation\Internal]
-"Name"="Roslyn\Experimentation.Internal"
-
 [$RootKey$\ToolsOptionsPages\Roslyn\FeatureManager]
 @="#0"
 "Package"="{49e24138-9ee3-49e0-8ede-6b39f49303bf}"
@@ -114,24 +78,6 @@
 
 [$RootKey$\AutomationProperties\Roslyn\Performance\Loggers]
 "Name"="Roslyn\Performance.Loggers"
-
-[$RootKey$\ToolsOptionsPages\Roslyn\SolutionCrawler]
-@="#0"
-"Package"="{49e24138-9ee3-49e0-8ede-6b39f49303bf}"
-
-[$RootKey$\ToolsOptionsPages\Roslyn\SolutionCrawler\Internal]
-@="#0"
-"Package"="{49e24138-9ee3-49e0-8ede-6b39f49303bf}"
-"Page"="{9702d3bd-f06c-4a6a-974b-7d0c2bc89a72}"
-
-[$RootKey$\AutomationProperties\Roslyn\SolutionCrawler]
-"Package"="{49e24138-9ee3-49e0-8ede-6b39f49303bf}"
-
-[$RootKey$\AutomationProperties\Roslyn\SolutionCrawler\Internal]
-"Package"="{49e24138-9ee3-49e0-8ede-6b39f49303bf}"
-
-[$RootKey$\AutomationProperties\Roslyn\SolutionCrawler\Internal]
-"Name"="Roslyn\SolutionCrawler.Internal"
 
 [$RootKey$\ToolWindows\{b2da68d7-fd1c-491a-a9a0-24f597b9f56c}]
 @="{49e24138-9ee3-49e0-8ede-6b39f49303bf}"

@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Diagnostics.VisualBasic
                     Continue For
                 End If
 
-                If errorCode > ERRID.ERR_None AndAlso errorCode < ERRID.ERRWRN_NextAvailable Then
+                If errorCode > ERRID.ERR_None AndAlso errorCode < ERRID.WRN_NextAvailable Then
                     builder.Add(errorCode)
                 End If
             Next

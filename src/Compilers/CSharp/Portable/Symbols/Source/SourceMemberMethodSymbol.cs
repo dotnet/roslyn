@@ -231,6 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert((object)containingType != null);
             Debug.Assert(!locations.IsEmpty);
+            Debug.Assert(containingType.DeclaringCompilation is not null);
 
             _containingType = containingType;
             this.locations = locations;
@@ -837,6 +838,11 @@ done:
                 ShouldEmitNullableContextValue(out _))
             {
                 compilation.EnsureNullableContextAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
+
+            foreach (var parameter in Parameters)
+            {
+                ParameterHelpers.ReportParameterNullCheckingErrors(diagnostics.DiagnosticBag, parameter);
             }
         }
 

@@ -6,6 +6,7 @@ using System;
 using System.ComponentModel;
 using System.Globalization;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
@@ -53,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 get
                 {
-                    return _diagnosticItem.GetHelpLink()?.AbsoluteUri;
+                    return _diagnosticItem.Descriptor.GetValidHelpLinkUri()?.AbsoluteUri;
                 }
             }
 
@@ -127,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 get { return _diagnosticItem; }
             }
 
-            private string MapDiagnosticSeverityToText(DiagnosticSeverity severity)
+            private static string MapDiagnosticSeverityToText(DiagnosticSeverity severity)
                 => severity switch
                 {
                     DiagnosticSeverity.Hidden => SolutionExplorerShim.Hidden,
@@ -137,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     _ => throw ExceptionUtilities.UnexpectedValue(severity),
                 };
 
-            private string MapReportDiagnosticToText(ReportDiagnostic report)
+            private static string MapReportDiagnosticToText(ReportDiagnostic report)
                 => report switch
                 {
                     ReportDiagnostic.Default => SolutionExplorerShim.Default_,

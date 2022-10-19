@@ -472,6 +472,31 @@ const int z = 3;
         }
 
         [Fact]
+        public async Task StaticDelegate0()
+        {
+            var state0 = await CSharpScript.RunAsync("static int Add(int x, int y) => x + y;", options: ScriptOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var state1 = await state0.ContinueWithAsync("System.Func<int, int, int> adder = Add;");
+            var state2 = await state1.ContinueWithAsync("adder(1, 1)");
+            Assert.Equal(2, state2.ReturnValue);
+        }
+
+        [Fact]
+        public async Task StaticDelegate1()
+        {
+            var state0 = await CSharpScript.RunAsync("class Id<T> { static T Core(T t) => t; public static System.Func<T, T> Get => Core; }");
+            var state1 = await state0.ContinueWithAsync("Id<int>.Get(1)");
+            Assert.Equal(1, state1.ReturnValue);
+        }
+
+        [Fact]
+        public async Task StaticDelegate2()
+        {
+            var state0 = await CSharpScript.RunAsync("class Id { static T Core<T>(T t) => t; public static System.Func<T, T> Get<T>() => Core; }");
+            var state1 = await state0.ContinueWithAsync("Id.Get<int>()(1)");
+            Assert.Equal(1, state1.ReturnValue);
+        }
+
+        [Fact]
         public async Task ReturnIntAsObject()
         {
             var expected = 42;

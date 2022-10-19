@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
             var cancellationToken = context.CancellationToken;
 
             // Not available prior to C# 9.
-            if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp9)
+            if (syntaxTree.Options.LanguageVersion() < LanguageVersion.CSharp9)
                 return;
 
             var optionSet = options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
@@ -111,6 +111,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
                 return;
 
             if (leftType.IsErrorType() || rightType.IsErrorType())
+                return;
+
+            // `new T?()` cannot be simplified to `new()`.  Even if the contextual type is `T?`, `new()` will be
+            // interpetted as `new T()` which is a change in semantics.
+            if (rightType.IsNullable())
                 return;
 
             // The default SymbolEquivalenceComparer will ignore tuple name differences, which is advantageous here

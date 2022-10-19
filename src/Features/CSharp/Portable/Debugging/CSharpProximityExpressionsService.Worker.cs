@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             {
                 // If it's an instance member, then also add "this".
                 var memberDeclaration = _parentStatement.GetAncestorOrThis<MemberDeclarationSyntax>();
-                if (!memberDeclaration.GetModifiers().Any(SyntaxKind.StaticKeyword))
+                if (!memberDeclaration.IsKind(SyntaxKind.GlobalStatement) && !memberDeclaration.GetModifiers().Any(SyntaxKind.StaticKeyword))
                 {
                     _expressions.Add("this");
                 }
@@ -118,6 +118,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
                 {
                     var parameterList = ((MemberDeclarationSyntax)block.Parent).GetParameterList();
                     AddParameters(parameterList);
+                }
+                else if (block is null
+                    && _parentStatement.Parent is GlobalStatementSyntax { Parent: CompilationUnitSyntax compilationUnit } globalStatement
+                    && compilationUnit.Members.FirstOrDefault() == globalStatement)
+                {
+                    _expressions.Add("args");
                 }
             }
 

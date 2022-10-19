@@ -98,10 +98,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             return false;
         }
 
-        INamedTypeSymbol IAssemblySymbol.GetTypeByMetadataName(string metadataName)
+#nullable enable
+        INamedTypeSymbol? IAssemblySymbol.GetTypeByMetadataName(string metadataName)
         {
             return UnderlyingAssemblySymbol.GetTypeByMetadataName(metadataName).GetPublicSymbol();
         }
+#nullable disable
 
         #region ISymbol Members
 

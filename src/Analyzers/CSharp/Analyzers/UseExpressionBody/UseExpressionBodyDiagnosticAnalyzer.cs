@@ -108,14 +108,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                     location, severity, additionalLocations: additionalLocations, properties: properties);
             }
 
-            var (canOffer, fixesError) = helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: true);
-            if (canOffer)
+            if (helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: true, out var fixesError, out var expressionBody))
             {
                 // They have an expression body.  Create a diagnostic to convert it to a block
                 // if they don't want expression bodies for this member.  
                 var location = severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden
                     ? declaration.GetLocation()
-                    : helper.GetExpressionBody(declaration).GetLocation();
+                    : expressionBody.GetLocation();
 
                 var properties = ImmutableDictionary<string, string?>.Empty;
                 if (fixesError)

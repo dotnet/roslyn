@@ -25,12 +25,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
         Public Shared Function FindEntryPoints(symbol As INamespaceSymbol, findFormsOnly As Boolean) As IEnumerable(Of INamedTypeSymbol)
             Dim visitor = New EntryPointFinder(findFormsOnly)
-            visitor.Visit(symbol)
+            ' Only search source symbols
+            visitor.Visit(symbol.ContainingCompilation.SourceModule.GlobalNamespace)
             Return visitor.EntryPoints
         End Function
 
         Public Overrides Sub VisitNamedType(symbol As INamedTypeSymbol)
-            ' It's a form if it Inherits System.Windows.Forms.Form. 
+            ' It's a form if it Inherits System.Windows.Forms.Form.
             Dim baseType = symbol.BaseType
             While baseType IsNot Nothing
                 If baseType.ToDisplayString() = "System.Windows.Forms.Form" Then

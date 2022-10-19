@@ -1,4 +1,3 @@
-# Build on windows desktop
 parameters:
 - name: jobName
   type: string
@@ -8,6 +7,22 @@ parameters:
   default: 'Debug'
 
 steps:
+  - task: CopyFiles@2
+    displayName: Copy Test Artifacts to Logs
+    inputs:
+      contents: '$(Build.SourcesDirectory)/TestArtifacts/**'
+      targetFolder: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}'
+    continueOnError: true
+    condition: not(succeeded())
+
+  - task: CopyFiles@2
+    displayName: Copy Dumps to Logs
+    inputs:
+      contents: '$(Build.SourcesDirectory)/bin/**/*.dmp'
+      targetFolder: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}'
+    continueOnError: true
+    condition: not(succeeded())
+
   - task: PublishPipelineArtifact@1
     displayName: Publish Logs
     inputs:

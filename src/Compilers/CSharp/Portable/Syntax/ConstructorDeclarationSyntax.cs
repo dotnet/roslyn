@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxTokenList modifiers,
             SyntaxToken identifier,
             ParameterListSyntax parameterList,
-            ConstructorInitializerSyntax initializer,
+            ConstructorInitializerSyntax? initializer,
             BlockSyntax body)
             => ConstructorDeclaration(
                 attributeLists,
@@ -56,8 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxTokenList modifiers,
             SyntaxToken identifier,
             ParameterListSyntax parameterList,
-            ConstructorInitializerSyntax initializer,
-            BlockSyntax body,
+            ConstructorInitializerSyntax? initializer,
+            BlockSyntax? body,
             SyntaxToken semicolonToken)
             => ConstructorDeclaration(
                 attributeLists,

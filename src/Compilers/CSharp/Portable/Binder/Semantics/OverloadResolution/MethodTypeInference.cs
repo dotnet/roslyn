@@ -2664,8 +2664,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (containsFunctionTypes(lower) &&
                 (containsNonFunctionTypes(lower) || containsNonFunctionTypes(exact) || containsNonFunctionTypes(upper)))
             {
-                lower = removeFunctionTypes(lower);
+                lower = removeTypes(lower, static type => isFunctionType(type, out _));
             }
+
+            // Remove any function types with no delegate type.
+            lower = removeTypes(lower, static type => isFunctionType(type, out var functionType) && functionType.GetInternalDelegateType() is null);
 
             // Optimization: if we have one exact bound then we need not add any
             // inexact bounds; we're just going to remove them anyway.
@@ -2806,12 +2809,16 @@ OuterBreak:
                 return false;
             }
 
-            static HashSet<TypeWithAnnotations>? removeFunctionTypes(HashSet<TypeWithAnnotations> types)
+            static HashSet<TypeWithAnnotations>? removeTypes(HashSet<TypeWithAnnotations>? types, Func<TypeWithAnnotations, bool> predicate)
             {
+                if (types is null)
+                {
+                    return null;
+                }
                 HashSet<TypeWithAnnotations>? updated = null;
                 foreach (var type in types)
                 {
-                    if (!isFunctionType(type, out _))
+                    if (!predicate(type))
                     {
                         updated ??= new HashSet<TypeWithAnnotations>(TypeWithAnnotations.EqualsComparer.ConsiderEverythingComparer);
                         updated.Add(type);

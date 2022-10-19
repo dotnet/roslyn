@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.BraceCompletion;
+using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -10,8 +10,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     {
         public int Formatting_TriggerOnBlockCompletion
         {
-            get { return GetBooleanOption(BraceCompletionOptions.AutoFormattingOnCloseBrace); }
-            set { SetBooleanOption(BraceCompletionOptions.AutoFormattingOnCloseBrace, value); }
+            get { return GetBooleanOption(AutoFormattingOptions.Metadata.AutoFormattingOnCloseBrace); }
+            set { SetBooleanOption(AutoFormattingOptions.Metadata.AutoFormattingOnCloseBrace, value); }
         }
     }
 }

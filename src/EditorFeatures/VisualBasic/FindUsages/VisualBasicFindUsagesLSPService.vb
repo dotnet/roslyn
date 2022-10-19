@@ -3,11 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
-Imports Microsoft.CodeAnalysis.Editor.FindUsages
-Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.Host.Mef
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.FindUsages
+Namespace Microsoft.CodeAnalysis.VisualBasic.FindUsages
     <ExportLanguageService(GetType(IFindUsagesLSPService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicFindUsagesLSPService
         Inherits AbstractFindUsagesService

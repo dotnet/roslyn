@@ -28,18 +28,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
         [Obsolete("Call overload that takes a CancellationToken", error: false)]
         bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace = 0, OptionSet options = null);
 
-        /// <inheritdoc cref="IDocumentNavigationService.CanNavigateToSpan"/>
+        /// <inheritdoc cref="IDocumentNavigationService.CanNavigateToSpanAsync"/>
         bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken);
-        /// <inheritdoc cref="IDocumentNavigationService.CanNavigateToLineAndOffset"/>
+        /// <inheritdoc cref="IDocumentNavigationService.CanNavigateToLineAndOffsetAsync"/>
         bool CanNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken);
-        /// <inheritdoc cref="IDocumentNavigationService.CanNavigateToPosition"/>
+        /// <inheritdoc cref="IDocumentNavigationService.CanNavigateToPositionAsync"/>
         bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken);
 
-        /// <inheritdoc cref="IDocumentNavigationService.TryNavigateToSpan"/>
-        bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, CancellationToken cancellationToken);
-        /// <inheritdoc cref="IDocumentNavigationService.TryNavigateToLineAndOffset"/>
-        bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, OptionSet options, CancellationToken cancellationToken);
-        /// <inheritdoc cref="IDocumentNavigationService.TryNavigateToPosition"/>
-        bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, OptionSet options, CancellationToken cancellationToken);
+        /// <inheritdoc cref="IDocumentNavigationService.TryNavigateToSpanAsync"/>
+        bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken);
+        /// <inheritdoc cref="IDocumentNavigationService.TryNavigateToLineAndOffsetAsync"/>
+        bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken);
+        /// <inheritdoc cref="IDocumentNavigationService.TryNavigateToPositionAsync"/>
+        bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken);
     }
 }

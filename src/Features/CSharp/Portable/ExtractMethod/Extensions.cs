@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             => (StatementSyntax)((node.Parent is LabeledStatementSyntax) ? node.Parent : node);
 
         public static bool IsStatementContainerNode([NotNullWhen(returnValue: true)] this SyntaxNode? node)
-            => node is BlockSyntax or SwitchSectionSyntax;
+            => node is BlockSyntax or SwitchSectionSyntax or GlobalStatementSyntax;
 
         public static BlockSyntax? GetBlockBody(this SyntaxNode? node)
         {
@@ -73,19 +73,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return false;
             }
 
-            if (node.FromScript() || node.GetAncestor<TypeDeclarationSyntax>() != null)
-            {
-                return true;
-            }
-
-            return false;
+            return true;
 
             bool predicate(SyntaxNode n)
             {
                 if (n is BaseMethodDeclarationSyntax or
                     AccessorDeclarationSyntax or
                     BlockSyntax or
-                    GlobalStatementSyntax)
+                    GlobalStatementSyntax or
+                    CompilationUnitSyntax)
                 {
                     return true;
                 }

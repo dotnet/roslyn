@@ -37,10 +37,9 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         {
             var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
             _kindsOfInterest = ImmutableArray.Create(
-                syntaxKinds.Convert<TLanguageKindEnum>(syntaxKinds.SimpleMemberAccessExpression));
+                syntaxKinds.Convert<TLanguageKindEnum>(syntaxKinds.ThisExpression));
         }
 
-        protected abstract string GetLanguageName();
         protected abstract ISyntaxFacts GetSyntaxFacts();
 
         protected abstract bool CanSimplifyTypeNameExpression(
@@ -55,23 +54,20 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             var cancellationToken = context.CancellationToken;
-            var node = (TMemberAccessExpressionSyntax)context.Node;
+            var node = (TThisExpressionSyntax)context.Node;
 
-            var syntaxFacts = GetSyntaxFacts();
-            var expr = syntaxFacts.GetExpressionOfMemberAccessExpression(node);
-            if (expr is not TThisExpressionSyntax)
+            if (node.Parent is not TMemberAccessExpressionSyntax expr)
             {
                 return;
             }
 
             var analyzerOptions = context.Options;
-
             var syntaxTree = node.SyntaxTree;
             var optionSet = analyzerOptions.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
 
             var model = context.SemanticModel;
             if (!CanSimplifyTypeNameExpression(
-                    model, node, optionSet, out var issueSpan, cancellationToken))
+                    model, expr, optionSet, out var issueSpan, cancellationToken))
             {
                 return;
             }
@@ -81,22 +77,20 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
                 return;
             }
 
-            var symbolInfo = model.GetSymbolInfo(node, cancellationToken);
+            var symbolInfo = model.GetSymbolInfo(expr, cancellationToken);
             if (symbolInfo.Symbol == null)
             {
                 return;
             }
 
             var applicableOption = QualifyMembersHelpers.GetApplicableOptionFromSymbolKind(symbolInfo.Symbol.Kind);
-            var optionValue = optionSet.GetOption(applicableOption, GetLanguageName());
+            var optionValue = optionSet.GetOption(applicableOption, model.Language);
             if (optionValue == null)
             {
                 return;
             }
 
             var severity = optionValue.Notification.Severity;
-
-            var tree = model.SyntaxTree;
             var builder = ImmutableDictionary.CreateBuilder<string, string?>();
 
             // used so we can provide a link in the preview to the options page. This value is
@@ -105,8 +99,8 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             builder["OptionLanguage"] = model.Language;
 
             var diagnostic = DiagnosticHelper.Create(
-                Descriptor, tree.GetLocation(issueSpan), severity,
-                ImmutableArray.Create(node.GetLocation()), builder.ToImmutable());
+                Descriptor, syntaxTree.GetLocation(issueSpan), severity,
+                ImmutableArray.Create(expr.GetLocation()), builder.ToImmutable());
 
             context.ReportDiagnostic(diagnostic);
         }

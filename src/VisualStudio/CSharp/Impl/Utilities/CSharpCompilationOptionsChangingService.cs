@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
@@ -28,16 +26,32 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Utilities
             var oldCSharpOptions = (CSharpCompilationOptions)oldOptions;
             var newCSharpOptions = (CSharpCompilationOptions)newOptions;
 
-            // Currently, only changes to AllowUnsafe of compilation options are supported.
-            return oldCSharpOptions.WithAllowUnsafe(newCSharpOptions.AllowUnsafe) == newOptions;
+            // Currently, only changes to AllowUnsafe and Nullable of compilation options are supported.
+            return oldCSharpOptions.WithAllowUnsafe(newCSharpOptions.AllowUnsafe).WithNullableContextOptions(newCSharpOptions.NullableContextOptions) == newOptions;
         }
 
-        public void Apply(CompilationOptions options, ProjectPropertyStorage storage)
+        public void Apply(CompilationOptions oldOptions, CompilationOptions newOptions, ProjectPropertyStorage storage)
         {
-            var csharpOptions = (CSharpCompilationOptions)options;
+            var oldCSharpOptions = (CSharpCompilationOptions)oldOptions;
+            var newCSharpOptions = (CSharpCompilationOptions)newOptions;
 
-            storage.SetProperty("AllowUnsafeBlocks", nameof(ProjectConfigurationProperties3.AllowUnsafeBlocks),
-                csharpOptions.AllowUnsafe);
+            if (newCSharpOptions.AllowUnsafe != oldCSharpOptions.AllowUnsafe)
+            {
+                storage.SetProperty("AllowUnsafeBlocks", nameof(ProjectConfigurationProperties3.AllowUnsafeBlocks),
+                    newCSharpOptions.AllowUnsafe);
+            }
+
+            if (newCSharpOptions.NullableContextOptions != oldCSharpOptions.NullableContextOptions)
+            {
+                var projectSetting = newCSharpOptions.NullableContextOptions switch
+                {
+                    NullableContextOptions.Enable => "enable",
+                    NullableContextOptions.Warnings => "warnings",
+                    NullableContextOptions.Annotations => "annotations",
+                    _ => "disable",
+                };
+                storage.SetProperty("Nullable", "Nullable", projectSetting);
+            }
         }
     }
 }

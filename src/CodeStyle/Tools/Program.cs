@@ -70,7 +70,7 @@ namespace CodeStyleConfigFileGenerator
             {
                 CreateGlobalconfig(
                     configDir,
-                    $"AnalysisLevelStyle_{analysisMode}.editorconfig",
+                    $"AnalysisLevelStyle_{analysisMode}.editorconfig".ToLowerInvariant(),
                     (AnalysisMode)analysisMode!,
                     allRulesById);
             }

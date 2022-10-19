@@ -14,14 +14,6 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class DocumentSpanExtensions
     {
-        [Obsolete("Use CanNavigateToAsync instead", error: false)]
-        public static bool CanNavigateTo(this DocumentSpan documentSpan, CancellationToken cancellationToken)
-        {
-            var workspace = documentSpan.Document.Project.Solution.Workspace;
-            var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.CanNavigateToSpan(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, cancellationToken);
-        }
-
         public static Task<bool> CanNavigateToAsync(this DocumentSpan documentSpan, CancellationToken cancellationToken)
         {
             var workspace = documentSpan.Document.Project.Solution.Workspace;
@@ -29,33 +21,17 @@ namespace Microsoft.CodeAnalysis
             return service.CanNavigateToSpanAsync(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, cancellationToken);
         }
 
-        private static (Workspace workspace, IDocumentNavigationService service, OptionSet options) GetNavigationParts(
-            DocumentSpan documentSpan, bool showInPreviewTab, bool activateTab)
+        private static (Workspace workspace, IDocumentNavigationService service) GetNavigationParts(DocumentSpan documentSpan)
         {
             var solution = documentSpan.Document.Project.Solution;
             var workspace = solution.Workspace;
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-
-            var options = solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, showInPreviewTab);
-            options = options.WithChangedOption(NavigationOptions.ActivateTab, activateTab);
-
-            return (workspace, service, options);
+            return (workspace, service);
         }
 
-        [Obsolete("Use TryNavigateToAsync instead", error: false)]
-        public static bool TryNavigateTo(this DocumentSpan documentSpan, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
+        public static Task<bool> TryNavigateToAsync(this DocumentSpan documentSpan, NavigationOptions options, CancellationToken cancellationToken)
         {
-            var (workspace, service, options) = GetNavigationParts(documentSpan, showInPreviewTab, activateTab);
-
-            // We're starting with one doc snapshot, but we're navigating to the current version of the doc.  As such,
-            // the span we're trying to navigate to may no longer be there.  Allow for that and don't crash in that case.
-            return service.TryNavigateToSpan(
-                workspace, documentSpan.Document.Id, documentSpan.SourceSpan, options, allowInvalidSpan: true, cancellationToken);
-        }
-
-        public static Task<bool> TryNavigateToAsync(this DocumentSpan documentSpan, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
-        {
-            var (workspace, service, options) = GetNavigationParts(documentSpan, showInPreviewTab, activateTab);
+            var (workspace, service) = GetNavigationParts(documentSpan);
             return service.TryNavigateToSpanAsync(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, options, cancellationToken);
         }
 

@@ -179,6 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     RefExpressionSyntax refExpression => InferTypeInRefExpression(refExpression),
                     ReturnStatementSyntax returnStatement => InferTypeForReturnStatement(returnStatement),
                     SubpatternSyntax subpattern => InferTypeInSubpattern(subpattern, node),
+                    SwitchExpressionArmSyntax arm => InferTypeInSwitchExpressionArm(arm),
                     SwitchLabelSyntax switchLabel => InferTypeInSwitchLabel(switchLabel),
                     SwitchStatementSyntax switchStatement => InferTypeInSwitchStatement(switchStatement),
                     ThrowExpressionSyntax throwExpression => InferTypeInThrowExpression(throwExpression),
@@ -2056,6 +2057,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return declarationInCurrentTree != null
                     ? currentSemanticModel.GetDeclaredSymbol(declarationInCurrentTree, CancellationToken)
                     : null;
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInSwitchExpressionArm(
+                SwitchExpressionArmSyntax arm)
+            {
+                if (arm.Parent is SwitchExpressionSyntax switchExpression)
+                {
+                    // see if we can figure out an appropriate type from a prior arm.
+                    var armIndex = switchExpression.Arms.IndexOf(arm);
+                    if (armIndex > 0)
+                    {
+                        var previousArm = switchExpression.Arms[armIndex - 1];
+                        var priorArmTypes = GetTypes(previousArm.Expression, objectAsDefault: false);
+                        if (priorArmTypes.Any())
+                            return priorArmTypes;
+                    }
+
+                    // if a prior arm gave us nothing useful, or we're the first arm, then try to infer looking at
+                    // what type gets inferred for the switch expression itself.
+                    return InferTypes(switchExpression);
+                }
+
+                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInSwitchLabel(

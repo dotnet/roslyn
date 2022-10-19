@@ -335,6 +335,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 if (x.IsTupleType != y.IsTupleType)
                     return false;
 
+                if (x.IsNativeIntegerType != y.IsNativeIntegerType)
+                    return false;
+
                 if (x.IsTupleType)
                     return HandleTupleTypes(x, y, equivalentTypesWithDifferingAssemblies);
 

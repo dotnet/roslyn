@@ -4,7 +4,9 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -610,6 +612,49 @@ enum E
             Assert.NotEmpty(enums); // We should find enums when looking for implementations
             Assert.True(enums.Any(i => i.Locations.Any(loc => loc.IsInMetadata)), "We should find a metadata enum");
             Assert.Single(enums.Where(i => i.Locations.Any(loc => loc.IsInSource))); // We should find a single source type
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(1464142, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1464142")]
+        public async Task DependentTypeFinderSkipsNoCompilationLanguages(TestHost host)
+        {
+            var composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(host);
+
+            using var workspace = TestWorkspace.Create(
+@"
+<Workspace>
+    <Project Name=""TSProject"" Language=""TypeScript"">
+        <Document>
+            Dummy ts content
+        </Document>
+    </Project>
+    <Project Name=""CSProject"" Language=""C#"">
+        <Document>
+            public class Base { }
+            public class Derived : Base { } 
+        </Document>
+    </Project>
+</Workspace>", composition: composition);
+            var solution = workspace.CurrentSolution;
+
+            var csProject = solution.Projects.Single(p => p.Language == LanguageNames.CSharp);
+            var otherProject = solution.Projects.Single(p => p != csProject);
+            var csDoc = csProject.Documents.Single();
+
+            var semanticModel = await csDoc.GetSemanticModelAsync();
+            var csRoot = await csDoc.GetSyntaxRootAsync();
+
+            var firstDecl = csRoot.DescendantNodes().First(d => d is CSharp.Syntax.TypeDeclarationSyntax);
+            var firstType = (INamedTypeSymbol)semanticModel.GetDeclaredSymbol(firstDecl);
+
+            // Should find one result in the c# project.
+            var results = await SymbolFinder.FindDerivedClassesArrayAsync(firstType, solution, transitive: true, ImmutableHashSet.Create(csProject), CancellationToken.None);
+            Assert.Single(results);
+            Assert.Equal("Derived", results[0].Name);
+
+            // Should find zero results in the TS project (and should not crash).
+            results = await SymbolFinder.FindDerivedClassesArrayAsync(firstType, solution, transitive: true, ImmutableHashSet.Create(otherProject), CancellationToken.None);
+            Assert.Empty(results);
         }
     }
 }

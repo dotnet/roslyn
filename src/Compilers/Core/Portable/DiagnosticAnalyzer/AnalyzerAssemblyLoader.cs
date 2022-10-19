@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,19 +11,28 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    /// <summary>
+    /// The base implementation for <see cref="IAnalyzerAssemblyLoader"/>. This type provides caching and tracking of inputs given
+    /// to <see cref="AddDependencyLocation(string)"/>.
+    /// </summary>
+    /// <remarks>
+    /// This type generally assumes that files on disk aren't changing, since it ensure that two calls to <see cref="LoadFromPath(string)"/>
+    /// will always return the same thing, per that interface's contract.
+    /// </remarks>
     internal abstract class AnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
     {
         private readonly object _guard = new();
 
         // lock _guard to read/write
         private readonly Dictionary<string, Assembly> _loadedAssembliesByPath = new();
-        private readonly Dictionary<string, AssemblyIdentity> _loadedAssemblyIdentitiesByPath = new();
-        private readonly Dictionary<AssemblyIdentity, Assembly> _loadedAssembliesByIdentity = new();
 
         // maps file name to a full path (lock _guard to read/write):
-        private readonly Dictionary<string, HashSet<string>> _knownAssemblyPathsBySimpleName = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, ImmutableHashSet<string>> _knownAssemblyPathsBySimpleName = new(StringComparer.OrdinalIgnoreCase);
 
-        protected abstract Assembly LoadFromPathImpl(string fullPath);
+        /// <summary>
+        /// Implemented by derived types to actually perform the load for an assembly that doesn't have a cached result.
+        /// </summary>
+        protected abstract Assembly LoadFromPathUncheckedImpl(string fullPath);
 
         #region Public API
 
@@ -38,11 +45,13 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!_knownAssemblyPathsBySimpleName.TryGetValue(simpleName, out var paths))
                 {
-                    paths = new HashSet<string>(PathUtilities.Comparer);
+                    paths = ImmutableHashSet.Create(PathUtilities.Comparer, fullPath);
                     _knownAssemblyPathsBySimpleName.Add(simpleName, paths);
                 }
-
-                paths.Add(fullPath);
+                else
+                {
+                    _knownAssemblyPathsBySimpleName[simpleName] = paths.Add(fullPath);
+                }
             }
         }
 
@@ -54,162 +63,56 @@ namespace Microsoft.CodeAnalysis
 
         #endregion
 
-        private Assembly LoadFromPathUnchecked(string fullPath)
-        {
-            return LoadFromPathUncheckedCore(fullPath);
-        }
-
-        private Assembly LoadFromPathUncheckedCore(string fullPath, AssemblyIdentity identity = null)
+        /// <summary>
+        /// Returns the cached assembly for fullPath if we've done a load for this path before, or calls <see cref="LoadFromPathUncheckedImpl"/> if
+        /// it needs to be loaded. This method skips the check in release builds that the path is an absolute path, hence the "Unchecked" in the name.
+        /// </summary>
+        protected Assembly LoadFromPathUnchecked(string fullPath)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
 
-            // Check if we have already loaded an assembly with the same identity or from the given path.
-            Assembly loadedAssembly = null;
+            // Check if we have already loaded an assembly from the given path.
+            Assembly? loadedAssembly = null;
             lock (_guard)
             {
                 if (_loadedAssembliesByPath.TryGetValue(fullPath, out var existingAssembly))
                 {
                     loadedAssembly = existingAssembly;
                 }
-                else
-                {
-                    identity ??= GetOrAddAssemblyIdentity(fullPath);
-                    if (identity != null && _loadedAssembliesByIdentity.TryGetValue(identity, out existingAssembly))
-                    {
-                        loadedAssembly = existingAssembly;
-                    }
-                }
             }
 
             // Otherwise, load the assembly.
             if (loadedAssembly == null)
             {
-                loadedAssembly = LoadFromPathImpl(fullPath);
+                loadedAssembly = LoadFromPathUncheckedImpl(fullPath);
             }
 
-            // Add the loaded assembly to both path and identity cache.
-            return AddToCache(loadedAssembly, fullPath, identity);
-        }
-
-        private Assembly AddToCache(Assembly assembly, string fullPath, AssemblyIdentity identity)
-        {
-            Debug.Assert(PathUtilities.IsAbsolute(fullPath));
-            Debug.Assert(assembly != null);
-
-            identity = AddToCache(fullPath, identity ?? AssemblyIdentity.FromAssemblyDefinition(assembly));
-            Debug.Assert(identity != null);
-
+            // Add the loaded assembly to the path cache.
             lock (_guard)
             {
-                // The same assembly may be loaded from two different full paths (e.g. when loaded from GAC, etc.),
-                // or another thread might have loaded the assembly after we checked above.
-                if (_loadedAssembliesByIdentity.TryGetValue(identity, out var existingAssembly))
-                {
-                    assembly = existingAssembly;
-                }
-                else
-                {
-                    _loadedAssembliesByIdentity.Add(identity, assembly);
-                }
-
-                // An assembly file might be replaced by another file with a different identity.
-                // Last one wins.
-                _loadedAssembliesByPath[fullPath] = assembly;
-
-                return assembly;
-            }
-        }
-
-        private AssemblyIdentity GetOrAddAssemblyIdentity(string fullPath)
-        {
-            Debug.Assert(PathUtilities.IsAbsolute(fullPath));
-
-            lock (_guard)
-            {
-                if (_loadedAssemblyIdentitiesByPath.TryGetValue(fullPath, out var existingIdentity))
-                {
-                    return existingIdentity;
-                }
+                _loadedAssembliesByPath[fullPath] = loadedAssembly;
             }
 
-            var identity = AssemblyIdentityUtils.TryGetAssemblyIdentity(fullPath);
-            return AddToCache(fullPath, identity);
+            return loadedAssembly;
         }
 
-        private AssemblyIdentity AddToCache(string fullPath, AssemblyIdentity identity)
+        protected ImmutableHashSet<string>? GetPaths(string simpleName)
         {
             lock (_guard)
             {
-                if (_loadedAssemblyIdentitiesByPath.TryGetValue(fullPath, out var existingIdentity) && existingIdentity != null)
-                {
-                    identity = existingIdentity;
-                }
-                else
-                {
-                    _loadedAssemblyIdentitiesByPath[fullPath] = identity;
-                }
+                _knownAssemblyPathsBySimpleName.TryGetValue(simpleName, out var paths);
+                return paths;
             }
-
-            return identity;
-        }
-
-#nullable enable
-        protected HashSet<string>? GetPaths(string simpleName)
-        {
-            _knownAssemblyPathsBySimpleName.TryGetValue(simpleName, out var paths);
-            return paths;
         }
 
         /// <summary>
         /// When overridden in a derived class, allows substituting an assembly path after we've
         /// identified the context to load an assembly in, but before the assembly is actually
-        /// loaded from disk.
+        /// loaded from disk. This is used to substitute out the original path with the shadow-copied version.
         /// </summary>
         protected virtual string GetPathToLoad(string fullPath)
         {
             return fullPath;
-        }
-#nullable disable
-
-        public Assembly Load(string displayName)
-        {
-            if (!AssemblyIdentity.TryParseDisplayName(displayName, out var requestedIdentity))
-            {
-                return null;
-            }
-
-            ImmutableArray<string> candidatePaths;
-            lock (_guard)
-            {
-
-                // First, check if this loader already loaded the requested assembly:
-                if (_loadedAssembliesByIdentity.TryGetValue(requestedIdentity, out var existingAssembly))
-                {
-                    return existingAssembly;
-                }
-                // Second, check if an assembly file of the same simple name was registered with the loader:
-                if (!_knownAssemblyPathsBySimpleName.TryGetValue(requestedIdentity.Name, out var pathList))
-                {
-                    return null;
-                }
-
-                Debug.Assert(pathList.Count > 0);
-                candidatePaths = pathList.ToImmutableArray();
-            }
-
-            // Multiple assemblies of the same simple name but different identities might have been registered.
-            // Load the one that matches the requested identity (if any).
-            foreach (var candidatePath in candidatePaths)
-            {
-                var candidateIdentity = GetOrAddAssemblyIdentity(candidatePath);
-
-                if (requestedIdentity.Equals(candidateIdentity))
-                {
-                    return LoadFromPathUncheckedCore(candidatePath, candidateIdentity);
-                }
-            }
-
-            return null;
         }
     }
 }

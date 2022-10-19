@@ -163,6 +163,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string UseBlockScopedNamespaceDiagnosticId = "IDE0160";
         public const string UseFileScopedNamespaceDiagnosticId = "IDE0161";
 
+        public const string SimplifyPropertyPatternDiagnosticId = "IDE0170";
+
+        public const string UseTupleSwapDiagnosticId = "IDE0180";
+
+        public const string UseParameterNullCheckingId = "IDE0190";
+
+        public const string RemoveUnnecessaryLambdaExpressionDiagnosticId = "IDE0200";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";

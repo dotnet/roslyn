@@ -66,7 +66,7 @@ public class App : C
 
             // ---------------------------
             // Metadata symbols
-            var typesym = comp2.SourceModule.GlobalNamespace.GetTypeMembers("App").FirstOrDefault() as INamedTypeSymbol;
+            var typesym = comp2.SourceModule.GlobalNamespace.GetTypeMembers("App").FirstOrDefault();
 
             // 'D'
             var member01 = (typesym.GetMembers("myEvent").Single() as IEventSymbol).Type;

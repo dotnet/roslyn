@@ -1717,18 +1717,38 @@ public class Repro
         }
 
         [WorkItem(46785, "https://github.com/dotnet/roslyn/issues/46785")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/46785"), Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task UsedAsRef_NoDiagnostic()
         {
             await TestMissingInRegularAndScriptAsync(
 @"public class C
 {
-    private string [|_x|] = string.Empty;
+    private string [|x|] = string.Empty;
 
     public bool M()
     {
         ref var myVar = ref x;
         return myVar is null;
+    }
+}");
+        }
+
+        [WorkItem(57983, "https://github.com/dotnet/roslyn/issues/57983")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task UsedAsRef_NoDiagnostic_02()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Runtime.CompilerServices;
+
+public class Test
+{
+    private ulong [|nextD3D12ComputeFenceValue|];
+
+    internal void Repro()
+    {
+        ref ulong d3D12FenceValue = ref Unsafe.NullRef<ulong>();
+        d3D12FenceValue = ref nextD3D12ComputeFenceValue;
+        d3D12FenceValue++;
     }
 }");
         }
@@ -1774,6 +1794,113 @@ public sealed partial class Test
         get => _value;
         set => _value = value;
     }
+}
+        </Document>
+    </Project>
+</Workspace>");
+        }
+
+        [WorkItem(40644, "https://github.com/dotnet/roslyn/issues/40644")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task ShouldNotWarnForDataMemberFieldsInDataContractClasses()
+        {
+            await TestMissingAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferencesNet45=""true"">
+        <Document>
+[System.Runtime.Serialization.DataContractAttribute]
+public class MyClass
+{
+	[System.Runtime.Serialization.DataMember]
+	private bool [|isReadOnly|];
+}
+        </Document>
+    </Project>
+</Workspace>");
+        }
+
+        [WorkItem(40644, "https://github.com/dotnet/roslyn/issues/40644")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task ShouldWarnForDataMemberFieldsInNonDataContractClasses()
+        {
+            await TestInRegularAndScript1Async(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferencesNet45=""true"">
+        <Document>
+public class MyClass
+{
+	[System.Runtime.Serialization.DataMember]
+	private bool [|isReadOnly|];
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferencesNet45=""true"">
+        <Document>
+public class MyClass
+{
+	[System.Runtime.Serialization.DataMember]
+	private readonly bool isReadOnly;
+}
+        </Document>
+    </Project>
+</Workspace>");
+        }
+
+        [WorkItem(40644, "https://github.com/dotnet/roslyn/issues/40644")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task ShouldWarnForPrivateNonDataMemberFieldsInDataContractClasses()
+        {
+            await TestInRegularAndScript1Async(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferencesNet45=""true"">
+        <Document>
+[System.Runtime.Serialization.DataContractAttribute]
+public class MyClass
+{
+	[System.Runtime.Serialization.DataMember]
+	private bool isReadOnly;
+
+	private bool [|isReadOnly2|];
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferencesNet45=""true"">
+        <Document>
+[System.Runtime.Serialization.DataContractAttribute]
+public class MyClass
+{
+	[System.Runtime.Serialization.DataMember]
+	private bool isReadOnly;
+
+	private readonly bool isReadOnly2;
+}
+        </Document>
+    </Project>
+</Workspace>");
+        }
+
+        [WorkItem(40644, "https://github.com/dotnet/roslyn/issues/40644")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task ShouldNotWarnForPublicImplicitDataMemberFieldsInDataContractClasses()
+        {
+            await TestMissingAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferencesNet45=""true"">
+        <Document>
+[System.Runtime.Serialization.DataContractAttribute]
+public class MyClass
+{
+	public bool [|isReadOnly|];
 }
         </Document>
     </Project>

@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(identifierToken.Kind() != SyntaxKind.None);
             Debug.Assert(declarationKind != LocalDeclarationKind.None);
             Debug.Assert(scopeBinder != null);
+            Debug.Assert(containingSymbol.DeclaringCompilation == scopeBinder.Compilation);
 
             this._scopeBinder = scopeBinder;
             this._containingSymbol = containingSymbol;

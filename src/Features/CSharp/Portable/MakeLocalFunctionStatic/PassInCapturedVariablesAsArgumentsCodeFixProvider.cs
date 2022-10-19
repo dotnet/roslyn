@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Roslyn.Utilities;
@@ -78,10 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 
             // Even when the language version doesn't support staic local function, the compiler will still
             // generate this error. So we need to check to make sure we don't provide incorrect fix.
-            if (!MakeLocalFunctionStaticHelper.IsStaticLocalFunctionSupported(((CSharpParseOptions)root.SyntaxTree.Options).LanguageVersion))
-            {
+            if (!MakeLocalFunctionStaticHelper.IsStaticLocalFunctionSupported(root.SyntaxTree.Options.LanguageVersion()))
                 return;
-            }
 
             // Find all unique local functions that contain the error.
             var localFunctions = diagnostics

@@ -175,9 +175,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<BoundNode?> Children => ImmutableArray.Create<BoundNode?>(this.Expression);
     }
 
-    internal partial class BoundIndexOrRangePatternIndexerAccess
+    internal partial class BoundImplicitIndexerAccess
     {
-        protected override ImmutableArray<BoundNode?> Children => ImmutableArray.Create<BoundNode?>(Receiver, Argument);
+        protected override ImmutableArray<BoundNode?> Children => ImmutableArray.Create<BoundNode?>(this.Receiver, Argument);
     }
 
     internal partial class BoundFunctionPointerInvocation : IBoundInvalidNode

@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                 var changeNamespaceAction = actions.Single(a => a is CodeAction.SolutionChangeAction);
                 var operations = await changeNamespaceAction.GetOperationsAsync(CancellationToken.None);
 
-                return ApplyOperationsAndGetSolution(workspace, operations);
+                return await ApplyOperationsAndGetSolutionAsync(workspace, operations);
             }
         }
     }

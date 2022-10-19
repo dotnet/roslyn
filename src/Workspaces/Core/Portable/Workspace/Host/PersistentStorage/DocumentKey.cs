@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Host;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Storage
     /// solution load), but querying the data is still desired.
     /// </summary>
     [DataContract]
-    internal readonly struct DocumentKey : IEqualityComparer<DocumentKey>
+    internal readonly struct DocumentKey : IEqualityComparer<DocumentKey>, IEquatable<DocumentKey>
     {
         [DataMember(Order = 0)]
         public readonly ProjectKey Project;
@@ -43,13 +44,19 @@ namespace Microsoft.CodeAnalysis.Storage
         public static DocumentKey ToDocumentKey(ProjectKey projectKey, TextDocumentState state)
             => new(projectKey, state.Id, state.FilePath, state.Name);
 
+        public override bool Equals(object? obj)
+            => obj is DocumentKey other && Equals(other);
+
+        public bool Equals(DocumentKey other)
+            => this.Id == other.Id;
+
+        public override int GetHashCode()
+            => this.Id.GetHashCode();
+
         public bool Equals(DocumentKey x, DocumentKey y)
-            => x.Id == y.Id;
+            => x.Equals(y);
 
         public int GetHashCode(DocumentKey obj)
-            => obj.Id.GetHashCode();
-
-        public DocumentKey WithWorkspaceKind(string workspaceKind)
-            => new(Project.WithWorkspaceKind(workspaceKind), Id, FilePath, Name);
+            => obj.GetHashCode();
     }
 }

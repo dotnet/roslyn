@@ -8,35 +8,32 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.UseIsNullCheck;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 {
     using static SyntaxFactory;
+    using static UseIsNullCheckHelpers;
 
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseIsNullCheckForReferenceEquals), Shared]
     internal class CSharpUseIsNullCheckForReferenceEqualsCodeFixProvider
         : AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider<ExpressionSyntax>
     {
+        private static readonly LiteralExpressionSyntax s_nullLiteralExpression
+            = LiteralExpression(SyntaxKind.NullLiteralExpression);
+
+        private static readonly ConstantPatternSyntax s_nullLiteralPattern
+            = ConstantPattern(s_nullLiteralExpression);
+
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpUseIsNullCheckForReferenceEqualsCodeFixProvider()
         {
         }
 
-        protected override string GetIsNullTitle()
-            => CSharpAnalyzersResources.Use_is_null_check;
-
-        protected override string GetIsNotNullTitle()
-            => GetIsNullTitle();
-
-        private static readonly LiteralExpressionSyntax s_nullLiteralExpression
-            = LiteralExpression(SyntaxKind.NullLiteralExpression);
-
-        private static readonly ConstantPatternSyntax s_nullLiteralPattern
-            = ConstantPattern(s_nullLiteralExpression);
+        protected override string GetTitle(bool negated, ParseOptions options)
+            => UseIsNullCheckHelpers.GetTitle(negated, options);
 
         private static SyntaxNode CreateEqualsNullCheck(ExpressionSyntax argument)
             => BinaryExpression(SyntaxKind.EqualsExpression, argument, s_nullLiteralExpression).Parenthesize();
@@ -46,8 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 
         private static SyntaxNode CreateIsNotNullCheck(ExpressionSyntax argument)
         {
-            var parseOptions = (CSharpParseOptions)argument.SyntaxTree.Options;
-            if (parseOptions.LanguageVersion.IsCSharp9OrAbove())
+            if (SupportsIsNotPattern(argument.SyntaxTree.Options))
             {
                 return IsPatternExpression(
                     argument,
@@ -55,11 +51,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                         Token(SyntaxKind.NotKeyword),
                         s_nullLiteralPattern)).Parenthesize();
             }
-
-            return BinaryExpression(
-                SyntaxKind.IsExpression,
-                argument,
-                PredefinedType(Token(SyntaxKind.ObjectKeyword))).Parenthesize();
+            else
+            {
+                return BinaryExpression(
+                    SyntaxKind.IsExpression,
+                    argument,
+                    PredefinedType(Token(SyntaxKind.ObjectKeyword))).Parenthesize();
+            }
         }
 
         protected override SyntaxNode CreateNullCheck(ExpressionSyntax argument, bool isUnconstrainedGeneric)

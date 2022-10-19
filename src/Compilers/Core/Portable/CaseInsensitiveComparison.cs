@@ -117,7 +117,6 @@ namespace Microsoft.CodeAnalysis
                 return str1.Length - str2.Length;
             }
 
-#if !NET20 && !NETSTANDARD1_3
             public int Compare(ReadOnlySpan<char> str1, ReadOnlySpan<char> str2)
             {
                 int len = Math.Min(str1.Length, str2.Length);
@@ -133,7 +132,6 @@ namespace Microsoft.CodeAnalysis
                 // return the smaller string, or 0 if they are equal in length
                 return str1.Length - str2.Length;
             }
-#endif
 
             private static bool AreEqualLowerUnicode(char c1, char c2)
             {
@@ -168,7 +166,6 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-#if !NET20 && !NETSTANDARD1_3
             public bool Equals(ReadOnlySpan<char> str1, ReadOnlySpan<char> str2)
             {
                 if (str1.Length != str2.Length)
@@ -186,7 +183,6 @@ namespace Microsoft.CodeAnalysis
 
                 return true;
             }
-#endif
 
             public static bool EndsWith(string value, string possibleEnd)
             {
@@ -293,7 +289,6 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public static bool Equals(string left, string right) => s_comparer.Equals(left, right);
 
-#if !NET20 && !NETSTANDARD1_3
         /// <summary>
         /// Determines if two strings are equal according to Unicode rules for case-insensitive
         /// identifier comparison (lower-case mapping).
@@ -305,7 +300,6 @@ namespace Microsoft.CodeAnalysis
         /// These are also the rules used for VB identifier comparison.
         /// </remarks>
         public static bool Equals(ReadOnlySpan<char> left, ReadOnlySpan<char> right) => s_comparer.Equals(left, right);
-#endif
 
         /// <summary>
         /// Determines if the string 'value' end with string 'possibleEnd'.
@@ -335,7 +329,6 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public static int Compare(string left, string right) => s_comparer.Compare(left, right);
 
-#if !NET20 && !NETSTANDARD1_3
         /// <summary>
         /// Compares two strings according to the Unicode rules for case-insensitive
         /// identifier comparison (lower-case mapping).
@@ -347,7 +340,6 @@ namespace Microsoft.CodeAnalysis
         /// These are also the rules used for VB identifier comparison.
         /// </remarks>
         public static int Compare(ReadOnlySpan<char> left, ReadOnlySpan<char> right) => s_comparer.Compare(left, right);
-#endif
 
         /// <summary>
         /// Gets a case-insensitive hash code for Unicode identifiers.

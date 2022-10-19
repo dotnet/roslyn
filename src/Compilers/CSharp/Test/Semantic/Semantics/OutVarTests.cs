@@ -3520,7 +3520,7 @@ class C
             VerifyOperationTree(compilation, initializerOperation.Parent.Parent, @"
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ':base(TakeO ... && x1 >= 5)')
   Expression: 
-    IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '(TakeOutPar ... && x1 >= 5)')
+    IOperation:  (OperationKind.None, Type: System.Void, IsImplicit) (Syntax: '(TakeOutPar ... && x1 >= 5)')
       Children(1):
           IInvocationOperation ( C..ctor(System.Boolean b)) (OperationKind.Invocation, Type: System.Void) (Syntax: ':base(TakeO ... && x1 >= 5)')
             Instance Receiver: 
@@ -17902,7 +17902,7 @@ public class Cls
         public void GetAliasInfo_01()
         {
             var text = @"
-using a = System.Int32;
+using @a = System.Int32;
 
 public class Cls
 {
@@ -17935,7 +17935,7 @@ public class Cls
         public void GetAliasInfo_02()
         {
             var text = @"
-using var = System.Int32;
+using @var = System.Int32;
 
 public class Cls
 {
@@ -17985,7 +17985,7 @@ public class Cls
         System.Console.WriteLine(y.val);
     }
 
-    struct var
+    struct @var
     {
         public int val;
     }
@@ -18015,7 +18015,7 @@ public class Cls
         Test1(out var x1);
     }
 
-    struct var
+    struct @var
     {
         public int val;
     }
@@ -33108,7 +33108,7 @@ public class C
             var source =
 @"
 using alias1 = System.Int32;
-using var = System.Int32;
+using @var = System.Int32;
 
 public class C
 {
@@ -33166,7 +33166,7 @@ public class C
             var source =
 @"
 enum alias1 : long {}
-class var {}
+class @var {}
 
 public class C
 {

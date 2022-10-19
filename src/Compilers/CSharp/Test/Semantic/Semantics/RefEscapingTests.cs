@@ -3576,12 +3576,12 @@ class C
     
     S Test() => default;        
 }", options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (8,22): error CS0023: Operator '?' cannot be applied to operand of type 'S'
+                // (8,23): error CS8977: 'S' cannot be made nullable.
                 //         _ = ((C)null)?.Test();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S").WithLocation(8, 22),
-                // (10,26): error CS0023: Operator '?' cannot be applied to operand of type 'S'
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".Test()").WithArguments("S").WithLocation(8, 23),
+                // (10,27): error CS8977: 'S' cannot be made nullable.
                 //         var a = ((C)null)?.Test();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S").WithLocation(10, 26)
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".Test()").WithArguments("S").WithLocation(10, 27)
                 );
         }
 

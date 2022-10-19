@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Wrapping;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
@@ -806,6 +807,22 @@ GetIndentionColumn(30),
 @"class C {
     public C(int i,
              int j) {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [WorkItem(38986, "https://github.com/dotnet/roslyn/issues/38986")]
+        public async Task TestInConstructorWithSyntaxErrorAfter()
+        {
+            await TestInRegularAndScript1Async(
+@"class C {
+    public [||]C(int i, int j) : base(,) {
+    }
+}",
+@"class C {
+    public C(int i,
+             int j) : base(,) {
     }
 }");
         }

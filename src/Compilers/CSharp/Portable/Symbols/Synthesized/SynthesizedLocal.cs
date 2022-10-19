@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!type.IsVoidType());
             Debug.Assert(!kind.IsLongLived() || syntaxOpt != null);
             Debug.Assert(refKind != RefKind.Out);
+            Debug.Assert(containingMethodOpt is null || containingMethodOpt.DeclaringCompilation is not null);
 
             _containingMethodOpt = containingMethodOpt;
             _type = type;

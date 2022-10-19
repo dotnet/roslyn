@@ -5,37 +5,33 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
+Imports Microsoft.CodeAnalysis.[Shared].Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
     Friend NotInheritable Class ImportCompletionProviderHelper
 
-        Public Shared Function GetImportedNamespaces(location As SyntaxNode, semanticModel As SemanticModel) As ImmutableArray(Of String)
+        Public Shared Async Function GetImportedNamespacesAsync(syntaxContext As SyntaxContext, token As CancellationToken) As Task(Of ImmutableArray(Of String))
+
+            ' The location Is the containing node of the LeftToken, Or the compilation unit itself if LeftToken
+            ' indicates the beginning of the document (i.e. no parent).
+            Dim Location = If(syntaxContext.LeftToken.Parent, Await syntaxContext.SyntaxTree.GetRootAsync(token).ConfigureAwait(False))
+
             Dim builder = ArrayBuilder(Of String).GetInstance()
 
             ' Get namespaces from import directives
-            Dim importsInScope = semanticModel.GetImportNamespacesInScope(location)
+            Dim importsInScope = syntaxContext.SemanticModel.GetImportNamespacesInScope(Location)
             For Each import As INamespaceSymbol In importsInScope
                 builder.Add(import.ToDisplayString(SymbolDisplayFormats.NameFormat))
             Next
 
             ' Get global imports from compilation option
-            Dim vbOptions = DirectCast(semanticModel.Compilation.Options, VisualBasicCompilationOptions)
+            Dim vbOptions = DirectCast(syntaxContext.SemanticModel.Compilation.Options, VisualBasicCompilationOptions)
             For Each globalImport As GlobalImport In vbOptions.GlobalImports
                 builder.Add(globalImport.Name)
             Next
 
             Return builder.ToImmutableAndFree()
-        End Function
-
-        Public Shared Async Function CreateContextAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
-            ' Need regular semantic model because we will use it to get imported namespace symbols. Otherwise we will try to 
-            ' reach outside of the span And ended up with "node not within syntax tree" error from the speculative model.
-            Dim semanticModel = (Await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(False)).semanticModel
-            Contract.ThrowIfNull(semanticModel)
-            Return VisualBasicSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken)
         End Function
     End Class
 End Namespace

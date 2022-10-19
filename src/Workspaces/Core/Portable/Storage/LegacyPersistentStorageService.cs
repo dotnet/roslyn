@@ -12,10 +12,10 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.Storage
 {
     /// <summary>
-    /// Implements public <see cref="IPersistentStorageService"/>.
-    /// Internally, it is preferred to work directly with <see cref="IChecksummedPersistentStorageService"/>,
-    /// which can be retrieved by <see cref="PersistentStorageExtensions.GetPersistentStorageService(HostWorkspaceServices, StorageDatabase)"/>.
+    /// Obsolete.  Roslyn no longer supports a mechanism to perform arbitrary persistence of data.  If such functionality
+    /// is needed, consumers are responsible for providing it themselves with whatever semantics are needed.
     /// </summary>
+    [Obsolete("Roslyn no longer exports a mechanism to perform persistence.", error: true)]
     internal sealed class LegacyPersistentStorageService : IPersistentStorageService
     {
         [ExportWorkspaceServiceFactory(typeof(IPersistentStorageService)), Shared]
@@ -28,19 +28,14 @@ namespace Microsoft.CodeAnalysis.Storage
             }
 
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => new LegacyPersistentStorageService(workspaceServices);
+                => new LegacyPersistentStorageService();
         }
 
-        private readonly HostWorkspaceServices _workspaceServices;
-
-        public LegacyPersistentStorageService(HostWorkspaceServices workspaceServices)
-            => _workspaceServices = workspaceServices;
+        public LegacyPersistentStorageService()
+        {
+        }
 
         public IPersistentStorage GetStorage(Solution solution)
-            => GetStorageAsync(solution, CancellationToken.None).AsTask().GetAwaiter().GetResult();
-
-        public async ValueTask<IPersistentStorage> GetStorageAsync(Solution solution, CancellationToken cancellationToken)
-            => await _workspaceServices.GetPersistentStorageService(solution.Options).
-                GetStorageAsync(SolutionKey.ToSolutionKey(solution), checkBranchId: true, cancellationToken).ConfigureAwait(false);
+            => NoOpPersistentStorage.GetOrThrow(throwOnFailure: false);
     }
 }

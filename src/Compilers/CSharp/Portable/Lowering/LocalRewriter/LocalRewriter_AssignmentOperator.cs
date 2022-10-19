@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     loweredLeft = VisitIndexerAccess((BoundIndexerAccess)left, isLeftOfAssignment: true);
                     break;
 
-                case BoundKind.IndexOrRangePatternIndexerAccess:
-                    loweredLeft = VisitIndexOrRangePatternIndexerAccess(
-                        (BoundIndexOrRangePatternIndexerAccess)left,
+                case BoundKind.ImplicitIndexerAccess:
+                    loweredLeft = VisitImplicitIndexerAccess(
+                        (BoundImplicitIndexerAccess)left,
                         isLeftOfAssignment: true);
                     break;
 
@@ -327,8 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt,
                 ref argumentRefKindsOpt,
                 ref argTempsBuilder,
-                invokedAsExtensionMethod: false,
-                enableCallerInfo: ThreeState.True);
+                invokedAsExtensionMethod: false);
 
             var argTemps = argTempsBuilder.ToImmutableAndFree();
 

@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         }
 
         private TextSpan? GetMatchedSpan(int start, int length)
-            => _includeMatchedSpans ? new TextSpan(start, length) : (TextSpan?)null;
+            => _includeMatchedSpans ? new TextSpan(start, length) : null;
 
         private static bool ContainsSpaceOrAsterisk(string text)
         {

@@ -411,7 +411,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             AliasSymbol aliasOpt; // not needed.
             NamedTypeSymbol attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, BindingDiagnosticBag.Discarded, out aliasOpt).Type;
-            var boundNode = new ExecutableCodeBinder(attribute, binder.ContainingMemberOrLambda, binder).BindAttribute(attribute, attributeType, BindingDiagnosticBag.Discarded);
+            // note: we don't need to pass an 'attributedMember' here because we only need symbolInfo from this node
+            var boundNode = new ExecutableCodeBinder(attribute, binder.ContainingMemberOrLambda, binder).BindAttribute(attribute, attributeType, attributedMember: null, BindingDiagnosticBag.Discarded);
 
             return boundNode;
         }
@@ -2131,17 +2132,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (type, nullability) = getTypeAndNullability(initializer.Expression);
 
                     // the most pertinent conversion is the pointer conversion 
-                    conversion = initializer.ElementPointerTypeConversion;
+                    conversion = BoundNode.GetConversion(initializer.ElementPointerConversion, initializer.ElementPointerPlaceholder);
                 }
                 else if (boundExpr is BoundConvertedSwitchExpression { WasTargetTyped: true } convertedSwitch)
                 {
-                    if (highestBoundExpr is BoundConversion { ConversionKind: ConversionKind.SwitchExpression })
+                    if (highestBoundExpr is BoundConversion { ConversionKind: ConversionKind.SwitchExpression, Conversion: var convertedSwitchConversion })
                     {
                         // There was an implicit cast.
                         type = convertedSwitch.NaturalTypeOpt;
                         convertedType = convertedSwitch.Type;
                         convertedNullability = convertedSwitch.TopLevelNullability;
-                        conversion = convertedSwitch.Conversion.IsValid ? convertedSwitch.Conversion : Conversion.NoConversion;
+                        conversion = convertedSwitchConversion.IsValid ? convertedSwitchConversion : Conversion.NoConversion;
                     }
                     else
                     {
@@ -2412,7 +2413,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyze data-flow within an expression. 
+        /// Analyze data-flow within an <see cref="ConstructorInitializerSyntax"/>. 
+        /// </summary>
+        /// <param name="constructorInitializer">The ctor-init within the associated SyntaxTree to analyze.</param>
+        /// <returns>An object that can be used to obtain the result of the data flow analysis.</returns>
+        public virtual DataFlowAnalysis AnalyzeDataFlow(ConstructorInitializerSyntax constructorInitializer)
+        {
+            // Only supported on a SyntaxTreeSemanticModel.
+            throw new NotSupportedException();
+        }
+
+        /// <summary>
+        /// Analyze data-flow within an <see cref="PrimaryConstructorBaseTypeSyntax.ArgumentList"/>. 
+        /// </summary>
+        /// <param name="primaryConstructorBaseType">The node within the associated SyntaxTree to analyze.</param>
+        /// <returns>An object that can be used to obtain the result of the data flow analysis.</returns>
+        public virtual DataFlowAnalysis AnalyzeDataFlow(PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType)
+        {
+            // Only supported on a SyntaxTreeSemanticModel.
+            throw new NotSupportedException();
+        }
+
+        /// <summary>
+        /// Analyze data-flow within an <see cref="ExpressionSyntax"/>. 
         /// </summary>
         /// <param name="expression">The expression within the associated SyntaxTree to analyze.</param>
         /// <returns>An object that can be used to obtain the result of the data flow analysis.</returns>
@@ -3427,18 +3450,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.IndexOrRangePatternIndexerAccess:
-                    {
-                        var indexerAccess = (BoundIndexOrRangePatternIndexerAccess)boundNode;
-
-                        resultKind = indexerAccess.ResultKind;
-
-                        // The only time a BoundIndexOrRangePatternIndexerAccess is created, overload resolution succeeded
-                        // and returned only 1 result
-                        Debug.Assert(indexerAccess.PatternSymbol is object);
-                        symbols = ImmutableArray.Create<Symbol>(indexerAccess.PatternSymbol);
-                    }
-                    break;
+                case BoundKind.ImplicitIndexerAccess:
+                    return GetSemanticSymbols(((BoundImplicitIndexerAccess)boundNode).IndexerOrSliceAccess,
+                        boundNodeForSyntacticParent, binderOpt, options, out isDynamic, out resultKind, out memberGroup);
 
                 case BoundKind.EventAssignmentOperator:
                     var eventAssignment = (BoundEventAssignmentOperator)boundNode;
@@ -5126,6 +5140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal abstract override Func<SyntaxNode, bool> GetSyntaxNodesToAnalyzeFilter(SyntaxNode declaredNode, ISymbol declaredSymbol);
+        internal abstract override bool ShouldSkipSyntaxNodeAnalysis(SyntaxNode node, ISymbol containingSymbol);
 
         protected internal override SyntaxNode GetTopmostNodeForDiagnosticAnalysis(ISymbol symbol, SyntaxNode declaringSyntax)
         {
@@ -5245,8 +5260,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.AnalyzeDataFlow(statementSyntax);
                 case ExpressionSyntax expressionSyntax:
                     return this.AnalyzeDataFlow(expressionSyntax);
+                case ConstructorInitializerSyntax constructorInitializer:
+                    return this.AnalyzeDataFlow(constructorInitializer);
+                case PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType:
+                    return this.AnalyzeDataFlow(primaryConstructorBaseType);
                 default:
-                    throw new ArgumentException("statementOrExpression is not a StatementSyntax or an ExpressionSyntax.");
+                    throw new ArgumentException("statementOrExpression is not a StatementSyntax or an ExpressionSyntax or a ConstructorInitializerSyntax or a PrimaryConstructorBaseTypeSyntax.");
             }
         }
 
@@ -5280,24 +5299,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         public sealed override NullableContext GetNullableContext(int position)
         {
             var syntaxTree = (CSharpSyntaxTree)Root.SyntaxTree;
+
+            NullableContextOptions? lazyDefaultState = null;
             NullableContextState contextState = syntaxTree.GetNullableContextState(position);
-            var defaultState = syntaxTree.IsGeneratedCode(Compilation.Options.SyntaxTreeOptionsProvider, CancellationToken.None)
-                ? NullableContextOptions.Disable
-                : Compilation.Options.NullableContextOptions;
 
-            NullableContext context = getFlag(contextState.AnnotationsState, defaultState.AnnotationsEnabled(), NullableContext.AnnotationsContextInherited, NullableContext.AnnotationsEnabled);
-            context |= getFlag(contextState.WarningsState, defaultState.WarningsEnabled(), NullableContext.WarningsContextInherited, NullableContext.WarningsEnabled);
+            return contextState.AnnotationsState switch
+            {
+                NullableContextState.State.Enabled => NullableContext.AnnotationsEnabled,
+                NullableContextState.State.Disabled => NullableContext.Disabled,
+                _ when getDefaultState().AnnotationsEnabled() => NullableContext.AnnotationsContextInherited | NullableContext.AnnotationsEnabled,
+                _ => NullableContext.AnnotationsContextInherited,
+            }
+            | contextState.WarningsState switch
+            {
+                NullableContextState.State.Enabled => NullableContext.WarningsEnabled,
+                NullableContextState.State.Disabled => NullableContext.Disabled,
+                _ when getDefaultState().WarningsEnabled() => NullableContext.WarningsContextInherited | NullableContext.WarningsEnabled,
+                _ => NullableContext.WarningsContextInherited,
+            };
 
-            return context;
-
-            static NullableContext getFlag(NullableContextState.State contextState, bool defaultEnableState, NullableContext inheritedFlag, NullableContext enableFlag) =>
-                contextState switch
-                {
-                    NullableContextState.State.Enabled => enableFlag,
-                    NullableContextState.State.Disabled => NullableContext.Disabled,
-                    _ when defaultEnableState => (inheritedFlag | enableFlag),
-                    _ => inheritedFlag,
-                };
+            // IsGeneratedCode might be slow, only call it when needed:
+            NullableContextOptions getDefaultState()
+                => lazyDefaultState ??= syntaxTree.IsGeneratedCode(Compilation.Options.SyntaxTreeOptionsProvider, CancellationToken.None)
+                    ? NullableContextOptions.Disable
+                    : Compilation.Options.NullableContextOptions;
         }
 
         #endregion

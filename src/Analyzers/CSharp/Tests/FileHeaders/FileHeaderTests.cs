@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.CSharp.FileHeaders.CSharpFileHeaderDiagnosticAnalyzer,
@@ -53,8 +55,11 @@ file_header_template = \nCopyright (c) SomeCorp. All rights reserved.\n\nLicense
         /// Verifies that the analyzer will report a diagnostic when the file is completely missing a header.
         /// </summary>
         /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
-        [Fact]
-        public async Task TestNoFileHeaderAsync()
+        [Theory]
+        [InlineData("\n")]
+        [InlineData("\r\n")]
+        [WorkItem(1414432, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1414432")]
+        public async Task TestNoFileHeaderAsync(string lineEnding)
         {
             var testCode = @"[||]namespace N
 {
@@ -70,9 +75,13 @@ namespace N
 
             await new VerifyCS.Test
             {
-                TestCode = testCode,
-                FixedCode = fixedCode,
+                TestCode = testCode.ReplaceLineEndings(lineEnding),
+                FixedCode = fixedCode.ReplaceLineEndings(lineEnding),
                 EditorConfig = TestSettings,
+                Options =
+                {
+                    { FormattingOptions2.NewLine, lineEnding },
+                },
             }.RunAsync();
         }
 
