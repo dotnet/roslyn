@@ -140,7 +140,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var stream = connection.TryInvokeStreamAsync(
                 solution,
-                (service, checksum, cancellationToken) => service.DiscoverDesignerAttributesAsync(checksum, priorityDocument: null, cancellationToken),
+                (service, checksum, cancellationToken) => service.DiscoverDesignerAttributesAsync(checksum, solution.Projects.Single().Id, priorityDocument: null, cancellationToken),
                 cancellationTokenSource.Token);
 
             var items = new List<DesignerAttributeData>();
