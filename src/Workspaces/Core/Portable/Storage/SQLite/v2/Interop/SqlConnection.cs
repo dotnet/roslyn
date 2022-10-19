@@ -206,18 +206,24 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             return new ResettableSqlStatement(statement);
         }
 
-        public void RunInTransaction<TState>(Action<TState> action, TState state)
+        public SqlException? RunInTransaction<TState>(Action<TState> action, TState state, bool throwOnSqlException)
         {
-            RunInTransaction(
+            var (_, exception) = RunInTransaction(
                 static state =>
                 {
                     state.action(state.state);
                     return (object?)null;
                 },
-                (action, state));
+                (action, state),
+                throwOnSqlException);
+
+            return exception;
         }
 
-        public TResult RunInTransaction<TState, TResult>(Func<TState, TResult> action, TState state)
+        /// <param name="throwOnSqlException">If a <see cref="SqlException"/> should throw the exception or not.  If
+        /// <see langword="false"/>, then the exception will be returned in the result value.</param>
+        public (TResult? result, SqlException? exception) RunInTransaction<TState, TResult>(
+            Func<TState, TResult> action, TState state, bool throwOnSqlException)
         {
             try
             {
@@ -231,34 +237,59 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
                 ExecuteCommand("begin transaction");
                 var result = action(state);
                 ExecuteCommand("commit transaction");
-                return result;
+                return (result, null);
             }
             catch (SqlException ex) when (ex.Result is Result.FULL or
-                                          Result.IOERR or
-                                          Result.BUSY or
-                                          Result.LOCKED or
-                                          Result.NOMEM)
+                                                       Result.IOERR or
+                                                       Result.BUSY or
+                                                       Result.LOCKED or
+                                                       Result.NOMEM)
             {
                 // See documentation here: https://sqlite.org/lang_transaction.html
-                // If certain kinds of errors occur within a transaction, the transaction 
-                // may or may not be rolled back automatically. The errors that can cause 
-                // an automatic rollback include:
+
+                // If certain kinds of errors occur within a transaction, the transaction may or may not be rolled back
+                // automatically. The errors that can cause an automatic rollback include:
 
                 // SQLITE_FULL: database or disk full
-                // SQLITE_IOERR: disk I/ O error
+                // SQLITE_IOERR: disk I/O error
                 // SQLITE_BUSY: database in use by another process
                 // SQLITE_LOCKED: database in use by another connection in the same process
-                // SQLITE_NOMEM: out or memory
+                // SQLITE_NOMEM: out of memory
 
-                // It is recommended that applications respond to the errors listed above by
-                // explicitly issuing a ROLLBACK command. If the transaction has already been
-                // rolled back automatically by the error response, then the ROLLBACK command 
-                // will fail with an error, but no harm is caused by this.
+                // For all of these errors, SQLite attempts to undo just the one statement it was working on and leave
+                // changes from prior statements within the same transaction intact and continue with the transaction.
+                // However, depending on the statement being evaluated and the point at which the error occurs, it might
+                // be necessary for SQLite to rollback and cancel the entire transaction.
+
+                // It is recommended that applications respond to the errors listed above by explicitly issuing a
+                // ROLLBACK command. If the transaction has already been rolled back automatically by the error
+                // response, then the ROLLBACK command will fail with an error, but no harm is caused by this.
+
+                // As per the above we attempt a rollback.  But we do not throw *within* the rollback if that fails.
                 Rollback(throwOnError: false);
-                throw;
+
+                if (throwOnSqlException)
+                    throw;
+
+                return (default, ex);
+            }
+            catch (SqlException ex)
+            {
+                // Some sql error occurred (like a constraint violation).  Rollback (throwing if that rollback failed
+                // for some reason).
+                Rollback(throwOnError: true);
+
+                if (throwOnSqlException)
+                    throw;
+
+                return (default, ex);
             }
             catch (Exception)
             {
+                // Some other exception occurred outside of sqlite entirely (like a null-ref exception in our own code).
+                // Rollback  (throwing if that rollback failed for some reason), then continue the exception higher up
+                // to tear down the callers as well.
+
                 Rollback(throwOnError: true);
                 throw;
             }
