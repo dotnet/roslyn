@@ -29,7 +29,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute
 {
-    [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
+    //[ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
     internal class VisualStudioDesignerAttributeService :
         ForegroundThreadAffinitizedObject, IEventListener<object>, IDisposable
     {
@@ -84,8 +84,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// </summary>
         private readonly ConcurrentDictionary<DocumentId, string?> _documentToLastReportedCategory = new();
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        //[ImportingConstructor]
+        //[Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDesignerAttributeService(
             VisualStudioWorkspaceImpl workspace,
             IThreadingContext threadingContext,
