@@ -110,14 +110,14 @@ End Class";
         }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column) =>
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
             VerifyCS.Diagnostic().WithLocation(line, column);
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column) =>
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
             VerifyVB.Diagnostic().WithLocation(line, column);
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
 
         [SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Used via new() constraint: https://github.com/dotnet/roslyn-analyzers/issues/3199")]
         internal class TestCSharpUpgradeMSBuildWorkspaceAnalyzer : CSharpUpgradeMSBuildWorkspaceAnalyzer

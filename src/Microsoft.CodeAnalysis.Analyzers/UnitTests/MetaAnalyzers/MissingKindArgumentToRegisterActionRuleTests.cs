@@ -232,9 +232,9 @@ End Class
                 _ => throw new ArgumentException("Unsupported argument kind", nameof(kind)),
             };
 
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
             return VerifyCS.Diagnostic(rule).WithLocation(line, column);
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
         }
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, MissingKindArgument kind)
@@ -247,9 +247,9 @@ End Class
                 _ => throw new ArgumentException("Unsupported argument kind", nameof(kind)),
             };
 
-#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs
             return VerifyVB.Diagnostic(rule).WithLocation(line, column);
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore RS0030 // Do not use banned APIs
         }
 
         private enum MissingKindArgument

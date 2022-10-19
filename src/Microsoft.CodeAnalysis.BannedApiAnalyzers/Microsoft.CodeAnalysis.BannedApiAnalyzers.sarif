@@ -20,7 +20,7 @@
       "rules": {
         "RS0030": {
           "id": "RS0030",
-          "shortDescription": "Do not used banned APIs",
+          "shortDescription": "Do not use banned APIs",
           "fullDescription": "The symbol has been marked as banned in this project, and an alternate should be used instead.",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
@@ -83,7 +83,7 @@
       "rules": {
         "RS0030": {
           "id": "RS0030",
-          "shortDescription": "Do not used banned APIs",
+          "shortDescription": "Do not use banned APIs",
           "fullDescription": "The symbol has been marked as banned in this project, and an alternate should be used instead.",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
