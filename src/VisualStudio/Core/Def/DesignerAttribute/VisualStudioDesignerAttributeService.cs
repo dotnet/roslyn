@@ -207,9 +207,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                     (service, checksum, cancellationToken) => service.DiscoverDesignerAttributesAsync(checksum, project.Id, priorityDocumentId, cancellationToken),
                     cancellationToken);
 
+                using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenDocuments);
+
                 // get the results and add all the documents we hear about to the notification queue so they can be batched up.
                 await foreach (var data in stream.ConfigureAwait(false))
+                {
+                    seenDocuments.Add(data.DocumentId);
                     _projectSystemNotificationQueue.AddWork((solution: null, data));
+                }
+
+                // Also, for any documents we didn't hear about, ensure we emit a clear on its category if we have
+                // currently stored for it.  This also ensures we initially report about all non-designer files when a
+                // solution is opened.  This is needed in case the project file says it is designable, but the user made
+                // some change outside of VS that makes it non-designable. We will pick this up here and ensure the data
+                // is cleared.  From that point on, we won't issue any more notifications about those files unless the
+                // category actually does change.
+                foreach (var document in project.Documents)
+                {
+                    if (document.FilePath != null && !seenDocuments.Contains(document.Id))
+                        _projectSystemNotificationQueue.AddWork((solution: null, new DesignerAttributeData(null, document.Id, document.FilePath)));
+                }
 
                 // once done, also enqueue the solution as well so that the project-system queue can cleanup
                 // any stale data about it.
