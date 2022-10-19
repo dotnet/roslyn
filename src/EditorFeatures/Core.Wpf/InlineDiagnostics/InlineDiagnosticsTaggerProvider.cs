@@ -129,11 +129,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         /// data tagger portion (which is async and has clean equality semantics), and then the UI portion which just
         /// translates those data-tags to the UI tags.
         /// <para>
-        /// Returning false here means we'll always end up regenerating all tags.  But hopefully there won't be that
+        /// Doing direct equality means we'll always end up regenerating all tags.  But hopefully there won't be that
         /// many in a document to matter.
         /// </para>
         /// </summary>
         protected override bool TagEquals(InlineDiagnosticsTag tag1, InlineDiagnosticsTag tag2)
-            => false;
+            => tag1 == tag2;
     }
 }
