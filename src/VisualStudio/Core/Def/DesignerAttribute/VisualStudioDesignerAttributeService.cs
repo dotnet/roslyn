@@ -79,9 +79,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
         /// <summary>
         /// Keep track of the last information we reported per document.  We will avoid notifying the host if we
-        /// recompute and these don't change.
+        /// recompute and these don't change.  Note: we keep track if we reported <see langword="null"/> as well to
+        /// represent that the file is not designable.
         /// </summary>
-        private readonly ConcurrentDictionary<DocumentId, DesignerAttributeData> _documentToLastReportedData = new();
+        private readonly ConcurrentDictionary<DocumentId, string?> _documentToLastReportedCategory = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -259,16 +260,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             // now that we've reported this data, record that we've done so so that we don't report the same data again in the future.
             foreach (var data in changedData)
-                _documentToLastReportedData[data.DocumentId] = data;
+                _documentToLastReportedCategory[data.DocumentId] = data.Category;
 
-            // Now, check the documents we've stored against the changed projects to see if they're no longer around.
-            // If so, dump what we have.
+            // Now, check the documents we've stored against the changed projects to see if they're no longer around. If
+            // so, dump what we have.  No need to notify anyone about this as the files are literally not in the
+            // solution anymore.  this is just to ensure we don't hold onto data forever.
             if (latestSolution != null)
             {
-                foreach (var (documentId, _) in _documentToLastReportedData)
+                foreach (var (documentId, _) in _documentToLastReportedCategory)
                 {
                     if (!latestSolution.ContainsDocument(documentId))
-                        _documentToLastReportedData.TryRemove(documentId, out _);
+                        _documentToLastReportedCategory.TryRemove(documentId, out _);
                 }
             }
         }
@@ -298,8 +300,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             foreach (var data in latestData)
             {
-                if (!_documentToLastReportedData.TryGetValue(data.DocumentId, out var existingData) ||
-                    existingData.Category != data.Category)
+                // only issue a change notification for files we haven't issued a notification for, or for files that
+                // changed their category.
+                if (!_documentToLastReportedCategory.TryGetValue(data.DocumentId, out var existingCategory) ||
+                    existingCategory != data.Category)
                 {
                     changedData.Add(data);
                 }
