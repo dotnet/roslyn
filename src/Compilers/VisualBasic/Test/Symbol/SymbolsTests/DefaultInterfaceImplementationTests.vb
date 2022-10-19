@@ -2398,12 +2398,12 @@ public interface ITest33
 }
 "
 
-            Dim pia2Refernce = GetCSharpCompilation(pia2, {attributesRef}).EmitToImageReference()
+            Dim pia2Reference = GetCSharpCompilation(pia2, {attributesRef}).EmitToImageReference()
 
             Dim compilation1 = CreateCompilation(consumer1, options:=TestOptions.ReleaseDll, references:={piaReference})
 
             For Each reference2 In {compilation1.ToMetadataReference(), compilation1.EmitToImageReference()}
-                Dim compilation2 = CreateCompilation(consumer2, options:=TestOptions.ReleaseExe, references:={reference2, pia2Refernce})
+                Dim compilation2 = CreateCompilation(consumer2, options:=TestOptions.ReleaseExe, references:={reference2, pia2Reference})
                 CompileAndVerify(compilation2, expectedOutput:="Test.M1")
             Next
         End Sub

@@ -102,8 +102,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             // local functions
             void AddSelectedFieldOrPropertyDeclarations(TMemberDeclarationSyntax member)
             {
-                if (!(member is TFieldDeclarationSyntax) &&
-                    !(member is TPropertyDeclarationSyntax))
+                if (member is not TFieldDeclarationSyntax and
+                    not TPropertyDeclarationSyntax)
                 {
                     return;
                 }

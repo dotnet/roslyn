@@ -37,14 +37,7 @@ namespace Microsoft.CodeAnalysis
                 _replacedGeneratedDocumentState = replacementDocumentState;
             }
 
-            public bool HasCompilation => _underlyingTracker.HasCompilation;
-
             public ProjectState ProjectState => _underlyingTracker.ProjectState;
-
-            public ICompilationTracker Clone()
-            {
-                return new GeneratedFileReplacingCompilationTracker(_underlyingTracker.Clone(), _replacedGeneratedDocumentState);
-            }
 
             public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary)
             {
@@ -75,7 +68,7 @@ namespace Microsoft.CodeAnalysis
                 throw new NotImplementedException();
             }
 
-            public ICompilationTracker Fork(ProjectState newProject, CompilationAndGeneratorDriverTranslationAction? translate = null, bool clone = false, CancellationToken cancellationToken = default)
+            public ICompilationTracker Fork(ProjectState newProject, CompilationAndGeneratorDriverTranslationAction? translate = null, CancellationToken cancellationToken = default)
             {
                 // TODO: This only needs to be implemented if a feature that operates from a source generated file then makes
                 // further mutations to that project, which isn't needed for now. This will be need to be fixed up when we complete
@@ -183,11 +176,6 @@ namespace Microsoft.CodeAnalysis
                     // semantically correct operation, but working on stale snapshots never has that guarantee.
                     return underlyingGeneratedDocumentStates.AddRange(ImmutableArray.Create(_replacedGeneratedDocumentState));
                 }
-            }
-
-            public IEnumerable<SyntaxTree>? GetSyntaxTreesWithNameFromDeclarationOnlyCompilation(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
-            {
-                return _underlyingTracker.GetSyntaxTreesWithNameFromDeclarationOnlyCompilation(predicate, filter, cancellationToken);
             }
 
             public Task<bool> HasSuccessfullyLoadedAsync(SolutionState solution, CancellationToken cancellationToken)

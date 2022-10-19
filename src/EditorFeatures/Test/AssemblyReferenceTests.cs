@@ -23,5 +23,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             var dependencies = editorsFeatureAssembly.GetReferencedAssemblies();
             Assert.Empty(dependencies.Where(a => a.FullName.Contains("Microsoft.VisualStudio.ImageCatalog")));
         }
+
+        [Fact]
+        public void TestNoReferenceToImagingInterop()
+        {
+            var editorsFeatureAssembly = typeof(Microsoft.CodeAnalysis.Editor.Shared.Extensions.GlyphExtensions).Assembly;
+            var dependencies = editorsFeatureAssembly.GetReferencedAssemblies();
+            Assert.Empty(dependencies.Where(a => a.FullName.Contains("Microsoft.VisualStudio.Imaging.Interop")));
+        }
     }
 }

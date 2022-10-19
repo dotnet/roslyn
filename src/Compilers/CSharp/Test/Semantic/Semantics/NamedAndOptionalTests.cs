@@ -739,9 +739,12 @@ partial class C
 }";
 
             CreateCompilation(source).VerifyDiagnostics(
-// (13,23): error CS1739: The best overload for 'PartialMethod' does not have a parameter named 'y'
-//         PartialMethod(y:123);
-Diagnostic(ErrorCode.ERR_BadNamedArgument, "y").WithArguments("PartialMethod", "y")
+                // (9,25): warning CS8826: Partial method declarations 'void C.PartialMethod(int x)' and 'void C.PartialMethod(int y)' have signature differences.
+                //     static partial void PartialMethod(int y) { Console.WriteLine(y); }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "PartialMethod").WithArguments("void C.PartialMethod(int x)", "void C.PartialMethod(int y)").WithLocation(9, 25),
+                // (13,23): error CS1739: The best overload for 'PartialMethod' does not have a parameter named 'y'
+                //         PartialMethod(y:123);
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "y").WithArguments("PartialMethod", "y").WithLocation(13, 23)
                 );
         }
 

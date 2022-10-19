@@ -11,7 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class TryBlockStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of TryBlockSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(node As TryBlockSyntax,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  node As TryBlockSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
                                                   optionProvider As BlockStructureOptionProvider,
                                                   cancellationToken As CancellationToken)

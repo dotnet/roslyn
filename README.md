@@ -26,6 +26,7 @@ If you are interested in fixing issues and contributing directly to the code bas
 - [Submitting pull requests](https://github.com/dotnet/roslyn/blob/main/CONTRIBUTING.md)
 - Finding a bug to fix in the [IDE](https://aka.ms/roslyn-ide-bugs-help-wanted) or [Compiler](https://aka.ms/roslyn-compiler-bugs-help-wanted)
 - Finding a feature to implement in the [IDE](https://aka.ms/roslyn-ide-feature-help-wanted) or [Compiler](https://aka.ms/roslyn-compiler-feature-help-wanted)
+- Roslyn API suggestions should go through the [API review process](<docs/contributing/API Review Process.md>)
 
 ### Community
 

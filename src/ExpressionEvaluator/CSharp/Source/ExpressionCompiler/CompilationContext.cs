@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     foreach (var parameter in m.Parameters)
                     {
                         var parameterName = parameter.Name;
-                        if (GeneratedNames.GetKind(parameterName) == GeneratedNameKind.None &&
+                        if (GeneratedNameParser.GetKind(parameterName) == GeneratedNameKind.None &&
                             !IsDisplayClassParameter(parameter))
                         {
                             itemsAdded.Add(parameterName);
@@ -1169,14 +1169,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     continue;
                 }
 
-                if (GeneratedNames.GetKind(name) != GeneratedNameKind.None)
+                if (GeneratedNameParser.GetKind(name) != GeneratedNameKind.None)
                 {
                     continue;
                 }
 
                 // Although Roslyn doesn't name synthesized locals unless they are well-known to EE,
                 // Dev12 did so we need to skip them here.
-                if (GeneratedNames.IsSynthesizedLocalName(name))
+                if (GeneratedNameParser.IsSynthesizedLocalName(name))
                 {
                     continue;
                 }
@@ -1205,7 +1205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             var containingType = method.ContainingType;
             bool isIteratorOrAsyncMethod = IsDisplayClassType(containingType) &&
-                GeneratedNames.GetKind(containingType.Name) == GeneratedNameKind.StateMachineType;
+                GeneratedNameParser.GetKind(containingType.Name) == GeneratedNameKind.StateMachineType;
 
             var parameterNamesInOrder = ArrayBuilder<string>.GetInstance();
             // For version before .NET 4.5, we cannot find the sourceMethod properly:
@@ -1224,7 +1224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
                     var field = (FieldSymbol)member;
                     var fieldName = field.Name;
-                    if (GeneratedNames.GetKind(fieldName) == GeneratedNameKind.None)
+                    if (GeneratedNameParser.GetKind(fieldName) == GeneratedNameKind.None)
                     {
                         parameterNamesInOrder.Add(fieldName);
                     }
@@ -1264,7 +1264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             foreach (var parameter in method.Parameters)
             {
-                if (GeneratedNames.GetKind(parameter.Name) == GeneratedNameKind.TransparentIdentifier ||
+                if (GeneratedNameParser.GetKind(parameter.Name) == GeneratedNameKind.TransparentIdentifier ||
                     IsDisplayClassParameter(parameter))
                 {
                     var instance = new DisplayClassInstanceFromParameter(parameter);
@@ -1296,7 +1296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             foreach (var local in locals)
             {
                 var name = local.Name;
-                if (name != null && GeneratedNames.GetKind(name) == GeneratedNameKind.DisplayClassLocalOrField)
+                if (name != null && GeneratedNameParser.GetKind(name) == GeneratedNameKind.DisplayClassLocalOrField)
                 {
                     var localType = local.Type;
                     if (localType is object && displayClassTypes.Add(localType))
@@ -1382,13 +1382,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     case GeneratedNameKind.TransparentIdentifier:
                         break;
                     case GeneratedNameKind.AnonymousTypeField:
-                        if (GeneratedNames.GetKind(part) != GeneratedNameKind.TransparentIdentifier)
+                        RoslynDebug.AssertNotNull(part);
+                        if (GeneratedNameParser.GetKind(part) != GeneratedNameKind.TransparentIdentifier)
                         {
                             continue;
                         }
                         break;
                     case GeneratedNameKind.ThisProxyField:
-                        if (GeneratedNames.GetKind(fieldType.Name) != GeneratedNameKind.LambdaDisplayClass)
+                        if (GeneratedNameParser.GetKind(fieldType.Name) != GeneratedNameKind.LambdaDisplayClass)
                         {
                             continue;
                         }
@@ -1470,7 +1471,7 @@ REPARSE:
                         // Filter out hoisted locals that are known to be out-of-scope at the current IL offset.
                         // Hoisted locals with invalid indices will be included since more information is better
                         // than less in error scenarios.
-                        if (GeneratedNames.TryParseSlotIndex(fieldName, out int slotIndex) &&
+                        if (GeneratedNameParser.TryParseSlotIndex(fieldName, out int slotIndex) &&
                             !inScopeHoistedLocalSlots.Contains(slotIndex))
                         {
                             continue;
@@ -1515,13 +1516,13 @@ REPARSE:
                         Debug.Assert(instance.Fields.Count() >= 1); // greater depth
                         Debug.Assert(variableKind == DisplayClassVariableKind.Parameter || variableKind == DisplayClassVariableKind.This);
 
-                        if (variableKind == DisplayClassVariableKind.Parameter && GeneratedNames.GetKind(instance.Type.Name) == GeneratedNameKind.LambdaDisplayClass)
+                        if (variableKind == DisplayClassVariableKind.Parameter && GeneratedNameParser.GetKind(instance.Type.Name) == GeneratedNameKind.LambdaDisplayClass)
                         {
                             displayClassVariablesBuilder[variableName] = instance.ToVariable(variableName, variableKind, field);
                         }
                     }
                 }
-                else if (variableKind != DisplayClassVariableKind.This || GeneratedNames.GetKind(instance.Type.ContainingType.Name) != GeneratedNameKind.LambdaDisplayClass)
+                else if (variableKind != DisplayClassVariableKind.This || GeneratedNameParser.GetKind(instance.Type.ContainingType.Name) != GeneratedNameKind.LambdaDisplayClass)
                 {
                     // In async lambdas, the hoisted "this" field in the state machine type will point to the display class instance, if there is one.
                     // In such cases, we want to add the display class "this" to the map instead (or nothing, if it lacks one).
@@ -1533,7 +1534,7 @@ REPARSE:
 
         private static void TryParseGeneratedName(string name, out GeneratedNameKind kind, out string? part)
         {
-            _ = GeneratedNames.TryParseGeneratedName(name, out kind, out int openBracketOffset, out int closeBracketOffset);
+            _ = GeneratedNameParser.TryParseGeneratedName(name, out kind, out int openBracketOffset, out int closeBracketOffset);
             switch (kind)
             {
                 case GeneratedNameKind.AnonymousTypeField:
@@ -1549,7 +1550,7 @@ REPARSE:
 
         private static bool IsDisplayClassType(TypeSymbol type)
         {
-            switch (GeneratedNames.GetKind(type.Name))
+            switch (GeneratedNameParser.GetKind(type.Name))
             {
                 case GeneratedNameKind.LambdaDisplayClass:
                 case GeneratedNameKind.StateMachineType:
@@ -1614,25 +1615,25 @@ REPARSE:
         {
             var candidateSubstitutedSourceType = candidateSubstitutedSourceMethod.ContainingType;
 
-            string desiredMethodName;
-            if (GeneratedNames.TryParseSourceMethodNameFromGeneratedName(candidateSubstitutedSourceType.Name, GeneratedNameKind.StateMachineType, out desiredMethodName) ||
-                GeneratedNames.TryParseSourceMethodNameFromGeneratedName(candidateSubstitutedSourceMethod.Name, GeneratedNameKind.LambdaMethod, out desiredMethodName) ||
-                GeneratedNames.TryParseSourceMethodNameFromGeneratedName(candidateSubstitutedSourceMethod.Name, GeneratedNameKind.LocalFunction, out desiredMethodName))
+            string? desiredMethodName;
+            if (GeneratedNameParser.TryParseSourceMethodNameFromGeneratedName(candidateSubstitutedSourceType.Name, GeneratedNameKind.StateMachineType, out desiredMethodName) ||
+                GeneratedNameParser.TryParseSourceMethodNameFromGeneratedName(candidateSubstitutedSourceMethod.Name, GeneratedNameKind.LambdaMethod, out desiredMethodName) ||
+                GeneratedNameParser.TryParseSourceMethodNameFromGeneratedName(candidateSubstitutedSourceMethod.Name, GeneratedNameKind.LocalFunction, out desiredMethodName))
             {
                 // We could be in the MoveNext method of an async lambda.
-                string tempMethodName;
-                if (GeneratedNames.TryParseSourceMethodNameFromGeneratedName(desiredMethodName, GeneratedNameKind.LambdaMethod, out tempMethodName) ||
-                    GeneratedNames.TryParseSourceMethodNameFromGeneratedName(desiredMethodName, GeneratedNameKind.LocalFunction, out tempMethodName))
+                string? tempMethodName;
+                if (GeneratedNameParser.TryParseSourceMethodNameFromGeneratedName(desiredMethodName, GeneratedNameKind.LambdaMethod, out tempMethodName) ||
+                    GeneratedNameParser.TryParseSourceMethodNameFromGeneratedName(desiredMethodName, GeneratedNameKind.LocalFunction, out tempMethodName))
                 {
                     desiredMethodName = tempMethodName;
 
                     var containing = candidateSubstitutedSourceType.ContainingType;
                     RoslynDebug.AssertNotNull(containing);
 
-                    if (GeneratedNames.GetKind(containing.Name) == GeneratedNameKind.LambdaDisplayClass)
+                    if (GeneratedNameParser.GetKind(containing.Name) == GeneratedNameKind.LambdaDisplayClass)
                     {
                         candidateSubstitutedSourceType = containing;
-                        sourceMethodMustBeInstance = candidateSubstitutedSourceType.MemberNames.Select(GeneratedNames.GetKind).Contains(GeneratedNameKind.ThisProxyField);
+                        sourceMethodMustBeInstance = candidateSubstitutedSourceType.MemberNames.Select(GeneratedNameParser.GetKind).Contains(GeneratedNameKind.ThisProxyField);
                     }
                 }
 
@@ -1700,7 +1701,7 @@ REPARSE:
                 : this(instance, ConsList<FieldSymbol>.Empty)
             {
                 Debug.Assert(IsDisplayClassType(instance.Type) ||
-                    GeneratedNames.GetKind(instance.Type.Name) == GeneratedNameKind.AnonymousType);
+                    GeneratedNameParser.GetKind(instance.Type.Name) == GeneratedNameKind.AnonymousType);
             }
 
             private DisplayClassInstanceAndFields(DisplayClassInstance instance, ConsList<FieldSymbol> fields)
@@ -1718,7 +1719,7 @@ REPARSE:
             internal DisplayClassInstanceAndFields FromField(FieldSymbol field)
             {
                 Debug.Assert(IsDisplayClassType(field.Type) ||
-                    GeneratedNames.GetKind(field.Type.Name) == GeneratedNameKind.AnonymousType);
+                    GeneratedNameParser.GetKind(field.Type.Name) == GeneratedNameKind.AnonymousType);
                 return new DisplayClassInstanceAndFields(Instance, Fields.Prepend(field));
             }
 

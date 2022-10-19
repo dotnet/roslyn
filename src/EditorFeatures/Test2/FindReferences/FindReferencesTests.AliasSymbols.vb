@@ -228,5 +228,158 @@ namespace N
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestGlobalAlias1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        global using $$D = System.[|DateTime|];
+        partial class C
+        {
+            [|D|] date;
+
+            void Goo()
+            {
+            }
+        }
+        </Document>
+        <Document>
+        partial class C
+        {
+            [|D|] date;
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestGlobalAlias2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        global using $$D = System.[|DateTime|];
+        </Document>
+        <Document>
+        partial class C
+        {
+            [|D|] date;
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestGlobalAlias3(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        global using $$DAttribute = System.[|CLSCompliantAttribute|];
+        </Document>
+        <Document>
+        [[|DAttribute|]]
+        partial class C
+        {
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestGlobalAlias4(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        global using $$DAttribute = System.[|CLSCompliantAttribute|];
+        </Document>
+        <Document>
+        [[|DAttribute|](false)]
+        partial class C
+        {
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestGlobalAlias5(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        global using $$DAttribute = System.[|CLSCompliantAttribute|];
+        </Document>
+        <Document>
+        [[|D|]]
+        partial class D
+        {
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestGlobalAlias6(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        global using $$DAttribute = System.[|CLSCompliantAttribute|];
+        </Document>
+        <Document>
+        [[|D|](false)]
+        partial class D
+        {
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestGlobalAlias7(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        global using $$D = System.[|DateTime|];
+
+        </Document>
+        <Document>
+        namespace Outer
+        {
+            using D2 = [|D|];
+            partial class C
+            {
+                [|D2|] date;
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 mergedRoot,
                 n => n == name,
                 filter,
-                t => t.MemberNames.Contains(name),
+                t => t.MemberNames.ContainsKey(name),
                 cancellationToken);
         }
 
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 mergedRoot, predicate, filter,
                 t =>
                 {
-                    foreach (var name in t.MemberNames)
+                    foreach (var (name, _) in t.MemberNames)
                     {
                         if (predicate(name))
                         {

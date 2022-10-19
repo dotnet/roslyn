@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
                     exprOrStatement.Parent,
                     (c, _) => c.WithAdditionalAnnotations(Formatter.Annotation));
             }
-            else if (parent is BlockSyntax || parent is SwitchSectionSyntax)
+            else if (parent is BlockSyntax or SwitchSectionSyntax)
             {
                 editor.InsertBefore(exprOrStatement, statements);
             }

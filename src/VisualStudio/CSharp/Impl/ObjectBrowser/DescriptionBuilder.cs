@@ -111,11 +111,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
                 var baseType = typeSymbol.BaseType;
                 if (baseType != null)
                 {
-                    if (baseType.SpecialType != SpecialType.System_Object &&
-                        baseType.SpecialType != SpecialType.System_Delegate &&
-                        baseType.SpecialType != SpecialType.System_MulticastDelegate &&
-                        baseType.SpecialType != SpecialType.System_Enum &&
-                        baseType.SpecialType != SpecialType.System_ValueType)
+                    if (baseType.SpecialType is not SpecialType.System_Object and
+                        not SpecialType.System_Delegate and
+                        not SpecialType.System_MulticastDelegate and
+                        not SpecialType.System_Enum and
+                        not SpecialType.System_ValueType)
                     {
                         AddText(" : ");
                         AddTypeLink(baseType, LinkFlags.None);
@@ -191,10 +191,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
         {
             BuildMemberModifiers(methodSymbol);
 
-            if (methodSymbol.MethodKind != MethodKind.Constructor &&
-                methodSymbol.MethodKind != MethodKind.Destructor &&
-                methodSymbol.MethodKind != MethodKind.StaticConstructor &&
-                methodSymbol.MethodKind != MethodKind.Conversion)
+            if (methodSymbol.MethodKind is not MethodKind.Constructor and
+                not MethodKind.Destructor and
+                not MethodKind.StaticConstructor and
+                not MethodKind.Conversion)
             {
                 AddTypeLink(methodSymbol.ReturnType, LinkFlags.None);
                 AddText(" ");

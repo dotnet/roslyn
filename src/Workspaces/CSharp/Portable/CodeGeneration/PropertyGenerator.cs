@@ -345,8 +345,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // Most modifiers not allowed if we're an explicit impl.
             if (!property.ExplicitInterfaceImplementations.Any())
             {
-                if (destination != CodeGenerationDestination.CompilationUnit &&
-                    destination != CodeGenerationDestination.InterfaceType)
+                if (destination is not CodeGenerationDestination.CompilationUnit and
+                    not CodeGenerationDestination.InterfaceType)
                 {
                     AddAccessibilityModifiers(property.DeclaredAccessibility, tokens, options, Accessibility.Private);
 

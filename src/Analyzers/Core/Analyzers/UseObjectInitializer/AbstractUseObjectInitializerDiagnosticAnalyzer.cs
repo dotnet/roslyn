@@ -42,21 +42,24 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         protected override void InitializeWorker(AnalysisContext context)
         {
             var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
-            context.RegisterSyntaxNodeAction(
-                AnalyzeNode, syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
+            context.RegisterCompilationStartAction(context =>
+            {
+                if (!AreObjectInitializersSupported(context.Compilation))
+                {
+                    return;
+                }
+
+                context.RegisterSyntaxNodeAction(
+                    AnalyzeNode, syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
+            });
         }
 
-        protected abstract bool AreObjectInitializersSupported(SyntaxNodeAnalysisContext context);
+        protected abstract bool AreObjectInitializersSupported(Compilation compilation);
 
         protected abstract bool IsValidContainingStatement(TStatementSyntax node);
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            if (!AreObjectInitializersSupported(context))
-            {
-                return;
-            }
-
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
             var language = objectCreationExpression.Language;
             var option = context.GetOption(CodeStyleOptions2.PreferObjectInitializer, language);

@@ -49,16 +49,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
             using (Logger.LogBlock(FunctionId.Simplifier_ExpandNode, cancellationToken))
             {
-                if (node is AttributeSyntax ||
-                    node is AttributeArgumentSyntax ||
-                    node is ConstructorInitializerSyntax ||
-                    node is ExpressionSyntax ||
-                    node is FieldDeclarationSyntax ||
-                    node is StatementSyntax ||
-                    node is CrefSyntax ||
-                    node is XmlNameAttributeSyntax ||
-                    node is TypeConstraintSyntax ||
-                    node is BaseTypeSyntax)
+                if (node is AttributeSyntax or
+                    AttributeArgumentSyntax or
+                    ConstructorInitializerSyntax or
+                    ExpressionSyntax or
+                    FieldDeclarationSyntax or
+                    StatementSyntax or
+                    CrefSyntax or
+                    XmlNameAttributeSyntax or
+                    TypeConstraintSyntax or
+                    BaseTypeSyntax)
                 {
                     var rewriter = new Expander(semanticModel, expandInsideNode, expandParameter, cancellationToken, annotationForReplacedAliasIdentifier);
                     return rewriter.Visit(node);

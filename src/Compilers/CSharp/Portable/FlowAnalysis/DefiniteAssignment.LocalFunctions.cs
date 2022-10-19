@@ -135,6 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return mask;
         }
 
+#nullable enable
         private bool IsCapturedInLocalFunction(int slot)
         {
             if (slot <= 0) return false;
@@ -152,6 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return !(nearestLocalFunc is null) && Symbol.IsCaptured(rootSymbol, nearestLocalFunc);
         }
+#nullable disable
 
         private static LocalFunctionSymbol GetNearestLocalFunctionOpt(Symbol symbol)
         {

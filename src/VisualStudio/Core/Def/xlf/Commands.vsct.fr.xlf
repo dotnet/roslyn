@@ -7,6 +7,81 @@
         <target state="translated">Exécuter l'&amp;analyse du code durant la sélection</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeCurrentFile|ButtonText">
+        <source>&amp;Current Document</source>
+        <target state="translated">&amp;Document actif</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeCurrentFile|CommandName">
+        <source>AnalysisScopeCurrentDocument</source>
+        <target state="translated">AnalysisScopeCurrentDocument</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeCurrentFile|LocCanonicalName">
+        <source>Current Document</source>
+        <target state="translated">Document actif</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeDefault|ButtonText">
+        <source>&amp;Default</source>
+        <target state="translated">Par &amp;défaut</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeDefault|CommandName">
+        <source>AnalysisScopeDefault</source>
+        <target state="translated">AnalysisScopeDefault</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeDefault|LocCanonicalName">
+        <source>Default</source>
+        <target state="translated">Par défaut</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeEntireSolution|ButtonText">
+        <source>&amp;Entire Solution</source>
+        <target state="translated">&amp;Solution complète</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeEntireSolution|CommandName">
+        <source>AnalysisScopeEntireSolution</source>
+        <target state="translated">AnalysisScopeEntireSolution</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeEntireSolution|LocCanonicalName">
+        <source>Entire Solution</source>
+        <target state="translated">Solution complète</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeOpenFiles|ButtonText">
+        <source>&amp;Open Documents</source>
+        <target state="translated">&amp;Documents ouverts</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeOpenFiles|CommandName">
+        <source>AnalysisScopeOpenDocuments</source>
+        <target state="translated">AnalysisScopeOpenDocuments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeOpenFiles|LocCanonicalName">
+        <source>Open Documents</source>
+        <target state="translated">Documents ouverts</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeSubMenu|ButtonText">
+        <source>Set Analysis Scope</source>
+        <target state="translated">Définir l’étendue de l’analyse</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeSubMenu|CommandName">
+        <source>Set Analysis Scope</source>
+        <target state="translated">Définir l’étendue de l’analyse</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeSubMenu|LocCanonicalName">
+        <source>SetAnalysisScope</source>
+        <target state="translated">SetAnalysisScope</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidCSharpOrganizeSortUsings|ButtonText">
         <source>Sort &amp;Usings</source>
         <target state="translated">Trier les &amp;using</target>
@@ -213,8 +288,8 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdidRemoveUnusedReferences|ButtonText">
-        <source>Remove &amp;Unused References...</source>
-        <target state="translated">&amp;Supprimer les références inutilisées...</target>
+        <source>Remove Unused References...</source>
+        <target state="translated">Supprimer les références inutilisées...</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidRemoveUnusedReferences|CommandName">
@@ -420,6 +495,36 @@
       <trans-unit id="cmdidGoToImplementation|CommandName">
         <source>Go To Implementation</source>
         <target state="translated">Accéder à l'implémentation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSyncNamespaces|ButtonText">
+        <source>Sync &amp;Namespaces</source>
+        <target state="translated">&amp;Synchroniser les espaces de noms</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSyncNamespaces|CommandName">
+        <source>SyncNamespaces</source>
+        <target state="translated">SyncNamespaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSyncNamespaces|LocCanonicalName">
+        <source>SyncNamespaces</source>
+        <target state="translated">SyncNamespaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidshowValueTracking|ButtonText">
+        <source>Track Value Source</source>
+        <target state="translated">Suivre la valeur source</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidshowValueTracking|CommandName">
+        <source>ShowValueTrackingCommandName</source>
+        <target state="translated">ShowValueTrackingCommandName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidshowValueTracking|LocCanonicalName">
+        <source>ViewEditorConfigSettings</source>
+        <target state="translated">ViewEditorConfigSettings</target>
         <note />
       </trans-unit>
       <trans-unit id="guidCSharpInteractiveCommandSet|cmdidResetInteractiveFromProject|ButtonText">

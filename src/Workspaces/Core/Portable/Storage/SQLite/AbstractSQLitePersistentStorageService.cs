@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // Necessary to initialize SQLitePCL.
                 SQLitePCL.Batteries_V2.Init();
             }
-            catch (Exception e) when (e is DllNotFoundException || e is EntryPointNotFoundException)
+            catch (Exception e) when (e is DllNotFoundException or EntryPointNotFoundException)
             {
                 StorageDatabaseLogger.LogException(e);
                 return false;
@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.SQLite
             return true;
         }
 
-        protected AbstractSQLitePersistentStorageService(IPersistentStorageLocationService locationService)
-            : base(locationService)
+        protected AbstractSQLitePersistentStorageService(IPersistentStorageConfiguration configuration)
+            : base(configuration)
         {
         }
     }

@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             CancellationToken cancellationToken)
             => ImportCompletionProviderHelper.GetImportedNamespaces(location, semanticModel);
 
-        protected override Task<SyntaxContext> CreateContextAsync(Document document, int position, bool usePartialSemantic, CancellationToken cancellationToken)
-            => ImportCompletionProviderHelper.CreateContextAsync(document, position, usePartialSemantic, cancellationToken);
+        protected override Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
+            => ImportCompletionProviderHelper.CreateContextAsync(document, position, cancellationToken);
 
         protected override bool IsFinalSemicolonOfUsingOrExtern(SyntaxNode directive, SyntaxToken token)
         {

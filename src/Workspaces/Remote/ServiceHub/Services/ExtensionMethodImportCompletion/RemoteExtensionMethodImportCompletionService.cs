@@ -61,5 +61,15 @@ namespace Microsoft.CodeAnalysis.Remote
                 return new SerializableUnimportedExtensionMethods(ImmutableArray<SerializableImportCompletionItem>.Empty, isPartialResult: false, getSymbolsTicks: 0, createItemsTicks: 0);
             }, cancellationToken);
         }
+
+        public ValueTask WarmUpCacheAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(async cancellationToken =>
+            {
+                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                var document = solution.GetRequiredDocument(documentId);
+                await ExtensionMethodImportCompletionHelper.WarmUpCacheInCurrentProcessAsync(document, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
+        }
     }
 }

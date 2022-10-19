@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -42,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             var span = context.Span;
             var cancellationToken = context.CancellationToken;
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var token = root.FindToken(span.Start);
             if (!token.Span.IntersectsWith(span))
@@ -50,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                 return;
             }
 
-            var service = document.GetLanguageService<IImplementInterfaceService>();
+            var service = document.GetRequiredLanguageService<IImplementInterfaceService>();
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var actions = token.Parent.GetAncestorsOrThis<TypeSyntax>()

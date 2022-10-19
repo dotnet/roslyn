@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var typeNameConstant = attr.ConstructorArguments.FirstOrDefault();
                 if (typeNameConstant.Type == null ||
                     typeNameConstant.Type.SpecialType != SpecialType.System_String ||
-                    !(typeNameConstant.Value is string value))
+                    typeNameConstant.Value is not string value)
                 {
                     continue;
                 }

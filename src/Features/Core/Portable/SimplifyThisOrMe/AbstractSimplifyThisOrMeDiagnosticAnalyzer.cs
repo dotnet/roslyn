@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 
             var syntaxFacts = GetSyntaxFacts();
             var expr = syntaxFacts.GetExpressionOfMemberAccessExpression(node);
-            if (!(expr is TThisExpressionSyntax))
+            if (expr is not TThisExpressionSyntax)
             {
                 return;
             }
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             var severity = optionValue.Notification.Severity;
 
             var tree = model.SyntaxTree;
-            var builder = ImmutableDictionary.CreateBuilder<string, string>();
+            var builder = ImmutableDictionary.CreateBuilder<string, string?>();
 
             // used so we can provide a link in the preview to the options page. This value is
             // hard-coded there to be the one that will go to the code-style page.

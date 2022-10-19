@@ -344,7 +344,7 @@ namespace Nested
             var args = new List<string>(commandLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
             args.Add("/nostdlib");
             args.Add("/deterministic");
-            foreach (var referenceInfo in TestMetadata.ResourcesNetCoreApp.All)
+            foreach (var referenceInfo in NetCoreApp.AllReferenceInfos)
             {
                 AddReference(referenceInfo.FileName, referenceInfo.ImageBytes);
                 args.Add($"/r:{referenceInfo.FileName}");
@@ -511,7 +511,7 @@ End Namespace
             var args = new List<string>(commandLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
             args.Add("/nostdlib");
             args.Add("/deterministic");
-            foreach (var referenceInfo in TestMetadata.ResourcesNetCoreApp.All)
+            foreach (var referenceInfo in NetCoreApp.AllReferenceInfos)
             {
                 AddReference(referenceInfo.FileName, referenceInfo.ImageBytes);
 

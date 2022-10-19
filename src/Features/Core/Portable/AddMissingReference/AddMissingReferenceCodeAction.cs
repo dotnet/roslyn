@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeActions.WorkspaceServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddMissingReference
@@ -17,12 +16,12 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
     internal class AddMissingReferenceCodeAction : CodeAction
     {
         private readonly Project _project;
-        private readonly ProjectReference _projectReferenceToAdd;
+        private readonly ProjectReference? _projectReferenceToAdd;
         private readonly AssemblyIdentity _missingAssemblyIdentity;
 
         public override string Title { get; }
 
-        public AddMissingReferenceCodeAction(Project project, string title, ProjectReference projectReferenceToAdd, AssemblyIdentity missingAssemblyIdentity)
+        public AddMissingReferenceCodeAction(Project project, string title, ProjectReference? projectReferenceToAdd, AssemblyIdentity missingAssemblyIdentity)
         {
             _project = project;
             Title = title;
@@ -53,11 +52,12 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
             // whatever project reference we end up adding won't add a circularity (also good.)
             foreach (var candidateProjectId in dependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(project.Id))
             {
-                var candidateProject = project.Solution.GetProject(candidateProjectId);
-                if (string.Equals(missingAssemblyIdentity.Name, candidateProject.AssemblyName, StringComparison.OrdinalIgnoreCase))
+                var candidateProject = project.Solution.GetRequiredProject(candidateProjectId);
+                if (candidateProject.SupportsCompilation &&
+                    string.Equals(missingAssemblyIdentity.Name, candidateProject.AssemblyName, StringComparison.OrdinalIgnoreCase))
                 {
                     // The name matches, so let's see if the full identities are equal. 
-                    var compilation = await candidateProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    var compilation = await candidateProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                     if (missingAssemblyIdentity.Equals(compilation.Assembly.Identity))
                     {
                         // It matches, so just add a reference to this

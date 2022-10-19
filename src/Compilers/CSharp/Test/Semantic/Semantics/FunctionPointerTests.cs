@@ -44,7 +44,12 @@ using s = delegate*<void>;");
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(2, 11),
                 // (2,25): error CS0116: A namespace cannot directly contain members such as fields or methods
                 // using s = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">").WithLocation(2, 25)
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">").WithLocation(2, 25),
+
+                // See same-named test in TopLevelStatementsParsingTests, there is a single top-level statement in the tree and it is an empty statement.
+                // (2,26): error CS8937: At least one top-level statement must be non-empty.
+                // using s = delegate*<void>;
+                Diagnostic(ErrorCode.ERR_SimpleProgramIsEmpty, ";").WithLocation(2, 26)
             );
         }
 
@@ -2410,8 +2415,8 @@ unsafe
   // Code size       13 (0xd)
   .maxstack  2
   IL_0000:  ldc.i4.0
-  IL_0001:  ldftn      ""string <Program>$.<<Main>$>g__converter|0_0(int)""
-  IL_0007:  call       ""void <Program>$.<<Main>$>g__Test|0_1<int, string>(int, delegate*<int, string>)""
+  IL_0001:  ldftn      ""string Program.<<Main>$>g__converter|0_0(int)""
+  IL_0007:  call       ""void Program.<<Main>$>g__Test|0_1<int, string>(int, delegate*<int, string>)""
   IL_000c:  ret
 }
 ");
@@ -2435,8 +2440,8 @@ unsafe
   // Code size       17 (0x11)
   .maxstack  2
   IL_0000:  ldsfld     ""string string.Empty""
-  IL_0005:  ldftn      ""string <Program>$.<<Main>$>g__converter|0_0(object)""
-  IL_000b:  call       ""void <Program>$.<<Main>$>g__Test|0_1<string, string>(string, delegate*<string, string>)""
+  IL_0005:  ldftn      ""string Program.<<Main>$>g__converter|0_0(object)""
+  IL_000b:  call       ""void Program.<<Main>$>g__Test|0_1<string, string>(string, delegate*<string, string>)""
   IL_0010:  ret
 }
 ");
@@ -2661,9 +2666,9 @@ unsafe
   IL_0001:  newarr     ""delegate*<ref string, string>""
   IL_0006:  dup
   IL_0007:  ldc.i4.0
-  IL_0008:  ldftn      ""string <Program>$.<<Main>$>g__Test|0_0(ref string)""
+  IL_0008:  ldftn      ""string Program.<<Main>$>g__Test|0_0(ref string)""
   IL_000e:  stelem.i
-  IL_000f:  call       ""void <Program>$.<<Main>$>g__Test1|0_1<string, string>(delegate*<ref string, string>[])""
+  IL_000f:  call       ""void Program.<<Main>$>g__Test1|0_1<string, string>(delegate*<ref string, string>[])""
   IL_0014:  ret
 }
 ");

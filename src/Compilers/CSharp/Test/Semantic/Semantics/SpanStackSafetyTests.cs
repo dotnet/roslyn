@@ -1804,5 +1804,130 @@ struct Struct2
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "span").WithArguments("span").WithLocation(43, 16)
                 );
         }
+
+        [Fact]
+        [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
+        public void AssignToDiscard_01()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        _ = Test(stackalloc int[5]);
+        System.Console.WriteLine(""Done"");
+    }
+
+    static Span<int> Test(Span<int> items) => items;
+}
+";
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "Done").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
+        public void AssignToDiscard_02()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    static int[] _array = new int[] {};
+
+    static void Main()
+    {
+        _ = Test;
+        System.Console.WriteLine(""Done"");
+    }
+
+    static Span<int> Test => _array;
+}
+";
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "Done").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
+        public void AssignToDiscard_03()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        var l = Test(stackalloc int[5]);
+        _ = l;
+        System.Console.WriteLine(""Done"");
+    }
+
+    static Span<int> Test(Span<int> items) => items;
+}
+";
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "Done").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
+        public void AssignToDiscard_04()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        var l = Test(stackalloc int[5]);
+
+        {
+            int i = 0;
+            _ = l;
+            i++;
+        }
+
+        System.Console.WriteLine(""Done"");
+    }
+
+    static Span<int> Test(Span<int> items) => items;
+}
+";
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "Done").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
+        public void AssignToDiscard_05()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Test(stackalloc int[5]);
+        System.Console.WriteLine(""Done"");
+    }
+
+    static Span<int> Test(Span<int> items) => items;
+}
+";
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "Done").VerifyDiagnostics();
+        }
     }
 }

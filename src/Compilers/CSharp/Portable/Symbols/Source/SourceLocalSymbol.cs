@@ -708,9 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             return _deconstruction;
 
                         case SyntaxKind.ForEachVariableStatement:
-                            // There is no forbidden zone for a foreach statement, because the
-                            // variables are not in scope in the expression.
-                            return null;
+                            return ((ForEachVariableStatementSyntax)_deconstruction).Variable;
 
                         default:
                             return null;

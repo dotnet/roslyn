@@ -74,6 +74,23 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxNode InterpolationFormatClause(string format);
         internal abstract SyntaxNode TypeParameterList(IEnumerable<string> typeParameterNames);
 
+        /// <summary>
+        /// Produces an appropriate TypeSyntax for the given <see cref="ITypeSymbol"/>.  The <paramref name="typeContext"/>
+        /// flag controls how this should be created depending on if this node is intended for use in a type-only
+        /// context, or an expression-level context.  In the former case, both C# and VB will create QualifiedNameSyntax
+        /// nodes for dotted type names, whereas in the latter case both languages will create MemberAccessExpressionSyntax
+        /// nodes.  The final stringified result will be the same in both cases.  However, the structure of the trees
+        /// will be substantively different, which can impact how the compilation layers analyze the tree and how
+        /// transformational passes affect it.
+        /// </summary>
+        /// <remarks>
+        /// Passing in the right value for <paramref name="typeContext"/> is necessary for correctness and for use
+        /// of compilation (and other) layers in a supported fashion.  For example, if a QualifiedTypeSyntax is
+        /// sed in a place the compiler would have parsed out a MemberAccessExpression, then it is undefined behavior
+        /// what will happen if that tree is passed to any other components.
+        /// </remarks>
+        internal abstract SyntaxNode Type(ITypeSymbol typeSymbol, bool typeContext);
+
         #region Patterns
 
         internal abstract bool SupportsPatterns(ParseOptions options);

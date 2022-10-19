@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics.Eventing.Reader;
 using System.Runtime.Serialization;
@@ -126,7 +124,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public FeedbackItemWatsonEntry(EventRecord eventLogRecord)
         {
-            EventTime = eventLogRecord.TimeCreated.Value.ToUniversalTime();
+            EventTime = eventLogRecord.TimeCreated?.ToUniversalTime() ?? DateTime.MinValue;
             FaultBucket = EventLogCollector.GetEventRecordPropertyToString(eventLogRecord, FaultBucketIndex);
             HashedBucket = EventLogCollector.GetEventRecordPropertyToString(eventLogRecord, HashedBucketIndex);
             WatsonReportId = EventLogCollector.GetEventRecordPropertyToString(eventLogRecord, WatsonReportIdIndex);

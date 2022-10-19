@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
         }
 
-        internal override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
+        internal override IHeaderFacts HeaderFacts => CSharpHeaderFacts.Instance;
 
         protected override AbstractTriviaDataFactory CreateTriviaFactory()
             => new TriviaDataFactory(this.TreeData, this.Options);

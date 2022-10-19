@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.MakeTypeAbstract;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -143,7 +144,8 @@ public abstract class Goo
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41654"), Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
+        [WorkItem(54218, "https://github.com/dotnet/roslyn/issues/54218")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
         public async Task TestPartialClass()
         {
             await TestInRegularAndScript1Async(
@@ -157,7 +159,7 @@ public partial class Goo
 {
 }",
 @"
-public partial abstract class Goo
+public abstract partial class Goo
 {
     public abstract void M();
 }

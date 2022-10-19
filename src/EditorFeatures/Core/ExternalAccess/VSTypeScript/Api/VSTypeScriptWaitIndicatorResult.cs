@@ -3,12 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
     internal enum VSTypeScriptWaitIndicatorResult
     {
-        Canceled = WaitIndicatorResult.Canceled,
-        Completed = WaitIndicatorResult.Completed
+        Canceled = UIThreadOperationStatus.Canceled,
+        Completed = UIThreadOperationStatus.Completed
     }
 }

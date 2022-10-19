@@ -992,15 +992,36 @@ namespace Microsoft.Cci
                 return true;
             }
 
+            bool acceptBasedOnVisibility = true;
+
             switch (member.Visibility)
             {
                 case TypeMemberVisibility.Private:
-                    return context.IncludePrivateMembers;
+                    acceptBasedOnVisibility = context.IncludePrivateMembers;
+                    break;
                 case TypeMemberVisibility.Assembly:
                 case TypeMemberVisibility.FamilyAndAssembly:
-                    return context.IncludePrivateMembers || context.Module.SourceAssemblyOpt?.InternalsAreVisible == true;
+                    acceptBasedOnVisibility = context.IncludePrivateMembers || context.Module.SourceAssemblyOpt?.InternalsAreVisible == true;
+                    break;
             }
-            return true;
+
+            if (acceptBasedOnVisibility)
+            {
+                return true;
+            }
+
+            if (method?.IsStatic == true)
+            {
+                foreach (var methodImplementation in method.ContainingTypeDefinition.GetExplicitImplementationOverrides(context))
+                {
+                    if (methodImplementation.ImplementingMethod == method)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }

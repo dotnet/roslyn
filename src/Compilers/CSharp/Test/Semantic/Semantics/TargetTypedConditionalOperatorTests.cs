@@ -640,9 +640,10 @@ class Program
                 // (15,16): error CS0029: Cannot implicitly convert type 'A' to 'B'
                 //         return (b ? a : 0) + a;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "(b ? a : 0) + a").WithArguments("A", "B").WithLocation(15, 16),
-                // (15,17): error CS8370: Feature 'target-typed conditional expression' is not available in C# 7.3. Please use language version 9.0 or greater.
+                // (15,17): error CS8957: Conditional expression is not valid in language version 7.3 because a common type was not found between 'A' and 'int'. To use a target-typed conversion, upgrade to language version 9.0 or greater.
                 //         return (b ? a : 0) + a;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "b ? a : 0").WithArguments("target-typed conditional expression", "9.0").WithLocation(15, 17));
+                Diagnostic(ErrorCode.ERR_NoImplicitConvTargetTypedConditional, "b ? a : 0").WithArguments("7.3", "A", "int", "9.0").WithLocation(15, 17));
+
             CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion())).VerifyDiagnostics(
                 // (15,16): error CS0029: Cannot implicitly convert type 'A' to 'B'
                 //         return (b ? a : 0) + a;
@@ -689,6 +690,28 @@ class Program
             var typeInfo = model.GetTypeInfo(expr);
             Assert.Null(typeInfo.Type);
             Assert.Equal("System.Int32?", typeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void DiagnosticClarity_LangVersion8()
+        {
+            var source = @"
+class C
+{
+    void M(bool b)
+    {
+        int? i = b ? 1 : null;
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,18): error CS8957: Conditional expression is not valid in language version 8.0 because a common type was not found between 'int' and '<null>'. To use a target-typed conversion, upgrade to language version 9.0 or greater.
+                //         int? i = b ? 1 : null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvTargetTypedConditional, "b ? 1 : null").WithArguments("8.0", "int", "<null>", "9.0").WithLocation(6, 18));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
         }
     }
 }

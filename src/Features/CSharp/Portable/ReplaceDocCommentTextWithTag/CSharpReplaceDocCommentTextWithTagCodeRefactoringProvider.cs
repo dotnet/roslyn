@@ -37,14 +37,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDocCommentTextWithTag
         }
 
         protected override bool IsXmlTextToken(SyntaxToken token)
-            => token.Kind() == SyntaxKind.XmlTextLiteralToken ||
-               token.Kind() == SyntaxKind.XmlTextLiteralNewLineToken;
+            => token.Kind() is SyntaxKind.XmlTextLiteralToken or
+               SyntaxKind.XmlTextLiteralNewLineToken;
 
         protected override bool IsInXMLAttribute(SyntaxToken token)
         {
-            return (token.Parent.Kind() == SyntaxKind.XmlCrefAttribute
-                || token.Parent.Kind() == SyntaxKind.XmlNameAttribute
-                || token.Parent.Kind() == SyntaxKind.XmlTextAttribute);
+            return (token.Parent.Kind() is SyntaxKind.XmlCrefAttribute
+                or SyntaxKind.XmlNameAttribute
+                or SyntaxKind.XmlTextAttribute);
         }
 
         protected override bool IsKeyword(string text)

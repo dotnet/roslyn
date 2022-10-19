@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             if (errorId == null)
             {
                 // record NFW to see who violates contract.
-                WatsonReporter.ReportNonFatal(new Exception("errorId is null"));
+                FatalError.ReportAndCatch(new Exception("errorId is null"));
                 return false;
             }
 

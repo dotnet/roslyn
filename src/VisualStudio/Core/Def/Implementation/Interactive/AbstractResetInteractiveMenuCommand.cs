@@ -101,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
                     return false;
                 }
 
-                if (!(Marshal.GetObjectForIUnknown(hierarchyPointer) is IVsHierarchy hierarchy))
+                if (Marshal.GetObjectForIUnknown(hierarchyPointer) is not IVsHierarchy hierarchy)
                 {
                     return false;
                 }

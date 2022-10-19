@@ -496,7 +496,8 @@ BC30396: 'NotInheritable' is not valid on an Enum declaration.
             End Enum
             Shared Sub Main()
                 Dim S As Suits = CType(2, Suits)
-                Console.WriteLine(S.ToString())     ' ValueE
+                Console.WriteLine(S = Suits.ValueB)
+                Console.WriteLine(S = Suits.ValueE)
                 Dim S1 As Suits = CType(-1, Suits)
                 Console.WriteLine(S1.ToString())        ' 255
             End Sub
@@ -505,8 +506,9 @@ BC30396: 'NotInheritable' is not valid on an Enum declaration.
 </compilation>
 
             VerifyEnumsValue(text, "c1.Suits", 1, 2, 4, 2, 2)
-            Dim expectedOutput = <![CDATA[
-ValueE
+
+            Dim expectedOutput = <![CDATA[True
+True
 -1
 ]]>
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(text, TestOptions.ReleaseExe)

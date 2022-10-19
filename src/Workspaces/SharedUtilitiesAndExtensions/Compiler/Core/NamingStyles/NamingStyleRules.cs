@@ -51,8 +51,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             if (symbol is IMethodSymbol method)
             {
-                return method.MethodKind == MethodKind.Ordinary ||
-                       method.MethodKind == MethodKind.LocalFunction;
+                return method.MethodKind is MethodKind.Ordinary or
+                       MethodKind.LocalFunction;
             }
 
             if (symbol is IPropertySymbol property)
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
 
             var containingType = symbol.ContainingType;
-            if (containingType.TypeKind != TypeKind.Class && containingType.TypeKind != TypeKind.Struct)
+            if (containingType.TypeKind is not TypeKind.Class and not TypeKind.Struct)
             {
                 return false;
             }

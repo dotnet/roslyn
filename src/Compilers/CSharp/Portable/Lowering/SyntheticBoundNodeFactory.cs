@@ -308,13 +308,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Property(BoundExpression? receiverOpt, PropertySymbol property)
         {
             Debug.Assert((receiverOpt is null) == property.IsStatic);
-            return Call(receiverOpt, property.GetMethod); // TODO: should we use property.GetBaseProperty().GetMethod to ensure we generate a call to the overridden method?
-        }
-
-        public BoundExpression Indexer(BoundExpression? receiverOpt, PropertySymbol property, BoundExpression arg0)
-        {
-            Debug.Assert((receiverOpt is null) == property.IsStatic);
-            return Call(receiverOpt, property.GetMethod, arg0); // TODO: should we use property.GetBaseProperty().GetMethod to ensure we generate a call to the overridden method?
+            var accessor = property.GetOwnOrInheritedGetMethod();
+            Debug.Assert(accessor is not null);
+            return Call(receiverOpt, accessor);
         }
 
         public NamedTypeSymbol SpecialType(SpecialType st)
@@ -525,13 +521,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             ,
             [CallerLineNumber] int createdAtLineNumber = 0,
-            [CallerFilePath] string? createdAtFilePath = null
+            [CallerFilePath] string createdAtFilePath = ""
 #endif
             )
         {
             return new SynthesizedLocal(CurrentFunction, TypeWithAnnotations.Create(type), kind, syntax, isPinned, refKind
 #if DEBUG
                 , createdAtLineNumber, createdAtFilePath
+#endif
+                );
+        }
+
+        public LocalSymbol InterpolatedStringHandlerLocal(
+            TypeSymbol type,
+            uint valEscapeScope,
+            SyntaxNode syntax
+#if DEBUG
+            ,
+            [CallerLineNumber] int createdAtLineNumber = 0,
+            [CallerFilePath] string createdAtFilePath = ""
+#endif
+            )
+        {
+            return new SynthesizedLocalWithValEscape(
+                CurrentFunction,
+                TypeWithAnnotations.Create(type),
+                SynthesizedLocalKind.LoweringTemp,
+                valEscapeScope,
+                syntax
+#if DEBUG
+                , createdAtLineNumber: createdAtLineNumber, createdAtFilePath: createdAtFilePath
 #endif
                 );
         }
@@ -543,7 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBinaryOperator Binary(BinaryOperatorKind kind, TypeSymbol type, BoundExpression left, BoundExpression right)
         {
-            return new BoundBinaryOperator(this.Syntax, kind, ConstantValue.NotAvailable, null, LookupResultKind.Viable, left, right, type) { WasCompilerGenerated = true };
+            return new BoundBinaryOperator(this.Syntax, kind, ConstantValue.NotAvailable, methodOpt: null, constrainedToTypeOpt: null, LookupResultKind.Viable, left, right, type) { WasCompilerGenerated = true };
         }
 
         public BoundAsOperator As(BoundExpression operand, TypeSymbol type)
@@ -632,6 +651,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundObjectCreationExpression New(MethodSymbol ctor, params BoundExpression[] args)
             => New(ctor, args.ToImmutableArray());
+
+        public BoundObjectCreationExpression New(NamedTypeSymbol type, ImmutableArray<BoundExpression> args)
+        {
+            var ctor = type.InstanceConstructors.Single(c => c.ParameterCount == args.Length);
+            return New(ctor, args);
+        }
 
         public BoundObjectCreationExpression New(MethodSymbol ctor, ImmutableArray<BoundExpression> args)
             => new BoundObjectCreationExpression(Syntax, ctor, args) { WasCompilerGenerated = true };
@@ -1010,6 +1035,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return StringLiteral(ConstantValue.Create(stringValue));
         }
 
+        public BoundLiteral CharLiteral(ConstantValue charConst)
+        {
+            Debug.Assert(charConst.IsChar || charConst.IsDefaultValue);
+            return new BoundLiteral(Syntax, charConst, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Char)) { WasCompilerGenerated = true };
+        }
+
+        public BoundLiteral CharLiteral(Char charValue)
+        {
+            return CharLiteral(ConstantValue.Create(charValue));
+        }
+
         public BoundArrayLength ArrayLength(BoundExpression array)
         {
             Debug.Assert(array.Type is { TypeKind: TypeKind.Array });
@@ -1381,7 +1417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundExpression Not(BoundExpression expression)
         {
             Debug.Assert(expression is { Type: { SpecialType: CodeAnalysis.SpecialType.System_Boolean } });
-            return new BoundUnaryOperator(expression.Syntax, UnaryOperatorKind.BoolLogicalNegation, expression, null, null, LookupResultKind.Viable, expression.Type);
+            return new BoundUnaryOperator(expression.Syntax, UnaryOperatorKind.BoolLogicalNegation, expression, null, null, constrainedToTypeOpt: null, LookupResultKind.Viable, expression.Type);
         }
 
         /// <summary>

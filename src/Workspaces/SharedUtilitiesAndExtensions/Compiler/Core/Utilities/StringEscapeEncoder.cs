@@ -128,22 +128,20 @@ namespace Roslyn.Utilities
 
         private static bool IsHexDigit(char ch)
         {
-            return (ch >= '0' && ch <= '9')
-                || (ch >= 'A' && ch <= 'F')
-                || (ch >= 'a' && ch <= 'f');
+            return ch is >= '0' and <= '9' or >= 'A' and <= 'F' or >= 'a' and <= 'f';
         }
 
         private static int GetHexValue(char ch)
         {
-            if (ch >= '0' && ch <= '9')
+            if (ch is >= '0' and <= '9')
             {
                 return (int)ch - (int)'0';
             }
-            else if (ch >= 'A' && ch <= 'F')
+            else if (ch is >= 'A' and <= 'F')
             {
                 return ((int)ch - (int)'A') + 10;
             }
-            else if (ch >= 'a' && ch <= 'f')
+            else if (ch is >= 'a' and <= 'f')
             {
                 return ((int)ch - (int)'a') + 10;
             }

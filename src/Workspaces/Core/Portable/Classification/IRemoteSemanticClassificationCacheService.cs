@@ -4,9 +4,9 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Classification
@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Classification
             DocumentKey documentKey,
             TextSpan textSpan,
             Checksum checksum,
+            StorageDatabase database,
             CancellationToken cancellationToken);
     }
 }

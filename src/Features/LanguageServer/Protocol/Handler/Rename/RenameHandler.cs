@@ -16,7 +16,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportLspRequestHandlerProvider, Shared]
+    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
     [ProvidesMethod(LSP.Methods.TextDocumentRenameName)]
     internal class RenameHandler : AbstractStatelessRequestHandler<LSP.RenameParams, WorkspaceEdit?>
     {
@@ -48,8 +48,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     return null;
                 }
 
-                var renameLocationSet = await renameInfo.FindRenameLocationsAsync(oldSolution.Workspace.Options, cancellationToken).ConfigureAwait(false);
-                var renameReplacementInfo = await renameLocationSet.GetReplacementsAsync(request.NewName, oldSolution.Workspace.Options, cancellationToken).ConfigureAwait(false);
+                var renameLocationSet = await renameInfo.FindRenameLocationsAsync(oldSolution.Options, cancellationToken).ConfigureAwait(false);
+                var renameReplacementInfo = await renameLocationSet.GetReplacementsAsync(request.NewName, oldSolution.Options, cancellationToken).ConfigureAwait(false);
 
                 var renamedSolution = renameReplacementInfo.NewSolution;
                 var solutionChanges = renamedSolution.GetChanges(oldSolution);

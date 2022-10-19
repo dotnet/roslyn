@@ -19,8 +19,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Progression
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(threadingContext As IThreadingContext, glyphService As IGlyphService, serviceProvider As SVsServiceProvider, workspaceProvider As IProgressionPrimaryWorkspaceProvider, listenerProvider As IAsynchronousOperationListenerProvider)
-            MyBase.New(threadingContext, glyphService, serviceProvider, workspaceProvider.PrimaryWorkspace, listenerProvider)
+        Public Sub New(threadingContext As IThreadingContext, glyphService As IGlyphService, serviceProvider As SVsServiceProvider, workspace As VisualStudioWorkspace, listenerProvider As IAsynchronousOperationListenerProvider)
+            MyBase.New(threadingContext, glyphService, serviceProvider, workspace, listenerProvider)
         End Sub
     End Class
 End Namespace

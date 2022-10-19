@@ -89,6 +89,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             If expectedItemOrNull(0) = "[" Then
                 Return expectedItemOrNull.Substring(1, 1)
             End If
+
             Return expectedItemOrNull.Substring(0, 1)
         End Function
 

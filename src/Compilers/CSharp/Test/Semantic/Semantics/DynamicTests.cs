@@ -1231,7 +1231,9 @@ public unsafe class C
     }
 }
 ";
-            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+
+            var expectedDiagnostics = new[]
+            {
                 // (13,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'dynamic' and 'method group'
                 //         var y = s1 ? d2 : M;
                 Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? d2 : M").WithArguments("dynamic", "method group").WithLocation(13, 17),
@@ -1244,7 +1246,13 @@ public unsafe class C
                 // (16,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'dynamic' and 'void*'
                 //         var w = s1 ? d2 : ptr;
                 Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? d2 : ptr").WithArguments("dynamic", "void*").WithLocation(16, 17)
-                );
+            };
+
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         #endregion
@@ -2552,15 +2560,28 @@ unsafe class X
     }
 } 
 ";
-            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (14,17): error CS0428: Cannot convert method group 'M' to non-delegate type 'dynamic'. Did you intend to invoke the method?
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "M").WithArguments("M", "dynamic"),
-                // (15,17): error CS0029: Cannot implicitly convert type 'int*' to 'dynamic'
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "ptr").WithArguments("int*", "dynamic"),
+
+            var expectedDiagnostics = new[]
+            {
+                // (16,17): error CS0428: Cannot convert method group 'M' to non-delegate type 'dynamic'. Did you intend to invoke the method?
+                //             A = M,
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "M").WithArguments("M", "dynamic").WithLocation(16, 17),
+                // (17,17): error CS0029: Cannot implicitly convert type 'int*' to 'dynamic'
+                //             B = ptr,
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "ptr").WithArguments("int*", "dynamic").WithLocation(17, 17),
                 // (18,17): error CS1660: Cannot convert lambda expression to type 'dynamic' because it is not a delegate type
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => {}").WithArguments("lambda expression", "dynamic"),
+                //             C = () => {},
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => {}").WithArguments("lambda expression", "dynamic").WithLocation(18, 17),
                 // (19,17): error CS0029: Cannot implicitly convert type 'System.TypedReference' to 'dynamic'
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "default(TypedReference)").WithArguments("System.TypedReference", "dynamic"));
+                //             D = default(TypedReference)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "default(TypedReference)").WithArguments("System.TypedReference", "dynamic").WithLocation(19, 17)
+            };
+
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]

@@ -1,24 +1,40 @@
 # Branches that trigger a build on commit
 trigger:
-- main
-- main-vs-deps
-- release/*
-- features/*
-- demos/*
+  branches:
+    include:
+    - main
+    - main-vs-deps
+    - release/*
+    - features/*
+    - demos/*
+    exclude:
+    # Since the version of VS on the integration VM images are a moving target,
+    # we are unable to reliably run integration tests on servicing branches.
+    - release/dev17.0-vs-deps
+    - release/dev17.2
+    - release/dev17.3
 
 # Branches that trigger builds on PR
 pr:
-- main
-- main-vs-deps
-- release/*
-- features/*
-- demos/*
+  branches:
+    include:
+    - main
+    - main-vs-deps
+    - release/*
+    - features/*
+    - demos/*
+    exclude:
+    # Since the version of VS on the integration VM images are a moving target,
+    # we are unable to reliably run integration tests on servicing branches.
+    - release/dev17.0-vs-deps
+    - release/dev17.2
+    - release/dev17.3
 
 jobs:
 - job: VS_Integration
   pool:
     name: NetCore-Svc-Public
-    demands: ImageOverride -equals windows.vs2019.amd64.open
+    demands: ImageOverride -equals windows.vs2022.amd64.open
   strategy:
     maxParallel: 4
     matrix:

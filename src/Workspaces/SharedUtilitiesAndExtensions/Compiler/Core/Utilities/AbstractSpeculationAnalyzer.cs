@@ -872,10 +872,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return newReceiver != null && IsReceiverUniqueInstance(newReceiver, speculativeSemanticModel);
             }
 
-            return newSymbolContainingType.SpecialType == SpecialType.System_Array ||
-                   newSymbolContainingType.SpecialType == SpecialType.System_Delegate ||
-                   newSymbolContainingType.SpecialType == SpecialType.System_Enum ||
-                   newSymbolContainingType.SpecialType == SpecialType.System_String;
+            return newSymbolContainingType.SpecialType is SpecialType.System_Array or
+                   SpecialType.System_Delegate or
+                   SpecialType.System_Enum or
+                   SpecialType.System_String;
         }
 
         private bool IsReceiverNonUniquePossibleValueTypeParam(TExpressionSyntax invocation, SemanticModel semanticModel)

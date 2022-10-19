@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Function GeneratePropertyDeclaration([property] As IPropertySymbol,
                                                            destination As CodeGenerationDestination,
                                                            options As CodeGenerationOptions) As StatementSyntax
-            Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of StatementSyntax)([property], options)
+            Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of DeclarationStatementSyntax)([property], options)
             If reusableSyntax IsNot Nothing Then
                 Return reusableSyntax
             End If

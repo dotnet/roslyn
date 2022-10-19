@@ -695,7 +695,7 @@ public class C {
             comp.VerifyDiagnostics(
                 // (11,17): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray'
                 //         var x = arr[0..2];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "arr[0..2]").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(11, 17));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "0..2").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(11, 21));
         }
 
         [Fact]
@@ -720,7 +720,7 @@ namespace System
             comp.VerifyDiagnostics(
                 // (6,17): error CS0656: Missing compiler required member 'System.Index.GetOffset'
                 //         var x = arr[^2];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "arr[^2]").WithArguments("System.Index", "GetOffset").WithLocation(6, 17));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "^2").WithArguments("System.Index", "GetOffset").WithLocation(6, 21));
 
             comp = CreateCompilation(source + @"
 namespace System
@@ -1742,6 +1742,386 @@ public class C
                     // (11,31): error CS1739: The best overload for 'this' does not have a parameter named 'param'
                     //         Console.Write(new A()[param: ^1]);
                     Diagnostic(ErrorCode.ERR_BadNamedArgument, "param").WithArguments("this", "param").WithLocation(11, 31));
+        }
+
+        [Fact]
+        [WorkItem(52724, "https://github.com/dotnet/roslyn/issues/52724")]
+        public void ValEscape_01()
+        {
+            var comp = CreateCompilation(@"
+#pragma warning disable CS0436
+using System;
+namespace System {
+    public readonly ref struct Index {
+        public Index(int value, bool fromEnd = false) {
+        }
+    }
+}
+namespace ConsoleApp1 {
+    interface I<T> {
+        ref readonly T this[Index index] { get; }
+    }
+    class Program {
+        static ref readonly T f<T>(I<T> i) {
+            return ref i[new Index(1, true)];
+        }
+        static ref readonly T h<T>(I<T> i) {
+            return ref i[^1];
+        }
+    }
+}
+", options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(52724, "https://github.com/dotnet/roslyn/issues/52724")]
+        public void ValEscape_02()
+        {
+            var comp = CreateCompilation(@"
+#pragma warning disable CS0436
+using System;
+namespace System {
+    public readonly ref struct Index {
+        public Index(int value, bool fromEnd = false) {
+        }
+    }
+}
+namespace ConsoleApp1 {
+    interface I<T> {
+        ref readonly T this[Index index] { get; }
+    }
+    class Program {
+        static ref readonly T f<T>(I<T> i) {
+            var x = new Index(1, true);
+            return ref i[x];
+        }
+        static ref readonly T h<T>(I<T> i) {
+            var x = ^1;
+            return ref i[x];
+        }
+    }
+}
+", options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ValEscape_03()
+        {
+            var src = @"
+using System;
+namespace System
+{
+    public readonly ref struct Index
+    {
+        public Index(Span<int> x)
+        {
+        }
+    }
+    
+    public readonly ref struct Range
+    {
+        public Range(System.Index start, System.Index end) => throw null;
+        public static Range StartAt(System.Index start) => throw null;
+        public static Range EndAt(System.Index end) => throw null;
+        public static Range All => throw null;
+    }
+}
+
+class Program
+{
+    static void Main() {}
+    
+    Range Test1()
+    {
+        Span<int> s1 = stackalloc int[10];
+        return new Index(s1)..;
+    }
+
+    Range Test2()
+    {
+        Span<int> s2 = stackalloc int[10];
+        return Range.StartAt(new Index(s2));
+    }
+
+    Range Test3()
+    {
+        Span<int> s3 = stackalloc int[10];
+        return ..new Index(s3);
+    }
+
+    Range Test4()
+    {
+        Span<int> s4 = stackalloc int[10];
+        return Range.EndAt(new Index(s4));
+    }
+
+    Range Test5(Span<int> s51)
+    {
+        Span<int> s52 = stackalloc int[10];
+        return new Index(s51) .. new Index(s52);
+    }
+
+    Range Test6(Span<int> s61)
+    {
+        Span<int> s62 = stackalloc int[10];
+        return new Range(new Index(s61), new Index(s62));
+    }
+
+    Range Test7(Span<int> s72)
+    {
+        Span<int> s71 = stackalloc int[10];
+        return new Index(s71) .. new Index(s72);
+    }
+
+    Range Test8(Span<int> s82)
+    {
+        Span<int> s81 = stackalloc int[10];
+        return new Range(new Index(s81), new Index(s82));
+    }
+
+    Range Test9()
+    {
+        Span<int> s91 = stackalloc int[10];
+        Span<int> s92 = stackalloc int[10];
+        return new Index(s91) .. new Index(s92);
+    }
+
+    Range Test10()
+    {
+        Span<int> s101 = stackalloc int[10];
+        Span<int> s102 = stackalloc int[10];
+        return new Range(new Index(s101), new Index(s102));
+    }
+
+    Range Test11()
+    {
+        return Range.All;
+    }
+}
+";
+            var comp = CreateCompilationWithSpan(src);
+            comp.VerifyDiagnostics(
+                // (28,16): error CS8347: Cannot use a result of 'Index.Index(Span<int>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new Index(s1)..;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Index(s1)").WithArguments("System.Index.Index(System.Span<int>)", "x").WithLocation(28, 16),
+                // (28,26): error CS8352: Cannot use local 's1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return new Index(s1)..;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s1").WithArguments("s1").WithLocation(28, 26),
+                // (34,16): error CS8347: Cannot use a result of 'Range.StartAt(Index)' in this context because it may expose variables referenced by parameter 'start' outside of their declaration scope
+                //         return Range.StartAt(new Index(s2));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Range.StartAt(new Index(s2))").WithArguments("System.Range.StartAt(System.Index)", "start").WithLocation(34, 16),
+                // (34,30): error CS8347: Cannot use a result of 'Index.Index(Span<int>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return Range.StartAt(new Index(s2));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Index(s2)").WithArguments("System.Index.Index(System.Span<int>)", "x").WithLocation(34, 30),
+                // (34,40): error CS8352: Cannot use local 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //         return Range.StartAt(new Index(s2));
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s2").WithArguments("s2").WithLocation(34, 40),
+                // (40,18): error CS8347: Cannot use a result of 'Index.Index(Span<int>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return ..new Index(s3);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Index(s3)").WithArguments("System.Index.Index(System.Span<int>)", "x").WithLocation(40, 18),
+                // (40,28): error CS8352: Cannot use local 's3' in this context because it may expose referenced variables outside of their declaration scope
+                //         return ..new Index(s3);
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s3").WithArguments("s3").WithLocation(40, 28),
+                // (46,16): error CS8347: Cannot use a result of 'Range.EndAt(Index)' in this context because it may expose variables referenced by parameter 'end' outside of their declaration scope
+                //         return Range.EndAt(new Index(s4));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Range.EndAt(new Index(s4))").WithArguments("System.Range.EndAt(System.Index)", "end").WithLocation(46, 16),
+                // (46,28): error CS8347: Cannot use a result of 'Index.Index(Span<int>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return Range.EndAt(new Index(s4));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Index(s4)").WithArguments("System.Index.Index(System.Span<int>)", "x").WithLocation(46, 28),
+                // (46,38): error CS8352: Cannot use local 's4' in this context because it may expose referenced variables outside of their declaration scope
+                //         return Range.EndAt(new Index(s4));
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s4").WithArguments("s4").WithLocation(46, 38),
+                // (52,34): error CS8347: Cannot use a result of 'Index.Index(Span<int>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new Index(s51) .. new Index(s52);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Index(s52)").WithArguments("System.Index.Index(System.Span<int>)", "x").WithLocation(52, 34),
+                // (52,44): error CS8352: Cannot use local 's52' in this context because it may expose referenced variables outside of their declaration scope
+                //         return new Index(s51) .. new Index(s52);
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s52").WithArguments("s52").WithLocation(52, 44),
+                // (58,16): error CS8347: Cannot use a result of 'Range.Range(Index, Index)' in this context because it may expose variables referenced by parameter 'end' outside of their declaration scope
+                //         return new Range(new Index(s61), new Index(s62));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Range(new Index(s61), new Index(s62))").WithArguments("System.Range.Range(System.Index, System.Index)", "end").WithLocation(58, 16),
+                // (58,42): error CS8347: Cannot use a result of 'Index.Index(Span<int>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new Range(new Index(s61), new Index(s62));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Index(s62)").WithArguments("System.Index.Index(System.Span<int>)", "x").WithLocation(58, 42),
+                // (58,52): error CS8352: Cannot use local 's62' in this context because it may expose referenced variables outside of their declaration scope
+                //         return new Range(new Index(s61), new Index(s62));
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s62").WithArguments("s62").WithLocation(58, 52),
+                // (64,16): error CS8347: Cannot use a result of 'Index.Index(Span<int>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new Index(s71) .. new Index(s72);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Index(s71)").WithArguments("System.Index.Index(System.Span<int>)", "x").WithLocation(64, 16),
+                // (64,26): error CS8352: Cannot use local 's71' in this context because it may expose referenced variables outside of their declaration scope
+                //         return new Index(s71) .. new Index(s72);
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s71").WithArguments("s71").WithLocation(64, 26),
+                // (70,16): error CS8347: Cannot use a result of 'Range.Range(Index, Index)' in this context because it may expose variables referenced by parameter 'start' outside of their declaration scope
+                //         return new Range(new Index(s81), new Index(s82));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Range(new Index(s81), new Index(s82))").WithArguments("System.Range.Range(System.Index, System.Index)", "start").WithLocation(70, 16),
+                // (70,26): error CS8347: Cannot use a result of 'Index.Index(Span<int>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new Range(new Index(s81), new Index(s82));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Index(s81)").WithArguments("System.Index.Index(System.Span<int>)", "x").WithLocation(70, 26),
+                // (70,36): error CS8352: Cannot use local 's81' in this context because it may expose referenced variables outside of their declaration scope
+                //         return new Range(new Index(s81), new Index(s82));
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s81").WithArguments("s81").WithLocation(70, 36),
+                // (77,16): error CS8347: Cannot use a result of 'Index.Index(Span<int>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new Index(s91) .. new Index(s92);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Index(s91)").WithArguments("System.Index.Index(System.Span<int>)", "x").WithLocation(77, 16),
+                // (77,26): error CS8352: Cannot use local 's91' in this context because it may expose referenced variables outside of their declaration scope
+                //         return new Index(s91) .. new Index(s92);
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s91").WithArguments("s91").WithLocation(77, 26),
+                // (84,16): error CS8347: Cannot use a result of 'Range.Range(Index, Index)' in this context because it may expose variables referenced by parameter 'start' outside of their declaration scope
+                //         return new Range(new Index(s101), new Index(s102));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Range(new Index(s101), new Index(s102))").WithArguments("System.Range.Range(System.Index, System.Index)", "start").WithLocation(84, 16),
+                // (84,26): error CS8347: Cannot use a result of 'Index.Index(Span<int>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new Range(new Index(s101), new Index(s102));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Index(s101)").WithArguments("System.Index.Index(System.Span<int>)", "x").WithLocation(84, 26),
+                // (84,36): error CS8352: Cannot use local 's101' in this context because it may expose referenced variables outside of their declaration scope
+                //         return new Range(new Index(s101), new Index(s102));
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s101").WithArguments("s101").WithLocation(84, 36)
+                );
+        }
+
+        [Fact]
+        public void ValEscape_04()
+        {
+            var src = @"
+using System;
+namespace System
+{
+    public readonly ref struct Index
+    {
+        public Index(Span<int> x)
+        {
+        }
+    }
+    
+    public readonly ref struct Range
+    {
+        public Range(System.Index start, System.Index end) => throw null;
+        public static Range StartAt(System.Index start) => throw null;
+        public static Range EndAt(System.Index end) => throw null;
+        public static Range All => throw null;
+    }
+}
+
+class Program
+{
+    static void Main() {}
+    
+    Range Test1()
+    {
+        Span<int> s1 = stackalloc int[10];
+        var r1 = new Index(s1)..;
+        return r1;
+    }
+
+    Range Test2()
+    {
+        Span<int> s2 = stackalloc int[10];
+        var r2 = Range.StartAt(new Index(s2));
+        return r2;
+    }
+
+    Range Test3()
+    {
+        Span<int> s3 = stackalloc int[10];
+        var r3 = ..new Index(s3);
+        return r3;
+    }
+
+    Range Test4()
+    {
+        Span<int> s4 = stackalloc int[10];
+        var r4 = Range.EndAt(new Index(s4));
+        return r4;
+    }
+
+    Range Test5(Span<int> s51)
+    {
+        Span<int> s52 = stackalloc int[10];
+        var r5 = new Index(s51) .. new Index(s52);
+        return r5;
+    }
+
+    Range Test6(Span<int> s61)
+    {
+        Span<int> s62 = stackalloc int[10];
+        var r6 = new Range(new Index(s61), new Index(s62));
+        return r6;
+    }
+
+    Range Test7(Span<int> s72)
+    {
+        Span<int> s71 = stackalloc int[10];
+        var r7 = new Index(s71) .. new Index(s72);
+        return r7;
+    }
+
+    Range Test8(Span<int> s82)
+    {
+        Span<int> s81 = stackalloc int[10];
+        var r8 = new Range(new Index(s81), new Index(s82));
+        return r8;
+    }
+
+    Range Test9()
+    {
+        Span<int> s91 = stackalloc int[10];
+        Span<int> s92 = stackalloc int[10];
+        var r9 = new Index(s91) .. new Index(s92);
+        return r9;
+    }
+
+    Range Test10()
+    {
+        Span<int> s101 = stackalloc int[10];
+        Span<int> s102 = stackalloc int[10];
+        var r10 = new Range(new Index(s101), new Index(s102));
+        return r10;
+    }
+
+    Range Test11()
+    {
+        var r11 = Range.All;
+        return r11;
+    }
+}
+";
+            var comp = CreateCompilationWithSpan(src);
+            comp.VerifyDiagnostics(
+                // (29,16): error CS8352: Cannot use local 'r1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r1;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "r1").WithArguments("r1").WithLocation(29, 16),
+                // (36,16): error CS8352: Cannot use local 'r2' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r2;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "r2").WithArguments("r2").WithLocation(36, 16),
+                // (43,16): error CS8352: Cannot use local 'r3' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r3;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "r3").WithArguments("r3").WithLocation(43, 16),
+                // (50,16): error CS8352: Cannot use local 'r4' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r4;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "r4").WithArguments("r4").WithLocation(50, 16),
+                // (57,16): error CS8352: Cannot use local 'r5' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r5;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "r5").WithArguments("r5").WithLocation(57, 16),
+                // (64,16): error CS8352: Cannot use local 'r6' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r6;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "r6").WithArguments("r6").WithLocation(64, 16),
+                // (71,16): error CS8352: Cannot use local 'r7' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r7;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "r7").WithArguments("r7").WithLocation(71, 16),
+                // (78,16): error CS8352: Cannot use local 'r8' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r8;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "r8").WithArguments("r8").WithLocation(78, 16),
+                // (86,16): error CS8352: Cannot use local 'r9' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r9;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "r9").WithArguments("r9").WithLocation(86, 16),
+                // (94,16): error CS8352: Cannot use local 'r10' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r10;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "r10").WithArguments("r10").WithLocation(94, 16)
+                );
         }
     }
 }

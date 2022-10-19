@@ -80,8 +80,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Debug.Assert(documentId != null || documentSpan == null);
             Debug.Assert(documentId != null || documentAnalysisKind == null);
-            Debug.Assert(documentAnalysisKind == null ||
-                documentAnalysisKind == AnalysisKind.Syntax || documentAnalysisKind == AnalysisKind.Semantic);
+            Debug.Assert(documentAnalysisKind is null or
+                (AnalysisKind?)AnalysisKind.Syntax or (AnalysisKind?)AnalysisKind.Semantic);
             Debug.Assert(analyzerIds.Length > 0);
 
             ReportSuppressedDiagnostics = reportSuppressedDiagnostics;

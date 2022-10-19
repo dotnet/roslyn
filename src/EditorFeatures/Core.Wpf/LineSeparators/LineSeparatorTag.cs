@@ -11,6 +11,7 @@ using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Formatting;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
 {
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         /// <summary>
         /// Creates a very long line at the bottom of bounds.
         /// </summary>
-        public override GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds)
+        public override GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds, TextFormattingRunProperties format)
         {
             Initialize(view);
 
@@ -45,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
                 Height = 1,
                 Width = view.ViewportWidth
             };
+
             void viewportWidthChangedHandler(object s, EventArgs e)
             {
                 border.Width = view.ViewportWidth;

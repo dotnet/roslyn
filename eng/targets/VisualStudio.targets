@@ -15,6 +15,7 @@
     <!-- Setting this to the same as CreateVsixContainer ensures that the VS SDK doesn't try to look for a source.extension.vsixmanifest
          when we don't have one. -->
     <CopyVsixManifestToOutput>$(CreateVsixContainer)</CopyVsixManifestToOutput>
+    <SetupProductArch>Neutral</SetupProductArch>
   </PropertyGroup>
 
   <ItemDefinitionGroup>
@@ -137,6 +138,15 @@
 
     <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" ExcludeAssets="all"/>
   </ItemGroup>
+
+  <Target Name="_CheckDeploymentTargetVisualStudioVersion"
+		      Condition="'$(DeployExtension)' == 'true' and '$(CreateVsixContainer)' == 'true'"
+          BeforeTargets="DeployVsixExtensionFiles"
+	       	DependsOnTargets="GetVsixDeploymentPath">
+
+    <Error Text="Deployment to Dev16 is not supported in this *-vs-deps branch. Use the corresponding non-VS branch." 
+           Condition="$([MSBuild]::ValueOrDefault('$(ExtensionsPath)', '').Contains('16.0'))"/>
+  </Target>
 
   <Import Project="GeneratePkgDef.targets" Condition="'$(MSBuildRuntimeType)' != 'Core' and '$(GeneratePkgDefFile)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(BuildingForLiveUnitTesting)' != 'true'" />
 </Project>

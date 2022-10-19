@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                     // We know declarator isn't null due to the earlier call to IsInferredAnonymousObjectMemberDeclarator
                     _editor.ReplaceNode(declarator!, newDeclarator);
                 }
-                else if (_syntaxFacts.IsRightSideOfQualifiedName(_identifierName))
+                else if (_syntaxFacts.IsRightOfQualifiedName(_identifierName))
                 {
                     // Found a reference in a qualified name.  This happens for VB explicit interface
                     // names.  We don't want to update this.  (The "Implement IGoo.Bar" clause will be

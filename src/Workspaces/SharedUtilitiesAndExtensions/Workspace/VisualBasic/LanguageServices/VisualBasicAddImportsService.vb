@@ -12,6 +12,12 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
+#If CODE_STYLE Then
+Imports OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
+#Else
+Imports Microsoft.CodeAnalysis.Options
+#End If
+
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
     <ExportLanguageService(GetType(IAddImportsService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicAddImportsService
@@ -55,6 +61,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
             Return usingOrAlias.ImportsClauses.OfType(Of SimpleImportsClauseSyntax).
                                                Where(Function(c) c.Alias IsNot Nothing).
                                                FirstOrDefault()?.Alias
+        End Function
+
+        Protected Overrides Function PlaceImportsInsideNamespaces(options As OptionSet) As Boolean
+            ' Visual Basic doesn't support imports inside namespaces
+            Return False
         End Function
 
         Protected Overrides Function IsStaticUsing(usingOrAlias As ImportsStatementSyntax) As Boolean

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,7 +32,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private readonly string _viewCommand;
         private readonly Guid _windowId;
-        private IInteractiveWindow _interactiveWindow;
+        private IInteractiveWindow? _interactiveWindow;
 
         protected InteractiveWindow_InProc(string viewCommand, Guid windowId)
         {
@@ -56,16 +54,31 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         protected abstract IInteractiveWindow AcquireInteractiveWindow();
 
         public bool IsInitializing
-            => InvokeOnUIThread(cancellationToken => _interactiveWindow.IsInitializing);
+        {
+            get
+            {
+                Contract.ThrowIfNull(_interactiveWindow);
+                return InvokeOnUIThread(cancellationToken => _interactiveWindow.IsInitializing);
+            }
+        }
 
         public string GetReplText()
-            => InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView.TextBuffer.CurrentSnapshot.GetText());
+        {
+            Contract.ThrowIfNull(_interactiveWindow);
+            return InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView.TextBuffer.CurrentSnapshot.GetText());
+        }
 
         protected override bool HasActiveTextView()
-            => InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView) is object;
+        {
+            Contract.ThrowIfNull(_interactiveWindow);
+            return InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView) is object;
+        }
 
         protected override IWpfTextView GetActiveTextView()
-            => InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView);
+        {
+            Contract.ThrowIfNull(_interactiveWindow);
+            return InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView);
+        }
 
         /// <summary>
         /// Gets the contents of the REPL window without the prompt text.
@@ -170,6 +183,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void SubmitText(string text)
         {
+            Contract.ThrowIfNull(_interactiveWindow);
+
             using var cts = new CancellationTokenSource(Helper.HangMitigatingTimeout);
             _interactiveWindow.SubmitAsync(new[] { text }).WithCancellation(cts.Token).Wait();
         }
@@ -206,7 +221,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ClearScreen);
 
         public void InsertCode(string text)
-            => InvokeOnUIThread(cancellationToken => _interactiveWindow.InsertCode(text));
+        {
+            Contract.ThrowIfNull(_interactiveWindow);
+            InvokeOnUIThread(cancellationToken => _interactiveWindow.InsertCode(text));
+        }
 
         public void WaitForLastReplOutput(string outputText)
             => WaitForPredicate(GetLastReplOutput, outputText, s_contains, "contain");
@@ -246,6 +264,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)
         {
+            Contract.ThrowIfNull(_interactiveWindow);
             return InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView.TextBuffer);
         }
     }

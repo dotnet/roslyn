@@ -252,13 +252,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            bool isPartialMethodDefinitionPart = symbol.IsPartialDefinition(); // CONSIDER: ignore this if isForSingleSymbol?
-            if (isPartialMethodDefinitionPart)
+            bool shouldSkipPartialDefinitionComments = false;
+            if (symbol.IsPartialDefinition())
             {
-                MethodSymbol implementationPart = ((MethodSymbol)symbol).PartialImplementationPart;
-                if ((object)implementationPart != null)
+                if (symbol is MethodSymbol { PartialImplementationPart: MethodSymbol implementationPart })
                 {
                     Visit(implementationPart);
+
+                    foreach (var trivia in implementationPart.GetNonNullSyntaxNode().GetLeadingTrivia())
+                    {
+                        if (trivia.Kind() is SyntaxKind.SingleLineDocumentationCommentTrivia or SyntaxKind.MultiLineDocumentationCommentTrivia)
+                        {
+                            // If the partial method implementation has doc comments,
+                            // we will not emit any doc comments found on the definition,
+                            // regardless of whether the partial implementation doc comments are valid.
+                            shouldSkipPartialDefinitionComments = true;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    // The partial method has no implementation. Since it won't be present in the
+                    // output assembly, it shouldn't be included in the documentation file.
+                    shouldSkipPartialDefinitionComments = !_isForSingleSymbol;
                 }
             }
 
@@ -276,7 +293,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If there are no doc comments, then no further work is required (other than to report a diagnostic if one is required).
             if (docCommentNodes.IsEmpty)
             {
-                if (maxDocumentationMode >= DocumentationMode.Diagnose && RequiresDocumentationComment(symbol))
+                if (maxDocumentationMode >= DocumentationMode.Diagnose
+                    && RequiresDocumentationComment(symbol)
+                    // We never give a missing doc comment warning on a partial method
+                    // implementation, and we skip the missing doc comment warning on a partial
+                    // definition whose documentation we were not going to output anyway.
+                    && !symbol.IsPartialImplementation()
+                    && !shouldSkipPartialDefinitionComments)
                 {
                     // Report the error at a location in the tree that was parsing doc comments.
                     Location location = GetLocationInTreeReportingDocumentationCommentDiagnostics(symbol);
@@ -299,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<CSharpSyntaxNode> includeElementNodes;
             if (!TryProcessDocumentationCommentTriviaNodes(
                     symbol,
-                    isPartialMethodDefinitionPart,
+                    shouldSkipPartialDefinitionComments,
                     docCommentNodes,
                     reportParameterOrTypeParameterDiagnostics,
                     out withUnprocessedIncludes,
@@ -328,11 +351,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NOTE: we are expanding include elements AFTER formatting the comment, since the included text is pure
                 // XML, not XML mixed with documentation comment trivia (e.g. ///).  If we expanded them before formatting,
                 // the formatting engine would have trouble determining what prefix to remove from each line.
-                TextWriter expanderWriter = isPartialMethodDefinitionPart ? null : _writer; // Don't actually write partial method definition parts.
+                TextWriter expanderWriter = shouldSkipPartialDefinitionComments ? null : _writer; // Don't actually write partial method definition parts.
                 IncludeElementExpander.ProcessIncludes(withUnprocessedIncludes, symbol, includeElementNodes,
                     _compilation, ref documentedParameters, ref documentedTypeParameters, ref _includedFileCache, expanderWriter, _diagnostics, _cancellationToken);
             }
-            else if (_writer != null && !isPartialMethodDefinitionPart)
+            else if (_writer != null && !shouldSkipPartialDefinitionComments)
             {
                 // CONSIDER: The output would look a little different if we ran the XDocument through an XmlWriter.  In particular, 
                 // formatting inside tags (e.g. <__tag___attr__=__"value"__>) would be normalized.  Whitespace in elements would
@@ -381,7 +404,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return symbol.IsImplicitlyDeclared ||
                 symbol.IsAccessor() ||
                 symbol is SynthesizedSimpleProgramEntryPointSymbol ||
-                symbol is SimpleProgramNamedTypeSymbol ||
                 symbol is SynthesizedRecordPropertySymbol;
         }
 
@@ -397,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>This was factored out for clarity, not because it's reusable.</remarks>
         private bool TryProcessDocumentationCommentTriviaNodes(
             Symbol symbol,
-            bool isPartialMethodDefinitionPart,
+            bool shouldSkipPartialDefinitionComments,
             ImmutableArray<DocumentationCommentTriviaSyntax> docCommentNodes,
             bool reportParameterOrTypeParameterDiagnostics,
             out string withUnprocessedIncludes,
@@ -439,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // We DO want to write out partial method definition parts if we're processing includes
                     // because we need to have XML to process.
-                    if (!isPartialMethodDefinitionPart || _processIncludes)
+                    if (!shouldSkipPartialDefinitionComments || _processIncludes)
                     {
                         WriteLine("<member name=\"{0}\">", symbol.GetDocumentationCommentId());
                         Indent();
@@ -469,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // For partial methods, all parts are validated, but only the implementation part is written to the XML stream.
-                if (!isPartialMethodDefinitionPart || _processIncludes)
+                if (!shouldSkipPartialDefinitionComments || _processIncludes)
                 {
                     // This string already has indentation and line breaks, so don't call WriteLine - just write the text directly.
                     Write(formattedXml);
@@ -484,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (!isPartialMethodDefinitionPart || _processIncludes)
+            if (!shouldSkipPartialDefinitionComments || _processIncludes)
             {
                 Unindent();
                 WriteLine("</member>");

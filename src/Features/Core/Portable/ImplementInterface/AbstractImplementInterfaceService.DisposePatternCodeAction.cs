@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
-                var accessibilityLevel = requireAccessiblity.Value == AccessibilityModifiersRequired.Never || requireAccessiblity.Value == AccessibilityModifiersRequired.OmitIfDefault
+                var accessibilityLevel = requireAccessiblity.Value is AccessibilityModifiersRequired.Never or AccessibilityModifiersRequired.OmitIfDefault
                     ? Accessibility.NotApplicable
                     : Accessibility.Private;
 

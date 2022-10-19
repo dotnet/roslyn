@@ -26,10 +26,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DocumentationCommentCommandHandler(
-            IWaitIndicator waitIndicator,
+            IUIThreadOperationExecutor uiThreadOperationExecutor,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
-            : base(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService)
+            : base(uiThreadOperationExecutor, undoHistoryRegistry, editorOperationsFactoryService)
         {
         }
 

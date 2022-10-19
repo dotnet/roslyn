@@ -1309,7 +1309,7 @@ class UsePia4
                     Assert.Equal(3, test9.GetMembers().Length);
                     Assert.Same(f1, test9.GetMembers()[0]);
                     Assert.Same(f2, test9.GetMembers()[1]);
-                    Assert.True(((MethodSymbol)test9.GetMembers()[2]).IsDefaultValueTypeConstructor());
+                    Assert.True(((MethodSymbol)test9.GetMembers()[2]).IsDefaultValueTypeConstructor(requireZeroInit: true));
 
                     var test10 = module.GlobalNamespace.GetTypeMembers("Test10").Single();
                     Assert.Equal(TypeKind.Struct, test10.TypeKind);
@@ -1333,7 +1333,7 @@ class UsePia4
                     Assert.Equal(System.Runtime.InteropServices.UnmanagedType.U4, f4.MarshallingType);
                     Assert.False(f4.IsNotSerialized);
 
-                    Assert.True(((MethodSymbol)test10.GetMembers()[2]).IsDefaultValueTypeConstructor());
+                    Assert.True(((MethodSymbol)test10.GetMembers()[2]).IsDefaultValueTypeConstructor(requireZeroInit: true));
 
                     var test11 = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMembers("Test11").Single();
                     Assert.Equal(TypeKind.Delegate, test11.TypeKind);

@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 
             // has to be of the form:  a = b op c
             // op has to be a form we could convert into op=
-            if (!(assignmentRight is TBinaryExpressionSyntax binaryExpression))
+            if (assignmentRight is not TBinaryExpressionSyntax binaryExpression)
             {
                 return;
             }
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                         assignmentToken.GetLocation(),
                         option.Notification.Severity,
                         additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
-                        properties: ImmutableDictionary.Create<string, string>()
+                        properties: ImmutableDictionary.Create<string, string?>()
                             .Add(UseCompoundAssignmentUtilities.Increment, UseCompoundAssignmentUtilities.Increment)));
                     return;
                 }
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                         assignmentToken.GetLocation(),
                         option.Notification.Severity,
                         additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
-                        properties: ImmutableDictionary.Create<string, string>()
+                        properties: ImmutableDictionary.Create<string, string?>()
                             .Add(UseCompoundAssignmentUtilities.Decrement, UseCompoundAssignmentUtilities.Decrement)));
                     return;
                 }

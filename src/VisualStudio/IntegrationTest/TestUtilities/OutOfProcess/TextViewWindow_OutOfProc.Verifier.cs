@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -58,7 +57,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             /// </returns>
             public bool? CodeActions(
                 IEnumerable<string> expectedItems,
-                string applyFix = null,
+                string? applyFix = null,
                 bool verifyNotShowing = false,
                 bool ensureExpectedItemsAreOrdered = false,
                 FixAllScope? fixAllScope = null,
@@ -91,7 +90,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                     }
                 }
 
-                if (!string.IsNullOrEmpty(applyFix) || fixAllScope.HasValue)
+                if (fixAllScope.HasValue)
+                {
+                    Contract.ThrowIfNull(applyFix);
+                }
+
+                if (!RoslynString.IsNullOrEmpty(applyFix))
                 {
                     var result = _textViewWindow.ApplyLightBulbAction(applyFix, fixAllScope, blockUntilComplete);
 

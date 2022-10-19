@@ -1431,7 +1431,7 @@ static partial class C
 
 #Region "IsDerivedFrom tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/52273"), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestIsDerivedFromObject_Explicit()
             Dim code =
 <Code>
@@ -1441,7 +1441,7 @@ class $$C : object { }
             TestIsDerivedFrom(code, "System.Object", True)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/52273"), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestIsDerivedFrom_ObjectImplicit()
             Dim code =
 <Code>
@@ -1451,7 +1451,7 @@ class $$C { }
             TestIsDerivedFrom(code, "System.Object", True)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/52273"), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestIsDerivedFrom_NotString()
             Dim code =
 <Code>
@@ -1461,7 +1461,7 @@ class $$C { }
             TestIsDerivedFrom(code, "System.String", False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/52273"), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestIsDerivedFrom_NotNonexistent()
             Dim code =
 <Code>
@@ -1471,7 +1471,7 @@ class $$C { }
             TestIsDerivedFrom(code, "System.ThisIsClearlyNotARealClassName", False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/52273"), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestIsDerivedFrom_UserClassInGlobalNamespace()
             Dim code =
 <Code>
@@ -1482,7 +1482,7 @@ class $$C : B { }
             TestIsDerivedFrom(code, "B", True)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/52273"), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestIsDerivedFrom_UserClassInSameNamespace()
             Dim code =
 <Code>
@@ -1496,7 +1496,7 @@ namespace NS
             TestIsDerivedFrom(code, "NS.B", True)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/52273"), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestIsDerivedFrom_UserClassInDifferentNamespace()
             Dim code =
 <Code>
@@ -3879,7 +3879,7 @@ class C$$
             TestElement(code,
                 Sub(codeClass)
                     For i = 1 To 100
-                        Dim variable = codeClass.AddVariable("x", "System.Int32")
+                        Dim variable = codeClass.AddVariable("x", "System.Int32", , EnvDTE.vsCMAccess.vsCMAccessDefault)
                         codeClass.RemoveMember(variable)
                     Next
                 End Sub)
@@ -3898,7 +3898,7 @@ class C$$
             TestElement(code,
                 Sub(state, codeClass)
                     For i = 1 To 100
-                        Dim variable = codeClass.AddVariable("x", "System.Int32")
+                        Dim variable = codeClass.AddVariable("x", "System.Int32", , EnvDTE.vsCMAccess.vsCMAccessDefault)
 
                         ' Now, delete the variable that we just added.
                         Dim startPoint = variable.StartPoint

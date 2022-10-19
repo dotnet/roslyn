@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 ' if this is a concrete class, add a backing field too
                 If Not containingType.IsInterfaceType Then
-                    _backingField = New SynthesizedEventBackingFieldSymbol(Me, Me.Name & EVENT_VARIABLE_SUFFIX, Me.IsShared)
+                    _backingField = New SynthesizedEventBackingFieldSymbol(Me, Me.Name & StringConstants.EventVariableSuffix, Me.IsShared)
                 End If
             End If
         End Sub
@@ -217,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Else
                     ' get event's type from the containing type
-                    Dim types = _containingType.GetTypeMembers(Me.Name & EVENT_DELEGATE_SUFFIX)
+                    Dim types = _containingType.GetTypeMembers(Me.Name & StringConstants.EventDelegateSuffix)
                     Debug.Assert(Not types.IsDefault)
 
                     type = Nothing

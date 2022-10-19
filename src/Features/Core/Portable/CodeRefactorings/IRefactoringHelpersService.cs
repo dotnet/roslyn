@@ -3,15 +3,27 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
-    internal interface IRefactoringHelpersService : ILanguageService
+    /// <summary>
+    /// Contains helpers related to asking intuitive semantic questions about a users intent
+    /// based on the position of their caret or span of their selection.
+    /// </summary>
+    internal interface IRefactoringHelpersService : IHeaderFactsService, ILanguageService
     {
+        /// <summary>
+        /// True if the user is on a blank line where a member could go inside a type declaration.
+        /// This will be between members and not ever inside a member.
+        /// </summary>
+        bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? typeDeclaration);
+
         /// <summary>
         /// <para>
         /// Returns an array of <typeparamref name="TSyntaxNode"/> instances for refactoring given specified selection in document.

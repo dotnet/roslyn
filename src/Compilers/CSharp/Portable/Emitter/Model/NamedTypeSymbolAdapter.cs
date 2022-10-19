@@ -378,6 +378,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 yield break;
             }
 
+            if (AdaptedNamedTypeSymbol is SourceMemberContainerTypeSymbol container)
+            {
+                foreach ((MethodSymbol body, MethodSymbol implemented) in container.GetSynthesizedExplicitImplementations(cancellationToken: default).MethodImpls)
+                {
+                    Debug.Assert(body.ContainingType == (object)container);
+                    yield return new Microsoft.Cci.MethodImplementation(body.GetCciAdapter(), moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, (CSharpSyntaxNode)context.SyntaxNode, context.Diagnostics));
+                }
+            }
+
             var syntheticMethods = moduleBeingBuilt.GetSynthesizedMethods(AdaptedNamedTypeSymbol);
             if (syntheticMethods != null)
             {

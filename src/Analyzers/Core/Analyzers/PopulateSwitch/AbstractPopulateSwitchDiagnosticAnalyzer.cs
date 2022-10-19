@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
             var switchOperation = (TSwitchOperation)context.Operation;
-            if (!(switchOperation.Syntax is TSwitchSyntax switchBlock))
+            if (switchOperation.Syntax is not TSwitchSyntax switchBlock)
                 return;
 
             var tree = switchBlock.SyntaxTree;

@@ -220,8 +220,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 // Since modifiers are "match all", a subset of symbols is matched by a superset of modifiers
                 foreach (var modifier in y.SymbolSpecification.RequiredModifierList)
                 {
-                    if (modifier.ModifierKindWrapper == SymbolSpecification.ModifierKindEnum.IsStatic
-                        || modifier.ModifierKindWrapper == SymbolSpecification.ModifierKindEnum.IsReadOnly)
+                    if (modifier.ModifierKindWrapper is SymbolSpecification.ModifierKindEnum.IsStatic
+                        or SymbolSpecification.ModifierKindEnum.IsReadOnly)
                     {
                         if (x.SymbolSpecification.RequiredModifierList.Any(x => x.ModifierKindWrapper == SymbolSpecification.ModifierKindEnum.IsConst))
                         {

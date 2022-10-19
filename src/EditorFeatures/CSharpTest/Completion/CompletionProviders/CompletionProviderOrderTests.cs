@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 typeof(AttributeNamedParameterCompletionProvider),
                 typeof(NamedParameterCompletionProvider),
                 typeof(KeywordCompletionProvider),
+                typeof(AwaitCompletionProvider),
                 typeof(SpeculativeTCompletionProvider),
                 typeof(SymbolCompletionProvider),
                 typeof(UnnamedSymbolCompletionProvider),

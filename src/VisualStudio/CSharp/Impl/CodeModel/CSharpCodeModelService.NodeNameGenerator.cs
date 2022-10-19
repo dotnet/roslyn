@@ -164,7 +164,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 switch (node.Kind())
                 {
                     case SyntaxKind.NamespaceDeclaration:
-                        var namespaceDeclaration = (NamespaceDeclarationSyntax)node;
+                    case SyntaxKind.FileScopedNamespaceDeclaration:
+                        var namespaceDeclaration = (BaseNamespaceDeclarationSyntax)node;
                         AppendName(builder, namespaceDeclaration.Name);
                         break;
 

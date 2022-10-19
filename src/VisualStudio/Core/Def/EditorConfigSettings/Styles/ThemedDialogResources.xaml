@@ -1,8 +1,7 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
-                    xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
-                    xmlns:styles="clr-namespace:Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Styles">
+                    xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0">
     <!-- Inherit Themed Dialog styles -->
     <Style TargetType="Button" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogButtonStyleKey}}" />
     <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogCheckBoxStyleKey}}" />
@@ -21,7 +20,6 @@
     <Style TargetType="TabControl" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTabControlNavigationStyleKey}}" />
     
     <!-- Custom tab theme -->
-    <styles:FontSizeConverter Scale="122" x:Key="Font122PercentSizeConverter" />
     <Style x:Key="ControlsFocusVisualStyle" TargetType="{x:Type Control}">
         <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUITextKey}}"/>
         <Setter Property="Template">
@@ -38,7 +36,7 @@
     </Style>
     <Style TargetType="TabItem">
         <Setter Property="Background" Value="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" />
-        <Setter Property="FontSize" Value="{Binding FontSize, RelativeSource={RelativeSource AncestorType=UserControl},Converter={StaticResource Font122PercentSizeConverter}}"/>
+        <Setter Property="FontSize" Value="{DynamicResource VsFont.EnvironmentFontSize}"/>
         <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUITextKey}}" />
         <Setter Property="Padding" Value="20,0,20,0" />
         <Setter Property="FocusVisualStyle" Value="{DynamicResource ControlsFocusVisualStyle}" />

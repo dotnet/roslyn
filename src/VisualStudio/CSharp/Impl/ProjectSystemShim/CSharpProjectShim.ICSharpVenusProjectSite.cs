@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             // We should have gotten a ProjectSite back. If we didn't, that means we're being given
             // a project site that we didn't get BindToProject called on first which is a no-no by
             // the project system.
-            if (!(project.GetProjectSite(ref projectSiteGuid) is CSharpProjectShim projectSite))
+            if (project.GetProjectSite(ref projectSiteGuid) is not CSharpProjectShim projectSite)
             {
                 throw new ArgumentException($"{project} was not properly sited with the language service.", nameof(project));
             }

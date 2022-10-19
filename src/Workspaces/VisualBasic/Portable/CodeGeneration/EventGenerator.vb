@@ -127,6 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 result = result.WithEventStatement(
                     result.EventStatement.WithImplementsClause(GenerateImplementsClause(explicitInterface)))
             End If
+
             Return result
         End Function
 

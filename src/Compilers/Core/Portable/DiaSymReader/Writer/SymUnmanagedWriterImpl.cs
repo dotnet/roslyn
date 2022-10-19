@@ -749,5 +749,28 @@ namespace Microsoft.DiaSymReader
             // we need to go through IPdbWriter interface to get it.
             ((IPdbWriter)symWriter).GetSignatureAge(out stamp, out age);
         }
+
+        public override void AddCompilerInfo(ushort major, ushort minor, ushort build, ushort revision, string name)
+        {
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            var symWriter = GetSymWriter();
+            if (symWriter is not ISymUnmanagedCompilerInfoWriter infoWriter)
+            {
+                return;
+            }
+
+            try
+            {
+                infoWriter.AddCompilerInfo(major, minor, build, revision, name);
+            }
+            catch (Exception ex)
+            {
+                throw PdbWritingException(ex);
+            }
+        }
     }
 }

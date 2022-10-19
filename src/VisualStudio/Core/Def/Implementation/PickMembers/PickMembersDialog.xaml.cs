@@ -58,6 +58,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
                 Deselect_All_Click));
         }
 
+        private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            _viewModel.Filter(SearchTextBox.Text);
+            Members.Items.Refresh();
+        }
+
         private void OK_Click(object sender, RoutedEventArgs e)
             => DialogResult = true;
 
@@ -100,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
         {
             if (Members.SelectedIndex >= 0)
             {
-                if (!(Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) is ListViewItem row))
+                if (Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) is not ListViewItem row)
                 {
                     Members.ScrollIntoView(Members.SelectedItem);
                     row = Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) as ListViewItem;

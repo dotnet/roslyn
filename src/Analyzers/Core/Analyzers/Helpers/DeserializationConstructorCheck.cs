@@ -2,17 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal readonly struct DeserializationConstructorCheck
     {
-        private readonly INamedTypeSymbol _iSerializableType;
-        private readonly INamedTypeSymbol _serializationInfoType;
-        private readonly INamedTypeSymbol _streamingContextType;
+        private readonly INamedTypeSymbol? _iSerializableType;
+        private readonly INamedTypeSymbol? _serializationInfoType;
+        private readonly INamedTypeSymbol? _streamingContextType;
 
         public DeserializationConstructorCheck(Compilation compilation)
         {

@@ -587,11 +587,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         // }
         // In this case, the last close brace of 'void Main()' would be thought as a part of the try statement,
         // and the last close brace of 'Bar' would be thought as a part of Main()
-        // So for these case, , just check if the open brace is missing.
+        // So for these case, just check if the open brace is missing.
         private static bool ShouldAddBraceForSwitchStatement(SwitchStatementSyntax switchStatementNode)
-            => !switchStatementNode.OpenParenToken.IsMissing
-               && !switchStatementNode.CloseParenToken.IsMissing
-               && switchStatementNode.OpenBraceToken.IsMissing;
+            => !switchStatementNode.SwitchKeyword.IsMissing && switchStatementNode.OpenBraceToken.IsMissing;
 
         private static bool ShouldAddBraceForTryStatement(TryStatementSyntax tryStatementNode, int caretPosition)
             => !tryStatementNode.TryKeyword.IsMissing
@@ -976,7 +974,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             // {
             //      $$
             // });
-            // => 
+            // =>
             // Bar(new Foo() // I am some comments);
             // In this case, 'I am somme comments' has an end of line triva, if not removed, it would make
             // the final result becomes

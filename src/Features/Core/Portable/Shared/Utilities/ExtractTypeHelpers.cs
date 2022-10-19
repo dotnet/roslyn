@@ -53,11 +53,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             ProjectId projectId,
             IEnumerable<string> folders,
             INamedTypeSymbol newSymbol,
-            ImmutableArray<SyntaxTrivia> fileBanner,
+            Document hintDocument,
             CancellationToken cancellationToken)
         {
             var newDocumentId = DocumentId.CreateNewId(projectId, debugName: fileName);
-            var solutionWithInterfaceDocument = solution.AddDocument(newDocumentId, fileName, text: "", folders: folders);
+            var newDocumentPath = PathUtilities.CombinePaths(PathUtilities.GetDirectoryName(hintDocument.FilePath), fileName);
+
+            var solutionWithInterfaceDocument = solution.AddDocument(newDocumentId, fileName, text: "", folders: folders, filePath: newDocumentPath);
             var newDocument = solutionWithInterfaceDocument.GetRequiredDocument(newDocumentId);
             var newSemanticModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var options = new CodeGenerationOptions(
@@ -73,14 +75,19 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 options: options,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
+            var formattingSerivce = newTypeDocument.GetLanguageService<INewDocumentFormattingService>();
+            if (formattingSerivce is not null)
+            {
+                newTypeDocument = await formattingSerivce.FormatNewDocumentAsync(newTypeDocument, hintDocument, cancellationToken).ConfigureAwait(false);
+            }
+
             var syntaxRoot = await newTypeDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var rootWithBanner = syntaxRoot.WithPrependedLeadingTrivia(fileBanner);
 
             var typeAnnotation = new SyntaxAnnotation();
             var syntaxFacts = newTypeDocument.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var declarationNode = rootWithBanner.DescendantNodes().First(syntaxFacts.IsTypeDeclaration);
-            var annotatedRoot = rootWithBanner.ReplaceNode(declarationNode, declarationNode.WithAdditionalAnnotations(typeAnnotation));
+            var declarationNode = syntaxRoot.DescendantNodes().First(syntaxFacts.IsTypeDeclaration);
+            var annotatedRoot = syntaxRoot.ReplaceNode(declarationNode, declarationNode.WithAdditionalAnnotations(typeAnnotation));
 
             newTypeDocument = newTypeDocument.WithSyntaxRoot(annotatedRoot);
 

@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType
             return false;
         }
 
-        protected override SyntaxNode GetTargetNode(SyntaxNode node)
+        protected override SyntaxNode? GetTargetNode(SyntaxNode node)
             => ((ExpressionSyntax)node).GetRightmostName();
 
         protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(

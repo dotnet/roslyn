@@ -1214,5 +1214,49 @@ class C
 ";
             CompileAndVerify(source).VerifyDiagnostics();
         }
+
+        [Fact]
+        [WorkItem(54113, "https://github.com/dotnet/roslyn/issues/54113")]
+        public void DisallowedModreqOnConversion()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname static 
+        int32 modreq([mscorlib]System.Runtime.CompilerServices.OutAttribute) op_Implicit (
+            class C i
+        ) cil managed 
+    {
+        IL_0000: ldc.i4.0
+        IL_0001: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+";
+            var comp = CreateCompilationWithIL(@"
+class Test
+{
+    void M(C x)
+    {
+        _ = (int)x;
+    }
+}
+", il);
+
+            comp.VerifyDiagnostics(
+                    // (6,13): error CS0570: 'C.implicit operator int(C)' is not supported by the language
+                    //         _ = (int)x;
+                    Diagnostic(ErrorCode.ERR_BindToBogus, "(int)x").WithArguments("C.implicit operator int(C)").WithLocation(6, 13)
+            );
+        }
     }
 }

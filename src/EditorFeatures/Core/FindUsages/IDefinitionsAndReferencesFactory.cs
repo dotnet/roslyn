@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
     internal interface IDefinitionsAndReferencesFactory : IWorkspaceService
     {
-        DefinitionItem? GetThirdPartyDefinitionItem(
+        Task<DefinitionItem?> GetThirdPartyDefinitionItemAsync(
             Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken);
     }
 
@@ -44,10 +43,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// Provides an extension point that allows for other workspace layers to add additional
         /// results to the results found by the FindReferences engine.
         /// </summary>
-        public virtual DefinitionItem? GetThirdPartyDefinitionItem(
+        public virtual Task<DefinitionItem?> GetThirdPartyDefinitionItemAsync(
             Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken)
         {
-            return null;
+            return SpecializedTasks.Null<DefinitionItem>();
         }
     }
 

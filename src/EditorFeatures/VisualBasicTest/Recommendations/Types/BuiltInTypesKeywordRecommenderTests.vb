@@ -6,6 +6,8 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Types
     Public Class BuiltInTypesKeywordRecommenderTests
+        Inherits RecommenderTests
+
         Private ReadOnly _keywordList As String() = {
             "Boolean",
             "Byte",

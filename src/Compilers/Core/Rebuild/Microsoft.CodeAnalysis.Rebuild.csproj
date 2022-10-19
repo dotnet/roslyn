@@ -25,4 +25,8 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Rebuild.UnitTests" />
   </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="RebuildResources.resx" GenerateSource="true" />
+  </ItemGroup>
 </Project>

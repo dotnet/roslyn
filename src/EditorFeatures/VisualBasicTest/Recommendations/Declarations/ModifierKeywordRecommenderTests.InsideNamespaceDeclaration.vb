@@ -4,6 +4,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations.ModifierKeywordRecommenderTests
     Public Class InsideNamespaceDeclaration
+        Inherits RecommenderTests
 
         ''' <summary>
         ''' Declarations outside of any namespace in the file are considered to be in the project's root namespace

@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                     }
                 }
 
-                var platformData = new SupportedPlatformData(invalidProjectsForCurrentSymbol, totalProjects, document.Project.Solution.Workspace);
+                var platformData = new SupportedPlatformData(document.Project.Solution, invalidProjectsForCurrentSymbol, totalProjects);
                 finalItems.Add(UpdateItem(item, platformData));
             }
 

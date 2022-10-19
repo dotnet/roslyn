@@ -42,6 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                     Return throwStatement.Expression
                 End If
             End If
+
             Return Nothing
         End Function
 

@@ -34,8 +34,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             StandardTableColumnDefinitions.SuppressionState
         };
 
-        protected VisualStudioBaseDiagnosticListTable(Workspace workspace, ITableManagerProvider provider) :
-            base(workspace, provider, StandardTables.ErrorsTable)
+        protected VisualStudioBaseDiagnosticListTable(Workspace workspace, ITableManagerProvider provider)
+            : base(workspace, provider, StandardTables.ErrorsTable)
         {
         }
 
@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             public override bool Equals(object obj)
             {
-                if (!(obj is AggregatedKey other))
+                if (obj is not AggregatedKey other)
                 {
                     return false;
                 }

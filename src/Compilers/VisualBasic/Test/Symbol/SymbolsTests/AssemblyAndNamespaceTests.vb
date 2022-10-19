@@ -573,6 +573,18 @@ BC30560: 'Task' is ambiguous in the namespace 'System.Threading.Tasks'.
                 </expected>)
         End Sub
 
+        <Fact, WorkItem(54836, "https://github.com/dotnet/roslyn/issues/54836")>
+        Public Sub RetargetableAttributeIsRespectedInSource()
+            Dim code = <![CDATA[
+Imports System.Reflection
+<Assembly: AssemblyFlags(AssemblyNameFlags.Retargetable)>
+]]>
+
+            Dim comp = CreateCompilation(code.Value)
+            Assert.True(comp.Assembly.Identity.IsRetargetable)
+            AssertTheseEmitDiagnostics(comp)
+        End Sub
+
     End Class
 
 End Namespace

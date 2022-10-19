@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                                                 this.Options.GetOption(FormattingOptions2.TabSize),
                                                 this.Options.GetOption(FormattingOptions2.IndentationSize),
                                                 _tokenStream,
-                                                _engine.SyntaxFacts);
+                                                _engine.HeaderFacts);
                 var initialIndentation = baseIndentationFinder.GetIndentationOfCurrentPosition(
                     rootNode,
                     initialOperation,
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var inseparableRegionStartingPosition = effectiveBaseToken.FullSpan.Start;
                 var relativeIndentationGetter = new Lazy<int>(() =>
                 {
-                    var baseIndentationDelta = operation.GetAdjustedIndentationDelta(_engine.SyntaxFacts, TreeData.Root, effectiveBaseToken);
+                    var baseIndentationDelta = operation.GetAdjustedIndentationDelta(_engine.HeaderFacts, TreeData.Root, effectiveBaseToken);
                     var indentationDelta = baseIndentationDelta * this.Options.GetOption(FormattingOptions2.IndentationSize);
 
                     // baseIndentation is calculated for the adjusted token if option is RelativeToFirstTokenOnBaseTokenLine

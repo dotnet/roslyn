@@ -16,31 +16,31 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private int _completedItems;
         private int _totalItems;
 
-        private readonly Func<int, int, ValueTask>? _updateAction;
+        private readonly Func<int, int, CancellationToken, ValueTask>? _updateAction;
 
-        public StreamingProgressTracker(Func<int, int, ValueTask>? updateAction = null)
+        public StreamingProgressTracker(Func<int, int, CancellationToken, ValueTask>? updateAction = null)
             => _updateAction = updateAction;
 
-        public ValueTask AddItemsAsync(int count)
+        public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
         {
             Interlocked.Add(ref _totalItems, count);
-            return UpdateAsync();
+            return UpdateAsync(cancellationToken);
         }
 
-        public ValueTask ItemCompletedAsync()
+        public ValueTask ItemCompletedAsync(CancellationToken cancellationToken)
         {
             Interlocked.Increment(ref _completedItems);
-            return UpdateAsync();
+            return UpdateAsync(cancellationToken);
         }
 
-        private ValueTask UpdateAsync()
+        private ValueTask UpdateAsync(CancellationToken cancellationToken)
         {
             if (_updateAction == null)
             {
                 return default;
             }
 
-            return _updateAction(_completedItems, _totalItems);
+            return _updateAction(_completedItems, _totalItems, cancellationToken);
         }
     }
 }

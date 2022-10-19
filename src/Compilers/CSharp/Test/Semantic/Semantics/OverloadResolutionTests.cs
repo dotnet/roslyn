@@ -384,7 +384,13 @@ class P
   }
 }";
 
-            CompileAndVerify(source2, expectedOutput: @"2");
+            CompileAndVerify(source2, parseOptions: TestOptions.Regular9, expectedOutput: @"2");
+
+            var comp = CreateCompilation(source2);
+            comp.VerifyDiagnostics(
+                // (15,5): error CS0121: The call is ambiguous between the following methods or properties: 'P.M1(P.DA, object)' and 'P.M1(P.DB, int)'
+                //     M1(() => () => i, i);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("P.M1(P.DA, object)", "P.M1(P.DB, int)").WithLocation(15, 5));
         }
 
         [Fact]
@@ -10995,6 +11001,30 @@ class Program
         }
 
         [Fact]
+        public void GenericInferenceErrorRecovery()
+        {
+            var code = @"
+class Program
+{
+    public static void Method<T>(in T p)
+    {
+        System.Console.WriteLine(typeof(T).ToString());
+    }
+
+    static void Main()
+    {
+        Method((null, 1));
+    }
+}
+";
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics(
+                // (11,9): error CS0411: The type arguments for method 'Program.Method<T>(in T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Method((null, 1));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("Program.Method<T>(in T)").WithLocation(11, 9));
+        }
+
+        [Fact]
         public void GenericInferenceLambdaVariance()
         {
             var code = @"
@@ -11410,6 +11440,62 @@ class Program
                 symbol = symbol.GetLeastOverriddenEvent(accessingTypeOpt: null);
                 Assert.Equal("event D<A, B> Base<A, B>.E", symbol.ToTestDisplayString());
             }
+        }
+
+        [Fact]
+        [WorkItem(52701, "https://github.com/dotnet/roslyn/issues/52701")]
+        public void Issue52701_01()
+        {
+            var source =
+@"
+class A
+{
+    internal void F<T>(T t) where T : class {}
+}
+class B : A
+{
+    internal new void F<T>(T t) where T : struct { }
+    void M()
+    {
+        System.Action<object> d = F<object>;
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,35): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'B.F<T>(T)'
+                //         System.Action<object> d = F<object>;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F<object>").WithArguments("B.F<T>(T)", "T", "object").WithLocation(11, 35)
+                );
+        }
+
+        [Fact]
+        [WorkItem(52701, "https://github.com/dotnet/roslyn/issues/52701")]
+        public void Issue52701_02()
+        {
+            var source =
+@"
+class A
+{
+    internal void F<T>(T t) where T : class {}
+}
+class B : A
+{
+    internal new void F<T>(T t) where T : struct { }
+    void M()
+    {
+        F<object>(default);
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,9): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'B.F<T>(T)'
+                //         F<object>(default);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F<object>").WithArguments("B.F<T>(T)", "T", "object").WithLocation(11, 9)
+                );
         }
     }
 }

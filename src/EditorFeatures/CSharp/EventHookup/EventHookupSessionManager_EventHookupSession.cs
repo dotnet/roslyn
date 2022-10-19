@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             private IEventSymbol GetEventSymbol(SemanticModel semanticModel, SyntaxToken plusEqualsToken, CancellationToken cancellationToken)
             {
                 AssertIsBackground();
-                if (!(plusEqualsToken.Parent is AssignmentExpressionSyntax parentToken))
+                if (plusEqualsToken.Parent is not AssignmentExpressionSyntax parentToken)
                 {
                     return null;
                 }

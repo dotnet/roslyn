@@ -63,10 +63,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             return module.Name;
         }
 
-        internal override MetadataReader GetModuleMetadata(Module module)
-        {
-            return module.GetMetadata();
-        }
+        internal override unsafe bool TryGetMetadata(Module module, out byte* pointer, out int length)
+            => module.TryGetMetadata(out pointer, out length);
 
         internal override Request[] GetRequests(Process process)
         {

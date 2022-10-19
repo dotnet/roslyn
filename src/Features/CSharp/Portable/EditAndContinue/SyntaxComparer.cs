@@ -53,6 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             // Top level syntax kinds
             CompilationUnit,
 
+            GlobalStatement,
+
             NamespaceDeclaration,
             ExternAliasDirective,              // tied to parent 
             UsingDirective,                    // tied to parent
@@ -269,13 +271,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.Parameter:
                     return Label.Parameter;
 
-                case SyntaxKind.AttributeList:
-                    return Label.AttributeList;
-
-                case SyntaxKind.Attribute:
-                    isLeaf = true;
-                    return Label.Attribute;
-
                 case SyntaxKind.ConstructorDeclaration:
                     // Root when matching constructor bodies.
                     return Label.ConstructorDeclaration;
@@ -286,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return ClassifyStatementSyntax(kind, node, out isLeaf);
             }
 
-            return ClassifyTopSyntax(kind, out isLeaf);
+            return ClassifyTopSyntax(kind, node, out isLeaf);
         }
 
         private static Label ClassifyStatementSyntax(SyntaxKind kind, SyntaxNode? node, out bool isLeaf)
@@ -316,6 +311,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 // 
                 // Expressions are ignored but they may contain nodes that should be matched by tree comparer.
                 // (e.g. lambdas, declaration expressions). Descending to these nodes is handled in EnumerateChildren.
+
+                case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.InterfaceDeclaration:
+                case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
+                    // These declarations can come after global statements so we want to stop statement matching
+                    // because no global statements can come after them
+                    isLeaf = true;
+                    return Label.Ignored;
 
                 case SyntaxKind.LocalDeclarationStatement:
                     return Label.LocalDeclarationStatement;
@@ -535,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return Label.Ignored;
         }
 
-        private static Label ClassifyTopSyntax(SyntaxKind kind, out bool isLeaf)
+        private static Label ClassifyTopSyntax(SyntaxKind kind, SyntaxNode? node, out bool isLeaf)
         {
             isLeaf = false;
 
@@ -548,9 +554,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             switch (kind)
             {
                 case SyntaxKind.GlobalStatement:
-                    // TODO:
                     isLeaf = true;
-                    return Label.Ignored;
+                    return Label.GlobalStatement;
 
                 case SyntaxKind.ExternAliasDirective:
                     isLeaf = true;
@@ -561,13 +566,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return Label.UsingDirective;
 
                 case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.FileScopedNamespaceDeclaration:
                     return Label.NamespaceDeclaration;
 
-                // Need to add support for record structs (tracked by https://github.com/dotnet/roslyn/issues/44877)
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return Label.TypeDeclaration;
 
                 case SyntaxKind.MethodDeclaration:
@@ -626,6 +632,25 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // For top syntax, a variable declarator is a leaf node
                     isLeaf = true;
                     return Label.FieldVariableDeclarator;
+
+                case SyntaxKind.AttributeList:
+                    // Only module/assembly attributes are labelled
+                    if (node is not null && node.IsParentKind(SyntaxKind.CompilationUnit))
+                    {
+                        return Label.AttributeList;
+                    }
+
+                    break;
+
+                case SyntaxKind.Attribute:
+                    // Only module/assembly attributes are labelled
+                    if (node is { Parent: { } parent } && parent.IsParentKind(SyntaxKind.CompilationUnit))
+                    {
+                        isLeaf = true;
+                        return Label.Attribute;
+                    }
+
+                    break;
             }
 
             // If we got this far, its an unlabelled node. For top
@@ -1255,6 +1280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     {
                         GetLocalNames(argument.Expression, ref result);
                     }
+
                     return;
 
                 default:
@@ -1277,6 +1303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     {
                         GetLocalNames(variableDesignation, ref result);
                     }
+
                     return;
 
                 case SyntaxKind.DiscardDesignation:
@@ -1341,13 +1368,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return ((UsingDirectiveSyntax)node).Name;
 
                 case SyntaxKind.NamespaceDeclaration:
-                    return ((NamespaceDeclarationSyntax)node).Name;
+                case SyntaxKind.FileScopedNamespaceDeclaration:
+                    return ((BaseNamespaceDeclarationSyntax)node).Name;
 
-                // Need to add support for record structs (tracked by https://github.com/dotnet/roslyn/issues/44877)
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return ((TypeDeclarationSyntax)node).Identifier;
 
                 case SyntaxKind.EnumDeclaration:

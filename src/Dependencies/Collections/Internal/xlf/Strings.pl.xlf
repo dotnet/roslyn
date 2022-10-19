@@ -102,6 +102,11 @@
         <target state="translated">Wartości przesunięcia i długości są spoza zakresu tablicy lub liczba przekracza liczbę elementów znajdujących się miedzy indeksem a końcem kolekcji źródłowej.</target>
         <note />
       </trans-unit>
+      <trans-unit id="CannotFindOldValue">
+        <source>Cannot find the old value</source>
+        <target state="translated">Nie można znaleźć starej wartości</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidOperation_ConcurrentOperationsNotSupported">
         <source>Operations that change non-concurrent collections must have exclusive access. A concurrent update was performed on this collection and corrupted its state. The collection's state is no longer correct.</source>
         <target state="translated">Operacje, które zmieniają niewspółbieżne kolekcje, muszą mieć wyłączny dostęp. Wykonano współbieżną aktualizację tej kolekcji, która uszkodziła jej stan. Stan kolekcji nie jest już prawidłowy.</target>

@@ -611,7 +611,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the token that precedes this token in the syntax tree.
         /// </summary>
-        /// <returns>The next token that follows this token in the syntax tree.</returns>
+        /// <returns>The previous token that precedes this token in the syntax tree.</returns>
         public SyntaxToken GetPreviousToken(bool includeZeroWidth = false, bool includeSkipped = false, bool includeDirectives = false, bool includeDocumentationComments = false)
         {
             if (Node == null)

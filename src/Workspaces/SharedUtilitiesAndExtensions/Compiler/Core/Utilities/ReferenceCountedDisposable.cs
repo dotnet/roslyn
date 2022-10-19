@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Runtime.CompilerServices;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -71,14 +71,14 @@ namespace Roslyn.Utilities
         /// </summary>
         /// <remarks>
         /// <para>This field serves as the synchronization object for the current type, since it is shared among all
-        /// counted reference to the same target object. Accesses to <see cref="StrongBox{T}.Value"/> should only
-        /// occur when this object is locked.</para>
+        /// counted reference to the same target object. Accesses to <see cref="BoxedReferenceCount._referenceCount"/>
+        /// should only occur when this object is locked.</para>
         ///
         /// <para>PERF DEV NOTE: A concurrent (but complex) implementation of this type with identical semantics is
         /// available in source control history. The use of exclusive locks was not causing any measurable
         /// performance overhead even on 28-thread machines at the time this was written.</para>
         /// </remarks>
-        private readonly StrongBox<int> _boxedReferenceCount;
+        private readonly BoxedReferenceCount _boxedReferenceCount;
 
         /// <summary>
         /// Initializes a new reference counting wrapper around an <see cref="IDisposable"/> object.
@@ -91,11 +91,11 @@ namespace Roslyn.Utilities
         /// If <paramref name="instance"/> is <see langword="null"/>.
         /// </exception>
         public ReferenceCountedDisposable(T instance)
-            : this(instance, new StrongBox<int>(1))
+            : this(instance, new BoxedReferenceCount(1))
         {
         }
 
-        private ReferenceCountedDisposable(T instance, StrongBox<int> referenceCount)
+        private ReferenceCountedDisposable(T instance, BoxedReferenceCount referenceCount)
         {
             _instance = instance ?? throw new ArgumentNullException(nameof(instance));
 
@@ -137,11 +137,11 @@ namespace Roslyn.Utilities
         /// Provides the implementation for <see cref="TryAddReference"/> and
         /// <see cref="WeakReference.TryAddReference"/>.
         /// </summary>
-        private static ReferenceCountedDisposable<T>? TryAddReferenceImpl(T? target, StrongBox<int> referenceCount)
+        private static ReferenceCountedDisposable<T>? TryAddReferenceImpl(T? target, BoxedReferenceCount referenceCount)
         {
             lock (referenceCount)
             {
-                if (referenceCount.Value == 0)
+                if (referenceCount._referenceCount == 0)
                 {
                     // The target is already disposed, and cannot be reused
                     return null;
@@ -156,7 +156,7 @@ namespace Roslyn.Utilities
 
                 checked
                 {
-                    referenceCount.Value++;
+                    referenceCount._referenceCount++;
                 }
 
                 // Must return a new instance, in order for the Dispose operation on each individual instance to
@@ -171,7 +171,7 @@ namespace Roslyn.Utilities
         /// </summary>
         /// <remarks>
         /// <para>After this instance is disposed, the <see cref="TryAddReference"/> method can no longer be used to
-        /// object a new reference to the target, even if other references to the target object are still in
+        /// obtain a new reference to the target, even if other references to the target object are still in
         /// use.</para>
         /// </remarks>
         public void Dispose()
@@ -206,8 +206,8 @@ namespace Roslyn.Utilities
                     return null;
                 }
 
-                _boxedReferenceCount.Value--;
-                if (_boxedReferenceCount.Value == 0)
+                _boxedReferenceCount._referenceCount--;
+                if (_boxedReferenceCount._referenceCount == 0)
                 {
                     instanceToDispose = _instance;
                 }
@@ -223,13 +223,12 @@ namespace Roslyn.Utilities
         /// Represents a weak reference to a <see cref="ReferenceCountedDisposable{T}"/> which is capable of
         /// obtaining a new counted reference up until the point when the object is no longer accessible.
         /// </summary>
-        public struct WeakReference
+        /// <remarks>
+        /// This value type holds a single field, which is not subject to torn reads/writes.
+        /// </remarks>
+        public readonly struct WeakReference
         {
-            /// <summary>
-            /// DO NOT DISPOSE OF THE TARGET.
-            /// </summary>
-            private readonly WeakReference<T>? _weakInstance;
-            private readonly StrongBox<int>? _boxedReferenceCount;
+            private readonly BoxedReferenceCount? _boxedReferenceCount;
 
             public WeakReference(ReferenceCountedDisposable<T> reference)
                 : this()
@@ -246,10 +245,19 @@ namespace Roslyn.Utilities
                     // The specified reference is already not valid. This case is supported by WeakReference (not
                     // unlike `new System.WeakReference(null)`), but we return early to avoid an unnecessary
                     // allocation in this case.
+                    //
+                    // ⚠ Note that in cases where referenceCount._weakInstance is already non-null, it would be
+                    // possible to reconstruct a strong reference even though the current reference instance was
+                    // disposed. This case is intentionally not supported (by checking 'instance' before checking
+                    // 'referenceCount._weakInstance'), since it would be confusing semantics if this constructor
+                    // sometimes worked from a disposed reference and sometimes did not.
                     return;
                 }
 
-                _weakInstance = new WeakReference<T>(instance);
+                // We only need to allocate a new WeakReference<T> for this reference if one has not already been
+                // created for it.
+                LazyInitialization.EnsureInitialized(ref referenceCount._weakInstance, static instance => new WeakReference<T>(instance), instance);
+
                 _boxedReferenceCount = referenceCount;
             }
 
@@ -270,19 +278,52 @@ namespace Roslyn.Utilities
             /// already been disposed.</returns>
             public ReferenceCountedDisposable<T>? TryAddReference()
             {
-                var weakInstance = _weakInstance;
-                if (weakInstance == null || !weakInstance.TryGetTarget(out var target))
-                {
-                    return null;
-                }
-
+                // Ensure 'this' is only read once by this method.
                 var referenceCount = _boxedReferenceCount;
                 if (referenceCount == null)
                 {
+                    // This is either a default(WeakReference), or the current instance was constructed from a reference
+                    // that was already disposed. No target is available.
+                    return null;
+                }
+
+                var weakInstance = referenceCount._weakInstance;
+
+                // _weakInstance is initialized by the constructor before assigning a value to _boxedReferenceCount.
+                // Since it latches in a non-null state, it cannot be null at this point.
+                Contract.ThrowIfNull(weakInstance);
+
+                if (!weakInstance.TryGetTarget(out var target))
+                {
+                    // The weak reference has already been collected, so the target is no longer available.
                     return null;
                 }
 
                 return TryAddReferenceImpl(target, referenceCount);
+            }
+        }
+
+        /// <summary>
+        /// Holds the reference count associated with a disposable object.
+        /// </summary>
+        private sealed class BoxedReferenceCount
+        {
+            /// <summary>
+            /// Holds the weak reference used by instances of <see cref="WeakReference"/> to obtain a reference-counted
+            /// reference to the original object. This field is initialized the first time a weak reference is obtained
+            /// for the instance, and latches in a non-null state once initialized.
+            /// </summary>
+            /// <remarks>
+            /// DO NOT DISPOSE OF THE TARGET.
+            /// </remarks>
+            [DisallowNull]
+            public WeakReference<T>? _weakInstance;
+
+            public int _referenceCount;
+
+            public BoxedReferenceCount(int referenceCount)
+            {
+                _referenceCount = referenceCount;
             }
         }
     }

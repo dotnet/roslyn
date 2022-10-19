@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal FromSyntax(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, Binder next, bool withImportChainEntry)
                 : base(next, withImportChainEntry)
             {
-                Debug.Assert(declarationSyntax.IsKind(SyntaxKind.CompilationUnit) || declarationSyntax.IsKind(SyntaxKind.NamespaceDeclaration));
+                Debug.Assert(declarationSyntax.Kind() is SyntaxKind.CompilationUnit or SyntaxKind.NamespaceDeclaration or SyntaxKind.FileScopedNamespaceDeclaration);
                 _declaringSymbol = declaringSymbol;
                 _declarationSyntax = declarationSyntax;
             }

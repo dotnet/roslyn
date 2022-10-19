@@ -17,6 +17,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.ContentType
         [Export]
         [Name(ContentTypeNames.CSharpContentType)]
         [BaseDefinition(ContentTypeNames.RoslynContentType)]
+        // Adds the LSP base content type to ensure the LSP client activates on C# files.
+        // From Microsoft.VisualStudio.LanguageServer.Client.CodeRemoteContentDefinition.CodeRemoteBaseTypeName
+        // We cannot directly reference the LSP client package in EditorFeatures as it is a VS dependency.
+        [BaseDefinition("code-languageserver-base")]
         public static readonly ContentTypeDefinition CSharpContentTypeDefinition;
 
         [Export]

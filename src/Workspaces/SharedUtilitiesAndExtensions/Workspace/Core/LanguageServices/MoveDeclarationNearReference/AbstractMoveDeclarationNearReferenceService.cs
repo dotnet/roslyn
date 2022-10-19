@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
 
         private async Task<State> ComputeStateAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
-            if (!(node is TLocalDeclarationStatementSyntax statement))
+            if (node is not TLocalDeclarationStatementSyntax statement)
             {
                 return null;
             }
@@ -113,7 +113,8 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private static async Task MoveDeclarationToFirstReferenceAsync(Document document, State state, SyntaxEditor editor, SyntaxAnnotation warningAnnotation, CancellationToken cancellationToken)
+        private static async Task MoveDeclarationToFirstReferenceAsync(
+            Document document, State state, SyntaxEditor editor, SyntaxAnnotation warningAnnotation, CancellationToken cancellationToken)
         {
             // If we're not merging with an existing declaration, make the declaration semantically
             // explicit to improve the chances that it won't break code.
@@ -126,11 +127,11 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                 : explicitDeclarationStatement.WithAdditionalAnnotations(warningAnnotation);
             declarationStatement = declarationStatement.WithAdditionalAnnotations(Formatter.Annotation);
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
 
             var newNextStatement = state.FirstStatementAffectedInInnermostBlock;
             declarationStatement = declarationStatement.WithPrependedLeadingTrivia(
-                syntaxFacts.GetLeadingBlankLines(newNextStatement));
+                bannerService.GetLeadingBlankLines(newNextStatement));
 
             editor.InsertBefore(
                 state.FirstStatementAffectedInInnermostBlock,
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             editor.ReplaceNode(
                 newNextStatement,
                 newNextStatement.WithAdditionalAnnotations(Formatter.Annotation).WithLeadingTrivia(
-                    syntaxFacts.GetTriviaAfterLeadingBlankLines(newNextStatement)));
+                    bannerService.GetTriviaAfterLeadingBlankLines(newNextStatement)));
 
             // Move leading whitespace from the declaration statement to the next statement.
             var statementIndex = state.OutermostBlockStatements.IndexOf(state.DeclarationStatement);
@@ -149,7 +150,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                 editor.ReplaceNode(
                     originalNextStatement,
                     (current, generator) => current.WithAdditionalAnnotations(Formatter.Annotation).WithPrependedLeadingTrivia(
-                        syntaxFacts.GetLeadingBlankLines(state.DeclarationStatement)));
+                        bannerService.GetLeadingBlankLines(state.DeclarationStatement)));
             }
         }
 
@@ -162,9 +163,9 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                 ? declarationStatement
                 : declarationStatement.WithAdditionalAnnotations(warningAnnotation);
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
             declarationStatement = declarationStatement.WithLeadingTrivia(
-                GetMergedTrivia(syntaxFacts, state.DeclarationStatement, state.FirstStatementAffectedInInnermostBlock));
+                GetMergedTrivia(bannerService, state.DeclarationStatement, state.FirstStatementAffectedInInnermostBlock));
 
             editor.ReplaceNode(
                 state.FirstStatementAffectedInInnermostBlock,
@@ -172,11 +173,11 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
         }
 
         private static ImmutableArray<SyntaxTrivia> GetMergedTrivia(
-            ISyntaxFactsService syntaxFacts, TStatementSyntax statement1, TStatementSyntax statement2)
+            IFileBannerFactsService bannerService, TStatementSyntax statement1, TStatementSyntax statement2)
         {
-            return syntaxFacts.GetLeadingBlankLines(statement2).Concat(
-                   syntaxFacts.GetTriviaAfterLeadingBlankLines(statement1)).Concat(
-                   syntaxFacts.GetTriviaAfterLeadingBlankLines(statement2));
+            return bannerService.GetLeadingBlankLines(statement2).Concat(
+                   bannerService.GetTriviaAfterLeadingBlankLines(statement1)).Concat(
+                   bannerService.GetTriviaAfterLeadingBlankLines(statement2));
         }
 
         private bool CrossesMeaningfulBlock(State state)

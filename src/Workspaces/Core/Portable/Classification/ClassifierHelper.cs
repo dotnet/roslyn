@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis.Classification
                 return default;
             }
 
+            var options = ClassificationOptions.From(document.Project);
+
             // Call out to the individual language to classify the chunk of text around the
             // reference. We'll get both the syntactic and semantic spans for this region.
             // Because the semantic tags may override the semantic ones (for example, 
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Classification
             using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var semanticSpans);
 
             await classificationService.AddSyntacticClassificationsAsync(document, span, syntaxSpans, cancellationToken).ConfigureAwait(false);
-            await classificationService.AddSemanticClassificationsAsync(document, span, semanticSpans, cancellationToken).ConfigureAwait(false);
+            await classificationService.AddSemanticClassificationsAsync(document, span, options, semanticSpans, cancellationToken).ConfigureAwait(false);
 
             // MergeClassifiedSpans will ultimately filter multiple classifications for the same
             // span down to one. We know that additive classifications are there just to 

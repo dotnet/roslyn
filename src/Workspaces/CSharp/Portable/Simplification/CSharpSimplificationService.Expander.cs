@@ -308,6 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                             // No duplicate names allowed
                             return false;
                         }
+
                         found = true;
                     }
                 }
@@ -502,6 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                                 {
                                     replacement = replacement.ReplaceToken(firstOriginalToken, tokenWithLeadingWhitespace);
                                 }
+
                                 break;
 
                             case SyntaxKind.QualifiedName:
@@ -642,8 +644,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
 
                 // if it's a namespace or type name, fully qualify it.
-                if (symbol.Kind == SymbolKind.NamedType ||
-                    symbol.Kind == SymbolKind.Namespace)
+                if (symbol.Kind is SymbolKind.NamedType or
+                    SymbolKind.Namespace)
                 {
                     var replacement = FullyQualifyIdentifierName(
                         (INamespaceOrTypeSymbol)symbol,
@@ -660,9 +662,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
 
                 // if it's a member access, we're fully qualifying the left side and make it a member access.
-                if (symbol.Kind == SymbolKind.Method ||
-                    symbol.Kind == SymbolKind.Field ||
-                    symbol.Kind == SymbolKind.Property)
+                if (symbol.Kind is SymbolKind.Method or
+                    SymbolKind.Field or
+                    SymbolKind.Property)
                 {
                     if (symbol.IsStatic ||
                         originalSimpleName.IsParentKind(SyntaxKind.NameMemberCref) ||
@@ -721,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                     foreach (var candidateToken in leftTokens)
                     {
-                        if (candidateToken.Kind() == SyntaxKind.LessThanToken || candidateToken.Kind() == SyntaxKind.GreaterThanToken)
+                        if (candidateToken.Kind() is SyntaxKind.LessThanToken or SyntaxKind.GreaterThanToken)
                         {
                             candidateTokens.Add(candidateToken);
                             continue;
@@ -1039,7 +1041,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax originalNode)
             {
-                if (this._semanticModel.GetSymbolInfo(originalNode).Symbol.IsLocalFunction())
+                if (_semanticModel.GetSymbolInfo(originalNode).Symbol.IsLocalFunction())
                 {
                     return originalNode;
                 }

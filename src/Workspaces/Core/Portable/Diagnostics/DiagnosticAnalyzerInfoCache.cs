@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static bool IsTelemetryCollectionAllowed(DiagnosticAnalyzer analyzer, ImmutableArray<DiagnosticDescriptor> descriptors)
             => analyzer.IsCompilerAnalyzer() ||
                analyzer is IBuiltInAnalyzer ||
-               descriptors.Length > 0 && descriptors[0].CustomTags.Any(t => t == WellKnownDiagnosticTags.Telemetry);
+               descriptors.Length > 0 && descriptors[0].ImmutableCustomTags().Any(t => t == WellKnownDiagnosticTags.Telemetry);
 
         /// <summary>
         /// Return true if the given <paramref name="analyzer"/> is suppressed for the given project.

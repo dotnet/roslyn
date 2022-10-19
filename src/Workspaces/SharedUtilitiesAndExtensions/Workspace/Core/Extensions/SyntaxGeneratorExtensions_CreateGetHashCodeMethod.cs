@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ImmutableArray<SyntaxNode> GetGetHashCodeComponents(
             this SyntaxGenerator factory,
+            SyntaxGeneratorInternal generatorInternal,
             Compilation compilation,
             INamedTypeSymbol? containingType,
             ImmutableArray<ISymbol> members,
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             foreach (var member in members)
             {
-                result.Add(GetMemberForGetHashCode(factory, compilation, member, justMemberReference));
+                result.Add(GetMemberForGetHashCode(factory, generatorInternal, compilation, member, justMemberReference));
             }
 
             return result.ToImmutableAndFree();
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             bool useInt64)
         {
             var components = GetGetHashCodeComponents(
-                factory, compilation, containingType, members, justMemberReference: false);
+                factory, generatorInternal, compilation, containingType, members, justMemberReference: false);
 
             if (components.Length == 0)
             {
@@ -215,6 +216,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static SyntaxNode GetMemberForGetHashCode(
             SyntaxGenerator factory,
+            SyntaxGeneratorInternal generatorInternal,
             Compilation compilation,
             ISymbol member,
             bool justMemberReference)
@@ -243,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 return factory.InvocationExpression(
                     factory.MemberAccessExpression(
-                        GetDefaultEqualityComparer(factory, compilation, GetType(compilation, member)),
+                        GetDefaultEqualityComparer(factory, generatorInternal, compilation, GetType(compilation, member)),
                         getHashCodeNameExpression),
                     thisSymbol);
             }

@@ -6,17 +6,22 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using ICSharpCode.Decompiler.Metadata;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
 {
     internal class AssemblyResolver : IAssemblyResolver
     {
+        private static readonly Dictionary<MetadataReference, (string fileName, ImmutableArray<byte> image)> _inMemoryImagesForTesting = new();
+
         private readonly Compilation _parentCompilation;
         private readonly Dictionary<string, List<IAssemblySymbol>> _cache = new();
         private readonly StringBuilder _logger;
@@ -49,6 +54,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             throw new NotSupportedException();
         }
 
+        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Could be non-static if instance data is accessed")]
+        public PEFile TryResolve(MetadataReference metadataReference, PEStreamOptions streamOptions)
+        {
+            if (_inMemoryImagesForTesting.TryGetValue(metadataReference, out var pair))
+            {
+                return new PEFile(pair.fileName, new MemoryStream(pair.image.ToArray()), streamOptions);
+            }
+
+            return null;
+        }
+
         public PEFile Resolve(IAssemblyReference name)
         {
             Log("------------------");
@@ -71,6 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
                 {
                     Log(CSharpEditorResources.WARN_Version_mismatch_Expected_0_Got_1, name.Version, assemblies[0].Identity.Version);
                 }
+
                 return MakePEFile(assemblies[0]);
             }
 
@@ -109,7 +126,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
                 // reference assemblies should be fine here, we only need the metadata of references.
                 var reference = _parentCompilation.GetMetadataReference(assembly);
                 Log(CSharpEditorResources.Load_from_0, reference.Display);
-                return new PEFile(reference.Display, PEStreamOptions.PrefetchMetadata);
+                return TryResolve(reference, PEStreamOptions.PrefetchMetadata)
+                    ?? new PEFile(reference.Display, PEStreamOptions.PrefetchMetadata);
             }
         }
 
@@ -134,5 +152,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
 
         private void Log(string format, params object[] args)
             => _logger.AppendFormat(format + Environment.NewLine, args);
+
+        internal static class TestAccessor
+        {
+            public static void AddInMemoryImage(MetadataReference reference, string fileName, ImmutableArray<byte> image)
+            {
+                Contract.ThrowIfNull(fileName);
+                _inMemoryImagesForTesting.Add(reference, (fileName, image));
+            }
+
+            public static bool ContainsInMemoryImage(MetadataReference reference)
+            {
+                return _inMemoryImagesForTesting.ContainsKey(reference);
+            }
+
+            public static void ClearInMemoryImages()
+            {
+                _inMemoryImagesForTesting.Clear();
+            }
+        }
     }
 }

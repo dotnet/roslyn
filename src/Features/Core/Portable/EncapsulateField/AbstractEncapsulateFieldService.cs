@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 var compilation = semanticModel.Compilation;
 
                 // We couldn't resolve this field. skip it
-                if (!(field.GetSymbolKey(cancellationToken).Resolve(compilation, cancellationToken: cancellationToken).Symbol is IFieldSymbol currentField))
+                if (field.GetSymbolKey(cancellationToken).Resolve(compilation, cancellationToken: cancellationToken).Symbol is not IFieldSymbol currentField)
                     continue;
 
                 var nextSolution = await EncapsulateFieldAsync(document, currentField, updateReferences, cancellationToken).ConfigureAwait(false);
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         protected static Accessibility ComputeAccessibility(Accessibility accessibility, ITypeSymbol type)
         {
             var computedAccessibility = accessibility;
-            if (accessibility == Accessibility.NotApplicable || accessibility == Accessibility.Private)
+            if (accessibility is Accessibility.NotApplicable or Accessibility.Private)
             {
                 computedAccessibility = Accessibility.Public;
             }
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         private class MyCodeAction : CodeAction.SolutionChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution)
+                : base(title, createChangedSolution, title)
             {
             }
         }

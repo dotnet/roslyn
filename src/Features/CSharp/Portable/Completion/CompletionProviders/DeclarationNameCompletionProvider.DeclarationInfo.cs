@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 result = IsFollowingTypeOrComma<VariableDeclarationSyntax>(token, semanticModel,
                     typeSyntaxGetter: v => v.Type,
-                    modifierGetter: v => v.Parent is UsingStatementSyntax || v.Parent is ForStatementSyntax
+                    modifierGetter: v => v.Parent is UsingStatementSyntax or ForStatementSyntax
                         ? default(SyntaxTokenList)
                         : (SyntaxTokenList?)null, // Return null to bail out.
                     possibleDeclarationComputer: d => ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Local)),

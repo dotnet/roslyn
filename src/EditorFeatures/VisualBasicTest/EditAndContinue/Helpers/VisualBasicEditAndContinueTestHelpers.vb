@@ -35,13 +35,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
 
         Public Overrides ReadOnly Property TopSyntaxComparer As TreeComparer(Of SyntaxNode)
             Get
-                Return CodeAnalysis.VisualBasic.EditAndContinue.SyntaxComparer.TopLevel
+                Return SyntaxComparer.TopLevel
             End Get
         End Property
-
-        Public Overrides Function ParseText(source As String) As SyntaxTree
-            Return SyntaxFactory.ParseSyntaxTree(source, VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest))
-        End Function
 
         Public Overrides Function FindNode(root As SyntaxNode, span As TextSpan) As SyntaxNode
             Dim result = root.FindToken(span.Start).Parent

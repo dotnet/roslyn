@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -19,9 +18,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<MethodSymbol> methods,
             LookupResult lookupResult,
             BoundMethodGroupFlags flags,
+            Binder binder,
             bool hasErrors = false)
-            : this(syntax, typeArgumentsOpt, name, methods, lookupResult.SingleSymbolOrDefault, lookupResult.Error, flags, receiverOpt, lookupResult.Kind, hasErrors)
+            : this(syntax, typeArgumentsOpt, name, methods, lookupResult.SingleSymbolOrDefault, lookupResult.Error, flags, functionType: GetLazyFunctionType(binder, syntax), receiverOpt, lookupResult.Kind, hasErrors)
         {
+            FunctionType?.SetExpression(this);
+        }
+
+        private static FunctionTypeSymbol.Lazy? GetLazyFunctionType(Binder binder, SyntaxNode syntax)
+        {
+            return FunctionTypeSymbol.Lazy.CreateIfFeatureEnabled(syntax, binder, static (binder, expr) => binder.GetMethodGroupDelegateType((BoundMethodGroup)expr));
         }
 
         public MemberAccessExpressionSyntax? MemberAccessExpressionSyntax

@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
                 // This is also the case for files for which TypeScript adds the generated TypeScript buffer to a different project.
                 var filesTasks = project.SourceFiles
                     .Where(f => f.Scheme != SystemUriSchemeExternal)
-                    .Where(f => !this._secondaryBufferFileExtensions.Any(ext => f.LocalPath.EndsWith(ext)))
+                    .Where(f => !_secondaryBufferFileExtensions.Any(ext => f.LocalPath.EndsWith(ext)))
                     .Select(f => lspClient.ProtocolConverter.FromProtocolUriAsync(f, false, cancellationToken));
                 var files = await Task.WhenAll(filesTasks).ConfigureAwait(false);
                 var projectInfo = CreateProjectInfo(project.Name, project.Language, files.Select(f => f.LocalPath).ToImmutableArray());

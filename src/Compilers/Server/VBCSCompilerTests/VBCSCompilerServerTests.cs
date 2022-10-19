@@ -54,10 +54,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Logger = new XunitCompilerServerLogger(testOutputHelper);
             }
 
-            private Task<int> RunShutdownAsync(string pipeName, bool waitForProcess = true, TimeSpan? timeout = null, CancellationToken cancellationToken = default(CancellationToken))
+            private Task<int> RunShutdownAsync(string pipeName, bool waitForProcess = true, CancellationToken cancellationToken = default(CancellationToken))
             {
                 var appSettings = new NameValueCollection();
-                return new BuildServerController(appSettings, Logger).RunShutdownAsync(pipeName, waitForProcess, timeout, cancellationToken);
+                return new BuildServerController(appSettings, Logger).RunShutdownAsync(pipeName, waitForProcess, cancellationToken);
             }
 
             [Fact]
