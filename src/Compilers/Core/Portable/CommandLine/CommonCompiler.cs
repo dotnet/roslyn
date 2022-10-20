@@ -1304,6 +1304,14 @@ namespace Microsoft.CodeAnalysis
                 
                 logger.Trace?.Log($"Source-only analyzers reported {sourceOnlyAnalyzerDiagnostics.Length} diagnostics.");
                 
+                if (logger.Trace != null)
+                {
+                    foreach (var diagnostic in sourceOnlyAnalyzerDiagnostics)
+                    {
+                        logger.Trace.Log(diagnostic.ToString());
+                    }
+                }
+
                 diagnostics.AddRange(sourceOnlyAnalyzerDiagnostics);
 
                 if (!diagnostics.IsEmptyWithoutResolution)
@@ -1538,7 +1546,9 @@ namespace Microsoft.CodeAnalysis
                     (var sourceOnlyAnalyzers, analyzers) = SplitAnalyzers(analyzerConfigProvider, analyzers);
 
                     logger.Trace?.Log(
-                        $"Source-only analyzers: {string.Join(", ", sourceOnlyAnalyzers)}. After-transformation analyzers: {string.Join(", ", analyzers)}. ");
+                        $"Source-only analyzers: {sourceOnlyAnalyzers.Length} items.{Environment.NewLine}\t{string.Join(Environment.NewLine + "\t", sourceOnlyAnalyzers)}.");
+                    logger.Trace?.Log(
+                        $"After-transformation analyzers: {analyzers.Length} items. {Environment.NewLine}\t{string.Join(Environment.NewLine + "\t", analyzers)}. ");
 
                     // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
                     //  1. Always filter out 'Hidden' analyzer diagnostics in build.
@@ -2144,20 +2154,16 @@ namespace Microsoft.CodeAnalysis
              // Find the node in the final tree corresponding to the node in the original tree.
              if (!TryFindSourceNodeInFinalSyntaxTree(sourceSyntaxNode, finalTree, out var finalNode))
              {
-                 // The diagnostic was reported on a node that has been removed by another transformation,
-                 // or we have a defect in the mapping logic.
-                 if (diagnostic.Severity == DiagnosticSeverity.Error)
-                 {
-                     // Errors need to be reported, even with a wrong location.
-                     finalNode = finalTree.GetRoot();
-                 }
-                 else
-                 {
-                     trace?.Log($"Diagnostic ignored because this not an error and it cannot be mapped to source code: {diagnostic}");
+                 // The diagnostic was reported on a node that has been removed by some transformation,
+                 // or we have a defect in the mapping logic. We cannot report it in the final syntax
+                 // tree, so report it as if it were in an additional file.
 
-                     // Non-errors or non-C# diagnostics are skipped.
-                     return default;
-                 }
+                 trace?.Log($"This diagnostic could not be mapped to final syntax trees: {diagnostic}");
+                 
+                 Location sourceLocation = sourceSyntaxNode.Location;
+
+                 return (diagnostic.WithLocation(Location.Create(sourceLocation.SourceTree.FilePath,
+                     sourceLocation.SourceSpan, sourceLocation.GetLineSpan().Span)), false, false);
 
              }
 
