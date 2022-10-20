@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
@@ -121,11 +122,18 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
         }
 
-        private new void DisableStorage()
+        private void DisableStorage(SqlException exception)
         {
-            Logger.Log(FunctionId.SQLite_StorageDisbled);
+            Logger.Log(FunctionId.SQLite_StorageDisabled, GetLogMessage(exception));
             base.DisableStorage();
         }
+
+        public static KeyValueLogMessage GetLogMessage(SqlException exception)
+            => KeyValueLogMessage.Create(d =>
+            {
+                d["Result"] = exception.Result.ToString();
+                d["Message"] = exception.Message;
+            });
 
         private static void Initialize(SqlConnection connection, CancellationToken cancellationToken)
         {

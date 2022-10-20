@@ -575,10 +575,10 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SpellCheckFixer_TryApplyChangesFailure = 605,
 
         SourceGenerator_SolutionStatistics = 620,
-        SourceGenerator_OtherWorkspaceSessionStatistics = 621
+        SourceGenerator_OtherWorkspaceSessionStatistics = 621,
 
         // 630-650 for sqlite errors.
         SQLite_SqlException = 630,
-        SQLite_StorageDisbled = 631,
+        SQLite_StorageDisabled = 631,
     }
 }

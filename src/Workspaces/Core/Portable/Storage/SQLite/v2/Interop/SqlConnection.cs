@@ -244,11 +244,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             }
             catch (SqlException ex)
             {
-                Logger.Log(FunctionId.SQLite_SqlException, KeyValueLogMessage.Create(d =>
-                {
-                    d["Result"] = ex.Result.ToString();
-                    d["Message"] = ex.Message;
-                }));
+                Logger.Log(FunctionId.SQLite_SqlException, SQLitePersistentStorage.GetLogMessage(ex));
 
                 // See documentation here: https://sqlite.org/lang_transaction.html
                 //
