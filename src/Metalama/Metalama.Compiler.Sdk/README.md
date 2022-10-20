@@ -1,3 +1,5 @@
-## Metalama Compiler SDK
+The `Metalama.Compiler.Sdk` package defines the `ISourceTransformer` interface as well as other APIs that allow you to write source transformers for `Metalama.Compiler`.
 
-THIS IS NOT THE PACKAGE YOU ARE LOOKING FOR. If you want to add Metalama to your project, add a reference to the package named `Metalama.Framework`.
+You should normally not need to reference this package directly. To develop a low-level aspect weaver for Metalama, use the `Metalama.Framework.Sdk` package.
+
+For a map of the NuGet packages that compose Metalama, see https://doc.metalama.net/deployment/packages.

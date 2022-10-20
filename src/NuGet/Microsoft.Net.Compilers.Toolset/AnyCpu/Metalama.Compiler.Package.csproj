@@ -55,7 +55,7 @@
     <!-- <Metalama> -->
     <None Include="$(ArtifactsBinDir)Metalama.Compiler.Sdk\$(Configuration)\netstandard2.0\Metalama.Compiler.Interface.dll" Visible="false" Pack="true" PackagePath="analyzers/dotnet/cs" />
 
-    <None Include="..\..\..\..\README.md" Visible="false" Pack="true" PackagePath="" />
+    <None Include="README.md" Visible="false" Pack="true" PackagePath="" />
     <!-- </Metalama> -->
   </ItemGroup>
 
