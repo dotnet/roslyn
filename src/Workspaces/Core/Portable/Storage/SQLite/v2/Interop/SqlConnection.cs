@@ -8,6 +8,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Roslyn.Utilities;
 using SQLitePCL;
@@ -243,6 +244,12 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             }
             catch (SqlException ex)
             {
+                Logger.Log(FunctionId.SQLite_SqlException, KeyValueLogMessage.Create(d =>
+                {
+                    d["Result"] = ex.Result.ToString();
+                    d["Message"] = ex.Message;
+                }));
+
                 // See documentation here: https://sqlite.org/lang_transaction.html
                 //
                 // If certain kinds of errors occur within a transaction, the transaction may or may not be rolled back

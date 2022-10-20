@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 using Microsoft.CodeAnalysis.Storage;
@@ -118,6 +119,12 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             {
                 _connectionPool.Dispose();
             }
+        }
+
+        private new void DisableStorage()
+        {
+            Logger.Log(FunctionId.SQLite_StorageDisbled);
+            base.DisableStorage();
         }
 
         private static void Initialize(SqlConnection connection, CancellationToken cancellationToken)
