@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28503.202
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31319.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoslynDeployment", "src\Deployment\RoslynDeployment.csproj", "{600AF682-E097-407B-AD85-EE3CED37E680}"
 EndProject
@@ -300,8 +300,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Func
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.FunctionResolver.UnitTests", "src\ExpressionEvaluator\Core\Test\FunctionResolver\Microsoft.CodeAnalysis.FunctionResolver.UnitTests.csproj", "{DD317BE1-42A1-4795-B1D4-F370C40D649A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub", "src\Workspaces\Remote\Razor\Microsoft.CodeAnalysis.Remote.Razor.ServiceHub.csproj", "{B6FC05F2-0E49-4BE2-8030-ACBB82B7F431}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.VisualStudio.Setup.Dependencies", "src\VisualStudio\Setup.Dependencies\Roslyn.VisualStudio.Setup.Dependencies.csproj", "{1688E1E5-D510-4E06-86F3-F8DB10B1393D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StackDepthTest", "src\Test\Perf\StackDepthTest\StackDepthTest.csproj", "{F040CEC5-5E11-4DBD-9F6A-250478E28177}"
@@ -494,6 +492,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp", "src\Tools\ExternalAccess\OmniSharp.CSharp\Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp.csproj", "{AE976DE9-811D-4C86-AEBB-DCDC1226D754}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.UnitTests", "src\Tools\ExternalAccess\OmniSharpTest\Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.UnitTests.csproj", "{3829F774-33F2-41E9-B568-AE555004FC62}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Remote.ServiceHub.CoreComponents", "src\Workspaces\Remote\ServiceHub.CoreComponents\Microsoft.CodeAnalysis.Remote.ServiceHub.CoreComponents.csproj", "{8FCD1B85-BE63-4A2F-8E19-37244F19BE0F}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -1026,10 +1026,6 @@ Global
 		{DD317BE1-42A1-4795-B1D4-F370C40D649A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD317BE1-42A1-4795-B1D4-F370C40D649A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DD317BE1-42A1-4795-B1D4-F370C40D649A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B6FC05F2-0E49-4BE2-8030-ACBB82B7F431}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B6FC05F2-0E49-4BE2-8030-ACBB82B7F431}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B6FC05F2-0E49-4BE2-8030-ACBB82B7F431}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B6FC05F2-0E49-4BE2-8030-ACBB82B7F431}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1688E1E5-D510-4E06-86F3-F8DB10B1393D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1688E1E5-D510-4E06-86F3-F8DB10B1393D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1688E1E5-D510-4E06-86F3-F8DB10B1393D}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -1290,6 +1286,10 @@ Global
 		{3829F774-33F2-41E9-B568-AE555004FC62}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3829F774-33F2-41E9-B568-AE555004FC62}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3829F774-33F2-41E9-B568-AE555004FC62}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8FCD1B85-BE63-4A2F-8E19-37244F19BE0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8FCD1B85-BE63-4A2F-8E19-37244F19BE0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8FCD1B85-BE63-4A2F-8E19-37244F19BE0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8FCD1B85-BE63-4A2F-8E19-37244F19BE0F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1427,7 +1427,6 @@ Global
 		{69F853E5-BD04-4842-984F-FC68CC51F402} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{6FC8E6F5-659C-424D-AEB5-331B95883E29} = {998CAFE8-06E4-4683-A151-0F6AA4BFF6C6}
 		{DD317BE1-42A1-4795-B1D4-F370C40D649A} = {998CAFE8-06E4-4683-A151-0F6AA4BFF6C6}
-		{B6FC05F2-0E49-4BE2-8030-ACBB82B7F431} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
 		{1688E1E5-D510-4E06-86F3-F8DB10B1393D} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{F040CEC5-5E11-4DBD-9F6A-250478E28177} = {DD13507E-D5AF-4B61-B11A-D55D6F4A73A5}
 		{275812EE-DEDB-4232-9439-91C9757D2AE4} = {DC014586-8D07-4DE6-B28E-C0540C59C085}
@@ -1516,6 +1515,7 @@ Global
 		{1B73FB08-9A17-497E-97C5-FA312867D51B} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{AE976DE9-811D-4C86-AEBB-DCDC1226D754} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{3829F774-33F2-41E9-B568-AE555004FC62} = {8977A560-45C2-4EC2-A849-97335B382C74}
+		{8FCD1B85-BE63-4A2F-8E19-37244F19BE0F} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}

@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IForEachLoopStatement : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
@@ -7186,7 +7186,7 @@ Block[B7] - Exit
 ");
         }
 
-        private static readonly string s_ValueTask = @"
+        internal static readonly string s_ValueTask = @"
 namespace System.Threading.Tasks
 {
     [System.Runtime.CompilerServices.AsyncMethodBuilder(typeof(System.Runtime.CompilerServices.ValueTaskMethodBuilder))]

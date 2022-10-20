@@ -53,6 +53,13 @@ End Class
     </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
+        <method containingType="C1" name="FooInvisible">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+        </method>
         <method containingType="C1" name="Main">
             <sequencePoints>
                 <entry offset="0x0" hidden="true" document="2"/>
@@ -124,6 +131,13 @@ End Class
     </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
+        <method containingType="C1" name="FooInvisible">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+        </method>
         <method containingType="C1" name="Main">
             <customDebugInfo>
                 <encLocalSlotMap>
@@ -362,6 +376,13 @@ End Class
     </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
+        <method containingType="C1" name="FooInvisible">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+        </method>
         <method containingType="C1" name="Main" format="windows">
             <scope startOffset="0x0" endOffset="0x18">
                 <namespace name="System" importlevel="file"/>
@@ -424,6 +445,13 @@ End Class
     </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
+        <method containingType="C1" name="FooInvisible">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+        </method>
         <method containingType="C1" name="Main" format="windows">
             <scope startOffset="0x0" endOffset="0x23">
                 <namespace name="System" importlevel="file"/>

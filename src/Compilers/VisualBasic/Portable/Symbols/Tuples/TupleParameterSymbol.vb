@@ -2,10 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
-Imports System.Globalization
-Imports System.Threading
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
     ''' Represents a parameter of a method or a property of a tuple type
@@ -18,6 +14,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
                 Return Me._container
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property IsCallerLineNumber As Boolean
+            Get
+                Return Me._underlyingParameter.IsCallerLineNumber
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property IsCallerFilePath As Boolean
+            Get
+                Return Me._underlyingParameter.IsCallerFilePath
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property IsCallerMemberName As Boolean
+            Get
+                Return Me._underlyingParameter.IsCallerMemberName
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
+            Get
+                Return Me._underlyingParameter.CallerArgumentExpressionParameterIndex
             End Get
         End Property
 

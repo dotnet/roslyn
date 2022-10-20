@@ -7,6 +7,11 @@
         <target state="translated">초기값 전용 속성 '{0}'은(는) 개체 멤버 이니셜라이저에 의해서나 인스턴스 생성자의 'Me', 'MyClass` 또는 'MyBase'에만 할당할 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAbstractStaticMemberAccess">
+        <source>A shared abstract interface member cannot be accessed.</source>
+        <target state="translated">공유 추상 인터페이스 멤버에 액세스할 수 없습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">명령줄 구문 오류: '{0}'은(는) '{1}' 옵션에 유효한 값이 아닙니다. 값은 '{2}' 형식이어야 합니다.</target>
@@ -57,9 +62,19 @@
         <target state="translated">공유 WithEvents 변수의 이벤트는 다른 형식의 메서드에서 처리할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnimplementedSharedMember">
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
+        <target state="translated">{0} '{1}'은(는) 공유 추상 '{2}'이(가) 포함되어 있으므로 '{3}' 인터페이스를 구현할 수 없습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
         <source>'UnmanagedCallersOnly' attribute is not supported.</source>
         <target state="translated">'UnmanagedCallersOnly' 특성은 지원되지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_CallerArgumentExpression">
+        <source>caller argument expression</source>
+        <target state="translated">호출자 인수 표현식</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
@@ -501,6 +516,26 @@
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
         <target state="translated">로드된 어셈블리가 지원되지 않는 .NET Framework를 참조합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">매개 변수 '{0}'에 적용된 CallerArgumentExpressionAttribute는 효과가 없습니다. 잘못된 매개 변수 이름으로 적용되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">매개 변수에 적용된 CallerArgumentExpressionAttribute는 효과가 없습니다. 잘못된 매개 변수 이름으로 적용되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</source>
+        <target state="translated">매개 변수 '{0}'에 적용된 CallerArgumentExpressionAttribute는 자체 참조이기 때문에 효과가 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</source>
+        <target state="translated">매개 변수에 적용된 CallerArgumentExpressionAttribute는 자체 참조이기 때문에 효과가 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">

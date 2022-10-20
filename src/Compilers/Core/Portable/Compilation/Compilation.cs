@@ -973,7 +973,6 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract IPointerTypeSymbol CommonCreatePointerTypeSymbol(ITypeSymbol elementType);
 
-
         /// <summary>
         /// Returns a new IFunctionPointerTypeSymbol representing a function pointer type tied to types in this
         /// Compilation.
@@ -2699,6 +2698,7 @@ namespace Microsoft.CodeAnalysis
             return new EmitResult(success, diagnostics.ToReadOnlyAndFree());
         }
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         /// <summary>
         /// Emit the differences between the compilation and the previous generation
         /// for Edit and Continue. The differences are expressed as added and changed
@@ -2706,6 +2706,7 @@ namespace Microsoft.CodeAnalysis
         /// of the current compilation is returned as an EmitBaseline for use in a
         /// subsequent Edit and Continue.
         /// </summary>
+        [Obsolete("UpdatedMethods is now part of EmitDifferenceResult, so you should use an overload that doesn't take it.")]
         public EmitDifferenceResult EmitDifference(
             EmitBaseline baseline,
             IEnumerable<SemanticEdit> edits,
@@ -2725,6 +2726,7 @@ namespace Microsoft.CodeAnalysis
         /// of the current compilation is returned as an EmitBaseline for use in a
         /// subsequent Edit and Continue.
         /// </summary>
+        [Obsolete("UpdatedMethods is now part of EmitDifferenceResult, so you should use an overload that doesn't take it.")]
         public EmitDifferenceResult EmitDifference(
             EmitBaseline baseline,
             IEnumerable<SemanticEdit> edits,
@@ -2733,6 +2735,32 @@ namespace Microsoft.CodeAnalysis
             Stream ilStream,
             Stream pdbStream,
             ICollection<MethodDefinitionHandle> updatedMethods,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var diff = EmitDifference(baseline, edits, isAddedSymbol, metadataStream, ilStream, pdbStream, cancellationToken);
+
+            foreach (var token in diff.UpdatedMethods)
+            {
+                updatedMethods.Add(token);
+            }
+
+            return diff;
+        }
+
+        /// <summary>
+        /// Emit the differences between the compilation and the previous generation
+        /// for Edit and Continue. The differences are expressed as added and changed
+        /// symbols, and are emitted as metadata, IL, and PDB deltas. A representation
+        /// of the current compilation is returned as an EmitBaseline for use in a
+        /// subsequent Edit and Continue.
+        /// </summary>
+        public EmitDifferenceResult EmitDifference(
+            EmitBaseline baseline,
+            IEnumerable<SemanticEdit> edits,
+            Func<ISymbol, bool> isAddedSymbol,
+            Stream metadataStream,
+            Stream ilStream,
+            Stream pdbStream,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (baseline == null)
@@ -2768,8 +2796,9 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(pdbStream));
             }
 
-            return this.EmitDifference(baseline, edits, isAddedSymbol, metadataStream, ilStream, pdbStream, updatedMethods, testData: null, cancellationToken);
+            return this.EmitDifference(baseline, edits, isAddedSymbol, metadataStream, ilStream, pdbStream, testData: null, cancellationToken);
         }
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         internal abstract EmitDifferenceResult EmitDifference(
             EmitBaseline baseline,
@@ -2778,7 +2807,6 @@ namespace Microsoft.CodeAnalysis
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
-            ICollection<MethodDefinitionHandle> updatedMethodHandles,
             CompilationTestData? testData,
             CancellationToken cancellationToken);
 
@@ -3067,7 +3095,8 @@ namespace Microsoft.CodeAnalysis
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
-            ICollection<MethodDefinitionHandle> updatedMethods,
+            ArrayBuilder<MethodDefinitionHandle> updatedMethods,
+            ArrayBuilder<TypeDefinitionHandle> changedTypes,
             DiagnosticBag diagnostics,
             Func<ISymWriterMetadataProvider, SymUnmanagedWriter>? testSymWriterFactory,
             string? pdbFilePath,
@@ -3102,11 +3131,12 @@ namespace Microsoft.CodeAnalysis
                         (nativePdbWriter == null) ? pdbStream : null,
                         out MetadataSizes metadataSizes);
 
-                    writer.GetMethodTokens(updatedMethods);
+                    writer.GetUpdatedMethodTokens(updatedMethods);
+                    writer.GetChangedTypeTokens(changedTypes);
 
                     nativePdbWriter?.WriteTo(pdbStream);
 
-                    return diagnostics.HasAnyErrors() ? null : writer.GetDelta(baseline, this, encId, metadataSizes);
+                    return diagnostics.HasAnyErrors() ? null : writer.GetDelta(this, encId, metadataSizes);
                 }
                 catch (SymUnmanagedWriterException e)
                 {
@@ -3205,6 +3235,12 @@ namespace Microsoft.CodeAnalysis
         /// Can be used to get a total ordering on declarations, for example.
         /// </summary>
         internal abstract int CompareSourceLocations(SyntaxReference loc1, SyntaxReference loc2);
+
+        /// <summary>
+        /// Compare two source locations, using their containing trees, and then by Span.First within a tree.
+        /// Can be used to get a total ordering on declarations, for example.
+        /// </summary>
+        internal abstract int CompareSourceLocations(SyntaxNode loc1, SyntaxNode loc2);
 
         /// <summary>
         /// Return the lexically first of two locations.

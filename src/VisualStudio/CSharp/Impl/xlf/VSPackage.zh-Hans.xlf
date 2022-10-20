@@ -33,7 +33,8 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Display inline hints;
+        <source>Underline reassigned variables;
+Display inline hints;
 Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
@@ -80,8 +81,10 @@ prefer auto properties;
 regex;
 regular expression;
 Use enhanced colors;
-Editor Color Scheme;</source>
-        <target state="translated">显示内联提示;
+Editor Color Scheme;
+Inheritance Margin;</source>
+        <target state="translated">为重新分配变量添加下划线;
+显示内联提示;
 显示对已关闭文件的诊断;
 对正则表达式着色;
 突出显示游标下的相关组件;
@@ -128,7 +131,8 @@ Using 指令;
 regex;
 正则表达式;
 使用增强色;
-编辑器配色方案;</target>
+编辑器配色方案;
+继承边距;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">

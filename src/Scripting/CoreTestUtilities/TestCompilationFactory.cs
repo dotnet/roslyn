@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.VisualBasic;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             return CSharpCompilation.Create(
                 assemblyName ?? Guid.NewGuid().ToString(),
                 new[] { CSharp.SyntaxFactory.ParseSyntaxTree(source) },
-                new[] { TestReferences.NetStandard13.SystemRuntime },
+                new[] { NetStandard13.SystemRuntime },
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         }
 
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             return VisualBasicCompilation.Create(
                 assemblyName ?? Guid.NewGuid().ToString(),
                 new[] { VisualBasic.SyntaxFactory.ParseSyntaxTree(source) },
-                new[] { TestReferences.NetStandard13.SystemRuntime },
+                new[] { NetStandard13.SystemRuntime },
                 new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         }
 

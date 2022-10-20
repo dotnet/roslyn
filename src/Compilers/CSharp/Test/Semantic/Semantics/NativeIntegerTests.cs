@@ -1094,7 +1094,8 @@ public class B : A<nint>
                 comp.GetMember<MethodSymbol>("B.F").TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].Type;
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/49845
+        [Fact]
+        [WorkItem(49845, "https://github.com/dotnet/roslyn/issues/49845")]
         public void Retargeting_06()
         {
             var source1 =
@@ -1108,6 +1109,25 @@ public class B : A<nint>
     public struct Int32 { }
     public class IntPtr { }
     public class UIntPtr { }
+
+    public class Attribute {}
+
+    public class Enum {}
+    public enum AttributeTargets
+    {
+        Class = 0x4,
+    }
+
+    [AttributeUsage(AttributeTargets.Class, Inherited = true)]
+    public sealed class AttributeUsageAttribute : Attribute
+    {
+        public bool AllowMultiple {get; set;}
+        public bool Inherited {get; set;}
+        public AttributeTargets ValidOn => 0;
+        public AttributeUsageAttribute(AttributeTargets validOn)
+        {
+        }
+    }
 }";
             var comp = CreateCompilation(new AssemblyIdentity("c804cc09-8f73-44a1-9cfe-9567bed1def6", new Version(1, 0, 0, 0)), new[] { source1 }, references: null);
             var ref1 = comp.EmitToImageReference();
@@ -1117,6 +1137,7 @@ public class B : A<nint>
 {
 }";
             comp = CreateEmptyCompilation(sourceA, references: new[] { ref1 }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
 
             var refA = comp.ToMetadataReference();
             var typeA = comp.GetMember<NamedTypeSymbol>("A").BaseTypeNoUseSiteDiagnostics;
@@ -3305,6 +3326,7 @@ class C2 : IA, IB
         }
 
         [Fact]
+        [WorkItem(45519, "https://github.com/dotnet/roslyn/issues/45519")]
         public void Partial_01()
         {
             var source =
@@ -3315,8 +3337,17 @@ class C2 : IA, IB
     static partial void F1(nint x) { }
     static partial void F2(nuint x);
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5), parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6), parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (4,25): warning CS8826: Partial method declarations 'void Program.F2(nuint x)' and 'void Program.F2(UIntPtr x)' have signature differences.
+                //     static partial void F2(System.UIntPtr x) { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F2").WithArguments("void Program.F2(nuint x)", "void Program.F2(UIntPtr x)").WithLocation(4, 25),
+                // (5,25): warning CS8826: Partial method declarations 'void Program.F1(IntPtr x)' and 'void Program.F1(nint x)' have signature differences.
+                //     static partial void F1(nint x) { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F1").WithArguments("void Program.F1(IntPtr x)", "void Program.F1(nint x)").WithLocation(5, 25));
         }
 
         [Fact]
@@ -12484,7 +12515,7 @@ class Program
         }
 
         [Fact]
-        public void ConstantFolding()
+        public void ConstantFolding_01()
         {
             const string intMinValue = "-2147483648";
             const string intMaxValue = "2147483647";
@@ -12497,7 +12528,7 @@ class Program
             unaryOperator("nuint", "+", uintMaxValue, uintMaxValue);
 
             unaryOperator("nint", "-", "-1", "1");
-            unaryOperatorCheckedOverflow("nint", "-", intMinValue, IntPtr.Size == 4 ? "-2147483648" : "2147483648");
+            unaryOperatorCheckedOverflow("nint", "-", intMinValue, IntPtr.Size == 4 ? "-2147483648" : "2147483648", IntPtr.Size == 4 ? "System.OverflowException" : "2147483648");
             unaryOperator("nint", "-", "-2147483647", intMaxValue);
             unaryOperator("nint", "-", intMaxValue, "-2147483647");
             unaryOperator("nuint", "-", "0", null, getBadUnaryOpDiagnostics);
@@ -12511,29 +12542,29 @@ class Program
             unaryOperatorNotConstant("nuint", "~", "0", IntPtr.Size == 4 ? uintMaxValue : ulongMaxValue);
             unaryOperatorNotConstant("nuint", "~", uintMaxValue, IntPtr.Size == 4 ? "0" : "18446744069414584320");
 
-            binaryOperatorCheckedOverflow("nint", "+", "nint", intMinValue, "nint", "-1", IntPtr.Size == 4 ? "2147483647" : "-2147483649");
+            binaryOperatorCheckedOverflow("nint", "+", "nint", intMinValue, "nint", "-1", IntPtr.Size == 4 ? "2147483647" : "-2147483649", IntPtr.Size == 4 ? "System.OverflowException" : "-2147483649");
             binaryOperator("nint", "+", "nint", "-2147483647", "nint", "-1", intMinValue);
-            binaryOperatorCheckedOverflow("nint", "+", "nint", "1", "nint", intMaxValue, IntPtr.Size == 4 ? "-2147483648" : "2147483648");
+            binaryOperatorCheckedOverflow("nint", "+", "nint", "1", "nint", intMaxValue, IntPtr.Size == 4 ? "-2147483648" : "2147483648", IntPtr.Size == 4 ? "System.OverflowException" : "2147483648");
             binaryOperator("nint", "+", "nint", "1", "nint", "2147483646", intMaxValue);
-            binaryOperatorCheckedOverflow("nuint", "+", "nuint", "1", "nuint", uintMaxValue, IntPtr.Size == 4 ? "0" : "4294967296");
+            binaryOperatorCheckedOverflow("nuint", "+", "nuint", "1", "nuint", uintMaxValue, IntPtr.Size == 4 ? "0" : "4294967296", IntPtr.Size == 4 ? "System.OverflowException" : "4294967296");
             binaryOperator("nuint", "+", "nuint", "1", "nuint", "4294967294", uintMaxValue);
 
-            binaryOperatorCheckedOverflow("nint", "-", "nint", intMinValue, "nint", "1", IntPtr.Size == 4 ? "2147483647" : "-2147483649");
+            binaryOperatorCheckedOverflow("nint", "-", "nint", intMinValue, "nint", "1", IntPtr.Size == 4 ? "2147483647" : "-2147483649", IntPtr.Size == 4 ? "System.OverflowException" : "-2147483649");
             binaryOperator("nint", "-", "nint", intMinValue, "nint", "-1", "-2147483647");
             binaryOperator("nint", "-", "nint", "-1", "nint", intMaxValue, intMinValue);
-            binaryOperatorCheckedOverflow("nint", "-", "nint", "-2", "nint", intMaxValue, IntPtr.Size == 4 ? "2147483647" : "-2147483649");
-            binaryOperatorCheckedOverflow("nuint", "-", "nuint", "0", "nuint", "1", IntPtr.Size == 4 ? uintMaxValue : ulongMaxValue);
+            binaryOperatorCheckedOverflow("nint", "-", "nint", "-2", "nint", intMaxValue, IntPtr.Size == 4 ? "2147483647" : "-2147483649", IntPtr.Size == 4 ? "System.OverflowException" : "-2147483649");
+            binaryOperatorCheckedOverflow("nuint", "-", "nuint", "0", "nuint", "1", IntPtr.Size == 4 ? uintMaxValue : ulongMaxValue, "System.OverflowException");
             binaryOperator("nuint", "-", "nuint", uintMaxValue, "nuint", uintMaxValue, "0");
 
-            binaryOperatorCheckedOverflow("nint", "*", "nint", intMinValue, "nint", "2", IntPtr.Size == 4 ? "0" : "-4294967296");
-            binaryOperatorCheckedOverflow("nint", "*", "nint", intMinValue, "nint", "-1", IntPtr.Size == 4 ? "-2147483648" : "2147483648");
+            binaryOperatorCheckedOverflow("nint", "*", "nint", intMinValue, "nint", "2", IntPtr.Size == 4 ? "0" : "-4294967296", IntPtr.Size == 4 ? "System.OverflowException" : "-4294967296");
+            binaryOperatorCheckedOverflow("nint", "*", "nint", intMinValue, "nint", "-1", IntPtr.Size == 4 ? "-2147483648" : "2147483648", IntPtr.Size == 4 ? "System.OverflowException" : "2147483648");
             binaryOperator("nint", "*", "nint", "-1", "nint", intMaxValue, "-2147483647");
-            binaryOperatorCheckedOverflow("nint", "*", "nint", "2", "nint", intMaxValue, IntPtr.Size == 4 ? "-2" : "4294967294");
-            binaryOperatorCheckedOverflow("nuint", "*", "nuint", uintMaxValue, "nuint", "2", IntPtr.Size == 4 ? "4294967294" : "8589934590");
+            binaryOperatorCheckedOverflow("nint", "*", "nint", "2", "nint", intMaxValue, IntPtr.Size == 4 ? "-2" : "4294967294", IntPtr.Size == 4 ? "System.OverflowException" : "4294967294");
+            binaryOperatorCheckedOverflow("nuint", "*", "nuint", uintMaxValue, "nuint", "2", IntPtr.Size == 4 ? "4294967294" : "8589934590", IntPtr.Size == 4 ? "System.OverflowException" : "8589934590");
             binaryOperator("nuint", "*", "nuint", intMaxValue, "nuint", "2", "4294967294");
 
             binaryOperator("nint", "/", "nint", intMinValue, "nint", "1", intMinValue);
-            binaryOperatorCheckedOverflow("nint", "/", "nint", intMinValue, "nint", "-1", IntPtr.Size == 4 ? "System.OverflowException" : "2147483648");
+            binaryOperatorCheckedOverflow("nint", "/", "nint", intMinValue, "nint", "-1", IntPtr.Size == 4 ? "System.OverflowException" : "2147483648", IntPtr.Size == 4 ? "System.OverflowException" : "2147483648");
             binaryOperator("nint", "/", "nint", "1", "nint", "0", null, getIntDivByZeroDiagnostics);
             binaryOperator("nint", "/", "nint", "0", "nint", "0", null, getIntDivByZeroDiagnostics);
             binaryOperator("nuint", "/", "nuint", uintMaxValue, "nuint", "1", uintMaxValue);
@@ -12543,7 +12574,7 @@ class Program
 
             binaryOperator("nint", "%", "nint", intMinValue, "nint", "2", "0");
             binaryOperator("nint", "%", "nint", intMinValue, "nint", "-2", "0");
-            binaryOperatorCheckedOverflow("nint", "%", "nint", intMinValue, "nint", "-1", IntPtr.Size == 4 ? "System.OverflowException" : "0");
+            binaryOperatorCheckedOverflow("nint", "%", "nint", intMinValue, "nint", "-1", IntPtr.Size == 4 ? "System.OverflowException" : "0", IntPtr.Size == 4 ? "System.OverflowException" : "0");
             binaryOperator("nint", "%", "nint", "1", "nint", "0", null, getIntDivByZeroDiagnostics);
             binaryOperator("nint", "%", "nint", "0", "nint", "0", null, getIntDivByZeroDiagnostics);
             binaryOperator("nuint", "%", "nuint", uintMaxValue, "nuint", "1", "0");
@@ -12655,18 +12686,26 @@ class Program
                 constantExpression(opType, $"unchecked({expr})", expectedResult, diagnostics);
             }
 
-            void unaryOperatorCheckedOverflow(string opType, string op, string operand, string expectedResult)
+            void unaryOperatorCheckedOverflow(string opType, string op, string operand, string expectedResultUnchecked, string expectedResultChecked)
             {
                 var declarations = $"const {opType} A = {operand};";
                 var expr = $"{op}A";
-                constantDeclaration(opType, declarations, expr, null, new[] { Diagnostic(ErrorCode.ERR_CheckedOverflow, expr) });
-                constantDeclaration(opType, declarations, $"checked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_CheckedOverflow, expr) });
+                constantDeclaration(opType, declarations, expr, null,
+                    new[] {
+                        Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(opType),
+                        Diagnostic(ErrorCode.ERR_NotConstantExpression, expr).WithArguments("Library.F")
+                    });
+                constantDeclaration(opType, declarations, $"checked({expr})", null,
+                    new[] {
+                        Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(opType),
+                        Diagnostic(ErrorCode.ERR_NotConstantExpression, $"checked({expr})").WithArguments("Library.F")
+                    });
                 constantDeclaration(opType, declarations, $"unchecked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, $"unchecked({expr})").WithArguments("Library.F") });
 
                 expr = $"{op}({opType})({operand})";
-                constantExpression(opType, expr, null, new[] { Diagnostic(ErrorCode.ERR_CheckedOverflow, expr) });
-                constantExpression(opType, $"checked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_CheckedOverflow, expr) });
-                constantExpression(opType, $"unchecked({expr})", expectedResult, Array.Empty<DiagnosticDescription>());
+                constantExpression(opType, expr, expectedResultUnchecked, new[] { Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(opType) });
+                constantExpression(opType, $"checked({expr})", expectedResultChecked, new[] { Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(opType) });
+                constantExpression(opType, $"unchecked({expr})", expectedResultUnchecked, Array.Empty<DiagnosticDescription>());
             }
 
             void unaryOperatorNotConstant(string opType, string op, string operand, string expectedResult)
@@ -12701,18 +12740,26 @@ class Program
                 constantExpression(opType, $"unchecked({expr})", expectedResult, diagnostics);
             }
 
-            void binaryOperatorCheckedOverflow(string opType, string op, string leftType, string leftOperand, string rightType, string rightOperand, string expectedResult)
+            void binaryOperatorCheckedOverflow(string opType, string op, string leftType, string leftOperand, string rightType, string rightOperand, string expectedResultUnchecked, string expectedResultChecked)
             {
                 var declarations = $"const {leftType} A = {leftOperand}; const {rightType} B = {rightOperand};";
                 var expr = $"A {op} B";
-                constantDeclaration(opType, declarations, expr, null, new[] { Diagnostic(ErrorCode.ERR_CheckedOverflow, expr) });
-                constantDeclaration(opType, declarations, $"checked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_CheckedOverflow, expr) });
+                constantDeclaration(opType, declarations, expr, null,
+                    new[] {
+                        Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(opType),
+                        Diagnostic(ErrorCode.ERR_NotConstantExpression, expr).WithArguments("Library.F")
+                    });
+                constantDeclaration(opType, declarations, $"checked({expr})", null,
+                    new[] {
+                        Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(opType),
+                        Diagnostic(ErrorCode.ERR_NotConstantExpression, $"checked({expr})").WithArguments("Library.F")
+                    });
                 constantDeclaration(opType, declarations, $"unchecked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, $"unchecked({expr})").WithArguments("Library.F") });
 
                 expr = $"(({leftType})({leftOperand})) {op} (({rightType})({rightOperand}))";
-                constantExpression(opType, expr, null, new[] { Diagnostic(ErrorCode.ERR_CheckedOverflow, expr) });
-                constantExpression(opType, $"checked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_CheckedOverflow, expr) });
-                constantExpression(opType, $"unchecked({expr})", expectedResult, Array.Empty<DiagnosticDescription>());
+                constantExpression(opType, expr, expectedResultUnchecked, new[] { Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(opType) });
+                constantExpression(opType, $"checked({expr})", expectedResultChecked, new[] { Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(opType) });
+                constantExpression(opType, $"unchecked({expr})", expectedResultUnchecked, Array.Empty<DiagnosticDescription>());
             }
 
             void binaryOperatorNotConstant(string opType, string op, string leftType, string leftOperand, string rightType, string rightOperand, string expectedResult)
@@ -12740,7 +12787,11 @@ $@"public class Library
                 var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
-                if (expectedDiagnostics.Length > 0) return;
+                if (expectedDiagnostics.Any(d => ErrorFacts.GetSeverity((ErrorCode)d.Code) == DiagnosticSeverity.Error))
+                {
+                    Assert.Null(expectedResult);
+                    return;
+                }
 
                 string sourceB =
 @"class Program
@@ -12753,10 +12804,9 @@ $@"public class Library
                 var refA = comp.EmitToImageReference();
                 comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
                 CompileAndVerify(comp, expectedOutput: expectedResult);
+                Assert.NotNull(expectedResult);
             }
 
-            // https://github.com/dotnet/csharplang/issues/3259: Should ERR_CheckedOverflow cases be evaluated
-            // at runtime rather than compile time to allow operations to succeed on 64-bit platforms?
             void constantExpression(string opType, string expr, string expectedResult, DiagnosticDescription[] expectedDiagnostics)
             {
                 string source =
@@ -12779,12 +12829,147 @@ class Program
     }}
 }}";
                 var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-                comp.VerifyDiagnostics(expectedDiagnostics);
 
-                if (expectedDiagnostics.Length > 0) return;
+                if (expectedDiagnostics.Any(d => ErrorFacts.GetSeverity((ErrorCode)d.Code) == DiagnosticSeverity.Error))
+                {
+                    comp.VerifyDiagnostics(expectedDiagnostics);
+                    Assert.Null(expectedResult);
+                    return;
+                }
 
-                CompileAndVerify(comp, expectedOutput: expectedResult);
+                CompileAndVerify(comp, expectedOutput: expectedResult).VerifyDiagnostics(expectedDiagnostics);
+                Assert.NotNull(expectedResult);
             }
+        }
+
+        [Fact]
+        [WorkItem(51714, "https://github.com/dotnet/roslyn/issues/51714")]
+        public void ConstantFolding_02()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main()
+    {
+        const nuint x = unchecked(uint.MaxValue + (nuint)42);
+        const nuint y = checked(uint.MaxValue + (nuint)42);
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (6,25): error CS0133: The expression being assigned to 'x' must be constant
+                //         const nuint x = unchecked(uint.MaxValue + (nuint)42);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "unchecked(uint.MaxValue + (nuint)42)").WithArguments("x").WithLocation(6, 25),
+                // (7,25): error CS0133: The expression being assigned to 'y' must be constant
+                //         const nuint y = checked(uint.MaxValue + (nuint)42);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "checked(uint.MaxValue + (nuint)42)").WithArguments("y").WithLocation(7, 25),
+                // (7,33): warning CS8973: The operation may overflow 'nuint' at runtime (use 'unchecked' syntax to override)
+                //         const nuint y = checked(uint.MaxValue + (nuint)42);
+                Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, "uint.MaxValue + (nuint)42").WithArguments("nuint").WithLocation(7, 33)
+                );
+
+            source =
+@"
+class Program
+{
+    static void Main()
+    {
+        try
+        {
+            var y = checked(uint.MaxValue + (nuint)42);
+            System.Console.WriteLine(y);
+        }
+        catch (System.Exception e)
+        {
+            System.Console.WriteLine(e.GetType());
+        }
+    }
+}";
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "System.OverflowException" : "4294967337").VerifyDiagnostics(
+                // (8,29): warning CS8973: The operation may overflow 'nuint' at runtime (use 'unchecked' syntax to override)
+                //             var y = checked(uint.MaxValue + (nuint)42);
+                Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, "uint.MaxValue + (nuint)42").WithArguments("nuint").WithLocation(8, 29)
+                );
+
+            source =
+@"
+class Program
+{
+    static void Main()
+    {
+        var y = unchecked(uint.MaxValue + (nuint)42);
+        System.Console.WriteLine(y);
+    }
+}";
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "41" : "4294967337").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(51714, "https://github.com/dotnet/roslyn/issues/51714")]
+        public void ConstantFolding_03()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main()
+    {
+        const nint x = unchecked(-(nint)int.MinValue);
+        const nint y = checked(-(nint)int.MinValue);
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (6,24): error CS0133: The expression being assigned to 'x' must be constant
+                //         const nint x = unchecked(-(nint)int.MinValue);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "unchecked(-(nint)int.MinValue)").WithArguments("x").WithLocation(6, 24),
+                // (7,24): error CS0133: The expression being assigned to 'y' must be constant
+                //         const nint y = checked(-(nint)int.MinValue);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "checked(-(nint)int.MinValue)").WithArguments("y").WithLocation(7, 24),
+                // (7,32): warning CS8973: The operation may overflow 'nint' at runtime (use 'unchecked' syntax to override)
+                //         const nint y = checked(-(nint)int.MinValue);
+                Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, "-(nint)int.MinValue").WithArguments("nint").WithLocation(7, 32)
+                );
+
+            source =
+@"
+class Program
+{
+    static void Main()
+    {
+        try
+        {
+            var y = checked(-(nint)int.MinValue);
+            System.Console.WriteLine(y);
+        }
+        catch (System.Exception e)
+        {
+            System.Console.WriteLine(e.GetType());
+        }
+    }
+}";
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "System.OverflowException" : "2147483648").VerifyDiagnostics(
+                // (8,29): warning CS8973: The operation may overflow 'nint' at runtime (use 'unchecked' syntax to override)
+                //             var y = checked(-(nint)int.MinValue);
+                Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, "-(nint)int.MinValue").WithArguments("nint").WithLocation(8, 29)
+                );
+
+            source =
+@"
+class Program
+{
+    static void Main()
+    {
+        var y = unchecked(-(nint)int.MinValue);
+        System.Console.WriteLine(y);
+    }
+}";
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "-2147483648" : "2147483648").VerifyDiagnostics();
         }
 
         // OverflowException behavior is consistent with unchecked int division.

@@ -52,6 +52,7 @@
       <_File Include="@(CoreClrCompilerBinRuntimesArtifact)" TargetDir="tasks/netcoreapp3.1/bincore/runtimes"/>
      
       <_File Include="$(MSBuildProjectDirectory)\build\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="build" />
+      <_File Include="$(MSBuildProjectDirectory)\buildMultiTargeting\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="buildMultiTargeting" />
      
       <TfmSpecificPackageFile Include="@(_File)" PackagePath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
     </ItemGroup>

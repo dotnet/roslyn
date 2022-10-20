@@ -259,7 +259,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
             Inherits CodeAction.DocumentChangeAction
 
             Public Sub New(title As String, createChangedDocument As Func(Of CancellationToken, Task(Of Document)))
-                MyBase.New(title, createChangedDocument)
+                MyBase.New(title, createChangedDocument, title)
             End Sub
         End Class
     End Class

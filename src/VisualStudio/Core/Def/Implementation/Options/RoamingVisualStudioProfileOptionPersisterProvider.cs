@@ -19,7 +19,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     [Export(typeof(IOptionPersisterProvider))]
     internal sealed class RoamingVisualStudioProfileOptionPersisterProvider : IOptionPersisterProvider
     {
-        private readonly IThreadingContext _threadingContext;
         private readonly IAsyncServiceProvider _serviceProvider;
         private readonly IGlobalOptionService _optionService;
         private RoamingVisualStudioProfileOptionPersister? _lazyPersister;
@@ -27,11 +26,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RoamingVisualStudioProfileOptionPersisterProvider(
-            IThreadingContext threadingContext,
             [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider serviceProvider,
             IGlobalOptionService optionService)
         {
-            _threadingContext = threadingContext;
             _serviceProvider = serviceProvider;
             _optionService = optionService;
         }
@@ -43,11 +40,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 return _lazyPersister;
             }
 
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
             var settingsManager = (ISettingsManager?)await _serviceProvider.GetServiceAsync(typeof(SVsSettingsPersistenceManager)).ConfigureAwait(true);
 
-            _lazyPersister ??= new RoamingVisualStudioProfileOptionPersister(_threadingContext, _optionService, settingsManager);
+            _lazyPersister ??= new RoamingVisualStudioProfileOptionPersister(_optionService, settingsManager);
             return _lazyPersister;
         }
     }

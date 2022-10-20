@@ -178,11 +178,11 @@ namespace Microsoft.CodeAnalysis
 
                     _writer.Write("isEnabledByDefault", descriptor.IsEnabledByDefault);
 
-                    if (descriptor.CustomTags.Any())
+                    if (descriptor.ImmutableCustomTags.Any())
                     {
                         _writer.WriteArrayStart("tags");
 
-                        foreach (string tag in descriptor.CustomTags)
+                        foreach (string tag in descriptor.ImmutableCustomTags)
                         {
                             _writer.Write(tag);
                         }

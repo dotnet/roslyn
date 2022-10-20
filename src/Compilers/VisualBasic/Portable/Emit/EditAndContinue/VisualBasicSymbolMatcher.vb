@@ -365,7 +365,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Public Overrides Function VisitNamespace([namespace] As NamespaceSymbol) As Symbol
                 Dim otherContainer As Symbol = Visit([namespace].ContainingSymbol)
-                Debug.Assert(otherContainer IsNot Nothing)
+
+                ' Containing namespace will be missing from other assembly
+                ' if its was added in the (newer) source assembly.
+                If otherContainer Is Nothing Then
+                    Return Nothing
+                End If
 
                 Select Case otherContainer.Kind
                     Case SymbolKind.NetModule
@@ -588,7 +593,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Private Function AreParametersEqual(parameter As ParameterSymbol, other As ParameterSymbol) As Boolean
                 Debug.Assert(parameter.Ordinal = other.Ordinal)
-                Return s_nameComparer.Equals(parameter.Name, other.Name) AndAlso parameter.IsByRef = other.IsByRef AndAlso Me._comparer.Equals(parameter.Type, other.Type)
+                Return parameter.IsByRef = other.IsByRef AndAlso Me._comparer.Equals(parameter.Type, other.Type)
             End Function
 
             Private Function ArePropertiesEqual([property] As PropertySymbol, other As PropertySymbol) As Boolean

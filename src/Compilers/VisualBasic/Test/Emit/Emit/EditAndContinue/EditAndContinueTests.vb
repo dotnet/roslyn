@@ -185,6 +185,60 @@ End Class
             End Using
         End Sub
 
+        <Fact>
+        Public Sub ModifyMethod_RenameParameter()
+            Dim source0 =
+"
+Class C
+    Shared Function F(i As Integer) As Integer
+        Return i
+    End Function
+End Class
+"
+            Dim source1 =
+"
+Class C
+    Shared Function F(x As Integer) As Integer
+        Return x
+    End Function
+End Class
+"
+            Dim compilation0 = CreateCompilationWithMscorlib40({source0}, options:=TestOptions.DebugDll, references:={ValueTupleRef, SystemRuntimeFacadeRef})
+            Dim compilation1 = compilation0.WithSource(source1)
+
+            Dim bytes0 = compilation0.EmitToArray()
+            Using md0 = ModuleMetadata.CreateFromImage(bytes0)
+                Dim reader0 = md0.MetadataReader
+                Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+
+                CheckNames(reader0, reader0.GetParameterDefNames(), "i")
+
+                Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+                Dim diff1 = compilation1.EmitDifference(generation0, ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
+
+                ' Verify delta metadata contains expected rows.
+                Using md1 = diff1.GetMetadata()
+                    Dim reader1 = md1.Reader
+                    Dim readers = {reader0, reader1}
+                    EncValidation.VerifyModuleMvid(1, reader0, reader1)
+                    CheckNames(readers, reader1.GetTypeDefNames())
+                    CheckNames(readers, reader1.GetMethodDefNames(), "F")
+                    CheckNames(readers, reader1.GetParameterDefNames(), "x")
+
+                    CheckEncLogDefinitions(reader1,
+                        Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(1, TableIndex.Param, EditAndContinueOperation.Default))
+
+                    CheckEncMapDefinitions(reader1,
+                        Handle(2, TableIndex.MethodDef),
+                        Handle(1, TableIndex.Param),
+                        Handle(2, TableIndex.StandAloneSig))
+                End Using
+            End Using
+        End Sub
+
         <WorkItem(962219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962219")>
         <Fact>
         Public Sub PartialMethod()
@@ -1030,6 +1084,96 @@ End Class
             Dim other = DirectCast(matcher.MapDefinition(DirectCast(member1.GetCciAdapter(), Cci.IMethodDefinition)).GetInternalSymbol(), MethodSymbol)
             Assert.NotNull(other)
             Assert.Equal(nModifiers, DirectCast(other.ReturnType, ArrayTypeSymbol).CustomModifiers.Length)
+        End Sub
+
+        <Fact>
+        <WorkItem(54939, "https://github.com/dotnet/roslyn/issues/54939")>
+        Sub AddNamespace()
+            Dim source0 = "
+Class C
+    Shared Sub Main()
+    End Sub
+End Class"
+            Dim source1 = "
+Namespace N1.N2
+    Class D
+        Public Shared Sub F()
+        End Sub
+    End Class
+End Namespace
+
+Class C
+    Shared Sub Main()
+        N1.N2.D.F()
+    End Sub
+End Class
+"
+            Dim source2 = "
+Namespace N1.N2
+    Class D
+        Public Shared Sub F()
+        End Sub
+    End Class
+
+    Namespace M1.M2
+        Class E
+            Public Shared Sub G()
+            End Sub
+        End Class
+    End Namespace
+End Namespace
+
+Class C
+    Shared Sub Main() 
+        N1.N2.M1.M2.E.G()
+    End Sub
+End Class
+"
+            Dim compilation0 = CreateCompilation(source0, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1)
+            Dim compilation2 = compilation1.WithSource(source2)
+
+            Dim main0 = compilation0.GetMember(Of MethodSymbol)("C.Main")
+            Dim main1 = compilation1.GetMember(Of MethodSymbol)("C.Main")
+            Dim main2 = compilation2.GetMember(Of MethodSymbol)("C.Main")
+            Dim d1 = compilation1.GetMember(Of NamedTypeSymbol)("N1.N2.D")
+            Dim e2 = compilation2.GetMember(Of NamedTypeSymbol)("N1.N2.M1.M2.E")
+
+            Using md0 = ModuleMetadata.CreateFromImage(compilation0.EmitToArray())
+
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+
+                Dim diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(
+                        SemanticEdit.Create(SemanticEditKind.Update, main0, main1),
+                        SemanticEdit.Create(SemanticEditKind.Insert, Nothing, d1)))
+
+                diff1.VerifyIL("C.Main", "
+    {
+  // Code size        8 (0x8)
+  .maxstack  0
+  IL_0000:  nop
+  IL_0001:  call       ""Sub N1.N2.D.F()""
+  IL_0006:  nop
+  IL_0007:  ret
+}")
+                Dim diff2 = compilation2.EmitDifference(
+                    diff1.NextGeneration,
+                    ImmutableArray.Create(
+                        SemanticEdit.Create(SemanticEditKind.Update, main1, main2),
+                        SemanticEdit.Create(SemanticEditKind.Insert, Nothing, e2)))
+
+                diff2.VerifyIL("C.Main", "
+{
+  // Code size        8 (0x8)
+  .maxstack  0
+  IL_0000:  nop
+  IL_0001:  call       ""Sub N1.N2.M1.M2.E.G()""
+  IL_0006:  nop
+  IL_0007:  ret
+}")
+            End Using
         End Sub
 
         <WorkItem(844472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844472")>

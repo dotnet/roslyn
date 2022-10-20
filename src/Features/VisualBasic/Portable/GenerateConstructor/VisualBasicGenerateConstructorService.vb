@@ -176,12 +176,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
             If (constructorStatements.IsEmpty()) Then
                 Return Nothing
             End If
+
             Dim constructorInitializerSyntax = constructorStatements(0)
             Dim expressionStatement = TryCast(constructorInitializerSyntax, ExpressionStatementSyntax)
             If (expressionStatement IsNot Nothing AndAlso expressionStatement.Expression.IsKind(SyntaxKind.InvocationExpression)) Then
                 Dim methodSymbol = TryCast(semanticModel.GetSymbolInfo(expressionStatement.Expression, cancellationToken).Symbol, IMethodSymbol)
                 Return If(methodSymbol IsNot Nothing AndAlso methodSymbol.MethodKind = MethodKind.Constructor, methodSymbol, Nothing)
             End If
+
             Return Nothing
         End Function
     End Class

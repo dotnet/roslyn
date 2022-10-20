@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -2866,6 +2867,7 @@ Bailout:
             Debug.Assert(argumentNames.IsDefault OrElse (argumentNames.Length > 0 AndAlso argumentNames.Length = arguments.Length))
             Debug.Assert(Not candidate.ArgumentMatchingDone)
             Debug.Assert(candidate.State = CandidateAnalysisResultState.Applicable)
+            Debug.Assert(Not candidate.Candidate.UnderlyingSymbol.IsReducedExtensionMethod() OrElse methodOrPropertyGroup.ReceiverOpt IsNot Nothing OrElse TypeOf methodOrPropertyGroup.SyntaxTree Is DummySyntaxTree)
 
             Dim parameterToArgumentMap As ArrayBuilder(Of Integer) = Nothing
             Dim paramArrayItems As ArrayBuilder(Of Integer) = Nothing
@@ -3073,7 +3075,12 @@ Bailout:
                         defaultValueDiagnostics.Clear()
                     End If
 
-                    defaultArgument = binder.GetArgumentForParameterDefaultValue(param, If(argument, methodOrPropertyGroup).Syntax, defaultValueDiagnostics, callerInfoOpt)
+                    Dim receiverOpt As BoundExpression = Nothing
+                    If candidateSymbol.IsReducedExtensionMethod() Then
+                        receiverOpt = methodOrPropertyGroup.ReceiverOpt
+                    End If
+
+                    defaultArgument = binder.GetArgumentForParameterDefaultValue(param, If(argument, methodOrPropertyGroup).Syntax, defaultValueDiagnostics, callerInfoOpt, parameterToArgumentMap, arguments, receiverOpt)
 
                     If defaultArgument IsNot Nothing AndAlso Not defaultValueDiagnostics.HasAnyErrors Then
                         Debug.Assert(Not defaultValueDiagnostics.DiagnosticBag.AsEnumerable().Any())

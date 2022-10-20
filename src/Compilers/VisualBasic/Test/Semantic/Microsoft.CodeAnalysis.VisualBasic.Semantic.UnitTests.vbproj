@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net5.0;net472</TargetFrameworks>
+    <TargetFrameworks>net6.0;net472</TargetFrameworks>
     <RootNamespace></RootNamespace>
 
     <!--
@@ -14,7 +14,7 @@
 
     <!--
       Skipped because we appear to be missing things necessary to compile vb.net.
-      See https://github.com/mono/mono/issues/10679 
+      See https://github.com/mono/mono/issues/10679
     -->
     <SkipTests Condition="'$(TestRuntime)' == 'Mono'">true</SkipTests>
   </PropertyGroup>
@@ -28,7 +28,7 @@
     <ProjectReference Include="..\..\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Drawing.Common" Version="$(SystemDrawingCommonVersion)" Condition="$(TargetFramework) == 'net5.0'" />
+    <PackageReference Include="System.Drawing.Common" Version="$(SystemDrawingCommonVersion)" Condition="$(TargetFramework) == 'net6.0'" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />
@@ -36,6 +36,8 @@
   <ItemGroup>
     <Import Include="IdentifierComparison = Microsoft.CodeAnalysis.CaseInsensitiveComparison" />
     <Import Include="Roslyn.Utilities" />
+    <Import Include="System.Threading.Tasks" />
+    <Import Include="System.Xml.Linq" />
     <Import Include="Xunit" />
   </ItemGroup>
   <ItemGroup>

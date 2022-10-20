@@ -49,6 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitLocalFunctionStatement(node);
         }
 
+        public override BoundNode VisitNameOfOperator(BoundNameOfOperator node)
+        {
+            return node;
+        }
+
         private void MakeSlots(ImmutableArray<ParameterSymbol> parameters)
         {
             // assign slots to the parameters

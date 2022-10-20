@@ -74,13 +74,24 @@ variables:
     value: ''
 
 stages:
+
 - stage: build
   displayName: Build and Test
   pool:
     name: NetCore1ESPool-Svc-Internal
-    demands: ImageOverride -equals windows.vs2019.amd64
+    demands: ImageOverride -equals windows.vs2022.amd64
 
   jobs:
+  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.1-vs-deps') }}:
+    - template: /eng/common/templates/job/onelocbuild.yml
+      parameters:
+        MirrorRepo: roslyn
+        MirrorBranch: release/dev17.1-vs-deps
+        LclSource: lclFilesfromPackage
+        LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
+
+  - template: eng/common/templates/jobs/source-build.yml
+
   - job: OfficialBuild
     displayName: Official Build
     timeoutInMinutes: 360
@@ -178,6 +189,8 @@ stages:
                    /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
                    /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
                    /p:DotnetPublishUsingPipelines=true
+                   /p:IgnoreIbcMergeErrors=true
+                   /p:GenerateSbom=true
       condition: succeeded()
 
     - task: PowerShell@2
@@ -296,7 +309,7 @@ stages:
         - OfficialBuild
       pool:
         name: NetCore1ESPool-Svc-Internal
-        demands: ImageOverride -equals windows.vs2019.amd64
+        demands: ImageOverride -equals windows.vs2022.amd64
 
 - stage: insert
   dependsOn:
@@ -308,7 +321,7 @@ stages:
     displayName: Insert to VS
     pool:
       name: NetCore1ESPool-Svc-Internal
-      demands: ImageOverride -equals windows.vs2019.amd64
+      demands: ImageOverride -equals windows.vs2022.amd64
     steps:
     - download: current
       artifact: VSSetup

@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
                 Return False
             End If
 
-            If syntaxFacts.IsRightSideOfQualifiedName(nameRef) Then
+            If syntaxFacts.IsRightOfQualifiedName(nameRef) Then
                 old = nameRef.Parent
                 If IsGlobalNamespace(newNamespaceParts) Then
                     [new] = SyntaxFactory.QualifiedName(SyntaxFactory.GlobalName(), nameRef.WithoutTrivia())

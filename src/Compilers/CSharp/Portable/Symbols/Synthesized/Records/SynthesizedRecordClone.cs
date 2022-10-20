@@ -24,8 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SourceMemberContainerTypeSymbol containingType,
             int memberOffset,
             BindingDiagnosticBag diagnostics)
-            : base(containingType, WellKnownMemberNames.CloneMethodName, hasBody: !containingType.IsAbstract, memberOffset, diagnostics)
+            : base(containingType, WellKnownMemberNames.CloneMethodName, isReadOnly: false, hasBody: !containingType.IsAbstract, memberOffset, diagnostics)
         {
+            Debug.Assert(!containingType.IsRecordStruct);
         }
 
         protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
@@ -97,8 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
-            return (ReturnType: VirtualCloneInBase() is { } baseClone ?
-                                     baseClone.ReturnTypeWithAnnotations : // Use covariant returns when available
+            return (ReturnType: !ContainingAssembly.RuntimeSupportsCovariantReturnsOfClasses && VirtualCloneInBase() is { } baseClone ?
+                                     baseClone.ReturnTypeWithAnnotations :
                                      TypeWithAnnotations.Create(isNullableEnabled: true, ContainingType),
                     Parameters: ImmutableArray<ParameterSymbol>.Empty,
                     IsVararg: false,

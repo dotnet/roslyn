@@ -145,6 +145,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public static string OperatorNameFromDeclaration(ConversionOperatorDeclarationSyntax declaration)
+        {
+            return OperatorNameFromDeclaration((Syntax.InternalSyntax.ConversionOperatorDeclarationSyntax)(declaration.Green));
+        }
+
+        public static string OperatorNameFromDeclaration(Syntax.InternalSyntax.ConversionOperatorDeclarationSyntax declaration)
+        {
+            switch (declaration.ImplicitOrExplicitKeyword.Kind)
+            {
+                case SyntaxKind.ImplicitKeyword:
+                    return WellKnownMemberNames.ImplicitConversionName;
+                default:
+                    return WellKnownMemberNames.ExplicitConversionName;
+            }
+        }
+
         public static string UnaryOperatorNameFromOperatorKind(UnaryOperatorKind kind)
         {
             switch (kind & UnaryOperatorKind.OpMask)

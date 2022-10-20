@@ -102,6 +102,11 @@
         <target state="translated">Uzaklık ve uzunluk dizi sınırlarının dışındaydı veya sayı, dizinden kaynak koleksiyonun sonuna kadar olan öğe sayısından daha büyük.</target>
         <note />
       </trans-unit>
+      <trans-unit id="CannotFindOldValue">
+        <source>Cannot find the old value</source>
+        <target state="translated">Eski değer bulunamıyor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidOperation_ConcurrentOperationsNotSupported">
         <source>Operations that change non-concurrent collections must have exclusive access. A concurrent update was performed on this collection and corrupted its state. The collection's state is no longer correct.</source>
         <target state="translated">Eşzamanlı olmayan koleksiyonları değiştiren işlemler özel erişime sahip olmalıdır. Bu koleksiyonda eşzamanlı bir güncelleştirme gerçekleştirildi ve durumu bozuldu. Koleksiyonun durumu artık doğru değil.</target>

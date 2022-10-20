@@ -131,6 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             {
                 editorOperations.InsertText(text);
             }
+
             editorOperations.AddAfterTextBufferChangePrimitive();
             transaction.Complete();
         }
@@ -147,6 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                     return true;
                 }
             }
+
             return false;
         }
 

@@ -53,6 +53,15 @@ namespace Roslyn.Utilities
             return result.ToImmutable();
         }
 
+        public static void FreeValues<K, V>(this IReadOnlyDictionary<K, ArrayBuilder<V>> builders)
+            where K : notnull
+        {
+            foreach (var (_, items) in builders)
+            {
+                items.Free();
+            }
+        }
+
         public static ImmutableArray<T> ToFlattenedImmutableArrayAndFree<T>(this ArrayBuilder<ArrayBuilder<T>> builders)
         {
             try

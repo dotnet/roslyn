@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,6 +21,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         where TArgumentSyntax : SyntaxNode
         where TExpressionStatementSyntax : SyntaxNode
     {
+        protected abstract IHeaderFacts HeaderFacts { get; }
+
+        public abstract bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? typeDeclaration);
+
         public async Task<ImmutableArray<TSyntaxNode>> GetRelevantNodesAsync<TSyntaxNode>(
             Document document, TextSpan selectionRaw,
             CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
@@ -36,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var headerFacts = document.GetRequiredLanguageService<IHeaderFactsService>();
             var selectionTrimmed = await CodeRefactoringHelpers.GetTrimmedTextSpanAsync(document, selectionRaw, cancellationToken).ConfigureAwait(false);
 
             // If user selected only whitespace we don't want to return anything. We could do following:
@@ -103,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 // desired node once. We do that only for locations because otherwise `[|int|] A { get; set; }) would trigger all refactorings for 
                 // Property Decl. 
                 // We cannot check this any sooner because the above code could've changed current location.
-                AddNonHiddenCorrectTypeNodes(ExtractNodesInHeader(root, location, syntaxFacts), relevantNodesBuilder, cancellationToken);
+                AddNonHiddenCorrectTypeNodes(ExtractNodesInHeader(root, location, headerFacts), relevantNodesBuilder, cancellationToken);
 
                 // Add Nodes for touching tokens as described above.
                 AddNodesForTokenToRightOrIn(syntaxFacts, root, relevantNodesBuilder, location, tokenToRightOrIn, cancellationToken);
@@ -203,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
                 // Change location to nearest token only if the token is off by one line or less
                 var lineDistance = tokenLine.LineNumber - locationLine.LineNumber;
-                if (lineDistance != 0 && lineDistance != 1)
+                if (lineDistance is not 0 and not 1)
                     return false;
 
                 // Note: being a line below a tokenOnLocation is impossible in current model as whitespace 
@@ -415,54 +421,38 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// <summary>
         /// Extractor function that checks and retrieves all nodes current location is in a header.
         /// </summary>
-        protected virtual IEnumerable<SyntaxNode> ExtractNodesInHeader(SyntaxNode root, int location, ISyntaxFactsService syntaxFacts)
+        protected virtual IEnumerable<SyntaxNode> ExtractNodesInHeader(SyntaxNode root, int location, IHeaderFactsService headerFacts)
         {
             // Header: [Test] `public int a` { get; set; }
-            if (syntaxFacts.IsOnPropertyDeclarationHeader(root, location, out var propertyDeclaration))
-            {
+            if (headerFacts.IsOnPropertyDeclarationHeader(root, location, out var propertyDeclaration))
                 yield return propertyDeclaration;
-            }
 
             // Header: public C([Test]`int a = 42`) {}
-            if (syntaxFacts.IsOnParameterHeader(root, location, out var parameter))
-            {
+            if (headerFacts.IsOnParameterHeader(root, location, out var parameter))
                 yield return parameter;
-            }
 
             // Header: `public I.C([Test]int a = 42)` {}
-            if (syntaxFacts.IsOnMethodHeader(root, location, out var method))
-            {
+            if (headerFacts.IsOnMethodHeader(root, location, out var method))
                 yield return method;
-            }
 
             // Header: `static C([Test]int a = 42)` {}
-            if (syntaxFacts.IsOnLocalFunctionHeader(root, location, out var localFunction))
-            {
+            if (headerFacts.IsOnLocalFunctionHeader(root, location, out var localFunction))
                 yield return localFunction;
-            }
 
             // Header: `var a = `3,` b = `5,` c = `7 + 3``;
-            if (syntaxFacts.IsOnLocalDeclarationHeader(root, location, out var localDeclaration))
-            {
+            if (headerFacts.IsOnLocalDeclarationHeader(root, location, out var localDeclaration))
                 yield return localDeclaration;
-            }
 
             // Header: `if(...)`{ };
-            if (syntaxFacts.IsOnIfStatementHeader(root, location, out var ifStatement))
-            {
+            if (headerFacts.IsOnIfStatementHeader(root, location, out var ifStatement))
                 yield return ifStatement;
-            }
 
             // Header: `foreach (var a in b)` { }
-            if (syntaxFacts.IsOnForeachHeader(root, location, out var foreachStatement))
-            {
+            if (headerFacts.IsOnForeachHeader(root, location, out var foreachStatement))
                 yield return foreachStatement;
-            }
 
-            if (syntaxFacts.IsOnTypeHeader(root, location, out var typeDeclaration))
-            {
+            if (headerFacts.IsOnTypeHeader(root, location, out var typeDeclaration))
                 yield return typeDeclaration;
-            }
         }
 
         protected virtual async Task AddNodesDeepInAsync<TSyntaxNode>(
@@ -515,5 +505,32 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 resultBuilder.Add(nodeToBeAdded);
             }
         }
+
+        public bool IsOnTypeHeader(SyntaxNode root, int position, bool fullHeader, [NotNullWhen(true)] out SyntaxNode? typeDeclaration)
+            => HeaderFacts.IsOnTypeHeader(root, position, fullHeader, out typeDeclaration);
+
+        public bool IsOnPropertyDeclarationHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? propertyDeclaration)
+            => HeaderFacts.IsOnPropertyDeclarationHeader(root, position, out propertyDeclaration);
+
+        public bool IsOnParameterHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? parameter)
+            => HeaderFacts.IsOnParameterHeader(root, position, out parameter);
+
+        public bool IsOnMethodHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? method)
+            => HeaderFacts.IsOnMethodHeader(root, position, out method);
+
+        public bool IsOnLocalFunctionHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? localFunction)
+            => HeaderFacts.IsOnLocalFunctionHeader(root, position, out localFunction);
+
+        public bool IsOnLocalDeclarationHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? localDeclaration)
+            => HeaderFacts.IsOnLocalDeclarationHeader(root, position, out localDeclaration);
+
+        public bool IsOnIfStatementHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? ifStatement)
+            => HeaderFacts.IsOnIfStatementHeader(root, position, out ifStatement);
+
+        public bool IsOnWhileStatementHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? whileStatement)
+            => HeaderFacts.IsOnWhileStatementHeader(root, position, out whileStatement);
+
+        public bool IsOnForeachHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? foreachStatement)
+            => HeaderFacts.IsOnForeachHeader(root, position, out foreachStatement);
     }
 }

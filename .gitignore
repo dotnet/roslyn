@@ -8,6 +8,7 @@
 *.sln.docstates
 *.svclog
 .vs/
+.vscode/settings.json
 
 # Build results
 [Aa]rtifacts/

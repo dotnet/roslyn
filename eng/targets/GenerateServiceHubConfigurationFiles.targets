@@ -11,14 +11,15 @@
 
   <Target Name="CalculateServiceHubConfigurationFiles">
     <ItemGroup>
-      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="" HostSuffix=".x86" HostIdSuffix="32" />
-      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="64" HostSuffix="" HostIdSuffix="" />
-      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="64S" HostSuffix="" HostIdSuffix="S" />
+      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="64" HostIdSuffix="" Runtime="desktop"/>
+      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="64S" HostIdSuffix="S" Runtime="desktop"/>
+      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="Core64" HostIdSuffix="" Runtime="core"/>
+      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="Core64S" HostIdSuffix="S" Runtime="core"/>
 
-      <ServiceHubServiceJsonFile Include="$(IntermediateOutputPath)%(_ServicesWithBitness.Identity)%(_ServicesWithBitness.FileSuffix).servicehub.service.json">
+      <ServiceHubServiceJsonFile Include="$(IntermediateOutputPath)%(_ServicesWithBitness.Identity)%(_ServicesWithBitness.FileSuffix).servicehub.service.json" Runtime="%(_ServicesWithBitness.Runtime)" Condition="'%(_ServicesWithBitness.Runtime)' == 'desktop'" >
         <Content>
           <![CDATA[{
-  "host": "desktopClr%(_ServicesWithBitness.HostSuffix)",
+  "host": "desktopClr",
   "hostId": "RoslynCodeAnalysisService%(_ServicesWithBitness.HostIdSuffix)",
   "hostGroupAllowed": true,
   "serviceOverride": true, 
@@ -27,6 +28,22 @@
     "fullClassName": "%(_ServicesWithBitness.ClassName)",
     "appBasePath": "%VSAPPIDDIR%",
     "configPath": "%PkgDefApplicationConfigFile%"
+  }
+}
+]]>
+        </Content>
+      </ServiceHubServiceJsonFile>
+
+      <ServiceHubServiceJsonFile Include="$(IntermediateOutputPath)%(_ServicesWithBitness.Identity)%(_ServicesWithBitness.FileSuffix).servicehub.service.json" Runtime="%(_ServicesWithBitness.Runtime)" Condition="'%(_ServicesWithBitness.Runtime)' == 'core'" >
+        <Content>
+          <![CDATA[{
+  "host": "coreClr",
+  "hostId": "RoslynCodeAnalysisService%(_ServicesWithBitness.HostIdSuffix)",
+  "hostGroupAllowed": true,
+  "serviceOverride": true, 
+  "entryPoint": {
+    "assemblyPath": "$(ServiceHubAssemblyBasePath.Replace('\', '\\'))Microsoft.CodeAnalysis.Remote.ServiceHub.dll",
+    "fullClassName": "%(_ServicesWithBitness.ClassName)"
   }
 }
 ]]>
@@ -45,7 +62,8 @@
 
     <ItemGroup>
       <FileWrites Include="@(ServiceHubServiceJsonFile->'%(Identity)')"/>
-      <VSIXSourceItem Include="@(ServiceHubServiceJsonFile->'%(Identity)')" />
+      <VSIXSourceItem Include="@(ServiceHubServiceJsonFile->'%(Identity)')" Condition="'%(ServiceHubServiceJsonFile.Runtime)' == 'core'" VSIXSubPath="$(ServiceHubCoreSubPath)" />
+      <VSIXSourceItem Include="@(ServiceHubServiceJsonFile->'%(Identity)')" Condition="'%(ServiceHubServiceJsonFile.Runtime)' == 'desktop'"/>
     </ItemGroup>
   </Target>
 </Project>

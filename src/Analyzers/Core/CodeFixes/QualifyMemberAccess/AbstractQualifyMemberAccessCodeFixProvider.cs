@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -41,7 +39,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var generator = document.GetLanguageService<SyntaxGenerator>();
+            var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
             foreach (var diagnostic in diagnostics)
             {

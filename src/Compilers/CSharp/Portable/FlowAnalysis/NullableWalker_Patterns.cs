@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Learn something about the input from a test of a given expression against a given pattern.  The given
         /// state is updated to note that any slots that are tested against `null` may be null.
         /// </summary>
-        /// <returns>true if there is a top-level explicit null check</returns>
         private void LearnFromAnyNullPatterns(
             BoundExpression expression,
             BoundPattern pattern)
@@ -40,7 +39,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetState(currentState);
         }
 
-        public override BoundNode VisitSubpattern(BoundSubpattern node)
+        public override BoundNode VisitPositionalSubpattern(BoundPositionalSubpattern node)
+        {
+            Visit(node.Pattern);
+            return null;
+        }
+
+        public override BoundNode VisitPropertySubpattern(BoundPropertySubpattern node)
         {
             Visit(node.Pattern);
             return null;
@@ -57,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitConstantPattern(BoundConstantPattern node)
         {
-            Visit(node.Value);
+            VisitRvalue(node.Value);
             return null;
         }
 
@@ -165,13 +170,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // for property part
                         if (!rp.Properties.IsDefault)
                         {
-                            for (int i = 0, n = rp.Properties.Length; i < n; i++)
+                            foreach (BoundPropertySubpattern subpattern in rp.Properties)
                             {
-                                BoundSubpattern item = rp.Properties[i];
-                                Symbol symbol = item.Symbol;
-                                if (symbol?.ContainingType.Equals(inputType, TypeCompareKind.AllIgnoreOptions) == true)
+                                if (subpattern.Member is BoundPropertySubpatternMember member)
                                 {
-                                    LearnFromAnyNullPatterns(GetOrCreateSlot(symbol, inputSlot), symbol.GetTypeOrReturnType().Type, item.Pattern);
+                                    LearnFromAnyNullPatterns(getExtendedPropertySlot(member, inputSlot), member.Type, subpattern.Pattern);
                                 }
                             }
                         }
@@ -186,6 +189,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(pattern);
+            }
+
+            int getExtendedPropertySlot(BoundPropertySubpatternMember member, int inputSlot)
+            {
+                if (member.Symbol is null)
+                {
+                    return -1;
+                }
+
+                if (member.Receiver is not null)
+                {
+                    inputSlot = getExtendedPropertySlot(member.Receiver, inputSlot);
+                }
+
+                if (inputSlot < 0)
+                {
+                    return inputSlot;
+                }
+
+                return GetOrCreateSlot(member.Symbol, inputSlot);
             }
         }
 
@@ -205,10 +228,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // visit switch header
-            Visit(node.Expression);
-            var expressionState = ResultType;
-
             DeclareLocals(node.InnerLocals);
             foreach (var section in node.SwitchSections)
             {
@@ -216,7 +235,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DeclareLocals(section.Locals);
             }
 
-            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState);
+            // visit switch header
+            Visit(node.Expression);
+            var expressionState = ResultType;
+
+            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, stateWhenNotNullOpt: null);
             foreach (var section in node.SwitchSections)
             {
                 foreach (var label in section.SwitchLabels)
@@ -287,7 +310,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode node,
             BoundDecisionDag decisionDag,
             BoundExpression expression,
-            TypeWithState expressionType)
+            TypeWithState expressionType,
+            PossiblyConditionalState? stateWhenNotNullOpt)
         {
             // We reuse the slot at the beginning of a switch (or is-pattern expression), pretending that we are
             // not copying the input to evaluate the patterns.  In this way we infer non-nullability of the original
@@ -512,7 +536,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     break;
                                 case BoundDagValueTest t:
                                     Debug.Assert(t.Value != ConstantValue.Null);
-                                    if (inputSlot > 0)
+                                    // When we compare `bool?` inputs to bool constants, we follow a graph roughly like the following:
+                                    // [0]: t0 != null ? [1] : [5]
+                                    // [1]: t1 = (bool)t0; [2]
+                                    // [2] (this node): t1 == boolConstant ? [3] : [4]
+                                    // ...(remaining states)
+                                    if (stateWhenNotNullOpt is { } stateWhenNotNull
+                                        && t.Input.Source is BoundDagTypeEvaluation { Input: { IsOriginalInput: true } })
+                                    {
+                                        SetPossiblyConditionalState(stateWhenNotNull);
+                                        Split();
+                                    }
+                                    else if (inputSlot > 0)
                                     {
                                         learnFromNonNullTest(inputSlot, ref this.StateWhenTrue);
                                     }
@@ -600,6 +635,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void learnFromNonNullTest(int inputSlot, ref LocalState state)
             {
+                if (stateWhenNotNullOpt is { } stateWhenNotNull && inputSlot == originalInputSlot)
+                {
+                    state = CloneAndUnsplit(ref stateWhenNotNull);
+                }
                 LearnFromNonNullTest(inputSlot, ref state);
                 if (originalInputMap.TryGetValue(inputSlot, out var expression))
                     LearnFromNonNullTest(expression, ref state);
@@ -732,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Visit(node.Expression);
             var expressionState = ResultType;
-            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState);
+            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, stateWhenNotNullOpt: null);
             var endState = UnreachableState();
 
             if (!node.ReportedNotExhaustive && node.DefaultLabel != null &&
@@ -779,7 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 
             TypeSymbol inferredType =
-                (inferType ? BestTypeInferrer.InferBestType(placeholders, _conversions, ref discardedUseSiteInfo) : null)
+                (inferType ? BestTypeInferrer.InferBestType(placeholders, _conversions, ref discardedUseSiteInfo, out _) : null)
                     ?? node.Type?.SetUnknownNullabilityForReferenceTypes();
 
             var inferredTypeWithAnnotations = TypeWithAnnotations.Create(inferredType);
@@ -840,9 +879,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             LearnFromAnyNullPatterns(node.Expression, node.Pattern);
             VisitPatternForRewriting(node.Pattern);
-            Visit(node.Expression);
+            var hasStateWhenNotNull = VisitPossibleConditionalAccess(node.Expression, out var conditionalStateWhenNotNull);
             var expressionState = ResultType;
-            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState);
+            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, hasStateWhenNotNull ? conditionalStateWhenNotNull : null);
             var trueState = labelStateMap.TryGetValue(node.IsNegated ? node.WhenFalseLabel : node.WhenTrueLabel, out var s1) ? s1.state : UnreachableState();
             var falseState = labelStateMap.TryGetValue(node.IsNegated ? node.WhenTrueLabel : node.WhenFalseLabel, out var s2) ? s2.state : UnreachableState();
             labelStateMap.Free();

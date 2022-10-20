@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
                 {
                     var symbolMap = SemanticMap.From(_document.SemanticModel, memberAccess.Expression, _cancellationToken);
                     var anySideEffects = symbolMap.AllReferencedSymbols.Any(s =>
-                        s.Kind == SymbolKind.Method || s.Kind == SymbolKind.Property);
+                        s.Kind is SymbolKind.Method or SymbolKind.Property);
 
                     if (anySideEffects)
                     {

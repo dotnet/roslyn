@@ -601,7 +601,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexAnchorNode(RegexKind kind, RegexToken anchorToken)
             : base(kind)
         {
-            Debug.Assert(anchorToken.Kind == RegexKind.DollarToken || anchorToken.Kind == RegexKind.CaretToken);
+            Debug.Assert(anchorToken.Kind is RegexKind.DollarToken or RegexKind.CaretToken);
             AnchorToken = anchorToken;
         }
 

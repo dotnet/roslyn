@@ -193,6 +193,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         string ISymbol.MetadataName => UnderlyingSymbol.MetadataName;
 
+        int ISymbol.MetadataToken => UnderlyingSymbol.MetadataToken;
+
         IAssemblySymbol ISymbol.ContainingAssembly => UnderlyingSymbol.ContainingAssembly.GetPublicSymbol();
 
         IModuleSymbol ISymbol.ContainingModule => UnderlyingSymbol.ContainingModule.GetPublicSymbol();

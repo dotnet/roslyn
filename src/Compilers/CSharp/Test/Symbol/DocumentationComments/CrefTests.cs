@@ -3626,49 +3626,51 @@ partial class P
 }
 ";
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
-                // (4,22): warning CS1572: XML comment has a param tag for 'q', but there is no parameter by that name
-                //     /// <param name="q"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "q").WithArguments("q"),
-                // (5,22): warning CS1572: XML comment has a param tag for 'value', but there is no parameter by that name
-                //     /// <param name="value"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "value").WithArguments("value"),
-                // (6,16): warning CS1573: Parameter 'x' has no matching param tag in the XML comment for 'C.M(int)' (but other parameters do)
-                //     void M(int x) { }
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "C.M(int)"),
-                // (8,22): warning CS1572: XML comment has a param tag for 'x', but there is no parameter by that name
-                //     /// <param name="x"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "x").WithArguments("x"),
-                // (11,22): warning CS1572: XML comment has a param tag for 'q', but there is no parameter by that name
-                //     /// <param name="q"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "q").WithArguments("q"),
-                // (12,18): warning CS1573: Parameter 'x' has no matching param tag in the XML comment for 'C.this[int, int]' (but other parameters do)
-                //     int this[int x, int y] { get { return 0; } set { } }
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "C.this[int, int]"),
-                // (12,25): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'C.this[int, int]' (but other parameters do)
-                //     int this[int x, int y] { get { return 0; } set { } }
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "C.this[int, int]"),
-                // (14,22): warning CS1572: XML comment has a param tag for 'q', but there is no parameter by that name
-                //     /// <param name="q"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "q").WithArguments("q"),
-                // (15,22): warning CS1572: XML comment has a param tag for 'value', but there is no parameter by that name
-                //     /// <param name="value"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "value").WithArguments("value"),
-                // (21,22): warning CS1572: XML comment has a param tag for 'x', but there is no parameter by that name
-                //     /// <param name="x"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "x").WithArguments("x"),
-                // (22,24): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'P.M(int)' (but other parameters do)
-                //     partial void M(int y);
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "P.M(int)"),
-                // (27,22): warning CS1572: XML comment has a param tag for 'y', but there is no parameter by that name
-                //     /// <param name="y"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "y").WithArguments("y"),
-                // (28,24): warning CS1573: Parameter 'x' has no matching param tag in the XML comment for 'P.M(int)' (but other parameters do)
+                // (28,18): warning CS8826: Partial method declarations 'void P.M(int y)' and 'void P.M(int x)' have signature differences.
                 //     partial void M(int x) { }
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "P.M(int)"),
-
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("void P.M(int y)", "void P.M(int x)").WithLocation(28, 18),
                 // (16,25): warning CS0067: The event 'C.E' is never used
                 //     event System.Action E;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E"));
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(16, 25),
+                // (4,22): warning CS1572: XML comment has a param tag for 'q', but there is no parameter by that name
+                //     /// <param name="q"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "q").WithArguments("q").WithLocation(4, 22),
+                // (5,22): warning CS1572: XML comment has a param tag for 'value', but there is no parameter by that name
+                //     /// <param name="value"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "value").WithArguments("value").WithLocation(5, 22),
+                // (6,16): warning CS1573: Parameter 'x' has no matching param tag in the XML comment for 'C.M(int)' (but other parameters do)
+                //     void M(int x) { }
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "C.M(int)").WithLocation(6, 16),
+                // (8,22): warning CS1572: XML comment has a param tag for 'x', but there is no parameter by that name
+                //     /// <param name="x"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "x").WithArguments("x").WithLocation(8, 22),
+                // (11,22): warning CS1572: XML comment has a param tag for 'q', but there is no parameter by that name
+                //     /// <param name="q"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "q").WithArguments("q").WithLocation(11, 22),
+                // (12,18): warning CS1573: Parameter 'x' has no matching param tag in the XML comment for 'C.this[int, int]' (but other parameters do)
+                //     int this[int x, int y] { get { return 0; } set { } }
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "C.this[int, int]").WithLocation(12, 18),
+                // (12,25): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'C.this[int, int]' (but other parameters do)
+                //     int this[int x, int y] { get { return 0; } set { } }
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "C.this[int, int]").WithLocation(12, 25),
+                // (14,22): warning CS1572: XML comment has a param tag for 'q', but there is no parameter by that name
+                //     /// <param name="q"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "q").WithArguments("q").WithLocation(14, 22),
+                // (15,22): warning CS1572: XML comment has a param tag for 'value', but there is no parameter by that name
+                //     /// <param name="value"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "value").WithArguments("value").WithLocation(15, 22),
+                // (27,22): warning CS1572: XML comment has a param tag for 'y', but there is no parameter by that name
+                //     /// <param name="y"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "y").WithArguments("y").WithLocation(27, 22),
+                // (28,24): warning CS1573: Parameter 'x' has no matching param tag in the XML comment for 'P.M(int)' (but other parameters do)
+                //     partial void M(int x) { }
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "P.M(int)").WithLocation(28, 24),
+                // (21,22): warning CS1572: XML comment has a param tag for 'x', but there is no parameter by that name
+                //     /// <param name="x"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "x").WithArguments("x").WithLocation(21, 22),
+                // (22,24): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'P.M(int)' (but other parameters do)
+                //     partial void M(int y);
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "P.M(int)").WithLocation(22, 24));
         }
 
         [Fact]
@@ -3700,21 +3702,24 @@ partial class P
 }
 ";
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
+                // (23,18): warning CS8826: Partial method declarations 'void P.M(int q, int r)' and 'void P.M(int x, int y)' have signature differences.
+                //     partial void M(int x, int y) { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("void P.M(int q, int r)", "void P.M(int x, int y)").WithLocation(23, 18),
                 // (5,23): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'C.M(int, int)' (but other parameters do)
                 //     void M(int x, int y) { }
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "C.M(int, int)"),
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "C.M(int, int)").WithLocation(5, 23),
                 // (8,25): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'C.this[int, int]' (but other parameters do)
                 //     int this[int x, int y] { get { return 0; } set { } }
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "C.this[int, int]"),
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "C.this[int, int]").WithLocation(8, 25),
                 // (11,18): warning CS1573: Parameter 'x' has no matching param tag in the XML comment for 'C.this[int]' (but other parameters do)
                 //     int this[int x] { get { return 0; } set { } }
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "C.this[int]"),
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "C.this[int]").WithLocation(11, 18),
                 // (23,31): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'P.M(int, int)' (but other parameters do)
                 //     partial void M(int x, int y) { }
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "P.M(int, int)"),
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "P.M(int, int)").WithLocation(23, 31),
                 // (17,31): warning CS1573: Parameter 'r' has no matching param tag in the XML comment for 'P.M(int, int)' (but other parameters do)
                 //     partial void M(int q, int r);
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "r").WithArguments("r", "P.M(int, int)"));
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "r").WithArguments("r", "P.M(int, int)").WithLocation(17, 31));
         }
 
         [Fact]
@@ -3804,34 +3809,36 @@ partial class P
 }
 ";
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
-                // (4,25): warning CS1734: XML comment on 'C.M(int)' has a paramref tag for 'q', but there is no parameter by that name
-                //     /// <paramref name="q"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "q").WithArguments("q", "C.M(int)"),
-                // (5,25): warning CS1734: XML comment on 'C.M(int)' has a paramref tag for 'value', but there is no parameter by that name
-                //     /// <paramref name="value"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "value").WithArguments("value", "C.M(int)"),
-                // (8,25): warning CS1734: XML comment on 'C.P' has a paramref tag for 'x', but there is no parameter by that name
-                //     /// <paramref name="x"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "x").WithArguments("x", "C.P"),
-                // (11,25): warning CS1734: XML comment on 'C.this[int, int]' has a paramref tag for 'q', but there is no parameter by that name
-                //     /// <paramref name="q"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "q").WithArguments("q", "C.this[int, int]"),
-                // (14,25): warning CS1734: XML comment on 'C.E' has a paramref tag for 'q', but there is no parameter by that name
-                //     /// <paramref name="q"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "q").WithArguments("q", "C.E"),
-                // (15,25): warning CS1734: XML comment on 'C.E' has a paramref tag for 'value', but there is no parameter by that name
-                //     /// <paramref name="value"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "value").WithArguments("value", "C.E"),
-                // (27,25): warning CS1734: XML comment on 'P.M(int)' has a paramref tag for 'y', but there is no parameter by that name
-                //     /// <paramref name="y"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "y").WithArguments("y", "P.M(int)"),
-                // (21,25): warning CS1734: XML comment on 'P.M(int)' has a paramref tag for 'x', but there is no parameter by that name
-                //     /// <paramref name="x"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "x").WithArguments("x", "P.M(int)"),
-
+                // (28,18): warning CS8826: Partial method declarations 'void P.M(int y)' and 'void P.M(int x)' have signature differences.
+                //     partial void M(int x) { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("void P.M(int y)", "void P.M(int x)").WithLocation(28, 18),
                 // (16,25): warning CS0067: The event 'C.E' is never used
                 //     event System.Action E;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E"));
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(16, 25),
+                // (4,25): warning CS1734: XML comment on 'C.M(int)' has a paramref tag for 'q', but there is no parameter by that name
+                //     /// <paramref name="q"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "q").WithArguments("q", "C.M(int)").WithLocation(4, 25),
+                // (5,25): warning CS1734: XML comment on 'C.M(int)' has a paramref tag for 'value', but there is no parameter by that name
+                //     /// <paramref name="value"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "value").WithArguments("value", "C.M(int)").WithLocation(5, 25),
+                // (8,25): warning CS1734: XML comment on 'C.P' has a paramref tag for 'x', but there is no parameter by that name
+                //     /// <paramref name="x"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "x").WithArguments("x", "C.P").WithLocation(8, 25),
+                // (11,25): warning CS1734: XML comment on 'C.this[int, int]' has a paramref tag for 'q', but there is no parameter by that name
+                //     /// <paramref name="q"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "q").WithArguments("q", "C.this[int, int]").WithLocation(11, 25),
+                // (14,25): warning CS1734: XML comment on 'C.E' has a paramref tag for 'q', but there is no parameter by that name
+                //     /// <paramref name="q"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "q").WithArguments("q", "C.E").WithLocation(14, 25),
+                // (15,25): warning CS1734: XML comment on 'C.E' has a paramref tag for 'value', but there is no parameter by that name
+                //     /// <paramref name="value"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "value").WithArguments("value", "C.E").WithLocation(15, 25),
+                // (27,25): warning CS1734: XML comment on 'P.M(int)' has a paramref tag for 'y', but there is no parameter by that name
+                //     /// <paramref name="y"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "y").WithArguments("y", "P.M(int)").WithLocation(27, 25),
+                // (21,25): warning CS1734: XML comment on 'P.M(int)' has a paramref tag for 'x', but there is no parameter by that name
+                //     /// <paramref name="x"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "x").WithArguments("x", "P.M(int)").WithLocation(21, 25));
         }
 
         [Fact]
@@ -4025,6 +4032,9 @@ partial class P<T>
 }
 ";
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
+                // (29,18): warning CS8826: Partial method declarations 'void P<T>.M1<U>()' and 'void P<T>.M1<V>()' have signature differences.
+                //     partial void M1<V>() { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("void P<T>.M1<U>()", "void P<T>.M1<V>()").WithLocation(29, 18),
                 // (2,22): warning CS1711: XML comment has a typeparam tag for 'T', but there is no type parameter by that name
                 // /// <typeparam name="T"/> -- warning
                 Diagnostic(ErrorCode.WRN_UnmatchedTypeParamTag, "T").WithArguments("T"),
@@ -4158,6 +4168,9 @@ partial class P<T>
 }
 ";
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
+                // (29,18): warning CS8826: Partial method declarations 'void P<T>.M1<U>()' and 'void P<T>.M1<V>()' have signature differences.
+                //     partial void M1<V>() { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("void P<T>.M1<U>()", "void P<T>.M1<V>()").WithLocation(29, 18),
                 // (2,25): warning CS1735: XML comment on 'C' has a typeparamref tag for 'T', but there is no type parameter by that name
                 // /// <typeparamref name="T"/> -- warning
                 Diagnostic(ErrorCode.WRN_UnmatchedTypeParamRefTag, "T").WithArguments("T", "C"),
@@ -6714,6 +6727,122 @@ class C
             var cref = xml.Descendants("see").Single().Attribute("cref").Value;
 
             Assert.Equal("F:System.ValueTuple`2.Item1", cref);
+        }
+
+        [Theory]
+        [InlineData(" { }")]
+        [InlineData(";")]
+        [WorkItem(50330, "https://github.com/dotnet/roslyn/issues/50330")]
+        public void OnRecord(string terminator)
+        {
+            var source = @"using System;
+
+/// <summary>
+/// Something with a <see cref=""String""/> instance.
+/// See also <see cref=""RelativePathBase""/>.
+/// See also <see cref=""InvalidCref""/>.
+/// </summary>
+record CacheContext(string RelativePathBase)" + terminator;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (6,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
+                // /// See also <see cref="InvalidCref"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "InvalidCref").WithArguments("InvalidCref").WithLocation(6, 25),
+                // (6,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
+                // /// See also <see cref="InvalidCref"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "InvalidCref").WithArguments("InvalidCref").WithLocation(6, 25));
+        }
+
+        [Theory]
+        [InlineData(" { }")]
+        [InlineData(";")]
+        [WorkItem(50330, "https://github.com/dotnet/roslyn/issues/50330")]
+        public void OnRecordStruct(string terminator)
+        {
+            var source = @"using System;
+
+/// <summary>
+/// Something with a <see cref=""String""/> instance.
+/// See also <see cref=""RelativePathBase""/>.
+/// See also <see cref=""InvalidCref""/>.
+/// </summary>
+record struct CacheContext(string RelativePathBase)" + terminator;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.CSharp10), targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (6,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
+                // /// See also <see cref="InvalidCref"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "InvalidCref").WithArguments("InvalidCref").WithLocation(6, 25),
+                // (6,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
+                // /// See also <see cref="InvalidCref"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "InvalidCref").WithArguments("InvalidCref").WithLocation(6, 25));
+        }
+
+        [Theory]
+        [InlineData(" { }")]
+        [InlineData(";")]
+        [WorkItem(50330, "https://github.com/dotnet/roslyn/issues/50330")]
+        public void OnRecord_WithoutPrimaryCtor(string terminator)
+        {
+            var source = @"using System;
+
+/// <summary>
+/// Something with a <see cref=""String""/> instance.
+/// See also <see cref=""InvalidCref""/>.
+/// </summary>
+record CacheContext" + terminator;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (5,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
+                // /// See also <see cref="InvalidCref"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "InvalidCref").WithArguments("InvalidCref").WithLocation(5, 25));
+        }
+
+        [Theory]
+        [InlineData(" { }")]
+        [InlineData(";")]
+        [WorkItem(50330, "https://github.com/dotnet/roslyn/issues/50330")]
+        public void OnRecordStruct_WithoutPrimaryCtor(string terminator)
+        {
+            var source = @"using System;
+
+/// <summary>
+/// Something with a <see cref=""String""/> instance.
+/// See also <see cref=""InvalidCref""/>.
+/// </summary>
+record struct CacheContext" + terminator;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.CSharp10), targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (5,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
+                // /// See also <see cref="InvalidCref"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "InvalidCref").WithArguments("InvalidCref").WithLocation(5, 25));
+        }
+
+        [Theory]
+        [InlineData(" { }")]
+        [InlineData(";")]
+        public void Record_TypeAndPropertyWithSameNameInScope(string terminator)
+        {
+            var source = @"using System;
+
+/// <summary>
+/// Something with a <see cref=""String""/> instance.
+/// </summary>
+record CacheContext(string String)" + terminator;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1));
+
+            var model = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+            var crefSyntaxes = GetCrefSyntaxes(comp);
+            var symbol = model.GetSymbolInfo(crefSyntaxes.Single()).Symbol;
+            Assert.Equal(SymbolKind.Property, symbol.Kind);
         }
     }
 }

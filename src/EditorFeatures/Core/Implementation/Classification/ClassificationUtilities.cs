@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
     internal static class ClassificationUtilities
     {
-        public static TagSpan<IClassificationTag> Convert(ClassificationTypeMap typeMap, ITextSnapshot snapshot, ClassifiedSpan classifiedSpan)
+        public static TagSpan<IClassificationTag> Convert(IClassificationTypeMap typeMap, ITextSnapshot snapshot, ClassifiedSpan classifiedSpan)
         {
             return new TagSpan<IClassificationTag>(
                 classifiedSpan.TextSpan.ToSnapshotSpan(snapshot),
                 new ClassificationTag(typeMap.GetClassificationType(classifiedSpan.ClassificationType)));
         }
 
-        public static List<ITagSpan<IClassificationTag>> Convert(ClassificationTypeMap typeMap, ITextSnapshot snapshot, ArrayBuilder<ClassifiedSpan> classifiedSpans)
+        public static List<ITagSpan<IClassificationTag>> Convert(IClassificationTypeMap typeMap, ITextSnapshot snapshot, ArrayBuilder<ClassifiedSpan> classifiedSpans)
         {
             var result = new List<ITagSpan<IClassificationTag>>(capacity: classifiedSpans.Count);
             foreach (var span in classifiedSpans)

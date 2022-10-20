@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
             {
                 DefaultNamespace = projectManagementService.GetDefaultNamespace(Project, Project?.Solution.Workspace);
             }
+
             return new GenerateTypeOptionsResult(
                 accessibility: Accessibility,
                 typeKind: TypeKind,

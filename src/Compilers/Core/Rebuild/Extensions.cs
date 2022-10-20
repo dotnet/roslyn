@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
             var b = blobReader.ReadByte();
             if (b != '\0')
             {
-                throw new InvalidDataException($"Encountered unexpected byte \"{b}\" when expecting a null terminator");
+                throw new InvalidDataException(string.Format(RebuildResources.Encountered_unexpected_byte_0_when_expecting_a_null_terminator, b));
             }
         }
 

@@ -22,7 +22,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             Return text
         End Function
 
-        Protected Overrides Sub CollectBlockSpans(regionDirective As RegionDirectiveTriviaSyntax,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  regionDirective As RegionDirectiveTriviaSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
                                                   optionProvider As BlockStructureOptionProvider,
                                                   CancellationToken As CancellationToken)

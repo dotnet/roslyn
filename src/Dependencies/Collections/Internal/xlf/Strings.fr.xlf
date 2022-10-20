@@ -102,6 +102,11 @@
         <target state="translated">Offset et length étaient hors limites pour ce tableau ou bien le nombre est supérieur au nombre d'éléments de l'index à la fin de la collection source.</target>
         <note />
       </trans-unit>
+      <trans-unit id="CannotFindOldValue">
+        <source>Cannot find the old value</source>
+        <target state="translated">Impossible de trouver l’ancienne valeur</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidOperation_ConcurrentOperationsNotSupported">
         <source>Operations that change non-concurrent collections must have exclusive access. A concurrent update was performed on this collection and corrupted its state. The collection's state is no longer correct.</source>
         <target state="translated">Les opérations qui changent des collections non concurrentes doivent avoir un accès exclusif. Une mise à jour simultanée a été effectuée sur cette collection et l'a endommagée. L'état de la collection n'est plus correct.</target>

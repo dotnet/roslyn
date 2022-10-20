@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ProjectContext
             var context = Assert.Single(result.ProjectContexts);
 
             Assert.Equal(ProtocolConversions.ProjectIdToProjectContextId(testLspServer.GetCurrentSolution().ProjectIds.Single()), context.Id);
-            Assert.Equal(LSP.ProjectContextKind.CSharp, context.Kind);
+            Assert.Equal(LSP.VSProjectKind.CSharp, context.Kind);
             Assert.Equal("CSProj", context.Label);
         }
 
@@ -94,14 +94,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ProjectContext
             }
         }
 
-        private static async Task<LSP.ActiveProjectContexts?> RunGetProjectContext(TestLspServer testLspServer, Uri uri)
+        private static async Task<LSP.VSProjectContextList?> RunGetProjectContext(TestLspServer testLspServer, Uri uri)
         {
-            return await testLspServer.ExecuteRequestAsync<LSP.GetTextDocumentWithContextParams, LSP.ActiveProjectContexts?>(LSP.MSLSPMethods.ProjectContextsName,
+            return await testLspServer.ExecuteRequestAsync<LSP.VSGetProjectContextsParams, LSP.VSProjectContextList?>(LSP.VSMethods.GetProjectContextsName,
                            CreateGetProjectContextParams(uri), new LSP.ClientCapabilities(), clientName: null, cancellationToken: CancellationToken.None);
         }
 
-        private static LSP.GetTextDocumentWithContextParams CreateGetProjectContextParams(Uri uri)
-            => new LSP.GetTextDocumentWithContextParams()
+        private static LSP.VSGetProjectContextsParams CreateGetProjectContextParams(Uri uri)
+            => new LSP.VSGetProjectContextsParams()
             {
                 TextDocument = new LSP.TextDocumentItem { Uri = uri }
             };

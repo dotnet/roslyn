@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Host
         public ProjectCacheService(Workspace workspace)
             => _workspace = workspace;
 
-        public ProjectCacheService(Workspace workspace, int implicitCacheTimeout)
+        public ProjectCacheService(Workspace workspace, TimeSpan implicitCacheTimeout)
         {
             _workspace = workspace;
 

@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             var compilation = CSharpCompilation.Create(
                 Path.GetFileName(pszOutputFileName),
                 trees,
-                parsedArguments.ResolveMetadataReferences(metadataResolver).Where(m => !(m is UnresolvedMetadataReference)),
+                parsedArguments.ResolveMetadataReferences(metadataResolver).Where(m => m is not UnresolvedMetadataReference),
                 parsedArguments.CompilationOptions
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .WithSourceReferenceResolver(SourceFileResolver.Default)

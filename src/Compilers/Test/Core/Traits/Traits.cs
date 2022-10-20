@@ -110,6 +110,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsInsertBraces = "CodeActions.InsertBraces";
             public const string CodeActionsInsertMissingTokens = "CodeActions.InsertMissingTokens";
             public const string CodeActionsIntroduceLocalForExpression = "CodeActions.IntroduceLocalForExpression";
+            public const string CodeActionsIntroduceParameter = "CodeActions.IntroduceParameter";
             public const string CodeActionsIntroduceUsingStatement = "CodeActions.IntroduceUsingStatement";
             public const string CodeActionsIntroduceVariable = "CodeActions.IntroduceVariable";
             public const string CodeActionsInvertConditional = "CodeActions.InvertConditional";
@@ -194,6 +195,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseNamedArguments = "CodeActions.UseNamedArguments";
             public const string CodeActionsUseNotPattern = "CodeActions.UseNotPattern";
             public const string CodeActionsUsePatternCombinators = "CodeActions.UsePatternCombinators";
+            public const string CodeActionsUseRecursivePatterns = "CodeActions.UseRecursivePatterns";
             public const string CodeActionsUseNullPropagation = "CodeActions.UseNullPropagation";
             public const string CodeActionsUseObjectInitializer = "CodeActions.UseObjectInitializer";
             public const string CodeActionsUseRangeOperator = "CodeActions.UseRangeOperator";
@@ -290,6 +292,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string SplitComment = nameof(SplitComment);
             public const string SplitStringLiteral = nameof(SplitStringLiteral);
             public const string SuggestionTags = nameof(SuggestionTags);
+            public const string SyncNamespaces = nameof(SyncNamespaces);
             public const string TargetTypedCompletion = nameof(TargetTypedCompletion);
             public const string TextStructureNavigator = nameof(TextStructureNavigator);
             public const string TodoComments = nameof(TodoComments);

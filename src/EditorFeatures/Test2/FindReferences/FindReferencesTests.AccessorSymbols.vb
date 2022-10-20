@@ -8,6 +8,69 @@ Imports Microsoft.CodeAnalysis.Remote.Testing
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_ExtendedPropertyPattern_FirstPart_Get(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    C CProperty { {|Definition:$$get|}; set; }
+    int IntProperty { get; set; }
+    void M()
+    {
+        _ = this is { [|CProperty|].IntProperty: 2 };
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_ExtendedPropertyPattern_FirstPart_Set(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    C CProperty { get; {|Definition:$$set|}; }
+    int IntProperty { get; set; }
+    void M()
+    {
+        _ = this is { CProperty.IntProperty: 2 };
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_ExtendedPropertyPattern_SecondPart_Get(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    C CProperty { get; set; }
+    int IntProperty { {|Definition:$$get|}; set; }
+    void M()
+    {
+        _ = this is { CProperty.[|IntProperty|]: 2 };
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharpAccessor_Get_Feature1(host As TestHost) As Task
             Dim input =
 <Workspace>

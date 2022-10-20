@@ -17,13 +17,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
     Partial Friend NotInheritable Class VisualBasicIndentationService
         Inherits AbstractIndentationService(Of CompilationUnitSyntax)
 
-        Public Shared ReadOnly DefaultInstance As New VisualBasicIndentationService()
         Public Shared ReadOnly WithoutParameterAlignmentInstance As New VisualBasicIndentationService(NoOpFormattingRule.Instance)
 
         Private ReadOnly _specializedIndentationRule As AbstractFormattingRule
 
         <ImportingConstructor>
-        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
             Me.New(Nothing)
         End Sub

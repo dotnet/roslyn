@@ -19,7 +19,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 #endif
 
-#if !NET5_0 && !NET5_0_OR_GREATER
+#if !NET5_0_OR_GREATER
 using Half = System.Single;
 #endif
 
@@ -611,9 +611,9 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                 return (ulong)(object)left < (ulong)(object)right ? true : false;
             if (typeof(T) == typeof(long))
                 return (long)(object)left < (long)(object)right ? true : false;
-            if (typeof(T) == typeof(nuint))
+            if (typeof(T) == typeof(UIntPtr))
                 return (nuint)(object)left < (nuint)(object)right ? true : false;
-            if (typeof(T) == typeof(nint))
+            if (typeof(T) == typeof(IntPtr))
                 return (nint)(object)left < (nint)(object)right ? true : false;
             if (typeof(T) == typeof(float))
                 return (float)(object)left < (float)(object)right ? true : false;
@@ -643,9 +643,9 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                 return (ulong)(object)left > (ulong)(object)right ? true : false;
             if (typeof(T) == typeof(long))
                 return (long)(object)left > (long)(object)right ? true : false;
-            if (typeof(T) == typeof(nuint))
+            if (typeof(T) == typeof(UIntPtr))
                 return (nuint)(object)left > (nuint)(object)right ? true : false;
-            if (typeof(T) == typeof(nint))
+            if (typeof(T) == typeof(IntPtr))
                 return (nint)(object)left > (nint)(object)right ? true : false;
             if (typeof(T) == typeof(float))
                 return (float)(object)left > (float)(object)right ? true : false;
@@ -1161,9 +1161,9 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                 return (ulong)(object)left < (ulong)(object)right ? true : false;
             if (typeof(TKey) == typeof(long))
                 return (long)(object)left < (long)(object)right ? true : false;
-            if (typeof(TKey) == typeof(nuint))
+            if (typeof(TKey) == typeof(UIntPtr))
                 return (nuint)(object)left < (nuint)(object)right ? true : false;
-            if (typeof(TKey) == typeof(nint))
+            if (typeof(TKey) == typeof(IntPtr))
                 return (nint)(object)left < (nint)(object)right ? true : false;
             if (typeof(TKey) == typeof(float))
                 return (float)(object)left < (float)(object)right ? true : false;
@@ -1193,9 +1193,9 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                 return (ulong)(object)left > (ulong)(object)right ? true : false;
             if (typeof(TKey) == typeof(long))
                 return (long)(object)left > (long)(object)right ? true : false;
-            if (typeof(TKey) == typeof(nuint))
+            if (typeof(TKey) == typeof(UIntPtr))
                 return (nuint)(object)left > (nuint)(object)right ? true : false;
-            if (typeof(TKey) == typeof(nint))
+            if (typeof(TKey) == typeof(IntPtr))
                 return (nint)(object)left > (nint)(object)right ? true : false;
             if (typeof(TKey) == typeof(float))
                 return (float)(object)left > (float)(object)right ? true : false;

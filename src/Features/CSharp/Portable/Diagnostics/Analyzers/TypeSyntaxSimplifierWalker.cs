@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -92,13 +91,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 return aliasedNames;
 
             foreach (var usingDirective in compilationUnit.Usings)
-            {
                 AddAliasedName(usingDirective);
-            }
 
             foreach (var member in compilationUnit.Members)
             {
-                if (member is NamespaceDeclarationSyntax namespaceDeclaration)
+                if (member is BaseNamespaceDeclarationSyntax namespaceDeclaration)
                     AddAliasedNames(namespaceDeclaration);
             }
 
@@ -119,16 +116,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 }
             }
 
-            void AddAliasedNames(NamespaceDeclarationSyntax namespaceDeclaration)
+            void AddAliasedNames(BaseNamespaceDeclarationSyntax namespaceDeclaration)
             {
                 foreach (var usingDirective in namespaceDeclaration.Usings)
-                {
                     AddAliasedName(usingDirective);
-                }
 
                 foreach (var member in namespaceDeclaration.Members)
                 {
-                    if (member is NamespaceDeclarationSyntax memberNamespace)
+                    if (member is BaseNamespaceDeclarationSyntax memberNamespace)
                         AddAliasedNames(memberNamespace);
                 }
             }

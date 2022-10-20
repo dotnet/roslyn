@@ -2071,7 +2071,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
-        Public Sub StaticMulipleDeclarationAsNew()
+        Public Sub StaticMultipleDeclarationAsNew()
             Dim source = <![CDATA[
 Imports System
 Imports System.Collections.Generic

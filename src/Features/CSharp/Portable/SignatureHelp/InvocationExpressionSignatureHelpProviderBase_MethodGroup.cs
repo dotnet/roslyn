@@ -47,14 +47,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 // we need to be able to tell between "base.M()" and "new Base().M()".
                 // currently, Access check methods do not differentiate between them.
                 // so handle "base." primary-expression here by nulling out "throughType"
-                if (!(throughExpression is BaseExpressionSyntax))
+                if (throughExpression is not BaseExpressionSyntax)
                 {
                     throughType = semanticModel.GetTypeInfo(throughExpression, cancellationToken).Type;
                 }
 
                 var includeInstance = !throughExpression.IsKind(SyntaxKind.IdentifierName) ||
-                    semanticModel.LookupSymbols(throughExpression.SpanStart, name: throughSymbol?.Name).Any(s => !(s is INamedTypeSymbol)) ||
-                    (!(throughSymbol is INamespaceOrTypeSymbol) && semanticModel.LookupSymbols(throughExpression.SpanStart, container: throughSymbol?.ContainingType).Any(s => !(s is INamedTypeSymbol)));
+                    semanticModel.LookupSymbols(throughExpression.SpanStart, name: throughSymbol?.Name).Any(s => s is not INamedTypeSymbol) ||
+                    (!(throughSymbol is INamespaceOrTypeSymbol) && semanticModel.LookupSymbols(throughExpression.SpanStart, container: throughSymbol?.ContainingType).Any(s => s is not INamedTypeSymbol));
 
                 var includeStatic = throughSymbol is INamedTypeSymbol ||
                     (throughExpression.IsKind(SyntaxKind.IdentifierName) &&

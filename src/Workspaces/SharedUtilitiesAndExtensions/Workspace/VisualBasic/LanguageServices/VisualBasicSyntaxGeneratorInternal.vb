@@ -122,6 +122,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     typeParameterNames.Select(Function(n) SyntaxFactory.TypeParameter(n))))
         End Function
 
+        Friend Overrides Function Type(typeSymbol As ITypeSymbol, typeContext As Boolean) As SyntaxNode
+            Return If(typeContext, typeSymbol.GenerateTypeSyntax(), typeSymbol.GenerateExpressionSyntax())
+        End Function
+
 #Region "Patterns"
 
         Friend Overrides Function SupportsPatterns(options As ParseOptions) As Boolean

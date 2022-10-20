@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             CancellationToken cancellationToken)
         {
             var containerToGenerateInto = expression.Ancestors().FirstOrDefault(s =>
-                s is BlockSyntax || s is ArrowExpressionClauseSyntax || s is LambdaExpressionSyntax);
+                s is BlockSyntax or ArrowExpressionClauseSyntax or LambdaExpressionSyntax);
 
             var newLocalNameToken = GenerateUniqueLocalName(
                 document, expression, isConstant, containerToGenerateInto, cancellationToken);
@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 });
         }
 
-        private static bool IsBlockLike(SyntaxNode node) => node is BlockSyntax || node is SwitchSectionSyntax;
+        private static bool IsBlockLike(SyntaxNode node) => node is BlockSyntax or SwitchSectionSyntax;
 
         private static SyntaxList<StatementSyntax> GetStatements(SyntaxNode blockLike)
             => blockLike switch

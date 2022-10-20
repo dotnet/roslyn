@@ -197,12 +197,12 @@ namespace Microsoft.CodeAnalysis.Features.RQName
 
         private static RQMethod? BuildMethod(IMethodSymbol symbol)
         {
-            if (symbol.MethodKind == MethodKind.UserDefinedOperator ||
-                symbol.MethodKind == MethodKind.BuiltinOperator ||
-                symbol.MethodKind == MethodKind.EventAdd ||
-                symbol.MethodKind == MethodKind.EventRemove ||
-                symbol.MethodKind == MethodKind.PropertySet ||
-                symbol.MethodKind == MethodKind.PropertyGet)
+            if (symbol.MethodKind is MethodKind.UserDefinedOperator or
+                MethodKind.BuiltinOperator or
+                MethodKind.EventAdd or
+                MethodKind.EventRemove or
+                MethodKind.PropertySet or
+                MethodKind.PropertyGet)
             {
                 return null;
             }

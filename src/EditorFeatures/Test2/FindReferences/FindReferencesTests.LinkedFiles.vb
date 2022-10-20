@@ -227,5 +227,45 @@ namespace {|Definition:System|}
                 Assert.Equal("System", references.ElementAt(1).Definition.ToString())
             End Using
         End Function
+
+        <WorkItem(53067, "https://github.com/dotnet/roslyn/issues/53067")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestLinkedFiles_LocalSymbol() As Task
+            Dim definition =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1">
+        <Document FilePath="C.cs"><![CDATA[
+    class C
+    {
+        void M()
+        {
+            int $${|Definition:a|} = 0;
+            System.Console.WriteLine([|a|]);
+        }
+    }
+]]>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSProj2">
+        <Document IsLinkFile="true" LinkAssemblyName="CSProj1" LinkFilePath="C.cs"/>
+    </Project>
+</Workspace>
+            Using workspace = TestWorkspace.Create(definition)
+                Dim invocationDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
+                Dim invocationPosition = invocationDocument.CursorPosition.Value
+
+                Dim document = workspace.CurrentSolution.GetDocument(invocationDocument.Id)
+                Assert.NotNull(document)
+
+                Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition)
+
+                ' Should find two definitions, one in each file.
+                Dim references = (Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing)).ToList()
+                Assert.Equal(2, references.Count)
+
+                Dim documents = references.Select(Function(r) workspace.CurrentSolution.GetDocument(r.Definition.Locations.Single().SourceTree))
+                Assert.Equal(2, documents.Count)
+            End Using
+        End Function
     End Class
 End Namespace

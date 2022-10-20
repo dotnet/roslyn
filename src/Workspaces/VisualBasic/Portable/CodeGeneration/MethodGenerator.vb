@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Shared Function GenerateMethodDeclaration(method As IMethodSymbol,
                                                          destination As CodeGenerationDestination,
                                                          options As CodeGenerationOptions) As StatementSyntax
-            Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of StatementSyntax)(method, options)
+            Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of DeclarationStatementSyntax)(method, options)
             If reusableSyntax IsNot Nothing Then
                 Return reusableSyntax
             End If

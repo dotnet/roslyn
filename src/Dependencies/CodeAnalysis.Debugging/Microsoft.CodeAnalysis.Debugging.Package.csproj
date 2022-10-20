@@ -23,5 +23,7 @@
     <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
     <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
     <ProjectReference Include="..\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.Package.csproj" />
+    <!-- Remove once https://github.com/dotnet/sdk/issues/19506 is resolved -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="$(MicrosoftNETFrameworkReferenceAssembliesVersion)" />
   </ItemGroup>
 </Project>

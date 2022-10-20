@@ -16,10 +16,89 @@ using System.Linq;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     /// <summary>
-    /// Tests related to binding (but not lowering) await expressions.
+    /// Tests related to await expressions.
     /// </summary>
     public class AwaitExpressionTests : CompilingTestBase
     {
+        [Fact]
+        public void TestAwaitInfoExtensionMethod()
+        {
+            var text =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+static class App{
+    public static async Task Main(){
+        var x = new MyAwaitable();
+        x.SetValue(42);
+
+        Console.WriteLine(await x + ""!"");
+    }
+}
+
+struct MyAwaitable
+{
+    private ValueTask<int> task;
+    private TaskCompletionSource<int> source;
+
+    private TaskCompletionSource<int> Source
+    {
+        get
+        {
+            if (source == null)
+            {
+                source = new TaskCompletionSource<int>();
+                task = new ValueTask<int>(source.Task);
+            }
+            return source;
+        }
+    }
+    internal ValueTask<int> Task
+    {
+        get
+        {
+            _ = Source;
+            return task;
+        }
+    }
+
+    public void SetValue(int i)
+    {
+        Source.SetResult(i);
+    }
+}
+
+static class MyAwaitableExtension
+{
+    public static System.Runtime.CompilerServices.ValueTaskAwaiter<int> GetAwaiter(this MyAwaitable a)
+    {
+        return a.Task.GetAwaiter();
+    }
+}";
+
+            var csCompilation = CreateCompilation(text, targetFramework: TargetFramework.NetCoreAppAndCSharp);
+            var tree = csCompilation.SyntaxTrees.Single();
+
+            var model = csCompilation.GetSemanticModel(tree);
+            var awaitExpression = tree.GetRoot().DescendantNodes().OfType<AwaitExpressionSyntax>().First();
+            Assert.Equal("await x", awaitExpression.ToString());
+
+            var info = model.GetAwaitExpressionInfo(awaitExpression);
+            Assert.Equal(
+                "System.Runtime.CompilerServices.ValueTaskAwaiter<System.Int32> MyAwaitableExtension.GetAwaiter(this MyAwaitable a)",
+                info.GetAwaiterMethod.ToTestDisplayString()
+            );
+            Assert.Equal(
+                "System.Int32 System.Runtime.CompilerServices.ValueTaskAwaiter<System.Int32>.GetResult()",
+                info.GetResultMethod.ToTestDisplayString()
+            );
+            Assert.Equal(
+                "System.Boolean System.Runtime.CompilerServices.ValueTaskAwaiter<System.Int32>.IsCompleted { get; }",
+                info.IsCompletedProperty.ToTestDisplayString()
+            );
+        }
+
         [Fact]
         [WorkItem(711413, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/711413")]
         public void TestAwaitInfo()
@@ -218,6 +297,127 @@ class Program
             Assert.Null(info.GetAwaiterMethod);
             Assert.Null(info.IsCompletedProperty);
             Assert.Null(info.GetResultMethod);
+        }
+
+        [Fact]
+        [WorkItem(52639, "https://github.com/dotnet/roslyn/issues/52639")]
+        public void Issue52639_1()
+        {
+            var text =
+@"
+using System;
+using System.Threading.Tasks;
+
+class Test1
+{
+    public async Task<ActionResult> Test(MyBaseClass model)
+    {
+        switch (model)
+        {
+            case FirstImplementation firstImplementation:
+                firstImplementation.MyString1 = await Task.FromResult(""test"");
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(model));
+        }
+
+        switch (model)
+        {
+            case FirstImplementation firstImplementation:
+                await Task.FromResult(1);
+                return PartialView(""View"", firstImplementation);
+            default:
+                throw new ArgumentOutOfRangeException(nameof(model));
+        }
+    }
+
+    private ActionResult PartialView(string v, FirstImplementation firstImplementation)
+    {
+        return new ActionResult { F = firstImplementation };
+    }
+
+    static void Main()
+    {
+        var c = new Test1();
+        var f = new FirstImplementation();
+
+        if (c.Test(f).Result.F == f && f.MyString1 == ""test"")
+        {
+            System.Console.WriteLine(""Passed"");
+        }
+        else
+        {
+            System.Console.WriteLine(""Failed"");
+        }
+    }
+}
+
+internal class ActionResult
+{
+    public FirstImplementation F;
+}
+
+public abstract class MyBaseClass
+{
+    public string MyString { get; set; }
+}
+
+public class FirstImplementation : MyBaseClass
+{
+    public string MyString1 { get; set; }
+}
+
+public class SecondImplementation : MyBaseClass
+{
+    public string MyString2 { get; set; }
+}
+";
+            CompileAndVerify(text, options: TestOptions.ReleaseExe, expectedOutput: "Passed").VerifyDiagnostics();
+            CompileAndVerify(text, options: TestOptions.DebugExe, expectedOutput: "Passed").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(52639, "https://github.com/dotnet/roslyn/issues/52639")]
+        public void Issue52639_2()
+        {
+            var text =
+@"
+using System.Threading.Tasks;
+
+class C
+{
+    string F;
+
+    async Task<C> Test(C c)
+    {
+        c.F = await Task.FromResult(""a"");
+
+        switch (c)
+        {
+            case C c1:
+                await Task.FromResult(1);
+                return c1;
+        }
+
+        return null;
+    }
+
+    static void Main()
+    {
+        var c = new C();
+        if (c.Test(c).Result == c && c.F == ""a"")
+        {
+            System.Console.WriteLine(""Passed"");
+        }
+        else
+        {
+            System.Console.WriteLine(""Failed"");
+        }
+    }
+}
+";
+            CompileAndVerify(text, options: TestOptions.ReleaseExe, expectedOutput: "Passed").VerifyDiagnostics();
+            CompileAndVerify(text, options: TestOptions.DebugExe, expectedOutput: "Passed").VerifyDiagnostics();
         }
     }
 }

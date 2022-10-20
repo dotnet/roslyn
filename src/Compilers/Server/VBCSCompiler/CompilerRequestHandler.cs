@@ -62,6 +62,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         public ICompilerServerLogger Logger { get; }
 
+        /// <summary>
+        /// A cache that can store generator drivers in order to enable incrementalism across builds for the lifetime of the server.
+        /// </summary>
+        private readonly GeneratorDriverCache _driverCache = new GeneratorDriverCache();
+
         internal CompilerServerHost(string clientDirectory, string sdkDirectory, ICompilerServerLogger logger)
         {
             ClientDirectory = clientDirectory;
@@ -84,7 +89,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         args: request.Arguments,
                         buildPaths: buildPaths,
                         libDirectory: request.LibDirectory,
-                        analyzerLoader: AnalyzerAssemblyLoader);
+                        analyzerLoader: AnalyzerAssemblyLoader,
+                        _driverCache);
                     return true;
                 case LanguageNames.VisualBasic:
                     compiler = new VisualBasicCompilerServer(
@@ -92,7 +98,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         args: request.Arguments,
                         buildPaths: buildPaths,
                         libDirectory: request.LibDirectory,
-                        analyzerLoader: AnalyzerAssemblyLoader);
+                        analyzerLoader: AnalyzerAssemblyLoader,
+                        _driverCache);
                     return true;
                 default:
                     compiler = null;
@@ -137,7 +144,7 @@ Run Compilation for {request.RequestId}
             bool utf8output = compiler.Arguments.Utf8Output;
             if (!CheckAnalyzers(request.WorkingDirectory, compiler.Arguments.AnalyzerReferences, out List<string>? errorMessages))
             {
-                Logger.Log($"Rejected: {request.RequestId}: for analyer load issues {string.Join(";", errorMessages)}");
+                Logger.Log($"Rejected: {request.RequestId}: for analyzer load issues {string.Join(";", errorMessages)}");
                 return new AnalyzerInconsistencyBuildResponse(new ReadOnlyCollection<string>(errorMessages));
             }
 

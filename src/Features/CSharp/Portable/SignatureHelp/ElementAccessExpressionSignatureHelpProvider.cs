@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             => IsTriggerCharacterInternal(ch);
 
         private static bool IsTriggerCharacterInternal(char ch)
-            => ch == '[' || ch == ',';
+            => ch is '[' or ',';
 
         public override bool IsRetriggerCharacter(char ch)
             => ch == ']';
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 }
             }
 
-            if (expressionSymbol != null && expressionSymbol is INamedTypeSymbol)
+            if (expressionSymbol is not null and INamedTypeSymbol)
             {
                 return null;
             }

@@ -384,7 +384,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 ' Report conflicts between Static variables.
-                ReportNameConfictsBetweenStaticLocals(blockBinder, diagnostics)
+                ReportNameConflictsBetweenStaticLocals(blockBinder, diagnostics)
             Else
                 statements.Add(exitLabelStatement)
             End If
@@ -475,7 +475,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If (containsOnError OrElse containsResume) AndAlso walker._containsTry Then
                     For Each node In walker._tryOnErrorResume
-                        binder.ReportDiagnostic(diagnostics, node.Syntax, ERRID.ERR_TryAndOnErrorDoNotMix)
+                        Binder.ReportDiagnostic(diagnostics, node.Syntax, ERRID.ERR_TryAndOnErrorDoNotMix)
                     Next
 
                     reportedAnError = True
@@ -603,7 +603,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
         End Class
 
-        Private Shared Sub ReportNameConfictsBetweenStaticLocals(methodBlockBinder As Binder, diagnostics As BindingDiagnosticBag)
+        Private Shared Sub ReportNameConflictsBetweenStaticLocals(methodBlockBinder As Binder, diagnostics As BindingDiagnosticBag)
             Dim currentBinder As Binder = methodBlockBinder
             Dim bodyBinder As MethodBodyBinder
 
@@ -1045,7 +1045,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Next
 #End If
 
-                    builder.Add(New BoundAsNewLocalDeclarations(varDecl, locals.ToImmutableAndFree(), asNewInitializer))
+                    builder.Add(New BoundAsNewLocalDeclarations(varDecl, locals.ToImmutableAndFree(), asNewInitializer, Me))
                 End If
             Next
 
@@ -1940,7 +1940,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                    InternalSyntax.Feature.InitOnlySettersUsage)
                         End If
 
-                        ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, setMethod, node)
+                        ReportDiagnosticsIfObsoleteOrNotSupported(diagnostics, setMethod, node)
 
                         If ReportUseSite(diagnostics, op1.Syntax, setMethod) Then
                             isError = True

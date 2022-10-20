@@ -21,12 +21,12 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         public static readonly Option2<SchemeName> ColorScheme = new(nameof(ColorSchemeOptions),
             nameof(ColorScheme),
             defaultValue: SchemeName.VisualStudio2019,
-            storageLocations: new RoamingProfileStorageLocation(ColorSchemeSettingKey));
+            storageLocation: new RoamingProfileStorageLocation(ColorSchemeSettingKey));
 
         public static readonly Option2<UseEnhancedColors> LegacyUseEnhancedColors = new(nameof(ColorSchemeOptions),
             nameof(LegacyUseEnhancedColors),
             defaultValue: UseEnhancedColors.Default,
-            storageLocations: new RoamingProfileStorageLocation("WindowManagement.Options.UseEnhancedColorsForManagedLanguages"));
+            storageLocation: new RoamingProfileStorageLocation("WindowManagement.Options.UseEnhancedColorsForManagedLanguages"));
 
         public enum UseEnhancedColors
         {

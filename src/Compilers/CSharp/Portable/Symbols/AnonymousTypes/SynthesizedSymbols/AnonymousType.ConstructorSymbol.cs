@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -25,13 +26,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int fieldsCount = properties.Length;
                 if (fieldsCount > 0)
                 {
-                    ParameterSymbol[] paramsArr = new ParameterSymbol[fieldsCount];
+                    var paramsArr = ArrayBuilder<ParameterSymbol>.GetInstance(fieldsCount);
                     for (int index = 0; index < fieldsCount; index++)
                     {
                         PropertySymbol property = properties[index];
-                        paramsArr[index] = SynthesizedParameterSymbol.Create(this, property.TypeWithAnnotations, index, RefKind.None, property.Name);
+                        paramsArr.Add(SynthesizedParameterSymbol.Create(this, property.TypeWithAnnotations, index, RefKind.None, property.Name));
                     }
-                    _parameters = paramsArr.AsImmutableOrNull();
+                    _parameters = paramsArr.ToImmutableAndFree();
                 }
                 else
                 {

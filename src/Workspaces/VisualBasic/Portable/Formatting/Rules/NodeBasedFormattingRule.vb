@@ -282,6 +282,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     foundXmlElement = True
                     Exit While
                 End If
+
                 previousToken = previousToken.GetPreviousToken(includeZeroWidth:=True)
             End While
 
@@ -515,8 +516,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If forBlock Is node Then
                     Return count + 1
                 End If
+
                 count = count + 1
             Next
+
             Return count
         End Function
     End Class

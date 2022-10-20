@@ -28,11 +28,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     {
         private readonly Lazy<ImmutableDictionary<string, Lazy<ImmutableArray<CodeRefactoringProvider>>>> _lazyLanguageToProvidersMap;
         private readonly Lazy<ImmutableDictionary<CodeRefactoringProvider, CodeChangeProviderMetadata>> _lazyRefactoringToMetadataMap;
-        private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableArray<CodeRefactoringProvider>>> _projectRefactoringsMap
-             = new();
+        private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableArray<CodeRefactoringProvider>>> _projectRefactoringsMap = new();
 
-        private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeRefactoringProvider> _analyzerReferenceToRefactoringsMap
-            = new();
+        private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeRefactoringProvider> _analyzerReferenceToRefactoringsMap = new();
         private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeRefactoringProvider>.CreateValueCallback _createProjectCodeRefactoringsProvider
             = new(r => new ProjectCodeRefactoringProvider(r));
 
@@ -107,22 +105,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             return false;
         }
 
-        public Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(
-            Document document,
-            TextSpan state,
-            CancellationToken cancellationToken)
-            => GetRefactoringsAsync(document, state, isBlocking: false, cancellationToken);
-
-        public Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(
-            Document document,
-            TextSpan state,
-            bool isBlocking,
-            CancellationToken cancellationToken)
-            => GetRefactoringsAsync(document, state, isBlocking, addOperationScope: _ => null, cancellationToken);
-
         public async Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(
             Document document,
             TextSpan state,
+            CodeActionRequestPriority priority,
             bool isBlocking,
             Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
@@ -134,8 +120,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
                 foreach (var provider in GetProviders(document))
                 {
-                    tasks.Add(Task.Run(
-                        () =>
+                    if (priority != CodeActionRequestPriority.None && priority != provider.RequestPriority)
+                        continue;
+
+                    tasks.Add(Task.Run(() =>
                         {
                             var providerName = provider.GetType().Name;
                             RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);

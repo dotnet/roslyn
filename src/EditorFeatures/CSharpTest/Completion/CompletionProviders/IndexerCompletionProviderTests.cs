@@ -498,5 +498,44 @@ namespace N
                 sourceLanguage: LanguageNames.CSharp,
                 referencedLanguage: LanguageNames.CSharp);
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task IndexerNullForgivingOperatorHandling()
+        {
+            await VerifyCustomCommitProviderAsync(@"
+#nullable enable
+
+public class C
+{
+    public int this[int i] => i;
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        C? c = null;
+        var i = c!.$$
+    }
+}
+", "this", @"
+#nullable enable
+
+public class C
+{
+    public int this[int i] => i;
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        C? c = null;
+        var i = c![$$]
+    }
+}
+");
+        }
     }
 }

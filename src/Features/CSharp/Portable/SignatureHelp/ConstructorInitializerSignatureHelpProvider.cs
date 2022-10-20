@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         }
 
         public override bool IsTriggerCharacter(char ch)
-            => ch == '(' || ch == ',';
+            => ch is '(' or ',';
 
         public override bool IsRetriggerCharacter(char ch)
             => ch == ')';
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            if (within.TypeKind != TypeKind.Struct && within.TypeKind != TypeKind.Class)
+            if (within.TypeKind is not TypeKind.Struct and not TypeKind.Class)
             {
                 return null;
             }

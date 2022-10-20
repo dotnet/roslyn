@@ -10,7 +10,8 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-
+using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
 using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
 
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             ParseOptions parseOptions)
         {
-            var hasNoBody = !options.GenerateMethodBodies || method.IsExtern;
+            var hasNoBody = !options.GenerateMethodBodies || method.IsExtern || method.IsAbstract;
 
             var operatorSyntaxKind = SyntaxFacts.GetOperatorKind(method.MetadataName);
             if (operatorSyntaxKind == SyntaxKind.None)
@@ -86,23 +87,37 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var operatorDecl = SyntaxFactory.OperatorDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), options),
-                modifiers: GenerateModifiers(),
+                modifiers: GenerateModifiers(method),
                 returnType: method.ReturnType.GenerateTypeSyntax(),
+                explicitInterfaceSpecifier: GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations),
                 operatorKeyword: SyntaxFactory.Token(SyntaxKind.OperatorKeyword),
                 operatorToken: operatorToken,
                 parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: false, options: options),
                 body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
+                expressionBody: null,
                 semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : new SyntaxToken());
 
             operatorDecl = UseExpressionBodyIfDesired(options, operatorDecl, parseOptions);
             return operatorDecl;
         }
 
-        private static SyntaxTokenList GenerateModifiers()
+        private static SyntaxTokenList GenerateModifiers(IMethodSymbol method)
         {
-            return SyntaxFactory.TokenList(
-                SyntaxFactory.Token(SyntaxKind.PublicKeyword),
-                SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+            using var tokens = TemporaryArray<SyntaxToken>.Empty;
+
+            if (method.ExplicitInterfaceImplementations.Length == 0)
+            {
+                tokens.Add(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
+            }
+
+            tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+
+            if (method.IsAbstract)
+            {
+                tokens.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
+            }
+
+            return tokens.ToImmutableAndClear().ToSyntaxTokenList();
         }
     }
 }

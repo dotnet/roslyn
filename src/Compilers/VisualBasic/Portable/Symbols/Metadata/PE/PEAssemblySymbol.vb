@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Runtime.InteropServices
+Imports System.Reflection.Metadata.Ecma335
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -128,6 +129,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Return StaticCast(Of Location).From(PrimaryModule.MetadataLocation)
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property MetadataToken As Integer
+            Get
+                Return MetadataTokens.GetToken(_assembly.Handle)
             End Get
         End Property
 

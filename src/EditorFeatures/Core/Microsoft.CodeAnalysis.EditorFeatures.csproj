@@ -7,7 +7,7 @@
     <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);EDITOR_FEATURES</DefineConstants>
-    <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">partial</ApplyNgenOptimization>
+    <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">full</ApplyNgenOptimization>
 
     <!-- NuGet -->
     <PackageId>Microsoft.CodeAnalysis.EditorFeatures.Common</PackageId>
@@ -16,6 +16,9 @@
       .NET Compiler Platform ("Roslyn") support for editor features inside the Visual Studio editor.
     </PackageDescription>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="IsExternalInit.cs" />
+  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
@@ -30,12 +33,13 @@
     <PackageReference Include="Microsoft.VisualStudio.RemoteControl" Version="$(MicrosoftVisualStudioRemoteControlVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="$(MicrosoftVisualStudioSDKEmbedInteropTypesVersion)" />
+    <!-- The ImageCatalog reference is only used at compile time, not at runtime, because it is not supported on Mac.
+         There is a test to ensure this doesn't regress in src\EditorFeatures\Test\AssemblyReferenceTests.cs -->
     <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="$(MicrosoftVisualStudioImageCatalogVersion)" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language" Version="$(MicrosoftVisualStudioLanguageVersion)" />
     <PackageReference Include="Microsoft.ServiceHub.Client" Version="$(MicrosoftServiceHubClientVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Contracts" Version="$(MicrosoftVisualStudioDebuggerContractsVersion)" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
   </ItemGroup>
   <ItemGroup>

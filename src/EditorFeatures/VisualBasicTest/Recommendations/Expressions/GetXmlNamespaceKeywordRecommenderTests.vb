@@ -4,6 +4,8 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class GetXmlNamespaceKeywordRecommenderTests
+        Inherits RecommenderTests
+
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub GetXmlNamespaceHelpTextTest()
             VerifyRecommendationDescriptionTextIs(<MethodBody>Return |</MethodBody>, "GetXmlNamespace",

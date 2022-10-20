@@ -30,11 +30,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCompoundAssignment
             Return SyntaxFactory.AssignmentStatement(assignmentOpKind, left, syntaxToken, right)
         End Function
 
-        Protected Overrides Function Increment(left As ExpressionSyntax) As ExpressionSyntax
+        Protected Overrides Function Increment(left As ExpressionSyntax, postfix As Boolean) As ExpressionSyntax
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Protected Overrides Function Decrement(left As ExpressionSyntax) As ExpressionSyntax
+        Protected Overrides Function Decrement(left As ExpressionSyntax, postfix As Boolean) As ExpressionSyntax
             Throw ExceptionUtilities.Unreachable
         End Function
     End Class

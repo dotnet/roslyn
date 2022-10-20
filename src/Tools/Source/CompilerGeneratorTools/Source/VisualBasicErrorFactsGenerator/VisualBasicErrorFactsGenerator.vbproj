@@ -10,7 +10,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.VisualBasic.Internal.VBErrorFactsGenerator</RootNamespace>
     <AssemblyName>VBErrorFactsGenerator</AssemblyName>
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
 </Project>

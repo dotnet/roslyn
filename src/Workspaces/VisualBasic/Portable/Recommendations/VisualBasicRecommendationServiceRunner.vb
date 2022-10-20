@@ -211,6 +211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             If container Is Nothing AndAlso TypeOf (leftHandTypeInfo.ConvertedType) Is IArrayTypeSymbol Then
                 container = leftHandTypeInfo.ConvertedType
             End If
+
             If container.IsErrorType() AndAlso leftHandSymbolInfo.Symbol IsNot Nothing Then
                 ' TODO remove this when 531549 which causes leftHandTypeInfo to be an error type is fixed
                 container = leftHandSymbolInfo.Symbol.GetSymbolType()
@@ -276,12 +277,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
 
             Debug.Assert(Not excludeInstance OrElse Not useBaseReferenceAccessibility)
 
-            If _context.TargetToken.GetPreviousToken().IsKind(SyntaxKind.QuestionToken) Then
-                Dim type = TryCast(container, INamedTypeSymbol)
-                If type?.ConstructedFrom.SpecialType = SpecialType.System_Nullable_T Then
-                    container = type.GetTypeArguments().First()
-                End If
-            End If
+            ' On null conditional access, members of T for a Nullable(Of T) should be recommended
+            Dim unwrapNullable = _context.TargetToken.GetPreviousToken().IsKind(SyntaxKind.QuestionToken)
 
             ' No completion on types/namespace after conditional access
             If leftExpression.Parent.IsKind(SyntaxKind.ConditionalAccessExpression) AndAlso
@@ -297,7 +294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                     .SelectMany(Function(n) LookupSymbolsInContainer(n, position, excludeInstance)) _
                     .ToImmutableArray()
             Else
-                symbols = GetMemberSymbols(container, position, excludeInstance, useBaseReferenceAccessibility)
+                symbols = GetMemberSymbols(container, position, excludeInstance, useBaseReferenceAccessibility, unwrapNullable)
             End If
 
             If excludeShared Then
@@ -353,6 +350,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             ElseIf s.Kind = SymbolKind.NamedType AndAlso s.IsImplicitlyDeclared Then
                 Return Not TypeOf DirectCast(s, INamedTypeSymbol).AssociatedSymbol Is IEventSymbol
             End If
+
             Return True
         End Function
 

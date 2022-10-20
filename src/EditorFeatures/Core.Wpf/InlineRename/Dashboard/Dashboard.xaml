@@ -4,11 +4,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:me="clr-namespace:Microsoft.CodeAnalysis.Editor"
              xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
              xmlns:rename="clr-namespace:Microsoft.CodeAnalysis.Editor.Implementation.InlineRename"
-             xmlns:utilities="clr-namespace:Microsoft.CodeAnalysis.Editor.Shared.Utilities"
              x:ClassModifier="internal"
              mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="300"
              MinWidth="300"
@@ -26,15 +24,15 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Colors.xaml"/>
+                <ResourceDictionary Source="DashboardColors.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
 
-            <SolidColorBrush x:Key="ForegroundText" Color="{DynamicResource {x:Static utilities:CodeAnalysisColors.SystemCaptionTextColorKey}}"/>
+            <SolidColorBrush x:Key="ForegroundText" Color="{DynamicResource {x:Static rename:DashboardColors.SystemCaptionTextColorKey}}"/>
 
             <Style TargetType="CheckBox">
-                <Setter Property="Foreground" Value="{DynamicResource {x:Static utilities:CodeAnalysisColors.CheckBoxTextBrushKey}}"/>
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static rename:DashboardColors.CheckBoxTextBrushKey}}"/>
             </Style>
 
             <Style TargetType="TextBlock">
@@ -58,7 +56,7 @@
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0" BorderBrush="Transparent"
-            Background="{DynamicResource {x:Static utilities:CodeAnalysisColors.BackgroundBrushKey}}"  
+            Background="{DynamicResource {x:Static rename:DashboardColors.BackgroundBrushKey}}"  
             BorderThickness="0" 
             Padding="7">
             <StackPanel>
@@ -246,12 +244,12 @@
 
                 <Button Name="ApplyButton" Click="Apply_Click" IsDefault="True" MinWidth="75" MinHeight="23" Padding="10,1,10,1" Margin="0,8,0,0" HorizontalAlignment="Right"
                     ToolTip="{Binding ElementName=dashboard, Path=ApplyToolTip}"
-                    Style="{DynamicResource {x:Static utilities:CodeAnalysisColors.ButtonStyleKey}}"
+                    Style="{DynamicResource {x:Static rename:DashboardColors.ButtonStyleKey}}"
                     Content="{Binding ElementName=dashboard, Path=ApplyRename}"
                     AutomationProperties.Name="{Binding ElementName=dashboard, Path=ApplyRename}"/>
             </StackPanel>
         </Border>
 
-        <Rectangle Name="DashboardAccentBar" Grid.Row="1" Height="4" Fill="{DynamicResource {x:Static utilities:CodeAnalysisColors.AccentBarColorKey}}" />
+        <Rectangle Name="DashboardAccentBar" Grid.Row="1" Height="4" Fill="{DynamicResource {x:Static rename:DashboardColors.AccentBarColorKey}}" />
     </Grid>
 </UserControl>

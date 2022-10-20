@@ -78,7 +78,6 @@ class C : Base
     // (13,25): error CS8080: "Auto-implemented properties must override all accessors of the overridden property."
     //     public override int P1 { get; }
     Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P1").WithArguments("C.P1").WithLocation(13, 25)
-
                 );
         }
 
@@ -121,30 +120,28 @@ struct S
     }
 }
 
-").VerifyDiagnostics(
-    // (24,12): error CS0568: Structs cannot contain explicit parameterless constructors
-    //     public S()
-    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "S").WithLocation(24, 12),
-    // (9,9): error CS0200: Property or indexer 'C.Ps' cannot be assigned to -- it is read only
-    //         Ps = 3;
-    Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Ps").WithArguments("C.Ps").WithLocation(9, 9),
-    // (27,9): error CS0200: Property or indexer 'S.Ps' cannot be assigned to -- it is read only
-    //         Ps = 5;
-    Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Ps").WithArguments("S.Ps").WithLocation(27, 9),
-    // (14,9): error CS0200: Property or indexer 'C.P' cannot be assigned to -- it is read only
-    //         P = 10;
-    Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P").WithArguments("C.P").WithLocation(14, 9),
-    // (15,9): error CS0200: Property or indexer 'C.Ps' cannot be assigned to -- it is read only
-    //         C.Ps = 1;
-    Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "C.Ps").WithArguments("C.Ps").WithLocation(15, 9),
-    // (32,9): error CS0200: Property or indexer 'S.P' cannot be assigned to -- it is read only
-    //         P = 10;
-    Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P").WithArguments("S.P").WithLocation(32, 9),
-    // (33,9): error CS0200: Property or indexer 'S.Ps' cannot be assigned to -- it is read only
-    //         S.Ps = 1;
-    Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "S.Ps").WithArguments("S.Ps").WithLocation(33, 9)
-
-    );
+", parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (9,9): error CS0200: Property or indexer 'C.Ps' cannot be assigned to -- it is read only
+                //         Ps = 3;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Ps").WithArguments("C.Ps").WithLocation(9, 9),
+                // (14,9): error CS0200: Property or indexer 'C.P' cannot be assigned to -- it is read only
+                //         P = 10;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P").WithArguments("C.P").WithLocation(14, 9),
+                // (15,9): error CS0200: Property or indexer 'C.Ps' cannot be assigned to -- it is read only
+                //         C.Ps = 1;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "C.Ps").WithArguments("C.Ps").WithLocation(15, 9),
+                // (24,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public S()
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S").WithArguments("parameterless struct constructors", "10.0").WithLocation(24, 12),
+                // (27,9): error CS0200: Property or indexer 'S.Ps' cannot be assigned to -- it is read only
+                //         Ps = 5;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Ps").WithArguments("S.Ps").WithLocation(27, 9),
+                // (32,9): error CS0200: Property or indexer 'S.P' cannot be assigned to -- it is read only
+                //         P = 10;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P").WithArguments("S.P").WithLocation(32, 9),
+                // (33,9): error CS0200: Property or indexer 'S.Ps' cannot be assigned to -- it is read only
+                //         S.Ps = 1;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "S.Ps").WithArguments("S.Ps").WithLocation(33, 9));
         }
 
         [Fact]
@@ -156,17 +153,16 @@ struct S
     int a = 2;
     int a { get { return 1; } set {} }
 }";
-            CreateCompilation(text).VerifyDiagnostics(
-    // (4,9): error CS0573: 'S': cannot have instance property or field initializers in structs
-    //     int a = 2;
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "a").WithArguments("S").WithLocation(4, 9),
-    // (5,9): error CS0102: The type 'S' already contains a definition for 'a'
-    //     int a { get { return 1; } set {} }
-    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "a").WithArguments("S", "a").WithLocation(5, 9),
-    // (4,9): warning CS0169: The field 'S.a' is never used
-    //     int a = 2;
-    Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("S.a").WithLocation(4, 9)
-    );
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (4,9): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     int a = 2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "a").WithArguments("struct field initializers", "10.0").WithLocation(4, 9),
+                // (5,9): error CS0102: The type 'S' already contains a definition for 'a'
+                //     int a { get { return 1; } set {} }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "a").WithArguments("S", "a").WithLocation(5, 9),
+                // (4,9): warning CS0414: The field 'S.a' is assigned but its value is never used
+                //     int a = 2;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("S.a").WithLocation(4, 9));
         }
 
         [Fact]
@@ -207,15 +203,14 @@ struct S
     public decimal R { get; } = 300;
 }";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-    // (4,16): error CS0573: 'S': cannot have instance property or field initializers in structs
-    //     public int P { get; set; } = 1;
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "P").WithArguments("S").WithLocation(4, 16),
-    // (6,20): error CS0573: 'S': cannot have instance property or field initializers in structs
-    //     public decimal R { get; } = 300;
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "R").WithArguments("S").WithLocation(6, 20)
-                );
+                // (4,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public int P { get; set; } = 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "P").WithArguments("struct field initializers", "10.0").WithLocation(4, 16),
+                // (6,20): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public decimal R { get; } = 300;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "R").WithArguments("struct field initializers", "10.0").WithLocation(6, 20));
         }
 
         [Fact]
@@ -230,15 +225,14 @@ struct S
     public S(int i) : this() {}
 }";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-    // (3,16): error CS0573: 'S': cannot have instance property or field initializers in structs
-    //     public int P { get; set; } = 1;
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "P").WithArguments("S").WithLocation(3, 16),
-    // (5,20): error CS0573: 'S': cannot have instance property or field initializers in structs
-    //     public decimal R { get; } = 300;
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "R").WithArguments("S").WithLocation(5, 20)
-);
+                // (3,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public int P { get; set; } = 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "P").WithArguments("struct field initializers", "10.0").WithLocation(3, 16),
+                // (5,20): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public decimal R { get; } = 300;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "R").WithArguments("struct field initializers", "10.0").WithLocation(5, 20));
 
             var global = comp.GlobalNamespace;
             var s = global.GetTypeMember("S");
@@ -2048,10 +2042,12 @@ End Class";
 }";
             var compilation3 = CreateCompilation(source3, new[] { reference1 });
             compilation3.VerifyDiagnostics(
-                // (6,16): error CS0428: Cannot convert method group 'P' to non-delegate type 'object'. Did you intend to invoke the method?
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "P").WithArguments("P", "object").WithLocation(6, 16),
-                // (8,15): error CS0428: Cannot convert method group 'Q' to non-delegate type 'object'. Did you intend to invoke the method?
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Q").WithArguments("Q", "object").WithLocation(8, 15));
+                // (6,13): warning CS8974: Converting method group 'P' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         o = B2.P;
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "B2.P").WithArguments("P", "object").WithLocation(6, 13),
+                // (8,13): warning CS8974: Converting method group 'Q' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         o = b.Q;
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "b.Q").WithArguments("Q", "object").WithLocation(8, 13));
         }
 
         [ClrOnlyFact]
@@ -2104,8 +2100,9 @@ static class E
 }";
             var compilation3 = CreateCompilationWithMscorlib40AndSystemCore(source3, new[] { reference1 });
             compilation3.VerifyDiagnostics(
-                // (6,15): error CS0428: Cannot convert method group 'P' to non-delegate type 'object'. Did you intend to invoke the method?
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "P").WithArguments("P", "object").WithLocation(6, 15));
+                // (6,13): warning CS8974: Converting method group 'P' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         o = a.P;
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "a.P").WithArguments("P", "object").WithLocation(6, 13));
         }
 
         [ClrOnlyFact]

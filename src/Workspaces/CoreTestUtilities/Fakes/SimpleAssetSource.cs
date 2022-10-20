@@ -57,8 +57,5 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
             return ValueTaskFactory.FromResult(results.ToImmutableArray());
         }
-
-        public ValueTask<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(false);
     }
 }

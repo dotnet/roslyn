@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDiscardDeclarationsWithAssignment
 
                 // Replace the original local declaration statement with new statement list
                 // from _statementsBuilder.
-                if (_localDeclarationStatement.Parent is BlockSyntax || _localDeclarationStatement.Parent is SwitchSectionSyntax)
+                if (_localDeclarationStatement.Parent is BlockSyntax or SwitchSectionSyntax)
                 {
                     if (_statementsBuilder.Count > 1)
                     {

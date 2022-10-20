@@ -5,7 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Rebuild.UnitTests</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworks>net5.0;net472</TargetFrameworks>
+    <TargetFrameworks>net6.0;net472</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\Test\Core\IsExternalInit.cs" />

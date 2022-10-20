@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IBranchOperation_Extensions : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [WorkItem(28095, "https://github.com/dotnet/roslyn/issues/28095")]

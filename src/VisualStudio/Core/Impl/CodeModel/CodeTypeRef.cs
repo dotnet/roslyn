@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal ITypeSymbol LookupTypeSymbol()
         {
-            if (!(CodeModelService.ResolveSymbol(this.State.Workspace, _projectId, _symbolId) is ITypeSymbol typeSymbol))
+            if (CodeModelService.ResolveSymbol(this.State.Workspace, _projectId, _symbolId) is not ITypeSymbol typeSymbol)
             {
                 throw Exceptions.ThrowEFail();
             }

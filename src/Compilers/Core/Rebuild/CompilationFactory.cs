@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
             {
                 if (rebuildPdbStream is object)
                 {
-                    throw new ArgumentException("PDB stream must be null because the compilation has an embedded PDB", nameof(rebuildPdbStream));
+                    throw new ArgumentException(RebuildResources.PDB_stream_must_be_null_because_the_compilation_has_an_embedded_PDB, nameof(rebuildPdbStream));
                 }
 
                 debugInformationFormat = DebugInformationFormat.Embedded;
@@ -127,13 +127,13 @@ namespace Microsoft.CodeAnalysis.Rebuild
             {
                 if (rebuildPdbStream is null)
                 {
-                    throw new ArgumentException("A non-null PDB stream must be provided because the compilation does not have an embedded PDB", nameof(rebuildPdbStream));
+                    throw new ArgumentException(RebuildResources.A_non_null_PDB_stream_must_be_provided_because_the_compilation_does_not_have_an_embedded_PDB, nameof(rebuildPdbStream));
                 }
 
                 debugInformationFormat = DebugInformationFormat.PortablePdb;
                 var codeViewEntry = OptionsReader.PeReader.ReadDebugDirectory().Single(entry => entry.Type == DebugDirectoryEntryType.CodeView);
                 var codeView = OptionsReader.PeReader.ReadCodeViewDebugDirectoryData(codeViewEntry);
-                pdbFilePath = codeView.Path ?? throw new InvalidOperationException("Could not get PDB file path");
+                pdbFilePath = codeView.Path ?? throw new InvalidOperationException(RebuildResources.Could_not_get_PDB_file_path);
             }
 
             var rebuildData = new RebuildData(

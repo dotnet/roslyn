@@ -21,15 +21,14 @@ jobs:
     jobName: Build_Windows_Debug
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
-    queueName: windows.vs2019.amd64.open
+    queueName: windows.vs2022.amd64.open
 
 - template: eng/pipelines/build-windows-job.yml
   parameters:
     jobName: Build_Windows_Release
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
-    queueName: windows.vs2019.amd64.open
-    buildArguments: "/p:Features=run-nullable-analysis=never"
+    queueName: windows.vs2022.amd64.open
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -38,7 +37,7 @@ jobs:
     buildJobName: Build_Windows_Debug
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
-    testArguments: -testDesktop -test32
+    testArguments: -testDesktop -testArch x86
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -47,7 +46,7 @@ jobs:
     buildJobName: Build_Windows_Debug
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
-    testArguments: -testDesktop -test64
+    testArguments: -testDesktop -testArch x64
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -74,7 +73,16 @@ jobs:
     buildJobName: Build_Windows_Release
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
-    testArguments: -testDesktop -test32
+    testArguments: -testDesktop -testArch x86
+
+- template: eng/pipelines/test-windows-job.yml
+  parameters:
+    testRunName: 'Test Windows Desktop Spanish Release 64'
+    jobName: Test_Windows_Desktop_Spanish_Release_64
+    buildJobName: Build_Windows_Release
+    testArtifactName: Transport_Artifacts_Windows_Release
+    configuration: Release
+    testArguments: -testDesktop -testArch x64 -helixQueueName Windows.10.Amd64.Server2022.ES.Open
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -83,7 +91,7 @@ jobs:
     buildJobName: Build_Windows_Release
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
-    testArguments: -testDesktop -test64
+    testArguments: -testDesktop -testArch x64
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -109,7 +117,7 @@ jobs:
     jobName: Build_Unix_Debug
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
-    vmImageName: 'ubuntu-18.04'
+    queueName: Build.Ubuntu.1804.Amd64.Open
 
 - template: eng/pipelines/test-unix-job.yml
   parameters:
@@ -128,7 +136,7 @@ jobs:
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
     testArguments: --testCoreClr
-    queueName: 'Build.Ubuntu.1804.amd64.Open'
+    queueName: Build.Ubuntu.1804.Amd64.Open
 
 - template: eng/pipelines/test-unix-job.yml
   parameters:
@@ -139,12 +147,14 @@ jobs:
     configuration: Debug
     testArguments: --testCoreClr --helixQueueName OSX.1015.Amd64.Open
 
+- template: eng/common/templates/jobs/source-build.yml
+
 # Build Correctness Jobs
 
 - job: Correctness_Determinism
   pool:
     name: NetCore-Svc-Public
-    demands: ImageOverride -equals windows.vs2019.amd64.open
+    demands: ImageOverride -equals windows.vs2022.amd64.open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
@@ -160,7 +170,7 @@ jobs:
 - job: Correctness_Build
   pool:
     name: NetCore-Svc-Public
-    demands: ImageOverride -equals windows.vs2019.amd64.open
+    demands: ImageOverride -equals windows.vs2022.amd64.open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
@@ -189,34 +199,10 @@ jobs:
         publishLocation: Container
       condition: succeeded()
 
-- job: Correctness_SourceBuild
-  pool:
-   name: NetCore-Svc-Public
-   demands: ImageOverride -equals Build.Ubuntu.1804.amd64.Open
-  timeoutInMinutes: 90
-  steps:
-    - template: eng/pipelines/checkout-unix-task.yml
-
-    - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --binaryLog --sourceBuild /p:ArcadeBuildFromSource=true
-      displayName: Build
-
-    - template: eng/pipelines/publish-logs.yml
-      parameters:
-        jobName: Correctness_SourceBuild
-        configuration: Release
-    - task: PublishBuildArtifacts@1
-      displayName: Publish Logs
-      inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/Debug'
-        ArtifactName: 'SourceBuild_Test'
-        publishLocation: Container
-      continueOnError: true
-      condition: not(succeeded())
-
 - job: Correctness_Rebuild
   pool:
     name: NetCore-Svc-Public
-    demands: ImageOverride -equals windows.vs2019.amd64.open
+    demands: ImageOverride -equals windows.vs2022.amd64.open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml

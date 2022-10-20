@@ -15,6 +15,8 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Features\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
+    <ProjectReference Include="..\..\..\Features\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />
+    <ProjectReference Include="..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
     <ProjectReference Include="..\..\..\Tools\ExternalAccess\Razor\Microsoft.CodeAnalysis.ExternalAccess.Razor.csproj" />
     <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
   </ItemGroup>
@@ -37,19 +39,20 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\UnusedReferences\ProjectAssets\ProjectAssetsFileReader.cs" Link="Services\UnusedReferences\ProjectAssets\ProjectAssetsFileReader.cs" />
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\Watson\WatsonExtensions.cs" Link="Services\WorkspaceTelemetry\WatsonExtensions.cs" />
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\Watson\WatsonReporter.cs" Link="Services\WorkspaceTelemetry\WatsonReporter.cs" />
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\Watson\WatsonExtensions.cs" Link="Services\ProcessTelemetry\WatsonExtensions.cs" />
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\Watson\WatsonReporter.cs" Link="Services\ProcessTelemetry\WatsonReporter.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Storage\AbstractCloudCachePersistentStorageService.cs" Link="Host\Storage\AbstractCloudCachePersistentStorageService.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Storage\CloudCachePersistentStorage.cs" Link="Host\Storage\CloudCachePersistentStorage.cs" />
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Storage\Nerdbank\ReadOnlySequenceStream.cs" Link="Host\Storage\ReadOnlySequenceStream.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Storage\ProjectContainerKeyCache.cs" Link="Host\Storage\ProjectContainerKeyCache.cs" />
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\VSTelemetryCache.cs" Link="Services\WorkspaceTelemetry\VSTelemetryCache.cs" />
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\VSTelemetryLogger.cs" Link="Services\WorkspaceTelemetry\VSTelemetryLogger.cs" />
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\AbstractWorkspaceTelemetryService.cs" Link="Services\WorkspaceTelemetry\AbstractWorkspaceTelemetryService.cs" />
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\VSTelemetryCache.cs" Link="Services\ProcessTelemetry\VSTelemetryCache.cs" />
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\VSTelemetryLogger.cs" Link="Services\ProcessTelemetry\VSTelemetryLogger.cs" />
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\AbstractWorkspaceTelemetryService.cs" Link="Services\ProcessTelemetry\AbstractWorkspaceTelemetryService.cs" />
   </ItemGroup>
   <ItemGroup>
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" Partner="UnitTesting" Key="$(UnitTestingKey)" />
+    <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager.Core" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery" Partner="UnitTesting" Key="$(UnitTestingKey)" />
+    <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery.Core" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities2" />
@@ -59,7 +62,6 @@
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.IntelliCode.CSharp" Partner="Pythia" Key="$(IntelliCodeCSharpKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.IntelliCode.CSharp.Extraction" Partner="Pythia" Key="$(IntelliCodeCSharpKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Xamarin.Remote" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor.ServiceHub" />
     <!-- TODO - This IVT should be removed - https://github.com/dotnet/roslyn/issues/46940 -->
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Key="$(RazorKey)" />
   </ItemGroup>

@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
     internal interface IPreviewFactoryService
     {
-        SolutionPreviewResult GetSolutionPreviews(Solution oldSolution, Solution newSolution, CancellationToken cancellationToken);
-        SolutionPreviewResult GetSolutionPreviews(Solution oldSolution, Solution newSolution, double zoomLevel, CancellationToken cancellationToken);
+        SolutionPreviewResult? GetSolutionPreviews(Solution oldSolution, Solution newSolution, CancellationToken cancellationToken);
+        SolutionPreviewResult? GetSolutionPreviews(Solution oldSolution, Solution newSolution, double zoomLevel, CancellationToken cancellationToken);
     }
 }

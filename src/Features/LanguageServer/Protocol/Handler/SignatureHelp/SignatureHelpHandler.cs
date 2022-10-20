@@ -17,7 +17,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportLspRequestHandlerProvider, Shared]
+    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
     [ProvidesMethod(LSP.Methods.TextDocumentSignatureHelpName)]
     internal class SignatureHelpHandler : AbstractStatelessRequestHandler<LSP.TextDocumentPositionParams, LSP.SignatureHelp?>
     {
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         LSP.SignatureInformation sigInfo;
                         if (context.ClientCapabilities?.HasVisualStudioLspCapability() == true)
                         {
-                            sigInfo = new LSP.VSSignatureInformation
+                            sigInfo = new LSP.VSInternalSignatureInformation
                             {
                                 ColorizedLabel = GetSignatureClassifiedText(item)
                             };

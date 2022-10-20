@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
     internal static class GoToDefinitionHelpers
     {
-        public static ImmutableArray<DefinitionItem> GetDefinitions(
+        public static async Task<ImmutableArray<DefinitionItem>> GetDefinitionsAsync(
             ISymbol symbol,
             Solution solution,
             bool thirdPartyNavigationAllowed,
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 }
             }
 
-            var definition = SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).WaitAndGetResult(cancellationToken);
+            var definition = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
 
             symbol = definition ?? symbol;
@@ -88,8 +89,11 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             if (thirdPartyNavigationAllowed)
             {
                 var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
-                var thirdPartyItem = factory?.GetThirdPartyDefinitionItem(solution, definitionItem, cancellationToken);
-                definitions.AddIfNotNull(thirdPartyItem);
+                if (factory != null)
+                {
+                    var thirdPartyItem = await factory.GetThirdPartyDefinitionItemAsync(solution, definitionItem, cancellationToken).ConfigureAwait(false);
+                    definitions.AddIfNotNull(thirdPartyItem);
+                }
             }
 
             definitions.Add(definitionItem);
@@ -104,46 +108,25 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             CancellationToken cancellationToken,
             bool thirdPartyNavigationAllowed = true)
         {
-            var definitions = GetDefinitions(symbol, solution, thirdPartyNavigationAllowed, cancellationToken);
+            return threadingContext.JoinableTaskFactory.Run(
+                () => TryGoToDefinitionAsync(symbol, solution, threadingContext, streamingPresenter, cancellationToken, thirdPartyNavigationAllowed));
+        }
 
+        public static async Task<bool> TryGoToDefinitionAsync(
+            ISymbol symbol,
+            Solution solution,
+            IThreadingContext threadingContext,
+            IStreamingFindUsagesPresenter streamingPresenter,
+            CancellationToken cancellationToken,
+            bool thirdPartyNavigationAllowed = true)
+        {
             var title = string.Format(EditorFeaturesResources._0_declarations,
                 FindUsagesHelpers.GetDisplayName(symbol));
 
-            return threadingContext.JoinableTaskFactory.Run(
-                () => streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                    threadingContext, solution.Workspace, title, definitions, cancellationToken));
-        }
+            var definitions = await GetDefinitionsAsync(symbol, solution, thirdPartyNavigationAllowed, cancellationToken).ConfigureAwait(false);
 
-        public static bool TryGoToDefinition(
-            ImmutableArray<DefinitionItem> definitions,
-            Solution solution,
-            string title,
-            IThreadingContext threadingContext,
-            IStreamingFindUsagesPresenter streamingPresenter,
-            CancellationToken cancellationToken)
-        {
-            if (definitions.IsDefaultOrEmpty)
-                return false;
-
-            return threadingContext.JoinableTaskFactory.Run(() =>
-                streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                    threadingContext, solution.Workspace, title, definitions, cancellationToken));
-        }
-
-        public static bool TryGoToDefinition(
-            ImmutableArray<DefinitionItem> definitions,
-            Workspace workspace,
-            string title,
-            IThreadingContext threadingContext,
-            IStreamingFindUsagesPresenter streamingPresenter,
-            CancellationToken cancellationToken)
-        {
-            if (definitions.IsDefaultOrEmpty)
-                return false;
-
-            return threadingContext.JoinableTaskFactory.Run(() =>
-                streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                    threadingContext, workspace, title, definitions, cancellationToken));
+            return await streamingPresenter.TryNavigateToOrPresentItemsAsync(
+                threadingContext, solution.Workspace, title, definitions, cancellationToken).ConfigureAwait(false);
         }
     }
 }

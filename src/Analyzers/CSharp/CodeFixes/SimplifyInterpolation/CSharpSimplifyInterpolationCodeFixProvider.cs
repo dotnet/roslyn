@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyInterpolation
                 // escape character itself.
                 foreach (var c in formatString)
                 {
-                    if (c == '"' || c == '\\')
+                    if (c is '"' or '\\')
                     {
                         result.Append('\\');
                     }

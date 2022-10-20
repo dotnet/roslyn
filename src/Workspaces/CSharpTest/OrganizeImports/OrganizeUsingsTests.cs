@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
@@ -33,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Workspaces.UnitTests.OrganizeImports
             newOptions = newOptions.WithChangedOption(new OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups);
             document = document.WithSolutionOptions(newOptions);
 
-            var newRoot = await (await Formatter.OrganizeImportsAsync(document, CancellationToken.None)).GetSyntaxRootAsync();
+            var newRoot = await (await Formatter.OrganizeImportsAsync(document, CancellationToken.None)).GetRequiredSyntaxRootAsync(default);
             Assert.Equal(final.NormalizeLineEndings(), newRoot.ToFullString());
         }
 
@@ -175,6 +172,31 @@ namespace N3
     using N;
   } 
 }";
+            await CheckAsync(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task FileScopedNamespace()
+        {
+            var initial =
+@"using B;
+using A;
+
+namespace N;
+
+using D;
+using C;
+";
+
+            var final =
+@"using A;
+using B;
+
+namespace N;
+
+using C;
+using D;
+";
             await CheckAsync(initial, final);
         }
 

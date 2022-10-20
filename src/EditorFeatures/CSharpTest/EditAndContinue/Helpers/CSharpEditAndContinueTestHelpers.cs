@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
@@ -27,9 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         public override AbstractEditAndContinueAnalyzer Analyzer => _analyzer;
         public override string LanguageName => LanguageNames.CSharp;
         public override TreeComparer<SyntaxNode> TopSyntaxComparer => SyntaxComparer.TopLevel;
-
-        public override SyntaxTree ParseText(string source)
-            => SyntaxFactory.ParseSyntaxTree(source, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
 
         public override SyntaxNode FindNode(SyntaxNode root, TextSpan span)
         {

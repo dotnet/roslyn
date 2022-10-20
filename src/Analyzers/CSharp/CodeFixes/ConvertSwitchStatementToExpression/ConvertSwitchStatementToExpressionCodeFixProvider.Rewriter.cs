@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             private ExpressionSyntax RewriteStatements(SyntaxList<StatementSyntax> statements)
             {
-                Debug.Assert(statements.Count == 1 || statements.Count == 2);
+                Debug.Assert(statements.Count is 1 or 2);
                 Debug.Assert(!statements[0].IsKind(SyntaxKind.BreakStatement));
                 return Visit(statements[0]);
             }
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 return SwitchExpression(
                     switchStatement.Expression.Parenthesize(),
                     Token(leading: default, SyntaxKind.SwitchKeyword, node.CloseParenToken.TrailingTrivia),
-                    Token(SyntaxKind.OpenBraceToken),
+                    Token(leading: default, SyntaxKind.OpenBraceToken, node.OpenBraceToken.TrailingTrivia),
                     SeparatedList(
                         switchArms.Select(t => t.armExpression.WithLeadingTrivia(t.tokensForLeadingTrivia.GetTrivia().FilterComments(addElasticMarker: false))),
                         switchArms.Select(t => Token(SyntaxKind.CommaToken).WithTrailingTrivia(t.tokensForTrailingTrivia.GetTrivia().FilterComments(addElasticMarker: true)))),

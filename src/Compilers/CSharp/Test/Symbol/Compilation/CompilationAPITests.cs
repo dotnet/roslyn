@@ -12,6 +12,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection.PortableExecutable;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,11 +26,10 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using VB = Microsoft.CodeAnalysis.VisualBasic;
-using KeyValuePairUtil = Roslyn.Utilities.KeyValuePairUtil;
-using System.Security.Cryptography;
 using static Roslyn.Test.Utilities.TestHelpers;
 using static Roslyn.Test.Utilities.TestMetadata;
+using KeyValuePairUtil = Roslyn.Utilities.KeyValuePairUtil;
+using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -2060,14 +2060,14 @@ public class TestClass
         [Fact]
         public void ReferenceManagerReuse_WithSyntaxTrees()
         {
-            var ta = Parse("class C { }");
+            var ta = Parse("class C { }", options: TestOptions.Regular10);
 
             var tb = Parse(@"
 class C { }", options: TestOptions.Script);
 
             var tc = Parse(@"
 #r ""bar""  // error: #r in regular code
-class D { }");
+class D { }", options: TestOptions.Regular10);
 
             var tr = Parse(@"
 #r ""goo""

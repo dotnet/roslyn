@@ -122,6 +122,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get { return null; }
         }
+
+        internal sealed override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => _underlyingParameter.InterpolatedStringHandlerArgumentIndexes;
+
+        internal override bool HasInterpolatedStringHandlerArgumentError => _underlyingParameter.HasInterpolatedStringHandlerArgumentError;
     }
 
     internal sealed class RetargetingMethodParameterSymbol : RetargetingParameterSymbol
@@ -142,6 +146,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get { return _retargetingMethod.RetargetingModule; }
         }
+
+        internal override bool IsCallerLineNumber
+        {
+            get { return _underlyingParameter.IsCallerLineNumber; }
+        }
+
+        internal override bool IsCallerFilePath
+        {
+            get { return _underlyingParameter.IsCallerFilePath; }
+        }
+
+        internal override bool IsCallerMemberName
+        {
+            get { return _underlyingParameter.IsCallerMemberName; }
+        }
+
+        internal override int CallerArgumentExpressionParameterIndex
+        {
+            get { return _underlyingParameter.CallerArgumentExpressionParameterIndex; }
+        }
     }
 
     internal sealed class RetargetingPropertyParameterSymbol : RetargetingParameterSymbol
@@ -161,6 +185,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         protected override RetargetingModuleSymbol RetargetingModule
         {
             get { return _retargetingProperty.RetargetingModule; }
+        }
+
+        internal override bool IsCallerLineNumber
+        {
+            get { return _underlyingParameter.IsCallerLineNumber; }
+        }
+
+        internal override bool IsCallerFilePath
+        {
+            get { return _underlyingParameter.IsCallerFilePath; }
+        }
+
+        internal override bool IsCallerMemberName
+        {
+            get { return _underlyingParameter.IsCallerMemberName; }
+        }
+
+        internal override int CallerArgumentExpressionParameterIndex
+        {
+            get { return _underlyingParameter.CallerArgumentExpressionParameterIndex; }
         }
     }
 }

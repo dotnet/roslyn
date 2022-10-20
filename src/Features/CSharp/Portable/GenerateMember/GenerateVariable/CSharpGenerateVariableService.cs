@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
                 return true;
             }
 
-            if (expression.IsParentKind(SyntaxKind.NameColon) &&
+            if (expression.IsParentKind(SyntaxKind.NameColon, SyntaxKind.ExpressionColon) &&
                 expression.Parent.IsParentKind(SyntaxKind.Subpattern))
             {
                 return true;

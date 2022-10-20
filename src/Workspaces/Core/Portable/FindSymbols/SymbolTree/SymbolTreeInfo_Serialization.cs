@@ -14,9 +14,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Utilities;
+using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -31,16 +30,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// info can't be loaded, it will be created (and persisted if possible).
         /// </summary>
         private static Task<SpellChecker> LoadOrCreateSpellCheckerAsync(
-            Workspace workspace,
+            HostWorkspaceServices services,
             SolutionKey solutionKey,
             Checksum checksum,
+            StorageDatabase database,
             string filePath,
             ImmutableArray<Node> sortedNodes)
         {
             var result = TryLoadOrCreateAsync(
-                workspace,
+                services,
                 solutionKey,
                 checksum,
+                database,
                 loadOnly: false,
                 createAsync: () => CreateSpellCheckerAsync(checksum, sortedNodes),
                 keySuffix: "_SpellChecker_" + filePath,
@@ -55,9 +56,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// code for serialization of SymbolTreeInfos and SpellCheckers.
         /// </summary>
         private static async Task<T> TryLoadOrCreateAsync<T>(
-            Workspace workspace,
+            HostWorkspaceServices services,
             SolutionKey solutionKey,
             Checksum checksum,
+            StorageDatabase database,
             bool loadOnly,
             Func<Task<T>> createAsync,
             string keySuffix,
@@ -72,10 +74,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 // Ok, we can use persistence.  First try to load from the persistence service.
-                var persistentStorageService = (IChecksummedPersistentStorageService)workspace.Services.GetService<IPersistentStorageService>();
+                var persistentStorageService = services.GetPersistentStorageService(database);
 
-                var storage = await persistentStorageService.GetStorageAsync(
-                    workspace, solutionKey, checkBranchId: false, cancellationToken).ConfigureAwait(false);
+                var storage = await persistentStorageService.GetStorageAsync(solutionKey, checkBranchId: false, cancellationToken).ConfigureAwait(false);
                 await using var _ = storage.ConfigureAwait(false);
 
                 // Get the unique key to identify our data.

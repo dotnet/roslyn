@@ -117,8 +117,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     {
                         result.HasSkippedTokens = true;
                     }
-                    else if (trivia.Kind() == SyntaxKind.DisabledTextTrivia ||
-                             trivia.Kind() == SyntaxKind.PreprocessingMessageTrivia)
+                    else if (trivia.Kind() is SyntaxKind.DisabledTextTrivia or
+                             SyntaxKind.PreprocessingMessageTrivia)
                     {
                         result.HasSkippedOrDisabledText = true;
                     }

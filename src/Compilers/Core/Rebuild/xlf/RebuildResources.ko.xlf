@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ko" original="../RebuildResources.resx">
+    <body>
+      <trans-unit id="0_exists_1_times_in_compilation_options">
+        <source>'{0}' exists '{1}' times in compilation options.</source>
+        <target state="translated">'{0}'이(가) 컴파일 옵션에 '{1}'번 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_non_null_PDB_stream_must_be_provided_because_the_compilation_does_not_have_an_embedded_PDB">
+        <source>A non-null PDB stream must be provided because the compilation does not have an embedded PDB.</source>
+        <target state="translated">컴파일에 포함된 PDB가 없으므로 null이 아닌 PDB 스트림을 제공해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_create_compilation_options_0">
+        <source>Cannot create compilation options: {0}</source>
+        <target state="translated">컴파일 옵션을 만들 수 없습니다. {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_get_PDB_file_path">
+        <source>Could not get PDB file path.</source>
+        <target state="translated">PDB 파일 경로를 가져올 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Does_not_contain_metadata_compilation_options">
+        <source>Does not contain metadata compilation options.</source>
+        <target state="translated">메타데이터 컴파일 옵션을 포함하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Encountered_null_or_empty_key_for_compilation_options_pairs">
+        <source>Encountered null or empty key for compilation options pairs.</source>
+        <target state="translated">컴파일 옵션 쌍에 대해 null 또는 빈 키가 발견되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Encountered_unexpected_byte_0_when_expecting_a_null_terminator">
+        <source>Encountered unexpected byte '{0}' when expecting a null terminator.</source>
+        <target state="translated">null 종결자가 필요한 경우에 예기치 않은 바이트 '{0}'이(가) 발생했습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_language_name">
+        <source>Invalid language name.</source>
+        <target state="translated">잘못된 언어 이름입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PDB_stream_must_be_null_because_the_compilation_has_an_embedded_PDB">
+        <source>PDB stream must be null because the compilation has an embedded PDB.</source>
+        <target state="translated">컴파일에 포함된 PDB가 있으므로 PDB 스트림은 null이어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unexpected_value_for_EmbedInteropTypes_MetadataImageKind_0">
+        <source>Unexpected value for EmbedInteropTypes/MetadataImageKind '{0}'.</source>
+        <target state="translated">EmbedInteropTypes/MetadataImageKind '{0}'에 대한 예기치 않은 값입니다.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

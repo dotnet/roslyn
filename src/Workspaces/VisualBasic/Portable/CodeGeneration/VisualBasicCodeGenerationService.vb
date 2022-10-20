@@ -484,7 +484,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim newBlock As SyntaxNode
             If options.BeforeThisLocation IsNot Nothing Then
                 Dim strippedTrivia As ImmutableArray(Of SyntaxTrivia) = Nothing
-                Dim newStatement = VisualBasicSyntaxFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(
+                Dim newStatement = VisualBasicFileBannerFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(
                     oldStatement, strippedTrivia)
 
                 statementArray(0) = statementArray(0).WithLeadingTrivia(strippedTrivia)
@@ -604,6 +604,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim computeNewModifiersList As Func(Of SyntaxTokenList, SyntaxTokenList) = Function(modifiersList As SyntaxTokenList)
                                                                                            Return SyntaxFactory.TokenList(newModifiers)
                                                                                        End Function
+
             Return UpdateDeclarationModifiers(declaration, computeNewModifiersList)
         End Function
 
@@ -611,6 +612,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim computeNewModifiersList As Func(Of SyntaxTokenList, SyntaxTokenList) = Function(modifiersList As SyntaxTokenList)
                                                                                            Return UpdateDeclarationAccessibility(modifiersList, newAccessibility, options)
                                                                                        End Function
+
             Return UpdateDeclarationModifiers(declaration, computeNewModifiersList)
         End Function
 
@@ -656,6 +658,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                         Case Else
                             Return asClause
                     End Select
+
                     Return asNewClause.WithNewExpression(updatedNewExpression)
             End Select
         End Function

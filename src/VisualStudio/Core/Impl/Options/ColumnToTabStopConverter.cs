@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             // We use DataGridTemplateColumns in our options grids to contain controls (as opposed
             // to plain text in DataGridTextColumns). We want the tab stop to be on the contained
             // control and not the cell itself, so don't have DataGridTemplateColumns be tab stops.
-            return !(value is DataGridTemplateColumn);
+            return value is not DataGridTemplateColumn;
         }
     }
 }

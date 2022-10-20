@@ -2108,6 +2108,41 @@ class Program
             Assert.NotNull(symbolInfo.Symbol);
         }
 
+        [Fact]
+        public void GenericAttribute_LookupSymbols_01()
+        {
+            var source = @"
+using System;
+class Attr1<T> : Attribute { public Attr1(T t) { } }
+
+[Attr1<string>(""a"")]
+class C { }";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<AttributeSyntax>().Single();
+            var symbol = model.GetSymbolInfo(node);
+            Assert.Equal("Attr1<System.String>..ctor(System.String t)", symbol.Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void GenericAttribute_LookupSymbols_02()
+        {
+            var source = @"
+using System;
+class Attr1<T> : Attribute { public Attr1(T t) { } }
+
+[Attr1</*<bind>*/string/*</bind>*/>]
+class C { }";
+
+            var names = GetLookupNames(source);
+            Assert.Contains("C", names);
+            Assert.Contains("Attr1", names);
+        }
+
         #endregion
     }
 }
