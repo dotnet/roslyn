@@ -30,7 +30,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
       End Sub
 End Class", HangMitigatingCancellationToken);
 
-            await TestServices.EditorVerifier.ErrorTagsAsync(new[] { ("syntax error", TextSpan.FromBounds(50, 51)) }, HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.ErrorTagsAsync(new[] { ("syntax error", TextSpan.FromBounds(50, 51), "BC30201: Expression expected.") }, HangMitigatingCancellationToken);
         }
 
         [WorkItem(1825, "https://github.com/dotnet/roslyn-project-system/issues/1825")]

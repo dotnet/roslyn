@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft;
@@ -16,6 +17,8 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.LiveShare;
+using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
@@ -236,7 +239,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         }
 
         public async Task ErrorTagsAsync(
-            (string errorType, TextSpan textSpan)[] expectedTags, CancellationToken cancellationToken)
+            (string errorType, TextSpan textSpan, string tooltipText)[] expectedTags, CancellationToken cancellationToken)
         {
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles },
@@ -251,6 +254,26 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                 Assert.Equal(expectedTag.errorType, actualTaggedSpan.Tag.ErrorType);
                 Assert.Equal(expectedTag.textSpan.Start, actualTaggedSpan.Span.Start.Position);
                 Assert.Equal(expectedTag.textSpan.Length, actualTaggedSpan.Span.Length);
+                var containerElement = (ContainerElement)actualTaggedSpan.Tag.ToolTipContent;
+                var actualTooltipText = CollectTextInRun(containerElement);
+                Assert.Equal(expectedTag.tooltipText, actualTooltipText);
+            }
+
+            static string CollectTextInRun(ContainerElement containerElement)
+            {
+                var builder = new StringBuilder();
+                foreach (var element in containerElement.Elements)
+                {
+                    if (element is ClassifiedTextElement classifiedTextElement)
+                    {
+                        foreach (var run in classifiedTextElement.Runs)
+                        {
+                            builder.Append(run.Text);
+                        }
+                    }
+                }
+
+                return builder.ToString();
             }
         }
 
