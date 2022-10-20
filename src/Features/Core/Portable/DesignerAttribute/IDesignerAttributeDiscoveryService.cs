@@ -2,14 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System;
+using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.DesignerAttribute
 {
-    internal interface IDesignerAttributeDiscoveryService : IWorkspaceService
+    internal partial interface IDesignerAttributeDiscoveryService : IWorkspaceService
     {
-        IAsyncEnumerable<DesignerAttributeData> ProcessProjectAsync(Project project, DocumentId? priorityDocumentId, CancellationToken cancellationToken);
+        public interface ICallback
+        {
+            ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken);
+        }
+
+        ValueTask ProcessSolutionAsync(Solution solution, DocumentId? priorityDocumentId, ICallback callback, CancellationToken cancellationToken);
     }
 }
