@@ -26,6 +26,9 @@ namespace Microsoft.CodeAnalysis.Host
             _services = services;
         }
 
+        [Obsolete]
+        internal HostWorkspaceServices WorkspaceServices => _services;
+
         internal IMefHostExportProvider ExportProvider => (IMefHostExportProvider)_services.HostServices;
 
         /// <inheritdoc cref="HostWorkspaceServices.GetService"/>

@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // changed.  The only thing that can make those source-symbols change in that manner are if
             // the text of any document changes, or if options for the project change.  So we build our
             // checksum out of that data.
-            var serializer = projectState.LanguageServices.LanguageServices.SolutionServices.GetService<ISerializerService>();
+            var serializer = projectState.LanguageServices.SolutionServices.GetService<ISerializerService>();
             var projectStateChecksums = await projectState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 
             // Order the documents by FilePath.  Default ordering in the RemoteWorkspace is

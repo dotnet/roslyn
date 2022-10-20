@@ -100,15 +100,15 @@ namespace Microsoft.CodeAnalysis
         /// The language services from the host environment associated with this project's language.
         /// </summary>
         [Obsolete($"Use {nameof(Services)} instead.")]
-        public HostLanguageServices LanguageServices => _projectState.LanguageServices;
+#pragma warning disable CS0612 // warning CS0612: 'LanguageServices.HostLanguageServices' is obsolete
+        public HostLanguageServices LanguageServices => Services.HostLanguageServices;
+#pragma warning restore
 
         /// <summary>
         /// Immutable snapshot of language services from the host environment associated with this project's language.
         /// Use this over <see cref="LanguageServices"/> when possible.
         /// </summary>
-#pragma warning disable CS0618 // Type or member is obsolete. Use Services instead. - This is the implementation of Services.
-        public LanguageServices Services => LanguageServices.LanguageServices;
-#pragma warning restore CS0618 // Type or member is obsolete. Use Services instead. - This is the implementation of Services.
+        public LanguageServices Services => Solution.Services.GetLanguageServices(Language);
 
         /// <summary>
         /// The language associated with the project.
