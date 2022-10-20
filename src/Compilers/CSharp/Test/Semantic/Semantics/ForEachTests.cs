@@ -3689,5 +3689,22 @@ class C
                 //         foreach(var item in nonsenseTuple) {}
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "nonsenseTuple").WithArguments("(Nonsense, int)", "GetEnumerator").WithLocation(43, 29));
         }
+
+        [Fact]
+        public void ForEachIterator_RefAssignmentWithoutIdentityConversion()
+        {
+            string source = @"
+using System;
+Span<C2> items = new Span<C2>(new C2[1]);
+foreach (ref C t in items) {}
+class C {}
+class C2 : C {}
+";
+            CreateCompilationWithMscorlibAndSpan(source).VerifyDiagnostics(
+                // (4,21): error CS8173: The expression must be of type 'C' because it is being assigned by reference
+                // foreach (ref C t in items) {}
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "items").WithArguments("C").WithLocation(4, 21)
+            );
+        }
     }
 }
