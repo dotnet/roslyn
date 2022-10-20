@@ -281,18 +281,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             }
         }
 
-        public async Task ErrorTagsAsync(string[] expectedTags, CancellationToken cancellationToken)
-        {
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles },
-                cancellationToken);
-
-            var actualTags = await TestServices.Editor.GetErrorTagsAsync(cancellationToken);
-            AssertEx.EqualOrDiff(
-                string.Join(Environment.NewLine, expectedTags),
-                string.Join(Environment.NewLine, actualTags));
-        }
-
         public async Task CurrentTokenTypeAsync(string tokenType, CancellationToken cancellationToken)
         {
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(

@@ -412,26 +412,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return tags.SelectAsArray(tag => (new TagSpan<IErrorTag>(tag.Span.GetSpans(view.TextBuffer).Single(), (IErrorTag)tag.Tag)));
         }
 
-        private static string PrintSpan(SnapshotSpan span)
-            => $"'{span.GetText().Replace("\\", "\\\\").Replace("\r", "\\r").Replace("\n", "\\n")}'[{span.Start.Position}-{span.Start.Position + span.Length}]";
-
-        private async Task<string[]> GetTagsAsync<TTag>(Predicate<TTag>? filter, CancellationToken cancellationToken)
-            where TTag : ITag
-        {
-            filter ??= _ => true;
-
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var view = await GetActiveTextViewAsync(cancellationToken);
-
-            var viewTagAggregatorFactory = await GetComponentModelServiceAsync<IViewTagAggregatorFactoryService>(cancellationToken);
-            var aggregator = viewTagAggregatorFactory.CreateTagAggregator<TTag>(view);
-            var tags = aggregator
-                .GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length))
-                .Where(t => filter(t.Tag))
-                .Cast<IMappingTagSpan<ITag>>();
-            return tags.Select(tag => $"{tag.Tag}:{PrintSpan(tag.Span.GetSpans(view.TextBuffer).Single())}").ToArray();
-        }
 
         private static bool IsDebuggerTextView(ITextView textView)
             => textView.Roles.Contains("DEBUGVIEW");
