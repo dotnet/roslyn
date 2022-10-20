@@ -239,7 +239,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         }
 
         public async Task ErrorTagsAsync(
-            (string errorType, TextSpan textSpan, string tooltipText)[] expectedTags, CancellationToken cancellationToken)
+            (string errorType, TextSpan textSpan, string taggedText, string tooltipText)[] expectedTags, CancellationToken cancellationToken)
         {
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles },
@@ -254,6 +254,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                 Assert.Equal(expectedTag.errorType, actualTaggedSpan.Tag.ErrorType);
                 Assert.Equal(expectedTag.textSpan.Start, actualTaggedSpan.Span.Start.Position);
                 Assert.Equal(expectedTag.textSpan.Length, actualTaggedSpan.Span.Length);
+
+                var actualTaggedText = actualTaggedSpan.Span.GetText();
+                Assert.Equal(expectedTag.taggedText, actualTaggedText);
+
                 var containerElement = (ContainerElement)actualTaggedSpan.Tag.ToolTipContent;
                 var actualTooltipText = CollectTextInRun(containerElement);
                 Assert.Equal(expectedTag.tooltipText, actualTooltipText);
