@@ -241,45 +241,25 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
                 ExecuteCommand("commit transaction");
                 return (result, null);
             }
-            catch (SqlException ex) when (ex.Result is Result.FULL or
-                                                       Result.IOERR or
-                                                       Result.BUSY or
-                                                       Result.LOCKED or
-                                                       Result.NOMEM)
+            catch (SqlException ex)
             {
                 // See documentation here: https://sqlite.org/lang_transaction.html
-
+                //
                 // If certain kinds of errors occur within a transaction, the transaction may or may not be rolled back
-                // automatically. The errors that can cause an automatic rollback include:
-
-                // SQLITE_FULL: database or disk full
-                // SQLITE_IOERR: disk I/O error
-                // SQLITE_BUSY: database in use by another process
-                // SQLITE_LOCKED: database in use by another connection in the same process
-                // SQLITE_NOMEM: out of memory
-
-                // For all of these errors, SQLite attempts to undo just the one statement it was working on and leave
-                // changes from prior statements within the same transaction intact and continue with the transaction.
-                // However, depending on the statement being evaluated and the point at which the error occurs, it might
-                // be necessary for SQLite to rollback and cancel the entire transaction.
-
+                // automatically.
+                //
+                // ...
+                //
                 // It is recommended that applications respond to the errors listed above by explicitly issuing a
                 // ROLLBACK command. If the transaction has already been rolled back automatically by the error
                 // response, then the ROLLBACK command will fail with an error, but no harm is caused by this.
+                //
+                // End of sqlite documentation.
 
-                // As per the above we attempt a rollback.  But we do not throw *within* the rollback if that fails.
+                // Because of the above, we know we may be in an incomplete state, so we always do a rollback to get us
+                // back to a clean state.  We ignore errors here as it's know that this can fail, but will cause no
+                // harm.
                 Rollback(throwOnError: false);
-
-                if (throwOnSqlException)
-                    throw;
-
-                return (default, ex);
-            }
-            catch (SqlException ex)
-            {
-                // Some sql error occurred (like a constraint violation).  Rollback (throwing if that rollback failed
-                // for some reason).
-                Rollback(throwOnError: true);
 
                 if (throwOnSqlException)
                     throw;
