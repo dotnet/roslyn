@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (parameterIndex > lastIndex) break;
 
-                CheckParameterModifiers(parameterSyntax, diagnostics, parsingFunctionPointer, parsingLambdaParams: false);
+                CheckParameterModifiers(parameterSyntax, diagnostics, parsingFunctionPointer, parsingLambdaParams: false, parsingAnonymousMethod: false);
 
                 var refKind = GetModifiers(parameterSyntax.Modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword, out DeclarationScope scope);
                 if (thisKeyword.Kind() != SyntaxKind.None && !allowThis)
@@ -409,8 +409,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BaseParameterSyntax parameter,
             BindingDiagnosticBag diagnostics,
             bool parsingFunctionPointerParams,
-            bool parsingLambdaParams)
+            bool parsingLambdaParams,
+            bool parsingAnonymousMethod)
         {
+            Debug.Assert(!parsingAnonymousMethod || parsingLambdaParams);
+
             var seenThis = false;
             var seenRef = false;
             var seenOut = false;
@@ -508,7 +511,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SyntaxKind.ParamsKeyword when !parsingFunctionPointerParams:
-                        if (seenParams)
+                        if (parsingAnonymousMethod)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_IllegalParams, modifier.GetLocation());
+                        }
+                        else if (seenParams)
                         {
                             addERR_DupParamMod(diagnostics, modifier);
                         }

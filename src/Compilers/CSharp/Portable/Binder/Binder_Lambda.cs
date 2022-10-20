@@ -140,7 +140,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         type = BindType(typeSyntax, diagnostics);
-                        ParameterHelpers.CheckParameterModifiers(p, diagnostics, parsingFunctionPointerParams: false, parsingLambdaParams: true);
+                        ParameterHelpers.CheckParameterModifiers(p, diagnostics, parsingFunctionPointerParams: false, parsingLambdaParams: true,
+                            parsingAnonymousMethod: syntax.Kind() == SyntaxKind.AnonymousMethodExpression);
                         refKind = ParameterHelpers.GetModifiers(p.Modifiers, out _, out var paramsKeyword, out _, out scope);
                         if (paramsKeyword.Kind() != SyntaxKind.None)
                         {

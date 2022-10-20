@@ -228,6 +228,9 @@ class C
                 // (62,44): warning CS0162: Unreachable code detected
                 //         Func<double> q15 = ()=>{if (false) return 1m; else return 0; };
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(62, 44),
+                // (66,39): error CS1670: params is not valid in this context
+                //         Action<int[]> q16 = delegate (params int[] p) { };
+                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(66, 39),
                 // (70,34): error CS1593: Delegate 'Action' does not take 1 arguments
                 //         object q19 = new Action( (int x)=>{} );
                 Diagnostic(ErrorCode.ERR_BadDelArgCount, "(int x)=>{}").WithArguments("System.Action", "1").WithLocation(70, 34),
