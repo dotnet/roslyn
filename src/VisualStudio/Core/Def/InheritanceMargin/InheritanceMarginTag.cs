@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
 {
-    internal class InheritanceMarginTag : IGlyphTag, IEquatable<InheritanceMarginTag>
+    internal class InheritanceMarginTag : IGlyphTag
     {
         /// <summary>
         /// Margin moniker.
@@ -53,21 +53,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 relationship |= allItems[i].RelationToMember;
 
             Moniker = InheritanceMarginHelpers.GetMoniker(relationship);
-        }
-
-        public override int GetHashCode()
-            => throw ExceptionUtilities.Unreachable();
-
-        public override bool Equals(object? obj)
-            => Equals(obj as InheritanceMarginTag);
-
-        public bool Equals(InheritanceMarginTag? other)
-        {
-            return other != null &&
-                this.LineNumber == other.LineNumber &&
-                this.Moniker.Guid == other.Moniker.Guid &&
-                this.Moniker.Id == other.Moniker.Id &&
-                this.MembersOnLine.SequenceEqual(other.MembersOnLine);
         }
     }
 }
