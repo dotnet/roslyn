@@ -679,5 +679,208 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             EOF();
         }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void AnonymousType_01(LanguageVersion languageVersion)
+        {
+            string source = "new { ref x }";
+            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(languageVersion),
+                // (1,7): error CS1525: Invalid expression term 'ref'
+                // new { ref x }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref x").WithArguments("ref").WithLocation(1, 7));
+
+            N(SyntaxKind.AnonymousObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.AnonymousObjectMemberDeclarator);
+                {
+                    N(SyntaxKind.RefExpression);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void AnonymousType_02(LanguageVersion languageVersion)
+        {
+            string source = "new { ref x, y }";
+            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(languageVersion),
+                // (1,7): error CS1525: Invalid expression term 'ref'
+                // new { ref x, y }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref x").WithArguments("ref").WithLocation(1, 7));
+
+            N(SyntaxKind.AnonymousObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.AnonymousObjectMemberDeclarator);
+                {
+                    N(SyntaxKind.RefExpression);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.AnonymousObjectMemberDeclarator);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void AnonymousType_03(LanguageVersion languageVersion)
+        {
+            string source = "new { x, ref y }";
+            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(languageVersion),
+                // (1,10): error CS1525: Invalid expression term 'ref'
+                // new { x, ref y }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref y").WithArguments("ref").WithLocation(1, 10));
+
+            N(SyntaxKind.AnonymousObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.AnonymousObjectMemberDeclarator);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.AnonymousObjectMemberDeclarator);
+                {
+                    N(SyntaxKind.RefExpression);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void AnonymousType_04(LanguageVersion languageVersion)
+        {
+            string source = "new { P = ref x, y }";
+            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(languageVersion),
+                // (1,11): error CS1525: Invalid expression term 'ref'
+                // new { P = ref x, y }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref x").WithArguments("ref").WithLocation(1, 11));
+
+            N(SyntaxKind.AnonymousObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.AnonymousObjectMemberDeclarator);
+                {
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "P");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.RefExpression);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.AnonymousObjectMemberDeclarator);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void AnonymousType_05(LanguageVersion languageVersion)
+        {
+            string source = "new { x, Q = ref y }";
+            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(languageVersion),
+                // (1,14): error CS1525: Invalid expression term 'ref'
+                // new { x, Q = ref y }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref y").WithArguments("ref").WithLocation(1, 14));
+
+            N(SyntaxKind.AnonymousObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.AnonymousObjectMemberDeclarator);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.AnonymousObjectMemberDeclarator);
+                {
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Q");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.RefExpression);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
     }
 }

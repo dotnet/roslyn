@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         private readonly ILanguageClientMiddleLayer? _middleLayer;
         private readonly ILspServiceLoggerFactory _lspLoggerFactory;
 
-        private readonly AbstractLspServiceProvider _lspServiceProvider;
+        protected readonly AbstractLspServiceProvider LspServiceProvider;
 
         protected readonly IGlobalOptionService GlobalOptions;
 
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             IThreadingContext threadingContext,
             AbstractLanguageClientMiddleLayer? middleLayer = null)
         {
-            _lspServiceProvider = lspServiceProvider;
+            LspServiceProvider = lspServiceProvider;
             GlobalOptions = globalOptions;
             _lspLoggerFactory = lspLoggerFactory;
             _threadingContext = threadingContext;
@@ -148,9 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
             if (_languageServer is not null)
             {
-                Contract.ThrowIfFalse(_languageServer.HasShutdownStarted, "The language server has not yet been asked to shutdown.");
-
-                await _languageServer.DisposeAsync().ConfigureAwait(false);
+                await _languageServer.WaitForExitAsync().WithCancellation(cancellationToken).ConfigureAwait(false);
             }
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
@@ -219,14 +217,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             return server;
         }
 
-        public AbstractLanguageServer<RequestContext> Create(
+        public virtual AbstractLanguageServer<RequestContext> Create(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
             WellKnownLspServerKinds serverKind,
             ILspServiceLogger logger)
         {
             var server = new RoslynLanguageServer(
-                _lspServiceProvider,
+                LspServiceProvider,
                 jsonRpc,
                 capabilitiesProvider,
                 logger,

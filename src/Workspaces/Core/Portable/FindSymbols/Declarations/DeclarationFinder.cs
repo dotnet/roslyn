@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 if (reference != null)
                 {
                     var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
-                        project.Solution, reference, cancellationToken).ConfigureAwait(false);
+                        project.Solution, reference, checksum: null, cancellationToken).ConfigureAwait(false);
 
                     Contract.ThrowIfNull(info);
 

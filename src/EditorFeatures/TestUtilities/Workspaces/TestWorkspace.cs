@@ -72,6 +72,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             this.Composition = composition;
             this.ExportProvider = composition.ExportProviderFactory.CreateExportProvider();
 
+            var partialSolutionsTestHook = Services.GetRequiredService<IWorkpacePartialSolutionsTestHook>();
+            partialSolutionsTestHook.IsPartialSolutionDisabled = disablePartialSolutions;
+
             // configure workspace before creating any solutions:
             if (configurationOptions != null)
             {
@@ -80,8 +83,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
 
             SetCurrentSolution(CreateSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create()).WithTelemetryId(solutionTelemetryId)));
-
-            this.TestHookPartialSolutionsDisabled = disablePartialSolutions;
 
             _workspaceKind = workspaceKind ?? WorkspaceKind.Host;
             this.Projects = new List<TestHostProject>();
