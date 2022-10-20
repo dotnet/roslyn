@@ -74,12 +74,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 #endif
 
-        public static bool IsOpen(this TextDocument document)
-        {
-            var workspace = document.Project.Solution.Workspace;
-            return workspace != null && workspace.IsDocumentOpen(document.Id);
-        }
-
         /// <summary>
         /// Attempts to return an speculative semantic model for <paramref name="document"/> if possible if <paramref
         /// name="position"/> is contained within a method body in the tree.  Specifically, this will attempt to get an
