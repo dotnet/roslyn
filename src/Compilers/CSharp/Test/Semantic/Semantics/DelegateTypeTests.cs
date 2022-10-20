@@ -13759,38 +13759,59 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
         }
 
         [Fact]
-        public void LambdaParamsArray_SynthesizedTypesMatch()
+        public void ParamsArray_SynthesizedTypesMatch()
         {
             var source = """
-                static void Report(object obj) => System.Console.WriteLine(obj.GetType());
+                static void Report(object obj1, object obj2) => System.Console.WriteLine($"{obj1.GetType() == obj2.GetType()}, {obj1.GetType()}");
+
                 var lam1 = (params int[] xs) => xs.Length;
-                Report(lam1);
+                int Method1(params int[] xs) => xs.Length;
+                var del1 = Method1;
+                Report(lam1, del1);
+
                 var lam2 = (params int[] ys) => ys.Length;
-                Report(lam2);
+                int Method2(params int[] ys) => ys.Length;
+                var del2 = Method2;
+                Report(lam2, del2);
+
                 var lam3 = (int[] xs) => xs.Length;
-                Report(lam3);
+                int Method3(int[] xs) => xs.Length;
+                var del3 = Method3;
+                Report(lam3, del3);
+
                 var lam4 = (int a, int b, int[] xs) => { };
-                Report(lam4);
+                void Method4(int a, int b, int[] xs) { }
+                var del4 = Method4;
+                Report(lam4, del4);
+
                 var lam5 = (int a, int b, params int[] xs) => { };
-                Report(lam5);
+                void Method5(int a, int b, params int[] xs) { }
+                var del5 = Method5;
+                Report(lam5, del5);
+
                 var lam6 = (int a, System.TypedReference b, params int[] xs) => { };
-                Report(lam6);
-                var lam7 = (int x, System.TypedReference y, params int[] xs) => { };
-                Report(lam7);
+                void Method6(int a, System.TypedReference b, params int[] xs) { }
+                var del6 = Method6;
+                Report(lam6, del6);
+
+                var lam7 = (int x, System.TypedReference y, params int[] ys) => { };
+                void Method7(int x, System.TypedReference y, params int[] ys) { }
+                var del7 = Method7;
+                Report(lam7, del7);
                 """;
             CompileAndVerify(source, expectedOutput: """
-                <>f__AnonymousDelegate0
-                <>f__AnonymousDelegate0
-                System.Func`2[System.Int32[],System.Int32]
-                System.Action`3[System.Int32,System.Int32,System.Int32[]]
-                <>f__AnonymousDelegate1
-                <>f__AnonymousDelegate2
-                <>f__AnonymousDelegate2
+                True, <>f__AnonymousDelegate0
+                True, <>f__AnonymousDelegate0
+                True, System.Func`2[System.Int32[],System.Int32]
+                True, System.Action`3[System.Int32,System.Int32,System.Int32[]]
+                True, <>f__AnonymousDelegate1
+                True, <>f__AnonymousDelegate2
+                True, <>f__AnonymousDelegate2
                 """).VerifyDiagnostics();
         }
 
         [Fact]
-        public void LambdaParamsArray_SynthesizedDelegateIL()
+        public void ParamsArray_SynthesizedDelegateIL()
         {
             var source = """
                 static void Report(object obj) => System.Console.WriteLine(obj.GetType());
