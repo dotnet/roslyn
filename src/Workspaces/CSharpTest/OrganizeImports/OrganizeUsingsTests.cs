@@ -723,7 +723,7 @@ using A;";
 
             var final =
 @"using A;
-using B;
+using B; 
 using C; ";
 
             await CheckAsync(initial, final);
