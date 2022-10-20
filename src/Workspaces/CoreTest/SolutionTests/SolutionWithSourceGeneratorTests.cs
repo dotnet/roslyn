@@ -27,13 +27,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Theory]
         [CombinatorialData]
         public async Task SourceGeneratorBasedOnAdditionalFileGeneratesSyntaxTrees(
-            bool fetchCompilationBeforeAddingAdditionalFile,
-            bool useRecoverableTrees)
+            bool fetchCompilationBeforeAddingAdditionalFile)
         {
             // This test is just the sanity test to make sure generators work at all. There's not a special scenario being
             // tested.
 
-            using var workspace = useRecoverableTrees ? CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations() : CreateWorkspace();
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference);
@@ -372,7 +371,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task RequestingGeneratedDocumentsTwiceGivesSameInstance()
         {
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
+            using var workspace = CreateWorkspace();
 
             var generatorRan = false;
             var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
@@ -733,7 +732,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, WorkItem(56702, "https://github.com/dotnet/roslyn/issues/56702")]
         public async Task ForkAfterFreezeNoLongerRunsGeneratorsEvenIfCompilationFallsAwayBeforeFreeze()
         {
-            using var workspace = CreateWorkspaceWithPartialSemanticsAndWeakCompilations();
+            using var workspace = CreateWorkspaceWithPartialSemantics();
             var generatorRan = false;
             var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
             var project = AddEmptyProject(workspace.CurrentSolution)
@@ -763,7 +762,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task ChangesToAdditionalFilesCorrectlyAppliedEvenIfCompilationFallsAway()
         {
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
