@@ -19,18 +19,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public static Workspace CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations()
             => CreateWorkspace(new[]
             {
-                typeof(TestProjectCacheService),
                 typeof(TestTemporaryStorageServiceFactory)
             });
 
         public static Workspace CreateWorkspaceWithRecoverableTextAndSyntaxTreesAndWeakCompilations()
-            => CreateWorkspace(new[]
-            {
-                typeof(TestProjectCacheService),
-            });
+            => CreateWorkspace();
 
         public static Workspace CreateWorkspaceWithPartialSemanticsAndWeakCompilations()
-            => WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics(new[] { typeof(TestProjectCacheService), typeof(TestTemporaryStorageServiceFactory) });
+            => WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics(new[] { typeof(TestTemporaryStorageServiceFactory) });
 
 #nullable disable
 
