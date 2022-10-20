@@ -2160,6 +2160,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ImplicitlyTypedDefaultParameter = 9500,
         ERR_OptionalParamValueMismatch = 9501,
         WRN_OptionalParamValueMismatch = 9502,
+        ERR_ParamsArrayInLambdaOnly = 9503,
+        ERR_ParamsArrayInDelegateOnly = 9504,
         #endregion
 
         // Note: you will need to do the following after adding warnings:

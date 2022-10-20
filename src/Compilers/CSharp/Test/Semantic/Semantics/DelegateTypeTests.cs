@@ -13846,5 +13846,144 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 } // end of class <>f__AnonymousDelegate0
                 """);
         }
+
+        [Fact]
+        public void ParamsArray_InferredConversion()
+        {
+            var source = """
+                var noParams = (int[] xs) => xs.Length;
+                var withParams = (params int[] xs) => xs.Length;
+                noParams = withParams;
+                withParams = noParams;
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,12): error CS0029: Cannot implicitly convert type '<anonymous delegate>' to 'System.Func<int[], int>'
+                // noParams = withParams;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "withParams").WithArguments("<anonymous delegate>", "System.Func<int[], int>").WithLocation(3, 12),
+                // (4,14): error CS0029: Cannot implicitly convert type 'System.Func<int[], int>' to '<anonymous delegate>'
+                // withParams = noParams;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "noParams").WithArguments("System.Func<int[], int>", "<anonymous delegate>").WithLocation(4, 14));
+        }
+
+        [Fact]
+        public void ParamsArray_MethodGroupConversion()
+        {
+            var source = """
+                int MethodNoParams(int[] xs) => xs.Length;
+                int MethodWithParams(params int[] xs) => xs.Length;
+                var noParams = MethodNoParams;
+                var withParams = MethodWithParams;
+                noParams = withParams;
+                withParams = noParams;
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,12): error CS0029: Cannot implicitly convert type '<anonymous delegate>' to 'System.Func<int[], int>'
+                // noParams = withParams;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "withParams").WithArguments("<anonymous delegate>", "System.Func<int[], int>").WithLocation(5, 12),
+                // (6,14): error CS0029: Cannot implicitly convert type 'System.Func<int[], int>' to '<anonymous delegate>'
+                // withParams = noParams;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "noParams").WithArguments("System.Func<int[], int>", "<anonymous delegate>").WithLocation(6, 14));
+        }
+
+        [Fact]
+        public void ParamsArray_LambdaConversion()
+        {
+            var source = """
+                int MethodNoParams(int[] xs) => xs.Length;
+                int MethodWithParams(params int[] xs) => xs.Length;
+                var noParams = MethodNoParams;
+                var withParams = MethodWithParams;
+                noParams = (params int[] xs) => xs.Length;
+                noParams = (int[] xs) => xs.Length;
+                withParams = (params int[] xs) => xs.Length;
+                withParams = (int[] xs) => xs.Length;
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,26): error CS9503: Parameter 1 has params modifier in lambda and not in target delegate type.
+                // noParams = (params int[] xs) => xs.Length;
+                Diagnostic(ErrorCode.ERR_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(5, 26),
+                // (8,21): error CS9504: Parameter 1 has params modifier in target delegate type and not in lambda.
+                // withParams = (int[] xs) => xs.Length;
+                Diagnostic(ErrorCode.ERR_ParamsArrayInDelegateOnly, "xs").WithArguments("1").WithLocation(8, 21));
+        }
+
+        [Fact]
+        public void ParamsArray_MethodGroupLambdaConversion()
+        {
+            var source = """
+                int MethodNoParams(int[] xs) => xs.Length;
+                int MethodWithParams(params int[] xs) => xs.Length;
+                var lambdaNoParams = (params int[] xs) => xs.Length;
+                var lambdaWithParams = (int[] xs) => xs.Length;
+                lambdaNoParams = MethodWithParams;
+                lambdaWithParams = MethodWithParams;
+                lambdaNoParams = MethodNoParams;
+                lambdaWithParams = MethodNoParams;
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParamsArray_DelegateConversion()
+        {
+            var source = """
+                int MethodNoParams(int[] xs) => xs.Length;
+                int MethodWithParams(params int[] xs) => xs.Length;
+                DelegateNoParams dNoParams;
+                DelegateWithParams dWithParams;
+                dNoParams = (params int[] xs) => xs.Length;
+                dNoParams = (int[] xs) => xs.Length;
+                dNoParams = MethodNoParams;
+                dNoParams = MethodWithParams;
+                dWithParams = (params int[] xs) => xs.Length;
+                dWithParams = (int[] xs) => xs.Length;
+                dWithParams = MethodNoParams;
+                dWithParams = MethodWithParams;
+                delegate int DelegateNoParams(int[] xs);
+                delegate int DelegateWithParams(params int[] xs);
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,27): error CS9503: Parameter 1 has params modifier in lambda and not in target delegate type.
+                // dNoParams = (params int[] xs) => xs.Length;
+                Diagnostic(ErrorCode.ERR_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(5, 27),
+                // (10,22): error CS9504: Parameter 1 has params modifier in target delegate type and not in lambda.
+                // dWithParams = (int[] xs) => xs.Length;
+                Diagnostic(ErrorCode.ERR_ParamsArrayInDelegateOnly, "xs").WithArguments("1").WithLocation(10, 22));
+        }
+
+        [Fact]
+        public void ParamsArray_CommonType()
+        {
+            var source = """
+                int MethodNoParams(int[] xs) => xs.Length;
+                int MethodWithParams(params int[] xs) => xs.Length;
+                var inferredNoParams = MethodNoParams;
+                var inferredWithParams = MethodWithParams;
+                var lambdaNoParams = (params int[] xs) => xs.Length;
+                var lambdaWithParams = (int[] xs) => xs.Length;
+                var a1 = new[] { MethodNoParams, MethodNoParams };
+                var a2 = new[] { inferredNoParams, inferredWithParams };
+                var a3 = new[] { lambdaNoParams, lambdaWithParams };
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,10): error CS0826: No best type found for implicitly-typed array
+                // var a2 = new[] { inferredNoParams, inferredWithParams };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { inferredNoParams, inferredWithParams }").WithLocation(8, 10),
+                // (9,10): error CS0826: No best type found for implicitly-typed array
+                // var a3 = new[] { lambdaNoParams, lambdaWithParams };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { lambdaNoParams, lambdaWithParams }").WithLocation(9, 10));
+        }
+
+        [Fact]
+        public void ParamsArray_CommonType_Methods()
+        {
+            var source = """
+                int MethodNoParams(int[] xs) => xs.Length;
+                int MethodWithParams(params int[] xs) => xs.Length;
+                var a = new[] { MethodNoParams, MethodNoParams };
+                System.Console.WriteLine(a.GetType());
+                """;
+            CompileAndVerify(source, expectedOutput: "System.Func`2[System.Int32[],System.Int32][]");
+        }
     }
 }

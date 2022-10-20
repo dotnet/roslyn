@@ -1182,6 +1182,16 @@
         <target state="translated">不支援 'parameter null-checking' 功能。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ParamsArrayInDelegateOnly">
+        <source>Parameter {0} has params modifier in target delegate type and not in lambda.</source>
+        <target state="new">Parameter {0} has params modifier in target delegate type and not in lambda.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsArrayInLambdaOnly">
+        <source>Parameter {0} has params modifier in lambda and not in target delegate type.</source>
+        <target state="new">Parameter {0} has params modifier in lambda and not in target delegate type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
         <source>Both partial method declarations must have identical accessibility modifiers.</source>
         <target state="translated">兩個部分方法宣告都必須有完全相同的存取範圍修飾詞。</target>

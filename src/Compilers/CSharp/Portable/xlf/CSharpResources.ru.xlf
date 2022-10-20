@@ -1182,6 +1182,16 @@
         <target state="translated">Функция "проверка значений NULL параметров" не поддерживается.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ParamsArrayInDelegateOnly">
+        <source>Parameter {0} has params modifier in target delegate type and not in lambda.</source>
+        <target state="new">Parameter {0} has params modifier in target delegate type and not in lambda.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsArrayInLambdaOnly">
+        <source>Parameter {0} has params modifier in lambda and not in target delegate type.</source>
+        <target state="new">Parameter {0} has params modifier in lambda and not in target delegate type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
         <source>Both partial method declarations must have identical accessibility modifiers.</source>
         <target state="translated">Оба объявления разделяемого метода должны иметь одинаковые модификаторы доступа.</target>

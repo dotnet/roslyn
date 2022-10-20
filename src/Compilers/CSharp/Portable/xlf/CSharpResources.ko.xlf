@@ -1182,6 +1182,16 @@
         <target state="translated">'parameter null-checking' 기능은 지원되지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ParamsArrayInDelegateOnly">
+        <source>Parameter {0} has params modifier in target delegate type and not in lambda.</source>
+        <target state="new">Parameter {0} has params modifier in target delegate type and not in lambda.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsArrayInLambdaOnly">
+        <source>Parameter {0} has params modifier in lambda and not in target delegate type.</source>
+        <target state="new">Parameter {0} has params modifier in lambda and not in target delegate type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
         <source>Both partial method declarations must have identical accessibility modifiers.</source>
         <target state="translated">두 부분 메서드 선언에는 동일한 접근성 한정자가 있어야 합니다.</target>

@@ -2275,7 +2275,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_RefAssignValEscapeWider:
                 case ErrorCode.WRN_RefAssignValEscapeWider:
                 case ErrorCode.WRN_OptionalParamValueMismatch:
-
+                case ErrorCode.ERR_ParamsArrayInLambdaOnly:
+                case ErrorCode.ERR_ParamsArrayInDelegateOnly:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

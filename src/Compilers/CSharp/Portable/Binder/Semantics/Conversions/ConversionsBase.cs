@@ -1452,6 +1452,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             return LambdaConversionResult.MismatchedParameterDefaultValue;
                         }
+
+                        if (lambdaSymbol.Parameters[p].IsParams != delegateParameters[p].IsParams)
+                        {
+                            return LambdaConversionResult.MismatchedParamsArray;
+                        }
                     }
                 }
                 else
