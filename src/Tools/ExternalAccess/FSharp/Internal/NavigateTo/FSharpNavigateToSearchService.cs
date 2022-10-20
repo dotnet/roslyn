@@ -3,16 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.NavigateTo;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigateTo;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
 {
@@ -33,52 +30,56 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
 
         public bool CanFilter => _service.CanFilter;
 
-        public async IAsyncEnumerable<INavigateToSearchResult> SearchDocumentAsync(
+        public async Task SearchDocumentAsync(
             Document document,
             string searchPattern,
             IImmutableSet<string> kinds,
             Document? activeDocument,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+            Func<INavigateToSearchResult, Task> onResultFound,
+            CancellationToken cancellationToken)
         {
             var results = await _service.SearchDocumentAsync(document, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
             foreach (var result in results)
-                yield return new InternalFSharpNavigateToSearchResult(result);
+                await onResultFound(new InternalFSharpNavigateToSearchResult(result)).ConfigureAwait(false);
         }
 
-        public async IAsyncEnumerable<INavigateToSearchResult> SearchProjectAsync(
+        public async Task SearchProjectAsync(
             Project project,
             ImmutableArray<Document> priorityDocuments,
             string searchPattern,
             IImmutableSet<string> kinds,
             Document? activeDocument,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+            Func<INavigateToSearchResult, Task> onResultFound,
+            CancellationToken cancellationToken)
         {
             var results = await _service.SearchProjectAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
             foreach (var result in results)
-                yield return new InternalFSharpNavigateToSearchResult(result);
+                await onResultFound(new InternalFSharpNavigateToSearchResult(result)).ConfigureAwait(false);
         }
 
-        public IAsyncEnumerable<INavigateToSearchResult> SearchCachedDocumentsAsync(
+        public Task SearchCachedDocumentsAsync(
             Project project,
             ImmutableArray<Document> priorityDocuments,
             string searchPattern,
             IImmutableSet<string> kinds,
             Document? activeDocument,
+            Func<INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {
             // we don't support searching cached documents.
-            return AsyncEnumerable<INavigateToSearchResult>.Empty;
+            return Task.CompletedTask;
         }
 
-        public IAsyncEnumerable<INavigateToSearchResult> SearchGeneratedDocumentsAsync(
+        public Task SearchGeneratedDocumentsAsync(
             Project project,
             string searchPattern,
             IImmutableSet<string> kinds,
             Document? activeDocument,
+            Func<INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {
             // we don't support searching generated documents.
-            return AsyncEnumerable<INavigateToSearchResult>.Empty;
+            return Task.CompletedTask;
         }
     }
 }
