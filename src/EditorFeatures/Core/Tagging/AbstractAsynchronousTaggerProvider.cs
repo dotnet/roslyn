@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// created for a previous version of a document that are mapped forward by the async
         /// tagging architecture.  This value cannot be <see cref="SpanTrackingMode.Custom"/>.
         /// </summary>
-        public virtual SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
+        protected virtual SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
 
         /// <summary>
         /// Global options controlling if the tagger should tag or not.
