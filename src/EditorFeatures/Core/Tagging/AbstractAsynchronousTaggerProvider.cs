@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Elfie.Serialization;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -85,8 +86,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// <summary>
         /// Comparer used to check if two tags are the same.  Used so that when new tags are produced, they can be
         /// appropriately 'diffed' to determine what changes to actually report in <see cref="ITagger{T}.TagsChanged"/>.
+        /// <para>
+        /// Subclasses should always override this.  It is only virtual for binary compat.
+        /// </para>
         /// </summary>
-        protected abstract bool TagEquals(TTag tag1, TTag tag2);
+        protected virtual bool TagEquals(TTag tag1, TTag tag2)
+            => EqualityComparer<TTag>.Default.Equals(tag1, tag2);
 
         // Prevent accidental usage of object.Equals instead of TagEquals when comparing tags.
         [Obsolete("Did you mean to call TagEquals(TTag tag1, TTag tag2) instead", error: true)]
