@@ -450,8 +450,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             Conversion elementConversionClassification = this.Conversions.ClassifyConversionFromType(inferredType.Type, iterationVariableType.Type, isChecked: CheckOverflowAtRuntime, ref useSiteInfo, forCast: true);
-            
-            if (elementConversionClassification.Kind != ConversionKind.Identity && IterationVariable.RefKind == RefKind.Ref && builder.CurrentPropertyGetter.RefKind == RefKind.Ref)
+
+            if (elementConversionClassification.Kind != ConversionKind.Identity && (IterationVariable.RefKind == RefKind.Ref || IterationVariable.RefKind == RefKind.RefReadOnly) && builder.CurrentPropertyGetter.RefKind == RefKind.Ref)
             {
                 Error(diagnostics, ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, collectionExpr.Syntax, iterationVariableType.Type);
                 hasErrors = true;

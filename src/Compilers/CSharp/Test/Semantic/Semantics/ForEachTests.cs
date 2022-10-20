@@ -3706,5 +3706,22 @@ class C2 : C {}
                 Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "items").WithArguments("C").WithLocation(4, 21)
             );
         }
+
+        [Fact]
+        public void ForEachIterator_RefReadonlyAssignmentWithoutIdentityConversion()
+        {
+            string source = @"
+using System;
+Span<C2> items = new Span<C2>(new C2[1]);
+foreach (ref readonly C t in items) {}
+class C {}
+class C2 : C {}
+";
+            CreateCompilationWithMscorlibAndSpan(source).VerifyDiagnostics(
+                // (4,21): error CS8173: The expression must be of type 'C' because it is being assigned by reference
+                // foreach (ref C t in items) {}
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "items").WithArguments("C").WithLocation(4, 30)
+            );
+        }
     }
 }
