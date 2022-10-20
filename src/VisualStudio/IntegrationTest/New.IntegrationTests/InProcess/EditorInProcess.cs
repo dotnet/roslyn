@@ -398,8 +398,19 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
         }
 
-        public async Task<string[]> GetErrorTagsAsync(CancellationToken cancellationToken)
-            => await GetTagsAsync<IErrorTag>(filter: null, cancellationToken);
+        public async Task<ImmutableArray<TagSpan<IErrorTag>>> GetErrorTagsAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            var view = await GetActiveTextViewAsync(cancellationToken);
+            var viewTagAggregatorFactory = await GetComponentModelServiceAsync<IViewTagAggregatorFactoryService>(cancellationToken);
+
+            var aggregator = viewTagAggregatorFactory.CreateTagAggregator<IErrorTag>(view);
+            var tags = aggregator
+                .GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length))
+                .Cast<IMappingTagSpan<ITag>>();
+
+            return tags.SelectAsArray(tag => (new TagSpan<IErrorTag>(tag.Span.GetSpans(view.TextBuffer).Single(), (IErrorTag)tag.Tag)));
+        }
 
         private static string PrintSpan(SnapshotSpan span)
             => $"'{span.GetText().Replace("\\", "\\\\").Replace("\r", "\\r").Replace("\n", "\\n")}'[{span.Start.Position}-{span.Start.Position + span.Length}]";

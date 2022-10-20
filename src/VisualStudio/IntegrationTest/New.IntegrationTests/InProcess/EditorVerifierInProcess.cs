@@ -235,6 +235,25 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             Assert.Equal(expectedCaretPosition, await TestServices.Editor.GetCaretPositionAsync(cancellationToken));
         }
 
+        public async Task ErrorTagsAsync(
+            (string errorType, TextSpan textSpan)[] expectedTags, CancellationToken cancellationToken)
+        {
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
+                new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles },
+                cancellationToken);
+
+            var actualTags = await TestServices.Editor.GetErrorTagsAsync(cancellationToken);
+            Assert.Equal(expectedTags.Length, actualTags.Length);
+            for (var i = 0; i < expectedTags.Length; i++)
+            {
+                var expectedTag = expectedTags[i];
+                var actualTaggedSpan = actualTags[i];
+                Assert.Equal(expectedTag.errorType, actualTaggedSpan.Tag.ErrorType);
+                Assert.Equal(expectedTag.textSpan.Start, actualTaggedSpan.Span.Start.Position);
+                Assert.Equal(expectedTag.textSpan.Length, actualTaggedSpan.Span.Length);
+            }
+        }
+
         public async Task ErrorTagsAsync(string[] expectedTags, CancellationToken cancellationToken)
         {
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
