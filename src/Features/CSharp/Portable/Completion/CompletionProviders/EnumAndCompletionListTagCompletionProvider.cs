@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -99,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -118,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // When true, this completion provider shows both the type (e.g. DayOfWeek) and its qualified members (e.g.
             // DayOfWeek.Friday). We set this to false for enum-like cases (static members of structs and classes) so we
             // only show the qualified members in these cases.
-            var showType = true;
+            var isEnumOrCompletionListType = true;
             var position = context.Position;
             var enclosingNamedType = semanticModel.GetEnclosingNamedType(position, cancellationToken);
             if (type.TypeKind != TypeKind.Enum)
@@ -138,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     // If this isn't an enum or marked with completionlist, also check if it contains static members of
                     // a matching type. These 'enum-like' types have similar characteristics to enum completion, but do
                     // not show the containing type as a separate item in completion.
-                    showType = false;
+                    isEnumOrCompletionListType = false;
                     enumType = TryGetTypeWithStaticMembers(type);
                     if (enumType == null)
                     {
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var symbol = alias ?? type;
             var sortText = symbol.Name;
 
-            if (showType)
+            if (isEnumOrCompletionListType)
             {
                 context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                     displayText,
@@ -188,7 +189,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     if (!field.IsEditorBrowsable(hideAdvancedMembers, semanticModel.Compilation))
                         continue;
 
+                    // Use enum member name as an additional filter text, which would promote this item
+                    // during matching when user types member name only, like "Red" instead of 
+                    // "Colors.Red"
                     var memberDisplayName = $"{displayText}.{field.Name}";
+                    var additionalFilterTexts = ImmutableArray.Create(field.Name);
+
                     context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                         displayText: memberDisplayName,
                         displayTextSuffix: "",
@@ -196,7 +202,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         rules: CompletionItemRules.Default,
                         contextPosition: position,
                         sortText: $"{sortText}_{index:0000}",
-                        filterText: memberDisplayName));
+                        filterText: memberDisplayName,
+                        tags: WellKnownTagArrays.TargetTypeMatch)
+                        .WithAdditionalFilterTexts(additionalFilterTexts));
                 }
             }
             else if (enclosingNamedType is not null)
@@ -222,14 +230,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         continue;
                     }
 
-                    if (!SymbolEqualityComparer.Default.Equals(type, symbolType)
-                        || !staticSymbol.IsAccessibleWithin(enclosingNamedType)
-                        || !staticSymbol.IsEditorBrowsable(hideAdvancedMembers, semanticModel.Compilation))
+                    // We only show static properties/fields of compatible type if containing type is NOT marked with completionlist tag.
+                    if (!isEnumOrCompletionListType && !SymbolEqualityComparer.Default.Equals(type, symbolType))
                     {
                         continue;
                     }
 
+                    if (!staticSymbol.IsAccessibleWithin(enclosingNamedType) ||
+                        !staticSymbol.IsEditorBrowsable(hideAdvancedMembers, semanticModel.Compilation))
+                    {
+                        continue;
+                    }
+
+                    // Use member name as an additional filter text, which would promote this item
+                    // during matching when user types member name only, like "Empty" instead of 
+                    // "ImmutableArray.Empty"
                     var memberDisplayName = $"{displayText}.{staticSymbol.Name}";
+                    var additionalFilterTexts = ImmutableArray.Create(staticSymbol.Name);
+
                     context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                         displayText: memberDisplayName,
                         displayTextSuffix: "",
@@ -237,7 +255,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         rules: CompletionItemRules.Default,
                         contextPosition: position,
                         sortText: memberDisplayName,
-                        filterText: memberDisplayName));
+                        filterText: memberDisplayName,
+                        tags: WellKnownTagArrays.TargetTypeMatch)
+                        .WithAdditionalFilterTexts(additionalFilterTexts));
                 }
             }
         }

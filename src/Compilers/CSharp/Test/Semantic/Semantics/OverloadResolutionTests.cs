@@ -11097,18 +11097,18 @@ public static class Extensions
 
 
             CreateCompilation(code, references: new[] { libComp.EmitToImageReference() }).VerifyDiagnostics(
-                // (13,10): error CS8329: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
+                // (13,10): error CS8329: Cannot use variable 'y' as a ref or out value because it is a readonly variable
                 //          y.R_extension(); // error 1
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "in int").WithLocation(13, 10),
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "y").WithLocation(13, 10),
                 // (14,10): error CS1510: A ref or out value must be an assignable variable
                 //          1.R_extension(); // error 2
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "1").WithLocation(14, 10)
                 );
 
             CreateCompilation(code, references: new[] { libComp.ToMetadataReference() }).VerifyDiagnostics(
-                // (13,10): error CS8329: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
+                // (13,10): error CS8329: Cannot use variable 'y' as a ref or out value because it is a readonly variable
                 //          y.R_extension(); // error 1
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "in int").WithLocation(13, 10),
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "y").WithLocation(13, 10),
                 // (14,10): error CS1510: A ref or out value must be an assignable variable
                 //          1.R_extension(); // error 2
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "1").WithLocation(14, 10)

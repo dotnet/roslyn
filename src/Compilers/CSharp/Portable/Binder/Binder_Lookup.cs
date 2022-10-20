@@ -1372,7 +1372,7 @@ symIsHidden:;
                     }
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

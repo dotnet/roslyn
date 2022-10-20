@@ -11806,11 +11806,9 @@ class C
     }
 }
 ";
-            // Speculation within attributes on local functions is broken
-            // Tracked by https://github.com/dotnet/roslyn/issues/60801
-            await VerifyItemExistsAsync(MakeMarkup(source), "parameter", skipSpeculation: true);
+            await VerifyItemExistsAsync(MakeMarkup(source), "parameter");
 
-            await VerifyItemExistsAsync(MakeMarkup(source, languageVersion: "10"), "parameter", skipSpeculation: true);
+            await VerifyItemExistsAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
         }
 
         [Fact]
@@ -11825,11 +11823,9 @@ class C
     }
 }
 ";
-            // Speculation within attributes on local functions is broken
-            // Tracked by https://github.com/dotnet/roslyn/issues/60801
-            await VerifyItemExistsAsync(MakeMarkup(source), "parameter", skipSpeculation: true);
+            await VerifyItemExistsAsync(MakeMarkup(source), "parameter");
 
-            await VerifyItemExistsAsync(MakeMarkup(source, languageVersion: "10"), "parameter", skipSpeculation: true);
+            await VerifyItemExistsAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
         }
 
         [Fact]
@@ -11844,11 +11840,9 @@ class C
     }
 }
 ";
-            // Speculation within attributes on local functions is broken
-            // Tracked by https://github.com/dotnet/roslyn/issues/60801
-            await VerifyItemExistsAsync(MakeMarkup(source), "parameter", skipSpeculation: true);
+            await VerifyItemExistsAsync(MakeMarkup(source), "parameter");
 
-            await VerifyItemExistsAsync(MakeMarkup(source, languageVersion: "10"), "parameter", skipSpeculation: true);
+            await VerifyItemExistsAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
         }
 
         [Fact]
@@ -11863,11 +11857,9 @@ class C
     }
 }
 ";
-            // Speculation within attributes on local functions is broken
-            // Tracked by https://github.com/dotnet/roslyn/issues/60801
-            await VerifyItemExistsAsync(MakeMarkup(source), "parameter", skipSpeculation: true);
+            await VerifyItemExistsAsync(MakeMarkup(source), "parameter");
 
-            await VerifyItemExistsAsync(MakeMarkup(source, languageVersion: "10"), "parameter", skipSpeculation: true);
+            await VerifyItemExistsAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
         }
 
         [Fact]
@@ -11888,11 +11880,20 @@ delegate void MyDelegate(int parameter);
             var source = @"
 delegate void MyDelegate([Some(nameof(p$$))] int parameter);
 ";
-            // Speculation within attributes on local functions is broken
-            // Tracked by https://github.com/dotnet/roslyn/issues/60801
-            await VerifyItemExistsAsync(MakeMarkup(source), "parameter", skipSpeculation: true);
+            await VerifyItemExistsAsync(MakeMarkup(source), "parameter");
 
-            await VerifyItemExistsAsync(MakeMarkup(source, languageVersion: "10"), "parameter", skipSpeculation: true);
+            await VerifyItemExistsAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
+        }
+
+        [Fact, WorkItem(64585, "https://github.com/dotnet/roslyn/issues/64585")]
+        public async Task AfterRequired()
+        {
+            var source = @"
+class C
+{
+    required $$
+}";
+            await VerifyAnyItemExistsAsync(source);
         }
 
         private static string MakeMarkup(string source, string languageVersion = "Preview")
