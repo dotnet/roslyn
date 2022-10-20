@@ -78,6 +78,11 @@ function Publish-Nuget($publishData, [string]$packageDir) {
         throw "$nupkg has no configured feed (looked for $nupkgWithoutVersion)"
       }
 
+      if ($nupkgWithoutVersion.EndsWith(".Symbols")) {
+        Write-Host "    Skipping publishing symbol package $nupkg"
+        continue
+      }
+
       $feedName = $packagesData.$nupkgWithoutVersion
 
       # If the configured feed is arcade, then skip publishing here.  Arcade will handle publishing to their feeds.
