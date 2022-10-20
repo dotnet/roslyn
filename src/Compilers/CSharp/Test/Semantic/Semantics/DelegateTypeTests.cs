@@ -13757,5 +13757,71 @@ class Program
 $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
 {s_expressionOfTDelegate1ArgTypeName}[System.Func`2[System.Int32,<>f__AnonymousDelegate0]]").VerifyDiagnostics();
         }
+
+        [Fact]
+        public void LambdaParamsArray_SynthesizedTypesMatch()
+        {
+            var source = """
+                static void Report(object obj) => System.Console.WriteLine(obj.GetType());
+                var lam1 = (params int[] xs) => xs.Length;
+                Report(lam1);
+                var lam2 = (params int[] ys) => ys.Length;
+                Report(lam2);
+                var lam3 = (int[] xs) => xs.Length;
+                Report(lam3);
+                var lam4 = (int a, int b, int[] xs) => { };
+                Report(lam4);
+                var lam5 = (int a, int b, params int[] xs) => { };
+                Report(lam5);
+                var lam6 = (int a, System.TypedReference b, params int[] xs) => { };
+                Report(lam6);
+                var lam7 = (int x, System.TypedReference y, params int[] xs) => { };
+                Report(lam7);
+                """;
+            CompileAndVerify(source, expectedOutput: """
+                <>f__AnonymousDelegate0
+                <>f__AnonymousDelegate0
+                System.Func`2[System.Int32[],System.Int32]
+                System.Action`3[System.Int32,System.Int32,System.Int32[]]
+                <>f__AnonymousDelegate1
+                <>f__AnonymousDelegate2
+                <>f__AnonymousDelegate2
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaParamsArray_SynthesizedDelegateIL()
+        {
+            var source = """
+                static void Report(object obj) => System.Console.WriteLine(obj.GetType());
+                var lam = (int x, params int[] ys) => { };
+                Report(lam);
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "<>f__AnonymousDelegate0").VerifyDiagnostics();
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", $$"""
+                .class private auto ansi sealed '<>f__AnonymousDelegate0'
+                	extends [{{s_libPrefix}}]System.MulticastDelegate
+                {
+                	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Methods
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor (
+                			object 'object',
+                			native int 'method'
+                		) runtime managed 
+                	{
+                	} // end of method '<>f__AnonymousDelegate0'::.ctor
+                	.method public hidebysig newslot virtual 
+                		instance void Invoke (
+                			int32 arg1,
+                			int32[] arg2
+                		) runtime managed 
+                	{
+                	} // end of method '<>f__AnonymousDelegate0'::Invoke
+                } // end of class <>f__AnonymousDelegate0
+                """);
+        }
     }
 }
