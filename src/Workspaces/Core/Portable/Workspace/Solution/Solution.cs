@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
-            : this(new SolutionState(workspace.Kind, workspace.PartialSemanticsEnabled, workspace.Services, solutionAttributes, options, analyzerReferences))
+            : this(new SolutionState(workspace.Kind, workspace.PartialSemanticsEnabled, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences))
         {
         }
 
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis
         /// Per solution services provided by the host environment.  Use this instead of <see
         /// cref="Workspace.Services"/> when possible.
         /// </summary>
-        public SolutionServices Services => _state.Services.SolutionServices;
+        public SolutionServices Services => _state.Services;
 
         internal string? WorkspaceKind => _state.WorkspaceKind;
 
@@ -67,7 +67,9 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 Contract.ThrowIfTrue(this.WorkspaceKind == CodeAnalysis.WorkspaceKind.RemoteWorkspace, "Access .Workspace off of a RemoteWorkspace Solution is not supported.");
-                return _state.Workspace;
+#pragma warning disable CS0612 // Type or member is obsolete (TODO: obsolete the property)
+                return _state.Services.WorkspaceServices.Workspace;
+#pragma warning restore
             }
         }
 
@@ -1719,9 +1721,9 @@ namespace Microsoft.CodeAnalysis
             return this.FilterDocumentIdsByLanguage(documentIds, projectState.ProjectInfo.Language);
         }
 
-        internal Solution WithNewWorkspace(Workspace workspace, int workspaceVersion)
+        internal Solution WithNewWorkspace(string? workspaceKind, int workspaceVersion, SolutionServices services)
         {
-            var newState = _state.WithNewWorkspace(workspace, workspaceVersion);
+            var newState = _state.WithNewWorkspace(workspaceKind, workspaceVersion, services);
             if (newState == _state)
             {
                 return this;
