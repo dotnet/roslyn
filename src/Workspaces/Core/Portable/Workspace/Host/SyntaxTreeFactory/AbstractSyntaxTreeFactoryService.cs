@@ -16,13 +16,6 @@ namespace Microsoft.CodeAnalysis.Host
 {
     internal abstract partial class AbstractSyntaxTreeFactoryService : ISyntaxTreeFactoryService
     {
-        internal SolutionServices SolutionServices { get; }
-
-        public AbstractSyntaxTreeFactoryService(SolutionServices services)
-        {
-            SolutionServices = services;
-        }
-
         public abstract ParseOptions GetDefaultParseOptions();
         public abstract ParseOptions GetDefaultParseOptionsWithLatestLanguageVersion();
         public abstract bool OptionsDifferOnlyByPreprocessorDirectives(ParseOptions options1, ParseOptions options2);
