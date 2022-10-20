@@ -5284,7 +5284,7 @@ tryAgain:
             TerminatorState saveTerm = _termState;
             bool isFixed = (flags & VariableFlags.Fixed) != 0;
             bool isConst = (flags & VariableFlags.Const) != 0;
-            bool isLocal = (flags & VariableFlags.LocalOrField) != 0;
+            bool isLocalOrField = (flags & VariableFlags.LocalOrField) != 0;
 
             // Give better error message in the case where the user did something like:
             //
@@ -5308,7 +5308,7 @@ tryAgain:
                     var equals = this.EatToken();
 
                     SyntaxToken refKeyword = null;
-                    if (isLocal && !isConst &&
+                    if (isLocalOrField && !isConst &&
                         this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
                         // check for lambda expression with explicit ref return type: `ref int () => { ... }`
                         !this.IsPossibleLambdaExpression(Precedence.Expression)

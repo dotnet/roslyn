@@ -25503,5 +25503,151 @@ ref struct R
                 //     ref readonly Span<int> _s = ref F(stackalloc int[1]);
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(4, 39));
         }
+
+        [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void FieldInitializer_06()
+        {
+            var source =
+@"using System;
+ref struct R
+{
+    public ref int F1 = ref C.Instance.F();
+    public ref readonly int F2;
+    public R(object obj)
+    {
+        F2 = ref F1;
+    }
+}
+class C
+{
+    public static C Instance = new C();
+    int _b = 1;
+    public ref int F() => ref _b;
+    static void Main()
+    {
+        var r = new R(null);
+        Instance._b += 2;
+        Console.WriteLine((r.F1, r.F2));
+    }
+}";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "(3, 3)");
+            verifier.VerifyIL("R..ctor(object)",
+@"{
+    // Code size       29 (0x1d)
+    .maxstack  2
+    IL_0000:  ldarg.0
+    IL_0001:  ldsfld     ""C C.Instance""
+    IL_0006:  callvirt   ""ref int C.F()""
+    IL_000b:  stfld      ""ref int R.F1""
+    IL_0010:  ldarg.0
+    IL_0011:  ldarg.0
+    IL_0012:  ldfld      ""ref int R.F1""
+    IL_0017:  stfld      ""ref readonly int R.F2""
+    IL_001c:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var fieldInitializerSyntax = tree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().First();
+            var symbol = model.GetDeclaredSymbol(fieldInitializerSyntax.Parent);
+            Assert.Equal("ref System.Int32 R.F1", symbol.ToTestDisplayString());
+
+            var fieldInitializerOperation = (Microsoft.CodeAnalysis.Operations.IFieldInitializerOperation)model.GetOperation(fieldInitializerSyntax);
+            OperationTreeVerifier.Verify(
+@"IFieldInitializerOperation (Field: ref System.Int32 R.F1) (OperationKind.FieldInitializer, Type: null) (Syntax: '= ref C.Instance.F()')
+  IInvocationOperation ( ref System.Int32 C.F()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'C.Instance.F()')
+    Instance Receiver:
+      IFieldReferenceOperation: C C.Instance (Static) (OperationKind.FieldReference, Type: C) (Syntax: 'C.Instance')
+        Instance Receiver:
+          null
+    Arguments(0)
+",
+                OperationTreeVerifier.GetOperationTree(comp, fieldInitializerOperation));
+
+            var controlFlowGraph = Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(fieldInitializerOperation);
+            ControlFlowGraphVerifier.VerifyGraph(comp,
+@"    Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= ref C.Instance.F()')
+          Left:
+            IFieldReferenceOperation: ref System.Int32 R.F1 (OperationKind.FieldReference, Type: System.Int32, IsImplicit) (Syntax: '= ref C.Instance.F()')
+              Instance Receiver:
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: R, IsImplicit) (Syntax: '= ref C.Instance.F()')
+          Right:
+            IInvocationOperation ( ref System.Int32 C.F()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'C.Instance.F()')
+              Instance Receiver:
+                IFieldReferenceOperation: C C.Instance (Static) (OperationKind.FieldReference, Type: C) (Syntax: 'C.Instance')
+                  Instance Receiver:
+                    null
+              Arguments(0)
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+",
+                controlFlowGraph, symbol);
+
+            var constructorSyntax = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            symbol = model.GetDeclaredSymbol(constructorSyntax);
+            Assert.Equal("R..ctor(System.Object obj)", symbol.ToTestDisplayString());
+
+            var constructorOperation = (Microsoft.CodeAnalysis.Operations.IConstructorBodyOperation)model.GetOperation(constructorSyntax);
+            OperationTreeVerifier.Verify(
+@"IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public R(ob ... }')
+  Initializer:
+    null
+  BlockBody:
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'F2 = ref F1;')
+        Expression:
+          ISimpleAssignmentOperation (IsRef) (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'F2 = ref F1')
+            Left:
+              IFieldReferenceOperation: ref readonly System.Int32 R.F2 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'F2')
+                Instance Receiver:
+                  IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: R, IsImplicit) (Syntax: 'F2')
+            Right:
+              IFieldReferenceOperation: ref System.Int32 R.F1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'F1')
+                Instance Receiver:
+                  IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: R, IsImplicit) (Syntax: 'F1')
+  ExpressionBody:
+    null
+",
+                OperationTreeVerifier.GetOperationTree(comp, constructorOperation));
+
+            controlFlowGraph = Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(constructorOperation);
+            ControlFlowGraphVerifier.VerifyGraph(comp,
+@"Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'F2 = ref F1;')
+          Expression:
+            ISimpleAssignmentOperation (IsRef) (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'F2 = ref F1')
+              Left:
+                IFieldReferenceOperation: ref readonly System.Int32 R.F2 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'F2')
+                  Instance Receiver:
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: R, IsImplicit) (Syntax: 'F2')
+              Right:
+                IFieldReferenceOperation: ref System.Int32 R.F1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'F1')
+                  Instance Receiver:
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: R, IsImplicit) (Syntax: 'F1')
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+",
+                controlFlowGraph, symbol);
+        }
     }
 }
