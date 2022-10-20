@@ -587,11 +587,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return null; }
         }
 
-        internal override SemanticModel ContainingModelOrSelf
-        {
-            get { return this; }
-        }
-
         internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, TypeSyntax type, SpeculativeBindingOption bindingOption, out PublicSemanticModel speculativeModel)
         {
             position = CheckAndAdjustPosition(position);

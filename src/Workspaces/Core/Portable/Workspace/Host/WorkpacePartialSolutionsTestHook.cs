@@ -6,15 +6,13 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Xunit.Abstractions;
-using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
-[ExportWorkspaceService(typeof(IWorkpacePartialSolutionsTestHook), ServiceLayer.Host), Shared, PartNotDiscoverable]
+[ExportWorkspaceService(typeof(IWorkpacePartialSolutionsTestHook), ServiceLayer.Host), Shared]
 internal class WorkpacePartialSolutionsTestHook : IWorkpacePartialSolutionsTestHook
 {
-    public bool IsPartialSolutionDisabled { get; set; } = true;
+    public bool IsPartialSolutionDisabled { get; set; }
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
