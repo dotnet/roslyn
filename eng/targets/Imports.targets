@@ -196,9 +196,11 @@
   </ItemGroup>
   <!-- </Metalama> -->
 
+<!-- <Metalama> -->
   <!--
     Append common text to package specific PackageDescription.
   -->
+<!--
   <Target Name="_AppendCommonPackageDescription" 
           BeforeTargets="InitializeStandardNuspecProperties;GenerateNuspec" 
           DependsOnTargets="InitializeSourceControlInformation"
@@ -211,6 +213,8 @@
       </PackageDescription>
     </PropertyGroup>
   </Target>
+-->
+<!-- </Metalama> -->
 
   <!-- Make sure additional files show up in Solution Explorer -->
   <ItemGroup>
