@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis
         private void ClearSolution(bool reportChangeEvent)
         {
             this.SetCurrentSolution(
-                (oldSolution, data) => this.CreateSolution(oldSolution.Id),
+                (oldSolution, _) => this.CreateSolution(oldSolution.Id),
                 data: /*unused*/ 0,
                 onBeforeUpdate: (_, _, _) => this.ClearSolutionData(),
                 onAfterUpdate: (oldSolution, newSolution, _) =>
