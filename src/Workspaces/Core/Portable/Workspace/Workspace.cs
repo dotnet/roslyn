@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis
                 WorkspaceChangeKind.ProjectRemoved, projectId,
                 onBeforeUpdate: (oldSolution, _) =>
                 {
-                    // Clear out mutable state not associated with teh solution snapshot (for example, which documents are
+                    // Clear out mutable state not associated with the solution snapshot (for example, which documents are
                     // currently open).
                     this.ClearProjectData(projectId);
                 });
