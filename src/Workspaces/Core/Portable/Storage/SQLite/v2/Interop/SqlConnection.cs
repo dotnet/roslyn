@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             catch (Exception)
             {
                 // Some other exception occurred outside of sqlite entirely (like a null-ref exception in our own code).
-                // Rollback  (throwing if that rollback failed for some reason), then continue the exception higher up
+                // Rollback (throwing if that rollback failed for some reason), then continue the exception higher up
                 // to tear down the callers as well.
 
                 Rollback(throwOnError: true);
