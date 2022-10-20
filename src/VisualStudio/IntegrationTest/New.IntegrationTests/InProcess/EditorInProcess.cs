@@ -412,7 +412,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return tags.SelectAsArray(tag => (new TagSpan<IErrorTag>(tag.Span.GetSpans(view.TextBuffer).Single(), (IErrorTag)tag.Tag)));
         }
 
-
         private static bool IsDebuggerTextView(ITextView textView)
             => textView.Roles.Contains("DEBUGVIEW");
 

@@ -5,7 +5,6 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text.Formatting;
 using Roslyn.VisualStudio.IntegrationTests;
 using Xunit;
 
