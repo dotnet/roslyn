@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis
 
                     _latestSolution = newSolution;
 
-                    // Once we've updated _latesSolution, perform any requested callbacks.
+                    // Once we've updated _latestSolution, perform any requested callbacks.
                     onAfterUpdate?.Invoke(oldSolution, newSolution, data);
                     return (oldSolution, newSolution);
                 }
