@@ -15,7 +15,8 @@ namespace Microsoft.CodeAnalysis
     /// with the annotations attached.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    public sealed class SyntaxAnnotation : IObjectWritable, IEquatable<SyntaxAnnotation?>
+    // <Metalama /> - Make non-sealed.
+    public class SyntaxAnnotation : IObjectWritable, IEquatable<SyntaxAnnotation?>
     {
         static SyntaxAnnotation()
         {

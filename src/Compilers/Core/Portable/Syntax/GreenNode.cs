@@ -34,8 +34,11 @@ namespace Microsoft.CodeAnalysis
         private static readonly ConditionalWeakTable<GreenNode, DiagnosticInfo[]> s_diagnosticsTable =
             new ConditionalWeakTable<GreenNode, DiagnosticInfo[]>();
 
-        private static readonly ConditionalWeakTable<GreenNode, SyntaxAnnotation[]> s_annotationsTable =
-            new ConditionalWeakTable<GreenNode, SyntaxAnnotation[]>();
+        // <Metalama>
+        // private static readonly ConditionalWeakTable<GreenNode, SyntaxAnnotation[]> s_annotationsTable =
+        //    new ConditionalWeakTable<GreenNode, SyntaxAnnotation[]>();
+        SyntaxAnnotation[]? _annotations;
+        // </Metalama>
 
         private static readonly DiagnosticInfo[] s_noDiagnostics = Array.Empty<DiagnosticInfo>();
         private static readonly SyntaxAnnotation[] s_noAnnotations = Array.Empty<SyntaxAnnotation>();
@@ -84,7 +87,11 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 this.flags |= NodeFlags.ContainsAnnotations;
-                s_annotationsTable.Add(this, annotations);
+
+                // <Metalama>
+                // s_annotationsTable.Add(this, annotations);
+                this._annotations = annotations;
+                // </Metalama>
             }
         }
 
@@ -99,7 +106,11 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 this.flags |= NodeFlags.ContainsAnnotations;
-                s_annotationsTable.Add(this, annotations);
+                
+                                // <Metalama>
+                // s_annotationsTable.Add(this, annotations);
+                this._annotations = annotations;
+                // </Metalama>
             }
         }
 
@@ -442,7 +453,10 @@ namespace Microsoft.CodeAnalysis
                 if (annotations != null && annotations.Length > 0)
                 {
                     this.flags |= NodeFlags.ContainsAnnotations;
-                    s_annotationsTable.Add(this, annotations);
+                    // <Metalama>
+                    // s_annotationsTable.Add(this, annotations);
+                    this._annotations = annotations;
+                    // </Metalama>
                 }
             }
         }
@@ -593,6 +607,9 @@ namespace Microsoft.CodeAnalysis
 
         public SyntaxAnnotation[] GetAnnotations()
         {
+            // <Metalama>
+            /*
+
             if (this.ContainsAnnotations)
             {
                 SyntaxAnnotation[]? annotations;
@@ -604,6 +621,9 @@ namespace Microsoft.CodeAnalysis
             }
 
             return s_noAnnotations;
+            */
+
+            return this._annotations ?? s_noAnnotations;
         }
 
         internal abstract GreenNode SetAnnotations(SyntaxAnnotation[]? annotations);
