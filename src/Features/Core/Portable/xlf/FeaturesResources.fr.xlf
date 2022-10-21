@@ -4942,6 +4942,11 @@ Avec les valeurs DateTimeOffset, ce spécificateur de format représente le déc
 Le décalage est toujours affiché avec un signe de début. Le signe plus (+) indique les heures d'avance par rapport à l'heure UTC, et le signe moins (-) indique les heures de retard par rapport à l'heure UTC. Un décalage à un chiffre est présenté dans un format qui comporte un zéro de début.</target>
         <note />
       </trans-unit>
+      <trans-unit id="while_statement">
+        <source>while statement</source>
+        <target state="new">while statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">
         <source>[x-y] range in reverse order</source>
         <target state="translated">Intervalle [x-y] dans l'ordre inverse</target>

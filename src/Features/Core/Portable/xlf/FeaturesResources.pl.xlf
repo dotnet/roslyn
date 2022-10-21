@@ -4942,6 +4942,11 @@ W przypadku wartości DateTimeOffset ten specyfikator formatu reprezentuje przes
 Przesunięcie jest zawsze wyświetlane ze znakiem wiodącym. Znak plus (+) wskazuje godzinę po czasie UTC, a znak minus (-) wskazuje godzinę przed czasem UTC. Jednocyfrowa wartość przesunięcia jest formatowana przy użyciu wiodącego zera.</target>
         <note />
       </trans-unit>
+      <trans-unit id="while_statement">
+        <source>while statement</source>
+        <target state="new">while statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">
         <source>[x-y] range in reverse order</source>
         <target state="translated">Zakres [x-y] w odwrotnej kolejności</target>

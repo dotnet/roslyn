@@ -4942,6 +4942,11 @@ U hodnot DateTimeOffset tento specifikátor formátu představuje posun hodnoty 
 Posun se vždy zobrazuje se znaménkem na začátku. Znaménko plus (+) označuje hodiny před UTC a znaménko minus (-) pak hodiny za UTC. Posun s jednou číslicí se formátuje s nulou na začátku.</target>
         <note />
       </trans-unit>
+      <trans-unit id="while_statement">
+        <source>while statement</source>
+        <target state="new">while statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">
         <source>[x-y] range in reverse order</source>
         <target state="translated">Rozsah [x-y] je v obráceném pořadí.</target>

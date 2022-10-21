@@ -4942,6 +4942,11 @@ Bei DateTimeOffset-Werten stellt dieser Formatbezeichner die Abweichung des Date
 Die Abweichung wird immer mit einem Vorzeichen angezeigt. Ein Pluszeichen (+) steht für Stunden vor UTC, ein Minuszeichen (-) für Stunden nach UTC. Eine einstellige Abweichung wird mit einer führenden Null formatiert.</target>
         <note />
       </trans-unit>
+      <trans-unit id="while_statement">
+        <source>while statement</source>
+        <target state="new">while statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">
         <source>[x-y] range in reverse order</source>
         <target state="translated">[x-y]-Bereich in umgekehrter Reihenfolge</target>

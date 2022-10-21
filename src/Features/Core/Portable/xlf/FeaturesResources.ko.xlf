@@ -4942,6 +4942,11 @@ DateTimeOffset 값의 경우, 이 형식 지정자는 UTC에서 가져온 DateTi
 오프셋은 항상 앞에 있는 부호와 함께 표시됩니다. 더하기 부호(+)는 UTC보다 앞선 시간을, 빼기 부호(-)는 UTC보다 늦은 시간을 나타냅니다. 한 자릿수 오프셋은 앞에 0이 있는 형식으로 지정됩니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="while_statement">
+        <source>while statement</source>
+        <target state="new">while statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">
         <source>[x-y] range in reverse order</source>
         <target state="translated">[x-y] 범위가 역순으로 되어 있습니다.</target>

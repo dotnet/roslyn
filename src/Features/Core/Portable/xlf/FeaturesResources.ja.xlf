@@ -4942,6 +4942,11 @@ DateTimeOffset 値で使用した場合、この書式指定子は DateTimeOffse
 このオフセットは、常に先頭の符号と共に表示されます。プラス記号 (+) は UTC より時間が進んでいることを示し、マイナス記号 (-) は UTC よりも時間が遅れていることを示します。1 桁のオフセットは、先行ゼロ付きで書式設定されます。</target>
         <note />
       </trans-unit>
+      <trans-unit id="while_statement">
+        <source>while statement</source>
+        <target state="new">while statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">
         <source>[x-y] range in reverse order</source>
         <target state="translated">[x-y] 範囲の順序が逆です</target>
