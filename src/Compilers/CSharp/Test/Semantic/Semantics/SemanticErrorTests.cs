@@ -8042,10 +8042,10 @@ public class Derived : Base2
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (14,15): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (14,15): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         M(ref P); // CS0206
                 Diagnostic(ErrorCode.ERR_RefProperty, "P").WithLocation(14, 15),
-                // (15,15): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (15,15): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         M(out this.Q); // CS0206
                 Diagnostic(ErrorCode.ERR_RefProperty, "this.Q").WithLocation(15, 15));
         }
@@ -8072,18 +8072,19 @@ public class Derived : Base2
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (13,15): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (13,15): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         R(ref this[0]); // CS0206
                 Diagnostic(ErrorCode.ERR_RefProperty, "this[0]").WithLocation(13, 15),
-                // (14,15): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (14,15): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         O(out this[0]); // CS0206
                 Diagnostic(ErrorCode.ERR_RefProperty, "this[0]").WithLocation(14, 15));
         }
 
         [Fact]
-        public void CS0208ERR_ManagedAddr01()
+        public void CS8500WRN_ManagedAddr01()
         {
             var text = @"
+#pragma warning disable CS0169 // unused field
 class myClass
 {
     public int a = 98;
@@ -8107,10 +8108,10 @@ public class MyClass
     {
         // myClass is a class, a managed type.
         myClass s = new myClass();  
-        myClass* s2 = &s;    // CS0208
+        myClass* s2 = &s;    // CS8500
 
         // The struct contains a string, a managed type.
-        int i = sizeof(myProblemStruct); //CS0208
+        int i = sizeof(myProblemStruct); //CS8500
         
         // The struct contains only value types.
         i = sizeof(myGoodStruct); //OK
@@ -8120,35 +8121,23 @@ public class MyClass
 
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (25,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('myClass')
-                //         myClass* s2 = &s;    // CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "myClass*").WithArguments("myClass"),
-                // (25,23): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('myClass')
-                //         myClass* s2 = &s;    // CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&s").WithArguments("myClass"),
-                // (28,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('myProblemStruct')
-                //         int i = sizeof(myProblemStruct); //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "sizeof(myProblemStruct)").WithArguments("myProblemStruct"),
-
-                // (9,12): warning CS0169: The field 'myProblemStruct.s' is never used
-                //     string s;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "s").WithArguments("myProblemStruct.s"),
-                // (10,11): warning CS0169: The field 'myProblemStruct.f' is never used
-                //     float f;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "f").WithArguments("myProblemStruct.f"),
-                // (15,9): warning CS0169: The field 'myGoodStruct.i' is never used
-                //     int i;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("myGoodStruct.i"),
-                // (16,11): warning CS0169: The field 'myGoodStruct.f' is never used
-                //     float f;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "f").WithArguments("myGoodStruct.f"));
+                // (26,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('myClass')
+                //         myClass* s2 = &s;    // CS8500
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "myClass*").WithArguments("myClass").WithLocation(26, 9),
+                // (26,23): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('myClass')
+                //         myClass* s2 = &s;    // CS8500
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("myClass").WithLocation(26, 23),
+                // (29,17): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('myProblemStruct')
+                //         int i = sizeof(myProblemStruct); //CS8500
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "sizeof(myProblemStruct)").WithArguments("myProblemStruct").WithLocation(29, 17));
         }
 
         [Fact]
-        public void CS0208ERR_ManagedAddr02()
+        public void CS8500WRN_ManagedAddr02()
         {
-            var source =
-@"enum E { }
+            var source = @"
+#pragma warning disable CS0169 // unused field
+enum E { }
 delegate void D();
 struct S { }
 interface I { }
@@ -8181,28 +8170,26 @@ unsafe class C
     I* i;
     C* c;
 }";
-            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll)
-                .GetDiagnostics()
-                .Where(d => d.Severity == DiagnosticSeverity.Error)
-                .Verify(
-                    // (22,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
-                    //     string* _string;
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "_string").WithArguments("string").WithLocation(22, 13),
-                    // (27,14): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
-                    //     dynamic* _dynamic;
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "_dynamic").WithArguments("dynamic").WithLocation(27, 14),
-                    // (29,8): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('D')
-                    //     D* d;
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "d").WithArguments("D").WithLocation(29, 8),
-                    // (31,8): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('I')
-                    //     I* i;
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "i").WithArguments("I").WithLocation(31, 8),
-                    // (32,8): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
-                    //     C* c;
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "c").WithArguments("C").WithLocation(32, 8),
-                    // (7,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('object')
-                    //     object* _object;
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "_object").WithArguments("object").WithLocation(7, 13));
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (9,13): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('object')
+                //     object* _object;
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "_object").WithArguments("object").WithLocation(9, 13),
+                // (24,13): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+                //     string* _string;
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "_string").WithArguments("string").WithLocation(24, 13),
+                // (29,14): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('dynamic')
+                //     dynamic* _dynamic;
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "_dynamic").WithArguments("dynamic").WithLocation(29, 14),
+                // (31,8): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('D')
+                //     D* d;
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "d").WithArguments("D").WithLocation(31, 8),
+                // (33,8): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('I')
+                //     I* i;
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "i").WithArguments("I").WithLocation(33, 8),
+                // (34,8): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                //     C* c;
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "c").WithArguments("C").WithLocation(34, 8)
+                );
         }
 
         [Fact]
@@ -22869,13 +22856,13 @@ public class Program
                 // (17,47): error CS1510: A ref or out argument must be an assignable variable
                 //         var z5 = new Func<string, string>(ref Goo<string>(x => x));
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Goo<string>(x => x)").WithLocation(17, 47),
-                // (18,43): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (18,43): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         var z6 = new Func<string, string>(ref BarP); 
                 Diagnostic(ErrorCode.ERR_RefProperty, "ref BarP").WithLocation(18, 43),
                 // (19,47): error CS1510: A ref or out argument must be an assignable variable
                 //         var z7 = new Func<string, string>(ref new Func<string, string>(x => x));
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new Func<string, string>(x => x)").WithLocation(19, 47),
-                // (20,43): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (20,43): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         var z8 = new Func<string, string>(ref Program.BarP); 
                 Diagnostic(ErrorCode.ERR_RefProperty, "ref Program.BarP").WithLocation(20, 43),
                 // (21,47): error CS1510: A ref or out argument must be an assignable variable
@@ -22902,13 +22889,13 @@ public class Program
                 // (17,47): error CS1510: A ref or out argument must be an assignable variable
                 //         var z5 = new Func<string, string>(ref Goo<string>(x => x));
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Goo<string>(x => x)").WithLocation(17, 47),
-                // (18,47): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (18,47): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         var z6 = new Func<string, string>(ref BarP); 
                 Diagnostic(ErrorCode.ERR_RefProperty, "BarP").WithLocation(18, 47),
                 // (19,47): error CS1510: A ref or out argument must be an assignable variable
                 //         var z7 = new Func<string, string>(ref new Func<string, string>(x => x));
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new Func<string, string>(x => x)").WithLocation(19, 47),
-                // (20,47): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (20,47): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         var z8 = new Func<string, string>(ref Program.BarP); 
                 Diagnostic(ErrorCode.ERR_RefProperty, "Program.BarP").WithLocation(20, 47),
                 // (21,47): error CS1510: A ref or out argument must be an assignable variable
@@ -23020,7 +23007,7 @@ public class Program
                 // (10,46): error CS0149: Method name expected
                 //         var c = new Func<string, string>(ref Baz, ref Baz.Invoke);
                 Diagnostic(ErrorCode.ERR_MethodNameExpected, "Baz, ref Baz.Invoke").WithLocation(10, 46),
-                // (11,42): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (11,42): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         var d = new Func<string, string>(ref BarP, BarP.Invoke);
                 Diagnostic(ErrorCode.ERR_RefProperty, "ref BarP").WithLocation(11, 42),
                 // (11,46): error CS0149: Method name expected
@@ -23029,7 +23016,7 @@ public class Program
                 // (12,42): error CS0149: Method name expected
                 //         var e = new Func<string, string>(BarP, ref BarP.Invoke);
                 Diagnostic(ErrorCode.ERR_MethodNameExpected, "BarP, ref BarP.Invoke").WithLocation(12, 42),
-                // (13,42): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (13,42): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         var f = new Func<string, string>(ref BarP, ref BarP.Invoke);
                 Diagnostic(ErrorCode.ERR_RefProperty, "ref BarP").WithLocation(13, 42),
                 // (13,46): error CS0149: Method name expected

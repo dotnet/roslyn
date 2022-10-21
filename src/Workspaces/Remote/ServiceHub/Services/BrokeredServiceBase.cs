@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -146,6 +146,21 @@ namespace Microsoft.CodeAnalysis.Remote
                 }, cancellationToken);
         }
 
+        protected ValueTask RunServiceAsync(
+            Checksum solutionChecksum1,
+            Checksum solutionChecksum2,
+            Func<Solution, Solution, ValueTask> implementation,
+            CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(
+                solutionChecksum1,
+                s1 => RunServiceAsync(
+                    solutionChecksum2,
+                    s2 => implementation(s1, s2),
+                    cancellationToken),
+                cancellationToken);
+        }
+
         internal static async ValueTask RunServiceImplAsync(Func<CancellationToken, ValueTask> implementation, CancellationToken cancellationToken)
         {
             try
@@ -154,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

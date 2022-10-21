@@ -75,6 +75,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private readonly Func<string, bool>? _shouldIncludeDiagnostic;
             private readonly bool _includeCompilerDiagnostics;
             private readonly Func<string, IDisposable?>? _addOperationScope;
+            private readonly bool _cacheFullDocumentDiagnostics;
 
             private delegate Task<IEnumerable<DiagnosticData>> DiagnosticsGetterAsync(DiagnosticAnalyzer analyzer, DocumentAnalysisExecutor executor, CancellationToken cancellationToken);
 
@@ -96,11 +97,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 var ideOptions = owner.AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(document.Project);
 
+                // We want to cache computed full document diagnostics in LatestDiagnosticsForSpanGetter
+                // only in LSP pull diagnostics mode. In LSP push diagnostics mode,
+                // the background analysis from solution crawler handles caching these diagnostics and
+                // updating the error list simultaneously.
+                var cacheFullDocumentDiagnostics = owner.AnalyzerService.GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+
                 var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, ideOptions, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                 return new LatestDiagnosticsForSpanGetter(
                     owner, compilationWithAnalyzers, document, text, stateSets, shouldIncludeDiagnostic, includeCompilerDiagnostics,
-                    range, blockForData, addOperationScope, includeSuppressedDiagnostics, priority);
+                    range, blockForData, addOperationScope, includeSuppressedDiagnostics, priority, cacheFullDocumentDiagnostics);
             }
 
             private static async Task<CompilationWithAnalyzers?> GetOrCreateCompilationWithAnalyzersAsync(
@@ -141,7 +148,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 bool blockForData,
                 Func<string, IDisposable?>? addOperationScope,
                 bool includeSuppressedDiagnostics,
-                CodeActionRequestPriority priority)
+                CodeActionRequestPriority priority,
+                bool cacheFullDocumentDiagnostics)
             {
                 _owner = owner;
                 _compilationWithAnalyzers = compilationWithAnalyzers;
@@ -155,6 +163,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _addOperationScope = addOperationScope;
                 _includeSuppressedDiagnostics = includeSuppressedDiagnostics;
                 _priority = priority;
+                _cacheFullDocumentDiagnostics = cacheFullDocumentDiagnostics;
             }
 
             public async Task<bool> TryGetAsync(ArrayBuilder<DiagnosticData> list, CancellationToken cancellationToken)
@@ -202,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 // Local functions
@@ -320,8 +329,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var diagnostics = diagnosticsMap[stateSet.Analyzer];
                     builder.AddRange(diagnostics.Where(ShouldInclude));
 
-                    // Cache the computed diagnostics if they were computed for the entire document.
-                    if (!span.HasValue)
+                    // Save the computed diagnostics if caching is enabled and diagnostics were computed for the entire document.
+                    if (_cacheFullDocumentDiagnostics && !span.HasValue)
                     {
                         var state = stateSet.GetOrCreateActiveFileState(_document.Id);
                         var data = new DocumentAnalysisData(version, diagnostics);

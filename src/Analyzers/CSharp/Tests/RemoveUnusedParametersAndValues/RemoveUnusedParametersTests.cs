@@ -1430,6 +1430,38 @@ public partial class C
 ");
         }
 
+        [WorkItem(57814, "https://github.com/dotnet/roslyn/issues/57814")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task UnusedParameterInPartialMethodImplementation_NoDiagnostic()
+        {
+            await TestDiagnosticMissingAsync(
+@"
+public partial class C
+{
+    public partial void M(int x);
+}
+
+public partial class C
+{
+    public partial void M(int [|x|])
+    {
+    }
+}  
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task ParameterInPartialMethodDefinition_NoDiagnostic()
+        {
+            await TestDiagnosticMissingAsync(
+@"
+public partial class C
+{
+    public partial void M(int [|x|]);
+}
+");
+        }
+
         [Fact, WorkItem(36817, "https://github.com/dotnet/roslyn/issues/36817")]
         public async Task ParameterWithoutName_NoDiagnostic()
         {

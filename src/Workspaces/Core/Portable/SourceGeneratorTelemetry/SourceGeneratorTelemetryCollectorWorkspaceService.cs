@@ -3,8 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
@@ -14,15 +17,20 @@ namespace Microsoft.CodeAnalysis.SourceGeneratorTelemetry
     {
         private sealed record GeneratorTelemetryKey
         {
-            public GeneratorTelemetryKey(ISourceGenerator generator)
+            [SetsRequiredMembers]
+            public GeneratorTelemetryKey(ISourceGenerator generator, AnalyzerReference analyzerReference)
             {
-                Identity = new SourceGeneratorIdentity(generator);
-                FileVersion = FileVersionInfo.GetVersionInfo(generator.GetGeneratorType().Assembly.Location).FileVersion ?? "(null)";
+                Identity = new SourceGeneratorIdentity(generator, analyzerReference);
+                FileVersion = "(null)";
+
+                if (Identity.AssemblyPath != null)
+                {
+                    FileVersion = FileVersionInfo.GetVersionInfo(Identity.AssemblyPath).FileVersion;
+                }
             }
 
-            // TODO: mark these 'required' when we have the attributes in place
-            public SourceGeneratorIdentity Identity { get; }
-            public string FileVersion { get; }
+            public required SourceGeneratorIdentity Identity { get; init; }
+            public required string FileVersion { get; init; }
         }
 
         /// <summary>
@@ -34,19 +42,19 @@ namespace Microsoft.CodeAnalysis.SourceGeneratorTelemetry
         private readonly StatisticLogAggregator<GeneratorTelemetryKey> _elapsedTimeByGenerator = new();
         private readonly StatisticLogAggregator<GeneratorTelemetryKey> _producedFilesByGenerator = new();
 
-        private GeneratorTelemetryKey GetTelemetryKey(ISourceGenerator generator)
-            => _generatorTelemetryKeys.GetValue(generator, static g => new GeneratorTelemetryKey(g));
+        private GeneratorTelemetryKey GetTelemetryKey(ISourceGenerator generator, ProjectState project)
+            => _generatorTelemetryKeys.GetValue(generator, g => new GeneratorTelemetryKey(g, project.GetAnalyzerReferenceForGenerator(g)));
 
-        public void CollectRunResult(GeneratorDriverRunResult driverRunResult, GeneratorDriverTimingInfo driverTimingInfo)
+        public void CollectRunResult(GeneratorDriverRunResult driverRunResult, GeneratorDriverTimingInfo driverTimingInfo, ProjectState project)
         {
             foreach (var generatorTime in driverTimingInfo.GeneratorTimes)
             {
-                _elapsedTimeByGenerator.AddDataPoint(GetTelemetryKey(generatorTime.Generator), generatorTime.ElapsedTime);
+                _elapsedTimeByGenerator.AddDataPoint(GetTelemetryKey(generatorTime.Generator, project), generatorTime.ElapsedTime);
             }
 
             foreach (var generatorResult in driverRunResult.Results)
             {
-                _producedFilesByGenerator.AddDataPoint(GetTelemetryKey(generatorResult.Generator), generatorResult.GeneratedSources.Length);
+                _producedFilesByGenerator.AddDataPoint(GetTelemetryKey(generatorResult.Generator, project), generatorResult.GeneratedSources.Length);
             }
         }
 
@@ -64,10 +72,10 @@ namespace Microsoft.CodeAnalysis.SourceGeneratorTelemetry
                     map[nameof(telemetryKey.FileVersion)] = telemetryKey.FileVersion;
 
                     var result = elapsedTimeCounter.GetStatisticResult();
-                    result.WriteTelemetryPropertiesTo(map, prefix: "ElapsedTimePerRun.");
+                    result.WriteTelemetryPropertiesTo(map, prefix: "ElapsedTimePerRun");
 
                     var producedFileCount = _producedFilesByGenerator.GetStatisticResult(telemetryKey);
-                    producedFileCount.WriteTelemetryPropertiesTo(map, prefix: "GeneratedFileCountPerRun.");
+                    producedFileCount.WriteTelemetryPropertiesTo(map, prefix: "GeneratedFileCountPerRun");
                 }));
             }
         }

@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
             var worker = new Worker(this, services, project, semanticModel, textSpan, options, result, cancellationToken);
-            worker.Recurse(root);
+            worker.VisitTokens(root);
         }
 
         private readonly ref struct Worker
@@ -85,20 +85,27 @@ namespace Microsoft.CodeAnalysis.Classification
                 _cancellationToken = cancellationToken;
             }
 
-            public void Recurse(SyntaxNode node)
+            public void VisitTokens(SyntaxNode node)
             {
-                _cancellationToken.ThrowIfCancellationRequested();
-                if (node.Span.IntersectsWith(_textSpan))
+                using var pooledStack = SharedPools.Default<Stack<SyntaxNodeOrToken>>().GetPooledObject();
+                var stack = pooledStack.Object;
+                stack.Push(node);
+                while (stack.Count > 0)
                 {
-                    foreach (var child in node.ChildNodesAndTokens())
+                    _cancellationToken.ThrowIfCancellationRequested();
+                    var currentNodeOrToken = stack.Pop();
+                    if (currentNodeOrToken.Span.IntersectsWith(_textSpan))
                     {
-                        if (child.IsNode)
+                        if (currentNodeOrToken.IsNode)
                         {
-                            Recurse(child.AsNode()!);
+                            foreach (var child in currentNodeOrToken.ChildNodesAndTokens().Reverse())
+                            {
+                                stack.Push(child);
+                            }
                         }
                         else
                         {
-                            ProcessToken(child.AsToken());
+                            ProcessToken(currentNodeOrToken.AsToken());
                         }
                     }
                 }
@@ -148,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Classification
             private void ProcessTrivia(SyntaxTrivia trivia)
             {
                 if (trivia.HasStructure && trivia.FullSpan.IntersectsWith(_textSpan))
-                    Recurse(trivia.GetStructure()!);
+                    VisitTokens(trivia.GetStructure()!);
             }
         }
     }

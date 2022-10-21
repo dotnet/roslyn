@@ -5,54 +5,82 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
-{
-    /// <summary>
-    /// Computes and caches <see cref="SymbolTreeInfo"/> indices for the source symbols in <see cref="Project"/>s and
-    /// for metadata symbols in <see cref="PortableExecutableReference"/>s.
-    /// </summary>
-    [ExportWorkspaceService(typeof(SymbolTreeInfoCacheService)), Shared]
-    internal sealed partial class SymbolTreeInfoCacheService : IWorkspaceService
-    {
-        private readonly ConcurrentDictionary<ProjectId, SymbolTreeInfo> _projectIdToInfo = new();
-        private readonly ConcurrentDictionary<MetadataId, MetadataInfo> _metadataIdToInfo = new();
+namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SymbolTreeInfoCacheService()
-        {
-        }
+internal sealed partial class SymbolTreeInfoCacheServiceFactory
+{
+    internal sealed partial class SymbolTreeInfoCacheService : ISymbolTreeInfoCacheService, IDisposable
+    {
+        /// <summary>
+        /// Same value as SolutionCrawlerTimeSpan.EntireProjectWorkerBackOff
+        /// </summary>
+        private static readonly TimeSpan EntireProjectWorkerBackOff = TimeSpan.FromMilliseconds(5000);
+
+        private static readonly TaskScheduler s_exclusiveScheduler = new ConcurrentExclusiveSchedulerPair().ExclusiveScheduler;
+
+        private readonly ConcurrentDictionary<ProjectId, (VersionStamp semanticVersion, SymbolTreeInfo info)> _projectIdToInfo = new();
+        private readonly ConcurrentDictionary<PortableExecutableReference, MetadataInfo> _peReferenceToInfo = new();
+
+        private readonly CancellationTokenSource _tokenSource = new();
+
+        private readonly Workspace _workspace;
+        private readonly AsyncBatchingWorkQueue<ProjectId> _workQueue;
 
         /// <summary>
-        /// Gets the latest computed <see cref="SymbolTreeInfo"/> for the requested <paramref name="reference"/>.  This
-        /// may return an index corresponding to a prior version of the refernce if it has since changed.  Another
-        /// system is responsible for bringing these indices up to date in the background.
+        /// Scheduler to run our tasks on.  If we're in the remote host , we'll run all our tasks concurrently.
+        /// Otherwise, we will run them serially using <see cref="s_exclusiveScheduler"/>
+        /// </summary>
+        private readonly TaskScheduler _scheduler;
+
+        public SymbolTreeInfoCacheService(Workspace workspace, IAsynchronousOperationListener listener)
+        {
+            _workspace = workspace;
+            _workQueue = new AsyncBatchingWorkQueue<ProjectId>(
+                EntireProjectWorkerBackOff,
+                ProcessProjectsAsync,
+                EqualityComparer<ProjectId>.Default,
+                listener,
+                _tokenSource.Token);
+
+            _scheduler = workspace.Kind == WorkspaceKind.RemoteWorkspace ? TaskScheduler.Default : s_exclusiveScheduler;
+        }
+
+        void IDisposable.Dispose()
+            => _tokenSource.Cancel();
+
+        private Task CreateWorkAsync(Func<Task> createWorkAsync, CancellationToken cancellationToken)
+            => Task.Factory.StartNew(createWorkAsync, cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap();
+
+        /// <summary>
+        /// Gets the latest computed <see cref="SymbolTreeInfo"/> for the requested <paramref name="reference"/>.
+        /// This may return an index corresponding to a prior version of the reference if it has since changed.
+        /// Another system is responsible for bringing these indices up to date in the background.
         /// </summary>
         public async ValueTask<SymbolTreeInfo?> TryGetPotentiallyStaleMetadataSymbolTreeInfoAsync(
-            Solution solution,
+            Project project,
             PortableExecutableReference reference,
             CancellationToken cancellationToken)
         {
-            var metadataId = SymbolTreeInfo.GetMetadataIdNoThrow(reference);
-            if (metadataId == null)
+            if (!project.SupportsCompilation)
                 return null;
 
+            // Kick off the work to update the data we have for this project.
+            _workQueue.AddWork(project.Id);
+
             // See if the last value produced exactly matches what the caller is asking for.  If so, return that.
-            if (_metadataIdToInfo.TryGetValue(metadataId, out var metadataInfo))
+            if (_peReferenceToInfo.TryGetValue(reference, out var metadataInfo))
                 return metadataInfo.SymbolTreeInfo;
 
             // If we didn't have it in our cache, see if we can load it from disk.
+            var solution = project.Solution;
             var info = await SymbolTreeInfo.LoadAnyInfoForMetadataReferenceAsync(solution, reference, cancellationToken).ConfigureAwait(false);
             if (info is null)
                 return null;
@@ -60,145 +88,127 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
             var referencingProjects = new HashSet<ProjectId>(solution.Projects.Where(p => p.MetadataReferences.Contains(reference)).Select(p => p.Id));
 
             // attempt to add this item to the map.  But defer to whatever is in the map now if something else beat us to this.
-            return _metadataIdToInfo.GetOrAdd(metadataId, new MetadataInfo(info, referencingProjects)).SymbolTreeInfo;
+            return _peReferenceToInfo.GetOrAdd(reference, new MetadataInfo(info, referencingProjects)).SymbolTreeInfo;
         }
 
-        public async Task<SymbolTreeInfo?> TryGetPotentiallyStaleSourceSymbolTreeInfoAsync(
+        public async ValueTask<SymbolTreeInfo?> TryGetPotentiallyStaleSourceSymbolTreeInfoAsync(
             Project project, CancellationToken cancellationToken)
         {
+            if (!project.SupportsCompilation)
+                return null;
+
+            // Kick off the work to update the data we have for this project.
+            _workQueue.AddWork(project.Id);
+
             // See if the last value produced exactly matches what the caller is asking for.  If so, return that.
             if (_projectIdToInfo.TryGetValue(project.Id, out var projectInfo))
-                return projectInfo;
+                return projectInfo.info;
 
             // If we didn't have it in our cache, see if we can load some version of it from disk.
             var info = await SymbolTreeInfo.LoadAnyInfoForSourceAssemblyAsync(project, cancellationToken).ConfigureAwait(false);
             if (info is null)
                 return null;
 
-            // attempt to add this item to the map.  But defer to whatever is in the map now if something else beat us to this.
-            return _projectIdToInfo.GetOrAdd(project.Id, info);
+            // attempt to add this item to the map.  But defer to whatever is in the map now if something else beat
+            // us to this.  Don't provide a version here so that the next time we update this data it will get
+            // overwritten with the latest computed data.
+            return _projectIdToInfo.GetOrAdd(project.Id, (semanticVersion: default, info)).info;
         }
 
-        public async Task AnalyzeDocumentAsync(Document document, bool isMethodBodyEdit, CancellationToken cancellationToken)
+        private async ValueTask ProcessProjectsAsync(
+            ImmutableSegmentedList<ProjectId> projectIds, CancellationToken cancellationToken)
         {
-            if (!document.Project.SupportsCompilation)
-                return;
+            var solution = _workspace.CurrentSolution;
 
-            // This was a method body edit.  We can reuse the existing SymbolTreeInfo if we have one.  We can't just
-            // bail out here as the change in the document means we'll have a new checksum.  We need to get that new
-            // checksum so that our cached information is valid.
-            if (isMethodBodyEdit &&
-                _projectIdToInfo.TryGetValue(document.Project.Id, out var cachedInfo))
+            foreach (var projectId in projectIds)
             {
-                var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(
-                    document.Project, cancellationToken).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
 
-                var newInfo = cachedInfo.WithChecksum(checksum);
-                _projectIdToInfo[document.Project.Id] = newInfo;
-                return;
+                var project = solution.GetProject(projectId);
+                if (project is not { SupportsCompilation: true })
+                    continue;
+
+                // NOTE: currently we process projects serially.  This is because the same metadata reference might be
+                // found in multiple projects and we can't currently process that in parallel.
+                await AnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
             }
 
-            await AnalyzeProjectAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            // Now that we've produced all the indices for the projects asked for, also remove any indices for projects
+            // no longer in the solution.
+            var removedProjectIds = _projectIdToInfo.Keys.Except(solution.ProjectIds).ToArray();
+            foreach (var projectId in removedProjectIds)
+                this.RemoveProject(projectId);
         }
 
-        public async Task AnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
+        private async Task AnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
         {
-            if (!project.SupportsCompilation)
-                return;
-
-            // Produce the indices for the source and metadata symbols in parallel.
             using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
 
-            tasks.Add(Task.Run(() => this.UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), cancellationToken));
-            tasks.Add(Task.Run(() => this.UpdateReferencesAsync(project, cancellationToken), cancellationToken));
+            // We can compute source-symbols in parallel with the metadata symbols.
+            tasks.Add(CreateWorkAsync(() => this.UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), cancellationToken));
+
+            // Add tasks to update the symboltree for all metadata references.  As these are all distinct, they can run
+            // in parallel as we won't be trying to update the associated data for the same reference at the same time.
+            foreach (var reference in project.MetadataReferences.OfType<PortableExecutableReference>().Distinct())
+                tasks.Add(CreateWorkAsync(() => UpdateReferenceAsync(project, reference, cancellationToken), cancellationToken));
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
         private async Task UpdateSourceSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
         {
-            var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+            // Find the top-level-semantic-version of this project.  We only want to recompute if it has changed. This is
+            // because the symboltree contains the names of the types/namespaces in the project and would not change
+            // if the semantic-version of the project hasn't changed.  We also do not need to check the 'dependent
+            // version'.  As this is just tracking parent/child relationships of namespace/type names for the source
+            // types in this project, this cannot change based on what happens in other projects.
+            var semanticVersion = await project.GetSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
+
             if (!_projectIdToInfo.TryGetValue(project.Id, out var projectInfo) ||
-                projectInfo.Checksum != checksum)
+                projectInfo.semanticVersion != semanticVersion)
             {
-                projectInfo = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(
-                    project, cancellationToken).ConfigureAwait(false);
-
-                Contract.ThrowIfNull(projectInfo);
-                Contract.ThrowIfTrue(projectInfo.Checksum != checksum, "If we computed a SymbolTreeInfo, then its checksum much match our checksum.");
-
-                // Mark that we're up to date with this project.  Future calls with the same 
-                // semantic version can bail out immediately.
-                _projectIdToInfo[project.Id] = projectInfo;
-            }
-        }
-
-        private async Task UpdateReferencesAsync(Project project, CancellationToken cancellationToken)
-        {
-            // Process all metadata references. If it remote workspace, do this in parallel.
-            using var pendingTasks = new TemporaryArray<Task>();
-
-            foreach (var reference in project.MetadataReferences)
-            {
-                if (reference is not PortableExecutableReference portableExecutableReference)
-                    continue;
-
-                if (cancellationToken.IsCancellationRequested)
+                // If the checksum is the same (which can happen if we loaded the previous index from disk), then no
+                // need to recompute.
+                var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+                if (projectInfo.info?.Checksum != checksum)
                 {
-                    // Break out of this loop to make sure other pending operations process cancellation before
-                    // returning.
-                    break;
-                }
-
-                var updateTask = UpdateReferenceAsync(_metadataIdToInfo, project, portableExecutableReference, cancellationToken);
-                if (updateTask.Status != TaskStatus.RanToCompletion)
-                    pendingTasks.Add(updateTask);
-            }
-
-            if (pendingTasks.Count > 0)
-            {
-                // If any update operations did not complete synchronously (including any cancelled operations),
-                // wait for them to complete now.
-                await Task.WhenAll(pendingTasks.ToImmutableAndClear()).ConfigureAwait(false);
-            }
-
-            // ⚠ This local function must be 'async' to ensure exceptions are captured in the resulting task and
-            // not thrown directly to the caller.
-            static async Task UpdateReferenceAsync(
-                ConcurrentDictionary<MetadataId, MetadataInfo> metadataIdToInfo,
-                Project project,
-                PortableExecutableReference reference,
-                CancellationToken cancellationToken)
-            {
-                var metadataId = SymbolTreeInfo.GetMetadataIdNoThrow(reference);
-                if (metadataId == null)
-                    return;
-
-                // 🐉 PERF: GetMetadataChecksum indirectly uses a ConditionalWeakTable. This call is intentionally
-                // placed before the first 'await' of this asynchronous method to ensure it executes in the
-                // synchronous portion of the caller. https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1270250
-                var checksum = SymbolTreeInfo.GetMetadataChecksum(project.Solution.Services, reference, cancellationToken);
-                if (!metadataIdToInfo.TryGetValue(metadataId, out var metadataInfo) ||
-                    metadataInfo.SymbolTreeInfo.Checksum != checksum)
-                {
-                    var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
-                        project.Solution, reference, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    // Otherwise, looks like things changed.  Compute and persist the latest index.
+                    var info = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(
+                        project, checksum, cancellationToken).ConfigureAwait(false);
 
                     Contract.ThrowIfNull(info);
                     Contract.ThrowIfTrue(info.Checksum != checksum, "If we computed a SymbolTreeInfo, then its checksum much match our checksum.");
 
-                    // Note, getting the info may fail (for example, bogus metadata).  That's ok.  
-                    // We still want to cache that result so that don't try to continuously produce
-                    // this info over and over again.
-                    metadataInfo = new MetadataInfo(info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
-                    metadataIdToInfo[metadataId] = metadataInfo;
+                    // Mark that we're up to date with this project.  Future calls with the same semantic-version or
+                    // checksum can bail out immediately.
+                    _projectIdToInfo[project.Id] = (semanticVersion, info);
                 }
+            }
+        }
 
-                // Keep track that this dll is referenced by this project.
-                lock (metadataInfo.ReferencingProjects)
-                {
-                    metadataInfo.ReferencingProjects.Add(project.Id);
-                }
+        private async Task UpdateReferenceAsync(
+            Project project,
+            PortableExecutableReference reference,
+            CancellationToken cancellationToken)
+        {
+            var checksum = SymbolTreeInfo.GetMetadataChecksum(project.Solution.Services, reference, cancellationToken);
+            if (!_peReferenceToInfo.TryGetValue(reference, out var metadataInfo) ||
+                metadataInfo.SymbolTreeInfo.Checksum != checksum)
+            {
+                var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
+                    project.Solution, reference, checksum, cancellationToken).ConfigureAwait(false);
+
+                Contract.ThrowIfNull(info);
+                Contract.ThrowIfTrue(info.Checksum != checksum, "If we computed a SymbolTreeInfo, then its checksum much match our checksum.");
+
+                metadataInfo = new MetadataInfo(info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
+                _peReferenceToInfo[reference] = metadataInfo;
+            }
+
+            // Keep track that this dll is referenced by this project.
+            lock (metadataInfo.ReferencingProjects)
+            {
+                metadataInfo.ReferencingProjects.Add(project.Id);
             }
         }
 
@@ -210,7 +220,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
 
         private void RemoveMetadataReferences(ProjectId projectId)
         {
-            foreach (var (id, info) in _metadataIdToInfo.ToArray())
+            foreach (var (reference, info) in _peReferenceToInfo.ToArray())
             {
                 lock (info.ReferencingProjects)
                 {
@@ -218,8 +228,29 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
 
                     // If this metadata dll isn't referenced by any project.  We can just dump it.
                     if (info.ReferencingProjects.Count == 0)
-                        _metadataIdToInfo.TryRemove(id, out _);
+                        _peReferenceToInfo.TryRemove(reference, out _);
                 }
+            }
+        }
+
+        public TestAccessor GetTestAccessor()
+            => new(this);
+
+        public struct TestAccessor
+        {
+            private readonly SymbolTreeInfoCacheService _services;
+
+            public TestAccessor(SymbolTreeInfoCacheService service)
+            {
+                _services = service;
+            }
+
+            public Task AnalyzeSolutionAsync()
+            {
+                foreach (var projectId in _services._workspace.CurrentSolution.ProjectIds)
+                    _services._workQueue.AddWork(projectId);
+
+                return _services._workQueue.WaitUntilCurrentBatchCompletesAsync();
             }
         }
     }

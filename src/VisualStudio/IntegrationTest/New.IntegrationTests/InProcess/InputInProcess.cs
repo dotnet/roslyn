@@ -20,7 +20,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
     [TestService]
     internal partial class InputInProcess
     {
-        internal Task SendAsync(params InputKey[] keys)
+        internal Task SendAsync(InputKey key, CancellationToken cancellationToken)
+            => SendAsync(new InputKey[] { key }, cancellationToken);
+
+        internal Task SendAsync(InputKey[] keys, CancellationToken cancellationToken)
         {
             return SendAsync(
                 simulator =>
@@ -29,28 +32,31 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                     {
                         key.Apply(simulator);
                     }
-                });
+                }, cancellationToken);
         }
 
-        internal async Task SendAsync(Action<IInputSimulator> callback)
+        internal async Task SendAsync(Action<IInputSimulator> callback, CancellationToken cancellationToken)
         {
             // AbstractSendKeys runs synchronously, so switch to a background thread before the call
             await TaskScheduler.Default;
 
             TestServices.JoinableTaskFactory.Run(async () =>
             {
-                await TestServices.Editor.ActivateAsync(CancellationToken.None);
+                await TestServices.Editor.ActivateAsync(cancellationToken);
             });
 
             callback(new InputSimulator());
 
             TestServices.JoinableTaskFactory.Run(async () =>
             {
-                await WaitForApplicationIdleAsync(CancellationToken.None);
+                await WaitForApplicationIdleAsync(cancellationToken);
             });
         }
 
-        internal Task SendWithoutActivateAsync(params InputKey[] keys)
+        internal Task SendWithoutActivateAsync(InputKey key, CancellationToken cancellationToken)
+            => SendWithoutActivateAsync(new[] { key }, cancellationToken);
+
+        internal Task SendWithoutActivateAsync(InputKey[] keys, CancellationToken cancellationToken)
         {
             return SendWithoutActivateAsync(
                 simulator =>
@@ -59,10 +65,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                     {
                         key.Apply(simulator);
                     }
-                });
+                }, cancellationToken);
         }
 
-        internal async Task SendWithoutActivateAsync(Action<IInputSimulator> callback)
+        internal async Task SendWithoutActivateAsync(Action<IInputSimulator> callback, CancellationToken cancellationToken)
         {
             // AbstractSendKeys runs synchronously, so switch to a background thread before the call
             await TaskScheduler.Default;
@@ -71,23 +77,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
             TestServices.JoinableTaskFactory.Run(async () =>
             {
-                await WaitForApplicationIdleAsync(CancellationToken.None);
+                await WaitForApplicationIdleAsync(cancellationToken);
             });
         }
 
-        internal Task SendToNavigateToAsync(params InputKey[] keys)
-        {
-            return SendToNavigateToAsync(
-                simulator =>
-                {
-                    foreach (var key in keys)
-                    {
-                        key.Apply(simulator);
-                    }
-                });
-        }
-
-        internal async Task SendToNavigateToAsync(Action<IInputSimulator> callback)
+        internal async Task SendToNavigateToAsync(params InputKey[] keys)
         {
             // AbstractSendKeys runs synchronously, so switch to a background thread before the call
             await TaskScheduler.Default;
@@ -96,11 +90,22 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             TestServices.JoinableTaskFactory.Run(async () =>
             {
                 await TestServices.JoinableTaskFactory.SwitchToMainThreadAsync();
-                var searchBox = Assert.IsAssignableFrom<TextBox>(Keyboard.FocusedElement);
-                Assert.Equal("PART_SearchBox", searchBox.Name);
+                var searchBox = Assert.IsAssignableFrom<Control>(Keyboard.FocusedElement);
+                // Validate the focused control against the "old" search experience as well as the 
+                // all-in-one search experience.
+                Assert.Contains(searchBox.Name, new[] { "PART_SearchBox", "SearchBoxControl" });
             });
 
-            callback(new InputSimulator());
+            var inputSimulator = new InputSimulator();
+            foreach (var key in keys)
+            {
+                key.Apply(inputSimulator);
+
+                // Since the all-in-one search experience populates its results asychronously we need
+                // to give it time to update prior to applying the next InputKey otherwise we may apply
+                // a Return key meant to select an item before it is in the result set.
+                await Task.Delay(1000);
+            }
 
             TestServices.JoinableTaskFactory.Run(async () =>
             {
@@ -108,13 +113,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             });
         }
 
-        internal async Task MoveMouseAsync(Point point)
+        internal async Task MoveMouseAsync(Point point, CancellationToken cancellationToken)
         {
             var horizontalResolution = NativeMethods.GetSystemMetrics(NativeMethods.SM_CXSCREEN);
             var verticalResolution = NativeMethods.GetSystemMetrics(NativeMethods.SM_CYSCREEN);
             var virtualPoint = new ScaleTransform(65535.0 / horizontalResolution, 65535.0 / verticalResolution).Transform(point);
 
-            await SendAsync(simulator => simulator.Mouse.MoveMouseTo(virtualPoint.X, virtualPoint.Y));
+            await SendAsync(simulator => simulator.Mouse.MoveMouseTo(virtualPoint.X, virtualPoint.Y), cancellationToken);
 
             // ⚠ The call to GetCursorPos is required for correct behavior.
             var actualPoint = NativeMethods.GetCursorPos();

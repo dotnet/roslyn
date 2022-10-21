@@ -100,6 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int? OrPattern => (int)SyntaxKind.OrPattern;
         public int? ParenthesizedPattern => (int)SyntaxKind.ParenthesizedPattern;
         public int? RecursivePattern => (int)SyntaxKind.RecursivePattern;
+        public int? RelationalPattern => (int)SyntaxKind.RelationalPattern;
         public int? TypePattern => (int)SyntaxKind.TypePattern;
         public int? VarPattern => (int)SyntaxKind.VarPattern;
 
@@ -124,8 +125,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
 
         public int Attribute => (int)SyntaxKind.Attribute;
         public int ClassDeclaration => (int)SyntaxKind.ClassDeclaration;
+        public int InterfaceDeclaration => (int)SyntaxKind.InterfaceDeclaration;
         public int? RecordDeclaration => (int)SyntaxKind.RecordDeclaration;
         public int? RecordStructDeclaration => (int)SyntaxKind.RecordStructDeclaration;
+        public int? StructDeclaration => (int)SyntaxKind.StructDeclaration;
         public int Parameter => (int)SyntaxKind.Parameter;
         public int TypeConstraint => (int)SyntaxKind.TypeConstraint;
         public int VariableDeclarator => (int)SyntaxKind.VariableDeclarator;

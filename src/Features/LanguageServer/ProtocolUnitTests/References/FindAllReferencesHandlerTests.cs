@@ -16,12 +16,17 @@ using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.References
 {
     public class FindAllReferencesHandlerTests : AbstractLanguageServerProtocolTests
     {
+        public FindAllReferencesHandlerTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         [WpfFact]
         public async Task TestFindAllReferencesAsync()
         {
@@ -42,7 +47,7 @@ class B
         var j = someInt + A.{|caret:|}{|reference:someInt|};
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
 
             var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
             AssertLocationsEqual(testLspServer.GetLocations("reference"), results.Select(result => result.Location));
@@ -78,7 +83,7 @@ class B
         var j = someInt + A.{|caret:|}{|reference:someInt|};
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
 
             using var progress = BufferedProgress.Create<object>(null);
 
@@ -128,7 +133,7 @@ class B
         var j = someInt + {|caret:|}{|reference:A|}.someInt;
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
 
             var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
             AssertLocationsEqual(testLspServer.GetLocations("reference"), results.Select(result => result.Location));
@@ -171,7 +176,7 @@ class B
 }"
             };
 
-            using var testLspServer = await CreateTestLspServerAsync(markups, new InitializationOptions { ClientCapabilities = CapabilitiesWithVSExtensions });
+            await using var testLspServer = await CreateTestLspServerAsync(markups, new InitializationOptions { ClientCapabilities = CapabilitiesWithVSExtensions });
 
             var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
             AssertLocationsEqual(testLspServer.GetLocations("reference"), results.Select(result => result.Location));
@@ -195,7 +200,7 @@ class B
 {
     {|caret:|}
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
 
             var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
             Assert.Empty(results);
@@ -214,7 +219,7 @@ class A
         Console.{|caret:|}{|reference:WriteLine|}(""text"");
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
 
             var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
             Assert.NotNull(results[0].Location.Uri);
@@ -236,7 +241,7 @@ class A
     }
 }
 ";
-            using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
 
             var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
 
@@ -266,7 +271,7 @@ class C
     }
 }
 ";
-            using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
 
             var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
             AssertHighlightCount(results, expectedDefinitionCount: 1, expectedWrittenReferenceCount: 1, expectedReferenceCount: 1);
@@ -278,7 +283,7 @@ class C
             var markup =
 @"static class {|caret:|}{|reference:C|} { }
 ";
-            using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
 
             var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
 

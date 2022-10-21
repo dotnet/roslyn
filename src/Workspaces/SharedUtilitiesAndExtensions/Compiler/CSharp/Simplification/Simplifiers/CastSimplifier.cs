@@ -866,7 +866,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 if (IsFieldOrArrayElement(semanticModel, assignmentExpression.Left, cancellationToken))
                     return false;
             }
-            else if (castNode.Parent.IsKind(SyntaxKind.ArrayInitializerExpression, out InitializerExpressionSyntax? arrayInitializer))
+            else if (castNode.Parent is InitializerExpressionSyntax(SyntaxKind.ArrayInitializerExpression) arrayInitializer)
             {
                 // Identity fp conversion is safe if this is in an array initializer.
                 var typeInfo = semanticModel.GetTypeInfo(arrayInitializer, cancellationToken);

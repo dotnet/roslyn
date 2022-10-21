@@ -219,19 +219,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
 
             solution = solution.AddProject(projectInfo);
 
-            var startSourceText = SourceText.From(startText);
+            var startSourceText = SourceText.From(startText, encoding: null, SourceHashAlgorithms.Default);
             var documentId = DocumentId.CreateNewId(projectId);
 
             var documentInfo = DocumentInfo.Create(
                 documentId,
                 documentName,
-                GetDocumentFolders(s_defaultDocumentPath),
-                SourceCodeKind.Regular,
-                TextLoader.From(TextAndVersion.Create(startSourceText, VersionStamp.Create(), documentName)),
-                s_defaultDocumentPath,
-                isGenerated: true,
-                designTimeOnly: false,
-                new TestDocumentServiceProvider());
+                folders: GetDocumentFolders(s_defaultDocumentPath),
+                loader: TextLoader.From(TextAndVersion.Create(startSourceText, VersionStamp.Create(), documentName)),
+                filePath: s_defaultDocumentPath,
+                isGenerated: true)
+                .WithDocumentServiceProvider(new TestDocumentServiceProvider());
 
             solution = solution.AddDocument(documentInfo);
 

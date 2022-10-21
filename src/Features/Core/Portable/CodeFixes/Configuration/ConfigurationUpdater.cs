@@ -305,19 +305,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             {
                 // Project has no solution or solution without a file path.
                 // Add analyzer config to just the current project.
-                return _project.GetOrCreateAnalyzerConfigDocument(analyzerConfigPath);
+                return GetOrCreateAnalyzerConfigDocument(_project, analyzerConfigPath);
             }
 
             // Otherwise, add analyzer config document to all applicable projects for the current project's solution.
             AnalyzerConfigDocument? analyzerConfigDocument = null;
-            var analyzerConfigDirectory = PathUtilities.GetDirectoryName(analyzerConfigPath) ?? throw ExceptionUtilities.Unreachable;
+            var analyzerConfigDirectory = PathUtilities.GetDirectoryName(analyzerConfigPath) ?? throw ExceptionUtilities.Unreachable();
             var currentSolution = _project.Solution;
             foreach (var projectId in _project.Solution.ProjectIds)
             {
                 var project = currentSolution.GetProject(projectId);
                 if (project?.FilePath?.StartsWith(analyzerConfigDirectory) == true)
                 {
-                    var addedAnalyzerConfigDocument = project.GetOrCreateAnalyzerConfigDocument(analyzerConfigPath);
+                    var addedAnalyzerConfigDocument = GetOrCreateAnalyzerConfigDocument(project, analyzerConfigPath);
                     if (addedAnalyzerConfigDocument != null)
                     {
                         analyzerConfigDocument ??= addedAnalyzerConfigDocument;
@@ -327,6 +327,24 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             }
 
             return analyzerConfigDocument;
+        }
+
+        private static AnalyzerConfigDocument? GetOrCreateAnalyzerConfigDocument(Project project, string analyzerConfigPath)
+        {
+            var existingAnalyzerConfigDocument = project.TryGetExistingAnalyzerConfigDocumentAtPath(analyzerConfigPath);
+            if (existingAnalyzerConfigDocument != null)
+            {
+                return existingAnalyzerConfigDocument;
+            }
+
+            var id = DocumentId.CreateNewId(project.Id);
+            var documentInfo = DocumentInfo.Create(
+                id,
+                name: ".editorconfig",
+                filePath: analyzerConfigPath);
+
+            var newSolution = project.Solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo));
+            return newSolution.GetProject(project.Id)?.GetAnalyzerConfigDocument(id);
         }
 
         private static ImmutableArray<(string optionName, string currentOptionValue, bool isPerLanguage)> GetCodeStyleOptionValuesForDiagnostic(
