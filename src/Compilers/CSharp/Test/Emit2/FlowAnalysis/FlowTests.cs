@@ -5691,6 +5691,30 @@ class C
         }
 
         [Fact, WorkItem(60645, "https://github.com/dotnet/roslyn/issues/60645")]
+        public void LocalMethod_AttributeArguments_GenericParameter()
+        {
+            var source = """
+                using System;
+                class A : Attribute
+                {
+                    public A(int param) { }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        [A(default(T))] void F<T>() { }
+                        F<int>();
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (10,20): error CS0246: The type or namespace name 'T' could not be found (are you missing a using directive or an assembly reference?)
+                //         [A(default(T))] void F<T>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("T").WithLocation(10, 20));
+        }
+
+        [Fact, WorkItem(60645, "https://github.com/dotnet/roslyn/issues/60645")]
         public void LocalMethod_AttributeArguments_StringInterpolation()
         {
             var source = """
