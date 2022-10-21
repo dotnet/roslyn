@@ -1686,11 +1686,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NoteWrite(parameter, value: null, read: true);
             }
 
-            if (parameter is SourceComplexParameterSymbolBase { ContainingSymbol: LocalFunctionSymbol or LambdaSymbol } sourceComplexParam &&
-                sourceComplexParam.BindParameterAttributes() is { IsDefaultOrEmpty: false } boundAttributes)
+            if (parameter is SourceComplexParameterSymbolBase { ContainingSymbol: LocalFunctionSymbol or LambdaSymbol } sourceComplexParam)
             {
                 // Mark attribute arguments as used.
-                VisitAttributes(boundAttributes);
+                VisitAttributes(sourceComplexParam.BindParameterAttributes());
             }
         }
 
@@ -1699,6 +1698,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void VisitAttributes(ImmutableArray<(CSharpAttributeData, BoundAttribute)> boundAttributes)
         {
+            if (boundAttributes.IsDefaultOrEmpty)
+            {
+                return;
+            }
+
             foreach (var (attributeData, boundAttribute) in boundAttributes)
             {
                 // Skip invalid attributes (e.g., with a non-constant argument) to avoid superfluous diagnostics.
@@ -1917,10 +1921,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (stmt is BoundLocalFunctionStatement localFunctionStatement)
                     {
                         // Mark attribute arguments as used.
-                        if (localFunctionStatement.Symbol.BindMethodAttributes() is { IsDefaultOrEmpty: false } boundAttributes)
-                        {
-                            VisitAttributes(boundAttributes);
-                        }
+                        VisitAttributes(localFunctionStatement.Symbol.BindMethodAttributes());
 
                         VisitAlways(stmt);
                     }
@@ -2147,10 +2148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.CurrentSymbol = node.Symbol;
 
             // Mark attribute arguments as used.
-            if (node.Symbol.BindMethodAttributes() is { IsDefaultOrEmpty: false } boundAttributes)
-            {
-                VisitAttributes(boundAttributes);
-            }
+            VisitAttributes(node.Symbol.BindMethodAttributes());
 
             var oldPending = SavePending(); // we do not support branches into a lambda
 
