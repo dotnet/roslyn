@@ -67,6 +67,11 @@
         <target state="translated">ソース ファイル '{0}' のコンテンツの読み取りでエラーが発生しました -- '{1}'。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Failed_to_resolve_rename_conflicts">
+        <source>Failed to resolve rename conflicts</source>
+        <target state="translated">名前変更の競合を解決できませんでした</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FixAllScope_ContainingType_and_FixAllScope_ContainingMember_are_not_supported_with_this_constructor">
         <source>'FixAllScope.ContainingType' and 'FixAllScope.ContainingMember' are not supported with this constructor</source>
         <target state="translated">'FixAllScope.ContainingType' および 'FixAllScope.ContainingMember' は、このコンストラクターではサポートされていません</target>
@@ -445,11 +450,6 @@
       <trans-unit id="Specified_path_must_be_absolute">
         <source>Specified path must be absolute.</source>
         <target state="translated">絶対パスを指定する必要があります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Name_can_be_simplified">
-        <source>Name can be simplified.</source>
-        <target state="translated">名前を簡素化できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_identifier">

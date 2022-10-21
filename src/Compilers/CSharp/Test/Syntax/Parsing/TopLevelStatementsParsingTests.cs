@@ -17,16 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         public TopLevelStatementsParsingTests(ITestOutputHelper output) : base(output) { }
 
-        private SyntaxTree UsingTree(string text, params DiagnosticDescription[] expectedErrors)
-        {
-            var tree = base.UsingTree(text);
-
-            var actualErrors = tree.GetDiagnostics();
-            actualErrors.Verify(expectedErrors);
-
-            return tree;
-        }
-
         [Fact]
         public void InsertOpenBraceBeforeCodes()
         {
@@ -932,10 +922,30 @@ class Test : Itest
             var test = @"
 partial delegate E { }
 ";
+            CreateCompilation(test).VerifyDiagnostics(
+                    // (2,18): error CS0246: The type or namespace name 'E' could not be found (are you missing a using directive or an assembly reference?)
+                    // partial delegate E { }
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "E").WithArguments("E").WithLocation(2, 18),
+                    // (2,20): error CS1001: Identifier expected
+                    // partial delegate E { }
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(2, 20),
+                    // (2,20): error CS1003: Syntax error, '(' expected
+                    // partial delegate E { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("(").WithLocation(2, 20),
+                    // (2,20): error CS1026: ) expected
+                    // partial delegate E { }
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(2, 20),
+                    // (2,20): error CS1002: ; expected
+                    // partial delegate E { }
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(2, 20),
+                    // (2,20): error CS8803: Top-level statements must precede namespace and type declarations.
+                    // partial delegate E { }
+                    Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "{ }").WithLocation(2, 20),
+                    // (2,20): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                    // partial delegate E { }
+                    Diagnostic(ErrorCode.ERR_PartialMisplaced, "").WithLocation(2, 20)
+                );
             UsingTree(test,
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                // partial delegate E { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
                 // (2,20): error CS1001: Identifier expected
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(2, 20),

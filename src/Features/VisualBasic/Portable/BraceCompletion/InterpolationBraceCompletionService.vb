@@ -28,12 +28,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.BraceCompletion
             Return IsValidOpeningBraceToken(token)
         End Function
 
-        Public Overrides Function AllowOverTypeAsync(context As BraceCompletionContext, cancellationToken As CancellationToken) As Task(Of Boolean)
-            Return AllowOverTypeWithValidClosingTokenAsync(context, cancellationToken)
+        Public Overrides Function AllowOverType(context As BraceCompletionContext, cancellationToken As CancellationToken) As Boolean
+            Return AllowOverTypeWithValidClosingToken(context)
         End Function
 
-        Public Overrides Async Function CanProvideBraceCompletionAsync(brace As Char, openingPosition As Integer, document As Document, cancellationToken As CancellationToken) As Task(Of Boolean)
-            Return OpeningBrace = brace And Await IsPositionInInterpolationContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(False)
+        Public Overrides Function CanProvideBraceCompletion(brace As Char, openingPosition As Integer, document As ParsedDocument, cancellationToken As CancellationToken) As Boolean
+            Return OpeningBrace = brace And IsPositionInInterpolationContext(document, openingPosition)
         End Function
 
         Protected Overrides Function IsValidOpeningBraceToken(token As SyntaxToken) As Boolean
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.BraceCompletion
             Return token.IsKind(SyntaxKind.CloseBraceToken)
         End Function
 
-        Public Shared Async Function IsPositionInInterpolationContextAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of Boolean)
+        Public Shared Function IsPositionInInterpolationContext(document As ParsedDocument, position As Integer) As Boolean
             If position = 0 Then
                 Return False
             End If
@@ -53,14 +53,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.BraceCompletion
             ' First, check to see if the character to the left of the position is an open curly.
             ' If it is, we shouldn't complete because the user may be trying to escape a curly.
             ' E.g. they are trying to type $"{{"
-            If (Await CouldEscapePreviousOpenBraceAsync("{"c, position, document, cancellationToken).ConfigureAwait(False)) Then
+            If CouldEscapePreviousOpenBrace("{"c, position, document.Text) Then
                 Return False
             End If
 
             ' Next, check to see if the token we're typing is part of an existing interpolated string.
             '
-            Dim root = Await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim token = root.FindTokenOnRightOfPosition(position)
+            Dim token = document.Root.FindTokenOnRightOfPosition(position)
 
             If Not token.Span.IntersectsWith(position) Then
                 Return False

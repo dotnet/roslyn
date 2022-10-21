@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return true;
         }
 
-        public async Task<ISymbol?> TryRehydrateAsync(
+        public async ValueTask<ISymbol?> TryRehydrateAsync(
             Solution solution, CancellationToken cancellationToken)
         {
             var projectId = ProjectId;
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 try
                 {
                     throw new InvalidOperationException(
-                        $"We should always be able to resolve a symbol back on the host side:\r\n{project.Name}\r\n{SymbolKeyData}\r\n{failureReason}");
+                        $"We should always be able to resolve a symbol back on the host side:\r\n'{project.Name}-{project.Language}'\r\n'{SymbolKeyData}'\r\n'{failureReason}'");
                 }
                 catch (Exception ex) when (FatalError.ReportAndCatch(ex))
                 {
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 referenceLocation.CandidateReason);
         }
 
-        public async Task<ReferenceLocation> RehydrateAsync(
+        public async ValueTask<ReferenceLocation> RehydrateAsync(
             Solution solution, CancellationToken cancellationToken)
         {
             var document = await solution.GetRequiredDocumentAsync(this.Document, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);

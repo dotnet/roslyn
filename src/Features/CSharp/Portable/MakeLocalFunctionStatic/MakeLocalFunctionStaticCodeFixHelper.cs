@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             CancellationToken cancellationToken)
         {
             var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
-            var syntaxEditor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
+            var syntaxEditor = new SyntaxEditor(root, document.Project.Solution.Services);
             await MakeLocalFunctionStaticAsync(document, localFunction, captures, syntaxEditor, fallbackOptions, cancellationToken).ConfigureAwait(false);
             return document.WithSyntaxRoot(syntaxEditor.GetChangedRoot());
         }

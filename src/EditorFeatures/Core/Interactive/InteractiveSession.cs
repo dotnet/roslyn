@@ -4,7 +4,6 @@
 
 extern alias InteractiveHost;
 extern alias Scripting;
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,14 +13,17 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Interactive
@@ -37,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         private readonly InteractiveEvaluatorLanguageInfoProvider _languageInfo;
         private readonly InteractiveWorkspace _workspace;
         private readonly ITextDocumentFactoryService _textDocumentFactoryService;
+        private readonly EditorOptionsService _editorOptionsService;
 
         private readonly CancellationTokenSource _shutdownCancellationSource;
 
@@ -77,14 +80,16 @@ namespace Microsoft.CodeAnalysis.Interactive
             InteractiveWorkspace workspace,
             IThreadingContext threadingContext,
             IAsynchronousOperationListener listener,
-            ITextDocumentFactoryService factoryService,
+            ITextDocumentFactoryService documentFactory,
+            EditorOptionsService editorOptionsService,
             InteractiveEvaluatorLanguageInfoProvider languageInfo,
             string initialWorkingDirectory)
         {
             _workspace = workspace;
             _threadingContext = threadingContext;
             _languageInfo = languageInfo;
-            _textDocumentFactoryService = factoryService;
+            _textDocumentFactoryService = documentFactory;
+            _editorOptionsService = editorOptionsService;
 
             _taskQueue = new TaskQueue(listener, TaskScheduler.Default);
             _shutdownCancellationSource = new CancellationTokenSource();
@@ -229,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     solution = initProject.Solution.AddDocument(
                         DocumentId.CreateNewId(initializationScriptProjectId, debugName: initializationScriptPath),
                         Path.GetFileName(initializationScriptPath),
-                        new FileTextLoader(initializationScriptPath, defaultEncoding: null));
+                        new WorkspaceFileTextLoader(solution.Services, initializationScriptPath, defaultEncoding: null));
                 }
 
                 var newSubmissionProject = CreateSubmissionProjectNoLock(solution, _currentSubmissionProjectId, _lastSuccessfulSubmissionProjectId, languageName, imports, references);
@@ -285,18 +290,21 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             solution = solution.AddProject(
                 ProjectInfo.Create(
-                    newSubmissionProjectId,
-                    VersionStamp.Create(),
-                    name: name,
-                    assemblyName: name,
-                    language: languageName,
+                    new ProjectInfo.ProjectAttributes(
+                        id: newSubmissionProjectId,
+                        version: VersionStamp.Create(),
+                        name: name,
+                        assemblyName: name,
+                        language: languageName,
+                        compilationOutputFilePaths: default,
+                        checksumAlgorithm: SourceHashAlgorithms.Default,
+                        isSubmission: true),
                     compilationOptions: compilationOptions,
                     parseOptions: _languageInfo.ParseOptions,
                     documents: null,
                     projectReferences: null,
                     metadataReferences: references,
-                    hostObjectType: typeof(InteractiveScriptGlobals),
-                    isSubmission: true));
+                    hostObjectType: typeof(InteractiveScriptGlobals)));
 
             if (previousSubmissionProjectId != null)
             {
@@ -344,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

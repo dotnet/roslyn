@@ -402,9 +402,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 {
                     switch (operationBlock.Kind)
                     {
-                        case OperationKind.None:
+                        case OperationKind.Attribute:
                         case OperationKind.ParameterInitializer:
-                            // Skip blocks from attributes (which have OperationKind.None) and parameter initializers.
+                            // Skip blocks from attributes and parameter initializers.
                             // We don't have any unused values in such operation blocks.
                             return false;
 
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                                         return false;
 
                                     default:
-                                        // Workaround for https://github.com/dotnet/roslyn/issues/32100
+                                        // Workaround for https://github.com/dotnet/roslyn/issues/27564
                                         // Bail out in presence of OperationKind.None - not implemented IOperation.
                                         if (operation.Kind == OperationKind.None)
                                         {

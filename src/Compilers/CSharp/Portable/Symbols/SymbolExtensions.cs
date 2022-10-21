@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             switch (parameter)
             {
-                case SourceComplexParameterSymbol source:
+                case SourceComplexParameterSymbolBase source:
                     return source.HasEnumeratorCancellationAttribute;
                 case SynthesizedComplexParameterSymbol synthesized:
                     return synthesized.HasEnumeratorCancellationAttribute;

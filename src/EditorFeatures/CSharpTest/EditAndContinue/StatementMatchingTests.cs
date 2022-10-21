@@ -1587,6 +1587,25 @@ foreach (var x in y) { yield return /*3*/ 2; }
         #region Async
 
         [Fact]
+        public void AwaitExpressions()
+        {
+            var src1 = "F(await x, await y);";
+            var src2 = "F(await y, await x);";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Async);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "F(await x, await y);", "F(await y, await x);" },
+                { "await x", "await x" },
+                { "await y", "await y" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
         public void Awaits()
         {
             var src1 = @"

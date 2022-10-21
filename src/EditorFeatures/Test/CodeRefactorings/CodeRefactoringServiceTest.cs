@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
 
             var project = workspace.CurrentSolution.Projects.Single();
             var document = project.Documents.Single();
-            var extensionManager = (EditorLayerExtensionManager.ExtensionManager)document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+            var extensionManager = (EditorLayerExtensionManager.ExtensionManager)document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
             var result = await refactoringService.GetRefactoringsAsync(document, TextSpan.FromBounds(0, 0), CodeActionOptions.DefaultProvider, isBlocking: false, CancellationToken.None);
             Assert.True(extensionManager.IsDisabled(codeRefactoring));
             Assert.False(extensionManager.IsIgnored(codeRefactoring));

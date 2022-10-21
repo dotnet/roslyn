@@ -82,6 +82,11 @@
         <target state="translated">Výraz lambda je možné odebrat</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_struct_readonly">
+        <source>Make struct 'readonly'</source>
+        <target state="translated">Vytvořit strukturu readonly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Misplaced_using_directive">
         <source>Misplaced using directive</source>
         <target state="translated">Nesprávné umístění direktivy using</target>
@@ -117,6 +122,16 @@
         <target state="translated">Kontrolu hodnoty null je možné upřesnit.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Nullable_directive_is_redundant">
+        <source>Nullable directive is redundant</source>
+        <target state="translated">Direktiva s možnou hodnotou null je redundantní.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Nullable_directive_is_unnecessary">
+        <source>Nullable directive is unnecessary</source>
+        <target state="translated">Direktiva s možnou hodnotou null není potřebná.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_null_check_over_type_check">
         <source>Prefer 'null' check over type check</source>
         <target state="translated">Upřednostňovat kontrolu hodnoty null před kontrolou typu</target>
@@ -132,6 +147,11 @@
         <target state="translated">Odebrat operátor (zachová sémantiku)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_redundant_nullable_directive">
+        <source>Remove redundant nullable directive</source>
+        <target state="translated">Odebrat redundantní direktivu s možnou hodnotou null</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_suppression_operators">
         <source>Remove suppression operators</source>
         <target state="translated">Odebrat operátory potlačení</target>
@@ -140,6 +160,11 @@
       <trans-unit id="Remove_unnecessary_lambda_expression">
         <source>Remove unnecessary lambda expression</source>
         <target state="translated">Odebrat nepotřebný výraz lambda</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_nullable_directive">
+        <source>Remove unnecessary nullable directive</source>
+        <target state="translated">Odebrat nepotřebnou direktivu s možnou hodnotou null</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_suppression_operator">
@@ -167,6 +192,11 @@
         <target state="translated">Zjednodušit vzor vlastnosti</target>
         <note />
       </trans-unit>
+      <trans-unit id="Struct_can_be_made_readonly">
+        <source>Struct can be made 'readonly'</source>
+        <target state="translated">Strukturu je možné vytvořit jako readonly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
         <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable.</source>
         <target state="translated">Struct obsahuje přiřazení do this mimo konstruktor. Nastavte pole určená jen pro čtení jako zapisovatelná.</target>
@@ -182,7 +212,7 @@
         <target state="translated">Byl zjištěn nedosažitelný kód.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_UTF8_string_literal">
+      <trans-unit id="Use_Utf8_string_literal">
         <source>Use UTF-8 string literal</source>
         <target state="translated">Použití řetězcového literálu UTF-8</target>
         <note />
@@ -205,6 +235,11 @@
       <trans-unit id="Use_block_body_for_indexers">
         <source>Use block body for indexers</source>
         <target state="translated">Pro indexery používat text bloku</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_lambda_expressions">
+        <source>Use block body for lambda expressions</source>
+        <target state="translated">Pro lambda výrazy používat text bloku</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_local_functions">
@@ -255,6 +290,11 @@
       <trans-unit id="Use_expression_body_for_indexers">
         <source>Use expression body for indexers</source>
         <target state="translated">Pro indexery používat text výrazu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_lambda_expressions">
+        <source>Use expression body for lambda expressions</source>
+        <target state="translated">Používat text výrazu pro lambda výrazy</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_local_functions">

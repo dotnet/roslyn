@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// <summary>
     /// Defines a log aggregator to create a histogram
     /// </summary>
-    internal sealed class HistogramLogAggregator<TKey> : AbstractLogAggregator<TKey, HistogramLogAggregator<TKey>.HistogramCounter>
+    internal sealed class HistogramLogAggregator<TKey> : AbstractLogAggregator<TKey, HistogramLogAggregator<TKey>.HistogramCounter> where TKey : notnull
     {
         private readonly int _bucketSize;
         private readonly int _maxBucketValue;
@@ -101,6 +102,20 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 }
 
                 return bucket;
+            }
+
+            /// <summary>
+            /// Writes out these statistics to a property bag for sending to telemetry.
+            /// </summary>
+            /// <param name="prefix">The prefix given to any properties written. A period is used to delimit between the 
+            /// prefix and the value.</param>
+            public void WriteTelemetryPropertiesTo(Dictionary<string, object?> properties, string prefix)
+            {
+                prefix += ".";
+
+                properties.Add(prefix + nameof(BucketSize), BucketSize);
+                properties.Add(prefix + nameof(MaxBucketValue), MaxBucketValue);
+                properties.Add(prefix + "Buckets", GetBucketsAsString());
             }
         }
     }

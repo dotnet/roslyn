@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(nodeToBind.Kind() == SyntaxKind.VariableDeclarator || nodeToBind is ExpressionSyntax);
 
             var syntaxReference = syntax.GetReference();
-            return (typeSyntax == null || typeSyntax.IsVar)
+            return (typeSyntax == null || typeSyntax.SkipScoped(out _).SkipRef(out _).IsVar)
                 ? new InferrableGlobalExpressionVariable(containingType, modifiers, typeSyntax, name, syntaxReference, location, containingFieldOpt, nodeToBind)
                 : new GlobalExpressionVariable(containingType, modifiers, typeSyntax, name, syntaxReference, location);
         }
@@ -63,6 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             HashSet<SourceFieldSymbolWithSyntaxReference> dependencies,
             bool earlyDecodingWellKnownAttributes,
             BindingDiagnosticBag diagnostics) => null;
+
+        public sealed override RefKind RefKind => RefKind.None;
 
         internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (typeSyntax != null)
             {
-                type = binder.BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar);
+                type = binder.BindTypeOrVarKeyword(typeSyntax.SkipScoped(out _).SkipRef(out _), diagnostics, out isVar);
             }
             else
             {
@@ -153,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected virtual void InferFieldType(ConsList<FieldSymbol> fieldsBeingBound, Binder binder)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private class InferrableGlobalExpressionVariable : GlobalExpressionVariable

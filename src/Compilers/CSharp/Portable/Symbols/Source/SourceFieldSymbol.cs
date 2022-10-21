@@ -90,6 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        // Currently, source symbols cannot declare RefCustomModifiers. If that changes, and this
+        // property is updated, test retargeting. (Update RefFieldTests.RetargetingField for instance.)
+        public sealed override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+
         public sealed override Symbol ContainingSymbol
         {
             get
@@ -130,6 +134,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var compilation = DeclaringCompilation;
             var location = ErrorLocation;
+
+            if (RefKind == RefKind.RefReadOnly)
+            {
+                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
 
             if (compilation.ShouldEmitNativeIntegerAttributes(Type))
             {

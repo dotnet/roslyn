@@ -15,11 +15,12 @@ namespace Microsoft.CodeAnalysis.Host
 {
     internal abstract partial class AbstractSyntaxTreeFactoryService
     {
-        internal struct SyntaxTreeInfo
+        internal readonly struct SyntaxTreeInfo
         {
             public readonly string FilePath;
             public readonly ParseOptions Options;
-            public readonly ValueSource<TextAndVersion> TextSource;
+            public readonly ITextAndVersionSource TextSource;
+            public readonly LoadTextOptions LoadTextOptions;
             public readonly Encoding Encoding;
             public readonly int Length;
             public readonly bool ContainsDirectives;
@@ -27,7 +28,8 @@ namespace Microsoft.CodeAnalysis.Host
             public SyntaxTreeInfo(
                 string filePath,
                 ParseOptions options,
-                ValueSource<TextAndVersion> textSource,
+                ITextAndVersionSource textSource,
+                LoadTextOptions loadTextOptions,
                 Encoding encoding,
                 int length,
                 bool containsDirectives)
@@ -35,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Host
                 FilePath = filePath ?? string.Empty;
                 Options = options;
                 TextSource = textSource;
+                LoadTextOptions = loadTextOptions;
                 Encoding = encoding;
                 Length = length;
                 ContainsDirectives = containsDirectives;
@@ -42,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Host
 
             internal bool TryGetText([NotNullWhen(true)] out SourceText? text)
             {
-                if (TextSource.TryGetValue(out var textAndVersion))
+                if (TextSource.TryGetValue(LoadTextOptions, out var textAndVersion))
                 {
                     text = textAndVersion.Text;
                     return true;
@@ -52,9 +55,12 @@ namespace Microsoft.CodeAnalysis.Host
                 return false;
             }
 
+            internal SourceText GetText(CancellationToken cancellationToken)
+                => TextSource.GetValue(LoadTextOptions, cancellationToken).Text;
+
             internal async Task<SourceText> GetTextAsync(CancellationToken cancellationToken)
             {
-                var textAndVersion = await TextSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                var textAndVersion = await TextSource.GetValueAsync(LoadTextOptions, cancellationToken).ConfigureAwait(false);
                 return textAndVersion.Text;
             }
 
@@ -64,20 +70,22 @@ namespace Microsoft.CodeAnalysis.Host
                     path,
                     Options,
                     TextSource,
+                    LoadTextOptions,
                     Encoding,
                     Length,
                     ContainsDirectives);
             }
 
-            internal SyntaxTreeInfo WithOptionsAndLength(ParseOptions options, int length)
+            internal SyntaxTreeInfo WithOptionsAndLengthAndContainsDirectives(ParseOptions options, int length, bool containsDirectives)
             {
                 return new SyntaxTreeInfo(
                     FilePath,
                     options,
                     TextSource,
+                    LoadTextOptions,
                     Encoding,
                     length,
-                    ContainsDirectives);
+                    containsDirectives);
             }
 
             internal SyntaxTreeInfo WithOptions(ParseOptions options)
@@ -86,6 +94,7 @@ namespace Microsoft.CodeAnalysis.Host
                     FilePath,
                     options,
                     TextSource,
+                    LoadTextOptions,
                     Encoding,
                     Length,
                     ContainsDirectives);
@@ -95,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Host
         internal sealed class RecoverableSyntaxRoot<TRoot> : WeaklyCachedRecoverableValueSource<TRoot>
             where TRoot : SyntaxNode
         {
-            private ITemporaryStreamStorage? _storage;
+            private ITemporaryStreamStorageInternal? _storage;
 
             private readonly IRecoverableSyntaxTree<TRoot> _containingTree;
             private readonly AbstractSyntaxTreeFactoryService _service;
@@ -146,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Host
                 root.SerializeTo(stream, cancellationToken);
                 stream.Position = 0;
 
-                _storage = _service.LanguageServices.WorkspaceServices.GetRequiredService<ITemporaryStorageService>().CreateTemporaryStreamStorage(cancellationToken);
+                _storage = _service.SolutionServices.GetRequiredService<ITemporaryStorageServiceInternal>().CreateTemporaryStreamStorage();
                 await _storage.WriteStreamAsync(stream, cancellationToken).ConfigureAwait(false);
             }
 
@@ -154,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 Contract.ThrowIfNull(_storage);
 
-                using (RoslynEventSource.LogInformationalBlock(FunctionId.Workspace_Recoverable_RecoverRootAsync, _containingTree.FilePath, cancellationToken))
+                using (Logger.LogBlock(FunctionId.Workspace_Recoverable_RecoverRootAsync, _containingTree.FilePath, cancellationToken, LogLevel.Information))
                 {
                     using var stream = await _storage.ReadStreamAsync(cancellationToken).ConfigureAwait(false);
                     return RecoverRoot(stream, cancellationToken);
@@ -165,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 Contract.ThrowIfNull(_storage);
 
-                using (RoslynEventSource.LogInformationalBlock(FunctionId.Workspace_Recoverable_RecoverRoot, _containingTree.FilePath, cancellationToken))
+                using (Logger.LogBlock(FunctionId.Workspace_Recoverable_RecoverRoot, _containingTree.FilePath, cancellationToken, LogLevel.Information))
                 {
                     using var stream = _storage.ReadStream(cancellationToken);
                     return RecoverRoot(stream, cancellationToken);

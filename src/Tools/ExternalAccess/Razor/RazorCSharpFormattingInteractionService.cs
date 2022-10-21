@@ -23,44 +23,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     /// </summary>
     internal static class RazorCSharpFormattingInteractionService
     {
-        /// <summary>
-        /// Returns the text changes necessary to format the document after the user enters a 
-        /// character.  The position provided is the position of the caret in the document after
-        /// the character been inserted into the document.
-        /// </summary>
-        [Obsolete("Use the other overload")]
-        public static async Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(
-            Document document,
-            char typedChar,
-            int position,
-            DocumentOptionSet documentOptions,
-            CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfFalse(document.Project.Language is LanguageNames.CSharp);
-            var formattingService = document.GetRequiredLanguageService<ISyntaxFormattingService>();
-            var documentSyntax = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-
-            if (!formattingService.ShouldFormatOnTypedCharacter(documentSyntax, typedChar, position, cancellationToken))
-            {
-                return ImmutableArray<TextChange>.Empty;
-            }
-
-            var languageServices = document.Project.LanguageServices;
-
-            var services = document.Project.Solution.Workspace.Services;
-            var globalOptions = services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
-            var optionsProvider = (OptionsProvider<SyntaxFormattingOptions>)globalOptions.CleanCodeGenerationOptionsProvider;
-            var fallbackOptions = await optionsProvider.GetOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false);
-            var optionService = services.GetRequiredService<IOptionService>();
-            var configOptions = documentOptions.AsAnalyzerConfigOptions(optionService, document.Project.Language);
-
-            var indentationOptions = new IndentationOptions(formattingService.GetFormattingOptions(configOptions, fallbackOptions))
-            {
-                AutoFormattingOptions = globalOptions.GetAutoFormattingOptions(languageServices)
-            };
-
-            return formattingService.GetFormattingChangesOnTypedCharacter(documentSyntax, position, indentationOptions, cancellationToken);
-        }
 
         /// <summary>
         /// Returns the text changes necessary to format the document after the user enters a 
@@ -103,7 +65,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(root.Language is LanguageNames.CSharp);
-            return Formatter.GetFormattedTextChanges(root, span, services, GetFormattingOptions(indentationOptions), cancellationToken);
+            return Formatter.GetFormattedTextChanges(root, span, services.SolutionServices, GetFormattingOptions(indentationOptions), cancellationToken);
         }
 
         public static SyntaxNode Format(
@@ -113,7 +75,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(root.Language is LanguageNames.CSharp);
-            return Formatter.Format(root, services, GetFormattingOptions(indentationOptions), cancellationToken: cancellationToken);
+            return Formatter.Format(root, services.SolutionServices, GetFormattingOptions(indentationOptions), cancellationToken: cancellationToken);
         }
 
         private static SyntaxFormattingOptions GetFormattingOptions(RazorIndentationOptions indentationOptions)

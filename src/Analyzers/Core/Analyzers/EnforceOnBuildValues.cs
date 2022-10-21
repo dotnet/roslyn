@@ -82,6 +82,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild MatchFolderAndNamespace = /*IDE0130*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild SimplifyObjectCreation = /*IDE0140*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild SimplifyPropertyPattern = /*IDE0170*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild RemoveRedundantNullableDirective = /*IDE0240*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild RemoveUnnecessaryNullableDirective = /*IDE0241*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild MakeStructReadOnly = /*IDE0250*/ EnforceOnBuild.Recommended;
 
         /* EnforceOnBuild.WhenExplicitlyEnabled */
         public const EnforceOnBuild RemoveUnnecessaryCast = /*IDE0004*/ EnforceOnBuild.WhenExplicitlyEnabled; // TODO: Move to 'Recommended' OR 'HighlyRecommended' bucket once performance problems are addressed: https://github.com/dotnet/roslyn/issues/43304
@@ -98,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild UseTopLevelStatements = /*IDE0210*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild UseProgramMain = /*IDE0211*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild ForEachCast = /*IDE0220*/ EnforceOnBuild.WhenExplicitlyEnabled;
-        public const EnforceOnBuild UseUTF8StringLiteral = /*IDE0230*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild UseUtf8StringLiteral = /*IDE0230*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild MultipleBlankLines = /*IDE2000*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild EmbeddedStatementPlacement = /*IDE2001*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild ConsecutiveBracePlacement = /*IDE2002*/ EnforceOnBuild.WhenExplicitlyEnabled;

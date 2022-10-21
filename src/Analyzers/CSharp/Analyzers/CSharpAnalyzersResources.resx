@@ -368,7 +368,31 @@
   <data name="Convert_to_top_level_statements" xml:space="preserve">
     <value>Convert to top-level statements</value>
   </data>
-  <data name="Use_UTF8_string_literal" xml:space="preserve">
+  <data name="Use_Utf8_string_literal" xml:space="preserve">
     <value>Use UTF-8 string literal</value>
+  </data>
+  <data name="Nullable_directive_is_unnecessary" xml:space="preserve">
+    <value>Nullable directive is unnecessary</value>
+  </data>
+  <data name="Remove_unnecessary_nullable_directive" xml:space="preserve">
+    <value>Remove unnecessary nullable directive</value>
+  </data>
+  <data name="Nullable_directive_is_redundant" xml:space="preserve">
+    <value>Nullable directive is redundant</value>
+  </data>
+  <data name="Remove_redundant_nullable_directive" xml:space="preserve">
+    <value>Remove redundant nullable directive</value>
+  </data>
+  <data name="Use_expression_body_for_lambda_expressions" xml:space="preserve">
+    <value>Use expression body for lambda expressions</value>
+  </data>
+  <data name="Use_block_body_for_lambda_expressions" xml:space="preserve">
+    <value>Use block body for lambda expressions</value>
+  </data>
+  <data name="Make_struct_readonly" xml:space="preserve">
+    <value>Make struct 'readonly'</value>
+  </data>
+  <data name="Struct_can_be_made_readonly" xml:space="preserve">
+    <value>Struct can be made 'readonly'</value>
   </data>
 </root>

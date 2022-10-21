@@ -8,8 +8,9 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -53,7 +54,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             bool hideAdvancedMembers,
             CancellationToken cancellationToken)
         {
+            SerializableUnimportedExtensionMethods? result = null;
             var project = document.Project;
+
+            var totalTime = SharedStopwatch.StartNew();
+
             var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
@@ -62,21 +67,33 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 // Call the project overload.  Add-import-for-extension-method doesn't search outside of the current
                 // project cone.
-                var result = await client.TryInvokeAsync<IRemoteExtensionMethodImportCompletionService, SerializableUnimportedExtensionMethods?>(
+                var remoteResult = await client.TryInvokeAsync<IRemoteExtensionMethodImportCompletionService, SerializableUnimportedExtensionMethods?>(
                      project,
                      (service, solutionInfo, cancellationToken) => service.GetUnimportedExtensionMethodsAsync(
                          solutionInfo, document.Id, position, receiverTypeSymbolKeyData, namespaceInScope.ToImmutableArray(),
                          targetTypesSymbolKeyData, forceCacheCreation, hideAdvancedMembers, cancellationToken),
                      cancellationToken).ConfigureAwait(false);
 
-                return result.HasValue ? result.Value : null;
+                result = remoteResult.HasValue ? remoteResult.Value : null;
             }
             else
             {
-                return await GetUnimportedExtensionMethodsInCurrentProcessAsync(
-                    document, position, receiverTypeSymbol, namespaceInScope, targetTypesSymbols, forceCacheCreation, hideAdvancedMembers, isRemote: false, cancellationToken)
+                result = await GetUnimportedExtensionMethodsInCurrentProcessAsync(
+                    document, position, receiverTypeSymbol, namespaceInScope, targetTypesSymbols, forceCacheCreation, hideAdvancedMembers, remoteAssetSyncTime: null, cancellationToken)
                     .ConfigureAwait(false);
             }
+
+            if (result is not null)
+            {
+                // report telemetry:
+                CompletionProvidersLogger.LogExtensionMethodCompletionTicksDataPoint(
+                    totalTime.Elapsed, result.GetSymbolsTime, result.CreateItemsTime, result.RemoteAssetSyncTime);
+
+                if (result.IsPartialResult)
+                    CompletionProvidersLogger.LogExtensionMethodCompletionPartialResultCount();
+            }
+
+            return result;
         }
 
         public static async Task<SerializableUnimportedExtensionMethods> GetUnimportedExtensionMethodsInCurrentProcessAsync(
@@ -87,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             ImmutableArray<ITypeSymbol> targetTypes,
             bool forceCacheCreation,
             bool hideAdvancedMembers,
-            bool isRemote,
+            TimeSpan? remoteAssetSyncTime,
             CancellationToken cancellationToken)
         {
             var stopwatch = SharedStopwatch.StartNew();
@@ -106,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var createItemsTime = stopwatch.Elapsed;
 
-            return new SerializableUnimportedExtensionMethods(items, isPartialResult, getSymbolsTime, createItemsTime, isRemote);
+            return new SerializableUnimportedExtensionMethods(items, isPartialResult, getSymbolsTime, createItemsTime, remoteAssetSyncTime);
         }
 
         public static async ValueTask BatchUpdateCacheAsync(ImmutableSegmentedList<Project> projects, CancellationToken cancellationToken)
@@ -238,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 cacheEntry.Checksum != checksum ||
                 cacheEntry.Language != project.Language)
             {
-                var syntaxFacts = project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+                var syntaxFacts = project.Services.GetRequiredService<ISyntaxFactsService>();
                 var builder = new ExtensionMethodImportCompletionCacheEntry.Builder(checksum, project.Language, syntaxFacts.StringComparer);
 
                 foreach (var document in project.Documents)

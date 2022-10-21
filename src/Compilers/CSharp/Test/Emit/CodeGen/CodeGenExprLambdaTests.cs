@@ -5283,7 +5283,7 @@ class C
 {
     static Expression<D> E = () => new C();
 }";
-            var compilation = CreateEmptyCompilation(text);
+            var compilation = CreateEmptyCompilation(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {
@@ -5345,7 +5345,7 @@ class B<T>
     static object F = null;
     static Expression<D> G = () => F;
 }";
-            var compilation = CreateEmptyCompilation(text);
+            var compilation = CreateEmptyCompilation(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {
@@ -5418,7 +5418,7 @@ class B<T>
     static void M() { }
     B(object o) { }
 }";
-            var compilation = CreateEmptyCompilation(text);
+            var compilation = CreateEmptyCompilation(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {

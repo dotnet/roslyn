@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
     internal sealed class FindUsagesLSPContext : FindUsagesContext
     {
         private readonly IProgress<VSInternalReferenceItem[]> _progress;
+
+        private readonly Workspace _workspace;
         private readonly Document _document;
         private readonly int _position;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
@@ -74,6 +76,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
         public FindUsagesLSPContext(
             IProgress<VSInternalReferenceItem[]> progress,
+            Workspace workspace,
             Document document,
             int position,
             IMetadataAsSourceFileService metadataAsSourceFileService,
@@ -82,6 +85,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             CancellationToken cancellationToken)
         {
             _progress = progress;
+            _workspace = workspace;
             _document = document;
             _position = position;
             _metadataAsSourceFileService = metadataAsSourceFileService;
@@ -245,9 +249,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 return null;
             }
 
-            var options = _globalOptions.GetMetadataAsSourceOptions(_document.Project.LanguageServices);
+            var options = _globalOptions.GetMetadataAsSourceOptions(_document.Project.Services);
             var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(
-                _document.Project, symbol, signaturesOnly: true, options, cancellationToken).ConfigureAwait(false);
+                _workspace, _document.Project, symbol, signaturesOnly: true, options, cancellationToken).ConfigureAwait(false);
 
             var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
 

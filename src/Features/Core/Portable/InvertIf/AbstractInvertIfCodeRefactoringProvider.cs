@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private bool IsEmptyStatementRange(StatementRange statementRange)

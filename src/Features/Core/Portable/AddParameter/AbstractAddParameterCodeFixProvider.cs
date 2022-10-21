@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
             ImmutableArray<CodeAction> NestByOverload()
             {
-                using var builderDisposer = ArrayBuilder<CodeAction>.GetInstance(codeFixData.Length, out var builder);
+                using var _ = ArrayBuilder<CodeAction>.GetInstance(codeFixData.Length, out var builder);
                 foreach (var data in codeFixData)
                 {
                     // We create the mandatory data.CreateChangedSolutionNonCascading fix first.
@@ -275,12 +275,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     builder.Add(codeAction);
                 }
 
-                return builder.ToImmutable();
+                return builder.ToImmutableAndClear();
             }
 
             ImmutableArray<CodeAction> NestByCascading()
             {
-                using var builderDisposer = ArrayBuilder<CodeAction>.GetInstance(capacity: 2, out var builder);
+                using var _ = ArrayBuilder<CodeAction>.GetInstance(capacity: 2, out var builder);
 
                 var nonCascadingActions = codeFixData.SelectAsArray(data =>
                 {
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             SeparatedSyntaxList<TArgumentSyntax> arguments,
             ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> methodsAndArgumentsToAdd)
         {
-            using var builderDisposer = ArrayBuilder<CodeFixData>.GetInstance(methodsAndArgumentsToAdd.Length, out var builder);
+            using var _ = ArrayBuilder<CodeFixData>.GetInstance(methodsAndArgumentsToAdd.Length, out var builder);
 
             // Order by the furthest argument index to the nearest argument index.  The ones with
             // larger argument indexes mean that we matched more earlier arguments (and thus are

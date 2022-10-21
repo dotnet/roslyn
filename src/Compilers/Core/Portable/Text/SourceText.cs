@@ -12,7 +12,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -33,11 +32,11 @@ namespace Microsoft.CodeAnalysis.Text
         private SourceTextContainer? _lazyContainer;
         private TextLineCollection? _lazyLineInfo;
         private ImmutableArray<byte> _lazyChecksum;
-        private ImmutableArray<byte> _precomputedEmbeddedTextBlob;
+        private readonly ImmutableArray<byte> _precomputedEmbeddedTextBlob;
 
         private static readonly Encoding s_utf8EncodingWithNoBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: false);
 
-        protected SourceText(ImmutableArray<byte> checksum = default(ImmutableArray<byte>), SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1, SourceTextContainer? container = null)
+        protected SourceText(ImmutableArray<byte> checksum = default, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1, SourceTextContainer? container = null)
         {
             ValidateChecksumAlgorithm(checksumAlgorithm);
 
@@ -732,13 +731,13 @@ namespace Microsoft.CodeAnalysis.Text
 
         /// <summary>
         /// Constructs a new SourceText from this text with the specified changes.
-        /// <exception cref="ArgumentException">If any changes are not in bounds of this <see cref="SourceText"/>.</exception>
-        /// <exception cref="ArgumentException">If any changes overlap other changes.</exception>
-        /// </summary>
+        /// </summary>        
         /// <remarks>
         /// Changes do not have to be in sorted order.  However, <see cref="WithChanges(IEnumerable{TextChange})"/> will
         /// perform better if they are.
         /// </remarks>
+        /// <exception cref="ArgumentException">If any changes are not in bounds of this <see cref="SourceText"/>.</exception>
+        /// <exception cref="ArgumentException">If any changes overlap other changes.</exception>        
         public SourceText WithChanges(params TextChange[] changes)
         {
             return this.WithChanges((IEnumerable<TextChange>)changes);

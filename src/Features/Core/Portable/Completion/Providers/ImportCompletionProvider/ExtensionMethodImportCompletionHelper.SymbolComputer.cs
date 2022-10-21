@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             private static IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object> GetCacheService(Project project)
-                => project.Solution.Workspace.Services.GetRequiredService<IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object>>();
+                => project.Solution.Services.GetRequiredService<IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object>>();
 
             private static string? GetPEReferenceCacheKey(PortableExecutableReference peReference)
                 => peReference.FilePath ?? peReference.Display;
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     await GetUpToDateCacheEntryAsync(relevantProject, cacheService, cancellationToken).ConfigureAwait(false);
 
                 foreach (var peReference in GetAllRelevantPeReferences(project))
-                    await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(project.Solution, peReference, loadOnly: false, cancellationToken).ConfigureAwait(false);
+                    await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(project.Solution, peReference, checksum: null, cancellationToken).ConfigureAwait(false);
             }
 
             public async Task<(ImmutableArray<IMethodSymbol> symbols, bool isPartialResult)> GetExtensionMethodSymbolsAsync(bool forceCacheCreation, bool hideAdvancedMembers, CancellationToken cancellationToken)
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 if (forceCacheCreation)
                 {
                     symbolInfo = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
-                        _originatingDocument.Project.Solution, peReference, loadOnly: false, cancellationToken).ConfigureAwait(false);
+                        _originatingDocument.Project.Solution, peReference, checksum: null, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 receiverTypeNamesBuilder.Add(FindSymbols.Extensions.ComplexReceiverTypeName);
                 receiverTypeNamesBuilder.Add(FindSymbols.Extensions.ComplexArrayReceiverTypeName);
 
-                return receiverTypeNamesBuilder.ToImmutable();
+                return receiverTypeNamesBuilder.ToImmutableAndClear();
             }
 
             private static string GetReceiverTypeName(ITypeSymbol typeSymbol)

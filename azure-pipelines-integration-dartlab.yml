@@ -15,7 +15,7 @@ resources:
   - repository: DartLabTemplates
     type: git
     name: DartLab.Templates
-    ref: refs/heads/dev/bradwhit/RemoveCheckoutNone
+    ref: main
   - repository: RoslynMirror
     endpoint: dnceng/internal dotnet-roslyn
     type: git
@@ -68,4 +68,4 @@ stages:
         configuration: $(_configuration)
         oop64bit: $(_oop64bit)
         lspEditor: false
-        shallowCheckout: false
+        skipCheckout: true

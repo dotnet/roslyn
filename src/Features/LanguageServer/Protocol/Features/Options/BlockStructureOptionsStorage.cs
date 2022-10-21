@@ -9,23 +9,25 @@ namespace Microsoft.CodeAnalysis.Structure;
 internal static class BlockStructureOptionsStorage
 {
     public static BlockStructureOptions GetBlockStructureOptions(this IGlobalOptionService globalOptions, Project project)
-        => GetBlockStructureOptions(globalOptions, project.Language, isMetadataAsSource: project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource);
+        => GetBlockStructureOptions(globalOptions, project.Language, isMetadataAsSource: project.Solution.WorkspaceKind == WorkspaceKind.MetadataAsSource);
 
     public static BlockStructureOptions GetBlockStructureOptions(this IGlobalOptionService globalOptions, string language, bool isMetadataAsSource)
-        => new(
-            ShowBlockStructureGuidesForCommentsAndPreprocessorRegions: globalOptions.GetOption(ShowBlockStructureGuidesForCommentsAndPreprocessorRegions, language),
-            ShowBlockStructureGuidesForDeclarationLevelConstructs: globalOptions.GetOption(ShowBlockStructureGuidesForDeclarationLevelConstructs, language),
-            ShowBlockStructureGuidesForCodeLevelConstructs: globalOptions.GetOption(ShowBlockStructureGuidesForCodeLevelConstructs, language),
-            ShowOutliningForCommentsAndPreprocessorRegions: globalOptions.GetOption(ShowOutliningForCommentsAndPreprocessorRegions, language),
-            ShowOutliningForDeclarationLevelConstructs: globalOptions.GetOption(ShowOutliningForDeclarationLevelConstructs, language),
-            ShowOutliningForCodeLevelConstructs: globalOptions.GetOption(ShowOutliningForCodeLevelConstructs, language),
-            CollapseRegionsWhenFirstOpened: globalOptions.GetOption(CollapseRegionsWhenFirstOpened, language),
-            CollapseImportsWhenFirstOpened: globalOptions.GetOption(CollapseImportsWhenFirstOpened, language),
-            CollapseMetadataImplementationsWhenFirstOpened: globalOptions.GetOption(CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened, language),
-            CollapseEmptyMetadataImplementationsWhenFirstOpened: globalOptions.GetOption(CollapseMetadataSignatureFilesWhenFirstOpened, language),
-            CollapseRegionsWhenCollapsingToDefinitions: globalOptions.GetOption(CollapseRegionsWhenCollapsingToDefinitions, language),
-            MaximumBannerLength: globalOptions.GetOption(MaximumBannerLength, language),
-            IsMetadataAsSource: isMetadataAsSource);
+        => new()
+        {
+            ShowBlockStructureGuidesForCommentsAndPreprocessorRegions = globalOptions.GetOption(ShowBlockStructureGuidesForCommentsAndPreprocessorRegions, language),
+            ShowBlockStructureGuidesForDeclarationLevelConstructs = globalOptions.GetOption(ShowBlockStructureGuidesForDeclarationLevelConstructs, language),
+            ShowBlockStructureGuidesForCodeLevelConstructs = globalOptions.GetOption(ShowBlockStructureGuidesForCodeLevelConstructs, language),
+            ShowOutliningForCommentsAndPreprocessorRegions = globalOptions.GetOption(ShowOutliningForCommentsAndPreprocessorRegions, language),
+            ShowOutliningForDeclarationLevelConstructs = globalOptions.GetOption(ShowOutliningForDeclarationLevelConstructs, language),
+            ShowOutliningForCodeLevelConstructs = globalOptions.GetOption(ShowOutliningForCodeLevelConstructs, language),
+            CollapseRegionsWhenFirstOpened = globalOptions.GetOption(CollapseRegionsWhenFirstOpened, language),
+            CollapseImportsWhenFirstOpened = globalOptions.GetOption(CollapseImportsWhenFirstOpened, language),
+            CollapseMetadataImplementationsWhenFirstOpened = globalOptions.GetOption(CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened, language),
+            CollapseEmptyMetadataImplementationsWhenFirstOpened = globalOptions.GetOption(CollapseMetadataSignatureFilesWhenFirstOpened, language),
+            CollapseRegionsWhenCollapsingToDefinitions = globalOptions.GetOption(CollapseRegionsWhenCollapsingToDefinitions, language),
+            MaximumBannerLength = globalOptions.GetOption(MaximumBannerLength, language),
+            IsMetadataAsSource = isMetadataAsSource,
+        };
 
     private const string FeatureName = "BlockStructureOptions";
 

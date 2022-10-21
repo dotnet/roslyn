@@ -13,6 +13,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Xml.Linq;
 using ICSharpCode.Decompiler.Metadata;
 using Microsoft.CodeAnalysis;
@@ -159,6 +160,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        public string DumpIL()
+        {
+            var output = new ICSharpCode.Decompiler.PlainTextOutput();
+            using var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies);
+            string mainModuleFullName = Emit(testEnvironment, manifestResources: null, EmitOptions.Default);
+            using var moduleMetadata = ModuleMetadata.CreateFromImage(testEnvironment.GetMainImage());
+            var peFile = new PEFile(mainModuleFullName, moduleMetadata.Module.PEReaderOpt);
+            var disassembler = new ICSharpCode.Decompiler.Disassembler.ReflectionDisassembler(output, default);
+            disassembler.WriteModuleContents(peFile);
+            return output.ToString();
+        }
+
         /// <summary>
 		/// Asserts that the emitted IL for a type is the same as the expected IL.
 		/// Many core library types are in different assemblies on .Net Framework, and .Net Core.
@@ -213,10 +226,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             string mainModuleName = Emit(testEnvironment, manifestResources, emitOptions);
             _allModuleData = testEnvironment.GetAllModuleData();
-            testEnvironment.Verify(peVerify);
+
+            try
+            {
+                testEnvironment.Verify(peVerify);
 #if NETCOREAPP
-            ILVerify(peVerify);
+                ILVerify(peVerify);
 #endif
+            }
+            catch (Exception) when ((peVerify & Verification.PassesOrFailFast) != 0)
+            {
+                var il = DumpIL();
+                Console.WriteLine(il);
+
+                Environment.FailFast("Investigating flaky IL verification issue. Tracked by https://github.com/dotnet/roslyn/issues/63782");
+            }
 
             if (expectedSignatures != null)
             {
@@ -434,7 +458,33 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerLineNumber] int callerLine = 0,
             string source = null)
         {
-            return VerifyILImpl(qualifiedMethodName, expectedIL, realIL, sequencePoints, callerPath, callerLine, escapeQuotes: true, source: source);
+            return VerifyILImpl(qualifiedMethodName, expectedIL, realIL, sequencePoints, callerPath, callerLine, escapeQuotes: false, source: source);
+        }
+
+        public void VerifyILMultiple(params string[] qualifiedMethodNamesAndExpectedIL)
+        {
+            var names = ArrayBuilder<string>.GetInstance();
+            var expected = ArrayBuilder<string>.GetInstance();
+            var actual = ArrayBuilder<string>.GetInstance();
+            for (int i = 0; i < qualifiedMethodNamesAndExpectedIL.Length;)
+            {
+                var qualifiedName = qualifiedMethodNamesAndExpectedIL[i++];
+                names.Add(qualifiedName);
+                actual.Add(AssertEx.NormalizeWhitespace(VisualizeIL(qualifiedName)));
+                expected.Add(AssertEx.NormalizeWhitespace(qualifiedMethodNamesAndExpectedIL[i++]));
+            }
+            if (!expected.SequenceEqual(actual))
+            {
+                var builder = new StringBuilder();
+                for (int i = 0; i < expected.Count; i++)
+                {
+                    builder.AppendLine(AssertEx.GetAssertMessage(expected[i], actual[i], prefix: names[i], escapeQuotes: true));
+                }
+                Assert.True(false, builder.ToString());
+            }
+            actual.Free();
+            expected.Free();
+            names.Free();
         }
 
         public CompilationVerifier VerifyMissing(

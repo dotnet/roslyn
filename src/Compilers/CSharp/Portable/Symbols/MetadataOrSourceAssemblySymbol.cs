@@ -32,38 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private int _cachedSpecialTypes;
 
         private NativeIntegerTypeSymbol[] _lazyNativeIntegerTypes;
-        private ThreeState _lazyRuntimeSupportsNumericIntPtr = ThreeState.Unknown;
-
-        internal override bool RuntimeSupportsNumericIntPtr
-        {
-            get
-            {
-                if ((object)CorLibrary == this)
-                {
-                    if (!_lazyRuntimeSupportsNumericIntPtr.HasValue())
-                    {
-                        _lazyRuntimeSupportsNumericIntPtr = RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr).ToThreeState();
-                    }
-
-                    return _lazyRuntimeSupportsNumericIntPtr.Value();
-                }
-
-                return base.RuntimeSupportsNumericIntPtr;
-            }
-            set
-            {
-                Debug.Assert(value);
-                Debug.Assert(!RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr));
-                if ((object)CorLibrary == this)
-                {
-                    Debug.Assert(!_lazyRuntimeSupportsNumericIntPtr.HasValue());
-                    _lazyRuntimeSupportsNumericIntPtr = value.ToThreeState();
-                    return;
-                }
-
-                base.RuntimeSupportsNumericIntPtr = value;
-            }
-        }
 
         /// <summary>
         /// Lookup declaration for predefined CorLib type in this Assembly.

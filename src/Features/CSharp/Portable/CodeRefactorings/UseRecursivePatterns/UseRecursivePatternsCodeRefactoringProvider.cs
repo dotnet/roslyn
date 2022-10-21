@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
                 return;
 
             if (textSpan.Length > 0)
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
             // Only the following patterns can directly contain a variable designation.
             // Note: While a parenthesized designation can also contain other variables,
             // it is not a pattern, so it would not get past the PatternSyntax test above.
-            Debug.Assert(containingPattern.IsKind(SyntaxKind.VarPattern, SyntaxKind.DeclarationPattern, SyntaxKind.RecursivePattern));
+            Debug.Assert(containingPattern.Kind() is SyntaxKind.VarPattern or SyntaxKind.DeclarationPattern or SyntaxKind.RecursivePattern);
             return (containingPattern, names.ToImmutableOrNull());
         }
 
@@ -528,7 +528,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
             CancellationToken cancellationToken)
         {
             // Get all the descendant nodes to refactor.
-            var nodes = editor.OriginalRoot.DescendantNodes().Where(IsFixableNode);
+            // NOTE: We need to realize the nodes with 'ToArray' call here
+            // to ensure we strongly hold onto the nodes so that 'TrackNodes'
+            // invoked below, which does tracking based off a ConditionalWeakTable,
+            // tracks the nodes for the entire duration of this method.
+            var nodes = editor.OriginalRoot.DescendantNodes().Where(IsFixableNode).ToArray();
 
             // We're going to be continually editing this tree. Track all the nodes we
             // care about so we can find them across each edit.

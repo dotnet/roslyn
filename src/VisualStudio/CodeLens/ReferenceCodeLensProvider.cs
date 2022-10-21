@@ -130,10 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 var versionedPoints = _dataPoints.GetOrAdd(dataPoint.Descriptor.ProjectGuid, _ => (version: VersionStamp.Default.ToString(), dataPoints: new HashSet<DataPoint>()));
                 versionedPoints.dataPoints.Add(dataPoint);
 
-                if (_pollingTask is null)
-                {
-                    _pollingTask = Task.Run(PollForUpdatesAsync).ReportNonFatalErrorAsync();
-                }
+                _pollingTask ??= Task.Run(PollForUpdatesAsync).ReportNonFatalErrorAsync();
             }
         }
 

@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Context for a compilation action or compilation end action.
     /// A compilation action or compilation end action can use a <see cref="CompilationAnalysisContext"/> to report <see cref="Diagnostic"/>s about a <see cref="CodeAnalysis.Compilation"/>.
     /// </summary>
-    public struct CompilationAnalysisContext
+    public readonly struct CompilationAnalysisContext
     {
         private readonly Compilation _compilation;
         private readonly AnalyzerOptions _options;
@@ -625,7 +625,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Context for a semantic model action.
     /// A semantic model action operates on the <see cref="CodeAnalysis.SemanticModel"/> of a code document, and can use a <see cref="SemanticModelAnalysisContext"/> to report <see cref="Diagnostic"/>s about the model.
     /// </summary>
-    public struct SemanticModelAnalysisContext
+    public readonly struct SemanticModelAnalysisContext
     {
         private readonly SemanticModel _semanticModel;
         private readonly AnalyzerOptions _options;
@@ -653,18 +653,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         internal TextSpan? FilterSpan { get; }
 
+        /// <summary>
+        /// Indicates if the underlying <see cref="SemanticModel.SyntaxTree"/> is generated code.
+        /// </summary>
+        public bool IsGeneratedCode { get; }
+
+        // TODO: Mark obsolete, tracked with https://github.com/dotnet/roslyn/issues/63440
         public SemanticModelAnalysisContext(SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
-            : this(semanticModel, options, reportDiagnostic, isSupportedDiagnostic, filterSpan: null, cancellationToken)
+            : this(semanticModel, options, reportDiagnostic, isSupportedDiagnostic, filterSpan: null, isGeneratedCode: false, cancellationToken)
         {
         }
 
-        internal SemanticModelAnalysisContext(SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, TextSpan? filterSpan, CancellationToken cancellationToken)
+        internal SemanticModelAnalysisContext(
+            SemanticModel semanticModel,
+            AnalyzerOptions options,
+            Action<Diagnostic> reportDiagnostic,
+            Func<Diagnostic, bool> isSupportedDiagnostic,
+            TextSpan? filterSpan,
+            bool isGeneratedCode,
+            CancellationToken cancellationToken)
         {
             _semanticModel = semanticModel;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             FilterSpan = filterSpan;
+            IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
         }
 
@@ -686,7 +700,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Context for a symbol action.
     /// A symbol action can use a <see cref="SymbolAnalysisContext"/> to report <see cref="Diagnostic"/>s about an <see cref="ISymbol"/>.
     /// </summary>
-    public struct SymbolAnalysisContext
+    public readonly struct SymbolAnalysisContext
     {
         private readonly ISymbol _symbol;
         private readonly Compilation _compilation;
@@ -717,13 +731,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal Func<Diagnostic, bool> IsSupportedDiagnostic => _isSupportedDiagnostic;
 
+        /// <summary>
+        /// Indicates if the <see cref="Symbol"/> is generated code.
+        /// </summary>
+        public bool IsGeneratedCode { get; }
+
+        // TODO: Mark obsolete, tracked with https://github.com/dotnet/roslyn/issues/63440
         public SymbolAnalysisContext(ISymbol symbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+            : this(symbol, compilation, options, reportDiagnostic, isSupportedDiagnostic, isGeneratedCode: false, cancellationToken)
+        {
+        }
+
+        internal SymbolAnalysisContext(
+            ISymbol symbol,
+            Compilation compilation,
+            AnalyzerOptions options,
+            Action<Diagnostic> reportDiagnostic,
+            Func<Diagnostic, bool> isSupportedDiagnostic,
+            bool isGeneratedCode,
+            CancellationToken cancellationToken)
         {
             _symbol = symbol;
             _compilation = compilation;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
+            IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
         }
 
@@ -763,15 +796,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options { get; }
 
         /// <summary>
+        /// Indicates if the <see cref="Symbol"/> is generated code.
+        /// </summary>
+        public bool IsGeneratedCode { get; }
+
+        /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
+        // TODO: Mark obsolete, tracked with https://github.com/dotnet/roslyn/issues/63440
         public SymbolStartAnalysisContext(ISymbol symbol, Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
+            : this(symbol, compilation, options, isGeneratedCode: false, cancellationToken)
+        {
+        }
+
+        internal SymbolStartAnalysisContext(ISymbol symbol, Compilation compilation, AnalyzerOptions options, bool isGeneratedCode, CancellationToken cancellationToken)
         {
             Symbol = symbol;
             Compilation = compilation;
             Options = options;
+            IsGeneratedCode = isGeneratedCode;
             CancellationToken = cancellationToken;
         }
 
@@ -900,16 +945,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options { get { return _options; } }
 
         /// <summary>
+        /// Indicates if the <see cref="CodeBlock"/> is generated code.
+        /// </summary>
+        public bool IsGeneratedCode { get; }
+
+        /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
         public CancellationToken CancellationToken { get { return _cancellationToken; } }
 
+        // TODO: Mark obsolete, tracked with https://github.com/dotnet/roslyn/issues/63440
         protected CodeBlockStartAnalysisContext(SyntaxNode codeBlock, ISymbol owningSymbol, SemanticModel semanticModel, AnalyzerOptions options, CancellationToken cancellationToken)
+            : this(codeBlock, owningSymbol, semanticModel, options, isGeneratedCode: false, cancellationToken)
+        {
+        }
+
+        private protected CodeBlockStartAnalysisContext(
+            SyntaxNode codeBlock,
+            ISymbol owningSymbol,
+            SemanticModel semanticModel,
+            AnalyzerOptions options,
+            bool isGeneratedCode,
+            CancellationToken cancellationToken)
         {
             _codeBlock = codeBlock;
             _owningSymbol = owningSymbol;
             _semanticModel = semanticModel;
             _options = options;
+            IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
         }
 
@@ -946,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Context for a code block action or code block end action.
     /// A code block action or code block end action can use a <see cref="CodeBlockAnalysisContext"/> to report <see cref="Diagnostic"/>s about a code block.
     /// </summary>
-    public struct CodeBlockAnalysisContext
+    public readonly struct CodeBlockAnalysisContext
     {
         private readonly SyntaxNode _codeBlock;
         private readonly ISymbol _owningSymbol;
@@ -977,11 +1040,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options { get { return _options; } }
 
         /// <summary>
+        /// Indicates if the <see cref="CodeBlock"/> is generated code.
+        /// </summary>
+        public bool IsGeneratedCode { get; }
+
+        /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
         public CancellationToken CancellationToken { get { return _cancellationToken; } }
 
+        // TODO: Mark obsolete, tracked with https://github.com/dotnet/roslyn/issues/63440
         public CodeBlockAnalysisContext(SyntaxNode codeBlock, ISymbol owningSymbol, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+            : this(codeBlock, owningSymbol, semanticModel, options, reportDiagnostic, isSupportedDiagnostic, isGeneratedCode: false, cancellationToken)
+        {
+        }
+
+        internal CodeBlockAnalysisContext(
+            SyntaxNode codeBlock,
+            ISymbol owningSymbol,
+            SemanticModel semanticModel,
+            AnalyzerOptions options,
+            Action<Diagnostic> reportDiagnostic,
+            Func<Diagnostic, bool> isSupportedDiagnostic,
+            bool isGeneratedCode,
+            CancellationToken cancellationToken)
         {
             _codeBlock = codeBlock;
             _owningSymbol = owningSymbol;
@@ -989,6 +1071,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
+            IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
         }
 
@@ -1052,23 +1135,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options => _options;
 
         /// <summary>
+        /// Indicates if the <see cref="OperationBlocks"/> is generated code.
+        /// </summary>
+        public bool IsGeneratedCode { get; }
+
+        /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
+        // TODO: Mark obsolete, tracked with https://github.com/dotnet/roslyn/issues/63440
         protected OperationBlockStartAnalysisContext(
             ImmutableArray<IOperation> operationBlocks,
             ISymbol owningSymbol,
             Compilation compilation,
             AnalyzerOptions options,
             CancellationToken cancellationToken)
+            : this(operationBlocks, owningSymbol, compilation, options, getControlFlowGraph: null, isGeneratedCode: false, cancellationToken)
         {
-            _operationBlocks = operationBlocks;
-            _owningSymbol = owningSymbol;
-            _compilation = compilation;
-            _options = options;
-            _cancellationToken = cancellationToken;
-            _getControlFlowGraph = null;
         }
 
         internal OperationBlockStartAnalysisContext(
@@ -1076,7 +1160,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ISymbol owningSymbol,
             Compilation compilation,
             AnalyzerOptions options,
-            Func<IOperation, ControlFlowGraph> getControlFlowGraph,
+            Func<IOperation, ControlFlowGraph>? getControlFlowGraph,
+            bool isGeneratedCode,
             CancellationToken cancellationToken)
         {
             _operationBlocks = operationBlocks;
@@ -1084,6 +1169,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _compilation = compilation;
             _options = options;
             _getControlFlowGraph = getControlFlowGraph;
+            IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
         }
 
@@ -1139,7 +1225,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Context for an operation block action or operation block end action.
     /// An operation block action or operation block end action can use an <see cref="OperationAnalysisContext"/> to report <see cref="Diagnostic"/>s about an operation block.
     /// </summary>
-    public struct OperationBlockAnalysisContext
+    public readonly struct OperationBlockAnalysisContext
     {
         private readonly ImmutableArray<IOperation> _operationBlocks;
         private readonly ISymbol _owningSymbol;
@@ -1174,10 +1260,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options => _options;
 
         /// <summary>
+        /// Indicates if the <see cref="OperationBlocks"/> is generated code.
+        /// </summary>
+        public bool IsGeneratedCode { get; }
+
+        /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
+        // TODO: Mark obsolete, tracked with https://github.com/dotnet/roslyn/issues/63440
         public OperationBlockAnalysisContext(
             ImmutableArray<IOperation> operationBlocks,
             ISymbol owningSymbol,
@@ -1186,15 +1278,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
             CancellationToken cancellationToken)
+            : this(operationBlocks, owningSymbol, compilation, options, reportDiagnostic, isSupportedDiagnostic, getControlFlowGraph: null, isGeneratedCode: false, cancellationToken)
         {
-            _operationBlocks = operationBlocks;
-            _owningSymbol = owningSymbol;
-            _compilation = compilation;
-            _options = options;
-            _reportDiagnostic = reportDiagnostic;
-            _isSupportedDiagnostic = isSupportedDiagnostic;
-            _cancellationToken = cancellationToken;
-            _getControlFlowGraph = null;
         }
 
         internal OperationBlockAnalysisContext(
@@ -1204,7 +1289,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerOptions options,
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
-            Func<IOperation, ControlFlowGraph> getControlFlowGraph,
+            Func<IOperation, ControlFlowGraph>? getControlFlowGraph,
+            bool isGeneratedCode,
             CancellationToken cancellationToken)
         {
             _operationBlocks = operationBlocks;
@@ -1214,6 +1300,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             _getControlFlowGraph = getControlFlowGraph;
+            IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
         }
 
@@ -1254,7 +1341,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Context for a syntax tree action.
     /// A syntax tree action can use a <see cref="SyntaxTreeAnalysisContext"/> to report <see cref="Diagnostic"/>s about a <see cref="SyntaxTree"/> for a code document.
     /// </summary>
-    public struct SyntaxTreeAnalysisContext
+    public readonly struct SyntaxTreeAnalysisContext
     {
         private readonly SyntaxTree _tree;
         private readonly Compilation? _compilationOpt;
@@ -1274,29 +1361,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options => _options;
 
         /// <summary>
+        /// Indicates if the <see cref="Tree"/> is generated code.
+        /// </summary>
+        public bool IsGeneratedCode { get; }
+
+        /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
         internal Compilation? Compilation => _compilationOpt;
 
+        // TODO: Mark obsolete, tracked with https://github.com/dotnet/roslyn/issues/63440
         public SyntaxTreeAnalysisContext(SyntaxTree tree, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+            : this(tree, options, reportDiagnostic, isSupportedDiagnostic, compilation: null, isGeneratedCode: false, cancellationToken)
         {
-            _tree = tree;
-            _options = options;
-            _reportDiagnostic = reportDiagnostic;
-            _isSupportedDiagnostic = isSupportedDiagnostic;
-            _compilationOpt = null;
-            _cancellationToken = cancellationToken;
         }
 
-        internal SyntaxTreeAnalysisContext(SyntaxTree tree, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, Compilation compilation, CancellationToken cancellationToken)
+        internal SyntaxTreeAnalysisContext(
+            SyntaxTree tree,
+            AnalyzerOptions options,
+            Action<Diagnostic> reportDiagnostic,
+            Func<Diagnostic, bool> isSupportedDiagnostic,
+            Compilation? compilation,
+            bool isGeneratedCode,
+            CancellationToken cancellationToken)
         {
             _tree = tree;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             _compilationOpt = compilation;
+            IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
         }
 
@@ -1378,7 +1474,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Context for a syntax node action.
     /// A syntax node action can use a <see cref="SyntaxNodeAnalysisContext"/> to report <see cref="Diagnostic"/>s for a <see cref="SyntaxNode"/>.
     /// </summary>
-    public struct SyntaxNodeAnalysisContext
+    public readonly struct SyntaxNodeAnalysisContext
     {
         private readonly SyntaxNode _node;
         private readonly ISymbol? _containingSymbol;
@@ -1414,11 +1510,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options => _options;
 
         /// <summary>
+        /// Indicates if the <see cref="Node"/> is generated code.
+        /// </summary>
+        public bool IsGeneratedCode { get; }
+
+        /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
+        // TODO: Mark obsolete, tracked with https://github.com/dotnet/roslyn/issues/63440
         public SyntaxNodeAnalysisContext(SyntaxNode node, ISymbol? containingSymbol, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+            : this(node, containingSymbol, semanticModel, options, reportDiagnostic, isSupportedDiagnostic, isGeneratedCode: false, cancellationToken)
+        {
+        }
+
+        // TODO: Mark obsolete, tracked with https://github.com/dotnet/roslyn/issues/63440
+        public SyntaxNodeAnalysisContext(SyntaxNode node, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+           : this(node, null, semanticModel, options, reportDiagnostic, isSupportedDiagnostic, isGeneratedCode: false, cancellationToken)
+        {
+        }
+
+        internal SyntaxNodeAnalysisContext(
+            SyntaxNode node,
+            ISymbol? containingSymbol,
+            SemanticModel semanticModel,
+            AnalyzerOptions options,
+            Action<Diagnostic> reportDiagnostic,
+            Func<Diagnostic, bool> isSupportedDiagnostic,
+            bool isGeneratedCode,
+            CancellationToken cancellationToken)
         {
             _node = node;
             _containingSymbol = containingSymbol;
@@ -1426,12 +1547,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
+            IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
-        }
-
-        public SyntaxNodeAnalysisContext(SyntaxNode node, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
-           : this(node, null, semanticModel, options, reportDiagnostic, isSupportedDiagnostic, cancellationToken)
-        {
         }
 
         /// <summary>
@@ -1452,7 +1569,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Context for an operation action.
     /// An operation action can use an <see cref="OperationAnalysisContext"/> to report <see cref="Diagnostic"/>s for an <see cref="IOperation"/>.
     /// </summary>
-    public struct OperationAnalysisContext
+    public readonly struct OperationAnalysisContext
     {
         private readonly IOperation _operation;
         private readonly ISymbol _containingSymbol;
@@ -1484,10 +1601,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options => _options;
 
         /// <summary>
+        /// Indicates if the <see cref="Operation"/> is generated code.
+        /// </summary>
+        public bool IsGeneratedCode { get; }
+
+        /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
+        // TODO: Mark obsolete, tracked with https://github.com/dotnet/roslyn/issues/63440
         public OperationAnalysisContext(
             IOperation operation,
             ISymbol containingSymbol,
@@ -1496,15 +1619,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
             CancellationToken cancellationToken)
+            : this(operation, containingSymbol, compilation, options, reportDiagnostic, isSupportedDiagnostic, getControlFlowGraph: null, isGeneratedCode: false, cancellationToken)
         {
-            _operation = operation;
-            _containingSymbol = containingSymbol;
-            _compilation = compilation;
-            _options = options;
-            _reportDiagnostic = reportDiagnostic;
-            _isSupportedDiagnostic = isSupportedDiagnostic;
-            _cancellationToken = cancellationToken;
-            _getControlFlowGraph = null;
         }
 
         internal OperationAnalysisContext(
@@ -1514,7 +1630,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerOptions options,
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
-            Func<IOperation, ControlFlowGraph> getControlFlowGraph,
+            Func<IOperation, ControlFlowGraph>? getControlFlowGraph,
+            bool isGeneratedCode,
             CancellationToken cancellationToken)
         {
             _operation = operation;
@@ -1524,6 +1641,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             _getControlFlowGraph = getControlFlowGraph;
+            IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
         }
 
@@ -1549,7 +1667,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <summary>
     /// Context for suppressing analyzer and/or compiler non-error diagnostics reported for the compilation.
     /// </summary>
-    public struct SuppressionAnalysisContext
+    public readonly struct SuppressionAnalysisContext
     {
         private readonly Action<Suppression> _addSuppression;
         private readonly Func<SuppressionDescriptor, bool> _isSupportedSuppressionDescriptor;

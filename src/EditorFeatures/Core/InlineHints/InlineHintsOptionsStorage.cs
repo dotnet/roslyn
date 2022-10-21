@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.InlineHints
@@ -10,28 +10,34 @@ namespace Microsoft.CodeAnalysis.InlineHints
     internal static class InlineHintsOptionsStorage
     {
         public static InlineHintsOptions GetInlineHintsOptions(this IGlobalOptionService globalOptions, string language)
-            => new(
-                ParameterOptions: globalOptions.GetInlineParameterHintsOptions(language),
-                TypeOptions: globalOptions.GetInlineTypeHintsOptions(language),
-                DisplayOptions: globalOptions.GetSymbolDescriptionOptions(language));
+            => new()
+            {
+                ParameterOptions = globalOptions.GetInlineParameterHintsOptions(language),
+                TypeOptions = globalOptions.GetInlineTypeHintsOptions(language),
+                DisplayOptions = globalOptions.GetSymbolDescriptionOptions(language),
+            };
 
         public static InlineParameterHintsOptions GetInlineParameterHintsOptions(this IGlobalOptionService globalOptions, string language)
-            => new(
-                EnabledForParameters: globalOptions.GetOption(EnabledForParameters, language),
-                ForLiteralParameters: globalOptions.GetOption(ForLiteralParameters, language),
-                ForIndexerParameters: globalOptions.GetOption(ForIndexerParameters, language),
-                ForObjectCreationParameters: globalOptions.GetOption(ForObjectCreationParameters, language),
-                ForOtherParameters: globalOptions.GetOption(ForOtherParameters, language),
-                SuppressForParametersThatDifferOnlyBySuffix: globalOptions.GetOption(SuppressForParametersThatDifferOnlyBySuffix, language),
-                SuppressForParametersThatMatchMethodIntent: globalOptions.GetOption(SuppressForParametersThatMatchMethodIntent, language),
-                SuppressForParametersThatMatchArgumentName: globalOptions.GetOption(SuppressForParametersThatMatchArgumentName, language));
+            => new()
+            {
+                EnabledForParameters = globalOptions.GetOption(EnabledForParameters, language),
+                ForLiteralParameters = globalOptions.GetOption(ForLiteralParameters, language),
+                ForIndexerParameters = globalOptions.GetOption(ForIndexerParameters, language),
+                ForObjectCreationParameters = globalOptions.GetOption(ForObjectCreationParameters, language),
+                ForOtherParameters = globalOptions.GetOption(ForOtherParameters, language),
+                SuppressForParametersThatDifferOnlyBySuffix = globalOptions.GetOption(SuppressForParametersThatDifferOnlyBySuffix, language),
+                SuppressForParametersThatMatchMethodIntent = globalOptions.GetOption(SuppressForParametersThatMatchMethodIntent, language),
+                SuppressForParametersThatMatchArgumentName = globalOptions.GetOption(SuppressForParametersThatMatchArgumentName, language),
+            };
 
         public static InlineTypeHintsOptions GetInlineTypeHintsOptions(this IGlobalOptionService globalOptions, string language)
-          => new(
-                EnabledForTypes: globalOptions.GetOption(EnabledForTypes, language),
-                ForImplicitVariableTypes: globalOptions.GetOption(ForImplicitVariableTypes, language),
-                ForLambdaParameterTypes: globalOptions.GetOption(ForLambdaParameterTypes, language),
-                ForImplicitObjectCreation: globalOptions.GetOption(ForImplicitObjectCreation, language));
+          => new()
+          {
+              EnabledForTypes = globalOptions.GetOption(EnabledForTypes, language),
+              ForImplicitVariableTypes = globalOptions.GetOption(ForImplicitVariableTypes, language),
+              ForLambdaParameterTypes = globalOptions.GetOption(ForLambdaParameterTypes, language),
+              ForImplicitObjectCreation = globalOptions.GetOption(ForImplicitObjectCreation, language),
+          };
 
         private const string FeatureName = "InlineHintsOptions";
 

@@ -448,6 +448,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return boundNode
         End Function
 
+        Public Function Literal(value As StateMachineState) As BoundLiteral
+            Return Literal(CType(value, Integer))
+        End Function
+
         Public Function BadExpression(ParamArray subExpressions As BoundExpression()) As BoundExpression
             Dim boundNode = New BoundBadExpression(_syntax, LookupResultKind.Empty, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(subExpressions), ErrorTypeSymbol.UnknownResultType, hasErrors:=True)
             boundNode.SetWasCompilerGenerated()
@@ -1090,7 +1094,7 @@ nextm:
             If body.Kind <> BoundKind.Block Then
                 body = Me.Block(body)
             End If
-            CompilationState.AddSynthesizedMethod(Me.CurrentMethod, body)
+            CompilationState.AddSynthesizedMethod(Me.CurrentMethod, body, stateMachineType:=Nothing, ImmutableArray(Of StateMachineStateDebugInfo).Empty)
             Me.CurrentMethod = Nothing
         End Sub
 

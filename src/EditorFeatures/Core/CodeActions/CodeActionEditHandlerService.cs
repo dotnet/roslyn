@@ -100,9 +100,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
         }
 
         public async Task<bool> ApplyAsync(
-            Workspace workspace, Document? fromDocument,
+            Workspace workspace,
+            Solution originalSolution,
+            Document? fromDocument,
             ImmutableArray<CodeActionOperation> operations,
-            string title, IProgressTracker progressTracker,
+            string title,
+            IProgressTracker progressTracker,
             CancellationToken cancellationToken)
         {
             // Much of the work we're going to do will be on the UI thread, so switch there preemptively.
@@ -148,11 +151,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
                         _threadingContext.ThrowIfNotOnUIThread();
 
                         applied = await operations.Single().TryApplyAsync(
-                            workspace, progressTracker, cancellationToken).ConfigureAwait(true);
+                            workspace, originalSolution, progressTracker, cancellationToken).ConfigureAwait(true);
                     }
                     catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
                     {
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
                 }
             }
@@ -174,11 +177,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 {
                     // Come back to the UI thread after processing the operations so we can commit the transaction
                     applied = await ProcessOperationsAsync(
-                        workspace, operations, progressTracker, cancellationToken).ConfigureAwait(true);
+                        workspace, originalSolution, operations, progressTracker, cancellationToken).ConfigureAwait(true);
                 }
                 catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 transaction.Commit();
@@ -265,8 +268,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <returns><see langword="true"/> if all expected <paramref name="operations"/> are applied successfully;
         /// otherwise, <see langword="false"/>.</returns>
         private async Task<bool> ProcessOperationsAsync(
-            Workspace workspace, ImmutableArray<CodeActionOperation> operations,
-            IProgressTracker progressTracker, CancellationToken cancellationToken)
+            Workspace workspace,
+            Solution originalSolution,
+            ImmutableArray<CodeActionOperation> operations,
+            IProgressTracker progressTracker,
+            CancellationToken cancellationToken)
         {
             await this._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -284,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 }
 
                 _threadingContext.ThrowIfNotOnUIThread();
-                applied &= await operation.TryApplyAsync(workspace, progressTracker, cancellationToken).ConfigureAwait(true);
+                applied &= await operation.TryApplyAsync(workspace, originalSolution, progressTracker, cancellationToken).ConfigureAwait(true);
             }
 
             return applied;

@@ -56,8 +56,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         public AutomaticLineEnderCommandHandler(
             ITextUndoHistoryRegistry undoRegistry,
             IEditorOperationsFactoryService editorOperations,
-            IGlobalOptionService globalOptions)
-            : base(undoRegistry, editorOperations, globalOptions)
+            EditorOptionsService editorOptionsService)
+            : base(undoRegistry, editorOperations, editorOptionsService)
         {
         }
 
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             CancellationToken cancellationToken)
         {
             var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
-            var formattingOptions = document.GetSyntaxFormattingOptionsAsync(GlobalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
+            var formattingOptions = args.SubjectBuffer.GetSyntaxFormattingOptions(EditorOptionsService, document.Project.Services, explicitFormat: false);
 
             // Add braces for the selected node
             if (addBrace)
@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 CheckedStatementSyntax checkedStatementNode => checkedStatementNode.Keyword.Span.End,
                 FieldDeclarationSyntax fieldDeclarationNode => fieldDeclarationNode.Declaration.Variables[0].Identifier.Span.End,
                 EventFieldDeclarationSyntax eventFieldDeclarationNode => eventFieldDeclarationNode.Declaration.Variables[0].Identifier.Span.End,
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
         }
 

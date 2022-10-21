@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim isImplicit As Boolean = boundAssignment.WasCompilerGenerated
 
             Return New CompoundAssignmentOperation(inConversion, outConversion, operatorInfo.OperatorKind, operatorInfo.IsLifted,
-                                                   operatorInfo.IsChecked, operatorInfo.OperatorMethod, target, value,
+                                                   operatorInfo.IsChecked, operatorInfo.OperatorMethod, constrainedToType:=Nothing, target, value,
                                                    _semanticModel, syntax, type, isImplicit)
         End Function
 
@@ -183,6 +183,9 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Case BoundKind.RaiseEventStatement
                     Dim boundRaiseEvent = DirectCast(boundNode, BoundRaiseEventStatement)
                     Return DeriveArguments(DirectCast(boundRaiseEvent.EventInvocation, BoundCall))
+                Case BoundKind.Attribute
+                    Dim boundAttribute = DirectCast(boundNode, BoundAttribute)
+                    Return DeriveArguments(boundAttribute.ConstructorArguments, boundAttribute.Constructor.Parameters, boundAttribute.ConstructorDefaultArguments)
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(boundNode.Kind)
             End Select
@@ -326,7 +329,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                     Dim [property] As IPropertySymbol = properties(i)
                     Dim instance As IInstanceReferenceOperation = CreateAnonymousTypePropertyAccessImplicitReceiverOperation([property], expression.Syntax)
                     target = New PropertyReferenceOperation(
-                        [property],
+                        [property], constrainedToType:=Nothing,
                         ImmutableArray(Of IArgumentOperation).Empty,
                         instance,
                         _semanticModel,

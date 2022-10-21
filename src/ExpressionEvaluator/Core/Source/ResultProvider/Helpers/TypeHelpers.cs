@@ -557,10 +557,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     continue;
                 }
-                if (result == null)
-                {
-                    result = new Dictionary<string, DkmClrDebuggerBrowsableAttributeState>();
-                }
+                result ??= new Dictionary<string, DkmClrDebuggerBrowsableAttributeState>();
 
                 // There can be multiple same attributes for derived classes.
                 // Debugger provides attributes starting from derived classes and then up to base ones.
@@ -856,7 +853,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal static Type GetInterfaceListEntry(this Type interfaceType, Type declaration)

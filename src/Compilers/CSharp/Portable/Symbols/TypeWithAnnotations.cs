@@ -267,6 +267,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _extensions.IsVoid(DefaultType);
         public bool IsSZArray() =>
             _extensions.IsSZArray(DefaultType);
+        public bool IsRefLikeType() =>
+            _extensions.IsRefLikeType(DefaultType);
         public bool IsStatic =>
             _extensions.IsStatic(DefaultType);
         public bool IsRestrictedType(bool ignoreSpanLikeTypes = false) =>
@@ -840,6 +842,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal abstract bool IsStatic(TypeSymbol typeSymbol);
             internal abstract bool IsVoid(TypeSymbol typeSymbol);
             internal abstract bool IsSZArray(TypeSymbol typeSymbol);
+            internal abstract bool IsRefLikeType(TypeSymbol typeSymbol);
 
             internal abstract TypeWithAnnotations WithTypeAndModifiers(TypeWithAnnotations type, TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers);
 
@@ -869,6 +872,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal override bool IsStatic(TypeSymbol typeSymbol) => typeSymbol.IsStatic;
             internal override bool IsVoid(TypeSymbol typeSymbol) => typeSymbol.IsVoidType();
             internal override bool IsSZArray(TypeSymbol typeSymbol) => typeSymbol.IsSZArray();
+            internal override bool IsRefLikeType(TypeSymbol typeSymbol) => typeSymbol.IsRefLikeType;
 
             internal override TypeSymbol GetNullableUnderlyingTypeOrSelf(TypeSymbol typeSymbol) => typeSymbol.StrippedType();
 
@@ -936,6 +940,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override bool IsVoid(TypeSymbol typeSymbol) => false;
             internal override bool IsSZArray(TypeSymbol typeSymbol) => false;
+            internal override bool IsRefLikeType(TypeSymbol typeSymbol) => false;
             internal override bool IsStatic(TypeSymbol typeSymbol) => false;
 
             private TypeSymbol GetResolvedType()

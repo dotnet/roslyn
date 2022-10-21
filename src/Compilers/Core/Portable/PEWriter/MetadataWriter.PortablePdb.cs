@@ -301,7 +301,7 @@ namespace Microsoft.Cci
                 return SignatureTypeCode.Single;
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         #region ImportScope
@@ -550,7 +550,7 @@ namespace Microsoft.Cci
         }
 
         /// <summary>
-        /// Write string as UTF8 with null terminator.
+        /// Write string as UTF-8 with null terminator.
         /// </summary>
         private static void WriteUtf8String(BlobBuilder builder, string str)
         {

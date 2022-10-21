@@ -19,6 +19,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.EncapsulateField
 {
+    [Trait(Traits.Feature, Traits.Features.EncapsulateField)]
     public class EncapsulateFieldTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
             return TestAsync(initialMarkup, expectedMarkup, parseOptions, compilationOptions, index, options, testHost: host);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, CombinatorialData]
         public async Task PrivateFieldToPropertyIgnoringReferences(TestHost host)
         {
             var text = @"
@@ -88,7 +89,7 @@ class goo
             await TestAllOptionsOffAsync(host, text, expected, index: 1);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, CombinatorialData]
         public async Task PrivateNullableFieldToPropertyIgnoringReferences(TestHost host)
         {
             var text = @"#nullable enable
@@ -130,7 +131,7 @@ class goo
             await TestAllOptionsOffAsync(host, text, expected, index: 1);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, CombinatorialData]
         public async Task PrivateFieldToPropertyUpdatingReferences(TestHost host)
         {
             var text = @"
@@ -172,7 +173,7 @@ class goo
             await TestAllOptionsOffAsync(host, text, expected, index: 0);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, CombinatorialData]
         public async Task TestCodeStyle1(TestHost host)
         {
             var text = @"
@@ -220,7 +221,7 @@ class goo
                 testHost: host);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, CombinatorialData]
         public async Task TestCodeStyle2(TestHost host)
         {
             var text = @"
@@ -256,7 +257,7 @@ class goo
                 testHost: host);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, CombinatorialData]
         public async Task PublicFieldIntoPublicPropertyIgnoringReferences(TestHost host)
         {
             var text = @"
@@ -298,7 +299,7 @@ class goo
             await TestAllOptionsOffAsync(host, text, expected, index: 1);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, CombinatorialData]
         public async Task PublicFieldIntoPublicPropertyUpdatingReferences(TestHost host)
         {
             var text = @"
@@ -340,7 +341,7 @@ class goo
             await TestAllOptionsOffAsync(host, text, expected, index: 0);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, CombinatorialData]
         public async Task StaticPreserved(TestHost host)
         {
             var text = @"class Program
@@ -368,7 +369,7 @@ class goo
             await TestAllOptionsOffAsync(host, text, expected);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, CombinatorialData]
         public async Task UniqueNameGenerated(TestHost host)
         {
             var text = @"
@@ -400,7 +401,7 @@ class Program
             await TestAllOptionsOffAsync(host, text, expected);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, CombinatorialData]
         public async Task GenericField(TestHost host)
         {
             var text = @"
@@ -430,7 +431,7 @@ class C<T>
             await TestAllOptionsOffAsync(host, text, expected);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, CombinatorialData]
         public async Task NewFieldNameIsUnique(TestHost host)
         {
             var text = @"
@@ -462,7 +463,7 @@ class goo
             await TestAllOptionsOffAsync(host, text, expected, index: 0);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, CombinatorialData]
         public async Task RespectReadonly(TestHost host)
         {
             var text = @"
@@ -487,7 +488,7 @@ class goo
             await TestAllOptionsOffAsync(host, text, expected, index: 0);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, CombinatorialData]
         public async Task PreserveNewAndConsiderBaseMemberNames(TestHost host)
         {
             var text = @"
@@ -531,7 +532,7 @@ class d : c
             await TestAllOptionsOffAsync(host, text, expected, index: 0);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, CombinatorialData]
         public async Task EncapsulateMultiplePrivateFields(TestHost host)
         {
             var text = @"
@@ -586,7 +587,7 @@ class goo
             await TestAllOptionsOffAsync(host, text, expected, index: 0);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, CombinatorialData]
         public async Task EncapsulateMultiplePrivateFields2(TestHost host)
         {
             var text = @"
@@ -643,7 +644,7 @@ class goo
             await TestAllOptionsOffAsync(host, text, expected, index: 0);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, CombinatorialData]
         public async Task EncapsulateSinglePublicFieldInMultipleVariableDeclarationAndUpdateReferences(TestHost host)
         {
             var text = @"
@@ -686,8 +687,7 @@ class goo
             await TestAllOptionsOffAsync(host, text, expected, index: 0);
         }
 
-        [WorkItem(694057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694057")]
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, WorkItem(694057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694057"), CombinatorialData]
         public async Task ConstFieldNoGetter(TestHost host)
         {
             var text = @"
@@ -714,8 +714,7 @@ class Program
             await TestAllOptionsOffAsync(host, text, expected, index: 0);
         }
 
-        [WorkItem(694276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694276")]
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, WorkItem(694276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694276"), CombinatorialData]
         public async Task EncapsulateFieldNamedValue(TestHost host)
         {
             var text = @"
@@ -742,8 +741,7 @@ class Program
             await TestAllOptionsOffAsync(host, text, expected, index: 0);
         }
 
-        [WorkItem(694276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694276")]
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, WorkItem(694276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694276"), CombinatorialData]
         public async Task PublicFieldNamed__(TestHost host)
         {
             var text = @"
@@ -775,8 +773,7 @@ class Program
             await TestAllOptionsOffAsync(host, text, expected, index: 0);
         }
 
-        [WorkItem(695046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/695046")]
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, WorkItem(695046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/695046"), CombinatorialData]
         public async Task AvailableNotJustOnVariableName(TestHost host)
         {
             var text = @"
@@ -789,8 +786,7 @@ class Program
             await TestActionCountAsync(text, 2, new TestParameters(testHost: host));
         }
 
-        [WorkItem(705898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705898")]
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, WorkItem(705898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705898"), CombinatorialData]
         public async Task CopyFieldAccessibility(TestHost host)
         {
             var text = @"
@@ -817,7 +813,7 @@ class Program
             await TestAllOptionsOffAsync(host, text, expected, index: 0);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, CombinatorialData]
         public async Task UpdateReferencesCrossProject(TestHost host)
         {
             var text = @"
@@ -885,8 +881,7 @@ public class D
             await TestAllOptionsOffAsync(host, text, expected, new CodeAnalysis.CSharp.CSharpParseOptions(), TestOptions.ReleaseExe);
         }
 
-        [WorkItem(713269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713269")]
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, WorkItem(713269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713269"), CombinatorialData]
         public async Task PreserveUnsafe(TestHost host)
         {
             var text = @"
@@ -918,8 +913,7 @@ class C
             await TestAllOptionsOffAsync(host, text, expected, index: 0);
         }
 
-        [WorkItem(713240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713240")]
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, WorkItem(713240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713240"), CombinatorialData]
         public async Task ConsiderReturnTypeAccessibility(TestHost host)
         {
             var text = @"
@@ -961,8 +955,7 @@ internal enum State
             await TestAllOptionsOffAsync(host, text, expected, index: 0);
         }
 
-        [WorkItem(713191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713191")]
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, WorkItem(713191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713191"), CombinatorialData]
         public async Task DoNotReferToReadOnlyPropertyInConstructor(TestHost host)
         {
             var text = @"
@@ -997,8 +990,7 @@ class Program
             await TestAllOptionsOffAsync(host, text, expected, index: 0);
         }
 
-        [WorkItem(713191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713191")]
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, WorkItem(713191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713191"), CombinatorialData]
         public async Task DoNotReferToStaticReadOnlyPropertyInConstructor(TestHost host)
         {
             var text = @"
@@ -1033,8 +1025,7 @@ class Program
             await TestAllOptionsOffAsync(host, text, expected, index: 0);
         }
 
-        [WorkItem(765959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/765959")]
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, WorkItem(765959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/765959"), CombinatorialData]
         public async Task GenerateInTheCorrectPart(TestHost host)
         {
             var text = @"
@@ -1067,8 +1058,7 @@ partial class Program {
             await TestAllOptionsOffAsync(host, text, expected);
         }
 
-        [WorkItem(829178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829178")]
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, WorkItem(829178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829178"), CombinatorialData]
         public async Task ErrorTolerance(TestHost host)
         {
             var text = @"class Program 
@@ -1079,8 +1069,7 @@ partial class Program {
             await TestActionCountAsync(text, count: 2, new TestParameters(testHost: host));
         }
 
-        [WorkItem(834072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834072")]
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, WorkItem(834072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834072"), CombinatorialData]
         public async Task DuplicateFieldErrorTolerance(TestHost host)
         {
             var text = @"
@@ -1094,8 +1083,7 @@ class Program
             await TestActionCountAsync(text, count: 2, new TestParameters(testHost: host));
         }
 
-        [WorkItem(862517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862517")]
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, WorkItem(862517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862517"), CombinatorialData]
         public async Task Trivia(TestHost host)
         {
             var text = @"
@@ -1136,8 +1124,7 @@ namespace ConsoleApplication1
             await TestAllOptionsOffAsync(host, text, expected);
         }
 
-        [WorkItem(1096007, "https://github.com/dotnet/roslyn/issues/282")]
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, WorkItem(1096007, "https://github.com/dotnet/roslyn/issues/282"), CombinatorialData]
         public async Task DoNotEncapsulateOutsideTypeDeclaration(TestHost host)
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1156,8 +1143,7 @@ namespace ConsoleApplication1
 }", new TestParameters(testHost: host));
         }
 
-        [WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524")]
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524"), CombinatorialData]
         public async Task AlwaysUseEnglishUSCultureWhenFixingVariableNames_TurkishDottedI(TestHost host)
         {
             using (new CultureContext(new CultureInfo("tr-TR", useUserOverride: false)))
@@ -1187,8 +1173,7 @@ namespace ConsoleApplication1
             }
         }
 
-        [WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524")]
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524"), CombinatorialData]
         public async Task AlwaysUseEnglishUSCultureWhenFixingVariableNames_TurkishUndottedI(TestHost host)
         {
             using (new CultureContext(new CultureInfo("tr-TR", useUserOverride: false)))
@@ -1218,8 +1203,7 @@ namespace ConsoleApplication1
             }
         }
 
-        [WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524")]
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524"), CombinatorialData]
         public async Task AlwaysUseEnglishUSCultureWhenFixingVariableNames_Arabic(TestHost host)
         {
             using (new CultureContext(new CultureInfo("ar-EG", useUserOverride: false)))
@@ -1249,8 +1233,7 @@ namespace ConsoleApplication1
             }
         }
 
-        [WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524")]
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524"), CombinatorialData]
         public async Task AlwaysUseEnglishUSCultureWhenFixingVariableNames_Spanish(TestHost host)
         {
             using (new CultureContext(new CultureInfo("es-ES", useUserOverride: false)))
@@ -1280,8 +1263,7 @@ namespace ConsoleApplication1
             }
         }
 
-        [WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524")]
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524"), CombinatorialData]
         public async Task AlwaysUseEnglishUSCultureWhenFixingVariableNames_Greek(TestHost host)
         {
             using (new CultureContext(new CultureInfo("el-GR", useUserOverride: false)))
@@ -1311,7 +1293,7 @@ namespace ConsoleApplication1
             }
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, CombinatorialData]
         public async Task TestEncapsulateEscapedIdentifier(TestHost host)
         {
             await TestAllOptionsOffAsync(host, @"
@@ -1340,7 +1322,7 @@ class C
 ");
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, CombinatorialData]
         public async Task TestEncapsulateEscapedIdentifierAndQualifiedAccess(TestHost host)
         {
             await TestAllOptionsOffAsync(host, @"
@@ -1369,8 +1351,7 @@ class C
 ", options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error));
         }
 
-        [WorkItem(7090, "https://github.com/dotnet/roslyn/issues/7090")]
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Theory, WorkItem(7090, "https://github.com/dotnet/roslyn/issues/7090"), CombinatorialData]
         public async Task ApplyCurrentThisPrefixStyle(TestHost host)
         {
             await TestAllOptionsOffAsync(host,
@@ -1397,7 +1378,7 @@ class C
 }", options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error));
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField), CompilerTrait(CompilerFeature.Tuples)]
+        [Theory, CombinatorialData, CompilerTrait(CompilerFeature.Tuples)]
         public async Task TestTuple(TestHost host)
         {
             var text = @"
@@ -1439,7 +1420,7 @@ class C
             await TestAllOptionsOffAsync(host, text, expected, index: 1);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField), CompilerTrait(CompilerFeature.Tuples)]
+        [Theory, CombinatorialData, CompilerTrait(CompilerFeature.Tuples)]
         public async Task TupleWithNames(TestHost host)
         {
             var text = @"
@@ -1481,7 +1462,7 @@ class C
             await TestAllOptionsOffAsync(host, text, expected, index: 1);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField), CompilerTrait(CompilerFeature.FunctionPointers)]
+        [Theory, CombinatorialData, CompilerTrait(CompilerFeature.FunctionPointers)]
         public async Task FunctionPointer(TestHost host)
         {
             var text = @"
@@ -1523,7 +1504,7 @@ unsafe class C
             await TestAllOptionsOffAsync(host, text, expected, index: 1);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField), CompilerTrait(CompilerFeature.FunctionPointers)]
+        [Theory, CombinatorialData, CompilerTrait(CompilerFeature.FunctionPointers)]
         public async Task FunctionPointerWithPrivateTypeParameter(TestHost host)
         {
             var text = @"
@@ -1567,7 +1548,7 @@ unsafe class C
             await TestAllOptionsOffAsync(host, text, expected, index: 1);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField), CompilerTrait(CompilerFeature.FunctionPointers)]
+        [Theory, CombinatorialData, CompilerTrait(CompilerFeature.FunctionPointers)]
         public async Task FunctionPointerWithPrivateTypeReturnValue(TestHost host)
         {
             var text = @"

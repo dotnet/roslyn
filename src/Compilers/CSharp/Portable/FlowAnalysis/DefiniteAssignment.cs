@@ -896,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return !init.Constructor.IsImplicitlyDeclared || init.InitializerExpressionOpt != null;
                 case BoundKind.TupleLiteral:
                 case BoundKind.ConvertedTupleLiteral:
-                case BoundKind.UTF8String:
+                case BoundKind.Utf8String:
                     return false;
                 default:
                     return true;
@@ -1684,6 +1684,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // this code has no effect except in region analysis APIs such as DataFlowsOut where we unassign things
                 if (slot > 0) SetSlotState(slot, true);
                 NoteWrite(parameter, value: null, read: true);
+            }
+
+            if (parameter is SourceComplexParameterSymbolBase { ContainingSymbol: LocalFunctionSymbol or LambdaSymbol } sourceComplexParam &&
+                sourceComplexParam.BindParameterAttributes() is { IsDefaultOrEmpty: false } boundAttributes)
+            {
+                // Mark attribute arguments as used.
+                foreach (var boundAttribute in boundAttributes)
+                {
+                    foreach (var attributeArgument in boundAttribute.ConstructorArguments)
+                    {
+                        VisitRvalue(attributeArgument);
+                    }
+                    foreach (var attributeNamedArgumentAssignment in boundAttribute.NamedArguments)
+                    {
+                        VisitRvalue(attributeNamedArgumentAssignment.Right);
+                    }
+                }
             }
         }
 

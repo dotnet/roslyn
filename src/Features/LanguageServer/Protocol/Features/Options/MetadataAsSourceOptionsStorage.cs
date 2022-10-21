@@ -12,11 +12,13 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource;
 
 internal static class MetadataAsSourceOptionsStorage
 {
-    public static MetadataAsSourceOptions GetMetadataAsSourceOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
-        => new(
-            GenerationOptions: globalOptions.GetCleanCodeGenerationOptions(languageServices),
-            NavigateToDecompiledSources: globalOptions.GetOption(NavigateToDecompiledSources),
-            AlwaysUseDefaultSymbolServers: globalOptions.GetOption(AlwaysUseDefaultSymbolServers));
+    public static MetadataAsSourceOptions GetMetadataAsSourceOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
+        => new(GenerationOptions: globalOptions.GetCleanCodeGenerationOptions(languageServices))
+        {
+            NavigateToDecompiledSources = globalOptions.GetOption(NavigateToDecompiledSources),
+            AlwaysUseDefaultSymbolServers = globalOptions.GetOption(AlwaysUseDefaultSymbolServers),
+            NavigateToSourceLinkAndEmbeddedSources = globalOptions.GetOption(NavigateToSourceLinkAndEmbeddedSources),
+        };
 
     public static Option2<bool> NavigateToDecompiledSources =
         new("FeatureOnOffOptions", "NavigateToDecompiledSources", defaultValue: true,
@@ -25,4 +27,8 @@ internal static class MetadataAsSourceOptionsStorage
     public static Option2<bool> AlwaysUseDefaultSymbolServers =
         new("FeatureOnOffOptions", "AlwaysUseDefaultSymbolServers", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation($"TextEditor.AlwaysUseDefaultSymbolServers"));
+
+    public static Option2<bool> NavigateToSourceLinkAndEmbeddedSources =
+        new("FeatureOnOffOptions", "NavigateToSourceLinkAndEmbeddedSources", defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation($"TextEditor.NavigateToSourceLinkAndEmbeddedSources"));
 }

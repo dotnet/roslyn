@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         TryStatement,
         CatchBlock,
         Literal,
-        UTF8String,
+        Utf8String,
         ThisReference,
         PreviousSubmissionReference,
         HostObjectMemberReference,
@@ -479,35 +479,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDeconstructValuePlaceholder : BoundValuePlaceholderBase
     {
-        public BoundDeconstructValuePlaceholder(SyntaxNode syntax, uint valEscape, TypeSymbol type, bool hasErrors)
+        public BoundDeconstructValuePlaceholder(SyntaxNode syntax, Symbol? variableSymbol, uint valEscape, TypeSymbol type, bool hasErrors)
             : base(BoundKind.DeconstructValuePlaceholder, syntax, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
+            this.VariableSymbol = variableSymbol;
             this.ValEscape = valEscape;
         }
 
-        public BoundDeconstructValuePlaceholder(SyntaxNode syntax, uint valEscape, TypeSymbol type)
+        public BoundDeconstructValuePlaceholder(SyntaxNode syntax, Symbol? variableSymbol, uint valEscape, TypeSymbol type)
             : base(BoundKind.DeconstructValuePlaceholder, syntax, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
+            this.VariableSymbol = variableSymbol;
             this.ValEscape = valEscape;
         }
 
         public new TypeSymbol Type => base.Type!;
+        public Symbol? VariableSymbol { get; }
         public uint ValEscape { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDeconstructValuePlaceholder(this);
 
-        public BoundDeconstructValuePlaceholder Update(uint valEscape, TypeSymbol type)
+        public BoundDeconstructValuePlaceholder Update(Symbol? variableSymbol, uint valEscape, TypeSymbol type)
         {
-            if (valEscape != this.ValEscape || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(variableSymbol, this.VariableSymbol) || valEscape != this.ValEscape || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundDeconstructValuePlaceholder(this.Syntax, valEscape, type, this.HasErrors);
+                var result = new BoundDeconstructValuePlaceholder(this.Syntax, variableSymbol, valEscape, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -4028,10 +4031,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundUTF8String : BoundExpression
+    internal sealed partial class BoundUtf8String : BoundExpression
     {
-        public BoundUTF8String(SyntaxNode syntax, string value, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.UTF8String, syntax, type, hasErrors)
+        public BoundUtf8String(SyntaxNode syntax, string value, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.Utf8String, syntax, type, hasErrors)
         {
 
             RoslynDebug.Assert(value is object, "Field 'value' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -4040,8 +4043,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Value = value;
         }
 
-        public BoundUTF8String(SyntaxNode syntax, string value, TypeSymbol type)
-            : base(BoundKind.UTF8String, syntax, type)
+        public BoundUtf8String(SyntaxNode syntax, string value, TypeSymbol type)
+            : base(BoundKind.Utf8String, syntax, type)
         {
 
             RoslynDebug.Assert(value is object, "Field 'value' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -4054,13 +4057,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public string Value { get; }
 
         [DebuggerStepThrough]
-        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUTF8String(this);
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUtf8String(this);
 
-        public BoundUTF8String Update(string value, TypeSymbol type)
+        public BoundUtf8String Update(string value, TypeSymbol type)
         {
             if (value != this.Value || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundUTF8String(this.Syntax, value, type, this.HasErrors);
+                var result = new BoundUtf8String(this.Syntax, value, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8149,23 +8152,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class OutDeconstructVarPendingInference : BoundExpression
     {
-        public OutDeconstructVarPendingInference(SyntaxNode syntax, bool hasErrors)
+        public OutDeconstructVarPendingInference(SyntaxNode syntax, Symbol? variableSymbol, uint valEscape, bool hasErrors)
             : base(BoundKind.OutDeconstructVarPendingInference, syntax, null, hasErrors)
         {
+            this.VariableSymbol = variableSymbol;
+            this.ValEscape = valEscape;
         }
 
-        public OutDeconstructVarPendingInference(SyntaxNode syntax)
+        public OutDeconstructVarPendingInference(SyntaxNode syntax, Symbol? variableSymbol, uint valEscape)
             : base(BoundKind.OutDeconstructVarPendingInference, syntax, null)
         {
+            this.VariableSymbol = variableSymbol;
+            this.ValEscape = valEscape;
         }
 
         public new TypeSymbol? Type => base.Type;
+        public Symbol? VariableSymbol { get; }
+        public uint ValEscape { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitOutDeconstructVarPendingInference(this);
 
-        public OutDeconstructVarPendingInference Update()
+        public OutDeconstructVarPendingInference Update(Symbol? variableSymbol, uint valEscape)
         {
+            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(variableSymbol, this.VariableSymbol) || valEscape != this.ValEscape)
+            {
+                var result = new OutDeconstructVarPendingInference(this.Syntax, variableSymbol, valEscape, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
             return this;
         }
     }
@@ -8518,8 +8533,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitCatchBlock((BoundCatchBlock)node, arg);
                 case BoundKind.Literal:
                     return VisitLiteral((BoundLiteral)node, arg);
-                case BoundKind.UTF8String:
-                    return VisitUTF8String((BoundUTF8String)node, arg);
+                case BoundKind.Utf8String:
+                    return VisitUtf8String((BoundUtf8String)node, arg);
                 case BoundKind.ThisReference:
                     return VisitThisReference((BoundThisReference)node, arg);
                 case BoundKind.PreviousSubmissionReference:
@@ -8860,7 +8875,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitTryStatement(BoundTryStatement node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitCatchBlock(BoundCatchBlock node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitLiteral(BoundLiteral node, A arg) => this.DefaultVisit(node, arg);
-        public virtual R VisitUTF8String(BoundUTF8String node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitUtf8String(BoundUtf8String node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitThisReference(BoundThisReference node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitPreviousSubmissionReference(BoundPreviousSubmissionReference node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitHostObjectMemberReference(BoundHostObjectMemberReference node, A arg) => this.DefaultVisit(node, arg);
@@ -9083,7 +9098,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitTryStatement(BoundTryStatement node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitCatchBlock(BoundCatchBlock node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitLiteral(BoundLiteral node) => this.DefaultVisit(node);
-        public virtual BoundNode? VisitUTF8String(BoundUTF8String node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitUtf8String(BoundUtf8String node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitThisReference(BoundThisReference node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitPreviousSubmissionReference(BoundPreviousSubmissionReference node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitHostObjectMemberReference(BoundHostObjectMemberReference node) => this.DefaultVisit(node);
@@ -9632,7 +9647,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
         public override BoundNode? VisitLiteral(BoundLiteral node) => null;
-        public override BoundNode? VisitUTF8String(BoundUTF8String node) => null;
+        public override BoundNode? VisitUtf8String(BoundUtf8String node) => null;
         public override BoundNode? VisitThisReference(BoundThisReference node) => null;
         public override BoundNode? VisitPreviousSubmissionReference(BoundPreviousSubmissionReference node) => null;
         public override BoundNode? VisitHostObjectMemberReference(BoundHostObjectMemberReference node) => null;
@@ -10209,7 +10224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.ValEscape, type);
+            return node.Update(node.VariableSymbol, node.ValEscape, type);
         }
         public override BoundNode? VisitTupleOperandPlaceholder(BoundTupleOperandPlaceholder node)
         {
@@ -10784,7 +10799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(node.ConstantValueOpt, type);
         }
-        public override BoundNode? VisitUTF8String(BoundUTF8String node)
+        public override BoundNode? VisitUtf8String(BoundUtf8String node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(node.Value, type);
@@ -11484,7 +11499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update();
+            return node.Update(node.VariableSymbol, node.ValEscape);
         }
         public override BoundNode? VisitNonConstructorMethodBody(BoundNonConstructorMethodBody node)
         {
@@ -11565,13 +11580,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
         {
-            if (!_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
-            {
-                return node;
-            }
+            Symbol? variableSymbol = GetUpdatedSymbol(node, node.VariableSymbol);
+            BoundDeconstructValuePlaceholder updatedNode;
 
-            BoundDeconstructValuePlaceholder updatedNode = node.Update(node.ValEscape, infoAndType.Type!);
-            updatedNode.TopLevelNullability = infoAndType.Info;
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                updatedNode = node.Update(variableSymbol, node.ValEscape, infoAndType.Type!);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(variableSymbol, node.ValEscape, node.Type);
+            }
             return updatedNode;
         }
 
@@ -12671,14 +12691,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return updatedNode;
         }
 
-        public override BoundNode? VisitUTF8String(BoundUTF8String node)
+        public override BoundNode? VisitUtf8String(BoundUtf8String node)
         {
             if (!_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
                 return node;
             }
 
-            BoundUTF8String updatedNode = node.Update(node.Value, infoAndType.Type!);
+            BoundUtf8String updatedNode = node.Update(node.Value, infoAndType.Type!);
             updatedNode.TopLevelNullability = infoAndType.Info;
             return updatedNode;
         }
@@ -14014,13 +14034,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node)
         {
-            if (!_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
-            {
-                return node;
-            }
+            Symbol? variableSymbol = GetUpdatedSymbol(node, node.VariableSymbol);
+            OutDeconstructVarPendingInference updatedNode;
 
-            OutDeconstructVarPendingInference updatedNode = node.Update();
-            updatedNode.TopLevelNullability = infoAndType.Info;
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                updatedNode = node.Update(variableSymbol, node.ValEscape);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(variableSymbol, node.ValEscape);
+            }
             return updatedNode;
         }
 
@@ -14115,6 +14140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node, object? arg) => new TreeDumperNode("deconstructValuePlaceholder", null, new TreeDumperNode[]
         {
+            new TreeDumperNode("variableSymbol", node.VariableSymbol, null),
             new TreeDumperNode("valEscape", node.ValEscape, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
@@ -14997,7 +15023,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
-        public override TreeDumperNode VisitUTF8String(BoundUTF8String node, object? arg) => new TreeDumperNode("uTF8String", null, new TreeDumperNode[]
+        public override TreeDumperNode VisitUtf8String(BoundUtf8String node, object? arg) => new TreeDumperNode("utf8String", null, new TreeDumperNode[]
         {
             new TreeDumperNode("value", node.Value, null),
             new TreeDumperNode("type", node.Type, null),
@@ -16067,6 +16093,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node, object? arg) => new TreeDumperNode("outDeconstructVarPendingInference", null, new TreeDumperNode[]
         {
+            new TreeDumperNode("variableSymbol", node.VariableSymbol, null),
+            new TreeDumperNode("valEscape", node.ValEscape, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

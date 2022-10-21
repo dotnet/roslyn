@@ -72,7 +72,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
         {
             if (diagnosticId is "IDE0043" // Intentionally undocumented because it's being removed in favor of CA2241
                     or "IDE1007"
-                    or "RemoveUnnecessaryImportsFixable"
+                    or "RemoveUnnecessaryImportsFixable" // this diagnostic is hidden and not configurable.
+                    or "IDE0005_gen" // this diagnostic is hidden and not configurable.
                     or "RE0001"
                     or "JSON001"
                     or "JSON002") // Tracked by https://github.com/dotnet/roslyn/issues/48530
@@ -81,12 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
                 return;
             }
 
-            if (diagnosticId == "IDE0005_gen")
-            {
-                diagnosticId = "IDE0005";
-            }
-
-            if (helpLinkUri != $"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{diagnosticId.ToLowerInvariant()}")
+            if (helpLinkUri != $"https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{diagnosticId.ToLowerInvariant()}")
             {
                 Assert.True(false, $"Invalid help link for {diagnosticId}");
             }
@@ -437,6 +433,15 @@ dotnet_diagnostic.IDE0220.severity = %value%
 
 # IDE0230
 dotnet_diagnostic.IDE0230.severity = %value%
+
+# IDE0240
+dotnet_diagnostic.IDE0240.severity = %value%
+
+# IDE0241
+dotnet_diagnostic.IDE0241.severity = %value%
+
+# IDE0250
+dotnet_diagnostic.IDE0250.severity = %value%
 
 # IDE1005
 dotnet_diagnostic.IDE1005.severity = %value%
@@ -858,7 +863,7 @@ csharp_prefer_simple_default_expression = true
 No editorconfig based code style option
 
 # IDE0036, PreferredModifierOrder
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async
+csharp_preferred_modifier_order = public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async
 
 # IDE0037, PreferInferredTupleNames
 dotnet_style_prefer_inferred_tuple_names = true
@@ -1052,8 +1057,17 @@ csharp_style_prefer_top_level_statements = true
 # IDE0220, ForEachExplicitCastInSource
 dotnet_style_prefer_foreach_explicit_cast_in_source = when_strongly_typed
 
-# IDE0230, PreferUTF8StringLiterals
+# IDE0230, PreferUtf8StringLiterals
 csharp_style_prefer_utf8_string_literals = true
+
+# IDE0240
+No editorconfig based code style option
+
+# IDE0241
+No editorconfig based code style option
+
+# IDE0250, PreferReadOnlyStruct
+csharp_style_prefer_readonly_struct = true
 
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true

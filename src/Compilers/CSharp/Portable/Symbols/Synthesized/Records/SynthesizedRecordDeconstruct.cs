@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                 param.TypeWithAnnotations,
                                                 param.Ordinal,
                                                 RefKind.Out,
+                                                DeclarationScope.Unscoped,
                                                 param.Name,
                                                 locations),
                                         arg: Locations),
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     PropertySymbol property => property.Type,
                     FieldSymbol field => field.Type,
-                    _ => throw ExceptionUtilities.Unreachable
+                    _ => throw ExceptionUtilities.Unreachable()
                 };
 
                 if (!parameter.Type.Equals(type, TypeCompareKind.AllIgnoreOptions))

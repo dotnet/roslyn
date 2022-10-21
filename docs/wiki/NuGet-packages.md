@@ -39,8 +39,13 @@ Below are the versions of the language available in the NuGet packages. Remember
 - Version `3.10` includes C# 9.0 (Visual Studio 2019 version 16.10, .NET 5)
 - Version `3.11` includes C# 9.0 (Visual Studio 2019 version 16.11, .NET 5)
 - Version `4.0` includes C# 10.0 (Visual Studio 2022 version 17.0, .NET 6)
+- Version `4.1` includes C# 10.0 (Visual Studio 2022 version 17.1, .NET 6)
+- Version `4.2` includes C# 10.0 (Visual Studio 2022 version 17.2, .NET 6)
+- Version `4.3.1` includes C# 10.0 (Visual Studio 2022 version 17.3, .NET 6)
 
 See the [history of C# language features](https://github.com/dotnet/csharplang/blob/main/Language-Version-History.md) for more details.
+
+See the [.NET SDK, MSBuild, and Visual Studio versioning](https://docs.microsoft.com/dotnet/core/porting/versioning-sdk-msbuild-vs#lifecycle) docs page for details of SDK versioning. 
 
 ## Other packages
 

@@ -30,7 +30,6 @@ namespace BuildActionTelemetryTable
             "Microsoft.CodeAnalysis.CodeActions.CodeAction+SolutionChangeAction",
             "Microsoft.CodeAnalysis.CodeActions.CustomCodeActions+DocumentChangeAction",
             "Microsoft.CodeAnalysis.CodeActions.CustomCodeActions+SolutionChangeAction",
-            "Microsoft.CodeAnalysis.CodeStyle.AbstractCodeStyleProvider`2+CodeRefactoringProvider",
             "Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider+PostProcessCodeAction",
         }.ToImmutableHashSet();
 
@@ -257,7 +256,7 @@ namespace BuildActionTelemetryTable
             { "Microsoft.CodeAnalysis.CSharp.UsePatternMatching.CSharpUseNotPatternCodeFixProvider", "Use Pattern Matching: Use Not Pattern" },
             { "Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement.UseSimpleUsingStatementCodeFixProvider", "Use Simple Using Statement" },
             { "Microsoft.CodeAnalysis.CSharp.UseTupleSwap.CSharpUseTupleSwapCodeFixProvider", "Use Tuple Swap" },
-            { "Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral.UseUTF8StringLiteralCodeFixProvider", "Use UTF 8 String Literal" },
+            { "Microsoft.CodeAnalysis.CSharp.UseUtf8StringLiteral.UseUtf8StringLiteralCodeFixProvider", "Use UTF-8 String Literal" },
             { "Microsoft.CodeAnalysis.CSharp.Wrapping.CSharpWrappingCodeRefactoringProvider", "Wrapping (Refactoring)" },
             { "Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes.CSharpAddDocCommentNodesCodeFixProvider", "Add Doc Comment Nodes" },
             { "Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes.CSharpRemoveDocCommentNodeCodeFixProvider", "Remove Doc Comment Node" },

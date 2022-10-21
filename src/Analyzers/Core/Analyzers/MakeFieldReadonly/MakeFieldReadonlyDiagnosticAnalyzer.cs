@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
         // We need to analyze generated code to get callbacks for read/writes to non-generated members in generated code.
-        protected override bool ReceiveAnalysisCallbacksForGeneratedCode => true;
+        protected override GeneratedCodeAnalysisFlags GeneratedCodeAnalysisFlags => GeneratedCodeAnalysisFlags.Analyze;
 
         protected override void InitializeWorker(AnalysisContext context)
         {

@@ -156,6 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal bool UseUpdatedEscapeRules => Compilation.SourceModule.UseUpdatedEscapeRules;
+
         /// <summary>
         /// Some nodes have special binders for their contents (like Blocks)
         /// </summary>

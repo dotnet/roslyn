@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -32,6 +33,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         FailsPEVerify = 1 << 2,
         FailsILVerify = 1 << 3,
         Fails = FailsPEVerify | FailsILVerify,
+
+        PassesOrFailFast = 1 << 4,
     }
 
     /// <summary>
@@ -331,7 +334,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             AddReferencedCompilations(referencedCompilations, references);
 
-            var tree = CSharp.SyntaxFactory.ParseSyntaxTree(code, options: parseOptions);
+            var tree = CSharp.SyntaxFactory.ParseSyntaxTree(SourceText.From(code, encoding: null, SourceHashAlgorithms.Default), options: parseOptions);
 
             return CSharp.CSharpCompilation.Create(assemblyName, new[] { tree }, references, compilationOptions);
         }
@@ -414,7 +417,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var trees = new SyntaxTree[files.Length];
             for (int i = 0; i < files.Length; i++)
             {
-                trees[i] = VisualBasic.VisualBasicSyntaxTree.ParseText(files[i], options: parseOptions, encoding: encoding, path: sourceFileNames?[i]);
+                trees[i] = VisualBasic.VisualBasicSyntaxTree.ParseText(SourceText.From(files[i], encoding, SourceHashAlgorithms.Default), options: parseOptions, path: sourceFileNames?[i]);
             }
 
 

@@ -1140,7 +1140,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void Encoding_UTF8(bool byteOrderMark)
+        public void Encoding_Utf8(bool byteOrderMark)
         {
             TestRoundtripEncoding(new UTF8Encoding(byteOrderMark));
         }

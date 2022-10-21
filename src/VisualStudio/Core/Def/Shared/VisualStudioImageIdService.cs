@@ -24,7 +24,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Shared
 {
-    internal struct CompositeImage
+    internal readonly struct CompositeImage
     {
         public readonly ImmutableArray<ImageCompositionLayer> Layers;
         public readonly IImageHandle ImageHandle;

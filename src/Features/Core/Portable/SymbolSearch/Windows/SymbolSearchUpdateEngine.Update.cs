@@ -18,7 +18,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.VisualStudio.RemoteControl;
+using Roslyn.Utilities;
 using static System.FormattableString;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         // mock behavior during tests.
         private readonly IDelayService _delayService;
         private readonly IIOService _ioService;
-        private readonly IRemoteControlService _remoteControlService;
+        private readonly IFileDownloaderFactory _fileDownloaderFactory;
         private readonly IPatchService _patchService;
         private readonly IDatabaseFactoryService _databaseFactoryService;
         private readonly Func<Exception, CancellationToken, bool> _reportAndSwallowExceptionUnlessCanceled;
@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 //         minutes ago, then the client will attempt to download the file.
                 //         In the interim period null will be returned from client.ReadFile.
                 var pollingMinutes = (int)TimeSpan.FromDays(1).TotalMinutes;
-                using var client = _service._remoteControlService.CreateClient(HostId, serverPath, pollingMinutes);
+                using var client = _service._fileDownloaderFactory.CreateClient(HostId, serverPath, pollingMinutes);
 
                 await LogInfoAsync("Creating download client completed", cancellationToken).ConfigureAwait(false);
 
@@ -527,11 +527,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             }
 
             /// <summary>Returns 'null' if download is not available and caller should keep polling.</summary>
-            private async Task<XElement> TryDownloadFileAsync(IRemoteControlClient client, CancellationToken cancellationToken)
+            private async Task<XElement> TryDownloadFileAsync(IFileDownloader fileDownloader, CancellationToken cancellationToken)
             {
                 await LogInfoAsync("Read file from client", cancellationToken).ConfigureAwait(false);
 
-                using var stream = await client.ReadFileAsync(BehaviorOnStale.ReturnStale).ConfigureAwait(false);
+                using var stream = await fileDownloader.ReadFileAsync().ConfigureAwait(false);
 
                 if (stream == null)
                 {
@@ -552,11 +552,31 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     XmlResolver = null
                 };
 
-                using var reader = XmlReader.Create(stream, settings);
+                // This code must always succeed.  If it does not, that means that either the server reported bogus data
+                // to the file-downloader, or the file-downloader is serving us bogus data.  In other event, there is
+                // something wrong with those components, and we should both report the issue to watson, and stop doing
+                // the update.
+                try
+                {
+                    using var reader = XmlReader.Create(stream, settings);
 
-                var result = XElement.Load(reader);
-                await LogInfoAsync("Converting data to XElement completed", cancellationToken).ConfigureAwait(false);
-                return result;
+                    var result = XElement.Load(reader);
+                    await LogInfoAsync("Converting data to XElement completed", cancellationToken).ConfigureAwait(false);
+                    return result;
+                }
+                catch (Exception e) when (ReportAndDoNotCatch(e))
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
+
+                bool ReportAndDoNotCatch(Exception exception)
+                {
+                    // Directly report issue here so we can collect a dump that indicates precisely what is in the
+                    // stream. Then return 'false' explicitly so that the catch handler doesn't run and the exception
+                    // properly tears down the update.
+                    _service._reportAndSwallowExceptionUnlessCanceled(exception, cancellationToken);
+                    return false;
+                }
             }
 
             private async Task RepeatIOAsync(Func<CancellationToken, Task> action, CancellationToken cancellationToken)

@@ -6,7 +6,7 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 {
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             : base(IDEDiagnosticIds.UseCoalesceExpressionForNullableDiagnosticId,
                    EnforceOnBuildValues.UseCoalesceExpressionForNullable,
                    CodeStyleOptions2.PreferCoalesceExpression,
-                   new LocalizableResourceString(nameof(AnalyzersResources.Use_coalesce_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
+                   new LocalizableResourceString(nameof(AnalyzersResources.Use_coalesce_expression_for_nullable_types), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
 

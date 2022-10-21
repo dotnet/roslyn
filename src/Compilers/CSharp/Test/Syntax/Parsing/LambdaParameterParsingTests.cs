@@ -34,7 +34,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 class C {
      void Goo() {
           System.Func<int, int> f = (out 
-");
+",
+                // (4,38): error CS1525: Invalid expression term 'out'
+                //           System.Func<int, int> f = (out 
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(4, 38),
+                // (4,38): error CS1026: ) expected
+                //           System.Func<int, int> f = (out 
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "out").WithLocation(4, 38),
+                // (4,38): error CS1003: Syntax error, ',' expected
+                //           System.Func<int, int> f = (out 
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(4, 38),
+                // (4,41): error CS1002: ; expected
+                //           System.Func<int, int> f = (out 
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 41),
+                // (4,41): error CS1513: } expected
+                //           System.Func<int, int> f = (out 
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 41),
+                // (4,41): error CS1513: } expected
+                //           System.Func<int, int> f = (out 
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 41));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -124,7 +142,28 @@ class C {
 class C {
      void Goo() {
           System.Func<int, int> f = (out C
-");
+",
+                // (4,38): error CS1525: Invalid expression term 'out'
+                //           System.Func<int, int> f = (out C
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(4, 38),
+                // (4,38): error CS1026: ) expected
+                //           System.Func<int, int> f = (out C
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "out").WithLocation(4, 38),
+                // (4,38): error CS1003: Syntax error, ',' expected
+                //           System.Func<int, int> f = (out C
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(4, 38),
+                // (4,42): error CS1002: ; expected
+                //           System.Func<int, int> f = (out C
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "C").WithLocation(4, 42),
+                // (4,43): error CS1002: ; expected
+                //           System.Func<int, int> f = (out C
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 43),
+                // (4,43): error CS1513: } expected
+                //           System.Func<int, int> f = (out C
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 43),
+                // (4,43): error CS1513: } expected
+                //           System.Func<int, int> f = (out C
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 43));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -222,7 +261,28 @@ class C {
 class C {
      void Goo() {
           System.Func<int, int> f = (out C c
-");
+",
+                // (4,38): error CS1525: Invalid expression term 'out'
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(4, 38),
+                // (4,38): error CS1026: ) expected
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "out").WithLocation(4, 38),
+                // (4,38): error CS1003: Syntax error, ',' expected
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(4, 38),
+                // (4,42): error CS1002: ; expected
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "C").WithLocation(4, 42),
+                // (4,45): error CS1002: ; expected
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 45),
+                // (4,45): error CS1513: } expected
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 45),
+                // (4,45): error CS1513: } expected
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 45));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -327,7 +387,28 @@ class C {
 class C {
      void Goo() {
           System.Func<int, int> f = (out C c
-");
+",
+                // (4,38): error CS1525: Invalid expression term 'out'
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(4, 38),
+                // (4,38): error CS1026: ) expected
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "out").WithLocation(4, 38),
+                // (4,38): error CS1003: Syntax error, ',' expected
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(4, 38),
+                // (4,42): error CS1002: ; expected
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "C").WithLocation(4, 42),
+                // (4,45): error CS1002: ; expected
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 45),
+                // (4,45): error CS1513: } expected
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 45),
+                // (4,45): error CS1513: } expected
+                //           System.Func<int, int> f = (out C c
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 45));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -432,7 +513,31 @@ class C {
 class C {
      void Goo() {
           System.Func<int, int> f = (out C c,
-");
+",
+                // (4,38): error CS1525: Invalid expression term 'out'
+                //           System.Func<int, int> f = (out C c,
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(4, 38),
+                // (4,38): error CS1026: ) expected
+                //           System.Func<int, int> f = (out C c,
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "out").WithLocation(4, 38),
+                // (4,38): error CS1003: Syntax error, ',' expected
+                //           System.Func<int, int> f = (out C c,
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(4, 38),
+                // (4,42): error CS1002: ; expected
+                //           System.Func<int, int> f = (out C c,
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "C").WithLocation(4, 42),
+                // (4,46): error CS1001: Identifier expected
+                //           System.Func<int, int> f = (out C c,
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 46),
+                // (4,46): error CS1002: ; expected
+                //           System.Func<int, int> f = (out C c,
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 46),
+                // (4,46): error CS1513: } expected
+                //           System.Func<int, int> f = (out C c,
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 46),
+                // (4,46): error CS1513: } expected
+                //           System.Func<int, int> f = (out C c,
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 46));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -1130,12 +1235,9 @@ class C {
         {
             UsingDeclaration("Func<int> func1 = (!!) => 42;", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[]
             {
-                    // (1,22): error CS1525: Invalid expression term ')'
-                    // Func<int> func1 = (!!) => 42;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 22),
-                    // (1,24): error CS1003: Syntax error, ',' expected
-                    // Func<int> func1 = (!!) => 42;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 24)
+                // (1,20): error CS1001: Identifier expected
+                // Func<int> func1 = (!!) => 42;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "!").WithLocation(1, 20)
             });
             N(SyntaxKind.FieldDeclaration);
             {
@@ -1160,22 +1262,18 @@ class C {
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.ParenthesizedExpression);
+                            N(SyntaxKind.ParenthesizedLambdaExpression);
                             {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.LogicalNotExpression);
+                                N(SyntaxKind.ParameterList);
                                 {
-                                    N(SyntaxKind.ExclamationToken);
-                                    N(SyntaxKind.LogicalNotExpression);
-                                    {
-                                        N(SyntaxKind.ExclamationToken);
-                                        M(SyntaxKind.IdentifierName);
-                                        {
-                                            M(SyntaxKind.IdentifierToken);
-                                        }
-                                    }
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
                                 }
-                                N(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "42");
+                                }
                             }
                         }
                     }
@@ -3060,7 +3158,7 @@ class C {
 
         [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
         [InlineData(LanguageVersion.CSharp9)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         [Theory]
         public void KeywordParameterName_01(LanguageVersion languageVersion)
         {
@@ -3090,7 +3188,7 @@ class C {
 
         [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
         [InlineData(LanguageVersion.CSharp9)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         [Theory]
         public void KeywordParameterName_02(LanguageVersion languageVersion)
         {
@@ -3118,7 +3216,7 @@ class C {
 
         [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
         [InlineData(LanguageVersion.CSharp9)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         [Theory]
         public void KeywordParameterName_03(LanguageVersion languageVersion)
         {
@@ -3392,8 +3490,7 @@ class C {
         public void KeywordParameterName_12()
         {
             string source = "Action<object> a = public => { };";
-            var tree = UsingTree(source);
-            tree.GetDiagnostics().Verify(
+            var tree = UsingTree(source,
                 // (1,20): error CS1525: Invalid expression term 'public'
                 // Action<object> a = public => { };
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "public").WithArguments("public").WithLocation(1, 20),
@@ -3464,6 +3561,181 @@ class C {
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(63469, "https://github.com/dotnet/roslyn/issues/63469")]
+        public void ScopedAsParameterName_01()
+        {
+            string source = "scoped => { }";
+            UsingExpression(source);
+
+            N(SyntaxKind.SimpleLambdaExpression);
+            {
+                N(SyntaxKind.Parameter);
+                {
+                    N(SyntaxKind.IdentifierToken, "scoped");
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(63469, "https://github.com/dotnet/roslyn/issues/63469")]
+        public void ScopedAsParameterName_02()
+        {
+            string source = "(scoped) => { }";
+            UsingExpression(source);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(63469, "https://github.com/dotnet/roslyn/issues/63469")]
+        public void ScopedAsParameterName_03()
+        {
+            string source = "(a, scoped) => { }";
+            UsingExpression(source);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(63469, "https://github.com/dotnet/roslyn/issues/63469")]
+        public void ScopedAsParameterName_04()
+        {
+            string source = "(int scoped) => { }";
+            UsingExpression(source);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(63469, "https://github.com/dotnet/roslyn/issues/63469")]
+        public void ScopedAsParameterName_05()
+        {
+            string source = "(scoped int scoped) => { }";
+            UsingExpression(source);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(63469, "https://github.com/dotnet/roslyn/issues/63469")]
+        public void ScopedAsParameterName_06()
+        {
+            string source = "(scoped scoped) => { }";
+            UsingExpression(source);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
             }
             EOF();
         }

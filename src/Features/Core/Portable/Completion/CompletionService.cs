@@ -11,12 +11,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -24,13 +25,24 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     /// <summary>
     /// A per language service for constructing context dependent list of completions that 
-    /// can be presented to a user during typing in an editor.
+    /// can be presented to a user during typing in an editor. It aggregates completions from
+    /// one or more <see cref="CompletionProvider"/>s.
     /// </summary>
-    public abstract class CompletionService : ILanguageService
+    public abstract partial class CompletionService : ILanguageService
     {
+        private readonly SolutionServices _services;
+        private readonly ProviderManager _providerManager;
+
+        /// <summary>
+        /// Test-only switch.
+        /// </summary>
+        private bool _suppressPartialSemantics;
+
         // Prevent inheritance outside of Roslyn.
-        internal CompletionService()
+        internal CompletionService(SolutionServices services, IAsynchronousOperationListenerProvider listenerProvider)
         {
+            _services = services;
+            _providerManager = new(this, listenerProvider);
         }
 
         /// <summary>
@@ -40,6 +52,14 @@ namespace Microsoft.CodeAnalysis.Completion
             => document?.GetLanguageService<CompletionService>();
 
         /// <summary>
+        /// Returns the providers always available to the service.
+        /// This does not included providers imported via MEF composition.
+        /// </summary>
+        [Obsolete("Built-in providers will be ignored in a future release, please make them MEF exports instead.")]
+        protected virtual ImmutableArray<CompletionProvider> GetBuiltInProviders()
+            => ImmutableArray<CompletionProvider>.Empty;
+
+        /// <summary>
         /// The language from <see cref="LanguageNames"/> this service corresponds to.
         /// </summary>
         public abstract string Language { get; }
@@ -47,8 +67,16 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Gets the current presentation and behavior rules.
         /// </summary>
-        public virtual CompletionRules GetRules()
-            => CompletionRules.Default;
+        /// <remarks>
+        /// Backward compatibility only.
+        /// </remarks>
+        public CompletionRules GetRules()
+        {
+            Debug.Fail("For backwards API compat only, should not be called");
+
+            // Publicly available options do not affect this API.
+            return GetRules(CompletionOptions.Default);
+        }
 
         internal abstract CompletionRules GetRules(CompletionOptions options);
 
@@ -63,15 +91,25 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <remarks>
         /// This API uses SourceText instead of Document so implementations can only be based on text, not syntax or semantics.
         /// </remarks>
-        public virtual bool ShouldTriggerCompletion(
+        public bool ShouldTriggerCompletion(
             SourceText text,
             int caretPosition,
             CompletionTrigger trigger,
             ImmutableHashSet<string>? roles = null,
             OptionSet? options = null)
         {
-            return false;
+            var document = text.GetOpenDocumentInCurrentContextWithChanges();
+            var languageServices = document?.Project.Services ?? _services.GetLanguageServices(Language);
+
+            // Publicly available options do not affect this API.
+            var completionOptions = CompletionOptions.Default;
+            var passThroughOptions = options ?? document?.Project.Solution.Options ?? OptionValueSet.Empty;
+
+            return ShouldTriggerCompletion(document?.Project, languageServices, text, caretPosition, trigger, completionOptions, passThroughOptions, roles);
         }
+
+        internal virtual bool SupportsTriggerOnDeletion(CompletionOptions options)
+            => options.TriggerOnDeletion == true;
 
         /// <summary>
         /// Returns true if the character recently inserted or deleted in the text should trigger completion.
@@ -91,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </remarks>
         internal virtual bool ShouldTriggerCompletion(
             Project? project,
-            HostLanguageServices languageServices,
+            LanguageServices languageServices,
             SourceText text,
             int caretPosition,
             CompletionTrigger trigger,
@@ -99,8 +137,18 @@ namespace Microsoft.CodeAnalysis.Completion
             OptionSet passThroughOptions,
             ImmutableHashSet<string>? roles = null)
         {
-            Debug.Fail("Backward compat only, should not be called");
-            return ShouldTriggerCompletion(text, caretPosition, trigger, roles, passThroughOptions);
+            if (!options.TriggerOnTyping)
+            {
+                return false;
+            }
+
+            if (trigger.Kind == CompletionTriggerKind.Deletion && SupportsTriggerOnDeletion(options))
+            {
+                return char.IsLetterOrDigit(trigger.Character) || trigger.Character == '.';
+            }
+
+            var providers = _providerManager.GetFilteredProviders(project, roles, trigger, options);
+            return providers.Any(p => p.ShouldTriggerCompletion(languageServices, text, caretPosition, trigger, options, passThroughOptions));
         }
 
         /// <summary>
@@ -120,46 +168,6 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         /// <summary>
-        /// Gets the completions available at the caret position.
-        /// </summary>
-        /// <param name="document">The document that completion is occurring within.</param>
-        /// <param name="caretPosition">The position of the caret after the triggering action.</param>
-        /// <param name="trigger">The triggering action.</param>
-        /// <param name="roles">Optional set of roles associated with the editor state.</param>
-        /// <param name="options">Optional options that override the default options.</param>
-        /// <param name="cancellationToken"></param>
-        public abstract Task<CompletionList?> GetCompletionsAsync(
-            Document document,
-            int caretPosition,
-            CompletionTrigger trigger = default,
-            ImmutableHashSet<string>? roles = null,
-            OptionSet? options = null,
-            CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Gets the completions available at the caret position.
-        /// </summary>
-        /// <param name="document">The document that completion is occurring within.</param>
-        /// <param name="caretPosition">The position of the caret after the triggering action.</param>
-        /// <param name="options">The CompletionOptions that override the default options.</param>
-        /// <param name="trigger">The triggering action.</param>
-        /// <param name="roles">Optional set of roles associated with the editor state.</param>
-        /// <param name="cancellationToken"></param>
-        internal virtual async Task<CompletionList> GetCompletionsAsync(
-             Document document,
-             int caretPosition,
-             CompletionOptions options,
-             OptionSet passThroughOptions,
-             CompletionTrigger trigger = default,
-             ImmutableHashSet<string>? roles = null,
-             CancellationToken cancellationToken = default)
-        {
-#pragma warning disable RS0030 // Do not use banned APIs
-            return await GetCompletionsAsync(document, caretPosition, trigger, roles, passThroughOptions, cancellationToken).ConfigureAwait(false) ?? CompletionList.Empty;
-#pragma warning restore
-        }
-
-        /// <summary>
         /// Gets the description of the item.
         /// </summary>
         /// <param name="document">This will be the  original document that
@@ -171,8 +179,6 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionItem item,
             CancellationToken cancellationToken = default)
         {
-            Debug.Fail("For backwards API compat only, should not be called");
-
             // Publicly available options do not affect this API.
             return GetDescriptionAsync(document, item, CompletionOptions.Default, SymbolDescriptionOptions.Default, cancellationToken);
         }
@@ -186,7 +192,18 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="options">Completion options</param>
         /// <param name="displayOptions">Display options</param>
         /// <param name="cancellationToken"></param>
-        internal abstract Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken = default);
+        internal virtual async Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken = default)
+        {
+            var provider = GetProvider(item, document.Project);
+            if (provider is null)
+                return CompletionDescription.Empty;
+
+            // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
+            (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
+            var description = await provider.GetDescriptionAsync(document, item, options, displayOptions, cancellationToken).ConfigureAwait(false);
+            GC.KeepAlive(semanticModel);
+            return description;
+        }
 
         /// <summary>
         /// Gets the change to be applied when the item is committed.
@@ -197,14 +214,30 @@ namespace Microsoft.CodeAnalysis.Completion
         /// This character may be used as part of the change. 
         /// This value is null when the commit was caused by the [TAB] or [ENTER] keys.</param>
         /// <param name="cancellationToken"></param>
-        public virtual Task<CompletionChange> GetChangeAsync(
+        public virtual async Task<CompletionChange> GetChangeAsync(
             Document document,
             CompletionItem item,
             char? commitCharacter = null,
             CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(CompletionChange.Create(new TextChange(item.Span, item.DisplayText)));
+            var provider = GetProvider(item, document.Project);
+            if (provider != null)
+            {
+                // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
+                (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
+                var change = await provider.GetChangeAsync(document, item, commitCharacter, cancellationToken).ConfigureAwait(false);
+                GC.KeepAlive(semanticModel);
+                return change;
+            }
+            else
+            {
+                return CompletionChange.Create(new TextChange(item.Span, item.DisplayText));
+            }
         }
+
+        // The FilterItems method might need to handle a large list of items when import completion is enabled and filter text is
+        // very short, i.e. <= 1. Therefore, use pooled list to avoid repeated (potentially LOH) allocations.
+        private static readonly ObjectPool<List<MatchResult>> s_listOfMatchResultPool = new(factory: () => new());
 
         /// <summary>
         /// Given a list of completion items that match the current code typed by the user,
@@ -220,28 +253,37 @@ namespace Microsoft.CodeAnalysis.Completion
             string filterText)
         {
             var helper = CompletionHelper.GetHelper(document);
-            var itemsWithPatternMatch = new SegmentedList<(CompletionItem, PatternMatch?)>(items.Select(
-                item => (item, helper.GetMatch(item.FilterText, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture))));
+            var filterDataList = new SegmentedList<MatchResult>(items.Select(
+                item => helper.GetMatchResult(item, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture)));
 
-            var builder = ImmutableArray.CreateBuilder<CompletionItem>();
-            FilterItems(helper, itemsWithPatternMatch, filterText, builder);
-            return builder.ToImmutable();
+            var builder = s_listOfMatchResultPool.Allocate();
+            try
+            {
+                FilterItems(helper, filterDataList, filterText, builder);
+                return builder.SelectAsArray(result => result.CompletionItem);
+            }
+            finally
+            {
+                // Don't call ClearAndFree, which resets the capacity to a default value.
+                builder.Clear();
+                s_listOfMatchResultPool.Free(builder);
+            }
         }
 
         internal virtual void FilterItems(
            Document document,
-           IReadOnlyList<(CompletionItem, PatternMatch?)> itemsWithPatternMatch,
+           IReadOnlyList<MatchResult> matchResults,
            string filterText,
-           IList<CompletionItem> builder)
+           IList<MatchResult> builder)
         {
-            // Default implementation just drops the pattern matches and builder, and
-            // calls the public overload of FilterItems instead for compatibility.
-            builder.AddRange(FilterItems(document, itemsWithPatternMatch.SelectAsArray(item => item.Item1), filterText));
-        }
+#pragma warning disable RS0030 // Do not used banned APIs
+            // Default implementation just drops the pattern matches and builder, and calls the public overload of FilterItems instead for compatibility.
+            var filteredItems = FilterItems(document, matchResults.SelectAsArray(item => item.CompletionItem), filterText);
+#pragma warning restore RS0030 // Do not used banned APIs
 
-        // The FilterItems method might need to handle a large list of items when import completion is enabled and filter text is
-        // very short, i.e. <= 1. Therefore, use pooled list to avoid repeated (potentially LOH) allocations.
-        private static readonly ObjectPool<List<(CompletionItem item, PatternMatch? match)>> s_listOfItemMatchPairPool = new(factory: () => new());
+            var helper = CompletionHelper.GetHelper(document);
+            builder.AddRange(filteredItems.Select(item => helper.GetMatchResult(item, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture)));
+        }
 
         /// <summary>
         /// Determine among the provided items the best match w.r.t. the given filter text, 
@@ -249,114 +291,96 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         internal static void FilterItems(
             CompletionHelper completionHelper,
-            IReadOnlyList<(CompletionItem item, PatternMatch? match)> itemsWithPatternMatch,
+            IReadOnlyList<MatchResult> matchResults,
             string filterText,
-            IList<CompletionItem> builder)
+            IList<MatchResult> builder)
         {
             // It's very common for people to type expecting completion to fix up their casing,
             // so if no uppercase characters were typed so far, we'd loosen our standard on comparing items
-            // in case-sensitive manner and take into consideration the MatchPriority as well.
-            // i.e. when everything else is equal, then if item1 is a better case-sensitive match but item2 has higher 
-            // MatchPriority, we consider them equally good match, so the controller will later have a chance to
-            // decide which is the best one to select.
-            var filterTextContainsNoUpperLetters = true;
-            for (var i = 0; i < filterText.Length; ++i)
+            // in terms of case-sensitivity and take into consideration the MatchPriority in certain scenarios.
+            // i.e. when everything else is equal, if item1 is a better case-sensitive match but has
+            // MatchPriority.Deprioritize, and item2 is not MatchPriority.Deprioritize, then we consider
+            // item2 a better match.
+            var filterTextHasNoUpperCase = !filterText.Any(char.IsUpper);
+
+            foreach (var matchResult in matchResults)
             {
-                if (char.IsUpper(filterText[i]))
+                if (!matchResult.ShouldBeConsideredMatchingFilterText)
+                    continue;
+
+                if (builder.Count == 0)
                 {
-                    filterTextContainsNoUpperLetters = false;
-                    break;
-                }
-            }
-
-            // Keep track the highest MatchPriority of all items in the best list.
-            var highestMatchPriorityInBest = int.MinValue;
-            var bestItems = s_listOfItemMatchPairPool.Allocate();
-
-            // This contains a list of items that are considered equally good match as bestItems except casing,
-            // and they have higher MatchPriority than the ones in bestItems (although as a perf optimization we don't
-            // actually guarantee this during the process, instead we check the MatchPriority again after the loop.)
-            var itemsWithCasingMismatchButHigherMatchPriority = s_listOfItemMatchPairPool.Allocate();
-
-            try
-            {
-                foreach (var pair in itemsWithPatternMatch)
-                {
-                    if (bestItems.Count == 0)
-                    {
-                        // We've found no good items yet.  So this is the best item currently.
-                        bestItems.Add(pair);
-                        highestMatchPriorityInBest = pair.item.Rules.MatchPriority;
-                        continue;
-                    }
-
-                    var (bestItem, bestItemMatch) = bestItems[0];
-                    var comparison = completionHelper.CompareItems(
-                        pair.item, pair.match, bestItem, bestItemMatch, out var onlyDifferInCaseSensitivity);
-
-                    if (comparison == 0)
-                    {
-                        // This item is as good as the items we've been collecting.  We'll return it and let the controller
-                        // decide what to do.  (For example, it will pick the one that has the best MRU index).
-                        // Also there's no need to remove items with lower MatchPriority from similarItemsWithHigerMatchPriority
-                        // list, we will only add ones with higher value at the end.
-                        bestItems.Add(pair);
-                        highestMatchPriorityInBest = Math.Max(highestMatchPriorityInBest, pair.item.Rules.MatchPriority);
-                    }
-                    else if (comparison < 0)
-                    {
-                        // This item is strictly better than the best items we've found so far.
-
-                        // Switch the references to the two lists to avoid potential of copying multiple elements around.
-                        // Now itemsWithCasingMismatchButHigherMatchPriority contains prior best items.
-                        (bestItems, itemsWithCasingMismatchButHigherMatchPriority) = (itemsWithCasingMismatchButHigherMatchPriority, bestItems);
-
-                        // However, if this item only better in terms of case-sensitivity, and its MatchPriority is lower than prior best items,
-                        // we'd like to save prior best items and consider their MatchPriority later. Otherwise, no need to keep track the prior best items.
-                        if (!filterTextContainsNoUpperLetters ||
-                            !onlyDifferInCaseSensitivity ||
-                            highestMatchPriorityInBest <= pair.item.Rules.MatchPriority)
-                        {
-                            itemsWithCasingMismatchButHigherMatchPriority.Clear();
-                        }
-
-                        bestItems.Clear();
-                        bestItems.Add(pair);
-                        highestMatchPriorityInBest = pair.item.Rules.MatchPriority;
-                    }
-                    else
-                    {
-                        // This item is strictly worse than the ones we've been collecting.
-                        // However, if it's only worse in terms of case-sensitivity, and has higher MatchPriority
-                        // than all current best items, we'd like to save it and consider its MatchPriority later.
-                        if (filterTextContainsNoUpperLetters &&
-                            onlyDifferInCaseSensitivity &&
-                            pair.item.Rules.MatchPriority > highestMatchPriorityInBest)
-                        {
-                            itemsWithCasingMismatchButHigherMatchPriority.Add(pair);
-                        }
-                    }
+                    // We've found no good items yet.  So this is the best item currently.
+                    builder.Add(matchResult);
+                    continue;
                 }
 
-                // Include those similar items (only worse in terms of case-sensitivity) that have better MatchPriority.
-                foreach (var pair in itemsWithCasingMismatchButHigherMatchPriority)
-                {
-                    if (pair.item.Rules.MatchPriority > highestMatchPriorityInBest)
-                    {
-                        bestItems.Add(pair);
-                    }
-                }
+                var comparison = completionHelper.CompareMatchResults(matchResult, builder[0], filterTextHasNoUpperCase);
 
-                builder.AddRange(bestItems.Select(itemWithPatternMatch => itemWithPatternMatch.item));
+                if (comparison == 0)
+                {
+                    // This item is as good as the items we've been collecting.  We'll return it and let the controller
+                    // decide what to do.  (For example, it will pick the one that has the best MRU index).
+                    builder.Add(matchResult);
+                }
+                else if (comparison < 0)
+                {
+                    // This item is strictly better than the best items we've found so far.
+                    builder.Clear();
+                    builder.Add(matchResult);
+                }
             }
-            finally
+        }
+
+        /// <summary>
+        /// Don't call. Used for pre-populating MEF providers only.
+        /// </summary>
+        internal IReadOnlyList<Lazy<CompletionProvider, CompletionProviderMetadata>> GetLazyImportedProviders()
+            => _providerManager.GetLazyImportedProviders();
+
+        internal CompletionProvider? GetProvider(CompletionItem item, Project? project)
+            => _providerManager.GetProvider(item, project);
+
+        internal TestAccessor GetTestAccessor()
+            => new(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly CompletionService _completionServiceWithProviders;
+
+            public TestAccessor(CompletionService completionServiceWithProviders)
+                => _completionServiceWithProviders = completionServiceWithProviders;
+
+            public ImmutableArray<CompletionProvider> GetImportedAndBuiltInProviders(ImmutableHashSet<string> roles)
+                => _completionServiceWithProviders._providerManager.GetTestAccessor().GetImportedAndBuiltInProviders(roles);
+
+            public Task<ImmutableArray<CompletionProvider>> GetProjectProvidersAsync(Project project)
+                => _completionServiceWithProviders._providerManager.GetTestAccessor().GetProjectProvidersAsync(project);
+
+            public async Task<CompletionContext> GetContextAsync(
+                CompletionProvider provider,
+                Document document,
+                int position,
+                CompletionTrigger triggerInfo,
+                CompletionOptions options,
+                CancellationToken cancellationToken)
             {
-                // Don't call ClearAndFree, which resets the capacity to a default value.
-                bestItems.Clear();
-                itemsWithCasingMismatchButHigherMatchPriority.Clear();
-                s_listOfItemMatchPairPool.Free(bestItems);
-                s_listOfItemMatchPairPool.Free(itemsWithCasingMismatchButHigherMatchPriority);
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var defaultItemSpan = _completionServiceWithProviders.GetDefaultCompletionListSpan(text, position);
+
+                return await CompletionService.GetContextAsync(
+                    provider,
+                    document,
+                    position,
+                    triggerInfo,
+                    options,
+                    defaultItemSpan,
+                    sharedContext: null,
+                    cancellationToken).ConfigureAwait(false);
             }
+
+            public void SuppressPartialSemantics()
+                => _completionServiceWithProviders._suppressPartialSemantics = true;
         }
     }
 }

@@ -1293,6 +1293,28 @@ class Program
         }
 
         [Fact]
+        public void EmitAttribute_InferredDelegate()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        var f = (in nint i) => { };
+        f(1);
+    }
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"Program
+    Program.<>c
+        [NativeInteger] <>A{00000003}<System.IntPtr> <>9__0_0
+";
+            AssertNativeIntegerAttributes(comp, expected);
+        }
+
+        [Fact]
         public void EmitAttribute_Nested()
         {
             var source =

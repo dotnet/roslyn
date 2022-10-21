@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.AddAccessibilityModifiers;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -41,10 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
                 ProcessMembers(context, option, namespaceDeclaration.Members);
 
             // If we have a class or struct, recurse inwards.
-            if (member.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax? typeDeclaration) ||
-                member.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration) ||
-                member.IsKind(SyntaxKind.RecordDeclaration, out typeDeclaration) ||
-                member.IsKind(SyntaxKind.RecordStructDeclaration, out typeDeclaration))
+            if (member is TypeDeclarationSyntax(
+                    SyntaxKind.ClassDeclaration or
+                    SyntaxKind.StructDeclaration or
+                    SyntaxKind.RecordDeclaration or
+                    SyntaxKind.RecordStructDeclaration) typeDeclaration)
             {
                 ProcessMembers(context, option, typeDeclaration.Members);
             }

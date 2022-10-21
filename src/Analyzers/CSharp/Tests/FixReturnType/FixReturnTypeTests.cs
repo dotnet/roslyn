@@ -298,8 +298,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(47089, "https://github.com/dotnet/roslyn/issues/47089")]
+        [Fact, WorkItem(47089, "https://github.com/dotnet/roslyn/issues/47089")]
         public async Task ExpressionAndReturnTypeAreVoid()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -312,8 +311,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(53574, "https://github.com/dotnet/roslyn/issues/53574")]
+        [Fact, WorkItem(53574, "https://github.com/dotnet/roslyn/issues/53574")]
         public async Task TestAnonymousTypeTopLevel()
         {
             await TestInRegularAndScript1Async(
@@ -333,8 +331,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(53574, "https://github.com/dotnet/roslyn/issues/53574")]
+        [Fact, WorkItem(53574, "https://github.com/dotnet/roslyn/issues/53574")]
         public async Task TestAnonymousTypeTopNested()
         {
             await TestInRegularAndScript1Async(

@@ -256,6 +256,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 case BuildResponse.ResponseType.IncorrectHash:
                 case BuildResponse.ResponseType.Rejected:
                 case BuildResponse.ResponseType.AnalyzerInconsistency:
+                case BuildResponse.ResponseType.CannotConnect:
                     // Build could not be completed on the server.
                     return null;
                 default:

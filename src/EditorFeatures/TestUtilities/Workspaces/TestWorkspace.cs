@@ -5,7 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.ServiceModel.Syndication;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -21,6 +23,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -35,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     public partial class TestWorkspace : Workspace
     {
         public ExportProvider ExportProvider { get; }
+        public TestComposition? Composition { get; }
 
         public bool CanApplyChangeDocument { get; set; }
 
@@ -56,21 +60,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly Dictionary<string, ITextBuffer2> _createdTextBuffers = new();
         private readonly string _workspaceKind;
 
-        public TestWorkspace(
-            ExportProvider? exportProvider = null,
+        internal TestWorkspace(
             TestComposition? composition = null,
             string? workspaceKind = WorkspaceKind.Host,
             Guid solutionTelemetryId = default,
             bool disablePartialSolutions = true,
-            bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
-            : base(GetHostServices(exportProvider, composition), workspaceKind ?? WorkspaceKind.Host)
+            bool ignoreUnchangeableDocumentsWhenApplyingChanges = true,
+            WorkspaceConfigurationOptions? configurationOptions = null)
+            : base(GetHostServices(ref composition, configurationOptions != null, disablePartialSolutions), workspaceKind ?? WorkspaceKind.Host)
         {
-            Contract.ThrowIfTrue(exportProvider != null && composition != null);
+            this.Composition = composition;
+            this.ExportProvider = composition.ExportProviderFactory.CreateExportProvider();
+
+            // configure workspace before creating any solutions:
+            if (configurationOptions != null)
+            {
+                var workspaceConfigurationService = GetService<TestWorkspaceConfigurationService>();
+                workspaceConfigurationService.Options = new WorkspaceConfigurationOptions(EnableOpeningSourceGeneratedFiles: true);
+            }
 
             SetCurrentSolution(CreateSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create()).WithTelemetryId(solutionTelemetryId)));
 
-            this.TestHookPartialSolutionsDisabled = disablePartialSolutions;
-            this.ExportProvider = exportProvider ?? GetComposition(composition).ExportProviderFactory.CreateExportProvider();
             _workspaceKind = workspaceKind ?? WorkspaceKind.Host;
             this.Projects = new List<TestHostProject>();
             this.Documents = new List<TestHostDocument>();
@@ -109,11 +119,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _metadataAsSourceFileService = ExportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
         }
 
-        internal static TestComposition GetComposition(TestComposition? composition)
-            => composition ?? EditorTestCompositions.EditorFeatures;
+        private static HostServices GetHostServices([NotNull] ref TestComposition? composition, bool hasWorkspaceConfigurationOptions, bool disablePartialSolutions)
+        {
+            composition ??= EditorTestCompositions.EditorFeatures;
 
-        private static HostServices GetHostServices(ExportProvider? exportProvider = null, TestComposition? composition = null)
-           => (exportProvider != null) ? VisualStudioMefHostServices.Create(exportProvider) : GetComposition(composition).GetHostServices();
+            if (hasWorkspaceConfigurationOptions)
+            {
+                composition = composition.AddParts(typeof(TestWorkspaceConfigurationService));
+            }
+
+            if (disablePartialSolutions)
+            {
+                composition = composition.AddParts(typeof(WorkpacePartialSolutionsTestHook));
+            }
+
+            return composition.GetHostServices();
+        }
 
         protected internal override bool PartialSemanticsEnabled
         {
@@ -125,18 +146,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         protected override void OnDocumentTextChanged(Document document)
         {
-            if (_backgroundParser != null)
-            {
-                _backgroundParser.Parse(document);
-            }
+            _backgroundParser?.Parse(document);
         }
 
         protected override void OnDocumentClosing(DocumentId documentId)
         {
-            if (_backgroundParser != null)
-            {
-                _backgroundParser.CancelParse(documentId);
-            }
+            _backgroundParser?.CancelParse(documentId);
         }
 
         public new void RegisterText(SourceTextContainer text)
@@ -168,10 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 document.CloseTextView();
             }
 
-            if (_backgroundParser != null)
-            {
-                _backgroundParser.CancelAllParses();
-            }
+            _backgroundParser?.CancelAllParses();
 
             base.Dispose(finalize);
         }
@@ -843,11 +855,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                 // Ensure that the editor options on the text buffer matches that of the options that can be directly set in the workspace
                 var editorOptions = ExportProvider.GetExportedValue<IEditorOptionsFactoryService>().GetOptions(textBuffer);
-                var workspaceOptions = this.Options;
+                var globalOptions = GlobalOptions;
 
-                editorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !workspaceOptions.GetOption(FormattingOptions.UseTabs, languageName));
-                editorOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, workspaceOptions.GetOption(FormattingOptions.TabSize, languageName));
-                editorOptions.SetOptionValue(DefaultOptions.IndentSizeOptionId, workspaceOptions.GetOption(FormattingOptions.IndentationSize, languageName));
+                editorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !globalOptions.GetOption(FormattingOptions2.UseTabs, languageName));
+                editorOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, globalOptions.GetOption(FormattingOptions2.TabSize, languageName));
+                editorOptions.SetOptionValue(DefaultOptions.IndentSizeOptionId, globalOptions.GetOption(FormattingOptions2.IndentationSize, languageName));
 
                 return textBuffer;
             });

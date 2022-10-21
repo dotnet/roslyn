@@ -15,12 +15,12 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Naming;
@@ -66,12 +66,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
-                // Do not show name suggestions for unbound "async" identifier.
-                // Most likely user is writing an async method, so name suggestion will just interfere him
-                if (context.TargetToken.IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword) &&
-                    context.SemanticModel.GetSymbolInfo(context.TargetToken).GetAnySymbol() is null)
+                // Do not show name suggestions for unbound "async" or "yield" identifier.
+                // Most likely user is using it as keyword, so name suggestion will just interfere them
+                if (context.TargetToken.IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword) ||
+                    context.TargetToken.IsKindOrHasMatchingText(SyntaxKind.YieldKeyword))
                 {
-                    return;
+                    if (context.SemanticModel.GetSymbolInfo(context.TargetToken).GetAnySymbol() is null)
+                    {
+                        return;
+                    }
                 }
 
                 var nameInfo = await NameDeclarationInfo.GetDeclarationInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
@@ -294,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var symbolKind =
                     kind.SymbolKind.HasValue ? kind.SymbolKind.Value :
                     kind.MethodKind.HasValue ? SymbolKind.Method :
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
 
                 var modifiers = declarationInfo.Modifiers;
                 foreach (var rule in rules)

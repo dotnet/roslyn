@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, _, cancellationToken) = context;
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
@@ -189,7 +189,11 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             // Get all the descendant if statements to process.
-            var ifStatements = editor.OriginalRoot.DescendantNodes().OfType<TIfStatementSyntax>();
+            // NOTE: We need to realize the nodes with 'ToArray' call here
+            // to ensure we strongly hold onto the nodes so that 'TrackNodes'
+            // invoked below, which does tracking based off a ConditionalWeakTable,
+            // tracks the nodes for the entire duration of this method.
+            var ifStatements = editor.OriginalRoot.DescendantNodes().OfType<TIfStatementSyntax>().ToArray();
 
             // We're going to be continually editing this tree. Track all the nodes we
             // care about so we can find them across each edit.

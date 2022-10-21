@@ -74,9 +74,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         public OptionSet ToOptionSet()
             => new OptionValueSet(_options.ToImmutableDictionary(entry => new OptionKey(entry.Key.Option, entry.Key.Language), entry => entry.Value));
 
-        public AnalyzerConfigOptions ToAnalyzerConfigOptions(HostLanguageServices languageServices)
+        public AnalyzerConfigOptions ToAnalyzerConfigOptions(LanguageServices languageServices)
         {
-            var optionService = languageServices.WorkspaceServices.GetRequiredService<IOptionService>();
+            var optionService = languageServices.SolutionServices.GetRequiredService<IEditorConfigOptionMappingService>();
             return ToOptionSet().AsAnalyzerConfigOptions(optionService, languageServices.Language);
         }
 

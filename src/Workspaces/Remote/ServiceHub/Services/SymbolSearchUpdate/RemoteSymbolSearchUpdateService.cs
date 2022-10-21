@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,6 +9,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.SymbolSearch;
+using Microsoft.VisualStudio.LanguageServices.Storage;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -46,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public RemoteSymbolSearchUpdateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteSymbolSearchUpdateService.ICallback> callback)
             : base(arguments)
         {
-            _updateEngine = SymbolSearchUpdateEngineFactory.CreateEngineInProcess();
+            _updateEngine = SymbolSearchUpdateEngineFactory.CreateEngineInProcess(FileDownloader.Factory.Instance);
             _callback = callback;
         }
 

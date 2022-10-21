@@ -41,7 +41,21 @@ namespace Roslyn.Utilities
         /// </summary>
         private readonly Func<ImmutableSegmentedList<TItem>, CancellationToken, ValueTask<TResult>> _processBatchAsync;
         private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly CancellationToken _cancellationToken;
+
+        /// <summary>
+        /// Cancellation token controlling the entire queue.  Once this is triggered, we don't want to do any more work
+        /// at all.
+        /// </summary>
+        private readonly CancellationToken _entireQueueCancellationToken;
+
+        /// <summary>
+        /// Cancellation series we use so we can cancel individual batches of work if requested.  The client of the
+        /// queue can cancel existing work by either calling <see cref="CancelExistingWork"/> directly, or passing <see
+        /// langword="true"/> to <see cref="AddWork(TItem, bool)"/>.  Work in the queue that has not started will be
+        /// immediately discarded. The cancellation token passed to <see cref="_processBatchAsync"/> will be triggered
+        /// allowing the client callback to cooperatively cancel the current batch of work it is performing.
+        /// </summary>
+        private readonly CancellationSeries _cancellationSeries;
 
         #region protected by lock
 
@@ -57,6 +71,11 @@ namespace Roslyn.Utilities
         /// Data added that we want to process in our next update task.
         /// </summary>
         private readonly ImmutableSegmentedList<TItem>.Builder _nextBatch = ImmutableSegmentedList.CreateBuilder<TItem>();
+
+        /// <summary>
+        /// CancellationToken controlling the next batch of items to execute.
+        /// </summary>
+        private CancellationToken _nextBatchCancellationToken;
 
         /// <summary>
         /// Used if <see cref="_equalityComparer"/> is present to ensure only unique items are added to <see
@@ -90,27 +109,52 @@ namespace Roslyn.Utilities
             _processBatchAsync = processBatchAsync;
             _equalityComparer = equalityComparer;
             _asyncListener = asyncListener;
-            _cancellationToken = cancellationToken;
+            _entireQueueCancellationToken = cancellationToken;
 
             _uniqueItems = new SegmentedHashSet<TItem>(equalityComparer);
+
+            // Combine with the queue cancellation token so that any batch is controlled by that token as well.
+            _cancellationSeries = new CancellationSeries(_entireQueueCancellationToken);
+            CancelExistingWork();
         }
 
-        public void AddWork(TItem item)
+        /// <summary>
+        /// Cancels any outstanding work in this queue.  Work that has not yet started will never run. Work that is in
+        /// progress will request cancellation in a standard best effort fashion.
+        /// </summary>
+        public void CancelExistingWork()
+        {
+            lock (_gate)
+            {
+                // Cancel out the current executing batch, and create a new token for the next batch.
+                _nextBatchCancellationToken = _cancellationSeries.CreateNext();
+
+                // Clear out the existing items that haven't run yet.  There is no point keeping them around now.
+                _nextBatch.Clear();
+                _uniqueItems.Clear();
+            }
+        }
+
+        public void AddWork(TItem item, bool cancelExistingWork = false)
         {
             using var _ = ArrayBuilder<TItem>.GetInstance(out var items);
             items.Add(item);
 
-            AddWork(items);
+            AddWork(items, cancelExistingWork);
         }
 
-        public void AddWork(IEnumerable<TItem> items)
+        public void AddWork(IEnumerable<TItem> items, bool cancelExistingWork = false)
         {
             // Don't do any more work if we've been asked to shutdown.
-            if (_cancellationToken.IsCancellationRequested)
+            if (_entireQueueCancellationToken.IsCancellationRequested)
                 return;
 
             lock (_gate)
             {
+                // if we were asked to cancel the prior set of items, do so now.
+                if (cancelExistingWork)
+                    CancelExistingWork();
+
                 // add our work to the set we'll process in the next batch.
                 AddItemsToBatch(items);
 
@@ -152,15 +196,15 @@ namespace Roslyn.Utilities
                 await lastTask.NoThrowAwaitableInternal(captureContext: false);
 
                 // If we were asked to shutdown, immediately transition to the canceled state without doing any more work.
-                _cancellationToken.ThrowIfCancellationRequested();
+                _entireQueueCancellationToken.ThrowIfCancellationRequested();
 
                 // Ensure that we always yield the current thread this is necessary for correctness as we are called
                 // inside a lock that _taskInFlight to true.  We must ensure that the work to process the next batch
                 // must be on another thread that runs afterwards, can only grab the thread once we release it and will
                 // then reset that bool back to false
                 await Task.Yield().ConfigureAwait(false);
-                await _asyncListener.Delay(_delay, _cancellationToken).ConfigureAwait(false);
-                return await ProcessNextBatchAsync(_cancellationToken).ConfigureAwait(false);
+                await _asyncListener.Delay(_delay, _entireQueueCancellationToken).ConfigureAwait(false);
+                return await ProcessNextBatchAsync().ConfigureAwait(false);
             }
         }
 
@@ -175,12 +219,24 @@ namespace Roslyn.Utilities
                 return _updateTask;
         }
 
-        private async ValueTask<TResult> ProcessNextBatchAsync(CancellationToken cancellationToken)
+        private async ValueTask<TResult?> ProcessNextBatchAsync()
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            _entireQueueCancellationToken.ThrowIfCancellationRequested();
             try
             {
-                return await _processBatchAsync(GetNextBatchAndResetQueue(), _cancellationToken).ConfigureAwait(false);
+                var (nextBatch, batchCancellationToken) = GetNextBatchAndResetQueue();
+
+                // We may have no items if the entire batch was canceled (and no new work was added).
+                if (nextBatch.IsEmpty)
+                    return default;
+
+                return await _processBatchAsync(nextBatch, batchCancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (!_entireQueueCancellationToken.IsCancellationRequested)
+            {
+                // Don't bubble up cancellation to the queue for the nested batch cancellation.  Just because we decided
+                // to cancel this batch isn't something that should stop processing further batches.
+                return default;
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, ErrorSeverity.Critical))
             {
@@ -192,15 +248,15 @@ namespace Roslyn.Utilities
                 // have a problem that needs addressing.
                 //
                 // Not this code is unreachable because ReportAndPropagateUnlessCanceled returns false along all codepaths.
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
-        private ImmutableSegmentedList<TItem> GetNextBatchAndResetQueue()
+        private (ImmutableSegmentedList<TItem> items, CancellationToken batchCancellationToken) GetNextBatchAndResetQueue()
         {
             lock (_gate)
             {
-                var result = _nextBatch.ToImmutable();
+                var nextBatch = _nextBatch.ToImmutable();
 
                 // mark there being no existing update task so that the next OOP notification will
                 // kick one off.
@@ -208,7 +264,7 @@ namespace Roslyn.Utilities
                 _uniqueItems.Clear();
                 _taskInFlight = false;
 
-                return result;
+                return (nextBatch, _nextBatchCancellationToken);
             }
         }
     }

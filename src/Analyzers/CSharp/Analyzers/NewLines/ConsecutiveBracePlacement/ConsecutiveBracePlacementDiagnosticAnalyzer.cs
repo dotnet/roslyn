@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
             : base(IDEDiagnosticIds.ConsecutiveBracePlacementDiagnosticId,
                    EnforceOnBuildValues.ConsecutiveBracePlacement,
                    CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(CSharpAnalyzersResources.Consecutive_braces_must_not_have_a_blank_between_them), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {

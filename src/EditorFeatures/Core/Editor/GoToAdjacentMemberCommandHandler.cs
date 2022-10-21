@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -80,17 +80,17 @@ namespace Microsoft.CodeAnalysis.Editor
             }
 
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document?.SupportsSyntaxTree != true)
+            var syntaxFactsService = document?.GetLanguageService<ISyntaxFactsService>();
+            if (syntaxFactsService == null)
             {
                 return false;
             }
 
             int? targetPosition = null;
-
             using (context.OperationContext.AddScope(allowCancellation: true, description: EditorFeaturesResources.Navigating))
             {
-                var task = GetTargetPositionAsync(document, caretPoint.Value.Position, gotoNextMember, context.OperationContext.UserCancellationToken);
-                targetPosition = task.WaitAndGetResult(context.OperationContext.UserCancellationToken);
+                var root = document.GetSyntaxRootSynchronously(context.OperationContext.UserCancellationToken);
+                targetPosition = GetTargetPosition(syntaxFactsService, root, caretPoint.Value.Position, gotoNextMember);
             }
 
             if (targetPosition != null)
@@ -104,16 +104,9 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <summary>
         /// Internal for testing purposes.
         /// </summary>
-        internal static async Task<int?> GetTargetPositionAsync(Document document, int caretPosition, bool next, CancellationToken cancellationToken)
+        internal static int? GetTargetPosition(ISyntaxFactsService service, SyntaxNode root, int caretPosition, bool next)
         {
-            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-            if (syntaxFactsService == null)
-            {
-                return null;
-            }
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
-            var members = syntaxFactsService.GetMethodLevelMembers(root);
+            var members = service.GetMethodLevelMembers(root);
             if (members.Count == 0)
             {
                 return null;

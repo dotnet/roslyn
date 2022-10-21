@@ -134,6 +134,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     source.OnSolutionBuildCompleted()
 
                     Await waiter.ExpeditedWaitAsync()
+
+                    Dim buildOnlyDiagnosticService = workspace.Services.GetRequiredService(Of IBuildOnlyDiagnosticsService)
+                    Assert.Empty(buildOnlyDiagnosticService.GetBuildOnlyDiagnostics(project.DocumentIds.First()))
+                    Assert.Empty(buildOnlyDiagnosticService.GetBuildOnlyDiagnostics(project.Id))
                 End Using
             End Using
         End Function
@@ -258,6 +262,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     Await waiter.ExpeditedWaitAsync()
 
                     Assert.Equal(hasCompilationEndTag, buildDiagnosticCallbackSeen)
+
+                    Dim buildOnlyDiagnosticService = workspace.Services.GetRequiredService(Of IBuildOnlyDiagnosticsService)
+                    Dim buildOnlyDiagnostics = buildOnlyDiagnosticService.GetBuildOnlyDiagnostics(project.Id)
+                    If (hasCompilationEndTag) Then
+                        Assert.Equal(1, buildOnlyDiagnostics.Length)
+                        Assert.Equal(buildOnlyDiagnostics(0).Properties(WellKnownDiagnosticPropertyNames.Origin), WellKnownDiagnosticTags.Build)
+                    Else
+                        Assert.Empty(buildOnlyDiagnostics)
+                    End If
+
                 End Using
             End Using
         End Function
@@ -404,7 +418,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     customTags:=ImmutableArray(Of String).Empty,
                     properties:=ImmutableDictionary(Of String, String).Empty,
                     project.Id,
-                    location:=New DiagnosticDataLocation(documentId:=Nothing, sourceSpan:=Nothing, "Test.txt", 4, 4),
+                    location:=New DiagnosticDataLocation(New FileLinePositionSpan("Test.txt", New LinePosition(4, 4), New LinePosition(4, 4)), documentId:=Nothing),
                     language:=project.Language)
 
                     AddHandler service.DiagnosticsUpdated, Sub(o, args)
@@ -480,6 +494,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 isEnabledByDefault:=True,
                 warningLevel:=0,
                 projectId:=projectId,
+                location:=New DiagnosticDataLocation(New FileLinePositionSpan("", Nothing)),
                 customTags:=ImmutableArray(Of String).Empty,
                 properties:=properties,
                 language:=LanguageNames.VisualBasic)

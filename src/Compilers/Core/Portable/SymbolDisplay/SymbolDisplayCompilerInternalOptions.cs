@@ -67,5 +67,10 @@ namespace Microsoft.CodeAnalysis
         /// Separate out nested types from containing types using <c>+</c> instead of <c>.</c> (dot).
         /// </summary>
         UsePlusForNestedTypes = 1 << 8,
+
+        /// <summary>
+        /// Display `MyType@File.cs` instead of `MyType`.
+        /// </summary>
+        IncludeContainingFileForFileTypes = 1 << 9,
     }
 }

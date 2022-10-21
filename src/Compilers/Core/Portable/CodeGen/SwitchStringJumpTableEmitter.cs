@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     // having identical hash value.
     using HashBucket = List<KeyValuePair<ConstantValue, object>>;
 
-    internal struct SwitchStringJumpTableEmitter
+    internal readonly struct SwitchStringJumpTableEmitter
     {
         private readonly ILBuilder _builder;
 

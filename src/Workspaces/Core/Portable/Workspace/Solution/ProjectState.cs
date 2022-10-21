@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly ProjectInfo _projectInfo;
         private readonly HostLanguageServices _languageServices;
-        private readonly SolutionServices _solutionServices;
+        private readonly HostWorkspaceServices _solutionServices;
 
         /// <summary>
         /// The documents in this project. They are sorted by <see cref="DocumentId.Id"/> to provide a stable sort for
@@ -61,14 +62,14 @@ namespace Microsoft.CodeAnalysis
         private AnalyzerOptions? _lazyAnalyzerOptions;
 
         /// <summary>
-        /// Backing field for <see cref="SourceGenerators"/>; this is a default ImmutableArray if it hasn't been computed yet.
+        /// The list of source generators and the analyzer reference they came from.
         /// </summary>
-        private ImmutableArray<ISourceGenerator> _lazySourceGenerators;
+        private ImmutableDictionary<ISourceGenerator, AnalyzerReference>? _lazySourceGenerators;
 
         private ProjectState(
             ProjectInfo projectInfo,
             HostLanguageServices languageServices,
-            SolutionServices solutionServices,
+            HostWorkspaceServices solutionServices,
             TextDocumentStates<DocumentState> documentStates,
             TextDocumentStates<AdditionalDocumentState> additionalDocumentStates,
             TextDocumentStates<AnalyzerConfigDocumentState> analyzerConfigDocumentStates,
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis
             _lazyChecksums = new AsyncLazy<ProjectStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
         }
 
-        public ProjectState(ProjectInfo projectInfo, HostLanguageServices languageServices, SolutionServices solutionServices)
+        public ProjectState(ProjectInfo projectInfo, HostLanguageServices languageServices, HostWorkspaceServices solutionServices)
         {
             Contract.ThrowIfNull(projectInfo);
             Contract.ThrowIfNull(languageServices);
@@ -103,9 +104,10 @@ namespace Microsoft.CodeAnalysis
             _solutionServices = solutionServices;
 
             var projectInfoFixed = FixProjectInfo(projectInfo);
+            var loadTextOptions = new LoadTextOptions(projectInfoFixed.Attributes.ChecksumAlgorithm);
 
             // We need to compute our AnalyerConfigDocumentStates first, since we use those to produce our DocumentStates
-            AnalyzerConfigDocumentStates = new TextDocumentStates<AnalyzerConfigDocumentState>(projectInfoFixed.AnalyzerConfigDocuments, info => new AnalyzerConfigDocumentState(info, solutionServices));
+            AnalyzerConfigDocumentStates = new TextDocumentStates<AnalyzerConfigDocumentState>(projectInfoFixed.AnalyzerConfigDocuments, info => new AnalyzerConfigDocumentState(info, loadTextOptions, solutionServices));
 
             _lazyAnalyzerConfigOptions = ComputeAnalyzerConfigOptionsValueSource(AnalyzerConfigDocumentStates);
 
@@ -119,8 +121,8 @@ namespace Microsoft.CodeAnalysis
 
             var parseOptions = projectInfoFixed.ParseOptions;
 
-            DocumentStates = new TextDocumentStates<DocumentState>(projectInfoFixed.Documents, info => CreateDocument(info, parseOptions));
-            AdditionalDocumentStates = new TextDocumentStates<AdditionalDocumentState>(projectInfoFixed.AdditionalDocuments, info => new AdditionalDocumentState(info, solutionServices));
+            DocumentStates = new TextDocumentStates<DocumentState>(projectInfoFixed.Documents, info => CreateDocument(info, parseOptions, loadTextOptions));
+            AdditionalDocumentStates = new TextDocumentStates<AdditionalDocumentState>(projectInfoFixed.AdditionalDocuments, info => new AdditionalDocumentState(info, loadTextOptions, solutionServices));
 
             _lazyLatestDocumentVersion = new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentVersionAsync(DocumentStates, AdditionalDocumentStates, c), cacheResult: true);
             _lazyLatestDocumentTopLevelChangeVersion = new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentTopLevelChangeVersionAsync(DocumentStates, AdditionalDocumentStates, c), cacheResult: true);
@@ -235,9 +237,9 @@ namespace Microsoft.CodeAnalysis
             return latestVersion;
         }
 
-        internal DocumentState CreateDocument(DocumentInfo documentInfo, ParseOptions? parseOptions)
+        internal DocumentState CreateDocument(DocumentInfo documentInfo, ParseOptions? parseOptions, LoadTextOptions loadTextOptions)
         {
-            var doc = new DocumentState(documentInfo, parseOptions, _languageServices, _solutionServices);
+            var doc = new DocumentState(documentInfo, parseOptions, loadTextOptions, _languageServices, _solutionServices);
 
             if (doc.SourceCodeKind != documentInfo.SourceCodeKind)
             {
@@ -330,7 +332,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (documentState.IsRazorDocument())
                 {
-                    return _lazyRazorDesignTimeOptions ??= new RazorDesignTimeAnalyzerConfigOptions(_projectState.LanguageServices.WorkspaceServices);
+                    return _lazyRazorDesignTimeOptions ??= new RazorDesignTimeAnalyzerConfigOptions(_projectState.LanguageServices.LanguageServices.SolutionServices);
                 }
 
                 var filePath = GetEffectiveFilePath(documentState);
@@ -339,22 +341,22 @@ namespace Microsoft.CodeAnalysis
                     return StructuredAnalyzerConfigOptions.Empty;
                 }
 
-                var workspace = _projectState._solutionServices.Workspace;
+                var services = _projectState._solutionServices;
 
-                var legacyDocumentOptionsProvider = workspace.Services.GetService<ILegacyDocumentOptionsProvider>();
+                var legacyDocumentOptionsProvider = services.GetService<ILegacyDocumentOptionsProvider>();
                 if (legacyDocumentOptionsProvider != null)
                 {
                     return StructuredAnalyzerConfigOptions.Create(legacyDocumentOptionsProvider.GetOptions(_projectState.Id, filePath));
                 }
 
                 var options = GetOptionsForSourcePath(cache, filePath);
-                var legacyIndentationService = workspace.Services.GetService<ILegacyIndentationManagerWorkspaceService>();
+                var legacyIndentationService = services.GetService<ILegacyIndentationManagerWorkspaceService>();
                 if (legacyIndentationService == null)
                 {
                     return options;
                 }
 
-                return new AnalyzerConfigWithInferredIndentationOptions(options, workspace, legacyIndentationService, documentState.Id);
+                return new AnalyzerConfigWithInferredIndentationOptions(documentState, options, legacyIndentationService);
             }
 
             public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
@@ -403,7 +405,7 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly ILegacyGlobalOptionsWorkspaceService? _globalOptions;
 
-            public RazorDesignTimeAnalyzerConfigOptions(HostWorkspaceServices services)
+            public RazorDesignTimeAnalyzerConfigOptions(SolutionServices services)
             {
                 // not available OOP:
                 _globalOptions = services.GetService<ILegacyGlobalOptionsWorkspaceService>();
@@ -453,16 +455,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private sealed class AnalyzerConfigWithInferredIndentationOptions : StructuredAnalyzerConfigOptions
         {
-            private readonly Workspace _workspace;
+            private readonly DocumentState _documentState;
             private readonly ILegacyIndentationManagerWorkspaceService _service;
-            private readonly DocumentId _documentId;
             private readonly StructuredAnalyzerConfigOptions _options;
 
-            public AnalyzerConfigWithInferredIndentationOptions(StructuredAnalyzerConfigOptions options, Workspace workspace, ILegacyIndentationManagerWorkspaceService service, DocumentId documentId)
+            public AnalyzerConfigWithInferredIndentationOptions(DocumentState documentState, StructuredAnalyzerConfigOptions options, ILegacyIndentationManagerWorkspaceService service)
             {
-                _workspace = workspace;
+                _documentState = documentState;
                 _service = service;
-                _documentId = documentId;
                 _options = options;
             }
 
@@ -475,23 +475,25 @@ namespace Microsoft.CodeAnalysis
             public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
             {
                 // For open documents override indentation option values with values inferred by the editor:
-                if (key is "indent_style" or "tab_width" or "indent_size" &&
-                    _workspace.IsDocumentOpen(_documentId))
+                if (key is "indent_style" or "tab_width" or "indent_size")
                 {
-                    var currentDocument = _workspace.CurrentSolution.GetDocument(_documentId);
-                    if (currentDocument != null && currentDocument.TryGetText(out var text))
+                    if (_documentState.TryGetText(out var text))
                     {
                         try
                         {
                             value = key switch
                             {
-                                "indent_style" => _service.UseSpacesForWhitespace(text) ? "space" : "tab",
-                                "tab_width" => _service.GetTabSize(text).ToString(),
-                                "indent_size" => _service.GetIndentSize(text).ToString(),
+                                "indent_style" => _service.UseSpacesForWhitespace(text) switch { true => "space", false => "tab", null => null },
+                                "tab_width" => _service.GetTabSize(text)?.ToString(),
+                                "indent_size" => _service.GetIndentSize(text)?.ToString(),
                                 _ => throw ExceptionUtilities.UnexpectedValue(key)
                             };
 
-                            return true;
+                            // Value is null if the document is not currently open (does not have a text buffer)
+                            if (value != null)
+                            {
+                                return true;
+                            }
                         }
                         catch (Exception e) when (FatalError.ReportAndCatch(e))
                         {
@@ -614,6 +616,9 @@ namespace Microsoft.CodeAnalysis
         public string? DefaultNamespace => this.ProjectInfo.DefaultNamespace;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+        public SourceHashAlgorithm ChecksumAlgorithm => this.ProjectInfo.ChecksumAlgorithm;
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public HostLanguageServices LanguageServices => _languageServices;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
@@ -686,38 +691,61 @@ namespace Microsoft.CodeAnalysis
                 analyzerConfigSet ?? _lazyAnalyzerConfigOptions);
         }
 
-        private ProjectInfo.ProjectAttributes Attributes
+        internal ProjectInfo.ProjectAttributes Attributes
             => ProjectInfo.Attributes;
 
-        private ProjectState WithAttributes(ProjectInfo.ProjectAttributes attributes)
-            => With(projectInfo: ProjectInfo.With(attributes: attributes));
+        /// <summary>
+        /// Updates <see cref="ProjectInfo"/> to a newer version of attributes.
+        /// </summary>
+        private ProjectState WithNewerAttributes(ProjectInfo.ProjectAttributes attributes)
+        {
+            // version must have already been updated:
+            Debug.Assert(attributes.Version != Attributes.Version);
+
+            return With(projectInfo: ProjectInfo.With(attributes: attributes));
+        }
 
         public ProjectState WithName(string name)
-            => (name == Name) ? this : WithAttributes(Attributes.With(name: name, version: Version.GetNewerVersion()));
+            => (name == Name) ? this : WithNewerAttributes(Attributes.With(name: name, version: Version.GetNewerVersion()));
 
         public ProjectState WithFilePath(string? filePath)
-            => (filePath == FilePath) ? this : WithAttributes(Attributes.With(filePath: filePath, version: Version.GetNewerVersion()));
+            => (filePath == FilePath) ? this : WithNewerAttributes(Attributes.With(filePath: filePath, version: Version.GetNewerVersion()));
 
         public ProjectState WithAssemblyName(string assemblyName)
-            => (assemblyName == AssemblyName) ? this : WithAttributes(Attributes.With(assemblyName: assemblyName, version: Version.GetNewerVersion()));
+            => (assemblyName == AssemblyName) ? this : WithNewerAttributes(Attributes.With(assemblyName: assemblyName, version: Version.GetNewerVersion()));
 
         public ProjectState WithOutputFilePath(string? outputFilePath)
-            => (outputFilePath == OutputFilePath) ? this : WithAttributes(Attributes.With(outputPath: outputFilePath, version: Version.GetNewerVersion()));
+            => (outputFilePath == OutputFilePath) ? this : WithNewerAttributes(Attributes.With(outputPath: outputFilePath, version: Version.GetNewerVersion()));
 
         public ProjectState WithOutputRefFilePath(string? outputRefFilePath)
-            => (outputRefFilePath == OutputRefFilePath) ? this : WithAttributes(Attributes.With(outputRefPath: outputRefFilePath, version: Version.GetNewerVersion()));
+            => (outputRefFilePath == OutputRefFilePath) ? this : WithNewerAttributes(Attributes.With(outputRefPath: outputRefFilePath, version: Version.GetNewerVersion()));
 
         public ProjectState WithCompilationOutputInfo(in CompilationOutputInfo info)
-            => (info == CompilationOutputInfo) ? this : WithAttributes(Attributes.With(compilationOutputInfo: info, version: Version.GetNewerVersion()));
+            => (info == CompilationOutputInfo) ? this : WithNewerAttributes(Attributes.With(compilationOutputInfo: info, version: Version.GetNewerVersion()));
 
         public ProjectState WithDefaultNamespace(string? defaultNamespace)
-            => (defaultNamespace == DefaultNamespace) ? this : WithAttributes(Attributes.With(defaultNamespace: defaultNamespace, version: Version.GetNewerVersion()));
+            => (defaultNamespace == DefaultNamespace) ? this : WithNewerAttributes(Attributes.With(defaultNamespace: defaultNamespace, version: Version.GetNewerVersion()));
 
         public ProjectState WithHasAllInformation(bool hasAllInformation)
-            => (hasAllInformation == HasAllInformation) ? this : WithAttributes(Attributes.With(hasAllInformation: hasAllInformation, version: Version.GetNewerVersion()));
+            => (hasAllInformation == HasAllInformation) ? this : WithNewerAttributes(Attributes.With(hasAllInformation: hasAllInformation, version: Version.GetNewerVersion()));
 
         public ProjectState WithRunAnalyzers(bool runAnalyzers)
-            => (runAnalyzers == RunAnalyzers) ? this : WithAttributes(Attributes.With(runAnalyzers: runAnalyzers, version: Version.GetNewerVersion()));
+            => (runAnalyzers == RunAnalyzers) ? this : WithNewerAttributes(Attributes.With(runAnalyzers: runAnalyzers, version: Version.GetNewerVersion()));
+
+        public ProjectState WithChecksumAlgorithm(SourceHashAlgorithm checksumAlgorithm)
+        {
+            if (checksumAlgorithm == ChecksumAlgorithm)
+            {
+                return this;
+            }
+
+            return With(
+                projectInfo: ProjectInfo.With(attributes: Attributes.With(checksumAlgorithm: checksumAlgorithm, version: Version.GetNewerVersion())),
+                documentStates: UpdateDocumentsChecksumAlgorithm(checksumAlgorithm));
+        }
+
+        private TextDocumentStates<DocumentState> UpdateDocumentsChecksumAlgorithm(SourceHashAlgorithm checksumAlgorithm)
+            => DocumentStates.UpdateStates(static (state, checksumAlgorithm) => state.UpdateChecksumAlgorithm(checksumAlgorithm), checksumAlgorithm);
 
         public ProjectState WithCompilationOptions(CompilationOptions options)
         {
@@ -744,7 +772,7 @@ namespace Microsoft.CodeAnalysis
 
             return With(
                 projectInfo: ProjectInfo.WithParseOptions(options).WithVersion(Version.GetNewerVersion()),
-                documentStates: DocumentStates.UpdateStates((state, options) => state.UpdateParseOptions(options, onlyPreprocessorDirectiveChange), options));
+                documentStates: DocumentStates.UpdateStates(static (state, args) => state.UpdateParseOptions(args.options, args.onlyPreprocessorDirectiveChange), (options, onlyPreprocessorDirectiveChange)));
         }
 
         public static bool IsSameLanguage(ProjectState project1, ProjectState project2)
@@ -796,18 +824,36 @@ namespace Microsoft.CodeAnalysis
             return With(projectInfo: ProjectInfo.WithAnalyzerReferences(analyzerReferences).WithVersion(Version.GetNewerVersion()));
         }
 
-        public ImmutableArray<ISourceGenerator> SourceGenerators
+        [MemberNotNull(nameof(_lazySourceGenerators))]
+        private void EnsureSourceGeneratorsInitialized()
+        {
+            if (_lazySourceGenerators == null)
+            {
+                var builder = ImmutableDictionary.CreateBuilder<ISourceGenerator, AnalyzerReference>();
+
+                foreach (var analyzerReference in AnalyzerReferences)
+                {
+                    foreach (var generator in analyzerReference.GetGenerators(Language))
+                        builder.Add(generator, analyzerReference);
+                }
+
+                Interlocked.CompareExchange(ref _lazySourceGenerators, builder.ToImmutable(), comparand: null);
+            }
+        }
+
+        public IEnumerable<ISourceGenerator> SourceGenerators
         {
             get
             {
-                if (_lazySourceGenerators.IsDefault)
-                {
-                    var generators = AnalyzerReferences.SelectMany(a => a.GetGenerators(this.Language)).ToImmutableArray();
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazySourceGenerators, generators);
-                }
-
-                return _lazySourceGenerators;
+                EnsureSourceGeneratorsInitialized();
+                return _lazySourceGenerators.Keys;
             }
+        }
+
+        public AnalyzerReference GetAnalyzerReferenceForGenerator(ISourceGenerator generator)
+        {
+            EnsureSourceGeneratorsInitialized();
+            return _lazySourceGenerators[generator];
         }
 
         public ProjectState AddDocuments(ImmutableArray<DocumentState> documents)

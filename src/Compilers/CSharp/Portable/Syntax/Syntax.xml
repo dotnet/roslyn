@@ -414,6 +414,16 @@
     </Field>
     <Field Name="Type" Type="TypeSyntax"/>
   </Node>
+  <Node Name="ScopedTypeSyntax" Base="TypeSyntax">
+    <TypeComment>
+      <summary>The 'scoped' modifier of a local.</summary>
+    </TypeComment>
+    <Kind Name="ScopedType"/>
+    <Field Name="ScopedKeyword" Type="SyntaxToken">
+      <Kind Name="ScopedKeyword"/>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax"/>
+  </Node>
   <!-- Expressions -->
   <AbstractNode Name="ExpressionOrPatternSyntax" Base="CSharpSyntaxNode" />
   <AbstractNode Name="ExpressionSyntax" Base="ExpressionOrPatternSyntax">
@@ -869,7 +879,7 @@
     <Kind Name="ArgListExpression"/>
     <Kind Name="NumericLiteralExpression"/>
     <Kind Name="StringLiteralExpression"/>
-    <Kind Name="UTF8StringLiteralExpression"/>
+    <Kind Name="Utf8StringLiteralExpression"/>
     <Kind Name="CharacterLiteralExpression"/>
     <Kind Name="TrueLiteralExpression"/>
     <Kind Name="FalseLiteralExpression"/>
@@ -879,11 +889,11 @@
       <Kind Name="ArgListKeyword"/>
       <Kind Name="NumericLiteralToken"/>
       <Kind Name="StringLiteralToken"/>
-      <Kind Name="UTF8StringLiteralToken"/>
+      <Kind Name="Utf8StringLiteralToken"/>
       <Kind Name="MultiLineRawStringLiteralToken"/>
-      <Kind Name="UTF8MultiLineRawStringLiteralToken"/>
+      <Kind Name="Utf8MultiLineRawStringLiteralToken"/>
       <Kind Name="SingleLineRawStringLiteralToken"/>
-      <Kind Name="UTF8SingleLineRawStringLiteralToken"/>
+      <Kind Name="Utf8SingleLineRawStringLiteralToken"/>
       <Kind Name="CharacterLiteralToken"/>
       <Kind Name="TrueKeyword"/>
       <Kind Name="FalseKeyword"/>
@@ -4247,7 +4257,7 @@
     <Field Name="Type" Type="TypeSyntax" Optional="false" Override="true"/>
   </Node>
   <Node Name="IncompleteMemberSyntax" Base="MemberDeclarationSyntax">
-    <Kind Name="IncompleteMember"/>n
+    <Kind Name="IncompleteMember"/>
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
     <Field Name="Type" Type="TypeSyntax" Optional="true"/>

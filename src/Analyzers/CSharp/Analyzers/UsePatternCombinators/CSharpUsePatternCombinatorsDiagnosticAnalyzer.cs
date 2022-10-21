@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             : base(IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId,
                 EnforceOnBuildValues.UsePatternCombinators,
                 CSharpCodeStyleOptions.PreferPatternMatching,
-                LanguageNames.CSharp,
                 s_safePatternTitle,
                 s_safePatternTitle)
         {
