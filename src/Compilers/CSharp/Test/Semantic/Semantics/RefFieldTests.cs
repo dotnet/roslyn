@@ -25389,7 +25389,7 @@ $@"{{
 
         [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void FieldInitializer_02()
+        public void FieldInitializer_02A()
         {
             var source =
 @"using System;
@@ -25414,6 +25414,24 @@ ref struct R
                 // (5,35): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
                 //     ref readonly byte _f2 = ref F(stackalloc byte[1]);
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[1]").WithArguments("System.Span<byte>").WithLocation(5, 35));
+        }
+
+        // Similar to above but with scoped parameter.
+        [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void FieldInitializer_02B()
+        {
+            var source =
+@"using System;
+ref struct R
+{
+    ref byte _f1 = ref F(stackalloc byte[1]);
+    ref readonly byte _f2 = ref F(stackalloc byte[1]);
+    public R(object o) { }
+    static ref T F<T>(scoped Span<T> s) => throw null;
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics();
         }
 
         [WorkItem(64725, "https://github.com/dotnet/roslyn/issues/64725")]
@@ -25506,7 +25524,60 @@ ref struct R
 
         [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void FieldInitializer_06()
+        public void FieldInitializer_06A()
+        {
+            var source =
+@"ref struct R
+{
+    ref byte _f1 = ref F<byte>(out var b1);
+    ref readonly byte _f2 = ref F<byte>(out var b2);
+    public R() { }
+    static ref T F<T>(out T t)
+    {
+        throw null;
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        // Similar to above but with [UnscopedRef] out parameter.
+        [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void FieldInitializer_06B()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct R
+{
+    ref byte _f1 = ref F<byte>(out var b1); // 1
+    ref readonly byte _f2 = ref F<byte>(out var b2); // 2
+    public R() { }
+    static ref T F<T>([UnscopedRef] out T t)
+    {
+        t = default;
+        return ref t;
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (4,24): error CS8347: Cannot use a result of 'R.F<byte>(out byte)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //     ref byte _f1 = ref F<byte>(out var b1); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F<byte>(out var b1)").WithArguments("R.F<byte>(out byte)", "t").WithLocation(4, 24),
+                // (4,36): error CS8168: Cannot return local 'b1' by reference because it is not a ref local
+                //     ref byte _f1 = ref F<byte>(out var b1); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "var b1").WithArguments("b1").WithLocation(4, 36),
+                // (5,33): error CS8347: Cannot use a result of 'R.F<byte>(out byte)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //     ref readonly byte _f2 = ref F<byte>(out var b2); // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F<byte>(out var b2)").WithArguments("R.F<byte>(out byte)", "t").WithLocation(5, 33),
+                // (5,45): error CS8168: Cannot return local 'b2' by reference because it is not a ref local
+                //     ref readonly byte _f2 = ref F<byte>(out var b2); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "var b2").WithArguments("b2").WithLocation(5, 45));
+        }
+
+        [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void FieldInitializer_07()
         {
             var source =
 @"using System;
