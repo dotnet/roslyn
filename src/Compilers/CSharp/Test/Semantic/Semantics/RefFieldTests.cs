@@ -25395,25 +25395,26 @@ $@"{{
 @"using System;
 ref struct R
 {
-    ref byte _f1 = ref F(stackalloc byte[1]);
-    ref readonly byte _f2 = ref F(stackalloc byte[1]);
+    public ref byte _f1 = ref F(stackalloc byte[1]);
+    public ref readonly byte _f2 = ref F(stackalloc byte[1]);
     public R(object o) { }
-    static ref T F<T>(Span<T> s) => throw null;
+    static ref byte F(Span<byte> s) => ref _s;
+    public static byte _s;
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (4,24): error CS8347: Cannot use a result of 'R.F<byte>(Span<byte>)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
-                //     ref byte _f1 = ref F(stackalloc byte[1]);
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F(stackalloc byte[1])").WithArguments("R.F<byte>(System.Span<byte>)", "s").WithLocation(4, 24),
-                // (4,26): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
-                //     ref byte _f1 = ref F(stackalloc byte[1]);
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[1]").WithArguments("System.Span<byte>").WithLocation(4, 26),
-                // (5,33): error CS8347: Cannot use a result of 'R.F<byte>(Span<byte>)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
-                //     ref readonly byte _f2 = ref F(stackalloc byte[1]);
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F(stackalloc byte[1])").WithArguments("R.F<byte>(System.Span<byte>)", "s").WithLocation(5, 33),
-                // (5,35): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
-                //     ref readonly byte _f2 = ref F(stackalloc byte[1]);
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[1]").WithArguments("System.Span<byte>").WithLocation(5, 35));
+                // (4,31): error CS8347: Cannot use a result of 'R.F(Span<byte>)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //     public ref byte _f1 = ref F(stackalloc byte[1]);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(stackalloc byte[1])").WithArguments("R.F(System.Span<byte>)", "s").WithLocation(4, 31),
+                // (4,33): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //     public ref byte _f1 = ref F(stackalloc byte[1]);
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[1]").WithArguments("System.Span<byte>").WithLocation(4, 33),
+                // (5,40): error CS8347: Cannot use a result of 'R.F(Span<byte>)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //     public ref readonly byte _f2 = ref F(stackalloc byte[1]);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(stackalloc byte[1])").WithArguments("R.F(System.Span<byte>)", "s").WithLocation(5, 40),
+                // (5,42): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //     public ref readonly byte _f2 = ref F(stackalloc byte[1]);
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[1]").WithArguments("System.Span<byte>").WithLocation(5, 42));
         }
 
         // Similar to above but with scoped parameter.
@@ -25425,13 +25426,55 @@ ref struct R
 @"using System;
 ref struct R
 {
-    ref byte _f1 = ref F(stackalloc byte[1]);
-    ref readonly byte _f2 = ref F(stackalloc byte[1]);
+    public ref byte _f1 = ref F(stackalloc byte[1]);
+    public ref readonly byte _f2 = ref F(stackalloc byte[1]);
     public R(object o) { }
-    static ref T F<T>(scoped Span<T> s) => throw null;
+    static ref byte F(scoped Span<byte> s) => ref _s;
+    public static byte _s = 1;
+}
+class Program
+{
+    static void Main()
+    {
+        var r = new R(null);
+        Console.WriteLine((r._f1, r._f2));
+        R._s = 2;
+        Console.WriteLine((r._f1, r._f2));
+    }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
+@"(1, 1)
+(2, 2)
+");
+            verifier.VerifyIL("R..ctor(object)",
+@"{
+    // Code size       47 (0x2f)
+    .maxstack  2
+    .locals init (System.Span<byte> V_0)
+    IL_0000:  ldc.i4.1
+    IL_0001:  conv.u
+    IL_0002:  localloc
+    IL_0004:  ldc.i4.1
+    IL_0005:  newobj     ""System.Span<byte>..ctor(void*, int)""
+    IL_000a:  stloc.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldloc.0
+    IL_000d:  call       ""ref byte R.F(scoped System.Span<byte>)""
+    IL_0012:  stfld      ""ref byte R._f1""
+    IL_0017:  ldc.i4.1
+    IL_0018:  conv.u
+    IL_0019:  localloc
+    IL_001b:  ldc.i4.1
+    IL_001c:  newobj     ""System.Span<byte>..ctor(void*, int)""
+    IL_0021:  stloc.0
+    IL_0022:  ldarg.0
+    IL_0023:  ldloc.0
+    IL_0024:  call       ""ref byte R.F(scoped System.Span<byte>)""
+    IL_0029:  stfld      ""ref readonly byte R._f2""
+    IL_002e:  ret
+}");
         }
 
         [WorkItem(64725, "https://github.com/dotnet/roslyn/issues/64725")]
