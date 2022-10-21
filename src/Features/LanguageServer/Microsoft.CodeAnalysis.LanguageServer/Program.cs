@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.Extensions.Logging;
-
-using System.Diagnostics;
 
 Console.Title = "Microsoft.CodeAnalysis.LanguageServer";
 
@@ -19,9 +18,11 @@ var logger = loggerFactory.CreateLogger<ILogger>();
 
 LaunchDebuggerIfEnabled(args);
 
-var jsonRpc = new JsonRpcServer(Console.OpenStandardInput(), Console.OpenStandardOutput(), logger);
+var jsonRpc = new RoslynLanguageServer(Console.OpenStandardInput(), Console.OpenStandardOutput(), logger);
 
 await jsonRpc.StartAsync();
+
+return;
 
 void LaunchDebuggerIfEnabled(string[] args)
 {

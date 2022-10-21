@@ -7,12 +7,13 @@ using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
-internal sealed class JsonRpcServer : IDisposable
+
+internal sealed class RoslynLanguageServer : IDisposable
 {
     private readonly JsonRpc _jsonRpc;
     private readonly ILogger _logger;
 
-    public JsonRpcServer(Stream inputStream, Stream outputStream, ILogger logger)
+    public RoslynLanguageServer(Stream inputStream, Stream outputStream, ILogger logger)
     {
         _logger = logger;
 
