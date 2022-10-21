@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         private void InitializePerVSSessionServices()
         {
-            var languageServices = Workspace.Services.GetExtendedLanguageServices(_languageName);
+            var languageServices = Workspace.Services.GetLanguageServices(_languageName);
 
             _ = languageServices.GetService<ISnippetInfoService>();
 

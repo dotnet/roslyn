@@ -10,39 +10,33 @@ namespace Microsoft.CodeAnalysis.Host
 {
     internal sealed partial class CodeStyleHostLanguageServices : HostLanguageServices
     {
-        private static readonly ConditionalWeakTable<HostLanguageServices, CodeStyleHostLanguageServices> s_mappedLanguageServices =
-            new ConditionalWeakTable<HostLanguageServices, CodeStyleHostLanguageServices>();
-        private static readonly ConditionalWeakTable<string, MefHostExportProvider> s_exportProvidersByLanguageCache =
-            new ConditionalWeakTable<string, MefHostExportProvider>();
+        private static readonly ConditionalWeakTable<LanguageServices, LanguageServices> s_extendedServices = new();
+        private static readonly ConditionalWeakTable<string, MefHostExportProvider> s_exportProvidersByLanguageCache = new();
 
-        private readonly HostLanguageServices _hostLanguageServices;
-        private readonly HostLanguageServices _codeStyleLanguageServices;
+        private readonly LanguageServices _languageServices;
+        private readonly LanguageServices _codeStyleLanguageServices;
+        public override HostWorkspaceServices WorkspaceServices { get; }
 
         [SuppressMessage("ApiDesign", "RS0030:Do not used banned APIs", Justification = "This is the replacement API")]
-        private CodeStyleHostLanguageServices(HostLanguageServices hostLanguageServices)
+        private CodeStyleHostLanguageServices(LanguageServices languageServices)
         {
-            _hostLanguageServices = hostLanguageServices;
+            _languageServices = languageServices;
 
-            var exportProvider = s_exportProvidersByLanguageCache.GetValue(hostLanguageServices.Language, MefHostExportProvider.Create);
-            _codeStyleLanguageServices = new MefWorkspaceServices(exportProvider, hostLanguageServices.WorkspaceServices.Workspace)
-                .GetLanguageServices(hostLanguageServices.Language);
+            var exportProvider = s_exportProvidersByLanguageCache.GetValue(languageServices.Language, MefHostExportProvider.Create);
+            WorkspaceServices = new MefWorkspaceServices(exportProvider);
+            _codeStyleLanguageServices = WorkspaceServices.GetLanguageServices(languageServices.Language).LanguageServices;
         }
 
-        public static CodeStyleHostLanguageServices? GetMappedCodeStyleLanguageServices(HostLanguageServices? hostLanguageServices)
-            => hostLanguageServices != null ? s_mappedLanguageServices.GetValue(hostLanguageServices, Create) : null;
+        public static LanguageServices GetExtendedLanguageServices(LanguageServices languageServices)
+            => s_extendedServices.GetValue(languageServices, Create);
 
-        public static CodeStyleHostLanguageServices GetRequiredMappedCodeStyleLanguageServices(HostLanguageServices hostLanguageServices)
-            => s_mappedLanguageServices.GetValue(hostLanguageServices, Create);
+        private static LanguageServices Create(LanguageServices languageServices)
+            => new CodeStyleHostLanguageServices(languageServices).LanguageServices;
 
-        private static CodeStyleHostLanguageServices Create(HostLanguageServices hostLanguageServices)
-            => new CodeStyleHostLanguageServices(hostLanguageServices);
-
-        public override HostWorkspaceServices WorkspaceServices => _hostLanguageServices.WorkspaceServices;
-
-        public override string Language => _hostLanguageServices.Language;
+        public override string Language => _languageServices.Language;
 
         public override TLanguageService? GetService<TLanguageService>()
             where TLanguageService : default
-            => _codeStyleLanguageServices.GetService<TLanguageService>() ?? _hostLanguageServices.GetService<TLanguageService>();
+            => _codeStyleLanguageServices.GetService<TLanguageService>() ?? _languageServices.GetService<TLanguageService>();
     }
 }

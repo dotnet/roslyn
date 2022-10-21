@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.Host.Mef
     internal sealed class MefWorkspaceServices : HostWorkspaceServices
     {
         private readonly IMefHostExportProvider _exportProvider;
-        private readonly Workspace _workspace;
-
         private readonly ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> _services;
 
         // map of type name to workspace service
@@ -33,10 +31,21 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         private ImmutableDictionary<string, MefLanguageServices> _languageServicesMap
             = ImmutableDictionary<string, MefLanguageServices>.Empty;
 
+#if CODE_STYLE
+        public override Workspace Workspace
+            => throw ExceptionUtilities.Unreachable();
+#else
+        public override Workspace Workspace { get; }
+
         public MefWorkspaceServices(IMefHostExportProvider host, Workspace workspace)
+            : this(host)
+        {
+            Workspace = workspace;
+        }
+#endif
+        public MefWorkspaceServices(IMefHostExportProvider host)
         {
             _exportProvider = host;
-            _workspace = workspace;
 
             var services = host.GetExports<IWorkspaceService, WorkspaceServiceMetadata>();
             var factories = host.GetExports<IWorkspaceServiceFactory, WorkspaceServiceMetadata>()
@@ -46,24 +55,10 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         }
 
         public override HostServices HostServices
-        {
-            get { return (HostServices)_exportProvider; }
-        }
+            => (HostServices)_exportProvider;
 
-        internal IMefHostExportProvider HostExportProvider => _exportProvider;
-
-        internal string WorkspaceKind => _workspace.Kind;
-
-        public override Workspace Workspace
-        {
-            get
-            {
-                //#if !CODE_STYLE
-                //                Contract.ThrowIfTrue(_workspace.Kind == CodeAnalysis.WorkspaceKind.RemoteWorkspace, "Access .Workspace off of a RemoteWorkspace MefWorkspaceServices is not supported.");
-                //#endif
-                return _workspace;
-            }
-        }
+        internal IMefHostExportProvider HostExportProvider
+            => _exportProvider;
 
         public override TWorkspaceService GetService<TWorkspaceService>()
         {
@@ -102,12 +97,13 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             {
                 return service;
             }
-#endif
+
             // workspace specific kind is best
-            if (TryGetServiceByLayer(_workspace.Kind, services, out service))
+            if (TryGetServiceByLayer(Workspace.Kind, services, out service))
             {
                 return service;
             }
+#endif
 
             // host layer overrides editor, desktop or default
             if (TryGetServiceByLayer(ServiceLayer.Host, services, out service))

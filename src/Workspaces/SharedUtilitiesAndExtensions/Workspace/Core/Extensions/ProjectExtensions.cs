@@ -29,13 +29,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => project.Services.GetRequiredService<TLanguageService>();
 #endif
 
-#pragma warning disable RS0030 // Do not used banned API 'Project.LanguageServices', use 'GetExtendedLanguageServices' instead - allow in this helper.
+#pragma warning disable RS0030 // Do not use banned API 'Project.Services', use 'GetExtendedLanguageServices' instead - allow in this helper.
         /// <summary>
         /// Gets extended host language services, which includes language services from <see cref="Project.LanguageServices"/>.
         /// </summary>
-        public static HostLanguageServices GetExtendedLanguageServices(this Project project)
-            => project.Solution.Workspace.Services.GetExtendedLanguageServices(project.Language);
-#pragma warning restore RS0030 // Do not used banned APIs
+        public static LanguageServices GetExtendedLanguageServices(this Project project)
+            => project.Services.GetExtendedLanguageServices();
+#pragma warning restore
 
         public static string? TryGetAnalyzerConfigPathForProjectConfiguration(this Project project)
             => TryGetAnalyzerConfigPathForProjectOrDiagnosticConfiguration(project, diagnostic: null);

@@ -34,14 +34,14 @@ internal readonly struct CSharpCodeFixOptionsProvider
     /// <summary>
     /// C# language services.
     /// </summary>
-    private readonly HostLanguageServices _languageServices;
+    private readonly LanguageServices _languageServices;
 
     /// <summary>
     /// Fallback options provider - default options provider in Code Style layer.
     /// </summary>
     private readonly CodeActionOptionsProvider _fallbackOptions;
 
-    public CSharpCodeFixOptionsProvider(AnalyzerConfigOptions options, CodeActionOptionsProvider fallbackOptions, HostLanguageServices languageServices)
+    public CSharpCodeFixOptionsProvider(AnalyzerConfigOptions options, CodeActionOptionsProvider fallbackOptions, LanguageServices languageServices)
     {
         _options = options;
         _fallbackOptions = fallbackOptions;
@@ -87,35 +87,35 @@ internal readonly struct CSharpCodeFixOptionsProvider
 #if CODE_STYLE
         => CSharpIdeCodeStyleOptions.Default;
 #else
-        => (CSharpIdeCodeStyleOptions)_fallbackOptions.GetOptions(_languageServices.LanguageServices).CodeStyleOptions;
+        => (CSharpIdeCodeStyleOptions)_fallbackOptions.GetOptions(_languageServices).CodeStyleOptions;
 #endif
 
     private CSharpSimplifierOptions FallbackSimplifierOptions
 #if CODE_STYLE
         => CSharpSimplifierOptions.Default;
 #else
-        => (CSharpSimplifierOptions)_fallbackOptions.GetOptions(_languageServices.LanguageServices).CleanupOptions.SimplifierOptions;
+        => (CSharpSimplifierOptions)_fallbackOptions.GetOptions(_languageServices).CleanupOptions.SimplifierOptions;
 #endif
 
     private CSharpSyntaxFormattingOptions FallbackSyntaxFormattingOptions
 #if CODE_STYLE
         => CSharpSyntaxFormattingOptions.Default;
 #else
-        => (CSharpSyntaxFormattingOptions)_fallbackOptions.GetOptions(_languageServices.LanguageServices).CleanupOptions.FormattingOptions;
+        => (CSharpSyntaxFormattingOptions)_fallbackOptions.GetOptions(_languageServices).CleanupOptions.FormattingOptions;
 #endif
 
     private LineFormattingOptions FallbackLineFormattingOptions
 #if CODE_STYLE
         => LineFormattingOptions.Default;
 #else
-        => _fallbackOptions.GetOptions(_languageServices.LanguageServices).CleanupOptions.FormattingOptions.LineFormatting;
+        => _fallbackOptions.GetOptions(_languageServices).CleanupOptions.FormattingOptions.LineFormatting;
 #endif
 
     private AddImportPlacementOptions FallbackAddImportPlacementOptions
 #if CODE_STYLE
         => AddImportPlacementOptions.Default;
 #else
-        => _fallbackOptions.GetOptions(_languageServices.LanguageServices).CleanupOptions.AddImportOptions;
+        => _fallbackOptions.GetOptions(_languageServices).CleanupOptions.AddImportOptions;
 #endif
 }
 

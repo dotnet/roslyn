@@ -86,12 +86,13 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             {
                 return service;
             }
-#endif
+
             // workspace specific kind is best
-            if (TryGetServiceByLayer(_workspaceServices.WorkspaceKind, services, out service))
+            if (TryGetServiceByLayer(_workspaceServices.Workspace.Kind, services, out service))
             {
                 return service;
             }
+#endif
 
             // host layer overrides editor, desktop or default
             if (TryGetServiceByLayer(ServiceLayer.Host, services, out service))
