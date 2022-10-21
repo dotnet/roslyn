@@ -306,23 +306,33 @@ namespace Microsoft.CodeAnalysis.Remote
                 // if either solution id or file path changed, then we consider it as new solution. Otherwise,
                 // update the current solution in place.
 
-                var oldSolution = CurrentSolution;
-                var addingSolution = oldSolution.Id != newSolution.Id || oldSolution.FilePath != newSolution.FilePath;
-                if (addingSolution)
-                {
-                    // We're not doing an update, we're moving to a new solution entirely.  Clear out the old one. This
-                    // is necessary so that we clear out any open document information this workspace is tracking. Note:
-                    // this seems suspect as the remote workspace should not be tracking any open document state.
-                    ClearSolutionData();
-                }
-
-                newSolution = SetCurrentSolution(newSolution);
-
-                _ = RaiseWorkspaceChangedEventAsync(
-                    addingSolution ? WorkspaceChangeKind.SolutionAdded : WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
+                // Ensure we update newSolution with the result of SetCurrentSolution.  It will be the one appropriately
+                // 'attached' to this workspace.
+                (_, newSolution) = this.SetCurrentSolution(
+                    (oldSolution, _) => newSolution,
+                    data: /*unused*/0,
+                    onBeforeUpdate: (oldSolution, newSolution, _) =>
+                    {
+                        if (IsAddingSolution(oldSolution, newSolution))
+                        {
+                            // We're not doing an update, we're moving to a new solution entirely.  Clear out the old one. This
+                            // is necessary so that we clear out any open document information this workspace is tracking. Note:
+                            // this seems suspect as the remote workspace should not be tracking any open document state.
+                            this.ClearSolutionData();
+                        }
+                    },
+                    onAfterUpdate: (oldSolution, newSolution, _) =>
+                    {
+                        RaiseWorkspaceChangedEventAsync(
+                            IsAddingSolution(oldSolution, newSolution) ? WorkspaceChangeKind.SolutionAdded : WorkspaceChangeKind.SolutionChanged,
+                            oldSolution, newSolution);
+                    });
 
                 return (newSolution, updated: true);
             }
+
+            static bool IsAddingSolution(Solution oldSolution, Solution newSolution)
+                => oldSolution.Id != newSolution.Id || oldSolution.FilePath != newSolution.FilePath;
         }
 
         public TestAccessor GetTestAccessor()

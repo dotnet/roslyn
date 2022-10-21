@@ -419,7 +419,7 @@ language: LanguageNames.CSharp);
             public WorkspaceWithPartialSemantics(Solution solution)
                 : base(solution.Workspace.Services.HostServices, solution.Workspace.Kind)
             {
-                this.SetCurrentSolution(solution);
+                this.SetCurrentSolutionEx(solution);
             }
 
             protected internal override bool PartialSemanticsEnabled
