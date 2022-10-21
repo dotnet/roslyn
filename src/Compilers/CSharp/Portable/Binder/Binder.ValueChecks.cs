@@ -1919,12 +1919,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _ => throw ExceptionUtilities.UnexpectedValue(symbol)
                 };
 
-                if (receiver is not BoundValuePlaceholderBase && method is not null && receiver.Type!.IsVerifierValue())
+                if (receiver is not BoundValuePlaceholderBase && method is not null && receiver.Type!.IsValueType)
                 {
-                    var receiverAddresskind = method.IsEffectivelyReadOnly ? AddressKind.ReadOnly : AddressKind.Writeable;
+                    var receiverAddressKind = method.IsEffectivelyReadOnly ? AddressKind.ReadOnly : AddressKind.Writeable;
 
                     if (!Binder.HasHome(receiver,
-                                        receiverAddresskind,
+                                        receiverAddressKind,
                                         ContainingMemberOrLambda,
                                         Compilation.IsPeVerifyCompatEnabled,
                                         stackLocalsOpt: null))
