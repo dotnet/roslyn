@@ -521,12 +521,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Binds attributes applied to this symbol.
         /// </summary>
-        protected ImmutableArray<(CSharpAttributeData, BoundAttribute)> BindAttributes(OneOrMany<SyntaxList<AttributeListSyntax>> attributeDeclarations, Binder rootBinder)
+        protected ImmutableArray<(CSharpAttributeData, BoundAttribute)> BindAttributes(OneOrMany<SyntaxList<AttributeListSyntax>> attributeDeclarations, Binder? rootBinder)
         {
-            var binder = new ContextualAttributeBinder(rootBinder, this);
+            rootBinder = rootBinder is null ? null : new ContextualAttributeBinder(rootBinder, this);
             var boundAttributeArrayBuilder = ArrayBuilder<(CSharpAttributeData, BoundAttribute)>.GetInstance();
             foreach (var attributeListSyntaxList in attributeDeclarations)
             {
+                Binder binder;
+                if (rootBinder is null)
+                {
+                    Debug.Assert(attributeListSyntaxList.Node != null);
+                    var enclosingBinder = DeclaringCompilation.GetBinderFactory(attributeListSyntaxList.Node.SyntaxTree).GetBinder(attributeListSyntaxList.Node);
+                    binder = new ContextualAttributeBinder(enclosingBinder, this);
+                }
+                else
+                {
+                    binder = rootBinder;
+                }
                 foreach (var attributeListSyntax in attributeListSyntaxList)
                 {
                     foreach (var attributeSyntax in attributeListSyntax.Attributes)
