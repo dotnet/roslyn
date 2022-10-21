@@ -112,9 +112,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // However, we still want to give errors on every bad type in the list, even if one
                 // is missing.
 
+                int parameterCount = 0;
                 int underscoresCount = 0;
                 foreach (var p in parameterSyntaxList.Value)
                 {
+                    parameterCount++;
+
                     if (p.Identifier.IsUnderscoreToken())
                     {
                         underscoresCount++;
@@ -143,7 +146,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ParameterHelpers.CheckParameterModifiers(p, diagnostics, parsingFunctionPointerParams: false, parsingLambdaParams: true,
                             parsingAnonymousMethod: syntax.Kind() == SyntaxKind.AnonymousMethodExpression);
                         refKind = ParameterHelpers.GetModifiers(p.Modifiers, out _, out var paramsKeyword, out _, out scope);
-                        if (paramsKeyword.Kind() != SyntaxKind.None)
+
+                        var isLastParameter = parameterCount == parameterSyntaxList.Value.Count;
+                        if (isLastParameter && paramsKeyword.Kind() != SyntaxKind.None)
                         {
                             hasParamsArray = true;
                         }
