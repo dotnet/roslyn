@@ -1265,17 +1265,20 @@ Class D
         M(New C.S())'BIND:"New C.S()"
     End Sub
 End Class]]>.Value
+
             Dim expectedDiagnostics = <![CDATA[
 BC30389: 'C.S' is not accessible in this context because it is 'Protected'.
         M(New C.S())'BIND:"New C.S()"
               ~~~
 ]]>.Value
+
             Dim expectedOperationTree = <![CDATA[
 IObjectCreationOperation (Constructor: <null>) (OperationKind.ObjectCreation, Type: C.S, IsInvalid) (Syntax: 'New C.S()')
   Arguments(0)
   Initializer:
     null
 ]]>.Value
+
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
