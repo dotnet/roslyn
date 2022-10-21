@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var workspace = GetWorkspace();
             var assetProvider = workspace.CreateAssetProvider(solutionChecksum, WorkspaceManager.SolutionAssetCache, SolutionAssetSource);
+
             var (_, result) = await workspace.RunWithSolutionAsync(
                 assetProvider,
                 solutionChecksum,
@@ -108,13 +109,10 @@ namespace Microsoft.CodeAnalysis.Remote
             var workspace = GetWorkspace();
             var assetProvider = workspace.CreateAssetProvider(solutionChecksum, WorkspaceManager.SolutionAssetCache, SolutionAssetSource);
 
-            // Ensure the solution stays pinned while we're streaming results back.
-            var pinnedSolution = await workspace.GetPinnedSolutionAsync(
-                assetProvider, solutionChecksum, cancellationToken).ConfigureAwait(false);
-            await using (pinnedSolution.ConfigureAwait(false))
+            await foreach (var (_, item) in workspace.RunWithSolutionAsync(
+                assetProvider, solutionChecksum, implementation, cancellationToken).ConfigureAwait(false))
             {
-                await foreach (var item in implementation(pinnedSolution.Solution, cancellationToken).ConfigureAwait(false))
-                    yield return item;
+                yield return item;
             }
         }
 
