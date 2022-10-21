@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Host
 
         private void ParseIfOpen(Document document)
         {
-            if (document != null && document.IsOpen())
+            if (document != null && _workspace.IsDocumentOpen(document.Id))
             {
                 Parse(document);
             }

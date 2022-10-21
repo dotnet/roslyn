@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
         {
             // TODO (tomat): the method may throw all sorts of exceptions.
             var tmpWorkspace = workspace ?? new AdhocWorkspace();
-            var languageServices = tmpWorkspace.Services.GetLanguageServices(language);
+            var languageServices = tmpWorkspace.Services.SolutionServices.GetLanguageServices(language);
             if (languageServices == null)
             {
                 throw new ArgumentException(WorkspacesResources.Unrecognized_language_name);
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
             var commandLineParser = languageServices.GetRequiredService<ICommandLineParserService>();
             var commandLineArguments = commandLineParser.Parse(commandLineArgs, projectDirectory, isInteractive: false, sdkDirectory: RuntimeEnvironment.GetRuntimeDirectory());
 
-            var metadataService = tmpWorkspace.Services.GetRequiredService<IMetadataService>();
+            var metadataService = languageServices.SolutionServices.GetRequiredService<IMetadataService>();
 
             // we only support file paths in /r command line arguments
             var relativePathResolver =
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
             var commandLineMetadataReferenceResolver = new WorkspaceMetadataFileReferenceResolver(
                 metadataService, relativePathResolver);
 
-            var analyzerLoader = tmpWorkspace.Services.GetRequiredService<IAnalyzerService>().GetLoader();
+            var analyzerLoader = languageServices.SolutionServices.GetRequiredService<IAnalyzerService>().GetLoader();
             var xmlFileResolver = new XmlFileResolver(commandLineArguments.BaseDirectory);
             var strongNameProvider = new DesktopStrongNameProvider(commandLineArguments.KeyFileSearchPaths);
 
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis
                    name,
                    folders: folders,
                    sourceCodeKind: fileArg.IsScript ? SourceCodeKind.Script : SourceCodeKind.Regular,
-                   loader: new WorkspaceFileTextLoader(tmpWorkspace.Services.SolutionServices, absolutePath, commandLineArguments.Encoding),
+                   loader: new WorkspaceFileTextLoader(languageServices.SolutionServices, absolutePath, commandLineArguments.Encoding),
                    filePath: absolutePath);
 
                 docs.Add(doc);
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis
                    name: name,
                    folders: folders,
                    sourceCodeKind: SourceCodeKind.Regular,
-                   loader: new WorkspaceFileTextLoader(tmpWorkspace.Services.SolutionServices, absolutePath, commandLineArguments.Encoding),
+                   loader: new WorkspaceFileTextLoader(languageServices.SolutionServices, absolutePath, commandLineArguments.Encoding),
                    filePath: absolutePath);
 
                 additionalDocs.Add(doc);

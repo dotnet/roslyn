@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         internal static SyntaxFormattingOptions GetFormattingOptions(Workspace workspace, OptionSet? optionSet, string language)
         {
-            var syntaxFormattingService = workspace.Services.GetRequiredLanguageService<ISyntaxFormattingService>(language);
+            var syntaxFormattingService = workspace.Services.SolutionServices.GetRequiredLanguageService<ISyntaxFormattingService>(language);
             var optionService = workspace.Services.GetRequiredService<IEditorConfigOptionMappingService>();
             var configOptionSet = (optionSet ?? workspace.CurrentSolution.Options).AsAnalyzerConfigOptions(optionService, language);
             return syntaxFormattingService.GetFormattingOptions(configOptionSet, fallbackOptions: null);

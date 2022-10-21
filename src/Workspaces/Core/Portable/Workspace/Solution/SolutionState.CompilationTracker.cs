@@ -554,7 +554,7 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     var compilation = await BuildDeclarationCompilationFromScratchAsync(
-                        solution.Services.SolutionServices,
+                        solution.Services,
                         generatorInfo,
                         cancellationToken).ConfigureAwait(false);
 
@@ -625,7 +625,7 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    var (compilationWithoutGenerators, compilationWithGenerators, generatorDriver) = await BuildDeclarationCompilationFromInProgressAsync(solution.Services.SolutionServices, state, inProgressCompilation, cancellationToken).ConfigureAwait(false);
+                    var (compilationWithoutGenerators, compilationWithGenerators, generatorDriver) = await BuildDeclarationCompilationFromInProgressAsync(solution.Services, state, inProgressCompilation, cancellationToken).ConfigureAwait(false);
                     return await FinalizeCompilationAsync(
                         solution,
                         compilationWithoutGenerators,
@@ -940,8 +940,7 @@ namespace Microsoft.CodeAnalysis
                                                 identity,
                                                 generatedSource.SourceText,
                                                 generatedSource.SyntaxTree.Options,
-                                                ProjectState.LanguageServices,
-                                                solution.Services));
+                                                ProjectState.LanguageServices));
 
                                         // The count of trees was the same, but something didn't match up. Since we're here, at least one tree
                                         // was added, and an equal number must have been removed. Rather than trying to incrementally update
@@ -977,7 +976,7 @@ namespace Microsoft.CodeAnalysis
                         this.ProjectState.Id,
                         metadataReferenceToProjectId);
 
-                    this.WriteState(finalState, solution.Services.SolutionServices);
+                    this.WriteState(finalState, solution.Services);
 
                     return new CompilationInfo(compilationWithGenerators, hasSuccessfullyLoaded, generatorInfo);
                 }

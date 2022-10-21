@@ -86,9 +86,6 @@ namespace Microsoft.CodeAnalysis
             _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: SpecializedCollections.EmptyReadOnlyList<AnalyzerReference>());
         }
 
-        internal void LogTestMessage<TArg>(Func<TArg, string> messageFactory, TArg state)
-            => Services.GetService<IWorkspaceTestLogger>()?.Log(messageFactory(state));
-
         /// <summary>
         /// Services provider by the host for implementing workspace features.
         /// </summary>
@@ -168,7 +165,7 @@ namespace Microsoft.CodeAnalysis
 
             while (true)
             {
-                var newSolution = solution.WithNewWorkspace(this, currentSolution.WorkspaceVersion + 1);
+                var newSolution = solution.WithNewWorkspace(currentSolution.WorkspaceKind, currentSolution.WorkspaceVersion + 1, currentSolution.Services);
                 var oldSolution = Interlocked.CompareExchange(ref _latestSolution, newSolution, currentSolution);
                 if (oldSolution == currentSolution)
                 {
@@ -232,7 +229,7 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                var newSolution = transformedSolution.WithNewWorkspace(this, currentSolution.WorkspaceVersion + 1);
+                var newSolution = transformedSolution.WithNewWorkspace(currentSolution.WorkspaceKind, currentSolution.WorkspaceVersion + 1, currentSolution.Services);
 
                 Solution oldSolution;
                 using (_serializationLock.DisposableWait())

@@ -30,14 +30,14 @@ internal readonly struct CodeFixOptionsProvider
     /// <summary>
     /// C# language services.
     /// </summary>
-    private readonly HostLanguageServices _languageServices;
+    private readonly LanguageServices _languageServices;
 
     /// <summary>
     /// Fallback options provider - default options provider in Code Style layer.
     /// </summary>
     private readonly CodeActionOptionsProvider _fallbackOptions;
 
-    public CodeFixOptionsProvider(AnalyzerConfigOptions options, CodeActionOptionsProvider fallbackOptions, HostLanguageServices languageServices)
+    public CodeFixOptionsProvider(AnalyzerConfigOptions options, CodeActionOptionsProvider fallbackOptions, LanguageServices languageServices)
     {
         _options = options;
         _fallbackOptions = fallbackOptions;
@@ -65,21 +65,21 @@ internal readonly struct CodeFixOptionsProvider
 #if CODE_STYLE
         => LineFormattingOptions.Default;
 #else
-        => _fallbackOptions.GetOptions(_languageServices.LanguageServices).CleanupOptions.FormattingOptions.LineFormatting;
+        => _fallbackOptions.GetOptions(_languageServices).CleanupOptions.FormattingOptions.LineFormatting;
 #endif
 
     private SyntaxFormattingOptions? FallbackSyntaxFormattingOptions
 #if CODE_STYLE
         => null;
 #else
-        => _fallbackOptions.GetOptions(_languageServices.LanguageServices).CleanupOptions.FormattingOptions;
+        => _fallbackOptions.GetOptions(_languageServices).CleanupOptions.FormattingOptions;
 #endif
 
     private SyntaxFormattingOptions.CommonOptions FallbackCommonSyntaxFormattingOptions
 #if CODE_STYLE
         => SyntaxFormattingOptions.CommonOptions.Default;
 #else
-        => _fallbackOptions.GetOptions(_languageServices.LanguageServices).CleanupOptions.FormattingOptions.Common;
+        => _fallbackOptions.GetOptions(_languageServices).CleanupOptions.FormattingOptions.Common;
 #endif
 }
 
