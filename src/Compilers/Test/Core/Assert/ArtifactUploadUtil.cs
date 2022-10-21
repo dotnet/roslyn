@@ -61,13 +61,13 @@ namespace Roslyn.Test.Utilities
             if (string.IsNullOrEmpty(uploadDir))
             {
                 _testOutputHelper.WriteLine("Skipping artifact upload as not running in helix");
-                _testOutputHelper.WriteLine("Files");
+                _testOutputHelper.WriteLine("Files:");
                 foreach (var filePath in _filePaths)
                 {
                     _testOutputHelper.WriteLine(filePath);
                 }
 
-                _testOutputHelper.WriteLine("Directories");
+                _testOutputHelper.WriteLine("Directories:");
                 foreach (var directory in _directoryPaths)
                 {
                     _testOutputHelper.WriteLine(directory);
