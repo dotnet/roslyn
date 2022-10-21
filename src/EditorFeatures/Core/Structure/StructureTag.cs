@@ -61,8 +61,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         public bool IsDefaultCollapsed { get; }
         public bool IsImplementation { get; }
 
+        // Intentionally returning the base impl, we have never supported this facility, and there is no contract around
+        // placing these tags in sets or maps.
+        //
+        // Note: editor does use this.  But we've never supported this, so keeping default behavior unless we are told
+        // it is necessary to provide this:
+        // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_git/VS-Platform?path=/src/Editor/Text/Impl/Structure/StructureSpanningTree/StructureSpanningTree.cs&version=GBmain&line=308&lineEnd=309&lineStartColumn=1&lineEndColumn=1&lineStyle=plain&_a=contents
         public override int GetHashCode()
-            => throw ExceptionUtilities.Unreachable();
+            => base.GetHashCode();
 
         public override bool Equals(object? obj)
             => Equals(obj as StructureTag);
