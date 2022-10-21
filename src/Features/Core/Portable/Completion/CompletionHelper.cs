@@ -81,46 +81,9 @@ namespace Microsoft.CodeAnalysis.Completion
                 matchedAdditionalFilterText);
         }
 
-        private PatternMatch? GetMatch(
-            string text,
-            string pattern,
-            bool includeMatchSpans,
-            CultureInfo culture)
+        private PatternMatch? GetMatch(string text, string pattern, bool includeMatchSpans, CultureInfo culture)
         {
-            // If the item has a dot in it (i.e. for something like enum completion), then attempt
-            // to match what the user wrote against the last portion of the name.  That way if they
-            // write "Bl" and we have "Blub" and "Color.Black", we'll consider the latter to be a
-            // better match as they'll both be prefix matches, and the latter will have a higher
-            // priority.
-
-            var lastDotIndex = text.LastIndexOf('.');
-            if (lastDotIndex >= 0)
-            {
-                var afterDotPosition = lastDotIndex + 1;
-                var textAfterLastDot = text[afterDotPosition..];
-
-                var match = GetMatchWorker(textAfterLastDot, pattern, culture, includeMatchSpans);
-                if (match != null)
-                {
-                    return AdjustMatchedSpans(match.Value, afterDotPosition);
-                }
-            }
-
-            // Didn't have a dot, or the user text didn't match the portion after the dot.
-            // Just do a normal check against the entire completion item.
-            return GetMatchWorker(text, pattern, culture, includeMatchSpans);
-        }
-
-        private static PatternMatch? AdjustMatchedSpans(PatternMatch value, int offset)
-            => value.MatchedSpans.IsDefaultOrEmpty
-                ? value
-                : value.WithMatchedSpans(value.MatchedSpans.SelectAsArray(s => new TextSpan(s.Start + offset, s.Length)));
-
-        private PatternMatch? GetMatchWorker(
-            string text, string pattern,
-            CultureInfo culture, bool includeMatchSpans)
-        {
-            var patternMatcher = GetPatternMatcher(pattern, culture, includeMatchSpans);
+            var patternMatcher = GetPatternMatcher(pattern, culture, includeMatchSpans, _patternMatcherMap);
             var match = patternMatcher.GetFirstMatch(text);
 
             // We still have making checks for language having different to English capitalization,
@@ -135,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // Keywords in .NET are always in En-US.
             // Identifiers can be in user language.
             // Try to get matches for both and return the best of them.
-            patternMatcher = GetPatternMatcher(pattern, EnUSCultureInfo, includeMatchSpans);
+            patternMatcher = GetPatternMatcher(pattern, EnUSCultureInfo, includeMatchSpans, _patternMatcherMap);
             var enUSCultureMatch = patternMatcher.GetFirstMatch(text);
 
             if (match == null)
@@ -169,9 +132,6 @@ namespace Microsoft.CodeAnalysis.Completion
                 return patternMatcher;
             }
         }
-
-        private PatternMatcher GetPatternMatcher(string pattern, CultureInfo culture, bool includeMatchedSpans)
-            => GetPatternMatcher(pattern, culture, includeMatchedSpans, _patternMatcherMap);
 
         public int CompareMatchResults(MatchResult matchResult1, MatchResult matchResult2, bool filterTextHasNoUpperCase)
         {
@@ -211,16 +171,13 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             return 0;
+
+            static bool IsKeywordItem(CompletionItem item)
+                => item.Tags.Contains(WellKnownTags.Keyword);
+
+            static bool TagsEqual(CompletionItem item1, CompletionItem item2)
+                => System.Linq.ImmutableArrayExtensions.SequenceEqual(item1.Tags, item2.Tags);
         }
-
-        private static bool TagsEqual(CompletionItem item1, CompletionItem item2)
-            => TagsEqual(item1.Tags, item2.Tags);
-
-        private static bool TagsEqual(ImmutableArray<string> tags1, ImmutableArray<string> tags2)
-            => tags1 == tags2 || System.Linq.Enumerable.SequenceEqual(tags1, tags2);
-
-        private static bool IsKeywordItem(CompletionItem item)
-            => item.Tags.Contains(WellKnownTags.Keyword);
 
         private static int CompareItems(
             PatternMatch match1,
@@ -421,9 +378,6 @@ namespace Microsoft.CodeAnalysis.Completion
                          isItem2Expanded && match2.Kind == PatternMatchKind.Exact && !isItem1Expanded && match1.Kind > PatternMatchKind.Prefix);
             return isItem1Expanded ? -1 : 1;
         }
-
-        public static string ConcatNamespace(string? containingNamespace, string name)
-            => string.IsNullOrEmpty(containingNamespace) ? name : containingNamespace + "." + name;
 
         internal static bool TryCreateMatchResult(
             CompletionHelper completionHelper,

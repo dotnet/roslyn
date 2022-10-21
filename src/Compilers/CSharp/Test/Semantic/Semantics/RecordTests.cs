@@ -26997,7 +26997,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 0", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr1(100)", context.OperationBlocks[1].Syntax.ToString());
 
                         break;
@@ -27008,7 +27008,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 1", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr2(200)", context.OperationBlocks[1].Syntax.ToString());
 
                         Assert.Equal(OperationKind.Invocation, context.OperationBlocks[2].Kind);
@@ -27022,7 +27022,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 4", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr3(300)", context.OperationBlocks[1].Syntax.ToString());
 
                         Assert.Equal(OperationKind.Block, context.OperationBlocks[2].Kind);
@@ -27131,7 +27131,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 0", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr1(100)", context.OperationBlocks[1].Syntax.ToString());
 
                         RegisterOperationAction(context);
@@ -27144,7 +27144,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 1", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr2(200)", context.OperationBlocks[1].Syntax.ToString());
 
                         Assert.Equal(OperationKind.Invocation, context.OperationBlocks[2].Kind);
@@ -27160,7 +27160,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 4", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr3(300)", context.OperationBlocks[1].Syntax.ToString());
 
                         Assert.Equal(OperationKind.Block, context.OperationBlocks[2].Kind);
@@ -27205,7 +27205,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 0", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr1(100)", context.OperationBlocks[1].Syntax.ToString());
 
                         break;
@@ -27216,7 +27216,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 1", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr2(200)", context.OperationBlocks[1].Syntax.ToString());
 
                         Assert.Equal(OperationKind.Invocation, context.OperationBlocks[2].Kind);
@@ -27230,7 +27230,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 4", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr3(300)", context.OperationBlocks[1].Syntax.ToString());
 
                         Assert.Equal(OperationKind.Block, context.OperationBlocks[2].Kind);
@@ -30294,6 +30294,64 @@ public class C : // 3
                 // (10,17): error CS1031: Type expected
                 // public class C : // 3
                 Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(10, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem(64238, "https://github.com/dotnet/roslyn/issues/64238")]
+        public void NoMethodBodiesInComImportType()
+        {
+            var source1 =
+@"
+[System.Runtime.InteropServices.ComImport]
+[System.Runtime.InteropServices.Guid(""00112233-4455-6677-8899-aabbccddeeff"")]
+record R1(int x);
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net60);
+
+            compilation1.VerifyDiagnostics(
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.Equals(R1?)' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.Equals(R1?)", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.ToString()' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.ToString()", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.Deconstruct(out int)' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.Deconstruct(out int)", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.<Clone>$()' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.<Clone>$()", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.EqualityContract.get' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.EqualityContract.get", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.Equals(object?)' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.Equals(object?)", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.GetHashCode()' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.GetHashCode()", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.operator ==(R1?, R1?)' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.operator ==(R1?, R1?)", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.operator !=(R1?, R1?)' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.operator !=(R1?, R1?)", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.PrintMembers(StringBuilder)' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.PrintMembers(System.Text.StringBuilder)", "R1").WithLocation(4, 8),
+                // (4,8): error CS0669: A class with the ComImport attribute cannot have a user-defined constructor
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithUserCtor, "R1").WithLocation(4, 8),
+                // (4,11): error CS8028: 'R1': a class with the ComImport attribute cannot specify field initializers.
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithInitializers, "int x").WithArguments("R1").WithLocation(4, 11),
+                // (4,15): error CS0423: Since 'R1' has the ComImport attribute, 'R1.x.get' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "x").WithArguments("R1.x.get", "R1").WithLocation(4, 15),
+                // (4,15): error CS0423: Since 'R1' has the ComImport attribute, 'R1.x.init' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "x").WithArguments("R1.x.init", "R1").WithLocation(4, 15)
                 );
         }
     }

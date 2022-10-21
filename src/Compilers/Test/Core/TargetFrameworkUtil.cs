@@ -78,6 +78,7 @@ namespace Roslyn.Test.Utilities
 
         Net50,
         Net60,
+        Net70
     }
 
     /// <summary>
@@ -178,10 +179,12 @@ namespace Roslyn.Test.Utilities
         public static ImmutableArray<MetadataReference> GetReferences(TargetFramework targetFramework) => targetFramework switch
         {
             // Primary
+            // Note: NetCoreApp should behave like latest Core TFM
             TargetFramework.Empty => ImmutableArray<MetadataReference>.Empty,
             TargetFramework.NetStandard20 => NetStandard20References,
-            TargetFramework.NetCoreApp or TargetFramework.Net50 => NetCoreApp.StandardReferences,
+            TargetFramework.Net50 => NetCoreApp.StandardReferences,
             TargetFramework.Net60 => ImmutableArray.CreateRange<MetadataReference>(Net60.All),
+            TargetFramework.NetCoreApp or TargetFramework.Net70 => ImmutableArray.CreateRange<MetadataReference>(Net70.All),
             TargetFramework.NetCoreAppAndCSharp => NetCoreApp.StandardReferences.Add(NetCoreApp.MicrosoftCSharp),
             TargetFramework.NetFramework => NetFramework.StandardReferences,
 

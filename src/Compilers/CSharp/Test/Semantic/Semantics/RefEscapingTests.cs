@@ -120,8 +120,10 @@ class C
                 Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "Inner = inner").WithArguments("System.Span<int>").WithLocation(10, 37));
         }
 
-        [Fact]
-        public void RefStructInFor()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void RefStructInFor(LanguageVersion languageVersion)
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
@@ -135,7 +137,7 @@ class C
             outer = inner;
         }
     }
-}");
+}", parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyDiagnostics(
                 // (10,21): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //             outer = inner;
@@ -794,8 +796,10 @@ class Program
                 );
         }
 
-        [Fact]
-        public void DiscardExpressionRef_UnsafeContext()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DiscardExpressionRef_UnsafeContext(LanguageVersion languageVersion)
         {
             var text = @"
 
@@ -813,11 +817,24 @@ unsafe class Program
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
-                // (13,20): warning CS9085: This returns a parameter by reference 'x' but it is scoped to the current method
-                //         return ref x;
-                Diagnostic(ErrorCode.WRN_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(13, 20)
-                );
+            var comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion == LanguageVersion.CSharp10)
+            {
+                comp.VerifyDiagnostics(
+                    // (7,20): error CS8347: Cannot use a result of 'Program.ReturnsRef1(out int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         return ref ReturnsRef1(out var _);
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "ReturnsRef1(out var _)").WithArguments("Program.ReturnsRef1(out int)", "x").WithLocation(7, 20),
+                    // (7,36): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         return ref ReturnsRef1(out var _);
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "var _").WithLocation(7, 36));
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (13,20): warning CS9085: This returns a parameter by reference 'x' but it is scoped to the current method
+                    //         return ref x;
+                    Diagnostic(ErrorCode.WRN_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(13, 20));
+            }
         }
 
         [Fact()]
@@ -936,8 +953,10 @@ class Program
                 );
         }
 
-        [Fact]
-        public void DiscardExpressionSpan_UnsafeContext()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DiscardExpressionSpan_UnsafeContext(LanguageVersion languageVersion)
         {
             var text = @"
 using System;
@@ -968,18 +987,31 @@ unsafe class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeDebugDll);
-            comp.VerifyDiagnostics(
-                // (14,13): warning CS9078: A result of a stackalloc expression of type 'Span<int>' in this context may be exposed outside of the containing method
-                //         s = stackalloc int[1]; // 1
-                Diagnostic(ErrorCode.WRN_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(14, 13),
-                // (20,35): warning CS9078: A result of a stackalloc expression of type 'Span<int>' in this context may be exposed outside of the containing method
-                //         ReturnsSpan(out var _ ) = stackalloc int[1]; // 2
-                Diagnostic(ErrorCode.WRN_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(20, 35),
-                // (26,20): warning CS9085: This returns a parameter by reference 'x' but it is scoped to the current method
-                //         return ref x; // 3
-                Diagnostic(ErrorCode.WRN_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(26, 20)
-                );
+            var comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion == LanguageVersion.CSharp10)
+            {
+                comp.VerifyDiagnostics(
+                    // (14,13): warning CS9081: A result of a stackalloc expression of type 'Span<int>' in this context may be exposed outside of the containing method
+                    //         s = stackalloc int[1]; // 1
+                    Diagnostic(ErrorCode.WRN_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(14, 13),
+                    // (20,35): warning CS9081: A result of a stackalloc expression of type 'Span<int>' in this context may be exposed outside of the containing method
+                    //         ReturnsSpan(out var _ ) = stackalloc int[1]; // 2
+                    Diagnostic(ErrorCode.WRN_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(20, 35));
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (14,13): warning CS9078: A result of a stackalloc expression of type 'Span<int>' in this context may be exposed outside of the containing method
+                    //         s = stackalloc int[1]; // 1
+                    Diagnostic(ErrorCode.WRN_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(14, 13),
+                    // (20,35): warning CS9078: A result of a stackalloc expression of type 'Span<int>' in this context may be exposed outside of the containing method
+                    //         ReturnsSpan(out var _ ) = stackalloc int[1]; // 2
+                    Diagnostic(ErrorCode.WRN_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(20, 35),
+                    // (26,20): warning CS9085: This returns a parameter by reference 'x' but it is scoped to the current method
+                    //         return ref x; // 3
+                    Diagnostic(ErrorCode.WRN_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(26, 20)
+                    );
+            }
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
             verifier.VerifyIL("Program.Test2", @"
 {
@@ -1703,15 +1735,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssign1(__arglist(ref inner, ref rOuter))").WithArguments("Program.MayAssign1(__arglist)", "__arglist").WithLocation(23, 9)
             );
 
-            // Breaking change in C#11: A ref to ref struct argument is considered
-            // an unscoped reference when passed to an __arglist.
+            // Same errors modulo the scoped
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
-                // (17,34): error CS8168: Cannot return local 'rOuter' by reference because it is not a ref local
-                //         MayAssign2(__arglist(ref rOuter, ref rOuter));
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "rOuter").WithArguments("rOuter").WithLocation(17, 34),
-                // (17,9): error CS8350: This combination of arguments to 'Program.MayAssign2(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //         MayAssign2(__arglist(ref rOuter, ref rOuter));
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssign2(__arglist(ref rOuter, ref rOuter))").WithArguments("Program.MayAssign2(__arglist)", "__arglist").WithLocation(17, 9),
                 // (20,46): error CS8352: Cannot use variable 'rInner' in this context because it may expose referenced variables outside of their declaration scope
                 //         MayAssign2(__arglist(ref rOuter, ref rInner));
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "rInner").WithArguments("rInner").WithLocation(20, 46),
@@ -2878,13 +2903,13 @@ unsafe class Program
 ";
             var comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyDiagnostics(
-                // (16,30): error CS8526: Cannot use variable 'local' in this context because it may expose referenced variables outside of their declaration scope
+                // (16,30): error CS8352: Cannot use variable 'local' in this context because it may expose referenced variables outside of their declaration scope
                 //             sp = MayWrap(ref local);
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "local").WithArguments("local").WithLocation(16, 30),
-                // (16,18): error CS8521: Cannot use a result of 'Program.MayWrap(ref Span<int>)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                // (16,18): error CS8347: Cannot use a result of 'Program.MayWrap(ref Span<int>)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
                 //             sp = MayWrap(ref local);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(ref local)").WithArguments("Program.MayWrap(ref System.Span<int>)", "arg").WithLocation(16, 18),
-                // (22,20): error CS8526: Cannot use variable 'sp1' in this context because it may expose referenced variables outside of their declaration scope
+                // (22,20): error CS8352: Cannot use variable 'sp1' in this context because it may expose referenced variables outside of their declaration scope
                 //             return sp1;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "sp1").WithArguments("sp1").WithLocation(22, 20)
                 );
@@ -2949,6 +2974,7 @@ unsafe class Program
         {
             var text = @"
     using System;
+    using System.Diagnostics.CodeAnalysis;
     public static class Program
     {
         public static void Main()
@@ -2957,8 +2983,13 @@ unsafe class Program
             Span<int> value1 = stackalloc int[1];
             new SR().TryGet(out value1);
 
-            // error, TryGet can write into the instance
+            // Ok, the new value can be copied into SW but not the 
+            // ref to the value
             new SW().TryGet(out value1);
+
+            // Error as the ref of this can escape into value2
+            Span<int> value2 = default;
+            new SW().TryGet2(out value2);
         }
     }
 
@@ -2976,16 +3007,37 @@ unsafe class Program
         {
             result = default;
         }
+
+        [UnscopedRef]
+        public void TryGet2(out Span<int> result)
+        {
+            result = default;
+        }
     }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-                // (12,33): error CS8526: Cannot use variable 'value1' in this context because it may expose referenced variables outside of their declaration scope
-                //             new SW().TryGet(out value1);
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "value1").WithArguments("value1").WithLocation(12, 33),
-                // (12,13): error CS8524: This combination of arguments to 'SW.TryGet(out Span<int>)' is disallowed because it may expose variables referenced by parameter 'result' outside of their declaration scope
-                //             new SW().TryGet(out value1);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "new SW().TryGet(out value1)").WithArguments("SW.TryGet(out System.Span<int>)", "result").WithLocation(12, 13)
-                );
+            if (languageVersion == LanguageVersion.CSharp10)
+            {
+                CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                    // (14,13): error CS8350: This combination of arguments to 'SW.TryGet(out Span<int>)' is disallowed because it may expose variables referenced by parameter 'result' outside of their declaration scope
+                    //             new SW().TryGet(out value1);
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "new SW().TryGet(out value1)").WithArguments("SW.TryGet(out System.Span<int>)", "result").WithLocation(14, 13),
+                    // (14,33): error CS8352: Cannot use variable 'value1' in this context because it may expose referenced variables outside of their declaration scope
+                    //             new SW().TryGet(out value1);
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "value1").WithArguments("value1").WithLocation(14, 33)
+                    );
+
+            }
+            else
+            {
+                CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                    // (18,13): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //             new SW().TryGet2(out value2);
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "new SW()").WithLocation(18, 13),
+                    // (18,13): error CS8350: This combination of arguments to 'SW.TryGet2(out Span<int>)' is disallowed because it may expose variables referenced by parameter 'this' outside of their declaration scope
+                    //             new SW().TryGet2(out value2);
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "new SW().TryGet2(out value2)").WithArguments("SW.TryGet2(out System.Span<int>)", "this").WithLocation(18, 13)
+                    );
+            }
         }
 
         [WorkItem(21911, "https://github.com/dotnet/roslyn/issues/21911")]
@@ -3440,16 +3492,30 @@ public static class Extensions
 }
 ";
             CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-                // (10,28): error CS8352: Cannot use variable 'local' in this context because it may expose referenced variables outside of their declaration scope
+                // (10,9): error CS8352: Cannot use variable '(global, global) = local' in this context because it may expose referenced variables outside of their declaration scope
                 //         (global, global) = local; // error 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "local").WithArguments("local").WithLocation(10, 28),
-                // (11,27): error CS8352: Cannot use variable 'local' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "(global, global) = local").WithArguments("(global, global) = local").WithLocation(10, 9),
+                // (10,28): error CS8350: This combination of arguments to 'Extensions.Deconstruct(Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'self' outside of their declaration scope
+                //         (global, global) = local; // error 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("Extensions.Deconstruct(System.Span<int>, out System.Span<int>, out System.Span<int>)", "self").WithLocation(10, 28),
+                // (11,9): error CS8352: Cannot use variable '(global, local) = local' in this context because it may expose referenced variables outside of their declaration scope
                 //         (global, local) = local; // error 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "local").WithArguments("local").WithLocation(11, 27),
-                // (13,23): error CS8352: Cannot use variable 'local' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "(global, local) = local").WithArguments("(global, local) = local").WithLocation(11, 9),
+                // (11,27): error CS8350: This combination of arguments to 'Extensions.Deconstruct(Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'self' outside of their declaration scope
+                //         (global, local) = local; // error 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("Extensions.Deconstruct(System.Span<int>, out System.Span<int>, out System.Span<int>)", "self").WithLocation(11, 27),
+                // (13,9): error CS8352: Cannot use variable '(global, _) = local' in this context because it may expose referenced variables outside of their declaration scope
                 //         (global, _) = local; // error 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "local").WithArguments("local").WithLocation(13, 23)
-            );
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "(global, _) = local").WithArguments("(global, _) = local").WithLocation(13, 9),
+                // (13,23): error CS8350: This combination of arguments to 'Extensions.Deconstruct(Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'self' outside of their declaration scope
+                //         (global, _) = local; // error 3
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("Extensions.Deconstruct(System.Span<int>, out System.Span<int>, out System.Span<int>)", "self").WithLocation(13, 23),
+                // (14,9): error CS8352: Cannot use variable '(local, _) = local' in this context because it may expose referenced variables outside of their declaration scope
+                //         (local, _) = local;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "(local, _) = local").WithArguments("(local, _) = local").WithLocation(14, 9),
+                // (14,22): error CS8350: This combination of arguments to 'Extensions.Deconstruct(Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'self' outside of their declaration scope
+                //         (local, _) = local;
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("Extensions.Deconstruct(System.Span<int>, out System.Span<int>, out System.Span<int>)", "self").WithLocation(14, 22));
         }
 
         [Theory]
@@ -3476,10 +3542,12 @@ public static class Extensions
 }
 ";
             CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-                // (9,22): error CS8352: Cannot use variable 'local' in this context because it may expose referenced variables outside of their declaration scope
+                // (9,9): error CS8352: Cannot use variable '(M(), M()) = local' in this context because it may expose referenced variables outside of their declaration scope
                 //         (M(), M()) = local; // error
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "local").WithArguments("local").WithLocation(9, 22)
-            );
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "(M(), M()) = local").WithArguments("(M(), M()) = local").WithLocation(9, 9),
+                // (9,22): error CS8350: This combination of arguments to 'Extensions.Deconstruct(Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'self' outside of their declaration scope
+                //         (M(), M()) = local; // error
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("Extensions.Deconstruct(System.Span<int>, out System.Span<int>, out System.Span<int>)", "self").WithLocation(9, 22));
         }
 
         [Theory]
@@ -3506,18 +3574,14 @@ public static class Extensions
             CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
                 // (8,9): error CS1510: A ref or out value must be an assignable variable
                 //         (global, global) = global;
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(global, global) = global").WithLocation(8, 9),
-                // (8,9): error CS8352: Cannot use variable '(global, global) = global' in this context because it may expose referenced variables outside of their declaration scope
-                //         (global, global) = global;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "(global, global) = global").WithArguments("(global, global) = global").WithLocation(8, 9),
-                // (8,28): error CS8350: This combination of arguments to 'Extensions.Deconstruct(ref Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //         (global, global) = global;
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "global").WithArguments("Extensions.Deconstruct(ref System.Span<int>, out System.Span<int>, out System.Span<int>)", "x").WithLocation(8, 28)
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(global, global) = global").WithLocation(8, 9)
             );
         }
 
-        [Fact]
-        public void DeconstructionAssignmentWithRefExtension_UnsafeContext()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DeconstructionAssignmentWithRefExtension_UnsafeContext(LanguageVersion languageVersion)
         {
             var text = @"
 using System;
@@ -3535,25 +3599,10 @@ public static class Extensions
     public static void Deconstruct(ref this Span<int> self, out Span<int> x, out Span<int> y) => throw null;
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (8,9): error CS1510: A ref or out value must be an assignable variable
                 //         (global, global) = global;
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(global, global) = global").WithLocation(8, 9),
-                // (8,9): warning CS9077: Use of variable '(global, global) = global' in this context may expose referenced variables outside of their declaration scope
-                //         (global, global) = global;
-                Diagnostic(ErrorCode.WRN_EscapeVariable, "(global, global) = global").WithArguments("(global, global) = global").WithLocation(8, 9),
-                // (8,9): warning CS9077: Use of variable '(global, global) = global' in this context may expose referenced variables outside of their declaration scope
-                //         (global, global) = global;
-                Diagnostic(ErrorCode.WRN_EscapeVariable, "(global, global) = global").WithArguments("(global, global) = global").WithLocation(8, 9)
-                );
-
-            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (8,9): error CS1510: A ref or out value must be an assignable variable
-                //         (global, global) = global;
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(global, global) = global").WithLocation(8, 9),
-                // (8,9): warning CS9077: Use of variable '(global, global) = global' in this context may expose referenced variables outside of their declaration scope
-                //         (global, global) = global;
-                Diagnostic(ErrorCode.WRN_EscapeVariable, "(global, global) = global").WithArguments("(global, global) = global").WithLocation(8, 9)
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(global, global) = global").WithLocation(8, 9)
                 );
         }
 
@@ -3580,15 +3629,109 @@ public static class Extensions
     public static void Deconstruct(in this Span<int> self, out Span<int> x, out Span<int> y) => throw null;
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-                // (10,28): error CS8352: Cannot use variable 'local' in this context because it may expose referenced variables outside of their declaration scope
-                //         (global, global) = local; // error
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "local").WithArguments("local").WithLocation(10, 28)
-            );
+            var comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion == LanguageVersion.CSharp10)
+            {
+                comp.VerifyDiagnostics(
+                    // (10,9): error CS8352: Cannot use variable '(global, global) = local' in this context because it may expose referenced variables outside of their declaration scope
+                    //         (global, global) = local; // error
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "(global, global) = local").WithArguments("(global, global) = local").WithLocation(10, 9),
+                    // (10,28): error CS8350: This combination of arguments to 'Extensions.Deconstruct(in Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'self' outside of their declaration scope
+                    //         (global, global) = local; // error
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("Extensions.Deconstruct(in System.Span<int>, out System.Span<int>, out System.Span<int>)", "self").WithLocation(10, 28));
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (9,9): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         (global, global) = global;
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "(global, global) = global").WithLocation(9, 9),
+                    // (9,28): error CS8350: This combination of arguments to 'Extensions.Deconstruct(in Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'self' outside of their declaration scope
+                    //         (global, global) = global;
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "global").WithArguments("Extensions.Deconstruct(in System.Span<int>, out System.Span<int>, out System.Span<int>)", "self").WithLocation(9, 28),
+                    // (10,9): error CS8352: Cannot use variable '(global, global) = local' in this context because it may expose referenced variables outside of their declaration scope
+                    //         (global, global) = local; // error
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "(global, global) = local").WithArguments("(global, global) = local").WithLocation(10, 9),
+                    // (10,28): error CS8350: This combination of arguments to 'Extensions.Deconstruct(in Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'self' outside of their declaration scope
+                    //         (global, global) = local; // error
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("Extensions.Deconstruct(in System.Span<int>, out System.Span<int>, out System.Span<int>)", "self").WithLocation(10, 28));
+            }
         }
 
-        [Fact]
-        public void DeconstructionAssignmentWithReturnValue()
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DeconstructionAssignmentWithRefReadonlyExtension_02(LanguageVersion languageVersion)
+        {
+            var text = @"
+using System;
+
+public class C
+{
+    static void M()
+    {
+        Span<int> local = stackalloc int[10];
+        Span<int> x1, y1;
+        (x1, y1) = local; // 1
+        var (x2, y2) = local;
+        (var x3, var y3) = local;
+        (Span<int> x4, Span<int> y4) = local;
+    }
+}
+public static class Extensions
+{
+    public static void Deconstruct(in this Span<int> self, out Span<int> x, out Span<int> y) => throw null;
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (10,9): error CS8352: Cannot use variable '(x1, y1) = local' in this context because it may expose referenced variables outside of their declaration scope
+                //         (x1, y1) = local; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "(x1, y1) = local").WithArguments("(x1, y1) = local").WithLocation(10, 9),
+                // (10,20): error CS8350: This combination of arguments to 'Extensions.Deconstruct(in Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'self' outside of their declaration scope
+                //         (x1, y1) = local; // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("Extensions.Deconstruct(in System.Span<int>, out System.Span<int>, out System.Span<int>)", "self").WithLocation(10, 20));
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DeconstructionAssignmentWithRefReadonlyExtension_03(LanguageVersion languageVersion)
+        {
+            var text = @"
+using System;
+
+public class C
+{
+    static void M()
+    {
+        ReadOnlySpan<int> local = stackalloc int[10];
+        ReadOnlySpan<int> x1, y1;
+        (x1, y1) = local; // 1
+        var (x2, y2) = local;
+        (var x3, var y3) = local;
+        (ReadOnlySpan<int> x4, ReadOnlySpan<int> y4) = local;
+    }
+}
+public static class Extensions
+{
+    public static void Deconstruct(in this ReadOnlySpan<int> self, out ReadOnlySpan<int> x, out ReadOnlySpan<int> y) => throw null;
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (10,9): error CS8352: Cannot use variable '(x1, y1) = local' in this context because it may expose referenced variables outside of their declaration scope
+                //         (x1, y1) = local; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "(x1, y1) = local").WithArguments("(x1, y1) = local").WithLocation(10, 9),
+                // (10,20): error CS8350: This combination of arguments to 'Extensions.Deconstruct(in ReadOnlySpan<int>, out ReadOnlySpan<int>, out ReadOnlySpan<int>)' is disallowed because it may expose variables referenced by parameter 'self' outside of their declaration scope
+                //         (x1, y1) = local; // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("Extensions.Deconstruct(in System.ReadOnlySpan<int>, out System.ReadOnlySpan<int>, out System.ReadOnlySpan<int>)", "self").WithLocation(10, 20));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DeconstructionAssignmentWithReturnValue(LanguageVersion languageVersion)
         {
             var text = @"
 using System;
@@ -3619,7 +3762,7 @@ namespace System
         }
     }
 }";
-            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
                 // (8,19): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         var t = ((global, global) = global); // error
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "global").WithArguments("System.Span<int>").WithLocation(8, 19),
@@ -3629,8 +3772,10 @@ namespace System
             );
         }
 
-        [Fact]
-        public void DeconstructionAssignmentOfTuple()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DeconstructionAssignmentOfTuple(LanguageVersion languageVersion)
         {
             var text = @"
 using System;
@@ -3672,7 +3817,7 @@ namespace System
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSpan(text);
+            var compilation = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             compilation.VerifyDiagnostics(
                 // (12,29): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         (global, global) = (local, local); // error 1
@@ -3726,8 +3871,10 @@ namespace System
             Assert.Equal("(C, string)", model.GetTypeInfo(tuple7).ConvertedType.ToString());
         }
 
-        [Fact]
-        public void DeconstructionAssignmentOfTuple_WithoutValueTuple()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DeconstructionAssignmentOfTuple_WithoutValueTuple(LanguageVersion languageVersion)
         {
             var text = @"
 using System;
@@ -3755,7 +3902,7 @@ public class C
     public static implicit operator C(Span<int> s) => throw null;
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSpan(text);
+            var compilation = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             compilation.VerifyDiagnostics(
                 // (12,28): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (global, global) = (local, local); // error 1
@@ -3824,8 +3971,10 @@ public class C
             Assert.Equal("(C, string)", model.GetTypeInfo(tuple7).ConvertedType.ToString());
         }
 
-        [Fact]
-        public void DeconstructionAssignmentOfRefLikeTuple()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DeconstructionAssignmentOfRefLikeTuple(LanguageVersion languageVersion)
         {
             var text = @"
 using System;
@@ -3868,7 +4017,7 @@ namespace System
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSpan(text);
+            var compilation = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             compilation.VerifyDiagnostics(
                 // (12,29): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         (global, global) = (local, local); // error 1
@@ -3876,21 +4025,12 @@ namespace System
                 // (12,36): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         (global, global) = (local, local); // error 1
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(12, 36),
-                // (12,29): error CS8352: Cannot use variable 'local' in this context because it may expose referenced variables outside of their declaration scope
-                //         (global, global) = (local, local); // error 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "local").WithArguments("local").WithLocation(12, 29),
                 // (14,24): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         (global, s) = (local, ""); // error 2
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(14, 24),
-                // (14,24): error CS8352: Cannot use variable 'local' in this context because it may expose referenced variables outside of their declaration scope
-                //         (global, s) = (local, ""); // error 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "local").WithArguments("local").WithLocation(14, 24),
                 // (15,24): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         (global, s) = (local, null); // error 3
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(15, 24),
-                // (15,24): error CS8352: Cannot use variable 'local' in this context because it may expose referenced variables outside of their declaration scope
-                //         (global, s) = (local, null); // error 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "local").WithArguments("local").WithLocation(15, 24),
                 // (17,23): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         (local, s) = (global, ""); // error 4
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "global").WithArguments("System.Span<int>").WithLocation(17, 23),
@@ -3899,8 +4039,7 @@ namespace System
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "global").WithArguments("System.Span<int>").WithLocation(18, 23),
                 // (20,19): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         (c, s) = (local, ""); // error 6
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(20, 19)
-            );
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(20, 19));
         }
 
         [Theory]
@@ -3964,14 +4103,14 @@ public static class Extensions
     public static void Deconstruct(this Span<int> self, out Span<int> x, out Span<int> y) => throw null;
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+            var comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
                 // (10,18): error CS8352: Cannot use variable 'local1' in this context because it may expose referenced variables outside of their declaration scope
                 //         global = local1; // error 1
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "local1").WithArguments("local1").WithLocation(10, 18),
                 // (11,18): error CS8352: Cannot use variable 'local2' in this context because it may expose referenced variables outside of their declaration scope
                 //         global = local2; // error 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "local2").WithArguments("local2").WithLocation(11, 18)
-            );
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "local2").WithArguments("local2").WithLocation(11, 18));
         }
 
         [Theory]
@@ -4041,14 +4180,51 @@ public ref struct S
     public void Deconstruct(out S s1, out S s2) => throw null;
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+            var comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
                 // (11,22): error CS8352: Cannot use variable 'local1' in this context because it may expose referenced variables outside of their declaration scope
                 //             global = local1; // error 1
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "local1").WithArguments("local1").WithLocation(11, 22),
                 // (12,22): error CS8352: Cannot use variable 'local2' in this context because it may expose referenced variables outside of their declaration scope
                 //             global = local2; // error 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "local2").WithArguments("local2").WithLocation(12, 22)
-                );
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "local2").WithArguments("local2").WithLocation(12, 22));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void RefLikeDeconstruction(
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersion,
+            bool useReadOnly)
+        {
+            string refModifier = useReadOnly ? "readonly" : "";
+            var text = $@"
+using System;
+
+public class C
+{{
+    public void M(ref S global)
+    {{
+        S localCollection = stackalloc int[10];
+        var (local1, local2) = localCollection;
+        global = local1; // error 1
+        global = local2; // error 2
+    }}
+}}
+
+public {refModifier} ref struct S
+{{
+    public static implicit operator S(Span<int> s) => throw null;
+    public void Deconstruct(out S s1, out S s2) => throw null;
+}}
+";
+            var comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
+                // (10,18): error CS8352: Cannot use variable 'local1' in this context because it may expose referenced variables outside of their declaration scope
+                //         global = local1; // error 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "local1").WithArguments("local1").WithLocation(10, 18),
+                // (11,18): error CS8352: Cannot use variable 'local2' in this context because it may expose referenced variables outside of their declaration scope
+                //         global = local2; // error 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "local2").WithArguments("local2").WithLocation(11, 18));
         }
 
         [WorkItem(22361, "https://github.com/dotnet/roslyn/issues/22361")]
@@ -4065,9 +4241,9 @@ public class C
     public void M(ref S global)
     {
         S local1 = stackalloc int[10];
-        local1.M(out S local2); // we'd want this to succeed, but determine the safe-to-escape scope for local2 based on the invocation that declared it
-        local1 = local2; // then this would be allowed
-        global = local2; // and this would fail
+        local1.M(out S local2);
+        local1 = local2; // ok
+        global = local2; // error
     }
     public static void Main() => throw null;
 }
@@ -4078,13 +4254,10 @@ public ref struct S
     public void M(out S s) => throw null;
 }
 ";
-            // Tracking issue: https://github.com/dotnet/roslyn/issues/22361
-
             CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-                // (9,9): error CS8352: Cannot use variable 'local1' in this context because it may expose referenced variables outside of their declaration scope
-                //         local1.M(out S local2);
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "local1").WithArguments("local1").WithLocation(9, 9)
-                );
+                // (11,18): error CS8352: Cannot use variable 'local2' in this context because it may expose referenced variables outside of their declaration scope
+                //         global = local2; // error
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "local2").WithArguments("local2").WithLocation(11, 18));
         }
 
         [Theory]
@@ -4671,6 +4844,406 @@ class Program
   IL_0006:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void LocalScope_DeclarationExpression_01()
+        {
+            var source = """
+                ref struct RS
+                {
+                    public RS(ref RS rs) => throw null!;
+                }
+
+                class Program
+                {
+                    static void M0(ref RS rs1, out RS rs2)
+                    {
+                        // ok. RSTE of rs1 is ReturnOnly. STE of rs2 is ReturnOnly.
+                        rs2 = new RS(ref rs1);
+                    }
+
+                    static RS M1(scoped ref RS rs3)
+                    {
+                        // RSTE of rs3 is CurrentMethod
+                        // STE of rs4 (local variable) is also CurrentMethod
+                        M0(ref rs3, out var rs4);
+                        return rs4; // 1
+                    }
+
+                    static RS M2(scoped ref RS rs3)
+                    {
+                        M0(ref rs3, out RS rs4);
+                        return rs4; // 2
+                    }
+
+                    static RS M3(scoped ref RS rs3)
+                    {
+                        RS rs4;
+                        M0(ref rs3, out rs4); // 3
+                        return rs4;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (19,16): error CS8352: Cannot use variable 'rs4' in this context because it may expose referenced variables outside of their declaration scope
+                //         return rs4; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs4").WithArguments("rs4").WithLocation(19, 16),
+                // (25,16): error CS8352: Cannot use variable 'rs4' in this context because it may expose referenced variables outside of their declaration scope
+                //         return rs4; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs4").WithArguments("rs4").WithLocation(25, 16),
+                // (31,9): error CS8350: This combination of arguments to 'Program.M0(ref RS, out RS)' is disallowed because it may expose variables referenced by parameter 'rs1' outside of their declaration scope
+                //         M0(ref rs3, out rs4); // 3
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M0(ref rs3, out rs4)").WithArguments("Program.M0(ref RS, out RS)", "rs1").WithLocation(31, 9),
+                // (31,16): error CS9075: Cannot return a parameter by reference 'rs3' because it is scoped to the current method
+                //         M0(ref rs3, out rs4); // 3
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "rs3").WithArguments("rs3").WithLocation(31, 16));
+        }
+
+        [Fact]
+        public void LocalScope_DeclarationExpression_02()
+        {
+            var source = """
+                ref struct RS { }
+
+                class Program
+                {
+                    static void M0(RS rs1, out RS rs2)
+                    {
+                        // ok. STE of rs1 is CallingMethod. STE of rs2 is ReturnOnly.
+                        rs2 = rs1;
+                    }
+
+                    static RS M1(scoped RS rs3)
+                    {
+                        // STE of rs3 is CurrentMethod
+                        // STE of rs4 (local variable) is also CurrentMethod
+                        M0(rs3, out var rs4);
+                        return rs4; // 1
+                    }
+
+                    static RS M2(scoped RS rs3)
+                    {
+                        M0(rs3, out RS rs4);
+                        return rs4; // 2
+                    }
+
+                    static RS M3(scoped RS rs3)
+                    {
+                        RS rs4;
+                        M0(rs3, out rs4); // 3
+                        return rs4;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (16,16): error CS8352: Cannot use variable 'rs4' in this context because it may expose referenced variables outside of their declaration scope
+                //         return rs4; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs4").WithArguments("rs4").WithLocation(16, 16),
+                // (22,16): error CS8352: Cannot use variable 'rs4' in this context because it may expose referenced variables outside of their declaration scope
+                //         return rs4; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs4").WithArguments("rs4").WithLocation(22, 16),
+                // (28,9): error CS8350: This combination of arguments to 'Program.M0(RS, out RS)' is disallowed because it may expose variables referenced by parameter 'rs1' outside of their declaration scope
+                //         M0(rs3, out rs4); // 3
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M0(rs3, out rs4)").WithArguments("Program.M0(RS, out RS)", "rs1").WithLocation(28, 9),
+                // (28,12): error CS8352: Cannot use variable 'scoped RS' in this context because it may expose referenced variables outside of their declaration scope
+                //         M0(rs3, out rs4); // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs3").WithArguments("scoped RS").WithLocation(28, 12));
+        }
+
+        [Fact]
+        public void LocalScope_DeclarationExpression_03()
+        {
+            var source = """
+                ref struct RS { }
+                struct S { }
+
+                class Program
+                {
+                    static void M0(RS rs1, out S s1) => throw null!;
+
+                    static S M1(scoped RS rs2)
+                    {
+                        // STE of s2 is CallingMethod because it is not ref struct
+                        M0(rs2, out var s2);
+                        return s2;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LocalScope_DeclarationExpression_04()
+        {
+            var source0 = """
+                public ref struct RS
+                {
+                    public RS(ref int i) => throw null!;
+                }
+
+                public class Util
+                {
+                    public static void M0(ref int i1, out RS rs1)
+                    {
+                        // RSTE of i1 is ReturnOnly. STE of rs1 is ReturnOnly in C# 11, but CallingMethod in C# 10.
+                        rs1 = new RS(ref i1);
+                    }
+                }
+                """;
+
+            var source1 = """
+                class Program
+                {
+                    static void M1(ref int i2, ref RS rs2)
+                    {
+                        // STE of rs3 (local variable) is ReturnOnly in C# 11, but CallingMethod in C# 10.
+                        Util.M0(ref i2, out var rs3);
+
+                        // STE of rs2 is CallingMethod. Therefore the assignment is permitted in C# 10 but not C# 11.
+                        rs2 = rs3; // 1
+                    }
+                }
+                """;
+
+            var source1DiagnosticsWhenSource0IsCSharp11 = new[]
+            {
+                // (9,15): error CS8352: Cannot use variable 'rs3' in this context because it may expose referenced variables outside of their declaration scope
+                //         rs2 = rs3; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs3").WithArguments("rs3").WithLocation(9, 15)
+            };
+
+            var comp = CreateCompilation(new[] { source0, source1 }, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(source1DiagnosticsWhenSource0IsCSharp11);
+
+            comp = CreateCompilation(new[] { source0, source1 }, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics();
+
+            // Reference C# 10, consume from 11
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular10);
+            comp0.VerifyDiagnostics();
+
+            var comp1 = CreateCompilation(source1, references: new[] { comp0.ToMetadataReference() }, parseOptions: TestOptions.Regular11);
+            comp1.VerifyDiagnostics();
+
+            comp1 = CreateCompilation(source1, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular11);
+            comp1.VerifyDiagnostics();
+
+            // Reference C# 11, consume from 10
+            comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular11);
+            comp0.VerifyDiagnostics();
+
+            comp1 = CreateCompilation(source1, references: new[] { comp0.ToMetadataReference() }, parseOptions: TestOptions.Regular10);
+            comp1.VerifyDiagnostics(source1DiagnosticsWhenSource0IsCSharp11);
+
+            comp1 = CreateCompilation(source1, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular10);
+            comp1.VerifyDiagnostics(source1DiagnosticsWhenSource0IsCSharp11);
+        }
+
+        [Fact]
+        public void LocalScope_DeclarationExpression_05()
+        {
+            var source = """
+                using System;
+
+                ref struct RS
+                {
+                    public RS(ref int i) => throw null!;
+                }
+
+                class Program
+                {
+                    static void M0(out RS rs1, __arglist)
+                    {
+                        // STE of __refvalue (i.e. values in __arglist) is CallingMethod.
+                        // RSTE of __refvalue is CurrentMethod.
+                        // STE of rs1 is ReturnOnly.
+                        var ai = new ArgIterator(__arglist);
+                        rs1 = __refvalue(ai.GetNextArg(), RS);
+                        rs1 = new RS(ref __refvalue(ai.GetNextArg(), int)); // 1
+                    }
+
+                    static RS M1(scoped RS rs2)
+                    {
+                        M0(out var rs3, __arglist(rs2));
+                        return rs3; // 2
+                    }
+
+                    static RS M2(scoped RS rs4)
+                    {
+                        M0(out var rs5, __arglist(ref rs4));
+                        return rs5; // 3
+                    }
+
+                    static RS M3(ref int i1)
+                    {
+                        M0(out var rs5, __arglist(ref i1));
+                        return rs5;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilationWithMscorlibAndSpan(source);
+            comp.VerifyDiagnostics(
+                // (17,15): error CS8347: Cannot use a result of 'RS.RS(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         rs1 = new RS(ref __refvalue(ai.GetNextArg(), int)); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new RS(ref __refvalue(ai.GetNextArg(), int))").WithArguments("RS.RS(ref int)", "i").WithLocation(17, 15),
+                // (17,26): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         rs1 = new RS(ref __refvalue(ai.GetNextArg(), int)); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "__refvalue(ai.GetNextArg(), int)").WithLocation(17, 26),
+                // (23,16): error CS8352: Cannot use variable 'rs3' in this context because it may expose referenced variables outside of their declaration scope
+                //         return rs3; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs3").WithArguments("rs3").WithLocation(23, 16),
+                // (29,16): error CS8352: Cannot use variable 'rs5' in this context because it may expose referenced variables outside of their declaration scope
+                //         return rs5; // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs5").WithArguments("rs5").WithLocation(29, 16));
+        }
+
+        [Fact]
+        public void LocalScope_DeclarationExpression_06()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                ref struct RS
+                {
+                    public RS(ref RS rs) => throw null!;
+
+                    [UnscopedRef]
+                    void M0(out RS rs2)
+                    {
+                        // ok. RSTE of `this` is ReturnOnly. STE of rs2 is ReturnOnly.
+                        rs2 = new RS(ref this);
+                    }
+
+                    RS M1()
+                    {
+                        // RSTE of `this` is CurrentMethod
+                        // STE of rs4 (local variable) is also CurrentMethod
+                        M0(out var rs4);
+                        return rs4; // 1
+                    }
+
+                    [UnscopedRef]
+                    RS M2()
+                    {
+                        M0(out var rs4);
+                        return rs4;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (19,16): error CS8352: Cannot use variable 'rs4' in this context because it may expose referenced variables outside of their declaration scope
+                //         return rs4; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs4").WithArguments("rs4").WithLocation(19, 16));
+        }
+
+        [Fact]
+        public void LocalScope_DeclarationExpression_07()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                class Program
+                {
+                    static ref int F1([UnscopedRef] out int i)
+                    {
+                        i = 0;
+                        return ref i;
+                    }
+                    static ref int F2()
+                    {
+                        return ref F1(out int i); // 1
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (12,20): error CS8347: Cannot use a result of 'Program.F1(out int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return ref F1(out int i); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F1(out int i)").WithArguments("Program.F1(out int)", "i").WithLocation(12, 20),
+                // (12,27): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         return ref F1(out int i); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "int i").WithArguments("i").WithLocation(12, 27));
+        }
+
+        [Fact]
+        public void LocalScope_DeclarationExpression_08()
+        {
+            var source = """
+                ref struct RS
+                {
+                    public RS(ref RS rs) => throw null!;
+                }
+
+                class Program
+                {
+                    static void M0(ref RS rs1, out RS rs2)
+                    {
+                        // ok. RSTE of rs1 is ReturnOnly. STE of rs2 is ReturnOnly.
+                        rs2 = new RS(ref rs1);
+                    }
+
+                    static RS M1(ref RS rs3)
+                    {
+                        // RSTE of rs3 is ReturnOnly.
+                        // However, since rs4 is 'scoped', its STE should be narrowed to CurrentMethod
+                        M0(ref rs3, out scoped var rs4);
+                        return rs4; // 1
+                    }
+
+                    static RS M2(ref RS rs5)
+                    {
+                        // RSTE of rs5 is ReturnOnly.
+                        // However, since rs6 is 'scoped', its STE should be narrowed to CurrentMethod
+                        M0(ref rs5, out scoped RS rs6);
+                        return rs6; // 2
+                    }
+                
+                    static RS M12(ref RS rs3)
+                    {
+                        // RSTE of rs3 is ReturnOnly.
+                        // However, since rs4 is 'scoped', its STE should be narrowed to CurrentMethod
+                        scoped RS rs4;
+                        M0(ref rs3, out rs4);
+                        return rs4; // 3
+                    }
+                
+                    static RS M22(ref RS rs5)
+                    {
+                        // RSTE of rs5 is ReturnOnly.
+                        // However, since rs6 is 'scoped', its STE should be narrowed to CurrentMethod
+                        scoped RS rs6;
+                        M0(ref rs5, out rs6);
+                        return rs6; // 4
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (19,16): error CS8352: Cannot use variable 'rs4' in this context because it may expose referenced variables outside of their declaration scope
+                //         return rs4; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs4").WithArguments("rs4").WithLocation(19, 16),
+                // (27,16): error CS8352: Cannot use variable 'rs6' in this context because it may expose referenced variables outside of their declaration scope
+                //         return rs6; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs6").WithArguments("rs6").WithLocation(27, 16),
+                // (36,16): error CS8352: Cannot use variable 'rs4' in this context because it may expose referenced variables outside of their declaration scope
+                //         return rs4; // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs4").WithArguments("rs4").WithLocation(36, 16),
+                // (45,16): error CS8352: Cannot use variable 'rs6' in this context because it may expose referenced variables outside of their declaration scope
+                //         return rs6; // 4
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs6").WithArguments("rs6").WithLocation(45, 16)
+                );
         }
     }
 }

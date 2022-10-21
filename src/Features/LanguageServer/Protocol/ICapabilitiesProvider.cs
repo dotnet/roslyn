@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal interface ICapabilitiesProvider
+    internal interface ICapabilitiesProvider : ILspService
     {
         ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities);
     }

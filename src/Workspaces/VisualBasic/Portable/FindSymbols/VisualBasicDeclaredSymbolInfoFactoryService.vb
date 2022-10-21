@@ -142,31 +142,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                 containerDisplayName As String,
                 fullyQualifiedContainerName As String) As DeclaredSymbolInfo?
 
+            Dim blockStatement = typeDeclaration.BlockStatement
+
             ' If this Is a part of partial type that only contains nested types, then we don't make an info type for it.
             ' That's because we effectively think of this as just being a virtual container just to hold the nested
             ' types, And Not something someone would want to explicitly navigate to itself.  Similar to how we think of
             ' namespaces.
-            If typeDeclaration.BlockStatement.Modifiers.Any(SyntaxKind.PartialKeyword) AndAlso
+            If blockStatement.Modifiers.Any(SyntaxKind.PartialKeyword) AndAlso
                typeDeclaration.Members.Any() AndAlso
-               typeDeclaration.Members.All(Function(m) TypeOf m Is TypeBlockSyntax) Then
+typeDeclaration.Members.All(Function(m) TypeOf m Is TypeBlockSyntax) Then
 
                 Return Nothing
             End If
 
             Return DeclaredSymbolInfo.Create(
                 stringTable,
-                typeDeclaration.BlockStatement.Identifier.ValueText,
-                GetTypeParameterSuffix(typeDeclaration.BlockStatement.TypeParameterList),
+                blockStatement.Identifier.ValueText,
+                GetTypeParameterSuffix(blockStatement.TypeParameterList),
                 containerDisplayName,
                 fullyQualifiedContainerName,
-                typeDeclaration.BlockStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
+                blockStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
+                blockStatement.AttributeLists.Any(),
                 If(typeDeclaration.Kind() = SyntaxKind.ClassBlock, DeclaredSymbolInfoKind.Class,
                    If(typeDeclaration.Kind() = SyntaxKind.InterfaceBlock, DeclaredSymbolInfoKind.Interface,
                       If(typeDeclaration.Kind() = SyntaxKind.ModuleBlock, DeclaredSymbolInfoKind.Module, DeclaredSymbolInfoKind.Struct))),
-                GetAccessibility(container, typeDeclaration, typeDeclaration.BlockStatement.Modifiers),
-                typeDeclaration.BlockStatement.Identifier.Span,
+                GetAccessibility(container, typeDeclaration, blockStatement.Modifiers),
+                blockStatement.Identifier.Span,
                 GetInheritanceNames(stringTable, typeDeclaration),
-                IsNestedType(typeDeclaration))
+                IsNestedType(typeDeclaration),
+                typeParameterCount:=If(blockStatement.TypeParameterList?.Parameters.Count, 0))
         End Function
 
         Protected Overrides Function GetEnumDeclarationInfo(
@@ -176,15 +180,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                 containerDisplayName As String,
                 fullyQualifiedContainerName As String) As DeclaredSymbolInfo
 
+            Dim enumStatement = enumDeclaration.EnumStatement
+
             Return DeclaredSymbolInfo.Create(
                 stringTable,
-                enumDeclaration.EnumStatement.Identifier.ValueText, Nothing,
+                enumStatement.Identifier.ValueText, Nothing,
                 containerDisplayName,
                 fullyQualifiedContainerName,
-                enumDeclaration.EnumStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
+                enumStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
+                enumStatement.AttributeLists.Any(),
                 DeclaredSymbolInfoKind.Enum,
-                GetAccessibility(container, enumDeclaration, enumDeclaration.EnumStatement.Modifiers),
-                enumDeclaration.EnumStatement.Identifier.Span,
+                GetAccessibility(container, enumDeclaration, enumStatement.Modifiers),
+                enumStatement.Identifier.Span,
                 ImmutableArray(Of String).Empty,
                 IsNestedType(enumDeclaration))
         End Function
@@ -218,6 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                             containerDisplayName,
                             fullyQualifiedContainerName,
                             constructor.Modifiers.Any(SyntaxKind.PartialKeyword),
+                            constructor.AttributeLists.Any(),
                             DeclaredSymbolInfoKind.Constructor,
                             GetAccessibility(container, constructor, constructor.Modifiers),
                             constructor.NewKeyword.Span,
@@ -235,6 +243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         containerDisplayName,
                         fullyQualifiedContainerName,
                         delegateDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
+                        delegateDecl.AttributeLists.Any(),
                         DeclaredSymbolInfoKind.Delegate,
                         GetAccessibility(container, delegateDecl, delegateDecl.Modifiers),
                         delegateDecl.Identifier.Span,
@@ -248,6 +257,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         containerDisplayName,
                         fullyQualifiedContainerName,
                         isPartial:=False,
+                        enumMember.AttributeLists.Any(),
                         DeclaredSymbolInfoKind.EnumMember,
                         Accessibility.Public,
                         enumMember.Identifier.Span,
@@ -261,6 +271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         containerDisplayName,
                         fullyQualifiedContainerName,
                         eventDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
+                        eventDecl.AttributeLists.Any(),
                         DeclaredSymbolInfoKind.Event,
                         GetAccessibility(container, eventDecl, eventDecl.Modifiers),
                         eventDecl.Identifier.Span,
@@ -276,6 +287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         containerDisplayName,
                         fullyQualifiedContainerName,
                         funcDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
+                        funcDecl.AttributeLists.Any(),
                         If(isExtension, DeclaredSymbolInfoKind.ExtensionMethod, DeclaredSymbolInfoKind.Method),
                         GetAccessibility(container, funcDecl, funcDecl.Modifiers),
                         funcDecl.Identifier.Span,
@@ -293,6 +305,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         containerDisplayName,
                         fullyQualifiedContainerName,
                         propertyDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
+                        propertyDecl.AttributeLists.Any(),
                         DeclaredSymbolInfoKind.Property,
                         GetAccessibility(container, propertyDecl, propertyDecl.Modifiers),
                         propertyDecl.Identifier.Span,
@@ -308,6 +321,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                                 containerDisplayName,
                                 fullyQualifiedContainerName,
                                 fieldDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
+                                fieldDecl.AttributeLists.Any(),
                                 If(fieldDecl.Modifiers.Any(Function(m) m.Kind() = SyntaxKind.ConstKeyword),
                                     DeclaredSymbolInfoKind.Constant,
                                     DeclaredSymbolInfoKind.Field),
