@@ -13773,6 +13773,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 int Method2(params int[] ys) => ys.Length;
                 var del2 = Method2;
                 Report(lam2, del2);
+                Report(lam1, lam2);
 
                 var lam3 = (int[] xs) => xs.Length;
                 int Method3(int[] xs) => xs.Length;
@@ -13800,6 +13801,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 Report(lam7, del7);
                 """;
             CompileAndVerify(source, expectedOutput: """
+                True, <>f__AnonymousDelegate0
                 True, <>f__AnonymousDelegate0
                 True, <>f__AnonymousDelegate0
                 True, System.Func`2[System.Int32[],System.Int32]
