@@ -132,9 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 if (!this.CachedTagTrees.TryGetValue(buffer, out var treeForBuffer))
                     return;
 
-                var snapshot = e.After;
-
-                var tagsToRemove = e.Changes.SelectMany(c => treeForBuffer.GetIntersectingSpans(new SnapshotSpan(snapshot, c.NewSpan)));
+                var tagsToRemove = e.Changes.SelectMany(c => treeForBuffer.GetIntersectingSpans(new SnapshotSpan(e.After, c.NewSpan)));
                 if (!tagsToRemove.Any())
                     return;
 
@@ -143,6 +141,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     buffer,
                     treeForBuffer.SpanTrackingMode,
                     allTags.Except(tagsToRemove, comparer: this));
+
+                var snapshot = e.After;
 
                 this.CachedTagTrees = this.CachedTagTrees.SetItem(snapshot.TextBuffer, newTagTree);
 
@@ -376,9 +376,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 var snapshot = spansToInvalidate.First().Snapshot;
 
-                return oldTagTree.GetSpans(snapshot).Except(
-                    spansToInvalidate.SelectMany(oldTagTree.GetIntersectingSpans),
-                    comparer: this);
+                var tagSpansToInvalidate = new List<ITagSpan<TTag>>(
+                    spansToInvalidate.SelectMany(ss => oldTagTree.GetIntersectingSpans(ss)));
+
+                return oldTagTree.GetSpans(snapshot).Except(tagSpansToInvalidate, comparer: this);
             }
 
             private bool ShouldSkipTagProduction()
@@ -398,7 +399,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     : _dataSource.ProduceTagsAsync(context, cancellationToken);
             }
 
-            private Dictionary<ITextBuffer, DiffResult> ProcessNewTagTrees(
+            private static Dictionary<ITextBuffer, DiffResult> ProcessNewTagTrees(
                 ImmutableArray<DocumentSnapshotSpan> spansToTag,
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees,
@@ -440,7 +441,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// <summary>
             /// Return all the spans that appear in only one of <paramref name="latestTree"/> or <paramref name="previousTree"/>.
             /// </summary>
-            private DiffResult ComputeDifference(
+            private static DiffResult ComputeDifference(
                 ITextSnapshot snapshot,
                 TagSpanIntervalTree<TTag> latestTree,
                 TagSpanIntervalTree<TTag> previousTree)
@@ -487,7 +488,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         }
                         else
                         {
-                            if (!_dataSource.TagEquals(latest.Tag, previous.Tag))
+                            if (!EqualityComparer<TTag>.Default.Equals(latest.Tag, previous.Tag))
                                 added.Add(latestSpan);
 
                             latest = NextOrNull(latestEnumerator);
