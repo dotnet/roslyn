@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             Debug.Assert(id.StartsWith("IDE", StringComparison.Ordinal));
-            return $"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{id.ToLowerInvariant()}";
+            return $"https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{id.ToLowerInvariant()}";
         }
 
         public sealed class LocalizableStringWithArguments : LocalizableString, IObjectWritable

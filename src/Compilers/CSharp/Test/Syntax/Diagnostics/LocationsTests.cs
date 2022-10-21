@@ -507,6 +507,46 @@ class MainClass
             Assert.Equal("test.txt(3,2): warning CS0000: msg", CSharpDiagnosticFormatter.Instance.Format(diagnostic, EnsureEnglishUICulture.PreferredOrNull));
         }
 
+        [Fact, WorkItem(64236, "https://github.com/dotnet/roslyn/issues/64236")]
+        public void TestExternalLocationWithMappedPathAndSpan()
+        {
+            var filePath = "test.txt";
+            var sourceSpan = new TextSpan();
+            var lineSpan = new LinePositionSpan(new LinePosition(2, 1), new LinePosition(3, 1));
+            var mappedFilePath = "test2.txt";
+            var mappedLineSpan = new LinePositionSpan(new LinePosition(3, 2), new LinePosition(4, 2));
+
+            Location locationWithoutMapping = Location.Create(filePath, sourceSpan, lineSpan);
+            Location locationWithMapping = Location.Create(filePath, sourceSpan, lineSpan, mappedFilePath, mappedLineSpan);
+            Assert.NotEqual(locationWithMapping, locationWithoutMapping);
+
+            var diagnosticWithoutMapping = CodeAnalysis.Diagnostic.Create("CS0000", "", "msg", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 1, location: locationWithoutMapping);
+            Assert.Equal("test.txt(3,2): warning CS0000: msg", CSharpDiagnosticFormatter.Instance.Format(diagnosticWithoutMapping, EnsureEnglishUICulture.PreferredOrNull));
+
+            var diagnosticWithMapping = CodeAnalysis.Diagnostic.Create("CS0000", "", "msg", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 1, location: locationWithMapping);
+            Assert.Equal("test2.txt(4,3): warning CS0000: msg", CSharpDiagnosticFormatter.Instance.Format(diagnosticWithMapping, EnsureEnglishUICulture.PreferredOrNull));
+
+            var lineInfo = locationWithoutMapping.GetLineSpan();
+            Assert.Equal(filePath, lineInfo.Path);
+            Assert.Equal(lineSpan, lineInfo.Span);
+            Assert.False(lineInfo.HasMappedPath);
+
+            var mappedLineInfo = locationWithoutMapping.GetMappedLineSpan();
+            Assert.Equal(filePath, mappedLineInfo.Path);
+            Assert.Equal(lineSpan, mappedLineInfo.Span);
+            Assert.False(mappedLineInfo.HasMappedPath);
+
+            lineInfo = locationWithMapping.GetLineSpan();
+            Assert.Equal(filePath, lineInfo.Path);
+            Assert.Equal(lineSpan, lineInfo.Span);
+            Assert.False(lineInfo.HasMappedPath);
+
+            mappedLineInfo = locationWithMapping.GetMappedLineSpan();
+            Assert.Equal(mappedFilePath, mappedLineInfo.Path);
+            Assert.Equal(mappedLineSpan, mappedLineInfo.Span);
+            Assert.True(mappedLineInfo.HasMappedPath);
+        }
+
         [WorkItem(1097381, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097381")]
         [Fact]
         public void TestDiagnosticsLocationsExistInsideTreeSpan()

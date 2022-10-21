@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ///     all special types have spec'd values (basically, (non-string) primitives) are not managed;
         /// 
         /// Only structs are complicated, because the definition is recursive.  A struct type is managed
-        /// if one of its instance fields is managed.  Unfortunately, this can result in infinite recursion.
+        /// if one of its instance fields is managed or a ref field.  Unfortunately, this can result in infinite recursion.
         /// If the closure is finite, and we don't find anything definitely managed, then we return true.
         /// If the closure is infinite, we disregard all but a representative of any expanding cycle.
         /// 
@@ -128,12 +128,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Otherwise, we have to build and inspect the closure of depended-upon types.
                 var hs = PooledHashSet<Symbol>.GetInstance();
-                var result = DependsOnDefinitelyManagedType(type, hs, ref useSiteInfo);
+                var result = dependsOnDefinitelyManagedType(type, hs, ref useSiteInfo);
                 definitelyManaged = result.definitelyManaged;
                 hasGenerics = hasGenerics || result.hasGenerics;
                 hs.Free();
             }
-
 
             if (definitelyManaged)
             {
@@ -147,6 +146,91 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return ManagedKind.Unmanaged;
             }
+
+            static (bool definitelyManaged, bool hasGenerics) dependsOnDefinitelyManagedType(NamedTypeSymbol type, HashSet<Symbol> partialClosure, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                Debug.Assert((object)type != null);
+
+                var hasGenerics = false;
+                if (partialClosure.Add(type))
+                {
+                    foreach (var member in type.GetInstanceFieldsAndEvents())
+                    {
+                        // Only instance fields (including field-like events) affect the outcome.
+                        FieldSymbol field;
+                        switch (member.Kind)
+                        {
+                            case SymbolKind.Field:
+                                field = (FieldSymbol)member;
+                                Debug.Assert((object)(field.AssociatedSymbol as EventSymbol) == null,
+                                    "Didn't expect to find a field-like event backing field in the member list.");
+                                break;
+                            case SymbolKind.Event:
+                                field = ((EventSymbol)member).AssociatedField;
+                                break;
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(member.Kind);
+                        }
+
+                        if ((object)field == null)
+                        {
+                            continue;
+                        }
+
+                        if (field.RefKind != RefKind.None)
+                        {
+                            // A ref struct which has a ref field is never considered unmanaged
+                            return (true, hasGenerics);
+                        }
+
+                        TypeSymbol fieldType = field.NonPointerType();
+                        if (fieldType is null)
+                        {
+                            // pointers are unmanaged
+                            continue;
+                        }
+
+                        fieldType.AddUseSiteInfo(ref useSiteInfo);
+                        NamedTypeSymbol fieldNamedType = fieldType as NamedTypeSymbol;
+                        if ((object)fieldNamedType == null)
+                        {
+                            if (fieldType.IsManagedType(ref useSiteInfo))
+                            {
+                                return (true, hasGenerics);
+                            }
+                        }
+                        else
+                        {
+                            var result = IsManagedTypeHelper(fieldNamedType);
+                            hasGenerics = hasGenerics || result.hasGenerics;
+                            // NOTE: don't use ManagedKind.get on a NamedTypeSymbol - that could lead
+                            // to infinite recursion.
+                            switch (result.isManaged)
+                            {
+                                case ThreeState.True:
+                                    return (true, hasGenerics);
+
+                                case ThreeState.False:
+                                    continue;
+
+                                case ThreeState.Unknown:
+                                    if (!fieldNamedType.OriginalDefinition.KnownCircularStruct)
+                                    {
+                                        var (definitelyManaged, childHasGenerics) = dependsOnDefinitelyManagedType(fieldNamedType, partialClosure, ref useSiteInfo);
+                                        hasGenerics = hasGenerics || childHasGenerics;
+                                        if (definitelyManaged)
+                                        {
+                                            return (true, hasGenerics);
+                                        }
+                                    }
+                                    continue;
+                            }
+                        }
+                    }
+                }
+
+                return (false, hasGenerics);
+            }
         }
 
         // NOTE: If we do not check HasPointerType, we will unconditionally
@@ -154,85 +238,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         //       HasPointerType can use syntax directly and break recursion.
         internal static TypeSymbol NonPointerType(this FieldSymbol field) =>
             field.HasPointerType ? null : field.Type;
-
-        private static (bool definitelyManaged, bool hasGenerics) DependsOnDefinitelyManagedType(NamedTypeSymbol type, HashSet<Symbol> partialClosure, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            Debug.Assert((object)type != null);
-
-            var hasGenerics = false;
-            if (partialClosure.Add(type))
-            {
-                foreach (var member in type.GetInstanceFieldsAndEvents())
-                {
-                    // Only instance fields (including field-like events) affect the outcome.
-                    FieldSymbol field;
-                    switch (member.Kind)
-                    {
-                        case SymbolKind.Field:
-                            field = (FieldSymbol)member;
-                            Debug.Assert((object)(field.AssociatedSymbol as EventSymbol) == null,
-                                "Didn't expect to find a field-like event backing field in the member list.");
-                            break;
-                        case SymbolKind.Event:
-                            field = ((EventSymbol)member).AssociatedField;
-                            break;
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(member.Kind);
-                    }
-
-                    if ((object)field == null)
-                    {
-                        continue;
-                    }
-
-                    TypeSymbol fieldType = field.NonPointerType();
-                    if (fieldType is null)
-                    {
-                        // pointers are unmanaged
-                        continue;
-                    }
-
-                    fieldType.AddUseSiteInfo(ref useSiteInfo);
-                    NamedTypeSymbol fieldNamedType = fieldType as NamedTypeSymbol;
-                    if ((object)fieldNamedType == null)
-                    {
-                        if (fieldType.IsManagedType(ref useSiteInfo))
-                        {
-                            return (true, hasGenerics);
-                        }
-                    }
-                    else
-                    {
-                        var result = IsManagedTypeHelper(fieldNamedType);
-                        hasGenerics = hasGenerics || result.hasGenerics;
-                        // NOTE: don't use ManagedKind.get on a NamedTypeSymbol - that could lead
-                        // to infinite recursion.
-                        switch (result.isManaged)
-                        {
-                            case ThreeState.True:
-                                return (true, hasGenerics);
-
-                            case ThreeState.False:
-                                continue;
-
-                            case ThreeState.Unknown:
-                                if (!fieldNamedType.OriginalDefinition.KnownCircularStruct)
-                                {
-                                    var (definitelyManaged, childHasGenerics) = DependsOnDefinitelyManagedType(fieldNamedType, partialClosure, ref useSiteInfo);
-                                    hasGenerics = hasGenerics || childHasGenerics;
-                                    if (definitelyManaged)
-                                    {
-                                        return (true, hasGenerics);
-                                    }
-                                }
-                                continue;
-                        }
-                    }
-                }
-            }
-
-            return (false, hasGenerics);
-        }
 
         /// <summary>
         /// Returns True or False if we can determine whether the type is managed

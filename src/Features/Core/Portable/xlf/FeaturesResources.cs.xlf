@@ -670,6 +670,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Povolit všechny funkce editoru JSON</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enum_members">
+        <source>Enum members</source>
+        <target state="translated">Členové výčtu</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
         <target state="translated">Při čtení souboru {0} došlo k chybě: {1}</target>
@@ -3425,7 +3430,7 @@ Pokud se specifikátor formátu d použije bez dalších specifikátorů vlastn�
       </trans-unit>
       <trans-unit id="foreach_loop">
         <source>foreach loop</source>
-        <target state="new">foreach loop</target>
+        <target state="translated">smyčka foreach</target>
         <note />
       </trans-unit>
       <trans-unit id="from_metadata">
@@ -4273,6 +4278,11 @@ Když se tento specifikátor standardního formátu použije, operace formátov�
       <trans-unit id="static_constructor">
         <source>static constructor</source>
         <target state="translated">statický konstruktor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="struct_">
+        <source>struct</source>
+        <target state="translated">struktura</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

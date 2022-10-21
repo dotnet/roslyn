@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var parentDepth = next.LocalScopeDepth;
 
-            if (parentDepth != Binder.TopLevelScope)
+            if (parentDepth != Binder.CurrentMethodScope)
             {
                 _localScopeDepth = parentDepth + 1;
             }
@@ -45,13 +45,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (parentScope is InMethodBinder || parentScope is WithLambdaParametersBinder)
                     {
-                        _localScopeDepth = Binder.TopLevelScope;
+                        _localScopeDepth = Binder.CurrentMethodScope;
                         break;
                     }
 
                     if (parentScope is LocalScopeBinder)
                     {
-                        _localScopeDepth = Binder.TopLevelScope + 1;
+                        _localScopeDepth = Binder.CurrentMethodScope + 1;
                         break;
                     }
 

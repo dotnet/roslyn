@@ -582,7 +582,7 @@ class Example
                 LanguageVersion.CSharp7_1 => "CS8302",
                 LanguageVersion.CSharp7_2 => "CS8320",
                 LanguageVersion.CSharp7_3 => "CS8370",
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             // /0/Test0.cs(2,2): error [error]: Feature 'nullable reference types' is not available in C# [version]. Please use language version 8.0 or greater.

@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         }
 
         [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
-        [ConditionalFact(typeof(x86))]
+        [ConditionalFact(typeof(Bitness32))]
         public void TestPreviewWorkspaceDoesNotLeakSolution()
         {
             // Verify that analyzer execution doesn't leak solution instances from the preview workspace.
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             var analyzerOptions = new AnalyzerOptions(additionalFiles: ImmutableArray<AdditionalText>.Empty);
             var project = previewWorkspace.CurrentSolution.Projects.Single();
             var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
-            var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(analyzerOptions, project.Solution, ideAnalyzerOptions);
+            var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(analyzerOptions, ideAnalyzerOptions);
             var compilationWithAnalyzersOptions = new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, onAnalyzerException: null, concurrentAnalysis: false, logAnalyzerExecutionTime: false);
             var compilation = project.GetRequiredCompilationAsync(CancellationToken.None).Result;
             var compilationWithAnalyzers = new CompilationWithAnalyzers(compilation, analyzers, compilationWithAnalyzersOptions);

@@ -504,6 +504,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_DuplicateAnalyzerReference:
                 case ErrorCode.WRN_ScopedMismatchInParameterOfTarget:
                 case ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation:
+                case ErrorCode.WRN_ManagedAddr:
+                case ErrorCode.WRN_EscapeVariable:
+                case ErrorCode.WRN_EscapeStackAlloc:
+                case ErrorCode.WRN_RefReturnNonreturnableLocal:
+                case ErrorCode.WRN_RefReturnNonreturnableLocal2:
+                case ErrorCode.WRN_RefReturnStructThis:
+                case ErrorCode.WRN_RefAssignNarrower:
+                case ErrorCode.WRN_MismatchedRefEscapeInTernary:
+                case ErrorCode.WRN_RefReturnParameter:
+                case ErrorCode.WRN_RefReturnScopedParameter:
+                case ErrorCode.WRN_RefReturnParameter2:
+                case ErrorCode.WRN_RefReturnScopedParameter2:
+                case ErrorCode.WRN_RefReturnLocal:
+                case ErrorCode.WRN_RefReturnLocal2:
+                case ErrorCode.WRN_RefAssignReturnOnly:
+                case ErrorCode.WRN_RefReturnOnlyParameter:
+                case ErrorCode.WRN_RefReturnOnlyParameter2:
+                case ErrorCode.WRN_RefAssignValEscapeWider:
                     return 1;
                 default:
                     return 0;
@@ -1802,6 +1820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InvalidObjectCreation:
                 case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
                 case ErrorCode.ERR_OutVariableCannotBeByRef:
+                case ErrorCode.ERR_DeconstructVariableCannotBeByRef:
                 case ErrorCode.ERR_OmittedTypeArgument:
                 case ErrorCode.ERR_FeatureNotAvailableInVersion8:
                 case ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable:
@@ -2201,6 +2220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_BadAbstractEqualityOperatorSignature:
                 case ErrorCode.ERR_BadBinaryReadOnlySpanConcatenation:
                 case ErrorCode.ERR_ScopedRefAndRefStructOnly:
+                case ErrorCode.ERR_ScopedDiscard:
                 case ErrorCode.ERR_FixedFieldMustNotBeRef:
                 case ErrorCode.ERR_RefFieldCannotReferToRefStruct:
                 case ErrorCode.ERR_FileTypeDisallowedInSignature:
@@ -2211,7 +2231,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_FileTypeNameDisallowed:
                 case ErrorCode.ERR_FeatureNotAvailableInVersion11:
                 case ErrorCode.ERR_RefFieldInNonRefStruct:
-                case ErrorCode.ERR_BadParameterModifiersOrder:
                 case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
                 case ErrorCode.ERR_CannotMatchOnINumberBase:
                 case ErrorCode.ERR_ScopedTypeNameDisallowed:
@@ -2223,9 +2242,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_FilePathCannotBeConvertedToUtf8:
                 case ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn:
                 case ErrorCode.ERR_FileLocalDuplicateNameInNS:
-                case ErrorCode.ERR_ScopedNotBeforeType:
                 case ErrorCode.WRN_ScopedMismatchInParameterOfTarget:
                 case ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation:
+                case ErrorCode.ERR_RefReturnScopedParameter:
+                case ErrorCode.ERR_RefReturnScopedParameter2:
+                case ErrorCode.ERR_RefReturnOnlyParameter:
+                case ErrorCode.ERR_RefReturnOnlyParameter2:
+                case ErrorCode.ERR_RefAssignReturnOnly:
+                case ErrorCode.WRN_ManagedAddr:
+                case ErrorCode.WRN_EscapeVariable:
+                case ErrorCode.WRN_EscapeStackAlloc:
+                case ErrorCode.WRN_RefReturnNonreturnableLocal:
+                case ErrorCode.WRN_RefReturnNonreturnableLocal2:
+                case ErrorCode.WRN_RefReturnStructThis:
+                case ErrorCode.WRN_RefAssignNarrower:
+                case ErrorCode.WRN_MismatchedRefEscapeInTernary:
+                case ErrorCode.WRN_RefReturnParameter:
+                case ErrorCode.WRN_RefReturnScopedParameter:
+                case ErrorCode.WRN_RefReturnParameter2:
+                case ErrorCode.WRN_RefReturnScopedParameter2:
+                case ErrorCode.WRN_RefReturnLocal:
+                case ErrorCode.WRN_RefReturnLocal2:
+                case ErrorCode.WRN_RefAssignReturnOnly:
+                case ErrorCode.WRN_RefReturnOnlyParameter:
+                case ErrorCode.WRN_RefReturnOnlyParameter2:
+                case ErrorCode.ERR_RefAssignValEscapeWider:
+                case ErrorCode.WRN_RefAssignValEscapeWider:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

@@ -38,11 +38,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         public AlwaysActivateInProcLanguageClient(
             CSharpVisualBasicLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider,
             ExperimentalCapabilitiesProvider defaultCapabilitiesProvider,
-            ILspLoggerFactory lspLoggerFactory,
+            ILspServiceLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext)
-            : base(lspServiceProvider, globalOptions, listenerProvider, lspLoggerFactory, threadingContext)
+            : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext)
         {
             _experimentalCapabilitiesProvider = defaultCapabilitiesProvider;
         }
