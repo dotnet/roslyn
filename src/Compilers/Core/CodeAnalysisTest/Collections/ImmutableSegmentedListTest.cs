@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void RemoveRangeDoesNotEnumerateSequenceIfThisIsEmpty()
         {
             var list = ImmutableSegmentedList<int>.Empty;
-            list.RemoveRange(Enumerable.Range(1, 1).Select<int, int>(n => { throw ExceptionUtilities.Unreachable; }));
+            list.RemoveRange(Enumerable.Range(1, 1).Select<int, int>(n => { throw ExceptionUtilities.Unreachable(); }));
         }
 
         [Fact]

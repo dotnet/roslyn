@@ -48,7 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return;
                 }
 
-                if ((object)expression.Type == null || expression.Type.SpecialType != SpecialType.System_Decimal)
+                if ((object)expression.Type == null ||
+                    (expression.Type.SpecialType != SpecialType.System_Decimal &&
+                     !expression.Type.IsNullableType()))
                 {
                     EmitConstantExpression(expression.Type, constantValue, used, expression.Syntax);
                     return;
@@ -1552,7 +1554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 if (receiver is not BoundTypeExpression { Type: { TypeKind: TypeKind.TypeParameter } })
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 _builder.EmitOpCode(ILOpCode.Constrained);
@@ -3562,7 +3564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 {
                     if (load.ConstrainedToTypeOpt is not { TypeKind: TypeKind.TypeParameter })
                     {
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
 
                     _builder.EmitOpCode(ILOpCode.Constrained);

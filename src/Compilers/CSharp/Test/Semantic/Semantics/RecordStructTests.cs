@@ -6530,7 +6530,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 0", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr1(100)", context.OperationBlocks[1].Syntax.ToString());
 
                         break;
@@ -11465,6 +11465,25 @@ class record<T> : I { }
                 // (3,7): warning CS8860: Types and aliases should not be named 'record'.
                 // class record<T> : I { }
                 Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(3, 7)
+                );
+        }
+
+        [Fact]
+        [WorkItem(64238, "https://github.com/dotnet/roslyn/issues/64238")]
+        public void NoMethodBodiesInComImportType()
+        {
+            var source1 =
+@"
+[System.Runtime.InteropServices.ComImport]
+[System.Runtime.InteropServices.Guid(""00112233-4455-6677-8899-aabbccddeeff"")]
+record struct R1(int x);
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net60);
+
+            compilation1.VerifyDiagnostics(
+                // (2,2): error CS0592: Attribute 'System.Runtime.InteropServices.ComImport' is not valid on this declaration type. It is only valid on 'class, interface' declarations.
+                // [System.Runtime.InteropServices.ComImport]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "System.Runtime.InteropServices.ComImport").WithArguments("System.Runtime.InteropServices.ComImport", "class, interface").WithLocation(2, 2)
                 );
         }
     }

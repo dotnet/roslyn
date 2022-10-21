@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ConvertToInterpolatedString;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets;
@@ -19,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 {
     internal abstract class AbstractSnippetCompletionProvider : CompletionProvider
     {
+        internal override bool IsSnippetProvider => true;
+
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
             // This retrieves the document without the text used to invoke completion
@@ -66,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            if (!context.CompletionOptions.ShouldShowNewSnippetExperience())
+            if (!context.CompletionOptions.ShouldShowNewSnippetExperience(context.Document))
             {
                 return;
             }

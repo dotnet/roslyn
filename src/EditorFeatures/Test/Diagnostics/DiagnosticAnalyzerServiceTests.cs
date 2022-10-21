@@ -16,7 +16,9 @@ using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
@@ -390,12 +392,13 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
 
             // cause analysis
             var location = Location.Create(document.FilePath, textSpan: default, lineSpan: default);
+            var properties = ImmutableDictionary<string, string>.Empty.Add(WellKnownDiagnosticPropertyNames.Origin, WellKnownDiagnosticTags.Build);
 
             await service.SynchronizeWithBuildAsync(
                 workspace,
                 ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>>.Empty.Add(
                     document.Project.Id,
-                    ImmutableArray.Create(DiagnosticData.Create(document.Project.Solution, Diagnostic.Create(NoNameAnalyzer.s_syntaxRule, location), document.Project))),
+                    ImmutableArray.Create(DiagnosticData.Create(document.Project.Solution, Diagnostic.Create(NoNameAnalyzer.s_syntaxRule, location, properties), document.Project))),
                 new TaskQueue(service.Listener, TaskScheduler.Default),
                 onBuildCompleted: true,
                 CancellationToken.None);
@@ -687,7 +690,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                 (BackgroundAnalysisScope.OpenFiles or BackgroundAnalysisScope.FullSolution, false) => 1,
                 (BackgroundAnalysisScope.OpenFiles, true) => 2,
                 (BackgroundAnalysisScope.FullSolution, true) => 4,
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             Assert.Equal(expectedCount, diagnostics.Count);
@@ -868,19 +871,17 @@ class A
                 sourceGeneratedFiles = Array.Empty<string>();
             }
 
-            using var workspace = TestWorkspace.CreateCSharp(files, sourceGeneratedFiles,
-                composition: s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(
-                    typeof(TestDocumentTrackingService),
-                    typeof(TestWorkspaceConfigurationService)));
+            var composition = s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(
+                typeof(TestDocumentTrackingService));
 
-            var workspaceConfigurationService = workspace.GetService<TestWorkspaceConfigurationService>();
-            workspaceConfigurationService.Options = new(EnableOpeningSourceGeneratedFiles: true);
+            using var workspace = new TestWorkspace(composition, configurationOptions: new WorkspaceConfigurationOptions(EnableOpeningSourceGeneratedFiles: true));
 
             workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), analysisScope);
 
             var compilerDiagnosticsScope = analysisScope.ToEquivalentCompilerDiagnosticsScope();
             workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, LanguageNames.CSharp), compilerDiagnosticsScope);
 
+            workspace.InitializeDocuments(TestWorkspace.CreateWorkspaceElement(LanguageNames.CSharp, files: files, sourceGeneratedFiles: sourceGeneratedFiles), openDocuments: false);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
             var project = workspace.CurrentSolution.Projects.Single();
@@ -1021,7 +1022,7 @@ class A
                     await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, analyzer.CancellationToken);
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
             catch (OperationCanceledException ex) when (ex.CancellationToken == analyzer.CancellationToken)
             {
@@ -1119,7 +1120,7 @@ class A
                 _ = await diagnosticComputer.GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics: false,
                     logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: analyzer.CancellationToken);
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
             catch (OperationCanceledException ex) when (ex.CancellationToken == analyzer.CancellationToken)
             {
@@ -1253,7 +1254,7 @@ class A
                         cancellationToken.ThrowIfCancellationRequested();
                     }
 
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 // Report diagnostic in the second callback.

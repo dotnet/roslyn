@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // only in LSP pull diagnostics mode. In LSP push diagnostics mode,
                 // the background analysis from solution crawler handles caching these diagnostics and
                 // updating the error list simultaneously.
-                var cacheFullDocumentDiagnostics = owner.AnalyzerService.GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+                var cacheFullDocumentDiagnostics = true;
 
                 var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, ideOptions, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 // Local functions

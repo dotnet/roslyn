@@ -660,6 +660,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 debugName: projectContext.Id.Substring(delimiter + 1));
         }
 
+        public static LSP.VSProjectContext ProjectToProjectContext(Project project)
+        {
+            var projectContext = new LSP.VSProjectContext
+            {
+                Id = ProjectIdToProjectContextId(project.Id),
+                Label = project.Name
+            };
+
+            if (project.Language == LanguageNames.CSharp)
+            {
+                projectContext.Kind = LSP.VSProjectKind.CSharp;
+            }
+            else if (project.Language == LanguageNames.VisualBasic)
+            {
+                projectContext.Kind = LSP.VSProjectKind.VisualBasic;
+            }
+
+            return projectContext;
+        }
+
         public static async Task<SyntaxFormattingOptions> GetFormattingOptionsAsync(
             LSP.FormattingOptions? options,
             Document document,

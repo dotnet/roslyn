@@ -40,10 +40,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             [Import(AllowDefault = true)] IVSTypeScriptCapabilitiesProvider? typeScriptCapabilitiesProvider,
             VSTypeScriptLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            ILspLoggerFactory lspLoggerFactory,
+            ILspServiceLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext)
-            : base(lspServiceProvider, globalOptions, listenerProvider, lspLoggerFactory, threadingContext)
+            : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext)
         {
             _typeScriptCapabilitiesProvider = typeScriptCapabilitiesProvider;
         }

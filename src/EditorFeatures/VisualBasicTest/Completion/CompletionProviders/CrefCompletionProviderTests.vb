@@ -415,13 +415,13 @@ Class C
     End Sub
 End Class]]></a>.Value.NormalizeLineEndings()
 
-            Using workspace = TestWorkspace.Create(LanguageNames.VisualBasic, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication), New VisualBasicParseOptions(), {text}, exportProvider:=ExportProvider)
+            Using workspace = TestWorkspace.Create(LanguageNames.VisualBasic, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication), New VisualBasicParseOptions(), {text}, composition:=GetComposition())
                 Dim called = False
 
                 Dim hostDocument = workspace.DocumentWithCursor
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim service = GetCompletionService(document.Project)
-                Dim provider = Assert.IsType(Of CrefCompletionProvider)(service.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).Single())
+                Dim provider = Assert.IsType(Of CrefCompletionProvider)(service.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).Single())
                 provider.GetTestAccessor().SetSpeculativeNodeCallback(
                     Sub(node As SyntaxNode)
                         ' asserts that we aren't be asked speculate on nodes inside documentation trivia.

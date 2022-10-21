@@ -733,7 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return ((MethodSymbol)member).AsMember(translatedType);
                 }
             }
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         /// <summary> 

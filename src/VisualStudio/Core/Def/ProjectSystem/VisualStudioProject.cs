@@ -73,6 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private string? _filePath;
         private CompilationOptions? _compilationOptions;
         private ParseOptions? _parseOptions;
+        private SourceHashAlgorithm _checksumAlgorithm = SourceHashAlgorithms.Default;
         private bool _hasAllInformation = true;
         private string? _compilationOutputAssemblyFilePath;
         private string? _outputFilePath;
@@ -389,6 +390,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             get => _displayName;
             set => ChangeProjectProperty(ref _displayName, value, s => s.WithProjectName(Id, value));
+        }
+
+        public SourceHashAlgorithm ChecksumAlgorithm
+        {
+            get => _checksumAlgorithm;
+            set => ChangeProjectProperty(ref _checksumAlgorithm, value, s => s.WithProjectChecksumAlgorithm(Id, value));
         }
 
         // internal to match the visibility of the Workspace-level API -- this is something
@@ -991,14 +998,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (fullPath.LastIndexOf(s_razorSourceGeneratorSdkDirectory, StringComparison.OrdinalIgnoreCase) + s_razorSourceGeneratorSdkDirectory.Length - 1 ==
                 fullPath.LastIndexOf(Path.DirectorySeparatorChar))
             {
-                if (fullPath.EndsWith(s_razorSourceGeneratorMainAssemblyRootedFileName, StringComparison.OrdinalIgnoreCase))
-                {
-                    return OneOrMany.Create(_vsixAnalyzerProvider.GetAnalyzerReferencesInExtensions().SelectAsArray(
-                        predicate: item => item.extensionId == RazorVsixExtensionId,
-                        selector: item => item.reference.FullPath));
-                }
+                var vsixRazorAnalyzers = _vsixAnalyzerProvider.GetAnalyzerReferencesInExtensions().SelectAsArray(
+                    predicate: item => item.extensionId == RazorVsixExtensionId,
+                    selector: item => item.reference.FullPath);
 
-                return OneOrMany.Create(ImmutableArray<string>.Empty);
+                if (!vsixRazorAnalyzers.IsEmpty)
+                {
+                    if (fullPath.EndsWith(s_razorSourceGeneratorMainAssemblyRootedFileName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return OneOrMany.Create(vsixRazorAnalyzers);
+                    }
+
+                    return OneOrMany.Create(ImmutableArray<string>.Empty);
+                }
             }
 
             return OneOrMany.Create(fullPath);

@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             // Cor library should not have any references and, therefore, should never be
             // wrapped by a RetargetingAssemblySymbol.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override ImmutableArray<AssemblySymbol> GetNoPiaResolutionAssemblies()

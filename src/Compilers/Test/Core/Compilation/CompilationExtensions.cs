@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -305,8 +306,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         Assert.Same(semanticModel, operation.SemanticModel);
                         Assert.NotSame(semanticModel, ((Operation)operation).OwningSemanticModel);
                         Assert.NotNull(((Operation)operation).OwningSemanticModel);
-                        Assert.Same(semanticModel, ((Operation)operation).OwningSemanticModel.ContainingModelOrSelf);
-                        Assert.Same(semanticModel, semanticModel.ContainingModelOrSelf);
+                        Assert.Same(semanticModel, ((Operation)operation).OwningSemanticModel.ContainingPublicModelOrSelf);
+                        Assert.Same(semanticModel, semanticModel.ContainingPublicModelOrSelf);
 
                         if (operation.Parent == null)
                         {
@@ -432,8 +433,8 @@ namespace System.Runtime.InteropServices.WindowsRuntime
             // WellKnownTypes and WellKnownMembers so it can be safely skipped here. 
             var compilation = CSharpCompilation.Create(
                 "System.Runtime.InteropServices.WindowsRuntime",
-                new[] { CSharpSyntaxTree.ParseText(source) },
-                references: TargetFrameworkUtil.GetReferences(TargetFramework.NetCoreApp),
+                new[] { CSharpSyntaxTree.ParseText(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default)) },
+                references: TargetFrameworkUtil.GetReferences(TargetFramework.Net50),
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             compilation.VerifyEmitDiagnostics();
             return compilation.EmitToPortableExecutableReference();

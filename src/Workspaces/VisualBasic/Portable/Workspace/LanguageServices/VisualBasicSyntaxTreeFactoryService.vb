@@ -2,16 +2,13 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Generic
 Imports System.Composition
 Imports System.IO
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     <ExportLanguageServiceFactory(GetType(ISyntaxTreeFactoryService), LanguageNames.VisualBasic), [Shared]>
@@ -84,35 +81,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return SyntaxFactory.ParseSyntaxTree(text, options, filePath, cancellationToken)
             End Function
 
-            Public Overrides Function CreateSyntaxTree(filePath As String, options As ParseOptions, encoding As Encoding, root As SyntaxNode) As SyntaxTree
+            Public Overrides Function CreateSyntaxTree(filePath As String, options As ParseOptions, encoding As Encoding, checksumAlgorithm As SourceHashAlgorithm, root As SyntaxNode) As SyntaxTree
                 If options Is Nothing Then
                     options = GetDefaultParseOptions()
                 End If
 
-                Return VisualBasicSyntaxTree.Create(DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), filePath, encoding)
-            End Function
-
-            Public Overrides Function CanCreateRecoverableTree(root As SyntaxNode) As Boolean
-                Dim cu = TryCast(root, CompilationUnitSyntax)
-                Return MyBase.CanCreateRecoverableTree(root) AndAlso cu IsNot Nothing AndAlso cu.Attributes.Count = 0
-            End Function
-
-            Public Overrides Function CreateRecoverableTree(cacheKey As ProjectId,
-                                                            filePath As String,
-                                                            optionsOpt As ParseOptions,
-                                                            text As ValueSource(Of TextAndVersion),
-                                                            encoding As Encoding,
-                                                            root As SyntaxNode) As SyntaxTree
-
-                Debug.Assert(CanCreateRecoverableTree(root))
-                Return RecoverableSyntaxTree.CreateRecoverableTree(
-                    Me,
-                    cacheKey,
-                    filePath,
-                    If(optionsOpt, GetDefaultParseOptions()),
-                    text,
-                    encoding,
-                    DirectCast(root, CompilationUnitSyntax))
+                Return New ParsedSyntaxTree(lazyText:=Nothing, DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), filePath, encoding, checksumAlgorithm)
             End Function
 
             Public Overrides Function DeserializeNodeFrom(stream As Stream, cancellationToken As CancellationToken) As SyntaxNode

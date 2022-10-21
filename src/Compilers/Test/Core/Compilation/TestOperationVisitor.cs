@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 if (operation.SemanticModel != null)
                 {
-                    Assert.Same(operation.SemanticModel, operation.SemanticModel.ContainingModelOrSelf);
+                    Assert.Same(operation.SemanticModel, operation.SemanticModel.ContainingPublicModelOrSelf);
                 }
             }
             base.Visit(operation);
@@ -1801,6 +1801,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _ = operation.CloneMethod;
             IEnumerable<IOperation> children = SpecializedCollections.SingletonEnumerable(operation.Operand).Concat(operation.Initializer);
             AssertEx.Equal(children, operation.ChildOperations);
+        }
+
+        public override void VisitAttribute(IAttributeOperation operation)
+        {
+            Assert.Equal(OperationKind.Attribute, operation.Kind);
+            Assert.False(operation.ConstantValue.HasValue);
         }
     }
 }

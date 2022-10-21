@@ -42,7 +42,7 @@ public class SimplifierTests
         await Assert.ThrowsAsync<ArgumentNullException>("document", () => Simplifier.ExpandAsync(token: default, document: null!));
     }
 
-    [Fact, Obsolete("Obsolete so we can test obsolete API")]
+    [Fact, Obsolete("Testing obsolete API")]
     public async Task Expand_BadArguments()
     {
         var node = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("Test"));

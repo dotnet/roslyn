@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         }
 
         [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
-        [ConditionalFact(typeof(x86))]
+        [ConditionalFact(typeof(Bitness32))]
         public void TestPreviewWorkspaceDoesNotLeakSolution()
         {
             // Verify that analyzer execution doesn't leak solution instances from the preview workspace.

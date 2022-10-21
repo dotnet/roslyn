@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.TaskList
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 // report NFW before returning back to the remote process
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
