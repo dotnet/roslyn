@@ -13780,13 +13780,13 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 var del3 = Method3;
                 Report(lam3, del3);
 
-                var lam4 = (int a, int b, int[] xs) => { };
-                void Method4(int a, int b, int[] xs) { }
+                var lam4 = (ref int a, int b, int[] xs) => { };
+                void Method4(ref int a, int b, int[] xs) { }
                 var del4 = Method4;
                 Report(lam4, del4);
 
-                var lam5 = (int a, int b, params int[] xs) => { };
-                void Method5(int a, int b, params int[] xs) { }
+                var lam5 = (ref int a, int b, params int[] xs) => { };
+                void Method5(ref int a, int b, params int[] xs) { }
                 var del5 = Method5;
                 Report(lam5, del5);
 
@@ -13805,7 +13805,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 True, <>f__AnonymousDelegate0
                 True, <>f__AnonymousDelegate0
                 True, System.Func`2[System.Int32[],System.Int32]
-                True, System.Action`3[System.Int32,System.Int32,System.Int32[]]
+                True, <>A{00000001}`3[System.Int32,System.Int32,System.Int32[]]
                 True, <>f__AnonymousDelegate1
                 True, <>f__AnonymousDelegate2
                 True, <>f__AnonymousDelegate2
