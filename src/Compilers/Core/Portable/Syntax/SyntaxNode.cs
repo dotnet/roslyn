@@ -306,9 +306,17 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public virtual void WriteTo(TextWriter writer)
         {
-            this.Green.WriteTo(writer, leading: true, trailing: true);
+            WriteTo(writer, leading: true, trailing: true);
         }
-
+        
+        /// <summary>
+        /// Writes the text of this node to the specified TextWriter, optionally including trivia.
+        /// </summary>
+        public virtual void WriteTo(TextWriter writer, bool leading, bool trailing)
+        {
+            this.Green.WriteTo(writer, leading, trailing);
+        }
+        
         /// <summary>
         /// Gets the full text of this node as a new <see cref="SourceText"/> instance.
         /// </summary>
