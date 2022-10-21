@@ -19,6 +19,9 @@ namespace Roslyn.Diagnostics.Analyzers
 {
     using static RoslynDiagnosticsAnalyzersResources;
 
+    /// <summary>
+    /// RS0042: <inheritdoc cref="DoNotCopyValueTitle"/>
+    /// </summary>
     public abstract class AbstractDoNotCopyValue : DiagnosticAnalyzer
     {
         private static readonly LocalizableString s_localizableTitle = CreateLocalizableResourceString(nameof(DoNotCopyValueTitle));

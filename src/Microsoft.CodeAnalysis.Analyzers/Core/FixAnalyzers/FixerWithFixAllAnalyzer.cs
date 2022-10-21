@@ -14,6 +14,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
     using static CodeAnalysisDiagnosticsResources;
 
     /// <summary>
+    /// RS1010: <inheritdoc cref="CreateCodeActionWithEquivalenceKeyTitle"/>
+    /// RS1011: <inheritdoc cref="OverrideCodeActionEquivalenceKeyTitle"/>
+    /// RS1016: <inheritdoc cref="OverrideGetFixAllProviderTitle"/>
     /// A <see cref="CodeFixProvider"/> that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique across all registered code actions by this fixer.
     /// This enables the <see cref="FixAllProvider"/> to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.
     /// This analyzer catches violations of this requirement in the code actions registered by a <see cref="CodeFixProvider"/> that supports <see cref="FixAllProvider"/>.

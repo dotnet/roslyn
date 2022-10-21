@@ -11,6 +11,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
     using static CodeAnalysisDiagnosticsResources;
 
+    /// <summary>
+    /// RS1034: <inheritdoc cref="PreferIsKindTitle"/>
+    /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class PreferIsKindAnalyzer : DiagnosticAnalyzer
     {

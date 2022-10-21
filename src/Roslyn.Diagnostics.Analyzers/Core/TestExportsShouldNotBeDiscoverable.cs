@@ -16,6 +16,7 @@ namespace Roslyn.Diagnostics.Analyzers
     using static RoslynDiagnosticsAnalyzersResources;
 
     /// <summary>
+    /// RS0032: <inheritdoc cref="TestExportsShouldNotBeDiscoverableTitle"/>
     /// MEF-exported types defined in test assemblies should be marked with <see cref="PartNotDiscoverableAttribute"/>
     /// to avoid polluting the container(s) created for testing. These parts should be explicitly added to the container
     /// when required for specific tests.

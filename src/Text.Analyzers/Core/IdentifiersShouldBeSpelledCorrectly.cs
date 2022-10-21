@@ -16,7 +16,7 @@ namespace Text.Analyzers
     using static TextAnalyzersResources;
 
     /// <summary>
-    /// CA1704: Identifiers should be spelled correctly
+    /// CA1704: <inheritdoc cref="IdentifiersShouldBeSpelledCorrectlyTitle"/>
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class IdentifiersShouldBeSpelledCorrectlyAnalyzer : DiagnosticAnalyzer

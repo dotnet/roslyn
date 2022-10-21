@@ -9,6 +9,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
     using static CodeAnalysisDiagnosticsResources;
 
+    /// <summary>
+    /// RS1027: <inheritdoc cref="ClassIsNotDiagnosticAnalyzerTitle"/>
+    /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class ClassIsNotDiagnosticAnalyzer : DiagnosticAnalyzer
     {

@@ -19,14 +19,16 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
     using static CodeAnalysisDiagnosticsResources;
 
+    /// <summary>
+    /// RS1018 <inheritdoc cref="DiagnosticIdMustBeInSpecifiedFormatTitle"/>
+    /// RS1020 <inheritdoc cref="UseCategoriesFromSpecifiedRangeTitle"/>
+    /// RS1021 <inheritdoc cref="AnalyzerCategoryAndIdRangeFileInvalidTitle"/>
+    /// </summary>
     public sealed partial class DiagnosticDescriptorCreationAnalyzer
     {
         private const string DiagnosticCategoryAndIdRangeFile = "DiagnosticCategoryAndIdRanges.txt";
         private static readonly (string? prefix, int start, int end) s_defaultAllowedIdsInfo = (null, -1, -1);
 
-        /// <summary>
-        /// RS1018 (<inheritdoc cref="DiagnosticIdMustBeInSpecifiedFormatTitle"/>)
-        /// </summary>
         public static readonly DiagnosticDescriptor DiagnosticIdMustBeInSpecifiedFormatRule = new(
             DiagnosticIds.DiagnosticIdMustBeInSpecifiedFormatRuleId,
             CreateLocalizableResourceString(nameof(DiagnosticIdMustBeInSpecifiedFormatTitle)),
@@ -37,9 +39,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: CreateLocalizableResourceString(nameof(DiagnosticIdMustBeInSpecifiedFormatDescription)),
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        /// <summary>
-        /// RS1020 (<inheritdoc cref="UseCategoriesFromSpecifiedRangeTitle"/>)
-        /// </summary>
         public static readonly DiagnosticDescriptor UseCategoriesFromSpecifiedRangeRule = new(
             DiagnosticIds.UseCategoriesFromSpecifiedRangeRuleId,
             CreateLocalizableResourceString(nameof(UseCategoriesFromSpecifiedRangeTitle)),
@@ -50,9 +49,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: CreateLocalizableResourceString(nameof(UseCategoriesFromSpecifiedRangeDescription)),
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        /// <summary>
-        /// RS1021 (<inheritdoc cref="AnalyzerCategoryAndIdRangeFileInvalidTitle"/>)
-        /// </summary>
         public static readonly DiagnosticDescriptor AnalyzerCategoryAndIdRangeFileInvalidRule = new(
             DiagnosticIds.AnalyzerCategoryAndIdRangeFileInvalidRuleId,
             CreateLocalizableResourceString(nameof(AnalyzerCategoryAndIdRangeFileInvalidTitle)),

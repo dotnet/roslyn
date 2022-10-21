@@ -14,8 +14,8 @@ namespace Text.Analyzers
     using static TextAnalyzersResources;
 
     /// <summary>
-    /// CA1714: Flags enums should have plural names
-    /// CA1717: Only Flags enums should have plural names
+    /// CA1714: <inheritdoc cref="FlagsEnumsShouldHavePluralNamesTitle"/>
+    /// CA1717: <inheritdoc cref="OnlyFlagsEnumsShouldHavePluralNamesTitle"/>
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class EnumsShouldHavePluralNamesAnalyzer : DiagnosticAnalyzer

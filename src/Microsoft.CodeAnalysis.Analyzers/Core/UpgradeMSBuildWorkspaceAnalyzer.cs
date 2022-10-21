@@ -9,6 +9,9 @@ namespace Microsoft.CodeAnalysis.Analyzers
 {
     using static CodeAnalysisDiagnosticsResources;
 
+    /// <summary>
+    /// RS1023: <inheritdoc cref="UpgradeMSBuildWorkspaceTitle"/>
+    /// </summary>
     public abstract class UpgradeMSBuildWorkspaceAnalyzer : DiagnosticAnalyzer
     {
         private const string WorkspacesDesktop = "Microsoft.CodeAnalysis.Workspaces.Desktop";

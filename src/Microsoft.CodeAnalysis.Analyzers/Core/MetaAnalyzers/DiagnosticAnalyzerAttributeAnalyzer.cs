@@ -10,6 +10,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
     using static CodeAnalysisDiagnosticsResources;
 
+    /// <summary>
+    /// RS1001: <inheritdoc cref="MissingDiagnosticAnalyzerAttributeTitle"/>
+    /// RS1004: <inheritdoc cref="AddLanguageSupportToAnalyzerTitle"/>
+    /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class DiagnosticAnalyzerAttributeAnalyzer : DiagnosticAnalyzerCorrectnessAnalyzer
     {
@@ -24,14 +28,14 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         public static readonly DiagnosticDescriptor AddLanguageSupportToAnalyzerRule = new(
-            DiagnosticIds.AddLanguageSupportToAnalyzerRuleId,
-            CreateLocalizableResourceString(nameof(AddLanguageSupportToAnalyzerTitle)),
-            CreateLocalizableResourceString(nameof(AddLanguageSupportToAnalyzerMessage)),
-            DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
-            description: CreateLocalizableResourceString(nameof(AddLanguageSupportToAnalyzerDescription)),
-            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
+           DiagnosticIds.AddLanguageSupportToAnalyzerRuleId,
+           CreateLocalizableResourceString(nameof(AddLanguageSupportToAnalyzerTitle)),
+           CreateLocalizableResourceString(nameof(AddLanguageSupportToAnalyzerMessage)),
+           DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
+           DiagnosticSeverity.Warning,
+           isEnabledByDefault: true,
+           description: CreateLocalizableResourceString(nameof(AddLanguageSupportToAnalyzerDescription)),
+           customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(MissingDiagnosticAnalyzerAttributeRule, AddLanguageSupportToAnalyzerRule);
 

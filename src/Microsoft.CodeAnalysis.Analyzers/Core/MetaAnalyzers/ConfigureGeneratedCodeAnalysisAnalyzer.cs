@@ -11,6 +11,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
     using static CodeAnalysisDiagnosticsResources;
 
+    /// <summary>
+    /// RS1025: <inheritdoc cref="ConfigureGeneratedCodeAnalysisTitle"/>
+    /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class ConfigureGeneratedCodeAnalysisAnalyzer : DiagnosticAnalyzerCorrectnessAnalyzer
     {

@@ -18,6 +18,10 @@ namespace Roslyn.Diagnostics.Analyzers
     // TODO: This should be updated to follow the flow of array creation expressions
     // that are eventually converted to and leave a given method as IEnumerable<T> once we have
     // the ability to do more thorough data-flow analysis in diagnostic analyzers.
+    /// <summary>
+    /// RS0001: <inheritdoc cref="UseSpecializedCollectionsEmptyEnumerableTitle"/>
+    /// RS0002: <inheritdoc cref="UseSpecializedCollectionsSingletonEnumerableTitle"/>
+    /// </summary>
     public abstract class SpecializedEnumerableCreationAnalyzer : DiagnosticAnalyzer
     {
         internal const string SpecializedCollectionsMetadataName = "Roslyn.Utilities.SpecializedCollections";

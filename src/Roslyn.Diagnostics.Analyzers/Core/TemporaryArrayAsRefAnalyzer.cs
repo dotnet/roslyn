@@ -12,6 +12,9 @@ namespace Roslyn.Diagnostics.Analyzers
 {
     using static RoslynDiagnosticsAnalyzersResources;
 
+    /// <summary>
+    /// RS0049: <inheritdoc cref="TemporaryArrayAsRefTitle"/>
+    /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class TemporaryArrayAsRefAnalyzer : DiagnosticAnalyzer
     {
