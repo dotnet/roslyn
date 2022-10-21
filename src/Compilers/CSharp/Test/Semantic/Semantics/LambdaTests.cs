@@ -7850,17 +7850,19 @@ class Program
         public void ParamsArray_Call()
         {
             var source = """
-                var lam = (params int[] xs) => System.Console.WriteLine(xs.Length);
+                var lam = (params int[] xs) => System.Console.WriteLine(xs?.Length.ToString() ?? "null");
                 lam();
                 lam(1);
                 lam(1, 2, 3);
                 lam(new[] { 1, 2, 3 });
+                lam(null);
                 """;
             CompileAndVerify(source, expectedOutput: """
                 0
                 1
                 3
                 3
+                null
                 """).VerifyDiagnostics();
         }
 
