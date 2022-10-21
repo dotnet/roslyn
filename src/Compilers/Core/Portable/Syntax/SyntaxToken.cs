@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Writes the text of this token to the specified TextWriter, optionally including trivia.
         /// </summary>
-        internal void WriteTo(System.IO.TextWriter writer, bool leading, bool trailing)
+        public void WriteTo(System.IO.TextWriter writer, bool leading, bool trailing)
         {
             Node?.WriteTo(writer, leading, trailing);
         }
