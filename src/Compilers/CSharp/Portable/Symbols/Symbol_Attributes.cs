@@ -523,21 +523,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected ImmutableArray<(CSharpAttributeData, BoundAttribute)> BindAttributes(OneOrMany<SyntaxList<AttributeListSyntax>> attributeDeclarations, Binder? rootBinder)
         {
-            rootBinder = rootBinder is null ? null : new ContextualAttributeBinder(rootBinder, this);
             var boundAttributeArrayBuilder = ArrayBuilder<(CSharpAttributeData, BoundAttribute)>.GetInstance();
             foreach (var attributeListSyntaxList in attributeDeclarations)
             {
-                Binder binder;
-                if (rootBinder is null)
-                {
-                    Debug.Assert(attributeListSyntaxList.Node != null);
-                    var enclosingBinder = DeclaringCompilation.GetBinderFactory(attributeListSyntaxList.Node.SyntaxTree).GetBinder(attributeListSyntaxList.Node);
-                    binder = new ContextualAttributeBinder(enclosingBinder, this);
-                }
-                else
-                {
-                    binder = rootBinder;
-                }
+                var binder = GetAttributeBinder(attributeListSyntaxList, DeclaringCompilation, rootBinder);
                 foreach (var attributeListSyntax in attributeListSyntaxList)
                 {
                     foreach (var attributeSyntax in attributeListSyntax.Attributes)
@@ -630,14 +619,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (attributesToBindCount != prevCount)
                     {
-                        Debug.Assert(attributeDeclarationSyntaxList.Node != null);
                         Debug.Assert(bindersBuilder != null);
 
-                        var syntaxTree = attributeDeclarationSyntaxList.Node.SyntaxTree;
-                        var binder = rootBinderOpt ?? compilation.GetBinderFactory(syntaxTree).GetBinder(attributeDeclarationSyntaxList.Node);
-
-                        binder = new ContextualAttributeBinder(binder, this);
-                        Debug.Assert(!binder.InAttributeArgument || this is MethodSymbol { MethodKind: MethodKind.LambdaMethod or MethodKind.LocalFunction }, "Possible cycle in attribute binding");
+                        var binder = GetAttributeBinder(attributeDeclarationSyntaxList, compilation, rootBinderOpt);
 
                         for (int i = 0; i < attributesToBindCount - prevCount; i++)
                         {
@@ -658,6 +642,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ImmutableArray<AttributeSyntax>.Empty;
             }
         }
+
+#nullable enable
+        private Binder GetAttributeBinder(SyntaxList<AttributeListSyntax> attributeDeclarationSyntaxList, CSharpCompilation compilation, Binder? rootBinder = null)
+        {
+            var binder = rootBinder ?? compilation.GetBinderFactory(attributeDeclarationSyntaxList.Node!.SyntaxTree).GetBinder(attributeDeclarationSyntaxList.Node);
+            binder = new ContextualAttributeBinder(binder, this);
+            Debug.Assert(!binder.InAttributeArgument || this is MethodSymbol { MethodKind: MethodKind.LambdaMethod or MethodKind.LocalFunction }, "Possible cycle in attribute binding");
+            return binder;
+        }
+#nullable disable
 
         private static bool MatchAttributeTarget(IAttributeTargetSymbol attributeTarget, AttributeLocation symbolPart, AttributeTargetSpecifierSyntax targetOpt, BindingDiagnosticBag diagnostics)
         {
