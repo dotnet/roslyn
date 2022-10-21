@@ -103,6 +103,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 document, range, GetShouldIncludeDiagnosticPredicate(document, priority),
                 includeSuppressedDiagnostics: false, priority, cancellationToken).ConfigureAwait(false);
 
+            var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
+            allDiagnostics.AddRange(buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id));
+
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var spanToDiagnostics = ConvertToMap(text, allDiagnostics);
 
@@ -177,26 +180,37 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 includeCompilerDiagnostics: true, includeSuppressedDiagnostics: includeSuppressionFixes, priority: priority,
                 addOperationScope: addOperationScope, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            if (diagnostics.IsEmpty)
+            var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
+            var buildOnlyDiagnostics = buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id);
+
+            if (diagnostics.IsEmpty && buildOnlyDiagnostics.IsEmpty)
                 yield break;
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var spanToDiagnostics = ConvertToMap(text, diagnostics);
-
-            // 'CodeActionRequestPriority.Lowest' is used when the client only wants suppression/configuration fixes.
-            if (priority != CodeActionRequestPriority.Lowest)
+            if (!diagnostics.IsEmpty)
             {
-                await foreach (var collection in StreamFixesAsync(
-                    document, spanToDiagnostics, fixAllForInSpan: false,
-                    priority, fallbackOptions, isBlocking, addOperationScope, cancellationToken).ConfigureAwait(false))
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var spanToDiagnostics = ConvertToMap(text, diagnostics);
+
+                // 'CodeActionRequestPriority.Lowest' is used when the client only wants suppression/configuration fixes.
+                if (priority != CodeActionRequestPriority.Lowest)
                 {
-                    yield return collection;
+                    await foreach (var collection in StreamFixesAsync(
+                        document, spanToDiagnostics, fixAllForInSpan: false,
+                        priority, fallbackOptions, isBlocking, addOperationScope, cancellationToken).ConfigureAwait(false))
+                    {
+                        yield return collection;
+                    }
                 }
             }
 
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
             if (document.Project.Solution.WorkspaceKind != WorkspaceKind.Interactive && includeSuppressionFixes)
             {
+                // For build-only diagnostics, we support configuration/suppression fixes.
+                diagnostics = diagnostics.AddRange(buildOnlyDiagnostics);
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var spanToDiagnostics = ConvertToMap(text, diagnostics);
+
                 // Ensure that we do not register duplicate configuration fixes.
                 using var _2 = PooledHashSet<string>.GetInstance(out var registeredConfigurationFixTitles);
                 foreach (var (span, diagnosticList) in spanToDiagnostics)

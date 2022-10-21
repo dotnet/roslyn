@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -24,6 +25,7 @@ using Microsoft.VisualStudio.Threading;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
+using Xunit.Abstractions;
 using static Roslyn.Test.Utilities.AbstractLanguageServerProtocolTests;
 using IAsyncDisposable = System.IAsyncDisposable;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -33,6 +35,12 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
     [UseExportProvider]
     public abstract class DocumentOutlineTestsBase
     {
+        private readonly TestOutputLspLogger _logger;
+        protected DocumentOutlineTestsBase(ITestOutputHelper testOutputHelper)
+        {
+            _logger = new TestOutputLspLogger(testOutputHelper);
+        }
+
         protected class DocumentOutlineTestMocks : IAsyncDisposable
         {
             private readonly TestWorkspace _workspace;
@@ -67,7 +75,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
         private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocol
             .AddParts(typeof(TestDocumentTrackingService))
             .AddParts(typeof(TestWorkspaceRegistrationService))
-            .AddParts(typeof(TestWorkspaceConfigurationService))
             .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
 
         protected async Task<DocumentOutlineTestMocks> CreateMocksAsync(string code)
@@ -105,7 +112,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             }
         }
 
-        private static async Task<TestLspServer> CreateTestLspServerAsync(TestWorkspace workspace, InitializationOptions initializationOptions)
+        private async Task<TestLspServer> CreateTestLspServerAsync(TestWorkspace workspace, InitializationOptions initializationOptions)
         {
             var solution = workspace.CurrentSolution;
 
@@ -136,7 +143,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             var workspaceWaiter = operations.GetWaiter(FeatureAttribute.Workspace);
             await workspaceWaiter.ExpeditedWaitAsync();
 
-            return await TestLspServer.CreateAsync(workspace, initializationOptions);
+            return await TestLspServer.CreateAsync(workspace, initializationOptions, _logger);
         }
     }
 }

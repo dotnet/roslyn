@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
@@ -86,6 +87,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             var newSessionId = await _encService.StartDebuggingSessionAsync(
                 solution,
                 new DebuggerService(capabilities),
+                NullPdbMatchingSourceTextProvider.Instance,
                 captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
                 captureAllMatchingDocuments: true,
                 reportDiagnostics: false,

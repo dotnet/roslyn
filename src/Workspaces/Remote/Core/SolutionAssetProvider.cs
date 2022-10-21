@@ -38,18 +38,18 @@ namespace Microsoft.CodeAnalysis.Remote
             // The responsibility is on us (as per the requirements of RemoteCallback.InvokeAsync) to Complete the
             // pipewriter.  This will signal to streamjsonrpc that the writer passed into it is complete, which will
             // allow the calling side know to stop reading results.
+            Exception? exception = null;
             try
             {
                 await GetAssetsWorkerAsync(pipeWriter, solutionChecksum, checksums, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception ex)
+            catch (Exception ex) when ((exception = ex) == null)
             {
-                await pipeWriter.CompleteAsync(ex).ConfigureAwait(false);
-                throw;
+                throw ExceptionUtilities.Unreachable();
             }
             finally
             {
-                await pipeWriter.CompleteAsync().ConfigureAwait(false);
+                await pipeWriter.CompleteAsync(exception).ConfigureAwait(false);
             }
         }
 
@@ -91,57 +91,39 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <em>every</em> write.  That's undesirable as that will then block a thread pool thread on the actual
         /// asynchronous flush call to the underlying PipeWriter
         /// </summary>
+        /// <remarks>
+        /// Note: this stream does not have to <see cref="PipeWriter.Complete"/> the underlying <see cref="_writer"/> it
+        /// is holding onto (including within <see cref="Flush"/>, <see cref="FlushAsync"/>, or <see cref="Dispose"/>).
+        /// Responsibility for that is solely in the hands of <see cref="GetAssetsAsync"/>.
+        /// </remarks>
         private class PipeWriterStream : Stream, IDisposableObservable
         {
             private readonly PipeWriter _writer;
 
-            internal PipeWriterStream(PipeWriter writer)
-            {
-                _writer = writer ?? throw new ArgumentNullException(nameof(writer));
-            }
+            public bool IsDisposed { get; private set; }
 
             public override bool CanRead => false;
             public override bool CanSeek => false;
+            public override bool CanWrite => !this.IsDisposed;
 
-            #region read/seek api (not supported)
-
-            public override long Length => throw this.ThrowDisposedOr(new NotSupportedException());
-            public override long Position
+            internal PipeWriterStream(PipeWriter writer)
             {
-                get => throw this.ThrowDisposedOr(new NotSupportedException());
-                set => this.ThrowDisposedOr(new NotSupportedException());
+                _writer = writer;
             }
 
-            public override int Read(byte[] buffer, int offset, int count)
-                => throw this.ThrowDisposedOr(new NotSupportedException());
+            protected override void Dispose(bool disposing)
+            {
+                this.IsDisposed = true;
+                base.Dispose(disposing);
 
-            public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
-                => throw this.ThrowDisposedOr(new NotSupportedException());
+                // DO NOT CALL .Complete on the PipeWriter here (see remarks on type).
+            }
 
-#if !NETSTANDARD
-
-            public override int Read(Span<byte> buffer)
-                => throw this.ThrowDisposedOr(new NotSupportedException());
-
-            public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken)
-                => throw this.ThrowDisposedOr(new NotSupportedException());
-
-#endif
-
-            public override int ReadByte()
-                => throw this.ThrowDisposedOr(new NotSupportedException());
-
-            public override long Seek(long offset, SeekOrigin origin)
-                => throw this.ThrowDisposedOr(new NotSupportedException());
-
-            public override void SetLength(long value)
-                => this.ThrowDisposedOr(new NotSupportedException());
-
-            #endregion
-
-            public bool IsDisposed { get; private set; }
-
-            public override bool CanWrite => !this.IsDisposed;
+            private Exception ThrowDisposedOr(Exception ex)
+            {
+                Verify.NotDisposed(this);
+                throw ex;
+            }
 
             /// <summary>
             /// Intentionally a no op. We know that we and <see cref="RemoteHostAssetSerialization.WriteDataAsync"/>
@@ -151,10 +133,16 @@ namespace Microsoft.CodeAnalysis.Remote
             public override void Flush()
             {
                 Verify.NotDisposed(this);
+
+                // DO NOT CALL .Complete on the PipeWriter here (see remarks on type).
             }
 
             public override async Task FlushAsync(CancellationToken cancellationToken)
-                => await _writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+            {
+                await _writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+
+                // DO NOT CALL .Complete on the PipeWriter here (see remarks on type).
+            }
 
             public override void Write(byte[] buffer, int offset, int count)
             {
@@ -200,17 +188,41 @@ namespace Microsoft.CodeAnalysis.Remote
 
 #endif
 
-            protected override void Dispose(bool disposing)
+            #region read/seek api (not supported)
+
+            public override long Length => throw this.ThrowDisposedOr(new NotSupportedException());
+            public override long Position
             {
-                this.IsDisposed = true;
-                base.Dispose(disposing);
+                get => throw this.ThrowDisposedOr(new NotSupportedException());
+                set => this.ThrowDisposedOr(new NotSupportedException());
             }
 
-            private Exception ThrowDisposedOr(Exception ex)
-            {
-                Verify.NotDisposed(this);
-                throw ex;
-            }
+            public override int Read(byte[] buffer, int offset, int count)
+                => throw this.ThrowDisposedOr(new NotSupportedException());
+
+            public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+                => throw this.ThrowDisposedOr(new NotSupportedException());
+
+#if !NETSTANDARD
+
+            public override int Read(Span<byte> buffer)
+                => throw this.ThrowDisposedOr(new NotSupportedException());
+
+            public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken)
+                => throw this.ThrowDisposedOr(new NotSupportedException());
+
+#endif
+
+            public override int ReadByte()
+                => throw this.ThrowDisposedOr(new NotSupportedException());
+
+            public override long Seek(long offset, SeekOrigin origin)
+                => throw this.ThrowDisposedOr(new NotSupportedException());
+
+            public override void SetLength(long value)
+                => this.ThrowDisposedOr(new NotSupportedException());
+
+            #endregion
         }
     }
 }

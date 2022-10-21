@@ -389,17 +389,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(!earlyDecodingOnly);
 
-            this.PostDecodeWellKnownAttributes(boundAttributes, attributesToBind, diagnostics, symbolPart, wellKnownAttributeData);
-
-            removeObsoleteDiagnosticsForForwardedTypes(boundAttributes, attributesToBind, ref diagnostics);
-            Debug.Assert(diagnostics.DiagnosticBag is not null);
-
             // Store attributes into the bag.
             bool lazyAttributesStoredOnThisThread = false;
             if (lazyCustomAttributesBag.SetAttributes(boundAttributes))
             {
                 if (attributeMatchesOpt is null)
                 {
+                    this.PostDecodeWellKnownAttributes(boundAttributes, attributesToBind, diagnostics, symbolPart, wellKnownAttributeData);
+
+                    removeObsoleteDiagnosticsForForwardedTypes(boundAttributes, attributesToBind, ref diagnostics);
+                    Debug.Assert(diagnostics.DiagnosticBag is not null);
+
                     this.RecordPresenceOfBadAttributes(boundAttributes);
 
                     if (totalAttributesCount != 0)
@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var binder = rootBinderOpt ?? compilation.GetBinderFactory(syntaxTree).GetBinder(attributeDeclarationSyntaxList.Node);
 
                         binder = new ContextualAttributeBinder(binder, this);
-                        Debug.Assert(!binder.InAttributeArgument || this is MethodSymbol { MethodKind: MethodKind.LambdaMethod }, "Possible cycle in attribute binding");
+                        Debug.Assert(!binder.InAttributeArgument || this is MethodSymbol { MethodKind: MethodKind.LambdaMethod or MethodKind.LocalFunction }, "Possible cycle in attribute binding");
 
                         for (int i = 0; i < attributesToBindCount - prevCount; i++)
                         {

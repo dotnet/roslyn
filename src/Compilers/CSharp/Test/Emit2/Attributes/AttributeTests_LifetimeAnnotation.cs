@@ -540,10 +540,10 @@ class Program
 }";
             var comp = CreateCompilation(source);
             var expected =
-@"void <>f__AnonymousDelegate0.Invoke(scoped in System.Int32 value)
-    [ScopedRef] scoped in System.Int32 value
-R <>f__AnonymousDelegate1.Invoke(scoped R value)
-    [ScopedRef] scoped R value
+@"void <>f__AnonymousDelegate0.Invoke(scoped in System.Int32 arg)
+    [ScopedRef] scoped in System.Int32 arg
+R <>f__AnonymousDelegate1.Invoke(scoped R arg)
+    [ScopedRef] scoped R arg
 void Program.<>c.<Main>b__0_0(scoped in System.Int32 i)
     [ScopedRef] scoped in System.Int32 i
 R Program.<>c.<Main>b__0_1(scoped R r)

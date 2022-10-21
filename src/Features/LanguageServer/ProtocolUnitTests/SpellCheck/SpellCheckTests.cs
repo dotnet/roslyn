@@ -14,11 +14,15 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 {
     public class SpellCheckTests : AbstractLanguageServerProtocolTests
     {
+        public SpellCheckTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
         #region Document
 
         [Fact]

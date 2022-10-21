@@ -63,6 +63,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 this.Syntax;
 
                             Binder.CheckRestrictedTypeInAsyncMethod(localSymbol.ContainingSymbol, type.Type, diagnosticsOpt, typeOrDesignationSyntax);
+
+                            if (localSymbol.Scope == DeclarationScope.ValueScoped && !type.Type.IsErrorTypeOrRefLikeType())
+                            {
+                                diagnosticsOpt.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly,
+                                                   (typeOrDesignationSyntax is TypeSyntax typeSyntax ? typeSyntax.SkipScoped(out _).SkipRef(out _) : typeOrDesignationSyntax).Location);
+                            }
                         }
                     }
 

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Roslyn.Utilities;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -16,8 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(Placeholder is null);
 
-            // The val escape scope for this placeholder won't be used, so defaulting to narrowest scope
-            Placeholder = new BoundDeconstructValuePlaceholder(this.Syntax, binder.LocalScopeDepth, type.Type, hasErrors: this.HasErrors || !success);
+            Placeholder = new BoundDeconstructValuePlaceholder(this.Syntax, variableSymbol: VariableSymbol, ValEscape, type.Type, hasErrors: this.HasErrors || !success);
             return Placeholder;
         }
 
