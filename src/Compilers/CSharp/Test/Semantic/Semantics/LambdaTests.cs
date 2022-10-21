@@ -7905,12 +7905,43 @@ class Program
             var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().ToImmutableArray();
             var lambdas = exprs.SelectAsArray(e => GetLambdaSymbol(model, e));
             Assert.Equal(3, lambdas.Length);
+            // lam1
             Assert.True(((SourceParameterSymbol)lambdas[0].Parameters.Single()).IsParams);
+            // lam2
             Assert.False(((SourceParameterSymbol)lambdas[1].Parameters.Single()).IsParams);
+            // lam3
             Assert.Equal(2, lambdas[2].ParameterCount);
             Assert.Equal(2, lambdas[2].Parameters.Length);
             Assert.False(((SourceParameterSymbol)lambdas[2].Parameters[0]).IsParams);
             Assert.True(((SourceParameterSymbol)lambdas[2].Parameters[1]).IsParams);
+        }
+
+        [Fact]
+        public void ParamsArray_Symbol_MultipleParamsArrays()
+        {
+            var source = """
+                var lam1 = (params int[] xs, params int[] ys, int[] zs) => xs.Length + ys.Length + zs.Length;
+                var lam2 = (params int[] xs, int[] ys, params int[] zs) => xs.Length + ys.Length + zs.Length;
+                """;
+            var comp = CreateCompilation(source);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().ToImmutableArray();
+            var lambdas = exprs.SelectAsArray(e => GetLambdaSymbol(model, e));
+            Assert.Equal(2, lambdas.Length);
+            // lam1
+            Assert.Equal(3, lambdas[0].ParameterCount);
+            Assert.Equal(3, lambdas[0].Parameters.Length);
+            Assert.True(((SourceParameterSymbol)lambdas[0].Parameters[0]).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[0].Parameters[1]).IsParams);
+            Assert.False(((SourceParameterSymbol)lambdas[0].Parameters[2]).IsParams);
+            // lam2
+            Assert.Equal(3, lambdas[1].ParameterCount);
+            Assert.Equal(3, lambdas[1].Parameters.Length);
+            Assert.True(((SourceParameterSymbol)lambdas[1].Parameters[0]).IsParams);
+            Assert.False(((SourceParameterSymbol)lambdas[1].Parameters[1]).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[1].Parameters[2]).IsParams);
         }
     }
 }
