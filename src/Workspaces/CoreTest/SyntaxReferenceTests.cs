@@ -69,7 +69,6 @@ public class C<>
             Assert.Equal(0, node.FullSpan.Length);
 
             var syntaxRef = tree.GetReference(node);
-            Assert.Equal("PathSyntaxReference", syntaxRef.GetType().Name);
 
             var refNode = syntaxRef.GetSyntax();
 
@@ -92,7 +91,6 @@ End Class
             Assert.Equal(0, node.FullSpan.Length);
 
             var syntaxRef = tree.GetReference(node);
-            Assert.Equal("PathSyntaxReference", syntaxRef.GetType().Name);
 
             var refNode = syntaxRef.GetSyntax();
 
@@ -116,7 +114,6 @@ public class C
             var node = tree.GetRoot().DescendantNodes(descendIntoTrivia: true).OfType<CS.Syntax.BinaryExpressionSyntax>().First();
 
             var syntaxRef = tree.GetReference(node);
-            Assert.Equal("PositionalSyntaxReference", syntaxRef.GetType().Name);
 
             var refNode = syntaxRef.GetSyntax();
 
@@ -140,7 +137,6 @@ End Class
             var node = tree.GetRoot().DescendantNodes(descendIntoTrivia: true).OfType<VB.Syntax.BinaryExpressionSyntax>().First();
 
             var syntaxRef = tree.GetReference(node);
-            Assert.Equal("PositionalSyntaxReference", syntaxRef.GetType().Name);
 
             var refNode = syntaxRef.GetSyntax();
 
@@ -169,7 +165,6 @@ public class C
             Assert.Equal(0, node.FullSpan.Length);
 
             var syntaxRef = tree.GetReference(node);
-            Assert.Equal("PathSyntaxReference", syntaxRef.GetType().Name);
 
             var refNode = syntaxRef.GetSyntax();
 
@@ -198,7 +193,6 @@ End Class
             Assert.Equal(0, node.Span.Length);
 
             var syntaxRef = tree.GetReference(node);
-            Assert.Equal("PathSyntaxReference", syntaxRef.GetType().Name);
 
             var refNode = syntaxRef.GetSyntax();
 
