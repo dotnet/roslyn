@@ -192,6 +192,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             DocumentId? priorityDocumentId,
             CancellationToken cancellationToken)
         {
+            if (!project.SupportsCompilation)
+                return;
+
             // We need to recompute the designer attributes for a project if it's own semantic-version changes, or the
             // semantic-version of any dependent projects change.  The reason for checking dependent projects is that we
             // look for the designer attribute on subclasses as well (so we have to walk the inheritance tree).  This
@@ -204,7 +207,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 lastComputedVersion != dependentSemanticVersion)
             {
                 var stream = client.TryInvokeStreamAsync<IRemoteDesignerAttributeDiscoveryService, DesignerAttributeData>(
-                    project,
+                    solution,
                     (service, checksum, cancellationToken) => service.DiscoverDesignerAttributesAsync(checksum, project.Id, priorityDocumentId, cancellationToken),
                     cancellationToken);
 
