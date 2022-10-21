@@ -11,7 +11,6 @@ using System.Linq;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -21,7 +20,7 @@ namespace Microsoft.CodeAnalysis
     /// A piece of text with a descriptive tag.
     /// </summary>
     [DataContract]
-    public readonly record struct TaggedText
+    public readonly struct TaggedText
     {
         /// <summary>
         /// A descriptive tag from <see cref="TextTags"/>.

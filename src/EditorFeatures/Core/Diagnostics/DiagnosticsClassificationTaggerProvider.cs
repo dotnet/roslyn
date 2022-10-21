@@ -99,8 +99,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Default to the base implementation for the diagnostic data
             return base.GetLocationsToTag(diagnosticData);
         }
-
-        protected override bool TagEquals(ClassificationTag tag1, ClassificationTag tag2)
-            => tag1.ClassificationType.Classification == tag2.ClassificationType.Classification;
     }
 }

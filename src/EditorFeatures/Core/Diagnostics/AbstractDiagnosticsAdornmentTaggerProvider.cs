@@ -3,16 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal abstract partial class AbstractDiagnosticsAdornmentTaggerProvider<TTag> :
+    internal abstract class AbstractDiagnosticsAdornmentTaggerProvider<TTag> :
         AbstractDiagnosticsTaggerProvider<TTag>
         where TTag : class, ITag
     {
@@ -43,6 +46,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return null;
 
             return new TagSpan<TTag>(adjustedSpan, errorTag);
+        }
+
+        protected static object CreateToolTipContent(Workspace workspace, DiagnosticData diagnostic)
+        {
+            Action? navigationAction = null;
+            string? tooltip = null;
+            if (workspace != null)
+            {
+                var helpLinkUri = diagnostic.GetValidHelpLinkUri();
+                if (helpLinkUri != null)
+                {
+                    navigationAction = new QuickInfoHyperLink(workspace, helpLinkUri).NavigationAction;
+                    tooltip = diagnostic.HelpLink;
+                }
+            }
+
+            var diagnosticIdTextRun = navigationAction is null
+                ? new ClassifiedTextRun(ClassificationTypeNames.Text, diagnostic.Id)
+                : new ClassifiedTextRun(ClassificationTypeNames.Text, diagnostic.Id, navigationAction, tooltip);
+
+            return new ContainerElement(
+                ContainerElementStyle.Wrapped,
+                new ClassifiedTextElement(
+                    diagnosticIdTextRun,
+                    new ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
+                    new ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                    new ClassifiedTextRun(ClassificationTypeNames.Text, diagnostic.Message)));
         }
 
         // By default, tags must have at least length '1' so that they can be visible in the UI layer.

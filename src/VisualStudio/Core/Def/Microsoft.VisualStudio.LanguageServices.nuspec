@@ -23,5 +23,6 @@
       https://docs.microsoft.com/en-us/nuget/create-packages/select-assemblies-referenced-by-projects.
     -->
     <file src="net472\Microsoft.VisualStudio.LanguageServices.dll" target="lib\net472" />
+    <file src="net472\Microsoft.VisualStudio.LanguageServices*.pdb" target="lib\net472" />
   </files>
 </package>

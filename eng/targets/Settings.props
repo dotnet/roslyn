@@ -45,6 +45,10 @@
 
     <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
     <Nullable>enable</Nullable>
+    <DiscoverEditorConfigFiles>true</DiscoverEditorConfigFiles>
+
+    <!-- VS does not require Windows PDBs to be published anymore. -->
+    <PublishWindowsPdb>false</PublishWindowsPdb>
   </PropertyGroup>
 
   <!--
