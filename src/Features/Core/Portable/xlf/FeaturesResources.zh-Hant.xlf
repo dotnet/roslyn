@@ -4942,9 +4942,9 @@ The offset is always displayed with a leading sign. A plus sign (+) indicates ho
 時差的開頭永遠會顯示正負號。正號 (+) 表示早於 UTC 的小時數，負號 (-) 則表示晚於 UTC 的小時數。個位數的時差開頭會填補零。</target>
         <note />
       </trans-unit>
-      <trans-unit id="while_statement">
-        <source>while statement</source>
-        <target state="new">while statement</target>
+      <trans-unit id="while_loop">
+        <source>while loop</source>
+        <target state="new">while loop</target>
         <note />
       </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">

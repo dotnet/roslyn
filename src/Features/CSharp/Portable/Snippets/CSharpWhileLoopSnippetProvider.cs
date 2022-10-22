@@ -20,11 +20,11 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
     [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal class CSharpWhileSnippetProvider : AbstractWhileSnippetProvider
+    internal class CSharpWhileLoopSnippetProvider : AbstractWhileLoopSnippetProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpWhileSnippetProvider()
+        public CSharpWhileLoopSnippetProvider()
         {
         }
 

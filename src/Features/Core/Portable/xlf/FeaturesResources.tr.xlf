@@ -4942,9 +4942,9 @@ DateTimeOffset değerlerinde, bu biçim belirticisi, DateTimeOffset değerinin s
 Uzaklık her zaman başında bir işaretle görüntülenir. Artı işareti (+) UTC'den önceki, eksi işareti (-) ise UTC'den sonraki saatleri gösterir. Tek haneli bir uzaklık, başına bir sıfır eklenerek biçimlendirilir.</target>
         <note />
       </trans-unit>
-      <trans-unit id="while_statement">
-        <source>while statement</source>
-        <target state="new">while statement</target>
+      <trans-unit id="while_loop">
+        <source>while loop</source>
+        <target state="new">while loop</target>
         <note />
       </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">

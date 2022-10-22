@@ -3,19 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
 {
-    internal abstract class AbstractWhileSnippetProvider : AbstractConditionExpressionAndBlockBasedSnippetProvider
+    internal abstract class AbstractWhileLoopSnippetProvider : AbstractConditionExpressionAndBlockBasedSnippetProvider
     {
         public override string SnippetIdentifier => "while";
 
-        public override string SnippetDescription => FeaturesResources.while_statement;
+        public override string SnippetDescription => FeaturesResources.while_loop;
 
         protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts) => syntaxFacts.IsWhileStatement;
 
