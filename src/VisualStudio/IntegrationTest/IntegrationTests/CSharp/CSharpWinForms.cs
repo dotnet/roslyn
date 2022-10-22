@@ -47,6 +47,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.cs");
             VisualStudio.Editor.AddWinFormButton("SomeButton");
+            VisualStudio.SolutionExplorer.SaveFile(project, "Form1.cs");
             VisualStudio.SolutionExplorer.SaveFile(project, "Form1.resx");
             VisualStudio.Editor.EditWinFormButtonProperty(buttonName: "SomeButton", propertyName: "Text", propertyValue: "NewButtonText");
             VisualStudio.SolutionExplorer.CloseDesignerFile(project, "Form1.cs", saveFile: true);
@@ -61,6 +62,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.cs");
             VisualStudio.Editor.AddWinFormButton("SomeButton");
+            VisualStudio.SolutionExplorer.SaveFile(project, "Form1.cs");
             VisualStudio.SolutionExplorer.SaveFile(project, "Form1.resx");
             VisualStudio.Editor.EditWinFormButtonProperty(buttonName: "SomeButton", propertyName: "Text", propertyValue: "ButtonTextGoesHere");
             var expectedPropertyValue = "ButtonTextGoesHere";
@@ -89,6 +91,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.cs");
             VisualStudio.Editor.AddWinFormButton("SomeButton");
+            VisualStudio.SolutionExplorer.SaveFile(project, "Form1.cs");
             VisualStudio.SolutionExplorer.SaveFile(project, "Form1.resx");
             VisualStudio.Editor.EditWinFormButtonEvent(buttonName: "SomeButton", eventName: "Click", eventHandlerName: "ExecuteWhenButtonClicked");
             VisualStudio.SolutionExplorer.OpenFile(project, "Form1.Designer.cs");
@@ -116,6 +119,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.cs");
             VisualStudio.Editor.AddWinFormButton("SomeButton");
+            VisualStudio.SolutionExplorer.SaveFile(project, "Form1.cs");
             VisualStudio.SolutionExplorer.SaveFile(project, "Form1.resx");
             // Add some control properties and events
             VisualStudio.Editor.EditWinFormButtonProperty(buttonName: "SomeButton", propertyName: "Text", propertyValue: "ButtonTextValue");
@@ -140,6 +144,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.cs");
             VisualStudio.Editor.AddWinFormButton("SomeButton");
+            VisualStudio.SolutionExplorer.SaveFile(project, "Form1.cs");
             VisualStudio.SolutionExplorer.SaveFile(project, "Form1.resx");
             VisualStudio.Editor.EditWinFormButtonEvent(buttonName: "SomeButton", eventName: "Click", eventHandlerName: "GooHandler");
             //  Remove the event handler
@@ -157,6 +162,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.cs");
             VisualStudio.Editor.AddWinFormButton("SomeButton");
+            VisualStudio.SolutionExplorer.SaveFile(project, "Form1.cs");
             VisualStudio.SolutionExplorer.SaveFile(project, "Form1.resx");
             VisualStudio.Editor.EditWinFormButtonProperty(buttonName: "SomeButton", propertyName: "Modifiers",
                 propertyTypeName: "System.CodeDom.MemberAttributes",
@@ -173,6 +179,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.cs");
             VisualStudio.Editor.AddWinFormButton("SomeButton");
+            VisualStudio.SolutionExplorer.SaveFile(project, "Form1.cs");
             VisualStudio.SolutionExplorer.SaveFile(project, "Form1.resx");
             VisualStudio.Editor.DeleteWinFormButton("SomeButton");
             VisualStudio.ErrorList.Verify.NoBuildErrors();

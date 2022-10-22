@@ -855,6 +855,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
             var documents = GetDTE().Documents.Cast<EnvDTE.Document>();
+
+            var x = documents.Select(d => d.FullName).ToArray();
             var document = documents.SingleOrDefault(d => d.FullName == filePath);
 
             if (document == null)
