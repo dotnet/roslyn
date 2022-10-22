@@ -113,7 +113,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     }", codeFileActualText);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/55703")]
+        [WpfFact]
         public void RenameControl()
         {
             var project = new ProjectUtils.Project(ProjectName);
