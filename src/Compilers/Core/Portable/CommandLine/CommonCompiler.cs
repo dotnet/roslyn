@@ -837,8 +837,13 @@ namespace Microsoft.CodeAnalysis
                 ignoreUserLicenses = false;
             }
 
-            return new LicensingInitializationOptions { ProjectLicense = projectLicense, IgnoreUserProfileLicenses = ignoreUserLicenses, IgnoreUnattendedProcessLicense = ignoreUserLicenses,
-            DisableLicenseAudit = !this.RequiresMetalamaLicenseAudit};
+            return new LicensingInitializationOptions
+            {
+                ProjectLicense = projectLicense,
+                IgnoreUserProfileLicenses = ignoreUserLicenses,
+                IgnoreUnattendedProcessLicense = ignoreUserLicenses,
+                DisableLicenseAudit = !this.RequiresMetalamaLicenseAudit
+            };
         }
 
         protected IServiceProvider CreateServiceProvider(Compilation inputCompilation, AnalyzerConfigOptionsProvider analyzerConfigProvider, ImmutableArray<ISourceTransformer> transformers)
@@ -866,7 +871,7 @@ namespace Microsoft.CodeAnalysis
             };
 
             serviceProviderBuilder = serviceProviderBuilder.AddBackstageServices(backstageOptions);
-        
+
 
             // Initialize usage reporting.
             try
@@ -915,7 +920,7 @@ namespace Microsoft.CodeAnalysis
             }
             catch (Exception e)
             {
-                ReportException(e,  serviceProvider, false);
+                ReportException(e, serviceProvider, false);
 
                 // We don't re-throw here as we don't want compiler to crash because of usage reporting exceptions.
             }
@@ -924,7 +929,7 @@ namespace Microsoft.CodeAnalysis
             // Logging has to be disposed as the last one, so it could be used until now.
             serviceProvider.GetLoggerFactory().Dispose();
         }
-        
+
         protected void ReportException(Exception e, IServiceProvider serviceProvider, bool throwReporterExceptions)
         {
             try
@@ -940,12 +945,12 @@ namespace Microsoft.CodeAnalysis
                 }
             }
         }
-        
-        
+
+
         private void ReportUnsuppressedErrors(DiagnosticBag diagnostics, ILogger? logger, string stage)
         {
             ILogWriter? logWriter = logger?.Error;
-            
+
             if (logWriter != null)
             {
                 foreach (Diagnostic diagnostic in diagnostics.AsEnumerable())
@@ -1191,7 +1196,7 @@ namespace Microsoft.CodeAnalysis
                 return FileUtilities.ResolveRelativePath(transformedFilesOutputDirectory, _workingDirectory);
             }
         }
-        
+
         protected string? GetMSBuildProjectFullPath(AnalyzerConfigOptionsProvider options)
         {
             if (!options.GlobalOptions.TryGetValue("build_property.MSBuildProjectFullPath", out var projectFullPath))
@@ -1204,19 +1209,19 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private (ImmutableArray<DiagnosticAnalyzer> SourceOnlyAnalyzers, ImmutableArray<DiagnosticAnalyzer> WholeCodeAnalyzers) 
+        private (ImmutableArray<DiagnosticAnalyzer> SourceOnlyAnalyzers, ImmutableArray<DiagnosticAnalyzer> WholeCodeAnalyzers)
             SplitAnalyzers(AnalyzerConfigOptionsProvider options, ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
             if (!options.GlobalOptions.TryGetValue("build_property.MetalamaTransformedCodeAnalyzers", out var transformedCodeAnalyzers))
             {
                 // All analyzers are source-only by default.
-                return ( analyzers, ImmutableArray<DiagnosticAnalyzer>.Empty );
+                return (analyzers, ImmutableArray<DiagnosticAnalyzer>.Empty);
             }
             else
             {
                 if (transformedCodeAnalyzers.Trim().Equals("all", StringComparison.OrdinalIgnoreCase))
                 {
-                    return ( analyzers, ImmutableArray<DiagnosticAnalyzer>.Empty );
+                    return (analyzers, ImmutableArray<DiagnosticAnalyzer>.Empty);
                 }
 
                 var rules = transformedCodeAnalyzers
@@ -1226,7 +1231,7 @@ namespace Microsoft.CodeAnalysis
                     .ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
 
                 var cache = new Dictionary<string, bool>(StringComparer.Ordinal);
-                var nameSplitChars = new[] {'+', '.'};
+                var nameSplitChars = new[] { '+', '.' };
 
                 bool MatchesAnyRule(string? name)
                 {
@@ -1247,7 +1252,7 @@ namespace Microsoft.CodeAnalysis
                     else
                     {
 
-                        var indexOfDot = name.LastIndexOfAny( nameSplitChars );
+                        var indexOfDot = name.LastIndexOfAny(nameSplitChars);
                         if (indexOfDot <= 0)
                         {
                             value = false;
@@ -1281,9 +1286,9 @@ namespace Microsoft.CodeAnalysis
             if (!options.Analyzers.IsEmpty)
             {
                 logger.Trace?.Log("Running source-only analyzers.");
-                
+
                 var analyzerManager = new AnalyzerManager(options.Analyzers);
-                
+
                 using var sourceOnlyAnalyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
                     compilation,
                     options.Analyzers,
@@ -1298,12 +1303,12 @@ namespace Microsoft.CodeAnalysis
                 // We must call Compilation.GetDiagnostics even if we drop the results because this has
                 // the effect of processing the event queue of the compilation, and the analyzer driver relies on this.
                 _ = compilationWithSourceOnlyAnalyzers.GetDiagnostics(cancellationToken);
-                
+
                 var sourceOnlyAnalyzerDiagnostics = sourceOnlyAnalyzerDriver
                     .GetDiagnosticsAsync(compilationWithSourceOnlyAnalyzers).Result;
-                
+
                 logger.Trace?.Log($"Source-only analyzers reported {sourceOnlyAnalyzerDiagnostics.Length} diagnostics.");
-                
+
                 if (logger.Trace != null)
                 {
                     foreach (var diagnostic in sourceOnlyAnalyzerDiagnostics)
@@ -1317,13 +1322,13 @@ namespace Microsoft.CodeAnalysis
                 if (!diagnostics.IsEmptyWithoutResolution)
                 {
                     logger.Trace?.Log($"Applying suppressors to diagnostics reported by source-only analyzers.");
-                    
+
                     // Apply diagnostic suppressors for analyzer and/or compiler diagnostics from diagnostic suppressors.
                     var countBefore = diagnostics.Count;
                     sourceOnlyAnalyzerDriver.ApplyProgrammaticSuppressions(diagnostics,
                         compilationWithSourceOnlyAnalyzers);
-                    
-                    logger.Trace?.Log($"Suppressors suppressed {diagnostics.Count-countBefore} diagnostics.");
+
+                    logger.Trace?.Log($"Suppressors suppressed {diagnostics.Count - countBefore} diagnostics.");
                 }
 
                 return compilationWithSourceOnlyAnalyzers;
@@ -1361,7 +1366,7 @@ namespace Microsoft.CodeAnalysis
                 this.CompileAndEmitImpl(touchedFilesLogger, ref compilation, analyzers, generators, transformers,
                     plugins, additionalTextFiles,
                     analyzerConfigSet, sourceFileAnalyzerConfigOptions, embeddedTexts, diagnostics,
-                    cancellationToken, out analyzerCts, out reportAnalyzer, out analyzerDriver, out serviceProvider, out var logger );
+                    cancellationToken, out analyzerCts, out reportAnalyzer, out analyzerDriver, out serviceProvider, out var logger);
             }
             catch (Exception e) when (serviceProvider != null)
             {
@@ -1383,7 +1388,7 @@ namespace Microsoft.CodeAnalysis
         /// (parsing, binding, compile, emit), resulting in diagnostics
         /// and analyzer output.
         /// </summary>
-        private void CompileAndEmitImpl ( // <Metalama/>: rename to Impl
+        private void CompileAndEmitImpl( // <Metalama/>: rename to Impl
             TouchedFileLogger? touchedFilesLogger,
             ref Compilation compilation,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
@@ -1403,13 +1408,13 @@ namespace Microsoft.CodeAnalysis
             out AnalyzerDriver? analyzerDriver,
             // <Metalama>
             out IServiceProvider? serviceProvider,
-            out ILogger? logger ) 
-            // </Metalama> 
+            out ILogger? logger)
+        // </Metalama> 
         {
             analyzerCts = null;
             reportAnalyzer = false;
             analyzerDriver = null;
-            
+
             // <Metalama>
             serviceProvider = null;
             logger = null;
@@ -1580,10 +1585,10 @@ namespace Microsoft.CodeAnalysis
                     var mappedAnalyzerOptions = transformersResult.MappedAnalyzerOptions;
 
                     // Map diagnostics to the final compilation, because suppressors need it.
-                    MapDiagnosticsToFinalCompilation(transformersDiagnostics, diagnostics, compilation, logger );
+                    MapDiagnosticsToFinalCompilation(transformersDiagnostics, diagnostics, compilation, logger);
 
                     // Don't continue if transformers failed.
-                    if (!transformersResult.Success )
+                    if (!transformersResult.Success)
                     {
                         logger.Error?.Log($"RunTransformers was not successful.");
                         return;
@@ -1617,8 +1622,8 @@ namespace Microsoft.CodeAnalysis
                         var projectFullPath = GetMSBuildProjectFullPath(analyzerConfigProvider);
                         var projectDirectory = projectFullPath == null ? null : Path.GetDirectoryName(projectFullPath);
 
-                        var pathGenerator = new TransformedPathGenerator(projectDirectory, transformedOutputPath, _workingDirectory );
-                        
+                        var pathGenerator = new TransformedPathGenerator(projectDirectory, transformedOutputPath, _workingDirectory);
+
                         foreach (var transformedTree in transformersResult.TransformedTrees)
                         {
                             var tree = transformedTree.NewTree;
@@ -1680,7 +1685,7 @@ namespace Microsoft.CodeAnalysis
                                 treeMap.Add((tree, newTree));
                             }
 
-                           
+
                         }
 
                         mappedAnalyzerOptions = CompilerAnalyzerConfigOptionsProvider.MapSyntaxTrees(mappedAnalyzerOptions, treeMap);
@@ -1724,13 +1729,13 @@ namespace Microsoft.CodeAnalysis
                 }
 
             }
-            
+
             // <Metalama>
             var unmappedDiagnostics = new DiagnosticBag();
             // </Metalama>
 
             compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, unmappedDiagnostics, cancellationToken);
-            
+
             // <Metalama>
             MapDiagnosticsToFinalCompilation(unmappedDiagnostics, diagnostics, compilation, logger);
             // </Metalama>
@@ -1810,7 +1815,7 @@ namespace Microsoft.CodeAnalysis
                     embeddedTexts: embeddedTexts,
                     testData: null,
                     cancellationToken: cancellationToken);
-                
+
                 // <Metalama>
                 MapDiagnosticsToFinalCompilation(unmappedDiagnostics, diagnostics, compilation, logger);
                 // </Metalama>
@@ -1829,7 +1834,7 @@ namespace Microsoft.CodeAnalysis
                             unmappedDiagnostics,
                             filterOpt: null,
                             cancellationToken: cancellationToken);
-                        
+
                         // <Metalama>
                         MapDiagnosticsToFinalCompilation(unmappedDiagnostics, diagnostics, compilation, logger);
                         // </Metalama>
@@ -1909,7 +1914,7 @@ namespace Microsoft.CodeAnalysis
                                     // <Metalama>
                                     MapDiagnosticsToFinalCompilation(unmappedDiagnostics, diagnostics, compilation, logger);
                                     // </Metalama>
-                              
+
                                 }
                             }
 
@@ -1937,7 +1942,7 @@ namespace Microsoft.CodeAnalysis
                             // TryComplete, we may miss diagnostics.
                             var hostDiagnostics = analyzerDriver.GetDiagnosticsAsync(compilation).Result;
                             unmappedDiagnostics.AddRange(hostDiagnostics);
-                            
+
                             // <Metalama>
                             MapDiagnosticsToFinalCompilation(unmappedDiagnostics, diagnostics, compilation, logger);
                             // </Metalama>
@@ -1993,11 +1998,11 @@ namespace Microsoft.CodeAnalysis
                             emitOptions: emitOptions,
                             privateKeyOpt: privateKeyOpt,
                             cancellationToken: cancellationToken);
-                        
+
                         // <Metalama>
-                        
+
                         MapDiagnosticsToFinalCompilation(unmappedDiagnostics, diagnostics, compilation, logger);
-                        
+
                         if (success)
                         {
                             logger?.Trace?.Log(
@@ -2071,111 +2076,132 @@ namespace Microsoft.CodeAnalysis
 
         // <Metalama>
 
-        private static ( Diagnostic? MappedDiagnostic, bool HasSystemBug, bool HasAspectBug) MapDiagnosticToFinalCompilation(Diagnostic diagnostic, Compilation compilation, ILogWriter? trace)
+        private static (Diagnostic? MappedDiagnostic, bool HasSystemBug, bool HasAspectBug) MapDiagnosticToFinalCompilation(Diagnostic diagnostic, Compilation compilation, ILogWriter? trace)
         {
-             if (!diagnostic.Location.IsInSource)
-             {
-                 trace?.Log($"Diagnostic passed through because not in source code: {diagnostic}");
+            if (!diagnostic.Location.IsInSource)
+            {
+                trace?.Log($"Diagnostic passed through because not in source code: {diagnostic}");
 
-                 return (diagnostic,false,false);
-             }
+                return (diagnostic, false, false);
+            }
 
-             SyntaxTree? finalTree = SyntaxTreeHistory.GetLast(diagnostic.Location.SourceTree);
-
-                
-             // Find the node in the tree where the diagnostic was reported.
-             var reportedSyntaxNode =
-                 diagnostic.Location.SourceTree.GetRoot().FindNode(diagnostic.Location.SourceSpan);
-
-             // Find the node in the source syntax tree.
-             var sourceSyntaxNode = TreeTracker.GetSourceSyntaxNode(reportedSyntaxNode);
-
-                
-             // If sourceSyntaxNode == null, it means that two conditions are met:
-             //   1. The diagnostic is located in generated code AND
-             //   2. Diagnostics and PDBs are generated against the _source code_.
-             // When the PDBs are generated against the transformed code, we need to code  TryFindGeneratedCodeOrigin to determine if
-             // the diagnostic is located in generated code.
-                
-             var isGeneratedCode = reportedSyntaxNode.TryFindGeneratedCodeOrigin(out var codeGenerator);
-
-             if (sourceSyntaxNode == null || isGeneratedCode)
-             {
-                 // We compare the DefaultSeverity, not the Severity, so that warnings-as-errors are eliminated
-                 // from the output.
-
-                 if (diagnostic.DefaultSeverity < DiagnosticSeverity.Error)
-                 {
-                     trace?.Log(
-                         $"Diagnostic ignored because this is not an error and it was reported in transformed code: {diagnostic}");
-
-                     return default;
-                 }
-                 else if ( isGeneratedCode )
-                 {
-                     // If this is a C# compiler error, it means that we have invalid code.
-                     // Try to find the component that generated it and blame the error on it.
-
-                     var hasSystemBug = false;
-                     var hasAspectBug = false;
-                        
-                     if (codeGenerator == null)
-                     {
-                         hasSystemBug = true;
-                         codeGenerator = "Metalama";
-                     }
-                     else
-                     {
-                         hasAspectBug = true;
-                     }
-
-                     // Replace the diagnostic by a wrapper.
-                     var diagnosticWrapper = Diagnostic.Create(new DiagnosticInfo(
-                         MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.ERR_ErrorInGeneratedCode,
-                         diagnostic.Id, codeGenerator, diagnostic.GetMessage())).WithLocation(diagnostic.Location);
-
-                     trace?.Log(
-                         $"Diagnostic wrapped because it is an error reported in transformed code: {diagnostic}");
+            SyntaxTree reportedSyntaxTree = diagnostic.Location.SourceTree;
+            SyntaxTree? finalTree = SyntaxTreeHistory.GetLast(reportedSyntaxTree);
 
 
-                     return (diagnosticWrapper, hasSystemBug, hasAspectBug);
-                 }
-                 else
-                 {
-                     trace?.Log($"Diagnostic passed through because not in source code neither in generated code: {diagnostic}");
 
-                     return (diagnostic,false,false);
-                 }
-             }
+            // Find the node in the tree where the diagnostic was reported.
+            var reportedSyntaxNode =
+                 reportedSyntaxTree.GetRoot().FindNode(diagnostic.Location.SourceSpan);
 
-             // Find the final tree.
-             RoslynDebug.Assert(compilation.ContainsSyntaxTree(finalTree));
+            // Find the token where the diagnostic was reported, if this was a single token.
+            var reportedSyntaxToken = reportedSyntaxNode.FindToken(diagnostic.Location.SourceSpan.Start);
+            if (!reportedSyntaxToken.FullSpan.Contains(diagnostic.Location.SourceSpan))
+            {
+                reportedSyntaxToken = default;
+            }
 
-             // Find the node in the final tree corresponding to the node in the original tree.
-             if (!TryFindSourceNodeInFinalSyntaxTree(sourceSyntaxNode, finalTree, out var finalNode))
-             {
-                 // The diagnostic was reported on a node that has been removed by some transformation,
-                 // or we have a defect in the mapping logic. We cannot report it in the final syntax
-                 // tree, so report it as if it were in an additional file.
+            // Find the node in the source syntax tree.
+            var sourceSyntaxNode = TreeTracker.GetSourceSyntaxNode(reportedSyntaxNode);
 
-                 trace?.Log($"This diagnostic could not be mapped to final syntax trees: {diagnostic}");
-                 
-                 Location sourceLocation = sourceSyntaxNode.Location;
 
-                 return (diagnostic.WithLocation(Location.Create(sourceLocation.SourceTree.FilePath,
-                     sourceLocation.SourceSpan, sourceLocation.GetLineSpan().Span)), false, false);
+            // If sourceSyntaxNode == null, it means that two conditions are met:
+            //   1. The diagnostic is located in generated code AND
+            //   2. Diagnostics and PDBs are generated against the _source code_.
+            // When the PDBs are generated against the transformed code, we need to code  TryFindGeneratedCodeOrigin to determine if
+            // the diagnostic is located in generated code.
 
-             }
+            var isGeneratedCode = reportedSyntaxNode.TryFindGeneratedCodeOrigin(out var codeGenerator);
 
-             return (diagnostic.WithLocation(finalNode.Location), false, false);
+            if (sourceSyntaxNode == null || isGeneratedCode)
+            {
+                // We compare the DefaultSeverity, not the Severity, so that warnings-as-errors are eliminated
+                // from the output.
+
+                if (diagnostic.DefaultSeverity < DiagnosticSeverity.Error)
+                {
+                    trace?.Log(
+                        $"Diagnostic ignored because this is not an error and it was reported in transformed code: {diagnostic}");
+
+                    return default;
+                }
+                else if (isGeneratedCode)
+                {
+                    // If this is a C# compiler error, it means that we have invalid code.
+                    // Try to find the component that generated it and blame the error on it.
+
+                    var hasSystemBug = false;
+                    var hasAspectBug = false;
+
+                    if (codeGenerator == null)
+                    {
+                        hasSystemBug = true;
+                        codeGenerator = "Metalama";
+                    }
+                    else
+                    {
+                        hasAspectBug = true;
+                    }
+
+                    // Replace the diagnostic by a wrapper.
+                    var diagnosticWrapper = Diagnostic.Create(new DiagnosticInfo(
+                        MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.ERR_ErrorInGeneratedCode,
+                        diagnostic.Id, codeGenerator, diagnostic.GetMessage())).WithLocation(diagnostic.Location);
+
+                    trace?.Log(
+                        $"Diagnostic wrapped because it is an error reported in transformed code: {diagnostic}");
+
+
+                    return (diagnosticWrapper, hasSystemBug, hasAspectBug);
+                }
+                else
+                {
+                    trace?.Log($"Diagnostic passed through because not in source code neither in generated code: {diagnostic}");
+
+                    return (diagnostic, false, false);
+                }
+            }
+
+            // If the diagnostic was reported in the final tree, we are done.
+            // Otherwise, we need to map the diagnostic to the final tree so that suppressors work.
+            if (finalTree == reportedSyntaxTree)
+            {
+                return (diagnostic, false, false);
+            }
+
+
+            RoslynDebug.Assert(compilation.ContainsSyntaxTree(finalTree));
+
+
+            // Find the node in the final tree corresponding to the node in the original tree.
+            if (!TryFindSourceNodeInFinalSyntaxTree(sourceSyntaxNode, finalTree, out _))
+            {
+                // The diagnostic was reported on a node that has been removed by some transformation,
+                // or we have a defect in the mapping logic. We cannot report it in the final syntax
+                // tree because it would break suppressors, so report it as if it were in an additional file.
+
+                trace?.Log($"This diagnostic could not be mapped to final syntax trees: {diagnostic}");
+
+                return (diagnostic.WithLocation(Location.Create(diagnostic.Location.SourceTree!.FilePath,
+                    diagnostic.Location.SourceSpan, diagnostic.Location.GetLineSpan().Span)), false, false);
+            }
+            else
+            {
+                // The where the diagnostic was reported is still a part of the final syntax tree, so we report it there.
+
+                var finalLocation = Location.Create(finalTree, diagnostic.Location.SourceSpan);
+
+                return (diagnostic.WithLocation(finalLocation), false, false);
+            }
         }
-        
-        private static void MapDiagnosticsToFinalCompilation(DiagnosticBag sourceDiagnostics, DiagnosticBag targetDiagnostics, Compilation compilation, ILogger? logger )
+
+
+        private static void MapDiagnosticsToFinalCompilation(DiagnosticBag sourceDiagnostics, DiagnosticBag targetDiagnostics, Compilation compilation, ILogger? logger)
         {
             var hasSystemBug = false;
             var hasAspectBug = false;
             var trace = logger?.Trace;
-            
+
             foreach (var diagnostic in sourceDiagnostics.AsEnumerable())
             {
                 var mapped = MapDiagnosticToFinalCompilation(diagnostic, compilation, trace);
@@ -2184,10 +2210,10 @@ namespace Microsoft.CodeAnalysis
 
                 if (mapped.MappedDiagnostic != null)
                 {
-                    targetDiagnostics.Add( mapped.MappedDiagnostic );
+                    targetDiagnostics.Add(mapped.MappedDiagnostic);
                 }
             }
-            
+
             sourceDiagnostics.Clear();
 
             // If we had an error in generated code, report tips to diagnose the issue.
@@ -2197,7 +2223,7 @@ namespace Microsoft.CodeAnalysis
                     MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.ERR_HowToReportMetalamaBug));
 
                 targetDiagnostics.Add(newDiagnostic);
-            } 
+            }
             else if (hasAspectBug)
             {
                 var newDiagnostic = Diagnostic.Create(new DiagnosticInfo(
@@ -2225,7 +2251,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    finalNode = finalParentNode.ChildNodes().FirstOrDefault( child => TreeTracker.GetSourceSyntaxNode( child) == sourceNode);
+                    finalNode = finalParentNode.ChildNodes().FirstOrDefault(child => TreeTracker.GetSourceSyntaxNode(child) == sourceNode);
 
                     if (finalNode == null)
                     {

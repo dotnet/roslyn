@@ -18,33 +18,14 @@ namespace Metalama.Compiler
 {
     internal static class TreeTracker
     {
-        private static readonly ConditionalWeakTable<SyntaxAnnotation, AnnotationData> annotations = new();
-
-        // "include descendants" means that the annotation also applies to all descendant node
-        // this is commonly used for nodes that are exactly the same as in the pre-transformation tree
-        private const string IncludeDescendantsData = "IncludeDescendants";
-
-        // "exclude descendants" means that the annotation only applies to the specified node
-        // this is used for nodes that changed from the pre-transformation tree
-        private const string ExcludeDescendantsData = "ExcludeDescendants";
-
-        private static SyntaxAnnotation CreateAnnotationForNode(SyntaxNode? node, bool includeChildren)
+        private static TrackingAnnotation CreateAnnotationForNode(SyntaxNode? node, bool includeChildren)
         {
-            var annotation = new SyntaxAnnotation(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind,
-                includeChildren ? IncludeDescendantsData : ExcludeDescendantsData);
-
-            annotations.Add(annotation, new AnnotationData(node));
-
-            return annotation;
+            return new TrackingAnnotation(includeChildren, node);
         }
 
-        private static SyntaxAnnotation CreateAnnotationForToken(SyntaxToken token)
+        private static TrackingAnnotation CreateAnnotationForToken(SyntaxToken token)
         {
-            var annotation = new SyntaxAnnotation(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind, null);
-
-            annotations.Add(annotation, new AnnotationData(token));
-
-            return annotation;
+            return new TrackingAnnotation(false, token);
         }
 
         public static SyntaxAnnotation? GetAnnotationForNodeToBeModified(SyntaxNode node)
@@ -57,20 +38,14 @@ namespace Metalama.Compiler
                 return null;
             }
 
-            if (oldAnnotation.Data == ExcludeDescendantsData)
+            var trackingAnnotation = (TrackingAnnotation)oldAnnotation;
+
+            if (!trackingAnnotation.IncludeDescendants)
             {
-                return oldAnnotation;
+                return trackingAnnotation;
             }
 
-            if (!annotations.TryGetValue(oldAnnotation, out var oldAnnotationData))
-            {
-                Debug.Fail("Cannot get the annotation data.");
-            }
-
-            var newAnnotation = new SyntaxAnnotation(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind, ExcludeDescendantsData);
-            annotations.Add(newAnnotation, new AnnotationData(oldAnnotationData.NodeOrToken));
-
-            return newAnnotation;
+            return new TrackingAnnotation(false, trackingAnnotation.NodeOrToken);
         }
 
         public static bool IsAnnotated(SyntaxNode node) => node.HasAnnotations(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind);
@@ -123,34 +98,31 @@ namespace Metalama.Compiler
                 var index = Array.FindIndex(annotations, a => a.Kind == MetalamaCompilerAnnotations.OriginalLocationAnnotationKind);
                 if (index != -1)
                 {
-                    var oldAnnotation = annotations[index];
+                    var oldAnnotation = (TrackingAnnotation)annotations[index];
 
-                    if (oldAnnotation.Data == ExcludeDescendantsData)
+                    if (!oldAnnotation.IncludeDescendants)
                     {
                         // found and correct, do nothing
                         return;
                     }
 
                     // found and incorrect, replace the annotation
-                    TreeTracker.annotations.TryGetValue(oldAnnotation, out var oldNode);
-                    Debug.Assert(oldNode != null);
                     annotations = annotations.ToArray();
-                    annotations[index] = CreateAnnotationForNode(oldNode.NodeOrToken.AsNode(),
-                        false);
+                    annotations[index] = CreateAnnotationForNode(oldAnnotation.NodeOrToken.AsNode(), false);
                 }
             }
         }
 
-        private static (SyntaxNode? ancestor, SyntaxAnnotation? annotation) FindAncestorWithAnnotation(SyntaxNode node)
+        private static (SyntaxNode? ancestor, TrackingAnnotation? annotation) FindAncestorWithAnnotation(SyntaxNode node)
         {
             var ancestor = node;
 
             // find an ancestor that contains the annotation
             while (ancestor != null)
             {
-                if (ancestor.TryGetAnnotationFast(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind, out var annotation))
+                if (ancestor.TryGetAnnotationFast(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind, out var untypedAnnotation))
                 {
-                    return (ancestor, annotation);
+                    return (ancestor, (TrackingAnnotation)untypedAnnotation);
                 }
 
                 ancestor = ancestor.ParentOrStructuredTriviaParent;
@@ -159,12 +131,12 @@ namespace Metalama.Compiler
             return (null, null);
         }
 
-        private static (SyntaxNodeOrToken? ancestor, SyntaxAnnotation? annotation) FindAncestorWithAnnotation(
+        private static (SyntaxNodeOrToken? ancestor, TrackingAnnotation? annotation) FindAncestorWithAnnotation(
             SyntaxToken token)
         {
-            if (token.TryGetAnnotationFast(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind, out var annotation))
+            if (token.TryGetAnnotationFast(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind, out var untypedAnnotation))
             {
-                return (token, annotation);
+                return (token, (TrackingAnnotation?)untypedAnnotation);
             }
 
             var parent = token.Parent;
@@ -231,12 +203,9 @@ namespace Metalama.Compiler
         }
 
         [return: NotNull]
-        private static bool TryFindSourceNode([DisallowNull] SyntaxNode node, SyntaxNode ancestor, SyntaxAnnotation annotation, [NotNullWhen(true)] out SyntaxNode? sourceNode)
+        private static bool TryFindSourceNode([DisallowNull] SyntaxNode node, SyntaxNode ancestor, TrackingAnnotation annotation, [NotNullWhen(true)] out SyntaxNode? sourceNode)
         {
-            annotations.TryGetValue(annotation, out var annotationData);
-            Debug.Assert(annotationData != null);
-
-            var sourceAncestor = annotationData.NodeOrToken.AsNode()!;
+            var sourceAncestor = annotation.NodeOrToken.AsNode()!;
 
             if (node == ancestor)
             {
@@ -244,7 +213,7 @@ namespace Metalama.Compiler
                 sourceNode = sourceAncestor;
                 return true;
             }
-            else if (annotation.Data == ExcludeDescendantsData)
+            else if (!annotation.IncludeDescendants)
             {
                 sourceNode = null;
                 return false;
@@ -262,15 +231,12 @@ namespace Metalama.Compiler
             }
         }
 
-        private static bool TryFindSourceToken(SyntaxToken token, SyntaxNode parent, SyntaxAnnotation annotation, out SyntaxToken foundToken)
+        private static bool TryFindSourceToken(SyntaxToken token, SyntaxNode parent, TrackingAnnotation annotation, out SyntaxToken foundToken)
         {
-            annotations.TryGetValue(annotation, out var annotationData);
-            Debug.Assert(annotationData != null);
-
-            var originalPosition = token.Position - parent.Position + annotationData.NodeOrToken.Position;
+            var originalPosition = token.Position - parent.Position + annotation.NodeOrToken.Position;
 
             // position is the very end of the ancestor, which is technically not inside it, so FindToken would throw
-            var preTransformationNode = annotationData.NodeOrToken.AsNode()!;
+            var preTransformationNode = annotation.NodeOrToken.AsNode()!;
             if (originalPosition == preTransformationNode.EndPosition)
             {
                 foundToken = preTransformationNode.GetLastToken(true);
@@ -376,7 +342,7 @@ namespace Metalama.Compiler
             }
 
             // unannotated children of ancestor annotated as "exclude children" shouldn't be tracked
-            if (annotation.Data == ExcludeDescendantsData)
+            if (!annotation.IncludeDescendants)
             {
                 return false;
             }
@@ -417,7 +383,7 @@ namespace Metalama.Compiler
             Debug.Assert(ancestor.Value.IsNode);
 
             // unannotated children of ancestor annotated as "exclude children" shouldn't be tracked
-            if (annotation.Data == ExcludeDescendantsData)
+            if (!annotation.IncludeDescendants)
             {
                 return false;
             }
@@ -448,14 +414,13 @@ namespace Metalama.Compiler
             // current node is annotated, so return its stored original token directly
             if (ancestor == token)
             {
-                annotations.TryGetValue(annotation, out var preTransformationToken);
-                return preTransformationToken!.NodeOrToken.AsToken();
+                return annotation.NodeOrToken.AsToken();
             }
 
             Debug.Assert(ancestor.Value.IsNode);
 
             // unannotated children of ancestor annotated as "exclude children" don't have original node
-            if (annotation.Data == ExcludeDescendantsData)
+            if (!annotation.IncludeDescendants)
             {
                 return null;
             }
@@ -493,18 +458,17 @@ namespace Metalama.Compiler
 
         }
 
-        private static SyntaxNode? GetSourceSyntaxNode(SyntaxNode node, SyntaxNode ancestorWithAnnotation, SyntaxAnnotation annotation)
+        private static SyntaxNode? GetSourceSyntaxNode(SyntaxNode node, SyntaxNode ancestorWithAnnotation, TrackingAnnotation annotation)
         {
 
             // current node is annotated, so return its stored original node directly
             if (ancestorWithAnnotation == node)
             {
-                annotations.TryGetValue(annotation, out var preTransformationNode);
-                return preTransformationNode?.NodeOrToken.AsNode();
+                return annotation.NodeOrToken.AsNode();
             }
 
             // unannotated children of ancestor annotated as "exclude children" don't have original node
-            if (annotation.Data == ExcludeDescendantsData)
+            if (!annotation.IncludeDescendants)
             {
                 return null;
             }
@@ -648,12 +612,12 @@ namespace Metalama.Compiler
                         var sourceTrivia = sourceAncestor.FindTrivia(sourcePosition);
 
                         var newTextSpan = new TextSpan(sourcePosition, location.SourceSpan.Length);
-                        
-                        if (sourceTrivia.FullSpan.Contains(newTextSpan) && 
-                            tree.GetText().GetSubText(location.SourceSpan).ToString() == sourceAncestor.SyntaxTree.GetText().GetSubText(newTextSpan).ToString() )
+
+                        if (sourceTrivia.FullSpan.Contains(newTextSpan) &&
+                            tree.GetText().GetSubText(location.SourceSpan).ToString() == sourceAncestor.SyntaxTree.GetText().GetSubText(newTextSpan).ToString())
                         {
                             // The source node indeeds maps to inside the trivia.
-                            
+
                             return (Location.Create(sourceAncestor.SyntaxTree!, newTextSpan), null);
                         }
 
@@ -732,14 +696,24 @@ namespace Metalama.Compiler
         public static void MarkAsUndebuggable(SyntaxTree tree) => undebuggableTrees.Add(tree, null);
 #endif
 
-        private class AnnotationData
+        private class TrackingAnnotation : SyntaxAnnotation
         {
+            // "include descendants" means that the annotation also applies to all descendant node
+            // this is commonly used for nodes that are exactly the same as in the pre-transformation tree
+            // "exclude descendants" means that the annotation only applies to the specified node
+            // this is used for nodes that changed from the pre-transformation tree
+
+            public bool IncludeDescendants { get; }
             public SyntaxNodeOrToken NodeOrToken { get; }
 
-            public AnnotationData(SyntaxNodeOrToken nodeOrToken)
+            public TrackingAnnotation(bool includeDescendants, SyntaxNodeOrToken nodeOrToken) : base(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind)
             {
-                NodeOrToken = nodeOrToken;
+                this.IncludeDescendants = includeDescendants;
+                this.NodeOrToken = nodeOrToken;
+
             }
+
+
         }
 
     }
