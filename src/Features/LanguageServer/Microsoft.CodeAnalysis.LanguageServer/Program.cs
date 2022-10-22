@@ -12,13 +12,19 @@ Console.Title = "Microsoft.CodeAnalysis.LanguageServer";
 //     1.  File logs for feedback
 //     2.  Logs to vscode output window.
 //     3.  Telemetry
+// Also decide how we configure logging (env variables, extension settings, etc.)
 // https://github.com/microsoft/vscode-csharp-next/issues/12
-using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole((options) => options.LogToStandardErrorThreshold = LogLevel.Trace));
+using var loggerFactory = LoggerFactory.Create(builder =>
+{
+    _ = builder.SetMinimumLevel(LogLevel.Trace);
+    _ = builder.AddConsole((options) => options.LogToStandardErrorThreshold = LogLevel.Trace);
+});
 var logger = loggerFactory.CreateLogger<ILogger>();
 
 LaunchDebuggerIfEnabled(args);
 
-var jsonRpc = new RoslynLanguageServer(Console.OpenStandardInput(), Console.OpenStandardOutput(), logger);
+var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(logger);
+var jsonRpc = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), logger, exportProvider);
 
 await jsonRpc.StartAsync();
 
