@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     // Some other sql exception occurred (like SQLITE_FULL). These are not exceptions we can suitably
                     // recover from.  In this case, transition the storage instance into being unusable. Future
                     // reads/writes will get empty results.
-                    this.DisableStorage();
+                    this.DisableStorage(exception);
                     return null;
                 }
 
