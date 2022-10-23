@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
     /// </summary>
     internal abstract class AbstractConditionExpressionAndBlockBasedSnippetProvider : AbstractSnippetProvider
     {
-        public override ImmutableArray<string> AdditionalFilterTexts { get; } = ImmutableArray.Create("statement");
-
         protected abstract TextChange GenerateSnippetTextChange(Document document, int position);
         protected abstract SyntaxNode GetStatementCondition(SyntaxNode node);
 

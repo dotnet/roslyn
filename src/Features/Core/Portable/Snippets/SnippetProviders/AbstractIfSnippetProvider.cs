@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
@@ -15,6 +16,8 @@ namespace Microsoft.CodeAnalysis.Snippets
         public override string SnippetIdentifier => "if";
 
         public override string SnippetDescription => FeaturesResources.if_statement;
+
+        public override ImmutableArray<string> AdditionalFilterTexts { get; } = ImmutableArray.Create("statement");
 
         protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts) => syntaxFacts.IsIfStatement;
 
