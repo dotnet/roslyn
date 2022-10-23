@@ -40,7 +40,7 @@ class Program
             {
                 TestCode = InitialMarkup,
                 FixedCode = ExpectedMarkup,
-                CodeActionValidationMode = CodeActionValidationMode.Full,
+                CodeActionValidationMode = CodeActionValidationMode.SemanticStructure
             }.RunAsync();
         }
 
@@ -152,7 +152,7 @@ class Program
             {
                 TestCode = initialMarkup,
                 FixedCode = expectedMarkup,
-                CodeActionValidationMode = CodeActionValidationMode.Full,
+                CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
             }.RunAsync();
         }
 
@@ -222,7 +222,7 @@ class Program
             {
                 TestCode = initialMarkup,
                 FixedCode = expectedMarkup,
-                CodeActionValidationMode = CodeActionValidationMode.Full,
+                CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
             }.RunAsync();
         }
 
@@ -253,7 +253,7 @@ class Program
             {
                 TestCode = initialMarkup,
                 FixedCode = expectedMarkup,
-                CodeActionValidationMode = CodeActionValidationMode.Full,
+                CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
             }.RunAsync();
         }
 
@@ -283,7 +283,7 @@ class Program
             {
                 TestCode = InitialMarkup,
                 FixedCode = FixedCode,
-                CodeActionValidationMode = CodeActionValidationMode.Full,
+                CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
             }.RunAsync();
         }
     }
