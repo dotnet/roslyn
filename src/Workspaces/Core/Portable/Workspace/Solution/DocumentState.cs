@@ -552,6 +552,30 @@ namespace Microsoft.CodeAnalysis
                 textSource: text,
                 LoadTextOptions,
                 treeSource: ValueSource.Constant(treeAndVersion));
+
+            // use static method so we don't capture references to this
+            static (ITextAndVersionSource, TreeAndVersion) CreateTreeWithLazyText(
+                SyntaxNode newRoot,
+                VersionStamp textVersion,
+                VersionStamp treeVersion,
+                Encoding? encoding,
+                SourceHashAlgorithm checksumAlgorithm,
+                DocumentInfo.DocumentAttributes attributes,
+                ParseOptions options,
+                ISyntaxTreeFactoryService factory)
+            {
+                var tree = factory.CreateSyntaxTree(attributes.SyntaxTreeFilePath, options, encoding, checksumAlgorithm, newRoot);
+
+                // its okay to use a strong cached AsyncLazy here because the compiler layer SyntaxTree will also keep the text alive once its built.
+                var lazyTextAndVersion = new TreeTextSource(
+                    new AsyncLazy<SourceText>(
+                        tree.GetTextAsync,
+                        tree.GetText,
+                        cacheResult: true),
+                    textVersion);
+
+                return (lazyTextAndVersion, new TreeAndVersion(tree, treeVersion));
+            }
         }
 
         private VersionStamp GetNewTreeVersionForUpdatedTree(SyntaxNode newRoot, VersionStamp newTextVersion, PreservationMode mode)
