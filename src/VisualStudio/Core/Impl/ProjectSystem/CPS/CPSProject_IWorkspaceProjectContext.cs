@@ -127,10 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         }
 
         internal string? CompilationOutputAssemblyFilePath
-        {
-            get => _visualStudioProject.CompilationOutputAssemblyFilePath;
-            set => _visualStudioProject.CompilationOutputAssemblyFilePath = value;
-        }
+            => _visualStudioProject.CompilationOutputAssemblyFilePath;
 
         public ProjectId Id => _visualStudioProject.Id;
 

@@ -84,29 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override SyntaxNode DeserializeNodeFrom(Stream stream, CancellationToken cancellationToken)
                 => CSharpSyntaxNode.DeserializeFrom(stream, cancellationToken);
-
-            public override bool CanCreateRecoverableTree(SyntaxNode root)
-                => base.CanCreateRecoverableTree(root) && root is CompilationUnitSyntax cu && cu.AttributeLists.Count == 0;
-
-            public override SyntaxTree CreateRecoverableTree(
-                ProjectId cacheKey,
-                string filePath,
-                ParseOptions options,
-                ITextAndVersionSource text,
-                LoadTextOptions loadTextOptions,
-                Encoding encoding, SyntaxNode root)
-            {
-                Debug.Assert(CanCreateRecoverableTree(root));
-                return RecoverableSyntaxTree.CreateRecoverableTree(
-                    this,
-                    cacheKey,
-                    filePath,
-                    options ?? GetDefaultParseOptions(),
-                    text,
-                    loadTextOptions,
-                    encoding,
-                    (CompilationUnitSyntax)root);
-            }
         }
     }
 }

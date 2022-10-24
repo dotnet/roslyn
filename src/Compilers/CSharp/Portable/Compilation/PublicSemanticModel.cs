@@ -47,5 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
             }
         }
+
+        internal sealed override SemanticModel ContainingPublicModelOrSelf => this;
     }
 }
