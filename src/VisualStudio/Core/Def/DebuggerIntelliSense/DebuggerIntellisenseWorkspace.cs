@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         public DebuggerIntelliSenseWorkspace(Solution solution)
             : base(solution.Workspace.Services.HostServices, WorkspaceKind.Debugger)
         {
-            SetCurrentSolution(solution);
+            SetCurrentSolutionEx(solution);
         }
 
         public void OpenDocument(DocumentId documentId, SourceTextContainer textContainer)
