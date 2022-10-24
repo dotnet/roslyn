@@ -31,9 +31,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _storages = storages;
             }
 
-            public ImmutableArray<TemporaryStorageService.TemporaryStreamStorage> GetStorages()
-                => _storages;
-
             public override bool TryGetValue(out Optional<AssemblyMetadata> value)
             {
                 if (_weakValue.TryGetTarget(out var target))

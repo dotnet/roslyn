@@ -32,7 +32,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceService
     {
         private static readonly Guid s_IID_IMetaDataImport = new("7DAC8207-D3AE-4c75-9B67-92801A497D44");
+
         private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new();
+        private static readonly ConditionalWeakTable<ValueSource<Optional<AssemblyMetadata>>, IReadOnlyList<TemporaryStorageService.TemporaryStreamStorage>> s_valueSourceToStorages = new();
 
         private readonly MetadataCache _metadataCache = new();
         private readonly ImmutableArray<string> _runtimeDirectories;
@@ -69,16 +71,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Assumes.Present(_temporaryStorageService);
         }
 
-        internal IEnumerable<ITemporaryStreamStorageInternal>? GetStorages(string fullPath, DateTime snapshotTimestamp)
+        public IEnumerable<ITemporaryStreamStorageInternal>? GetStorages(string fullPath, DateTime snapshotTimestamp)
         {
             var key = new FileKey(fullPath, snapshotTimestamp);
             // check existing metadata
-            if (_metadataCache.TryGetSource(key, out var source))
+            if (_metadataCache.TryGetSource(key, out var source) &&
+                s_valueSourceToStorages.TryGetValue(source, out var storages))
             {
-                if (source is RecoverableMetadataValueSource metadata)
-                {
-                    return metadata.GetStorages();
-                }
+                return storages;
             }
 
             return null;
@@ -137,10 +137,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // use temporary storage
             using var _ = ArrayBuilder<TemporaryStorageService.TemporaryStreamStorage>.GetInstance(out var storages);
+
             newMetadata = CreateAssemblyMetadataFromTemporaryStorage();
+            var storagesArray = storages.ToImmutable();
+            var valueSource = new RecoverableMetadataValueSource(newMetadata, storagesArray);
+            s_valueSourceToStorages.Add(valueSource, storagesArray);
 
             // don't dispose assembly metadata since it shares module metadata
-            if (!_metadataCache.GetOrAddMetadata(key, new RecoverableMetadataValueSource(newMetadata, storages.ToImmutable()), out metadata))
+            if (!_metadataCache.GetOrAddMetadata(key, valueSource, out metadata))
             {
                 newMetadata.Dispose();
             }
