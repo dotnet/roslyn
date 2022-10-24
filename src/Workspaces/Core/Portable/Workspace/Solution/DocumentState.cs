@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 if (newTree is not null)
-                    newTreeSource = new ConstantValueSource<TreeAndVersion>(new TreeAndVersion(newTree, existingTreeAndVersion.Version));
+                    newTreeSource = ValueSource.Constant(new TreeAndVersion(newTree, existingTreeAndVersion.Version));
             }
 
             // If we weren't able to reuse in a smart way, just reparse
@@ -551,31 +551,7 @@ namespace Microsoft.CodeAnalysis
                 _options,
                 textSource: text,
                 LoadTextOptions,
-                treeSource: new ConstantValueSource<TreeAndVersion>(treeAndVersion));
-
-            // use static method so we don't capture references to this
-            static (ITextAndVersionSource, TreeAndVersion) CreateTreeWithLazyText(
-                SyntaxNode newRoot,
-                VersionStamp textVersion,
-                VersionStamp treeVersion,
-                Encoding? encoding,
-                SourceHashAlgorithm checksumAlgorithm,
-                DocumentInfo.DocumentAttributes attributes,
-                ParseOptions options,
-                ISyntaxTreeFactoryService factory)
-            {
-                var tree = factory.CreateSyntaxTree(attributes.SyntaxTreeFilePath, options, encoding, checksumAlgorithm, newRoot);
-
-                // its okay to use a strong cached AsyncLazy here because the compiler layer SyntaxTree will also keep the text alive once its built.
-                var lazyTextAndVersion = new TreeTextSource(
-                    new AsyncLazy<SourceText>(
-                        tree.GetTextAsync,
-                        tree.GetText,
-                        cacheResult: true),
-                    textVersion);
-
-                return (lazyTextAndVersion, new TreeAndVersion(tree, treeVersion));
-            }
+                treeSource: ValueSource.Constant(treeAndVersion));
         }
 
         private VersionStamp GetNewTreeVersionForUpdatedTree(SyntaxNode newRoot, VersionStamp newTextVersion, PreservationMode mode)

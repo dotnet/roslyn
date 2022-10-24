@@ -101,7 +101,7 @@ public class TestClass
 $@"<Project>
 {content}
 </Project>");
-            uploadUtil?.AddArtifact(filePath);
+            uploadUtil?.AddFile(filePath);
         }
 
         private static void EmitTestHelperTargets(
@@ -141,7 +141,7 @@ $@"<Project>
 {additionalContent}
 </Project>");
 
-            uploadUtil?.AddArtifact(filePath);
+            uploadUtil?.AddFile(filePath);
         }
 
         public DotNetSdkTestBase(ITestOutputHelper testOutputHelper)
@@ -159,7 +159,10 @@ $@"<Project>
             Configuration = "Debug";
             TargetFramework = "netstandard2.0";
 
+            using var uploadUtil = new ArtifactUploadUtil(testOutputHelper);
             ProjectDir = Temp.CreateDirectory();
+            uploadUtil.AddDirectory(ProjectDir.Path);
+
             ObjDir = ProjectDir.CreateDirectory("obj");
             OutDir = ProjectDir.CreateDirectory("bin").CreateDirectory(Configuration).CreateDirectory(TargetFramework);
 
@@ -192,6 +195,7 @@ $@"<Project>
             Assert.True(File.Exists(Path.Combine(ObjDir.Path, "project.assets.json")));
             Assert.True(File.Exists(Path.Combine(ObjDir.Path, ProjectFileName + ".nuget.g.props")));
             Assert.True(File.Exists(Path.Combine(ObjDir.Path, ProjectFileName + ".nuget.g.targets")));
+            uploadUtil.SetSucceeded();
         }
 
         protected void VerifyValues(string? customProps, string? customTargets, string[] targets, string[] expressions, string[] expectedResults)
@@ -205,7 +209,7 @@ $@"<Project>
             var targetsArg = string.Join(";", targets.Concat(new[] { "Test_EvaluateExpressions" }));
             var testBinDirectory = Path.GetDirectoryName(typeof(DotNetSdkTests).Assembly.Location);
             var binLog = Path.Combine(ProjectDir.Path, $"build{_logIndex++}.binlog");
-            uploadUtil.AddArtifact(binLog);
+            uploadUtil.AddFile(binLog);
 
             // RoslynTargetsPath is a path to the built-in Roslyn compilers in the .NET SDK.
             // For testing we are using compilers from custom location (this emulates usage of Microsoft.Net.Compilers package.
@@ -216,6 +220,7 @@ $@"<Project>
 
             var evaluationResult = File.ReadAllLines(evaluationResultsFile).Select(l => (l != EmptyValueMarker) ? l : "");
             AssertEx.Equal(expectedResults, evaluationResult);
+
             uploadUtil.SetSucceeded();
         }
     }
