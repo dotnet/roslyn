@@ -121,6 +121,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         private static async Task PerformSearchesAsync(IRemoteHostClientProvider service, Document document, string name)
         {
+            // Fork the document, with 100 variants of methods called 'name' in it.
             var forked = document.Project.Solution.WithDocumentText(document.Id, SourceText.From(CreateText(name)));
 
             using var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
