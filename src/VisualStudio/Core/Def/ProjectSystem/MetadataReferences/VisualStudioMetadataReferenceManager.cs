@@ -159,27 +159,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 ModuleMetadata CreateModuleMetadata(FileKey moduleFileKey)
                 {
-                    var (storage, metadata) = GetMetadataFromTemporaryStorage(moduleFileKey);
+                    GetMetadataFromTemporaryStorage(moduleFileKey, out var storage, out var metadata);
                     storages.Add(storage);
                     return metadata;
                 }
             }
         }
 
-        private (TemporaryStorageService.TemporaryStreamStorage storage, ModuleMetadata metadata) GetMetadataFromTemporaryStorage(FileKey moduleFileKey)
+        private void GetMetadataFromTemporaryStorage(
+            FileKey moduleFileKey, out TemporaryStorageService.TemporaryStreamStorage storage, out ModuleMetadata metadata)
         {
-            var (storage, stream) = GetStorageInfoFromTemporaryStorage(moduleFileKey);
+            GetStorageInfoFromTemporaryStorage(moduleFileKey, out storage, out var stream);
 
             unsafe
             {
                 // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
-                return (storage, ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream.Dispose));
+                metadata = ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream.Dispose);
             }
 
-            (TemporaryStorageService.TemporaryStreamStorage storage, UnmanagedMemoryStream stream) GetStorageInfoFromTemporaryStorage(FileKey moduleFileKey)
-            {
-                TemporaryStorageService.TemporaryStreamStorage storage;
+            return;
 
+            void GetStorageInfoFromTemporaryStorage(
+                FileKey moduleFileKey, out TemporaryStorageService.TemporaryStreamStorage storage, out UnmanagedMemoryStream stream)
+            {
                 int size;
                 using (var copyStream = SerializableBytes.CreateWritableStream())
                 {
@@ -209,12 +211,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 // get stream that owns the underlying unmanaged memory.
-                var stream = storage.ReadStream(CancellationToken.None);
+                stream = storage.ReadStream(CancellationToken.None);
 
                 // stream size must be same as what metadata reader said the size should be.
                 Contract.ThrowIfFalse(stream.Length == size);
-
-                return (storage, stream);
             }
 
             static void StreamCopy(Stream source, Stream destination, int start, int length)
@@ -253,9 +253,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             ModuleMetadata CreateModuleMetadata(FileKey moduleFileKey)
             {
                 var metadata = TryCreateModuleMetadataFromMetadataImporter(moduleFileKey);
+
                 // getting metadata didn't work out through importer. fallback to shadow copy one
                 if (metadata == null)
-                    (_, metadata) = GetMetadataFromTemporaryStorage(moduleFileKey);
+                    GetMetadataFromTemporaryStorage(moduleFileKey, out _, out metadata);
 
                 return metadata;
             }
