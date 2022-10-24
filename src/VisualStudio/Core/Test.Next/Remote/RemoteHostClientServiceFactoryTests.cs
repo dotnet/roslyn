@@ -112,16 +112,15 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                 // 100 inner loops producing variants of the file.
                 for (var j = 0; j < 100; j++)
                 {
-                    tasks.Add(Task.Run(async () => await PerformSearchesAsync(service, document, j)));
+                    tasks.Add(Task.Run(async () => await PerformSearchesAsync(service, document, name: "Goo" + i)));
                 }
             }
 
             await Task.WhenAll(tasks);
         }
 
-        private static async Task PerformSearchesAsync(IRemoteHostClientProvider service, Document document, int i)
+        private static async Task PerformSearchesAsync(IRemoteHostClientProvider service, Document document, string name)
         {
-            var name = "Goo" + i;
             var forked = document.Project.Solution.WithDocumentText(document.Id, SourceText.From(CreateText(name)));
 
             using var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
