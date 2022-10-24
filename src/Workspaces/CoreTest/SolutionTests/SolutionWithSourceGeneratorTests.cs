@@ -369,34 +369,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public async Task RequestingGeneratedDocumentsTwiceGivesSameInstance()
-        {
-            using var workspace = CreateWorkspace();
-
-            var generatorRan = false;
-            var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
-            var project = AddEmptyProject(workspace.CurrentSolution)
-                .AddAnalyzerReference(analyzerReference)
-                .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
-
-            var generatedDocumentFirstTime = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
-            var tree = await generatedDocumentFirstTime.GetSyntaxTreeAsync();
-
-            // Fetch the compilation, and then wait for it to be GC'ed, then fetch it again. This ensures that
-            // finalizing a compilation more than once doesn't recreate things incorrectly or run the generator more than once.
-            generatorRan = false;
-            var compilationReference = ObjectReference.CreateFromFactory(() => project.GetCompilationAsync().Result);
-            compilationReference.AssertHeld();
-            var secondCompilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
-
-            var generatedDocumentSecondTime = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
-
-            Assert.Same(generatedDocumentFirstTime, generatedDocumentSecondTime);
-            Assert.Same(tree, secondCompilation.SyntaxTrees.Single());
-            Assert.False(generatorRan);
-        }
-
-        [Fact]
         public async Task GetDocumentWithGeneratedTreeReturnsGeneratedDocument()
         {
             using var workspace = CreateWorkspace();
@@ -727,52 +699,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(generatorRan);
 
             Assert.Equal("// Something else", (await document.GetRequiredSyntaxRootAsync(CancellationToken.None)).ToFullString());
-        }
-
-        [Fact, WorkItem(56702, "https://github.com/dotnet/roslyn/issues/56702")]
-        public async Task ForkAfterFreezeNoLongerRunsGeneratorsEvenIfCompilationFallsAwayBeforeFreeze()
-        {
-            using var workspace = CreateWorkspaceWithPartialSemantics();
-            var generatorRan = false;
-            var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
-            var project = AddEmptyProject(workspace.CurrentSolution)
-                .AddAnalyzerReference(analyzerReference)
-                .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
-
-            // Ensure generators are ran
-            var compilationReference = ObjectReference.CreateFromFactory(() => project.GetCompilationAsync().Result);
-
-            Assert.True(generatorRan);
-            generatorRan = false;
-
-            compilationReference.AssertHeld();
-
-            var document = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
-
-            // And fork with new contents; we'll ensure the contents of this tree are different, but the generator will still not be ran
-            document = document.WithText(SourceText.From("// Something else"));
-
-            var compilation = await document.Project.GetRequiredCompilationAsync(CancellationToken.None);
-            Assert.Equal(2, compilation.SyntaxTrees.Count());
-            Assert.False(generatorRan);
-
-            Assert.Equal("// Something else", (await document.GetRequiredSyntaxRootAsync(CancellationToken.None)).ToFullString());
-        }
-
-        [Fact]
-        public async Task ChangesToAdditionalFilesCorrectlyAppliedEvenIfCompilationFallsAway()
-        {
-            using var workspace = CreateWorkspace();
-            var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
-            var project = AddEmptyProject(workspace.CurrentSolution)
-                .AddAnalyzerReference(analyzerReference)
-                .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
-
-            var compilationReference = ObjectReference.CreateFromFactory(() => project.GetRequiredCompilationAsync(CancellationToken.None).Result);
-            compilationReference.AssertHeld();
-
-            var projectWithoutAdditionalFiles = project.RemoveAdditionalDocument(project.AdditionalDocumentIds.Single());
-            Assert.Empty((await projectWithoutAdditionalFiles.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
         }
 
         [Fact]

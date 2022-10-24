@@ -2192,24 +2192,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13433")]
-        public void TestSyntaxRootNotKeptAlive()
-        {
-            var pid = ProjectId.CreateNewId();
-            var did = DocumentId.CreateNewId(pid);
-
-            using var workspace = CreateWorkspace();
-            var sol = workspace.CurrentSolution
-                .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
-                .AddDocument(did, "goo.cs", "public class Goo { }");
-
-            var observedRoot = GetObservedSyntaxTreeRoot(sol, did);
-            observedRoot.AssertReleased();
-
-            // re-get the tree (should recover from storage, not reparse)
-            _ = sol.GetDocument(did).GetSyntaxRootAsync().Result;
-        }
-
         [MethodImpl(MethodImplOptions.NoInlining)]
         [Fact, WorkItem(542736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542736")]
         public void TestDocumentChangedOnDiskIsNotObserved()
@@ -2399,31 +2381,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var doc = sol.GetDocument(did);
 
             var docRoot = await doc.GetSyntaxRootAsync();
-
-            Assert.NotNull(docRoot);
-            Assert.Equal(text, docRoot.ToString());
-        }
-
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14954")]
-        public void TestGetRecoveredSyntaxRootAsync()
-        {
-            var pid = ProjectId.CreateNewId();
-            var did = DocumentId.CreateNewId(pid);
-
-            var text = "public class C {}";
-
-            using var workspace = CreateWorkspace();
-            var sol = workspace.CurrentSolution
-                                    .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
-                                    .AddDocument(did, "goo.cs", text);
-
-            // observe the syntax tree root and wait for the references to be GC'd
-            var observed = GetObservedSyntaxTreeRoot(sol, did);
-            observed.AssertReleased();
-
-            // get it async and force it to be recovered from storage
-            var doc = sol.GetDocument(did);
-            var docRoot = doc.GetSyntaxRootAsync().Result;
 
             Assert.NotNull(docRoot);
             Assert.Equal(text, docRoot.ToString());
