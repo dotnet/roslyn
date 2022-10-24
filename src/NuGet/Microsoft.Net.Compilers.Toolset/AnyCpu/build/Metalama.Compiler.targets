@@ -1,5 +1,9 @@
 <Project>
- <PropertyGroup>
-    <MetalamaTransformedCodeAnalyzers>@(MetalamaTransformedCodeAnalyzer)</MetalamaTransformedCodeAnalyzers>
- </PropertyGroup>
+  <PropertyGroup>
+      <MetalamaTransformedCodeAnalyzers>@(MetalamaTransformedCodeAnalyzer)</MetalamaTransformedCodeAnalyzers>
+  </PropertyGroup>
+  <ItemGroup> 
+      <!-- For packages.config projects, it is necessary to explicitly include the analyzer as an ItemGroup. -->
+      <Analyzer Condition="'$(IsRestoreTargetsFileLoaded)'!='True'" Include="$(MSBuildThisFileDirectory)/../analyzers/dotnet/cs/*.dll"/>
+  </ItemGroup>
 </Project>

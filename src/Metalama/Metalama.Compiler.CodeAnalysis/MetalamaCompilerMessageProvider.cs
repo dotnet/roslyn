@@ -24,7 +24,8 @@ namespace Metalama.Compiler
         ERR_HowToDiagnoseInvalidAspect = 612,
         ERR_HowToReportMetalamaBug = 613,
         ERR_ManyTransformersOfSameName = 614,
-        ERR_InvalidLicenseForSdk = 615
+        ERR_InvalidLicenseForSdk = 615,
+        ERR_TransformerNotUnique = 616
     }
 
     internal sealed class MetalamaCompilerMessageProvider : CommonMessageProvider
@@ -218,6 +219,7 @@ namespace Metalama.Compiler
             ERR_HowToDiagnoseInvalidAspect => DiagnosticSeverity.Error,
             ERR_HowToReportMetalamaBug => DiagnosticSeverity.Error,
             ERR_ManyTransformersOfSameName => DiagnosticSeverity.Error,
+            ERR_TransformerNotUnique => DiagnosticSeverity.Error,
 
             _ => throw new ArgumentOutOfRangeException(nameof(code))
         };
@@ -240,6 +242,7 @@ namespace Metalama.Compiler
                 ERR_HowToDiagnoseInvalidAspect => "How to diagnose an aspect bug",
                 ERR_HowToReportMetalamaBug => "How to report a Metalama bug",
                 ERR_ManyTransformersOfSameName => "The project contains several transformers of the same name",
+                ERR_TransformerNotUnique => "There are several transformers of the same name",
                 _ => throw new ArgumentOutOfRangeException(nameof(code))
             };
 
@@ -269,6 +272,7 @@ namespace Metalama.Compiler
                 ERR_HowToReportMetalamaBug => "The most likely cause of the compilation failure is a bug in Metalama. Please report the issue to the Metalama support team. To facilitate troubleshooting, build the project with the option '-p:MetalamaDebugTransformedCode=True', inspect the transformed files in 'obj/Debug/.../metalama'"
                 + "and report the relevant files or snippets.",
                 ERR_ManyTransformersOfSameName => "The project contains several transformers named '{0}': {1}.",
+                ERR_TransformerNotUnique => "There are several transformers named '{0}': {1}.",
                 _ => throw new ArgumentOutOfRangeException(nameof(code))
             };
 

@@ -38,9 +38,6 @@
     <MetalamaTransformedCodeAnalyzer Include="Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues"/>
     <MetalamaTransformedCodeAnalyzer Include="Microsoft.CodeQuality.Analyzers.Maintainability.AvoidUnusedPrivateFieldsAnalyzer"/>
     
-    <!-- For packages.config projects, it is necessary to explicitly include the analyzer as an ItemGroup. -->
-    <Analyzer Include="$(MSBuildThisFileDirectory)/../analyzers/dotnet/cs/*.dll"/>
-
   </ItemGroup>
   <!-- </Metalama> -->
   
