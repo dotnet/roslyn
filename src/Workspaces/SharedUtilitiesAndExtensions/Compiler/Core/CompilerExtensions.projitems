@@ -544,7 +544,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ValuesSources\ConstantValueSource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ValuesSources\ValueSource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ValuesSources\WeaklyCachedRecoverableValueSource.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\ValuesSources\WeaklyCachedValueSource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\WeakEventHandler.cs" />
   </ItemGroup>
   <ItemGroup>
