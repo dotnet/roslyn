@@ -73,9 +73,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             var whileStatementSyntax = (WhileStatementSyntax)snippet;
             var blockStatement = (BlockSyntax)whileStatementSyntax.Statement;
             blockStatement = blockStatement.WithCloseBraceToken(blockStatement.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
-            var newIfStatementSyntax = whileStatementSyntax.ReplaceNode(whileStatementSyntax.Statement, blockStatement);
+            var newWhileStatementSyntax = whileStatementSyntax.ReplaceNode(whileStatementSyntax.Statement, blockStatement);
 
-            var newRoot = root.ReplaceNode(whileStatementSyntax, newIfStatementSyntax);
+            var newRoot = root.ReplaceNode(whileStatementSyntax, newWhileStatementSyntax);
             return document.WithSyntaxRoot(newRoot);
         }
     }
