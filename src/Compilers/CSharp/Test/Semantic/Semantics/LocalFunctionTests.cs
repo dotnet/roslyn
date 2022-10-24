@@ -4633,6 +4633,18 @@ class C
             });
         }
 
+        [Fact, WorkItem(16821, "https://github.com/dotnet/roslyn/issues/16821")]
+        public void LocalFunction_ParameterDefaultValue_NameOfLocalFunction()
+        {
+            var source = """
+                using System;
+                void Local() {}
+                void Local2(string s = nameof(Local)) => Console.WriteLine(s);
+                Local2();
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
         [Fact]
         [WorkItem(15536, "https://github.com/dotnet/roslyn/issues/15536")]
         public void CallFromDifferentSwitchSection_01()
