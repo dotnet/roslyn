@@ -12538,11 +12538,6 @@ class Program
             CompileAndVerify(source, expectedOutput: "0.3333333333333333333333333333");
         }
 
-
-        // PROTOTYPE: Do we want to allow [Caller{MemberName, LineNumber, FilePath, ArgumentExpression}] attributes for lambdas since
-        // we now have default parameters? The current behavior is to ignore these attributes so that the provided
-        // default would always be used in these cases.
-
         [Fact]
         public void CallerAttributesOnLambdaWithDefaultParam()
         {
@@ -12559,9 +12554,45 @@ class Program
     }
 }
 """;
-            CompileAndVerify(source, expectedOutput: "file::member:0");
+            var verifier = CompileAndVerify(source, expectedOutput: "::Main:9");
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", """
+                .class private auto ansi sealed '<>f__AnonymousDelegate0'
+                	extends [netstandard]System.MulticastDelegate
+                {
+                	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Methods
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor (
+                			object 'object',
+                			native int 'method'
+                		) runtime managed 
+                	{
+                	} // end of method '<>f__AnonymousDelegate0'::.ctor
+                	.method public hidebysig newslot virtual 
+                		instance void Invoke (
+                			[opt] string arg1,
+                			[opt] string arg2,
+                			[opt] int32 arg3
+                		) runtime managed 
+                	{
+                		.param [1] = "member"
+                			.custom instance void [netstandard]System.Runtime.CompilerServices.CallerMemberNameAttribute::.ctor() = (
+                				01 00 00 00
+                			)
+                		.param [2] = "file"
+                			.custom instance void [netstandard]System.Runtime.CompilerServices.CallerFilePathAttribute::.ctor() = (
+                				01 00 00 00
+                			)
+                		.param [3] = int32(0)
+                			.custom instance void [netstandard]System.Runtime.CompilerServices.CallerLineNumberAttribute::.ctor() = (
+                				01 00 00 00
+                			)
+                	} // end of method '<>f__AnonymousDelegate0'::Invoke
+                } // end of class <>f__AnonymousDelegate0
+                """);
         }
-
 
         [Fact]
         public void CallerArgumentExpressionAttributeOnLambdaWithDefaultParam()
@@ -12581,7 +12612,7 @@ class Program
 """;
             CompileAndVerify(source, targetFramework: TargetFramework.Net60,
                                      verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Skipped,
-                                     expectedOutput: ExecutionConditionUtil.IsCoreClr ? "callerArgExpression" : null);
+                                     expectedOutput: ExecutionConditionUtil.IsCoreClr ? "3" : null);
         }
 
         [Fact]
@@ -13449,6 +13480,30 @@ class Program
     }
 }
 """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (10,27): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of '<anonymous delegate>'
+                //         Console.WriteLine(lam());
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam").WithArguments("arg", "<anonymous delegate>").WithLocation(10, 27));
+        }
+
+        [Fact]
+        public void LambdaWithParameterDefaultValueAttribute_Optional()
+        {
+            var source = """
+using System;
+using System.Runtime.InteropServices;
+
+class Program
+{
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+    public static void Main()
+    {
+        var lam = ([Optional, DefaultParameterValue(3)] int x) => x;
+        Console.WriteLine(lam());
+        Report(lam);
+    }
+}
+""";
             CompileAndVerify(source, expectedOutput:
 @"3
 <>f__AnonymousDelegate0").VerifyDiagnostics();
@@ -13756,6 +13811,126 @@ class Program
             CompileAndVerify(source, expectedOutput:
 $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
 {s_expressionOfTDelegate1ArgTypeName}[System.Func`2[System.Int32,<>f__AnonymousDelegate0]]").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaNullableAttributes()
+        {
+            var source = """
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                static void Report(object obj) => Console.WriteLine(obj.GetType());
+
+                var lam1 = (object o = null) => {};
+                var lam2 = (object o) => {};
+                var lam3 = ([AllowNull] object o = null) => {};
+                var lam4 = ([AllowNull] object o) => {};
+                Report(lam1);
+                Report(lam2);
+                Report(lam3);
+                Report(lam4);
+                """;
+            var verifier = CompileAndVerify(new[] { source, AllowNullAttributeDefinition }, expectedOutput: """
+                <>f__AnonymousDelegate0
+                System.Action`1[System.Object]
+                <>f__AnonymousDelegate1
+                <>f__AnonymousDelegate2
+                """).VerifyDiagnostics();
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", """
+                .class private auto ansi sealed '<>f__AnonymousDelegate0'
+                    extends [netstandard]System.MulticastDelegate
+                {
+                    .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    // Methods
+                    .method public hidebysig specialname rtspecialname 
+                        instance void .ctor (
+                            object 'object',
+                            native int 'method'
+                        ) runtime managed 
+                    {
+                    } // end of method '<>f__AnonymousDelegate0'::.ctor
+                    .method public hidebysig newslot virtual 
+                        instance void Invoke (
+                            [opt] object arg
+                        ) runtime managed 
+                    {
+                        .param [1] = nullref
+                    } // end of method '<>f__AnonymousDelegate0'::Invoke
+                } // end of class <>f__AnonymousDelegate0
+                """);
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate1", """
+                .class private auto ansi sealed '<>f__AnonymousDelegate1'
+                	extends [netstandard]System.MulticastDelegate
+                {
+                	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Methods
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor (
+                			object 'object',
+                			native int 'method'
+                		) runtime managed 
+                	{
+                	} // end of method '<>f__AnonymousDelegate1'::.ctor
+                	.method public hidebysig newslot virtual 
+                		instance void Invoke (
+                			[opt] object arg
+                		) runtime managed 
+                	{
+                		.param [1] = nullref
+                			.custom instance void System.Diagnostics.CodeAnalysis.AllowNullAttribute::.ctor() = (
+                				01 00 00 00
+                			)
+                	} // end of method '<>f__AnonymousDelegate1'::Invoke
+                } // end of class <>f__AnonymousDelegate1
+                """);
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate2", """
+                .class private auto ansi sealed '<>f__AnonymousDelegate2'
+                	extends [netstandard]System.MulticastDelegate
+                {
+                	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Methods
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor (
+                			object 'object',
+                			native int 'method'
+                		) runtime managed 
+                	{
+                	} // end of method '<>f__AnonymousDelegate2'::.ctor
+                	.method public hidebysig newslot virtual 
+                		instance void Invoke (
+                			object arg
+                		) runtime managed 
+                	{
+                		.param [1]
+                			.custom instance void System.Diagnostics.CodeAnalysis.AllowNullAttribute::.ctor() = (
+                				01 00 00 00
+                			)
+                	} // end of method '<>f__AnonymousDelegate2'::Invoke
+                } // end of class <>f__AnonymousDelegate2
+                """);
+        }
+
+        [Fact]
+        public void Lambda_ParameterAttribute()
+        {
+            var source = """
+                using System;
+                
+                static void Report(object obj) => Console.WriteLine(obj.GetType());
+
+                var lam = ([A] int x) => x;
+                Report(lam);
+
+                class A : Attribute {}
+                """;
+            CompileAndVerify(source, expectedOutput: "System.Func`2[System.Int32,System.Int32]");
         }
     }
 }

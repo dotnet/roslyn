@@ -213,13 +213,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind,
             string name = "",
             DeclarationScope scope = DeclarationScope.Unscoped,
-            ConstantValue? defaultValue = null,
             ImmutableArray<CustomModifier> refCustomModifiers = default,
-            SourceComplexParameterSymbolBase? baseParameterForAttributes = null)
+            SourceComplexParameterSymbolBase? baseParameterForAttributes = null,
+            SourceComplexParameterSymbolBase? synthesizedParameterAttributes = null)
         {
-            if (refCustomModifiers.IsDefaultOrEmpty && baseParameterForAttributes is null && defaultValue is null)
+            if (refCustomModifiers.IsDefaultOrEmpty && baseParameterForAttributes is null && synthesizedParameterAttributes is null)
             {
                 return new SynthesizedParameterSymbol(container, type, ordinal, refKind, scope, name);
+            }
+
+            if (synthesizedParameterAttributes is not null)
+            {
+                Debug.Assert(refCustomModifiers.IsDefaultOrEmpty && baseParameterForAttributes is null);
+
+                return new SynthesizedParameterSymbolWithAttributes(
+                    container,
+                    type,
+                    ordinal,
+                    refKind,
+                    scope,
+                    name,
+                    synthesizedParameterAttributes);
             }
 
             return new SynthesizedComplexParameterSymbol(
@@ -228,7 +242,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ordinal,
                 refKind,
                 scope,
-                defaultValue,
                 name,
                 refCustomModifiers.NullToEmpty(),
                 baseParameterForAttributes);
@@ -256,9 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     oldParam.RefKind,
                     oldParam.Name,
                     oldParam.EffectiveScope,
-                    oldParam.ExplicitDefaultConstantValue,
-                    oldParam.RefCustomModifiers,
-                    baseParameterForAttributes: null));
+                    oldParam.RefCustomModifiers));
             }
 
             return builder.ToImmutableAndFree();
@@ -281,7 +292,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // The parameter containing attributes to inherit into this synthesized parameter, if any.
         private readonly SourceComplexParameterSymbolBase? _baseParameterForAttributes;
-        private readonly ConstantValue? _defaultValue;
 
         public SynthesizedComplexParameterSymbol(
             MethodSymbol? container,
@@ -289,19 +299,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             RefKind refKind,
             DeclarationScope scope,
-            ConstantValue? defaultValue,
             string name,
             ImmutableArray<CustomModifier> refCustomModifiers,
             SourceComplexParameterSymbolBase? baseParameterForAttributes)
             : base(container, type, ordinal, refKind, scope, name)
         {
             Debug.Assert(!refCustomModifiers.IsDefault);
-            Debug.Assert(!refCustomModifiers.IsEmpty || baseParameterForAttributes is object || defaultValue is not null);
-            Debug.Assert(baseParameterForAttributes is null || baseParameterForAttributes.ExplicitDefaultConstantValue == defaultValue);
+            Debug.Assert(!refCustomModifiers.IsEmpty || baseParameterForAttributes is object);
 
             _refCustomModifiers = refCustomModifiers;
             _baseParameterForAttributes = baseParameterForAttributes;
-            _defaultValue = defaultValue;
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -339,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsMetadataOut => RefKind == RefKind.Out || _baseParameterForAttributes?.GetDecodedWellKnownAttributeData()?.HasOutAttribute == true;
 
-        internal override ConstantValue? ExplicitDefaultConstantValue => _baseParameterForAttributes?.ExplicitDefaultConstantValue ?? _defaultValue;
+        internal override ConstantValue? ExplicitDefaultConstantValue => _baseParameterForAttributes?.ExplicitDefaultConstantValue;
 
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
@@ -357,6 +364,92 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(_baseParameterForAttributes is null);
                 return base.NotNullIfParameterNotNull;
             }
+        }
+    }
+
+    internal sealed class SynthesizedParameterSymbolWithAttributes : SynthesizedParameterSymbolBase
+    {
+        private readonly SourceComplexParameterSymbolBase _baseParameterForAttributes;
+
+        public SynthesizedParameterSymbolWithAttributes(
+            MethodSymbol? container,
+            TypeWithAnnotations type,
+            int ordinal,
+            RefKind refKind,
+            DeclarationScope scope,
+            string name,
+            SourceComplexParameterSymbolBase baseParameterForAttributes)
+            : base(container, type, ordinal, refKind, scope, name)
+        {
+            _baseParameterForAttributes = baseParameterForAttributes;
+        }
+
+        internal override bool IsMetadataIn => RefKind == RefKind.In;
+        internal override bool IsMetadataOut => RefKind == RefKind.Out;
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+        internal override MarshalPseudoCustomAttributeData? MarshallingInformation => null;
+
+        public override ImmutableArray<CSharpAttributeData> GetAttributes()
+        {
+            var baseAttributes = _baseParameterForAttributes.GetAttributes();
+            if (baseAttributes.IsDefaultOrEmpty)
+            {
+                return baseAttributes;
+            }
+
+            var attributes = ArrayBuilder<CSharpAttributeData>.GetInstance();
+            foreach (var baseAttribute in baseAttributes)
+            {
+                if (baseAttribute.IsTargetAttribute(_baseParameterForAttributes, AttributeDescription.CallerMemberNameAttribute) ||
+                    baseAttribute.IsTargetAttribute(_baseParameterForAttributes, AttributeDescription.CallerLineNumberAttribute) ||
+                    baseAttribute.IsTargetAttribute(_baseParameterForAttributes, AttributeDescription.CallerFilePathAttribute) ||
+                    baseAttribute.IsTargetAttribute(_baseParameterForAttributes, AttributeDescription.AllowNullAttribute) ||
+                    baseAttribute.IsTargetAttribute(_baseParameterForAttributes, AttributeDescription.DisallowNullAttribute) ||
+                    baseAttribute.IsTargetAttribute(_baseParameterForAttributes, AttributeDescription.MaybeNullAttribute) ||
+                    baseAttribute.IsTargetAttribute(_baseParameterForAttributes, AttributeDescription.MaybeNullWhenAttribute) ||
+                    baseAttribute.IsTargetAttribute(_baseParameterForAttributes, AttributeDescription.NotNullAttribute) ||
+                    baseAttribute.IsTargetAttribute(_baseParameterForAttributes, AttributeDescription.NotNullWhenAttribute) ||
+                    baseAttribute.IsTargetAttribute(_baseParameterForAttributes, AttributeDescription.NotNullIfNotNullAttribute) ||
+                    baseAttribute.IsTargetAttribute(_baseParameterForAttributes, AttributeDescription.DoesNotReturnIfAttribute) ||
+                    baseAttribute.IsTargetAttribute(_baseParameterForAttributes, AttributeDescription.OptionalAttribute) ||
+                    baseAttribute.IsTargetAttribute(_baseParameterForAttributes, AttributeDescription.DefaultParameterValueAttribute))
+                {
+                    attributes.Add(baseAttribute);
+                }
+            }
+            return attributes.ToImmutableAndFree();
+        }
+
+        internal override bool IsMetadataOptional => _baseParameterForAttributes.IsMetadataOptional;
+        internal override ConstantValue? ExplicitDefaultConstantValue => _baseParameterForAttributes.ExplicitDefaultConstantValue;
+        internal override bool IsCallerMemberName => _baseParameterForAttributes.IsCallerMemberName;
+        internal override bool IsCallerLineNumber => _baseParameterForAttributes.IsCallerLineNumber;
+        internal override bool IsCallerFilePath => _baseParameterForAttributes.IsCallerFilePath;
+        internal override int CallerArgumentExpressionParameterIndex => _baseParameterForAttributes.CallerArgumentExpressionParameterIndex;
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations => _baseParameterForAttributes.FlowAnalysisAnnotations;
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull => _baseParameterForAttributes.NotNullIfParameterNotNull;
+    }
+
+    internal readonly record struct SynthesizedParameterAttributes(
+        ConstantValue? DefaultValue,
+        bool IsCallerMemberName,
+        bool IsCallerLineNumber,
+        bool IsCallerFilePath,
+        int? CallerArgumentExpressionParameterIndex,
+        FlowAnalysisAnnotations FlowAnalysisAnnotations)
+    {
+        public static SynthesizedParameterAttributes For(ParameterSymbol? parameter)
+        {
+            if (parameter is null)
+            {
+                return default;
+            }
+            return new(parameter.ExplicitDefaultConstantValue,
+                parameter.IsCallerMemberName,
+                parameter.IsCallerLineNumber,
+                parameter.IsCallerFilePath,
+                parameter.CallerArgumentExpressionParameterIndex < 0 ? null : parameter.CallerArgumentExpressionParameterIndex,
+                parameter.FlowAnalysisAnnotations);
         }
     }
 }

@@ -8914,15 +8914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var parameters = method.Parameters;
-            var parameterScopes = parameters.Any(p => p.EffectiveScope != DeclarationScope.Unscoped) ?
-                parameters.SelectAsArray(p => p.EffectiveScope) :
-                default;
-            var parameterDefaultValues = parameters.Any(p => p.HasExplicitDefaultValue) ?
-                parameters.SelectAsArray(p => p.ExplicitDefaultConstantValue) :
-                default;
-
-            return GetMethodGroupOrLambdaDelegateType(node.Syntax, method.RefKind, method.ReturnTypeWithAnnotations, method.ParameterRefKinds, parameterScopes, method.ParameterTypesWithAnnotations, parameterDefaultValues: parameterDefaultValues);
+            return GetMethodGroupOrLambdaDelegateType(node.Syntax, method);
         }
 
         /// <summary>
@@ -9002,18 +8994,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // This method was adapted from LoweredDynamicOperationFactory.GetDelegateType().
-        internal NamedTypeSymbol? GetMethodGroupOrLambdaDelegateType(
-            SyntaxNode syntax,
-            RefKind returnRefKind,
-            TypeWithAnnotations returnType,
-            ImmutableArray<RefKind> parameterRefKinds,
-            ImmutableArray<DeclarationScope> parameterScopes,
-            ImmutableArray<TypeWithAnnotations> parameterTypes,
-            ImmutableArray<ConstantValue?> parameterDefaultValues)
+        internal NamedTypeSymbol? GetMethodGroupOrLambdaDelegateType(SyntaxNode syntax, MethodSymbol methodSymbol)
         {
+            var parameters = methodSymbol.Parameters;
+            var parameterRefKinds = methodSymbol.ParameterRefKinds;
+            var parameterTypes = methodSymbol.ParameterTypesWithAnnotations;
+            var returnType = methodSymbol.ReturnTypeWithAnnotations;
+            var returnRefKind = methodSymbol.RefKind;
+            var parameterScopes = parameters.Any(p => p.EffectiveScope != DeclarationScope.Unscoped) ?
+                parameters.SelectAsArray(p => p.EffectiveScope) :
+                default;
+            var synthesizedParameterAttributes = parameters.SelectAsArray(static p =>
+                (p is WrappedParameterSymbol w ? w.UnderlyingParameter : p) is SourceComplexParameterSymbolBase s &&
+                SynthesizedParameterAttributes.For(s) != default ? s : null);
+
             Debug.Assert(ContainingMemberOrLambda is { });
             Debug.Assert(parameterRefKinds.IsDefault || parameterRefKinds.Length == parameterTypes.Length);
-            Debug.Assert(parameterDefaultValues.IsDefault || parameterDefaultValues.Length == parameterTypes.Length);
             Debug.Assert(returnType.Type is { }); // Expecting System.Void rather than null return type.
 
             bool returnsVoid = returnType.Type.IsVoidType();
@@ -9033,7 +9029,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Use System.Action<...> or System.Func<...> if possible.
             if (returnRefKind == RefKind.None &&
-                parameterDefaultValues.IsDefault &&
+                synthesizedParameterAttributes.All(s => s is null) &&
                 (parameterRefKinds.IsDefault || parameterRefKinds.All(refKind => refKind == RefKind.None)) &&
                 (parameterScopes.IsDefault || parameterScopes.All(scope => scope == DeclarationScope.Unscoped)))
             {
@@ -9069,7 +9065,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parameterTypes[i],
                         parameterRefKinds.IsDefault ? RefKind.None : parameterRefKinds[i],
                         parameterScopes.IsDefault ? DeclarationScope.Unscoped : parameterScopes[i],
-                        parameterDefaultValues.IsDefault ? null : parameterDefaultValues[i])
+                        synthesizedParameterAttributes[i])
                     );
             }
             fieldsBuilder.Add(new AnonymousTypeField(name: "", location, returnType, returnRefKind, DeclarationScope.Unscoped));

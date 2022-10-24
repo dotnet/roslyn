@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var typeParams = containingType.TypeParameters;
 
                     int parameterCount = typeParams.Length - (voidReturnTypeOpt is null ? 1 : 0);
-                    var parameters = ArrayBuilder<(TypeWithAnnotations, RefKind, DeclarationScope, ConstantValue?)>.GetInstance(parameterCount);
+                    var parameters = ArrayBuilder<(TypeWithAnnotations, RefKind, DeclarationScope, SourceComplexParameterSymbolBase?)>.GetInstance(parameterCount);
                     for (int i = 0; i < parameterCount; i++)
                     {
                         parameters.Add((TypeWithAnnotations.Create(typeParams[i]), refKinds.IsNull ? RefKind.None : refKinds[i], DeclarationScope.Unscoped, null));
@@ -127,11 +127,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     TypeMap typeMap)
                 {
                     var parameterCount = fields.Length - 1;
-                    var parameters = ArrayBuilder<(TypeWithAnnotations, RefKind, DeclarationScope, ConstantValue?)>.GetInstance(parameterCount);
+                    var parameters = ArrayBuilder<(TypeWithAnnotations, RefKind, DeclarationScope, SourceComplexParameterSymbolBase?)>.GetInstance(parameterCount);
                     for (int i = 0; i < parameterCount; i++)
                     {
                         var field = fields[i];
-                        parameters.Add((typeMap.SubstituteType(field.Type), field.RefKind, field.Scope, field.DefaultValue));
+                        parameters.Add((typeMap.SubstituteType(field.Type), field.RefKind, field.Scope, field.SynthesizedAttributes));
                     }
 
                     var returnParameter = fields[^1];
