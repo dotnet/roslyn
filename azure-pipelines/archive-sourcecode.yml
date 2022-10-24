@@ -19,6 +19,7 @@ parameters:
 - name: whatif
   displayName: Only simulate the request
   type: boolean
+  default: false
 
 variables:
 - group: VS Core team # Expected to provide ManagerAlias, SourceCodeArchivalUri
