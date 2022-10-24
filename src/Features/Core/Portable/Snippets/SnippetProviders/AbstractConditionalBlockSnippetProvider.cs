@@ -16,10 +16,10 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
     /// <summary>
     /// Base class for "if" and "while" snippet providers
     /// </summary>
-    internal abstract class AbstractConditionExpressionAndBlockBasedSnippetProvider : AbstractSnippetProvider
+    internal abstract class AbstractConditionalBlockSnippetProvider : AbstractSnippetProvider
     {
         protected abstract TextChange GenerateSnippetTextChange(Document document, int position);
-        protected abstract SyntaxNode GetStatementCondition(SyntaxNode node);
+        protected abstract SyntaxNode GetCondition(SyntaxNode node);
 
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
         protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
-            var condition = GetStatementCondition(node);
+            var condition = GetCondition(node);
             arrayBuilder.Add(new SnippetPlaceholder(identifier: condition.ToString(), placeholderPositions: ImmutableArray.Create(condition.SpanStart)));
 
             return arrayBuilder.ToImmutableArray();

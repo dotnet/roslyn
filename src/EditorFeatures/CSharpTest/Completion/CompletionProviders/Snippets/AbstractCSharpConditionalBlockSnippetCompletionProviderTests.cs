@@ -10,7 +10,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets
 {
     [Trait(Traits.Feature, Traits.Features.Completion)]
-    public abstract class AbstractCSharpConditionExpressionAndBlockBasedSnippetCompletionProviderTests : AbstractCSharpSnippetCompletionProviderTests
+    public abstract class AbstractCSharpConditionalBlockSnippetCompletionProviderTests : AbstractCSharpSnippetCompletionProviderTests
     {
         [WpfFact]
         public async Task InsertSnippetInMethodTest()

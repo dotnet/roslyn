@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             return line.Span.End;
         }
 
-        protected override SyntaxNode GetStatementCondition(SyntaxNode node)
+        protected override SyntaxNode GetCondition(SyntaxNode node)
         {
             var ifStatement = (IfStatementSyntax)node;
             return ifStatement.Condition;

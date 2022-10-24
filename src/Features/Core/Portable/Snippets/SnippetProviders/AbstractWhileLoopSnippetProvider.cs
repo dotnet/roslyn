@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
 {
-    internal abstract class AbstractWhileLoopSnippetProvider : AbstractConditionExpressionAndBlockBasedSnippetProvider
+    internal abstract class AbstractWhileLoopSnippetProvider : AbstractConditionalBlockSnippetProvider
     {
         public override string SnippetIdentifier => "while";
 

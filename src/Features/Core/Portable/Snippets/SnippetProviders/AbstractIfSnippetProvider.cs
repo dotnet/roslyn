@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Snippets
 {
-    internal abstract class AbstractIfSnippetProvider : AbstractConditionExpressionAndBlockBasedSnippetProvider
+    internal abstract class AbstractIfSnippetProvider : AbstractConditionalBlockSnippetProvider
     {
         public override string SnippetIdentifier => "if";
 
