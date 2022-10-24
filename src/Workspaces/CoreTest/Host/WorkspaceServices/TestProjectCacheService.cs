@@ -20,12 +20,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Persistence
         {
         }
 
-        public int MinimumLengthForRecoverableTree
-            => 0;
-
-        T IProjectCacheHostService.CacheObjectIfCachingEnabledForKey<T>(ProjectId key, ICachedObjectOwner owner, T instance)
-            => instance;
-
         T IProjectCacheHostService.CacheObjectIfCachingEnabledForKey<T>(ProjectId key, object owner, T instance)
             => instance;
 

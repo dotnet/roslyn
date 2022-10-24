@@ -629,10 +629,16 @@ namespace Microsoft.CodeAnalysis
                 defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: false);
 
+            internal readonly ConcurrentSet<ISymbol> CallbackSymbols = new();
+
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
             public override void Initialize(AnalysisContext context)
             {
-                context.RegisterSymbolAction(_ => { }, SymbolKind.NamedType);
+                context.RegisterSymbolAction(context =>
+                {
+                    CallbackSymbols.Add(context.Symbol);
+                    context.ReportDiagnostic(Diagnostic.Create(Rule, context.Symbol.Locations[0]));
+                }, SymbolKind.NamedType);
             }
         }
 

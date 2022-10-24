@@ -48,12 +48,6 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
-        /// <summary>
-        /// Recoverable trees only save significant memory for larger trees.
-        /// </summary>
-        public int MinimumLengthForRecoverableTree
-            => (_configurationService?.Options.DisableRecoverableTrees != true) ? 4 * 1024 : int.MaxValue;
-
         public bool IsImplicitCacheEmpty
         {
             get
@@ -135,24 +129,6 @@ namespace Microsoft.CodeAnalysis.Host
             return false;
         }
 
-        [return: NotNullIfNotNull("instance")]
-        public T? CacheObjectIfCachingEnabledForKey<T>(ProjectId key, ICachedObjectOwner owner, T? instance) where T : class
-        {
-            if (IsEnabled)
-            {
-                lock (_gate)
-                {
-                    if (owner.CachedObject == null && _activeCaches.TryGetValue(key, out var cache))
-                    {
-                        owner.CachedObject = instance;
-                        cache.CreateOwnerEntry(owner);
-                    }
-                }
-            }
-
-            return instance;
-        }
-
         private void DisableCaching(ProjectId key, Cache cache)
         {
             lock (_gate)
@@ -172,7 +148,6 @@ namespace Microsoft.CodeAnalysis.Host
             private readonly ProjectCacheService _cacheService;
             private readonly ProjectId _key;
             private ConditionalWeakTable<object, object?>? _cache = new();
-            private readonly List<WeakReference<ICachedObjectOwner>> _ownerObjects = new();
 
             public Cache(ProjectCacheService cacheService, ProjectId key)
             {
@@ -196,26 +171,15 @@ namespace Microsoft.CodeAnalysis.Host
                 }
             }
 
-            internal void CreateOwnerEntry(ICachedObjectOwner owner)
-                => _ownerObjects.Add(new WeakReference<ICachedObjectOwner>(owner));
-
             internal void FreeOwnerEntries()
             {
-                foreach (var entry in _ownerObjects)
-                {
-                    if (entry.TryGetTarget(out var owner))
-                    {
-                        owner.CachedObject = null;
-                    }
-                }
-
-                // Explicitly free our ConditionalWeakTable to make sure it's released. We have a number of places in the codebase
-                // (in both tests and product code) that do using (service.EnableCaching), which implicitly returns a disposable instance
-                // this type. The runtime in many cases disposes, but does not unroot, the underlying object after the the using block is exited.
-                // This means the cache could still be rooting objects we don't expect it to be rooting by that point. By explicitly clearing
-                // these out, we get the expected behavior.
+                // Explicitly free our ConditionalWeakTable to make sure it's released. We have a number of places in
+                // the codebase (in both tests and product code) that do using (service.EnableCaching), which implicitly
+                // returns a disposable instance this type. The runtime in many cases disposes, but does not unroot, the
+                // underlying object after the the using block is exited. This means the cache could still be rooting
+                // objects we don't expect it to be rooting by that point. By explicitly clearing these out, we get the
+                // expected behavior.
                 _cache = null;
-                _ownerObjects.Clear();
             }
         }
     }
