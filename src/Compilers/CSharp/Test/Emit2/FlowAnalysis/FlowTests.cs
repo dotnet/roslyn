@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -5803,6 +5805,47 @@ class C
                 // (9,26): warning CS0219: The variable 'Z' is assigned but its value is never used
                 //             const string Z = "unused";
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "Z").WithArguments("Z").WithLocation(9, 26));
+        }
+
+        [Fact]
+        public void Setter_AttributeArguments()
+        {
+            var source = """
+                using System;
+                class A : Attribute
+                {
+                    public A(int param) { }
+                    public int Prop { get; set; }
+                }
+                class Program
+                {
+                    const int N1 = 10;
+                    const int N2 = 20;
+                    const int N3 = 30;
+                    const int N4 = 40;
+                    const int N5 = 50;
+                    const int N6 = 60;
+                    public int Prop
+                    {
+                        [A(N1, Prop = N4)][param: A(N2, Prop = N5)][return: A(N3, Prop = N6)]
+                        set
+                        {
+                            Console.WriteLine(value);
+                        }
+                    }
+                }
+                """;
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var declarations = tree.GetRoot().DescendantNodes().OfType<PropertyDeclarationSyntax>().ToImmutableArray();
+            var property = declarations.Select(d => model.GetDeclaredSymbol(d)).Where(p => p.ContainingSymbol.Name == "Program").Single();
+            var parameter = property.SetMethod.Parameters[0].GetSymbol<SourceComplexParameterSymbolBase>();
+            var attributes = parameter.BindParameterAttributes();
+            Assert.Equal(3, attributes.Length);
+            Assert.Equal("A(10, Prop = 40)", attributes[0].Item1.ToString());
+            Assert.Equal("A(20, Prop = 50)", attributes[1].Item1.ToString());
+            Assert.Equal("A(30, Prop = 60)", attributes[2].Item1.ToString());
         }
     }
 }
