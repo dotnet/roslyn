@@ -5947,6 +5947,76 @@ public struct Vec4
         }
 
         [Fact]
+        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        public void DefensiveCopy_21()
+        {
+            var source =
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+internal class Program
+{
+    private static readonly Vec4 ReadOnlyVec = new Vec4(1, 2, 3, 4);
+
+    static void Main()
+    {
+    }
+
+    private static Span<float> Test1()
+    {
+        var (xyzw1, _) = ReadOnlyVec;
+        return xyzw1;
+    }
+
+    private static Span<float> Test2()
+    {
+        var r2 = ReadOnlyVec;
+        var (xyzw2, _) = r2;
+        return xyzw2;
+    }
+
+    private static Span<float> Test3()
+    {
+        ReadOnlyVec.Deconstruct(out var xyzw3, out _);
+        return xyzw3;
+    }
+
+    private static Span<float> Test4()
+    {
+        var r4 = ReadOnlyVec;
+        r4.Deconstruct(out var xyzw4, out _);
+        return xyzw4;
+    }
+}
+
+public struct Vec4
+{
+    public float X, Y, Z, W;
+    public Vec4(float x, float y, float z, float w) => (X, Y, Z, W) = (x, y, z, w);
+
+    [UnscopedRef]
+    public void Deconstruct(out Span<float> x, out int i) => throw null;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (16,16): error CS8352: Cannot use variable 'xyzw1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return xyzw1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "xyzw1").WithArguments("xyzw1").WithLocation(16, 16),
+                // (23,16): error CS8352: Cannot use variable 'xyzw2' in this context because it may expose referenced variables outside of their declaration scope
+                //         return xyzw2;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "xyzw2").WithArguments("xyzw2").WithLocation(23, 16),
+                // (29,16): error CS8352: Cannot use variable 'xyzw3' in this context because it may expose referenced variables outside of their declaration scope
+                //         return xyzw3;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "xyzw3").WithArguments("xyzw3").WithLocation(29, 16),
+                // (36,16): error CS8352: Cannot use variable 'xyzw4' in this context because it may expose referenced variables outside of their declaration scope
+                //         return xyzw4;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "xyzw4").WithArguments("xyzw4").WithLocation(36, 16)
+                );
+        }
+
+        [Fact]
         public void LocalScope_DeclarationExpression_01()
         {
             var source = """
