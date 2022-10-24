@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
@@ -129,8 +130,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     assetProvider, solutionChecksum, workspaceVersion, updatePrimaryBranch,
                     (solution, cancellationToken) => GetStreamImplementation(solution, implementation, cancellationToken), cancellationToken);
 
+                using var buffer = TemporaryArray<(Solution solution, T result)>.Empty;
                 await foreach (var pair in stream.ConfigureAwait(false))
-                    return pair;
+                    buffer.Add(pair);
+
+                Contract.ThrowIfTrue(buffer.Count != 1, "We must have only gotten a single result, as our stream only produced one result.");
+                return buffer[0];
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken, ErrorSeverity.Critical))
             {
