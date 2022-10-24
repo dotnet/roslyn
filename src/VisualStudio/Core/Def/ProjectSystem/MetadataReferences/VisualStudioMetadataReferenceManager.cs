@@ -137,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // use temporary storage
             var storages = new List<TemporaryStorageService.TemporaryStreamStorage>();
-            newMetadata = CreateAssemblyMetadataFromTemporaryStorage(key, storages);
+            newMetadata = CreateAssemblyMetadataFromTemporaryStorage();
 
             // don't dispose assembly metadata since it shares module metadata
             if (!_metadataCache.GetOrAddMetadata(key, new RecoverableMetadataValueSource(newMetadata, storages), out metadata))
@@ -149,89 +149,90 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             GC.KeepAlive(newMetadata);
 
             return metadata;
+
+            // <exception cref="IOException"/>
+            // <exception cref="BadImageFormatException" />
+            AssemblyMetadata CreateAssemblyMetadataFromTemporaryStorage()
+            {
+                var moduleMetadata = CreateModuleMetadata(key);
+                return CreateAssemblyMetadata(key, moduleMetadata, CreateModuleMetadata);
+
+                ModuleMetadata CreateModuleMetadata(FileKey moduleFileKey)
+                {
+                    var (storage, metadata) = GetMetadataFromTemporaryStorage(moduleFileKey);
+                    storages.Add(storage);
+                    return metadata;
+                }
+            }
         }
 
-        /// <exception cref="IOException"/>
-        /// <exception cref="BadImageFormatException" />
-        private AssemblyMetadata CreateAssemblyMetadataFromTemporaryStorage(
-            FileKey fileKey, List<TemporaryStorageService.TemporaryStreamStorage> storages)
+        private (TemporaryStorageService.TemporaryStreamStorage storage, ModuleMetadata metadata) GetMetadataFromTemporaryStorage(FileKey moduleFileKey)
         {
-            var moduleMetadata = CreateModuleMetadataFromTemporaryStorage(fileKey, storages);
-            return CreateAssemblyMetadata(fileKey, moduleMetadata, storages, CreateModuleMetadataFromTemporaryStorage);
-        }
-
-        private ModuleMetadata CreateModuleMetadataFromTemporaryStorage(
-            FileKey moduleFileKey, List<TemporaryStorageService.TemporaryStreamStorage>? storages)
-        {
-            GetStorageInfoFromTemporaryStorage(moduleFileKey, out var storage, out var stream);
+            var (storage, stream) = GetStorageInfoFromTemporaryStorage(moduleFileKey);
 
             unsafe
             {
                 // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
-                var metadata = ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream.Dispose);
-
-                // hold onto storage if requested
-                storages?.Add(storage);
-
-                return metadata;
+                return (storage, ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream.Dispose));
             }
-        }
 
-        private void GetStorageInfoFromTemporaryStorage(
-            FileKey moduleFileKey, out TemporaryStorageService.TemporaryStreamStorage storage, out UnmanagedMemoryStream stream)
-        {
-            int size;
-            using (var copyStream = SerializableBytes.CreateWritableStream())
+            (TemporaryStorageService.TemporaryStreamStorage storage, UnmanagedMemoryStream stream) GetStorageInfoFromTemporaryStorage(FileKey moduleFileKey)
             {
-                // open a file and let it go as soon as possible
-                using (var fileStream = FileUtilities.OpenRead(moduleFileKey.FullPath))
+                TemporaryStorageService.TemporaryStreamStorage storage;
+
+                int size;
+                using (var copyStream = SerializableBytes.CreateWritableStream())
                 {
-                    var headers = new PEHeaders(fileStream);
-
-                    var offset = headers.MetadataStartOffset;
-                    size = headers.MetadataSize;
-
-                    // given metadata contains no metadata info.
-                    // throw bad image format exception so that we can show right diagnostic to user.
-                    if (size <= 0)
+                    // open a file and let it go as soon as possible
+                    using (var fileStream = FileUtilities.OpenRead(moduleFileKey.FullPath))
                     {
-                        throw new BadImageFormatException();
+                        var headers = new PEHeaders(fileStream);
+
+                        var offset = headers.MetadataStartOffset;
+                        size = headers.MetadataSize;
+
+                        // given metadata contains no metadata info.
+                        // throw bad image format exception so that we can show right diagnostic to user.
+                        if (size <= 0)
+                        {
+                            throw new BadImageFormatException();
+                        }
+
+                        StreamCopy(fileStream, copyStream, offset, size);
                     }
 
-                    StreamCopy(fileStream, copyStream, offset, size);
+                    // copy over the data to temp storage and let pooled stream go
+                    storage = _temporaryStorageService.CreateTemporaryStreamStorage();
+
+                    copyStream.Position = 0;
+                    storage.WriteStream(copyStream);
                 }
 
-                // copy over the data to temp storage and let pooled stream go
-                storage = _temporaryStorageService.CreateTemporaryStreamStorage();
+                // get stream that owns the underlying unmanaged memory.
+                var stream = storage.ReadStream(CancellationToken.None);
 
-                copyStream.Position = 0;
-                storage.WriteStream(copyStream);
+                // stream size must be same as what metadata reader said the size should be.
+                Contract.ThrowIfFalse(stream.Length == size);
+
+                return (storage, stream);
             }
 
-            // get stream that owns the underlying unmanaged memory.
-            stream = storage.ReadStream(CancellationToken.None);
-
-            // stream size must be same as what metadata reader said the size should be.
-            Contract.ThrowIfFalse(stream.Length == size);
-
-            return;
-        }
-
-        private static void StreamCopy(Stream source, Stream destination, int start, int length)
-        {
-            source.Position = start;
-
-            var buffer = SharedPools.ByteArray.Allocate();
-
-            int read;
-            var left = length;
-            while ((read = source.Read(buffer, 0, Math.Min(left, buffer.Length))) != 0)
+            static void StreamCopy(Stream source, Stream destination, int start, int length)
             {
-                destination.Write(buffer, 0, read);
-                left -= read;
-            }
+                source.Position = start;
 
-            SharedPools.ByteArray.Free(buffer);
+                var buffer = SharedPools.ByteArray.Allocate();
+
+                int read;
+                var left = length;
+                while ((read = source.Read(buffer, 0, Math.Min(left, buffer.Length))) != 0)
+                {
+                    destination.Write(buffer, 0, read);
+                    left -= read;
+                }
+
+                SharedPools.ByteArray.Free(buffer);
+            }
         }
 
         /// <exception cref="IOException"/>
@@ -246,75 +247,77 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return false;
             }
 
-            metadata = CreateAssemblyMetadata(fileKey, manifestModule, storages: null, CreateModuleMetadata);
+            metadata = CreateAssemblyMetadata(fileKey, manifestModule, CreateModuleMetadata);
             return true;
-        }
 
-        private ModuleMetadata? TryCreateModuleMetadataFromMetadataImporter(FileKey moduleFileKey)
-        {
-            if (!TryGetFileMappingFromMetadataImporter(moduleFileKey, out var info, out var pImage, out var length))
+            ModuleMetadata CreateModuleMetadata(FileKey moduleFileKey)
             {
-                return null;
+                var metadata = TryCreateModuleMetadataFromMetadataImporter(moduleFileKey);
+                // getting metadata didn't work out through importer. fallback to shadow copy one
+                if (metadata == null)
+                    (_, metadata) = GetMetadataFromTemporaryStorage(moduleFileKey);
+
+                return metadata;
             }
 
-            Debug.Assert(pImage != IntPtr.Zero, "Base address should not be zero if GetFileFlatMapping call succeeded.");
-
-            var metadata = ModuleMetadata.CreateFromImage(pImage, (int)length);
-            s_lifetimeMap.Add(metadata, info);
-
-            return metadata;
-        }
-
-        private ModuleMetadata CreateModuleMetadata(FileKey moduleFileKey, List<TemporaryStorageService.TemporaryStreamStorage>? storages)
-        {
-            var metadata = TryCreateModuleMetadataFromMetadataImporter(moduleFileKey);
-            // getting metadata didn't work out through importer. fallback to shadow copy one
-            metadata ??= CreateModuleMetadataFromTemporaryStorage(moduleFileKey, storages);
-
-            return metadata;
-        }
-
-        private bool TryGetFileMappingFromMetadataImporter(FileKey fileKey, [NotNullWhen(true)] out IMetaDataInfo? info, out IntPtr pImage, out long length)
-        {
-            // We might not be able to use COM services to get this if VS is shutting down. We'll synchronize to make sure this
-            // doesn't race against 
-            using (_readerWriterLock.DisposableRead())
+            ModuleMetadata? TryCreateModuleMetadataFromMetadataImporter(FileKey moduleFileKey)
             {
-                // here, we don't care about timestamp since all those bits should be part of Fx. and we assume that 
-                // it won't be changed in the middle of VS running.
-                var fullPath = fileKey.FullPath;
-
-                info = null;
-                pImage = default;
-                length = default;
-
-                if (SmartOpenScopeServiceOpt == null)
+                if (!TryGetFileMappingFromMetadataImporter(moduleFileKey, out var info, out var pImage, out var length))
                 {
-                    return false;
+                    return null;
                 }
 
-                if (ErrorHandler.Failed(SmartOpenScopeServiceOpt.OpenScope(fullPath, (uint)CorOpenFlags.ReadOnly, s_IID_IMetaDataImport, out var ppUnknown)))
-                {
-                    return false;
-                }
+                Debug.Assert(pImage != IntPtr.Zero, "Base address should not be zero if GetFileFlatMapping call succeeded.");
 
-                info = ppUnknown as IMetaDataInfo;
-                if (info == null)
-                {
-                    return false;
-                }
+                var metadata = ModuleMetadata.CreateFromImage(pImage, (int)length);
+                s_lifetimeMap.Add(metadata, info);
 
-                return ErrorHandler.Succeeded(info.GetFileMapping(out pImage, out length, out var mappingType)) && mappingType == CorFileMapping.Flat;
+                return metadata;
+            }
+
+            bool TryGetFileMappingFromMetadataImporter(FileKey fileKey, [NotNullWhen(true)] out IMetaDataInfo? info, out IntPtr pImage, out long length)
+            {
+                // We might not be able to use COM services to get this if VS is shutting down. We'll synchronize to make sure this
+                // doesn't race against 
+                using (_readerWriterLock.DisposableRead())
+                {
+                    // here, we don't care about timestamp since all those bits should be part of Fx. and we assume that 
+                    // it won't be changed in the middle of VS running.
+                    var fullPath = fileKey.FullPath;
+
+                    info = null;
+                    pImage = default;
+                    length = default;
+
+                    if (SmartOpenScopeServiceOpt == null)
+                    {
+                        return false;
+                    }
+
+                    if (ErrorHandler.Failed(SmartOpenScopeServiceOpt.OpenScope(fullPath, (uint)CorOpenFlags.ReadOnly, s_IID_IMetaDataImport, out var ppUnknown)))
+                    {
+                        return false;
+                    }
+
+                    info = ppUnknown as IMetaDataInfo;
+                    if (info == null)
+                    {
+                        return false;
+                    }
+
+                    return ErrorHandler.Succeeded(info.GetFileMapping(out pImage, out length, out var mappingType)) && mappingType == CorFileMapping.Flat;
+                }
             }
         }
 
         /// <exception cref="IOException"/>
         /// <exception cref="BadImageFormatException" />
         private static AssemblyMetadata CreateAssemblyMetadata(
-            FileKey fileKey, ModuleMetadata manifestModule, List<TemporaryStorageService.TemporaryStreamStorage>? storages,
-            Func<FileKey, List<TemporaryStorageService.TemporaryStreamStorage>?, ModuleMetadata> moduleMetadataFactory)
+            FileKey fileKey,
+            ModuleMetadata manifestModule,
+            Func<FileKey, ModuleMetadata> moduleMetadataFactory)
         {
-            var moduleBuilder = ArrayBuilder<ModuleMetadata>.GetInstance();
+            using var _ = ArrayBuilder<ModuleMetadata>.GetInstance(out var moduleBuilder);
 
             string? assemblyDir = null;
             foreach (var moduleName in manifestModule.GetModuleNames())
@@ -327,18 +330,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 // Suppression should be removed or addressed https://github.com/dotnet/roslyn/issues/41636
                 var moduleFileKey = FileKey.Create(PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName)!);
-                var metadata = moduleMetadataFactory(moduleFileKey, storages);
+                var metadata = moduleMetadataFactory(moduleFileKey);
 
                 moduleBuilder.Add(metadata);
             }
 
             if (moduleBuilder.Count == 0)
-            {
                 moduleBuilder.Add(manifestModule);
-            }
 
-            return AssemblyMetadata.Create(
-                moduleBuilder.ToImmutableAndFree());
+            return AssemblyMetadata.Create(moduleBuilder.ToImmutable());
         }
 
         public void DisconnectFromVisualStudioNativeServices()
