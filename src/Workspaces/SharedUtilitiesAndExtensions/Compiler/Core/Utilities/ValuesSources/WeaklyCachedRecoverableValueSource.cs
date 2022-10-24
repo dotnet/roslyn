@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Host
                     // complete, we can still rely on a constant value source to provide the instance.
                     _recoverySource = saveTask.Status == TaskStatus.RanToCompletion
                         ? new AsyncLazy<T>(RecoverAsync, Recover, cacheResult: false)
-                        : new ConstantValueSource<T>(instance);
+                        : new AsyncLazy<T>(instance);
 
                     // Need to keep instance alive until recovery source is updated.
                     GC.KeepAlive(instance);
