@@ -5,15 +5,15 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using EnvDTE;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -32,6 +32,20 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         private static AdhocWorkspace CreateWorkspace()
             => new(s_composition.GetHostServices());
 
+        private static ImmutableArray<string> s_kinds = ImmutableArray.Create(
+            NavigateToItemKind.Class,
+            NavigateToItemKind.Constant,
+            NavigateToItemKind.Delegate,
+            NavigateToItemKind.Enum,
+            NavigateToItemKind.EnumItem,
+            NavigateToItemKind.Event,
+            NavigateToItemKind.Field,
+            NavigateToItemKind.Interface,
+            NavigateToItemKind.Method,
+            NavigateToItemKind.Module,
+            NavigateToItemKind.Property,
+            NavigateToItemKind.Structure);
+
         [Fact]
         public async Task UpdaterService()
         {
@@ -41,38 +55,56 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var listenerProvider = exportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
             var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
 
-            var checksumUpdater = new SolutionChecksumUpdater(workspace, listenerProvider, CancellationToken.None);
             var service = workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
-
-            // make sure client is ready
-            using var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
             // add solution, change document
             workspace.AddSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Default));
             var project = workspace.AddProject("proj", LanguageNames.CSharp);
-            var document = workspace.AddDocument(project.Id, "doc.cs", SourceText.From("code"));
+            var document = workspace.AddDocument(project.Id, "doc.cs", SourceText.From(""));
 
-            var oldText = document.GetTextSynchronously(CancellationToken.None);
-            var newText = oldText.WithChanges(new[] { new TextChange(new TextSpan(0, 1), "abc") });
-            var newSolution = document.Project.Solution.WithDocumentText(document.Id, newText, PreservationMode.PreserveIdentity);
+            var tasks = new List<Task>();
 
-            workspace.TryApplyChanges(newSolution);
+            for (var i = 0; i < 1000; i++)
+            {
+                var name = "Goo" + i;
+                var forked = document.Project.Solution.WithDocumentText(document.Id, SourceText.Create(CreateText(name)));
 
-            // wait for listener
-            var workspaceListener = listenerProvider.GetWaiter(FeatureAttribute.Workspace);
-            await workspaceListener.ExpeditedWaitAsync();
+                tasks.Add(Task.Run(async () =>
+                {
+                    // make sure client is ready
+                    using var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
+                    var stream = client.TryInvokeStreamAsync<IRemoteNavigateToSearchService, RoslynNavigateToItem>(
+                        forked,
+                        (service, checksum, _) => service.SearchProjectAsync(checksum, project.Id, ImmutableArray<DocumentId>.Empty, name, s_kinds, CancellationToken.None),
+                        CancellationToken.None);
 
-            var listener = listenerProvider.GetWaiter(FeatureAttribute.SolutionChecksumUpdater);
-            await listener.ExpeditedWaitAsync();
+                    var count = 0;
+                    await foreach (var result in stream)
+                        count++;
 
-            // checksum should already exist
-            Assert.True(workspace.CurrentSolution.State.TryGetStateChecksums(out _));
+                    Assert.True(count >= 100);
+                }));
+            }
 
-            checksumUpdater.Shutdown();
+            await Task.WhenAll(tasks);
+        }
+
+        private static string CreateText(string name)
+        {
+            using var _ = PooledStringBuilder.GetInstance(out var builder);
+            builder.AppendLine("class C");
+            builder.AppendLine("{");
+
+            for (var i = 0; i < 100; i++)
+                builder.AppendLine($"    public void {name}_{i}() {{ }}");
+
+            builder.AppendLine("}");
+
+            return builder.ToString();
         }
 
         [Fact]
-        public async Task TestSessionWithNoSolution()
+         public async Task TestSessionWithNoSolution()
         {
             using var workspace = CreateWorkspace();
 
