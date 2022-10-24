@@ -423,6 +423,8 @@ namespace Microsoft.CodeAnalysis.Remote
             public ValueTask<(Solution solution, bool updated)> TryUpdateWorkspaceCurrentSolutionAsync(Solution newSolution, int workspaceVersion)
                 => _remoteWorkspace.TryUpdateWorkspaceCurrentSolutionWorkerAsync(workspaceVersion, newSolution, CancellationToken.None);
 
+            public int InFlightSolutionCount => _remoteWorkspace._solutionChecksumToSolution.Count;
+
             public async ValueTask<Solution> GetSolutionAsync(
                 AssetProvider assetProvider,
                 Checksum solutionChecksum,
