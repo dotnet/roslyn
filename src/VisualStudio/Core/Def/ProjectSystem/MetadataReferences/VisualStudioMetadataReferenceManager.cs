@@ -136,11 +136,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             // use temporary storage
-            var storages = new List<TemporaryStorageService.TemporaryStreamStorage>();
+            using var _ = ArrayBuilder<TemporaryStorageService.TemporaryStreamStorage>.GetInstance(out var storages);
             newMetadata = CreateAssemblyMetadataFromTemporaryStorage();
 
             // don't dispose assembly metadata since it shares module metadata
-            if (!_metadataCache.GetOrAddMetadata(key, new RecoverableMetadataValueSource(newMetadata, storages), out metadata))
+            if (!_metadataCache.GetOrAddMetadata(key, new RecoverableMetadataValueSource(newMetadata, storages.ToImmutable()), out metadata))
             {
                 newMetadata.Dispose();
             }

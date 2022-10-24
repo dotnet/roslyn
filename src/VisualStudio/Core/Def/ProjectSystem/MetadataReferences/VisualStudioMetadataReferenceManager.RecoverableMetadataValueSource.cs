@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -20,17 +21,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private sealed class RecoverableMetadataValueSource : ValueSource<Optional<AssemblyMetadata>>
         {
             private readonly WeakReference<AssemblyMetadata> _weakValue;
-            private readonly List<TemporaryStorageService.TemporaryStreamStorage> _storages;
+            private readonly ImmutableArray<TemporaryStorageService.TemporaryStreamStorage> _storages;
 
-            public RecoverableMetadataValueSource(AssemblyMetadata value, List<TemporaryStorageService.TemporaryStreamStorage> storages)
+            public RecoverableMetadataValueSource(AssemblyMetadata value, ImmutableArray<TemporaryStorageService.TemporaryStreamStorage> storages)
             {
-                Contract.ThrowIfFalse(storages.Count > 0);
+                Contract.ThrowIfFalse(storages.Length > 0);
 
                 _weakValue = new WeakReference<AssemblyMetadata>(value);
                 _storages = storages;
             }
 
-            public IEnumerable<ITemporaryStreamStorageInternal> GetStorages()
+            public ImmutableArray<TemporaryStorageService.TemporaryStreamStorage> GetStorages()
                 => _storages;
 
             public override bool TryGetValue(out Optional<AssemblyMetadata> value)
@@ -60,14 +61,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             private AssemblyMetadata RecoverMetadata()
             {
-                var moduleBuilder = ArrayBuilder<ModuleMetadata>.GetInstance(_storages.Count);
+                using var _ = ArrayBuilder<ModuleMetadata>.GetInstance(_storages.Length, out var moduleBuilder);
 
                 foreach (var storage in _storages)
-                {
                     moduleBuilder.Add(GetModuleMetadata(storage));
-                }
 
-                var metadata = AssemblyMetadata.Create(moduleBuilder.ToImmutableAndFree());
+                var metadata = AssemblyMetadata.Create(moduleBuilder.ToImmutable());
                 _weakValue.SetTarget(metadata);
 
                 return metadata;
