@@ -60,14 +60,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                             Optional verifyTokens As Boolean = True,
                             Optional fileNameToExpected As Dictionary(Of String, String) = Nothing,
                             Optional verifySolutions As Func(Of Solution, Solution, Task) = Nothing,
-                            Optional onAfterWorkspaceCreated As Action(Of TestWorkspace) = Nothing,
+                            Optional onAfterWorkspaceCreated As Func(Of TestWorkspace, Task) = Nothing,
                             Optional glyphTags As ImmutableArray(Of String) = Nothing) As Task
             Using workspace = TestWorkspace.CreateWorkspace(definition, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
                 If _outputHelper IsNot Nothing Then
                     workspace.Services.SolutionServices.SetWorkspaceTestOutput(_outputHelper)
                 End If
 
-                onAfterWorkspaceCreated?.Invoke(workspace)
+                If onAfterWorkspaceCreated IsNot Nothing Then
+                    Await onAfterWorkspaceCreated(workspace)
+                End If
 
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim codeActions As IList(Of CodeAction) = diagnosticAndFix.Item2.Fixes.Select(Function(f) f.Action).ToList()

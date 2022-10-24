@@ -26,14 +26,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     [UseExportProvider]
     public class ProjectCacheHostServiceFactoryTests
     {
-        private static void Test(Action<IProjectCacheHostService, ProjectId, ICachedObjectOwner, ObjectReference<object>> action)
+        private static void Test(Action<IProjectCacheHostService, ProjectId, object, ObjectReference<object>> action)
         {
             // Putting cacheService.CreateStrongReference in a using statement
             // creates a temporary local that isn't collected in Debug builds
             // Wrapping it in a lambda allows it to get collected.
             var cacheService = new ProjectCacheService(null, createImplicitCache: true);
             var projectId = ProjectId.CreateNewId();
-            var owner = new Owner();
+            var owner = new object();
             var instance = ObjectReference.CreateFromFactory(() => new object());
 
             action(cacheService, projectId, owner, instance);
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             {
                 using (cacheService.EnableCaching(projectId))
                 {
-                    instance.UseReference(i => cacheService.CacheObjectIfCachingEnabledForKey(projectId, (object)owner, i));
+                    instance.UseReference(i => cacheService.CacheObjectIfCachingEnabledForKey(projectId, owner, i));
 
                     instance.AssertHeld();
                 }
@@ -232,11 +232,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             weak1.AssertHeld();
 
             GC.KeepAlive(cache);
-        }
-
-        private class Owner : ICachedObjectOwner
-        {
-            object ICachedObjectOwner.CachedObject { get; set; }
         }
 
         private class MockHostServices : HostServices

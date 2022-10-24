@@ -4,9 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -21,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class SymbolTreeInfo : IObjectWritable
     {
         private const string PrefixSymbolTreeInfo = "<SymbolTreeInfo>";
-        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("23");
+        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("24");
 
         /// <summary>
         /// Generalized function for loading/creating/persisting data.  Used as the common core code for serialization
@@ -184,8 +182,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static SymbolTreeInfo? TryReadSymbolTreeInfo(
-            ObjectReader reader,
-            Checksum checksum)
+            ObjectReader reader, Checksum checksum)
         {
             if (reader == null)
                 return null;
@@ -193,12 +190,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             try
             {
                 var nodeCount = reader.ReadInt32();
-                var nodes = ArrayBuilder<Node>.GetInstance(nodeCount);
-                while (nodes.Count < nodeCount)
+                using var _ = ArrayBuilder<Node>.GetInstance(nodeCount, out var nodes);
+
+                for (var i = 0; i < nodeCount; i++)
                 {
                     var name = reader.ReadString();
                     var groupCount = reader.ReadInt32();
-                    for (var i = 0; i < groupCount; i++)
+                    for (var j = 0; j < groupCount; j++)
                     {
                         var parentIndex = reader.ReadInt32();
                         nodes.Add(new Node(name, parentIndex));
@@ -245,14 +243,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
 
-                var nodeArray = nodes.ToImmutableAndFree();
                 var spellChecker = SpellChecker.TryReadFrom(reader);
                 if (spellChecker is null)
                     return null;
 
+                var nodeArray = nodes.ToImmutableAndClear();
+
                 return new SymbolTreeInfo(
-                    checksum, nodeArray, spellChecker, inheritanceMap,
-                    receiverTypeNameToExtensionMethodMap);
+                    checksum, nodeArray, spellChecker, inheritanceMap, receiverTypeNameToExtensionMethodMap);
             }
             catch
             {

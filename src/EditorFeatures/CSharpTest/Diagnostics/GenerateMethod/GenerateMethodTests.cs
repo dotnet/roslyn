@@ -740,6 +740,39 @@ class Class
 }");
         }
 
+        [Fact, WorkItem(54212, "https://github.com/dotnet/roslyn/issues/54212")]
+        public async Task TestInArgument()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Example
+{
+    void M()
+    {
+        int i = 0;
+        [|M2(in i)|];
+    }
+}",
+@"
+using System;
+
+class Example
+{
+    void M()
+    {
+        int i = 0;
+        [|M2(in i)|];
+    }
+
+    private void M2(in int i)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
         [Fact]
         public async Task TestMemberAccessArgumentName()
         {

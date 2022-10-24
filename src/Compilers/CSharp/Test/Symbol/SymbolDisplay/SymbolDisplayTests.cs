@@ -8030,7 +8030,7 @@ class C
             Verify(type.ToDisplayParts(), "<anonymous delegate>",
                 SymbolDisplayPartKind.DelegateName);
 
-            Verify(type.ToDisplayParts(s_fullDelegateFormat), "delegate string <anonymous delegate>(ref int)",
+            Verify(type.ToDisplayParts(s_fullDelegateFormat), "delegate string <anonymous delegate>(ref int arg)",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
@@ -8040,6 +8040,8 @@ class C
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
                 SymbolDisplayPartKind.Punctuation);
         }
 

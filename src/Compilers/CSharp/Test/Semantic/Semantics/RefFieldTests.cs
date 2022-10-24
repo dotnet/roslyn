@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -345,6 +344,148 @@ ref struct B
             VerifyFieldSymbol(field, "ref readonly System.Int32 A.F", RefKind.RefReadOnly, new string[0]);
         }
 
+        [WorkItem(64682, "https://github.com/dotnet/roslyn/issues/64682")]
+        [Fact]
+        public void RefFieldInNonRefStruct()
+        {
+            var sourceA =
+@".class public A<T>
+{
+  .field public !0& F1
+}
+.class public sealed S extends [mscorlib]System.ValueType
+{
+  .field public int32& F2
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"class Program
+{
+    static ref int F1(ref A<int> a) => ref a.F1; // 1
+    static ref int F2(ref S s) => ref s.F2; // 2
+}";
+            // https://github.com/dotnet/roslyn/issues/64682: Should report use-site errors.
+            var comp = CreateCompilation(sourceB, new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void RefAndReadonlyRefStruct_01()
+        {
+            var source =
+@"#pragma warning disable 169
+ref struct A
+{
+    ref int A1;
+    ref readonly int A2;
+    readonly ref int A3;
+    readonly ref readonly int A4;
+}
+readonly ref struct B
+{
+    ref int B1;
+    ref readonly int B2;
+    readonly ref int B3;
+    readonly ref readonly int B4;
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (11,13): error CS8340: Instance fields of readonly structs must be readonly.
+                //     ref int B1;
+                Diagnostic(ErrorCode.ERR_FieldsInRoStruct, "B1").WithLocation(11, 13),
+                // (12,22): error CS8340: Instance fields of readonly structs must be readonly.
+                //     ref readonly int B2;
+                Diagnostic(ErrorCode.ERR_FieldsInRoStruct, "B2").WithLocation(12, 22));
+        }
+
+        /// <summary>
+        /// ref readonly fields emitted as initonly.
+        /// ref readonly fields emitted with System.Runtime.CompilerServices.IsReadOnlyAttribute.
+        /// </summary>
+        [Fact]
+        public void RefAndReadonlyRefStruct_02()
+        {
+            var source =
+@"#pragma warning disable 169
+ref struct A
+{
+    ref int A1;
+    ref readonly int A2;
+    readonly ref int A3;
+    readonly ref readonly int A4;
+}
+readonly ref struct B
+{
+    readonly ref int B3;
+    readonly ref readonly int B4;
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyTypeIL("A",
+@".class private sequential ansi sealed beforefieldinit A
+	extends [System.Runtime]System.ValueType
+{
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = (
+		01 00 00 00
+	)
+	.custom instance void [System.Runtime]System.ObsoleteAttribute::.ctor(string, bool) = (
+		01 00 52 54 79 70 65 73 20 77 69 74 68 20 65 6d
+		62 65 64 64 65 64 20 72 65 66 65 72 65 6e 63 65
+		73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f 72
+		74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72 73
+		69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d 70
+		69 6c 65 72 2e 01 00 00
+	)
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
+		01 00 0a 52 65 66 53 74 72 75 63 74 73 00 00
+	)
+	// Fields
+	.field private int32& A1
+	.field private int32& A2
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+		01 00 00 00
+	)
+	.field private initonly int32& A3
+	.field private initonly int32& A4
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+		01 00 00 00
+	)
+} // end of class A
+");
+            verifier.VerifyTypeIL("B",
+@".class private sequential ansi sealed beforefieldinit B
+	extends [System.Runtime]System.ValueType
+{
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = (
+		01 00 00 00
+	)
+	.custom instance void [System.Runtime]System.ObsoleteAttribute::.ctor(string, bool) = (
+		01 00 52 54 79 70 65 73 20 77 69 74 68 20 65 6d
+		62 65 64 64 65 64 20 72 65 66 65 72 65 6e 63 65
+		73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f 72
+		74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72 73
+		69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d 70
+		69 6c 65 72 2e 01 00 00
+	)
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
+		01 00 0a 52 65 66 53 74 72 75 63 74 73 00 00
+	)
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field private initonly int32& B3
+	.field private initonly int32& B4
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+		01 00 00 00
+	)
+} // end of class B
+");
+        }
+
         [Fact]
         public void TupleField()
         {
@@ -525,12 +666,24 @@ ref struct R
                 // (6,19): error CS0106: The modifier 'const' is not valid for this item
                 //     const ref int _c1 = default;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "_c1").WithArguments("const").WithLocation(6, 19),
+                // (6,23): error CS8172: Cannot initialize a by-reference variable with a value
+                //     const ref int _c1 = default;
+                Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "= default").WithLocation(6, 23),
+                // (6,25): error CS1510: A ref or out value must be an assignable variable
+                //     const ref int _c1 = default;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default").WithLocation(6, 25),
                 // (7,28): error CS0106: The modifier 'static' is not valid for this item
                 //     const ref readonly int _c2 = default;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "_c2").WithArguments("static").WithLocation(7, 28),
                 // (7,28): error CS0106: The modifier 'const' is not valid for this item
                 //     const ref readonly int _c2 = default;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "_c2").WithArguments("const").WithLocation(7, 28),
+                // (7,32): error CS8172: Cannot initialize a by-reference variable with a value
+                //     const ref readonly int _c2 = default;
+                Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "= default").WithLocation(7, 32),
+                // (7,34): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //     const ref readonly int _c2 = default;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "default").WithLocation(7, 34),
                 // (8,22): error CS0106: The modifier 'volatile' is not valid for this item
                 //     volatile ref int _v1;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "_v1").WithArguments("volatile").WithLocation(8, 22),
@@ -7422,19 +7575,21 @@ class Program
     static void Main()
     {
         int i = 1;
-        Try(() => ReadAndDiscard1(ref i));
-        Try(() => ReadAndDiscardNoArg<int>());
-        Try(() => ReadAndDiscard2(new S<int>(ref i)));
+        Try(1, () => ReadAndDiscard1(ref i));
+        Try(2, () => ReadAndDiscardNoArg<int>());
+        Try(3, () => ReadAndDiscard2(new S<int>(ref i)));
+        Try(4, () => ReadAndDiscard2(new S<int>()));
 
-        void Try(Action a)
+        void Try(int i, Action a)
         {
             try
             {
                 a();
+                Console.WriteLine(i);
             }
             catch (NullReferenceException)
             {
-                System.Console.WriteLine(""NullReferenceException"");
+                Console.WriteLine(""NullReferenceException"");
             }
         }
     }
@@ -7452,7 +7607,12 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
-            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("NullReferenceException"));
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
+@"1
+NullReferenceException
+3
+NullReferenceException
+"));
             verifier.VerifyIL("Program.ReadAndDiscard1<T>", """
 {
   // Code size       18 (0x12)
@@ -8829,6 +8989,68 @@ class Program
         }
 
         [Fact]
+        [WorkItem(60807, "https://github.com/dotnet/roslyn/issues/60807")]
+        public void RefAndOut_PropertiesAndIndexers_As_ValuesAndParameters()
+        {
+            var source =
+@"
+var c = new C();
+var r = new R();
+//expressions
+ref int n = ref c.N;  //CS0206
+ref var l = ref c[0]; //CS0206
+ref var l2 = ref r[0];//OK
+_ = M(ref c.N);       //CS0206
+_ = M(ref r.N);       //OK
+_ = M(ref c[0]);      //CS0206
+_ = M(ref r[0]);      //OK
+_ = M2(out c.N);      //CS0206
+_ = M2(out r.N);      //OK
+_ = M2(out c[0]);     //CS0206
+_ = M2(out r[0]);     //OK
+//definitions
+static string M(ref int number) { return """"; }
+static string M2(out int number) { number = 42; return """"; }
+class C
+{
+    public int N { get; set; }
+    private int[] arr = new int[100];
+    public int this[int i] => arr[i];
+}
+ref struct R
+{
+    public R(){}
+    private ref int n;
+    public ref int N => ref n;
+    private static int[] s_arr = new int[1];
+    private ref int[] arr = ref s_arr;
+    public ref int this[int i] => ref arr[i];
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (5,17): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                // ref int n = ref c.N;  //CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "c.N").WithLocation(5, 17),
+                // (6,17): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                // ref var l = ref c[0]; //CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "c[0]").WithLocation(6, 17),
+                // (8,11): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                // _ = M(ref c.N);       //CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "c.N").WithLocation(8, 11),
+                // (10,11): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                // _ = M(ref c[0]);      //CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "c[0]").WithLocation(10, 11),
+                // (12,12): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                // _ = M2(out c.N);      //CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "c.N").WithLocation(12, 12),
+                // (14,12): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                // _ = M2(out c[0]);     //CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "c[0]").WithLocation(14, 12)
+            );
+        }
+
+        [Fact]
         public void RefAccessor_Value()
         {
             var source =
@@ -9905,7 +10127,7 @@ class Program
             static void verifyParameter((NamedTypeSymbol, LambdaSymbol) delegateTypeAndLambda, int parameterIndex, string expectedDisplayType, string expectedDisplayName, RefKind expectedRefKind, DeclarationScope expectedScope)
             {
                 var (delegateType, lambda) = delegateTypeAndLambda;
-                VerifyParameterSymbol(delegateType.DelegateInvokeMethod.Parameters[parameterIndex], expectedDisplayType, expectedRefKind, expectedScope);
+                VerifyParameterSymbol(delegateType.DelegateInvokeMethod.Parameters[parameterIndex], $"{expectedDisplayType} arg{parameterIndex + 1}", expectedRefKind, expectedScope);
                 VerifyParameterSymbol(lambda.Parameters[parameterIndex], $"{expectedDisplayType} {expectedDisplayName}", expectedRefKind, expectedScope);
             }
 
@@ -10167,18 +10389,17 @@ class Program
     }
 }";
             var comp = CreateCompilation(source);
-            // https://github.com/dotnet/roslyn/issues/62080: Lambda parameter r2 should be inferred as 'scoped R' rather than 'R'.
             comp.VerifyEmitDiagnostics(
-                // (9,17): error CS8986: The 'scoped' modifier of parameter 'r2' doesn't match target 'D2'.
+                // (9,23): error CS8352: Cannot use variable 'scoped R' in this context because it may expose referenced variables outside of their declaration scope
                 //         D2 d2 = r2 => r2;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "r2 => r2").WithArguments("r2", "D2").WithLocation(9, 17));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r2").WithArguments("scoped R").WithLocation(9, 23));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var lambdas = tree.GetRoot().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().Select(e => model.GetSymbolInfo(e).Symbol.GetSymbol<LambdaSymbol>()).ToArray();
 
             VerifyParameterSymbol(lambdas[0].Parameters[0], "R r1", RefKind.None, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(lambdas[1].Parameters[0], "R r2", RefKind.None, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(lambdas[1].Parameters[0], "scoped R r2", RefKind.None, DeclarationScope.ValueScoped);
         }
 
         [Fact]
@@ -15120,6 +15341,302 @@ class Program
         }
 
         [Fact]
+        public void DelegateConversions_ImplicitlyTypedParameter()
+        {
+            var source = """
+                delegate R D1(scoped R r);
+
+                public ref struct R
+                {
+                    public ref int field;
+                }
+
+                class C
+                {
+                    void M()
+                    {
+                        D1 d1 = r => r; // 1
+                        D1 d1_2 = (scoped R r) => r; // 2
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (12,22): error CS8352: Cannot use variable 'scoped R' in this context because it may expose referenced variables outside of their declaration scope
+                //         D1 d1 = r => r; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("scoped R").WithLocation(12, 22),
+                // (13,35): error CS8352: Cannot use variable 'scoped R' in this context because it may expose referenced variables outside of their declaration scope
+                //         D1 d1_2 = (scoped R r) => r; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("scoped R").WithLocation(13, 35)
+                );
+        }
+
+        [Fact]
+        public void DelegateConversions_ImplicitlyTypedParameter_OverloadResolution()
+        {
+            var source = """
+                delegate R D1(scoped R r);
+                delegate R D2(R r);
+
+                public ref struct R
+                {
+                    public ref int field;
+                }
+
+                class C
+                {
+                    void M()
+                    {
+                        M2(r => r);
+                        M2((scoped R r) => r); // 1
+                        M2(r => default); // 2
+                    }
+
+                    void M2(D1 d1) { }
+                    void M2(D2 d2) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (14,28): error CS8352: Cannot use variable 'scoped R' in this context because it may expose referenced variables outside of their declaration scope
+                //         M2((scoped R r) => r); // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("scoped R").WithLocation(14, 28),
+                // (15,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M2(D1)' and 'C.M2(D2)'
+                //         M2(r => default); // 2
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("C.M2(D1)", "C.M2(D2)").WithLocation(15, 9)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var invocations = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
+
+            Assert.Equal("M2(r => r)", invocations[0].ToString());
+            Assert.Equal("void C.M2(D2 d2)", model.GetSymbolInfo(invocations[0]).Symbol.ToTestDisplayString());
+
+            Assert.Equal("M2((scoped R r) => r)", invocations[1].ToString());
+            Assert.Null(model.GetSymbolInfo(invocations[1]).Symbol);
+        }
+
+        [Fact]
+        public void DelegateConversions_ImplicitlyTypedParameter_ParameterlessAnonymousMethod_Ref()
+        {
+            var source = """
+                delegate void D1(scoped R r1, scoped ref R r2);
+
+                public ref struct R
+                {
+                    public ref int field;
+                }
+
+                class C
+                {
+                    void M()
+                    {
+                        D1 d1 = delegate { };
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var anonymousMethod = tree.GetRoot().DescendantNodes().OfType<AnonymousMethodExpressionSyntax>().Single();
+
+            Assert.Equal("delegate { }", anonymousMethod.ToString());
+            var method = model.GetSymbolInfo(anonymousMethod).Symbol;
+            Assert.Equal("lambda expression", method.ToTestDisplayString());
+            var parameters = method.GetParameters();
+            Assert.Equal("scoped R <p0>", parameters[0].ToTestDisplayString());
+            Assert.Equal("scoped ref R <p1>", parameters[1].ToTestDisplayString());
+        }
+
+        [Fact]
+        public void DelegateConversions_ImplicitlyTypedParameter_ParameterlessAnonymousMethod_Out()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                delegate void D1([UnscopedRef] out R r3);
+
+                public ref struct R
+                {
+                    public ref int field;
+                }
+
+                class C
+                {
+                    void M()
+                    {
+                        D1 d1 = delegate { };
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (13,17): error CS1688: Cannot convert anonymous method block without a parameter list to delegate type 'D1' because it has one or more out parameters
+                //         D1 d1 = delegate { };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethNoParams, "delegate { }").WithArguments("D1").WithLocation(13, 17)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var anonymousMethod = tree.GetRoot().DescendantNodes().OfType<AnonymousMethodExpressionSyntax>().Single();
+
+            Assert.Equal("delegate { }", anonymousMethod.ToString());
+            var method = model.GetSymbolInfo(anonymousMethod).Symbol;
+            Assert.Equal("lambda expression", method.ToTestDisplayString());
+            Assert.Empty(method.GetParameters());
+        }
+
+        [Fact]
+        public void DelegateConversions_ImplicitlyTypedParameter_MissingParameters()
+        {
+            var source = """
+                delegate R D1(scoped R r);
+
+                public ref struct R
+                {
+                    public ref int field;
+                }
+
+                class C
+                {
+                    void M()
+                    {
+                        D1 d1 = () => new R();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (12,17): error CS1593: Delegate 'D1' does not take 0 arguments
+                //         D1 d1 = () => new R();
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "() => new R()").WithArguments("D1", "0").WithLocation(12, 17)
+                );
+        }
+
+        [Fact]
+        public void DelegateConversions_ImplicitlyTypedParameter_ExtraParameters()
+        {
+            var source = """
+                delegate R D1();
+
+                public ref struct R
+                {
+                    public ref int field;
+                }
+
+                class C
+                {
+                    void M()
+                    {
+                        D1 d1 = r => r;
+                        D1 d2 = (scoped R r) => r;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (12,17): error CS1593: Delegate 'D1' does not take 1 arguments
+                //         D1 d1 = r => r;
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "r => r").WithArguments("D1", "1").WithLocation(12, 17),
+                // (13,17): error CS1593: Delegate 'D1' does not take 1 arguments
+                //         D1 d2 = (scoped R r) => r;
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "(scoped R r) => r").WithArguments("D1", "1").WithLocation(13, 17)
+                );
+        }
+
+        [Fact]
+        public void DelegateConversions_ImplicitlyTypedParameter_NullableRewriteOfLambda()
+        {
+            var source = """
+                #nullable enable
+
+                delegate R<T> D<T>(scoped R<T> r, T t);
+
+                public ref struct R<T>
+                {
+                    public ref int field;
+                }
+
+                class C
+                {
+                    static R<T> F<T>(D<T> f, T t) => throw null!;
+
+                    static void M<U>(U? u) where U : class
+                    {
+                        F((r1, t1) => F((r2, t2) => r2, t1), u).ToString();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (16,37): error CS8352: Cannot use variable 'scoped R<U>' in this context because it may expose referenced variables outside of their declaration scope
+                //         F((r1, t1) => F((r2, t2) => r2, t1), u).ToString();
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r2").WithArguments("scoped R<U>").WithLocation(16, 37));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var lambdas = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().ToArray();
+
+            Assert.Equal("(r1, t1) => F((r2, t2) => r2, t1)", lambdas[0].ToString());
+            Assert.Equal("r1", lambdas[0].ParameterList.Parameters[0].Identifier.ToString());
+            Assert.Equal("scoped R<U> r1", model.GetDeclaredSymbol(lambdas[0].ParameterList.Parameters[0]).ToTestDisplayString());
+
+            Assert.Equal("t1", lambdas[0].ParameterList.Parameters[1].Identifier.ToString());
+            Assert.Equal("U t1", model.GetDeclaredSymbol(lambdas[0].ParameterList.Parameters[1]).ToTestDisplayString());
+
+            Assert.Equal("(r2, t2) => r2", lambdas[1].ToString());
+            Assert.Equal("r2", lambdas[1].ParameterList.Parameters[0].Identifier.ToString());
+            Assert.Equal("scoped R<U> r2", model.GetDeclaredSymbol(lambdas[1].ParameterList.Parameters[0]).ToTestDisplayString());
+
+            Assert.Equal("t2", lambdas[1].ParameterList.Parameters[1].Identifier.ToString());
+            Assert.Equal("U t2", model.GetDeclaredSymbol(lambdas[1].ParameterList.Parameters[1]).ToTestDisplayString());
+        }
+
+        [Fact]
+        public void DelegateConversions_ImplicitlyTypedParameter_NestedLambdaReinference_NestedNotReinferred()
+        {
+            var source = @"
+using System;
+delegate R D<T>(scoped T t);
+ref struct R { }
+
+class C
+{
+    public static Action<T> Create<T>(T t, Action<T> a) => throw null!;
+
+    public static void M(object? o)
+    {
+        var a = Create(o, o1 => {
+            if (o1 == null) return;
+            D<string> d = o2 => throw null!;
+        });
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNullableEnable());
+            comp.VerifyDiagnostics(
+                // (3,17): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                // delegate R D<T>(scoped T t);
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T t").WithLocation(3, 17)
+                );
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Last();
+            Assert.Equal("o2 => throw null!", lambda.ToString());
+            var lambdaSymbol = model.GetSymbolInfo(lambda).Symbol;
+            Assert.Equal("scoped System.String o2", lambdaSymbol.GetParameters()[0].ToTestDisplayString());
+        }
+
+        [Fact]
         public void FunctionPointerConversions()
         {
             var source =
@@ -16080,9 +16597,9 @@ class Program
             var comp = CreateCompilation(source);
             // https://github.com/dotnet/roslyn/issues/62768: Improve error message for `scoped ref` parameter returned by reference.
             comp.VerifyDiagnostics(
-                // (9,13): error CS8347: Cannot use a result of '<anonymous delegate>.Invoke(R, scoped R)' in this context because it may expose variables referenced by parameter '0' outside of their declaration scope
+                // (9,13): error CS8347: Cannot use a result of '<anonymous delegate>.Invoke(R, scoped R)' in this context because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
                 //         z = f(y1, x1); // 1
-                Diagnostic(ErrorCode.ERR_EscapeCall, "f(y1, x1)").WithArguments("<anonymous delegate>.Invoke(R, scoped R)", "0").WithLocation(9, 13),
+                Diagnostic(ErrorCode.ERR_EscapeCall, "f(y1, x1)").WithArguments("<anonymous delegate>.Invoke(R, scoped R)", "arg1").WithLocation(9, 13),
                 // (9,15): error CS8352: Cannot use variable 'scoped R' in this context because it may expose referenced variables outside of their declaration scope
                 //         z = f(y1, x1); // 1
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y1").WithArguments("scoped R").WithLocation(9, 15));
@@ -16092,9 +16609,9 @@ class Program
             var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(v => v.Identifier.Text == "f").ToArray();
             var delegateInvokeMethods = decls.Select(d => ((ILocalSymbol)model.GetDeclaredSymbol(d)).Type.GetSymbol<NamedTypeSymbol>().DelegateInvokeMethod).ToArray();
 
-            VerifyParameterSymbol(delegateInvokeMethods[0].Parameters[0], "R", RefKind.None, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(delegateInvokeMethods[0].Parameters[1], "scoped R", RefKind.None, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(delegateInvokeMethods[1].Parameters[1], "scoped ref System.Int32", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(delegateInvokeMethods[0].Parameters[0], "R arg1", RefKind.None, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(delegateInvokeMethods[0].Parameters[1], "scoped R arg2", RefKind.None, DeclarationScope.ValueScoped);
+            VerifyParameterSymbol(delegateInvokeMethods[1].Parameters[1], "scoped ref System.Int32 arg2", RefKind.Ref, DeclarationScope.RefScoped);
         }
 
         [Fact]
@@ -22025,7 +22542,7 @@ class Program
         }
 
         [Fact]
-        public void UnscopedRefAttribute_ScopeRefAttribute()
+        public void UnscopedRefAttribute_ScopeRefAttribute_Out()
         {
             var sourceA =
 @".assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
@@ -22122,6 +22639,104 @@ class Program
             VerifyParameterSymbol(typeA.GetMethod("ScopedRefAndUnscopedRef").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.Unscoped);
         }
 
+        [WorkItem(64778, "https://github.com/dotnet/roslyn/issues/64778")]
+        [Fact]
+        public void UnscopedRefAttribute_ScopeRefAttribute_RefToRefStruct()
+        {
+            var sourceA =
+@".assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+.assembly '<<GeneratedFileName>>' { }
+.module '<<GeneratedFileName>>.dll'
+.custom instance void System.Runtime.CompilerServices.RefSafetyRulesAttribute::.ctor(int32) = { int32(11) }
+.class private System.Runtime.CompilerServices.RefSafetyRulesAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor(int32 version) cil managed { ret }
+  .field public int32 Version
+}
+.class private System.Diagnostics.CodeAnalysis.UnscopedRefAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class private System.Runtime.CompilerServices.ScopedRefAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed R extends [mscorlib]System.ValueType
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = (01 00 00 00)
+  .field public int32& F
+}
+.class public A
+{
+  .method public static void NoAttributes(valuetype R& x, valuetype R& y)
+  {
+    ldnull
+    throw
+  }
+  .method public static void ScopedRefOnly(valuetype R& x, valuetype R& y)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.ScopedRefAttribute::.ctor() = ( 01 00 00 00 )
+    ldnull
+    throw
+  }
+  .method public static void UnscopedRefOnly(valuetype R& x, valuetype R& y)
+  {
+    .param [1]
+    .custom instance void System.Diagnostics.CodeAnalysis.UnscopedRefAttribute::.ctor() = ( 01 00 00 00 )
+    ldnull
+    throw
+  }
+  .method public static void ScopedRefAndUnscopedRef(valuetype R& x, valuetype R& y)
+  {
+    .param [1]
+    .custom instance void System.Diagnostics.CodeAnalysis.UnscopedRefAttribute::.ctor() = ( 01 00 00 00 )
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.ScopedRefAttribute::.ctor() = ( 01 00 00 00 )
+    ldnull
+    throw
+  }
+}
+";
+            var refA = CompileIL(sourceA, prependDefaultHeader: false);
+
+            var sourceB =
+@"class Program
+{
+    static void F1(ref R x, ref R y)
+    {
+        A.NoAttributes(ref x, ref y);
+    }
+    static void F2(ref R x, ref R y)
+    {
+        A.ScopedRefOnly(ref x, ref y);
+    }
+    static void F3(ref R x, ref R y)
+    {
+        A.UnscopedRefOnly(ref x, ref y); // 1
+    }
+    static void F4(ref R x, ref R y)
+    {
+        A.ScopedRefAndUnscopedRef(ref x, ref y); // 2
+    }
+}";
+            // https://github.com/dotnet/roslyn/issues/64778: No error reported for F3 because
+            // [UnscopedRef] ref R y is currently treated as ref R y from metadata.
+            var comp = CreateCompilation(sourceB, new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (17,11): error CS0570: 'A.ScopedRefAndUnscopedRef(ref R, ref R)' is not supported by the language
+                //         A.ScopedRefAndUnscopedRef(ref x, ref y); // 2
+                Diagnostic(ErrorCode.ERR_BindToBogus, "ScopedRefAndUnscopedRef").WithArguments("A.ScopedRefAndUnscopedRef(ref R, ref R)").WithLocation(17, 11));
+
+            // https://github.com/dotnet/roslyn/issues/64778:
+            // [UnscopedRef] ref R y is currently treated as ref R y from metadata.
+            var typeA = comp.GetMember<NamedTypeSymbol>("A");
+            VerifyParameterSymbol(typeA.GetMethod("NoAttributes").Parameters[0], "ref R x", RefKind.Ref, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(typeA.GetMethod("ScopedRefOnly").Parameters[0], "scoped ref R x", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(typeA.GetMethod("UnscopedRefOnly").Parameters[0], "ref R x", RefKind.Ref, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(typeA.GetMethod("ScopedRefAndUnscopedRef").Parameters[0], "ref R x", RefKind.Ref, DeclarationScope.Unscoped);
+        }
+
         [Fact]
         [WorkItem(63529, "https://github.com/dotnet/roslyn/issues/63529")]
         public void CallUnscopedRefMethodFromScopedOne()
@@ -22141,7 +22756,7 @@ ref struct A
     Span<byte> GetSpan() => default;
 }
 ";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.Net50, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 );
         }
@@ -22260,7 +22875,7 @@ class Program
             static void verifyParameter((NamedTypeSymbol, LambdaSymbol) delegateTypeAndLambda, int parameterIndex, string expectedDisplayType, string expectedDisplayName, RefKind expectedRefKind, DeclarationScope expectedScope)
             {
                 var (delegateType, lambda) = delegateTypeAndLambda;
-                VerifyParameterSymbol(delegateType.DelegateInvokeMethod.Parameters[parameterIndex], expectedDisplayType, expectedRefKind, expectedScope);
+                VerifyParameterSymbol(delegateType.DelegateInvokeMethod.Parameters[parameterIndex], $"{expectedDisplayType} arg", expectedRefKind, expectedScope);
                 VerifyParameterSymbol(lambda.Parameters[parameterIndex], $"{expectedDisplayType} {expectedDisplayName}", expectedRefKind, expectedScope);
             }
 
@@ -24727,6 +25342,426 @@ struct S<T> : System.IDisposable
                 //         F3(in local, out local); // 2
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(19, 15)
                 );
+        }
+
+        [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [InlineData("ref")]
+        [InlineData("ref readonly")]
+        public void FieldInitializer_01(string refModifier)
+        {
+            var sourceA =
+$@"ref struct R
+{{
+    public static byte S = 1;
+    public {refModifier} byte F = ref S;
+    public R() {{ }}
+}}";
+            var sourceB =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        var r = new R();
+        Console.WriteLine(r.F);
+        R.S++;
+        Console.WriteLine(r.F);
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"1
+2
+");
+            verifier.VerifyIL("R..ctor",
+$@"{{
+    // Code size       12 (0xc)
+    .maxstack  2
+    IL_0000:  ldarg.0
+    IL_0001:  ldsflda    ""byte R.S""
+    IL_0006:  stfld      ""{refModifier} byte R.F""
+    IL_000b:  ret
+}}
+");
+        }
+
+        [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void FieldInitializer_02A()
+        {
+            var source =
+@"using System;
+ref struct R
+{
+    public ref byte _f1 = ref F(stackalloc byte[1]);
+    public ref readonly byte _f2 = ref F(stackalloc byte[1]);
+    public R(object o) { }
+    static ref byte F(Span<byte> s) => ref _s;
+    public static byte _s;
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (4,31): error CS8347: Cannot use a result of 'R.F(Span<byte>)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //     public ref byte _f1 = ref F(stackalloc byte[1]);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(stackalloc byte[1])").WithArguments("R.F(System.Span<byte>)", "s").WithLocation(4, 31),
+                // (4,33): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //     public ref byte _f1 = ref F(stackalloc byte[1]);
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[1]").WithArguments("System.Span<byte>").WithLocation(4, 33),
+                // (5,40): error CS8347: Cannot use a result of 'R.F(Span<byte>)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //     public ref readonly byte _f2 = ref F(stackalloc byte[1]);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(stackalloc byte[1])").WithArguments("R.F(System.Span<byte>)", "s").WithLocation(5, 40),
+                // (5,42): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //     public ref readonly byte _f2 = ref F(stackalloc byte[1]);
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[1]").WithArguments("System.Span<byte>").WithLocation(5, 42));
+        }
+
+        // Similar to above but with scoped parameter.
+        [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void FieldInitializer_02B()
+        {
+            var source =
+@"using System;
+ref struct R
+{
+    public ref byte _f1 = ref F(stackalloc byte[1]);
+    public ref readonly byte _f2 = ref F(stackalloc byte[1]);
+    public R(object o) { }
+    static ref byte F(scoped Span<byte> s) => ref _s;
+    public static byte _s = 1;
+}
+class Program
+{
+    static void Main()
+    {
+        var r = new R(null);
+        Console.WriteLine((r._f1, r._f2));
+        R._s = 2;
+        Console.WriteLine((r._f1, r._f2));
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
+@"(1, 1)
+(2, 2)
+");
+            verifier.VerifyIL("R..ctor(object)",
+@"{
+    // Code size       47 (0x2f)
+    .maxstack  2
+    .locals init (System.Span<byte> V_0)
+    IL_0000:  ldc.i4.1
+    IL_0001:  conv.u
+    IL_0002:  localloc
+    IL_0004:  ldc.i4.1
+    IL_0005:  newobj     ""System.Span<byte>..ctor(void*, int)""
+    IL_000a:  stloc.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldloc.0
+    IL_000d:  call       ""ref byte R.F(scoped System.Span<byte>)""
+    IL_0012:  stfld      ""ref byte R._f1""
+    IL_0017:  ldc.i4.1
+    IL_0018:  conv.u
+    IL_0019:  localloc
+    IL_001b:  ldc.i4.1
+    IL_001c:  newobj     ""System.Span<byte>..ctor(void*, int)""
+    IL_0021:  stloc.0
+    IL_0022:  ldarg.0
+    IL_0023:  ldloc.0
+    IL_0024:  call       ""ref byte R.F(scoped System.Span<byte>)""
+    IL_0029:  stfld      ""ref readonly byte R._f2""
+    IL_002e:  ret
+}");
+        }
+
+        [WorkItem(64725, "https://github.com/dotnet/roslyn/issues/64725")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void FieldInitializer_03()
+        {
+            var source =
+@"#pragma warning disable 414
+ref struct R
+{
+    ref int _f1 = 1;
+    ref readonly int _f2 = 2;
+    public R() { }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (4,17): error CS8172: Cannot initialize a by-reference variable with a value
+                //     ref int _f1 = 1;
+                Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "= 1").WithLocation(4, 17),
+                // (4,19): error CS1510: A ref or out value must be an assignable variable
+                //     ref int _f1 = 1;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "1").WithLocation(4, 19),
+                // (5,26): error CS8172: Cannot initialize a by-reference variable with a value
+                //     ref readonly int _f2 = 2;
+                Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "= 2").WithLocation(5, 26),
+                // (5,28): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //     ref readonly int _f2 = 2;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "2").WithLocation(5, 28));
+        }
+
+        [WorkItem(64725, "https://github.com/dotnet/roslyn/issues/64725")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void FieldInitializer_04()
+        {
+            var source =
+@"using System;
+ref struct R
+{
+    ref byte _f1 = F(stackalloc byte[1]);
+    ref readonly byte _f2 = F(stackalloc byte[1]);
+    public R() { }
+    static ref T F<T>(Span<T> s) => throw null;
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (4,18): error CS8172: Cannot initialize a by-reference variable with a value
+                //     ref byte _f1 = F(stackalloc byte[1]);
+                Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "= F(stackalloc byte[1])").WithLocation(4, 18),
+                // (4,20): error CS8347: Cannot use a result of 'R.F<byte>(Span<byte>)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //     ref byte _f1 = F(stackalloc byte[1]);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(stackalloc byte[1])").WithArguments("R.F<byte>(System.Span<byte>)", "s").WithLocation(4, 20),
+                // (4,22): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //     ref byte _f1 = F(stackalloc byte[1]);
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[1]").WithArguments("System.Span<byte>").WithLocation(4, 22),
+                // (5,27): error CS8172: Cannot initialize a by-reference variable with a value
+                //     ref readonly byte _f2 = F(stackalloc byte[1]);
+                Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "= F(stackalloc byte[1])").WithLocation(5, 27),
+                // (5,29): error CS8347: Cannot use a result of 'R.F<byte>(Span<byte>)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //     ref readonly byte _f2 = F(stackalloc byte[1]);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(stackalloc byte[1])").WithArguments("R.F<byte>(System.Span<byte>)", "s").WithLocation(5, 29),
+                // (5,31): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //     ref readonly byte _f2 = F(stackalloc byte[1]);
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[1]").WithArguments("System.Span<byte>").WithLocation(5, 31));
+        }
+
+        [WorkItem(64725, "https://github.com/dotnet/roslyn/issues/64725")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void FieldInitializer_05()
+        {
+            var source =
+@"using System;
+ref struct R
+{
+    ref readonly Span<int> _s = ref F(stackalloc int[1]);
+    public R() { }
+    static ref readonly Span<T> F<T>(in Span<T> s) => ref s;
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (4,5): error CS9050: A ref field cannot refer to a ref struct.
+                //     ref readonly Span<int> _s = ref F(stackalloc int[1]);
+                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref readonly Span<int>").WithLocation(4, 5),
+                // (4,37): error CS8347: Cannot use a result of 'R.F<int>(in Span<int>)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //     ref readonly Span<int> _s = ref F(stackalloc int[1]);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(stackalloc int[1])").WithArguments("R.F<int>(in System.Span<int>)", "s").WithLocation(4, 37),
+                // (4,39): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //     ref readonly Span<int> _s = ref F(stackalloc int[1]);
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(4, 39));
+        }
+
+        [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void FieldInitializer_06A()
+        {
+            var source =
+@"ref struct R
+{
+    ref byte _f1 = ref F<byte>(out var b1);
+    ref readonly byte _f2 = ref F<byte>(out var b2);
+    public R() { }
+    static ref T F<T>(out T t)
+    {
+        throw null;
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        // Similar to above but with [UnscopedRef] out parameter.
+        [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void FieldInitializer_06B()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct R
+{
+    ref byte _f1 = ref F<byte>(out var b1); // 1
+    ref readonly byte _f2 = ref F<byte>(out var b2); // 2
+    public R() { }
+    static ref T F<T>([UnscopedRef] out T t)
+    {
+        t = default;
+        return ref t;
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (4,24): error CS8347: Cannot use a result of 'R.F<byte>(out byte)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //     ref byte _f1 = ref F<byte>(out var b1); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F<byte>(out var b1)").WithArguments("R.F<byte>(out byte)", "t").WithLocation(4, 24),
+                // (4,36): error CS8168: Cannot return local 'b1' by reference because it is not a ref local
+                //     ref byte _f1 = ref F<byte>(out var b1); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "var b1").WithArguments("b1").WithLocation(4, 36),
+                // (5,33): error CS8347: Cannot use a result of 'R.F<byte>(out byte)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //     ref readonly byte _f2 = ref F<byte>(out var b2); // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F<byte>(out var b2)").WithArguments("R.F<byte>(out byte)", "t").WithLocation(5, 33),
+                // (5,45): error CS8168: Cannot return local 'b2' by reference because it is not a ref local
+                //     ref readonly byte _f2 = ref F<byte>(out var b2); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "var b2").WithArguments("b2").WithLocation(5, 45));
+        }
+
+        [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void FieldInitializer_07()
+        {
+            var source =
+@"using System;
+ref struct R
+{
+    public ref int F1 = ref C.Instance.F();
+    public ref readonly int F2;
+    public R(object obj)
+    {
+        F2 = ref F1;
+    }
+}
+class C
+{
+    public static C Instance = new C();
+    int _b = 1;
+    public ref int F() => ref _b;
+    static void Main()
+    {
+        var r = new R(null);
+        Instance._b += 2;
+        Console.WriteLine((r.F1, r.F2));
+    }
+}";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "(3, 3)");
+            verifier.VerifyIL("R..ctor(object)",
+@"{
+    // Code size       29 (0x1d)
+    .maxstack  2
+    IL_0000:  ldarg.0
+    IL_0001:  ldsfld     ""C C.Instance""
+    IL_0006:  callvirt   ""ref int C.F()""
+    IL_000b:  stfld      ""ref int R.F1""
+    IL_0010:  ldarg.0
+    IL_0011:  ldarg.0
+    IL_0012:  ldfld      ""ref int R.F1""
+    IL_0017:  stfld      ""ref readonly int R.F2""
+    IL_001c:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var fieldInitializerSyntax = tree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().First();
+            var symbol = model.GetDeclaredSymbol(fieldInitializerSyntax.Parent);
+            Assert.Equal("ref System.Int32 R.F1", symbol.ToTestDisplayString());
+
+            var fieldInitializerOperation = (Microsoft.CodeAnalysis.Operations.IFieldInitializerOperation)model.GetOperation(fieldInitializerSyntax);
+            OperationTreeVerifier.Verify(
+@"IFieldInitializerOperation (Field: ref System.Int32 R.F1) (OperationKind.FieldInitializer, Type: null) (Syntax: '= ref C.Instance.F()')
+  IInvocationOperation ( ref System.Int32 C.F()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'C.Instance.F()')
+    Instance Receiver:
+      IFieldReferenceOperation: C C.Instance (Static) (OperationKind.FieldReference, Type: C) (Syntax: 'C.Instance')
+        Instance Receiver:
+          null
+    Arguments(0)
+",
+                OperationTreeVerifier.GetOperationTree(comp, fieldInitializerOperation));
+
+            var controlFlowGraph = Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(fieldInitializerOperation);
+            ControlFlowGraphVerifier.VerifyGraph(comp,
+@"    Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= ref C.Instance.F()')
+          Left:
+            IFieldReferenceOperation: ref System.Int32 R.F1 (OperationKind.FieldReference, Type: System.Int32, IsImplicit) (Syntax: '= ref C.Instance.F()')
+              Instance Receiver:
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: R, IsImplicit) (Syntax: '= ref C.Instance.F()')
+          Right:
+            IInvocationOperation ( ref System.Int32 C.F()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'C.Instance.F()')
+              Instance Receiver:
+                IFieldReferenceOperation: C C.Instance (Static) (OperationKind.FieldReference, Type: C) (Syntax: 'C.Instance')
+                  Instance Receiver:
+                    null
+              Arguments(0)
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+",
+                controlFlowGraph, symbol);
+
+            var constructorSyntax = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            symbol = model.GetDeclaredSymbol(constructorSyntax);
+            Assert.Equal("R..ctor(System.Object obj)", symbol.ToTestDisplayString());
+
+            var constructorOperation = (Microsoft.CodeAnalysis.Operations.IConstructorBodyOperation)model.GetOperation(constructorSyntax);
+            OperationTreeVerifier.Verify(
+@"IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public R(ob ... }')
+  Initializer:
+    null
+  BlockBody:
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'F2 = ref F1;')
+        Expression:
+          ISimpleAssignmentOperation (IsRef) (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'F2 = ref F1')
+            Left:
+              IFieldReferenceOperation: ref readonly System.Int32 R.F2 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'F2')
+                Instance Receiver:
+                  IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: R, IsImplicit) (Syntax: 'F2')
+            Right:
+              IFieldReferenceOperation: ref System.Int32 R.F1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'F1')
+                Instance Receiver:
+                  IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: R, IsImplicit) (Syntax: 'F1')
+  ExpressionBody:
+    null
+",
+                OperationTreeVerifier.GetOperationTree(comp, constructorOperation));
+
+            controlFlowGraph = Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(constructorOperation);
+            ControlFlowGraphVerifier.VerifyGraph(comp,
+@"Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'F2 = ref F1;')
+          Expression:
+            ISimpleAssignmentOperation (IsRef) (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'F2 = ref F1')
+              Left:
+                IFieldReferenceOperation: ref readonly System.Int32 R.F2 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'F2')
+                  Instance Receiver:
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: R, IsImplicit) (Syntax: 'F2')
+              Right:
+                IFieldReferenceOperation: ref System.Int32 R.F1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'F1')
+                  Instance Receiver:
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: R, IsImplicit) (Syntax: 'F1')
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+",
+                controlFlowGraph, symbol);
         }
     }
 }

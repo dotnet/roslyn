@@ -62,7 +62,7 @@
     <HumanizerCoreVersion>2.14.1</HumanizerCoreVersion>
     <ICSharpCodeDecompilerVersion>7.1.0.6543</ICSharpCodeDecompilerVersion>
     <InputSimulatorPlusVersion>1.0.7</InputSimulatorPlusVersion>
-    <MicrosoftBuildLocatorVersion>1.4.1</MicrosoftBuildLocatorVersion>
+    <MicrosoftBuildLocatorVersion>1.5.5</MicrosoftBuildLocatorVersion>
     <MicrosoftExtensionsDependencyInjectionVersion>6.0.0</MicrosoftExtensionsDependencyInjectionVersion>
     <!--
       SourceBuild will requires that all dependencies also be source buildable. We are referencing a
@@ -299,7 +299,7 @@
     <UsingToolVSSDK>true</UsingToolVSSDK>
   </PropertyGroup>
   <PropertyGroup>
-    <UsingToolPdbConverter>true</UsingToolPdbConverter>
+    <UsingToolPdbConverter>false</UsingToolPdbConverter>
     <UsingToolSymbolUploader>true</UsingToolSymbolUploader>
     <UsingToolNuGetRepack>true</UsingToolNuGetRepack>
     <UsingToolNetFrameworkReferenceAssemblies>true</UsingToolNetFrameworkReferenceAssemblies>
@@ -307,7 +307,6 @@
     <UsingToolVisualStudioIbcTraining>true</UsingToolVisualStudioIbcTraining>
     <UsingToolXliff>true</UsingToolXliff>
     <UsingToolXUnit>true</UsingToolXUnit>
-    <DiscoverEditorConfigFiles>true</DiscoverEditorConfigFiles>
     <!--
       When using a bootstrap builder we don't want to use the Microsoft.Net.Compilers.Toolset package but
       rather explicitly override it.
