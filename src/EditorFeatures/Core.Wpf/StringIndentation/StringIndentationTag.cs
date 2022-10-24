@@ -38,10 +38,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
             return brush?.Color;
         }
 
-        // Intentionally returning the base impl, we have never supported this facility, and there is no contract around
-        // placing these tags in sets or maps.
+        // Intentionally throwing, we have never supported this facility, and there is no contract around placing
+        // these tags in sets or maps.
         public override int GetHashCode()
-            => base.GetHashCode();
+            => throw new NotImplementedException();
 
         public override bool Equals(object? obj)
             => Equals(obj as StringIndentationTag);
