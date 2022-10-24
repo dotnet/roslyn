@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         type = BindType(typeSyntax, diagnostics);
                         ParameterHelpers.CheckParameterModifiers(p, diagnostics, parsingFunctionPointerParams: false, parsingLambdaParams: true,
-                            parsingAnonymousMethod: syntax.Kind() == SyntaxKind.AnonymousMethodExpression);
+                            parsingAnonymousMethod: syntax.IsKind(SyntaxKind.AnonymousMethodExpression));
                         refKind = ParameterHelpers.GetModifiers(p.Modifiers, out _, out var paramsKeyword, out _, out scope);
 
                         var isLastParameter = parameterCount == parameterSyntaxList.Value.Count;
