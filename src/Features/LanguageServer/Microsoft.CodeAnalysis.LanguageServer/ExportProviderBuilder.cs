@@ -8,7 +8,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
-internal class ExportProviderBuilder
+
+internal sealed class ExportProviderBuilder
 {
     /// <summary>
     /// These assemblies won't necessarily be loaded when we want to run MEF discovery.
@@ -19,7 +20,7 @@ internal class ExportProviderBuilder
         "Microsoft.CodeAnalysis.Features.dll",
         "Microsoft.CodeAnalysis.Workspaces.dll");
 
-    public static async Task<ExportProvider> CreateExportProviderAsync(ILogger logger)
+    public static async Task<ExportProvider> CreateExportProviderAsync()
     {
         var baseDirectory = AppContext.BaseDirectory;
         var assembliesWithFullPath = AssembliesToDiscover.Select(a => Path.Combine(baseDirectory, a));
@@ -34,27 +35,9 @@ internal class ExportProviderBuilder
             .AddParts(await discovery.CreatePartsAsync(assembliesWithFullPath))
             .WithCompositionService(); // Makes an ICompositionService export available to MEF parts to import
 
-        if (catalog.DiscoveredParts.DiscoveryErrors.Any())
-        {
-            foreach (var exception in catalog.DiscoveredParts.DiscoveryErrors)
-            {
-                logger.LogWarning(exception, exception.Message);
-            }
-        }
-
         // Assemble the parts into a valid graph.
         var config = CompositionConfiguration.Create(catalog);
-
-        if (config.CompositionErrors.Any())
-        {
-            foreach (var errorCollection in config.CompositionErrors)
-            {
-                foreach (var error in errorCollection)
-                {
-                    logger.LogInformation(error.Message);
-                }
-            }
-        }
+        _ = config.ThrowOnErrors();
 
         // Prepare an ExportProvider factory based on this graph.
         var exportProviderFactory = config.CreateExportProviderFactory();

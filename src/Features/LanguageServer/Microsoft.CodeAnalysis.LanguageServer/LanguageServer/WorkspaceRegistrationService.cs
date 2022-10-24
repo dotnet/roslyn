@@ -6,11 +6,17 @@ using System.Composition;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 
+/// <summary>
+/// Implements the workspace registration service so that any new workspaces we
+/// create are automatically registered by <see cref="LspWorkspaceRegistrationEventListener"/>
+/// </summary>
 [Export(typeof(LspWorkspaceRegistrationService))]
 internal class WorkspaceRegistrationService : LspWorkspaceRegistrationService
 {
     public override string GetHostWorkspaceKind()
     {
+        // For now mark the host workspace kind as the 'main' workspace where
+        // 'workspace/XXXX' requests go to.
         return WorkspaceKind.Host;
     }
 }

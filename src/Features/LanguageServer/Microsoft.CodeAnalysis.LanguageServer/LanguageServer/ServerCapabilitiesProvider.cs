@@ -5,11 +5,12 @@
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
-internal class ServerCapabilitiesProvider : ICapabilitiesProvider
+
+internal sealed class ServerCapabilitiesProvider : ICapabilitiesProvider
 {
     public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
     {
-        return new ServerCapabilities
+        return new()
         {
             TextDocumentSync = new TextDocumentSyncOptions
             {

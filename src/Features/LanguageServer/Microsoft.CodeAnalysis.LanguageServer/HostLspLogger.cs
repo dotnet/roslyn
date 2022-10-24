@@ -5,9 +5,11 @@
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
-internal class HostLspLogger : ILspServiceLogger
+
+internal sealed class HostLspLogger : ILspServiceLogger
 {
     private readonly ILogger _logger;
+
     public HostLspLogger(ILogger logger)
     {
         _logger = logger;

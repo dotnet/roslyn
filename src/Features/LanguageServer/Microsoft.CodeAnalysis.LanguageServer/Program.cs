@@ -16,17 +16,17 @@ Console.Title = "Microsoft.CodeAnalysis.LanguageServer";
 // https://github.com/microsoft/vscode-csharp-next/issues/12
 using var loggerFactory = LoggerFactory.Create(builder =>
 {
-    _ = builder.SetMinimumLevel(LogLevel.Trace);
-    _ = builder.AddConsole((options) => options.LogToStandardErrorThreshold = LogLevel.Trace);
+    builder.SetMinimumLevel(LogLevel.Trace);
+    builder.AddConsole(options => options.LogToStandardErrorThreshold = LogLevel.Trace);
 });
 var logger = loggerFactory.CreateLogger<ILogger>();
 
 LaunchDebuggerIfEnabled(args);
 
-var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(logger);
+var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync();
 var jsonRpc = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), logger, exportProvider);
 
-await jsonRpc.StartAsync();
+await jsonRpc.StartAsync().ConfigureAwait(false);
 
 return;
 

@@ -23,7 +23,7 @@ internal sealed class LanguageServerHost
 
         var handler = new HeaderDelimitedMessageHandler(outputStream, inputStream, new JsonMessageFormatter());
 
-        // JsonRpc disconnect / disposal is handled by AbstractLanguageServer.
+        // If there is a jsonrpc disconnect or server shutdown, that is handled by the AbstractLanguageServer.  No need to do anything here.
         _jsonRpc = new JsonRpc(handler)
         {
             ExceptionStrategy = ExceptionProcessing.CommonErrorData,
@@ -37,9 +37,9 @@ internal sealed class LanguageServerHost
 
     public async Task StartAsync()
     {
-        _logger.LogInformation("Running server...");
+        _logger.LogInformation("Starting server...");
         _jsonRpc.StartListening();
-        await _jsonRpc.Completion;
-        await _roslynLanguageServer.WaitForExitAsync();
+        await _jsonRpc.Completion.ConfigureAwait(false);
+        await _roslynLanguageServer.WaitForExitAsync().ConfigureAwait(false);
     }
 }
