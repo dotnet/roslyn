@@ -29,8 +29,8 @@ internal static class TransformerDependencyResolver
         foreach (var transformerGroup in transformersByName.Where(g => g.Count() > 1))
         {
             diagnostics.Add(new DiagnosticInfo(MetalamaCompilerMessageProvider.Instance,
-                (int)MetalamaErrorCode.ERR_TransformerNotFound, transformerGroup.Key,
-                string.Join(", ", transformerGroup.Select(t => $"'{t.GetType().AssemblyQualifiedName}'"))));
+                (int)MetalamaErrorCode.ERR_TransformerNotUnique, transformerGroup.Key,
+                string.Join(", ", transformerGroup.Select(t => $"'{t.Transformer.GetType().AssemblyQualifiedName}'"))));
             return false;
         }
 

@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 catch (Exception ex)
                 {
-                    var crashReportDirectory = Path.Combine( Path.GetTempPath(), "Metalama", "CrashReport");
+                    var crashReportDirectory = Path.Combine( Path.GetTempPath(), "Metalama", "CrashReports");
                     var crashReportPath = Path.Combine( crashReportDirectory, Guid.NewGuid() + ".txt");
 
                     // Report a diagnostic.
