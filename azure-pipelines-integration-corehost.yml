@@ -52,7 +52,7 @@ variables:
 jobs:
 - job: VS_Integration_CoreHost_Debug
   pool:
-    name: NetCore-Public
+    name: NetCore-Svc-Public
     demands: ImageOverride -equals $(queueName)
   timeoutInMinutes: 135
   variables:
@@ -68,7 +68,7 @@ jobs:
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
   - job: VS_Integration_CoreHost_Release
     pool:
-      name: NetCore-Public
+      name: NetCore-Svc-Public
       demands: ImageOverride -equals $(queueName)
     timeoutInMinutes: 135
     variables:
