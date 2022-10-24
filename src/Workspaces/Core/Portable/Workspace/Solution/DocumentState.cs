@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 if (newTree is not null)
-                    newTreeSource = new ConstantValueSource<TreeAndVersion>(new TreeAndVersion(newTree, existingTreeAndVersion.Version));
+                    newTreeSource = ValueSource.Constant(new TreeAndVersion(newTree, existingTreeAndVersion.Version));
             }
 
             // If we weren't able to reuse in a smart way, just reparse
@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis
                 _options,
                 textSource: text,
                 LoadTextOptions,
-                treeSource: new ConstantValueSource<TreeAndVersion>(treeAndVersion));
+                treeSource: ValueSource.Constant(treeAndVersion));
         }
 
         private VersionStamp GetNewTreeVersionForUpdatedTree(SyntaxNode newRoot, VersionStamp newTextVersion, PreservationMode mode)
