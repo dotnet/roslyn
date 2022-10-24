@@ -39,6 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly MetadataCache _metadataCache = new();
         private readonly ImmutableArray<string> _runtimeDirectories;
         private readonly TemporaryStorageService _temporaryStorageService;
+        private readonly IWorkspaceConfigurationService _configurationService;
 
         internal IVsXMLMemberIndexService XmlMemberIndexService { get; }
 
@@ -55,7 +56,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal VisualStudioMetadataReferenceManager(
             IServiceProvider serviceProvider,
-            TemporaryStorageService temporaryStorageService)
+            TemporaryStorageService temporaryStorageService,
+            IWorkspaceConfigurationService configurationService)
         {
             _runtimeDirectories = GetRuntimeDirectories();
 
@@ -68,6 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             FileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
             Assumes.Present(FileChangeService);
             _temporaryStorageService = temporaryStorageService;
+            _configurationService = configurationService;
             Assumes.Present(_temporaryStorageService);
         }
 
@@ -140,7 +143,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             newMetadata = CreateAssemblyMetadataFromTemporaryStorage();
             var storagesArray = storages.ToImmutable();
-            var valueSource = new RecoverableMetadataValueSource(newMetadata, storagesArray);
+
+            var valueSource = _configurationService.Options.DisableReferenceManagerRecoverableMetadata
+                ? ValueSource.Constant(new Optional<AssemblyMetadata>(newMetadata))
+                : new RecoverableMetadataValueSource(newMetadata, storagesArray);
+
             s_valueSourceToStorages.Add(valueSource, storagesArray);
 
             // don't dispose assembly metadata since it shares module metadata
