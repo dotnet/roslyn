@@ -326,6 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // UNDONE: Where do we report improper use of pointer types?
+                    // PROTOTYPE: Set `isParams` to report errors about them.
                     ParameterHelpers.ReportParameterErrors(owner: null, paramSyntax, ordinal: i, isParams: false, lambda.ParameterTypeWithAnnotations(i),
                          lambda.RefKind(i), lambda.DeclaredScope(i), containingSymbol: null, thisKeyword: default, paramsKeyword: default, firstDefault, diagnostics);
                 }
