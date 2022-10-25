@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Text
         private SourceTextContainer? _lazyContainer;
         private TextLineCollection? _lazyLineInfo;
         private ImmutableArray<byte> _lazyChecksum;
-        private ImmutableArray<byte> _precomputedEmbeddedTextBlob;
+        private readonly ImmutableArray<byte> _precomputedEmbeddedTextBlob;
 
         private static readonly Encoding s_utf8EncodingWithNoBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: false);
 

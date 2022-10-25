@@ -2,31 +2,47 @@
 
 # Branches that trigger a build on commit
 trigger:
-- main
-- main-vs-deps
-- release/*
-- features/*
-- demos/*
+  branches:
+    include:
+    - main
+    - main-vs-deps
+    - release/*
+    - features/*
+    - demos/*
+    exclude:
+    # Since the version of VS on the integration VM images are a moving target,
+    # we are unable to reliably run integration tests on servicing branches.
+    - release/dev17.0-vs-deps
+    - release/dev17.2
+    - release/dev17.3
 
 # Branches that are allowed to trigger a build via /azp run.
 # Automatic building of all PRs is disabled in the pipeline's trigger page.
 # See https://docs.microsoft.com/en-us/azure/devops/pipelines/repos/github?view=azure-devops&tabs=yaml#comment-triggers
 pr:
-- main
-- main-vs-deps
-- release/*
-- features/*
-- demos/*
+  branches:
+    include:
+    - main
+    - main-vs-deps
+    - release/*
+    - features/*
+    - demos/*
+    exclude:
+    # Since the version of VS on the integration VM images are a moving target,
+    # we are unable to reliably run integration tests on servicing branches.
+    - release/dev17.0-vs-deps
+    - release/dev17.2
+    - release/dev17.3
 
 variables:
-  - name: XUNIT_LOGS
-    value: $(Build.SourcesDirectory)\artifacts\log\$(_configuration)
+- name: XUNIT_LOGS
+  value: $(Build.SourcesDirectory)\artifacts\log\$(_configuration)
 
 jobs:
 - job: VS_Integration_LSP
   pool:
     name: NetCore1ESPool-Svc-Public
-    demands: ImageOverride -equals $(queueName)
+    demands: ImageOverride -equals windows.vs2022.amd64.open
   timeoutInMinutes: 150
 
   steps:

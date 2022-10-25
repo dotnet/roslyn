@@ -2,11 +2,19 @@
 
 # Branches that trigger a build on commit
 trigger:
-- main
-- main-vs-deps
-- release/*
-- features/*
-- demos/*
+  branches:
+    include:
+    - main
+    - main-vs-deps
+    - release/*
+    - features/*
+    - demos/*
+    exclude:
+    # Since the version of VS on the integration VM images are a moving target,
+    # we are unable to reliably run integration tests on servicing branches.
+    - release/dev17.0-vs-deps
+    - release/dev17.2
+    - release/dev17.3
 
 # Branches that are allowed to trigger a build via /azp run.
 # Automatic building of all PRs is disabled in the pipeline's trigger page.
@@ -19,6 +27,12 @@ pr:
     - release/*
     - features/*
     - demos/*
+    exclude:
+    # Since the version of VS on the integration VM images are a moving target,
+    # we are unable to reliably run integration tests on servicing branches.
+    - release/dev17.0-vs-deps
+    - release/dev17.2
+    - release/dev17.3
   paths:
     exclude:
       - docs/*
@@ -32,6 +46,10 @@ pr:
       - CODE-OF-CONDUCT.md
       - CONTRIBUTING.md
       - README.md
+
+variables:
+- name: queueName
+  value: windows.vs2022.amd64.open  
 
 jobs:
 - job: VS_Integration_CoreHost_Debug

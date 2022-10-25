@@ -7,7 +7,7 @@
   <PropertyGroup>
     <MajorVersion>4</MajorVersion>
     <MinorVersion>3</MinorVersion>
-    <PatchVersion>0</PatchVersion>
+    <PatchVersion>1</PatchVersion>
     <PreReleaseVersionLabel>3</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <!--
@@ -25,15 +25,15 @@
     <MicrosoftVisualStudioExtensibilityTestingVersion>0.1.132-beta</MicrosoftVisualStudioExtensibilityTestingVersion>
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
     <CodeStyleAnalyzerVersion>4.2.0-2.final</CodeStyleAnalyzerVersion>
-    <VisualStudioEditorPackagesVersion>17.3.133-preview</VisualStudioEditorPackagesVersion>
+    <VisualStudioEditorPackagesVersion>17.3.174</VisualStudioEditorPackagesVersion>
     <!-- This should generally be set to $(VisualStudioEditorPackagesVersion),
          but sometimes EditorFeatures.Cocoa specifically requires a newer editor build. -->
-    <VisualStudioMacEditorPackagesVersion>$(VisualStudioEditorPackagesVersion)</VisualStudioMacEditorPackagesVersion>
+    <VisualStudioMacEditorPackagesVersion>17.3.133-preview</VisualStudioMacEditorPackagesVersion>
     <ILAsmPackageVersion>5.0.0-alpha1.19409.1</ILAsmPackageVersion>
     <ILDAsmPackageVersion>5.0.0-preview.1.20112.8</ILDAsmPackageVersion>
-    <MicrosoftVisualStudioLanguageServerClientPackagesVersion>17.3.2062-preview</MicrosoftVisualStudioLanguageServerClientPackagesVersion>
+    <MicrosoftVisualStudioLanguageServerClientPackagesVersion>17.3.3101</MicrosoftVisualStudioLanguageServerClientPackagesVersion>
     <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>17.3.2017</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
-    <MicrosoftVisualStudioShellPackagesVersion>17.3.0-preview-1-32407-044</MicrosoftVisualStudioShellPackagesVersion>
+    <MicrosoftVisualStudioShellPackagesVersion>17.3.32809.331</MicrosoftVisualStudioShellPackagesVersion>
     <RefOnlyMicrosoftBuildPackagesVersion>16.5.0</RefOnlyMicrosoftBuildPackagesVersion>
     <!-- The version of Roslyn we build Source Generators against that are built in this
          repository. This must be lower than MicrosoftNetCompilersToolsetVersion,
@@ -41,8 +41,8 @@
          the generators we build would load on the command line but not load in IDEs. -->
     <SourceGeneratorMicrosoftCodeAnalysisVersion>3.8.0</SourceGeneratorMicrosoftCodeAnalysisVersion>
     <MicrosoftILVerificationVersion>7.0.0-alpha.1.22060.1</MicrosoftILVerificationVersion>
-    <MicrosoftServiceHubVersion>3.1.5102</MicrosoftServiceHubVersion>
-    <MicrosoftVisualStudioThreadingPackagesVersion>17.3.1-alpha</MicrosoftVisualStudioThreadingPackagesVersion>
+    <MicrosoftServiceHubVersion>4.0.2048</MicrosoftServiceHubVersion>
+    <MicrosoftVisualStudioThreadingPackagesVersion>17.3.44</MicrosoftVisualStudioThreadingPackagesVersion>
   </PropertyGroup>
   <!--
     Dependency versions
@@ -129,7 +129,7 @@
     <MicrosoftVisualStudioCacheVersion>17.2.41-alpha</MicrosoftVisualStudioCacheVersion>
     <MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>15.8.27812-alpha</MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>
     <MicrosoftVisualStudioCodeAnalysisSdkUIVersion>15.8.27812-alpha</MicrosoftVisualStudioCodeAnalysisSdkUIVersion>
-    <MicrosoftVisualStudioComponentModelHostVersion>17.3.3-preview</MicrosoftVisualStudioComponentModelHostVersion>
+    <MicrosoftVisualStudioComponentModelHostVersion>17.3.198</MicrosoftVisualStudioComponentModelHostVersion>
     <MicrosoftVisualStudioCompositionVersion>16.9.20</MicrosoftVisualStudioCompositionVersion>
     <MicrosoftVisualStudioCoreUtilityVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioCoreUtilityVersion>
     <MicrosoftVisualStudioDebuggerUIInterfacesVersion>17.2.0-beta.21616.2</MicrosoftVisualStudioDebuggerUIInterfacesVersion>
@@ -176,7 +176,7 @@
     <MicrosoftVisualStudioShell150Version>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShell150Version>
     <MicrosoftVisualStudioShellFrameworkVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellFrameworkVersion>
     <MicrosoftVisualStudioShellDesignVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellDesignVersion>
-    <MicrosoftVisualStudioTelemetryVersion>16.4.56</MicrosoftVisualStudioTelemetryVersion>
+    <MicrosoftVisualStudioTelemetryVersion>16.4.137</MicrosoftVisualStudioTelemetryVersion>
     <MicrosoftVisualStudioTemplateWizardInterfaceVersion>8.0.0.0-alpha</MicrosoftVisualStudioTemplateWizardInterfaceVersion>
     <MicrosoftVisualStudioTextDataVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioTextDataVersion>
     <MicrosoftVisualStudioTextInternalVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioTextInternalVersion>
@@ -187,7 +187,7 @@
     <MicrosoftVisualStudioThreadingAnalyzersVersion>$(MicrosoftVisualStudioThreadingPackagesVersion)</MicrosoftVisualStudioThreadingAnalyzersVersion>
     <MicrosoftVisualStudioThreadingVersion>$(MicrosoftVisualStudioThreadingPackagesVersion)</MicrosoftVisualStudioThreadingVersion>
     <MicrosoftVisualStudioUtilitiesVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioUtilitiesVersion>
-    <MicrosoftVisualStudioValidationVersion>17.0.53</MicrosoftVisualStudioValidationVersion>
+    <MicrosoftVisualStudioValidationVersion>17.0.64</MicrosoftVisualStudioValidationVersion>
     <MicrosoftVisualStudioInteractiveWindowVersion>4.0.0</MicrosoftVisualStudioInteractiveWindowVersion>
     <MicrosoftVisualStudioVsInteractiveWindowVersion>4.0.0</MicrosoftVisualStudioVsInteractiveWindowVersion>
     <MicrosoftVisualStudioWinFormsInterfacesVersion>17.0.0-previews-4-31709-430</MicrosoftVisualStudioWinFormsInterfacesVersion>
@@ -212,7 +212,7 @@
       is expected by the NET SDK used in the Workspace.MSBuild UnitTests. In order to test against the same verion of NuGet
       as our configured SDK, we must set the version to be the same.
      -->
-    <NuGetCommonVersion>6.3.0-rc.104</NuGetCommonVersion>
+    <NuGetCommonVersion>6.4.0-preview.1.54</NuGetCommonVersion>
     <NuGetConfigurationVersion>$(NuGetCommonVersion)</NuGetConfigurationVersion>
     <NuGetFrameworksVersion>$(NuGetCommonVersion)</NuGetFrameworksVersion>
     <NuGetPackagingVersion>$(NuGetCommonVersion)</NuGetPackagingVersion>
@@ -232,7 +232,7 @@
     <SystemIOFileSystemVersion>4.3.0</SystemIOFileSystemVersion>
     <SystemIOFileSystemPrimitivesVersion>4.3.0</SystemIOFileSystemPrimitivesVersion>
     <SystemIOPipesAccessControlVersion>5.0.0</SystemIOPipesAccessControlVersion>
-    <SystemIOPipelinesVersion>6.0.1</SystemIOPipelinesVersion>
+    <SystemIOPipelinesVersion>6.0.3</SystemIOPipelinesVersion>
     <SystemManagementVersion>5.0.0-preview.8.20407.11</SystemManagementVersion>
     <SystemMemoryVersion>4.5.4</SystemMemoryVersion>
     <SystemResourcesExtensionsVersion>6.0.0</SystemResourcesExtensionsVersion>
@@ -278,12 +278,12 @@
       create a test insertion in Visual Studio to validate.
     -->
     <NewtonsoftJsonVersion>13.0.1</NewtonsoftJsonVersion>
-    <StreamJsonRpcVersion>2.12.7-alpha</StreamJsonRpcVersion>
+    <StreamJsonRpcVersion>2.12.27</StreamJsonRpcVersion>
     <!--
       When updating the S.C.I or S.R.M version please let the MSBuild team know in advance so they
       can update to the same version. Version changes require a VS test insertion for validation.
     -->
-    <SystemCollectionsImmutableVersion>5.0.0</SystemCollectionsImmutableVersion>
+    <SystemCollectionsImmutableVersion>6.0.0</SystemCollectionsImmutableVersion>
     <SystemReflectionMetadataVersion>5.0.0</SystemReflectionMetadataVersion>
     <MicrosoftBclAsyncInterfacesVersion>6.0.0</MicrosoftBclAsyncInterfacesVersion>
   </PropertyGroup>

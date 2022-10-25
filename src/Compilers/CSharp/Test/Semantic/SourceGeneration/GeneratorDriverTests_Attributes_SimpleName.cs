@@ -36,7 +36,7 @@ public class GeneratorDriverTests_Attributes_SimpleName : CSharpTestBase
 class C {{ }}
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -68,7 +68,7 @@ class C {{ }}
 class C {{ }}
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -94,7 +94,7 @@ class C {{ }}
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -119,7 +119,7 @@ class C { }
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -144,7 +144,7 @@ class C { }
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -172,7 +172,7 @@ class C { }
 class D { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -204,7 +204,7 @@ class C { }
 class D { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -236,7 +236,7 @@ class C { }
 class D { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -270,7 +270,7 @@ class C
 }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -303,7 +303,7 @@ namespace N
 }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -329,7 +329,7 @@ namespace N
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -355,7 +355,7 @@ class C { }
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -381,7 +381,7 @@ class C { }
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -414,7 +414,7 @@ using {alias};
 class C {{ }}
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -442,7 +442,7 @@ using AAttribute = XAttribute;
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -470,7 +470,7 @@ using AAttribute : X;
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -497,7 +497,7 @@ using AAttribute : XAttribute;
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -528,7 +528,7 @@ namespace N
 }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -561,7 +561,7 @@ namespace N
 }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -593,7 +593,7 @@ namespace N
 }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -625,7 +625,7 @@ namespace N
 }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -653,7 +653,7 @@ using BAttribute = AAttribute;
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -681,7 +681,7 @@ using B = AAttribute;
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -709,7 +709,7 @@ using B = A;
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -738,7 +738,7 @@ using A = XAttribute;
 ";
 
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -765,7 +765,7 @@ using AAttribute = XAttribute;
 ";
 
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -792,7 +792,7 @@ global using {alias};
 class C {{ }}
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -823,7 +823,7 @@ using {alias};
 class C {{ }}
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -855,7 +855,7 @@ global using {alias};
 ";
 
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -884,7 +884,7 @@ using B = AAttribute;
 ";
 
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -912,7 +912,7 @@ global using BAttribute = AAttribute;
 ";
 
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -940,7 +940,7 @@ global using AAttribute = XAttribute;
 ";
 
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -969,7 +969,7 @@ global using AAttribute = XAttribute;
 ";
 
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -999,7 +999,7 @@ global using AAttribute = XAttribute;
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -1039,7 +1039,7 @@ class C { }
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -1085,7 +1085,7 @@ global using BAttribute = AAttribute;";
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -1137,7 +1137,7 @@ global using BAttribute = AAttribute;";
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -1187,7 +1187,7 @@ global using BAttribute = AAttribute;";
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -1241,7 +1241,7 @@ global using BAttribute = AAttribute;";
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -1293,7 +1293,7 @@ global using BAttribute = AAttribute;";
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -1338,7 +1338,7 @@ global using BAttribute = AAttribute;";
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source2, source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -1383,7 +1383,7 @@ global using AAttribute = XAttribute;"))));
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -1432,7 +1432,7 @@ global using BAttribute = AAttribute;";
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -1483,7 +1483,7 @@ global using BAttribute = AAttribute;";
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -1543,7 +1543,7 @@ global using BAttribute = AAttribute;";
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
