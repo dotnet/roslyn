@@ -127,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (VsSmartScopeCandidate(key.FullPath))
             {
                 var newMetadata = CreateAssemblyMetadataFromMetadataImporter(key);
-                var metadataValueSource = ValueSource.Constant<Optional<AssemblyMetadata>>(newMetadata);
+                var metadataValueSource = ValueSource.Constant(newMetadata);
                 if (!_metadataCache.GetOrAddMetadata(key, metadataValueSource, out metadata))
                 {
                     newMetadata.Dispose();
