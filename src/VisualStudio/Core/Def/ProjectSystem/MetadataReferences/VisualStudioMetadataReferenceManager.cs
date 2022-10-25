@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private static readonly Guid s_IID_IMetaDataImport = new("7DAC8207-D3AE-4c75-9B67-92801A497D44");
 
         private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new();
-        private static readonly ConditionalWeakTable<ValueSource<Optional<AssemblyMetadata>>, IReadOnlyList<TemporaryStorageService.TemporaryStreamStorage>> s_valueSourceToStorages = new();
+        private static readonly ConditionalWeakTable<ValueSource<AssemblyMetadata>, IReadOnlyList<TemporaryStorageService.TemporaryStreamStorage>> s_valueSourceToStorages = new();
 
         private readonly MetadataCache _metadataCache = new();
         private readonly ImmutableArray<string> _runtimeDirectories;

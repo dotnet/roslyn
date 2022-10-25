@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -18,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal sealed partial class VisualStudioMetadataReferenceManager
     {
-        private sealed class RecoverableMetadataValueSource : ValueSource<Optional<AssemblyMetadata>>
+        private sealed class RecoverableMetadataValueSource : ValueSource<AssemblyMetadata>
         {
             private readonly WeakReference<AssemblyMetadata> _weakValue;
             private readonly ImmutableArray<TemporaryStorageService.TemporaryStreamStorage> _storages;
@@ -31,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _storages = storages;
             }
 
-            public override bool TryGetValue(out Optional<AssemblyMetadata> value)
+            public override bool TryGetValue([MaybeNullWhen(false)] out AssemblyMetadata value)
             {
                 if (_weakValue.TryGetTarget(out var target))
                 {
@@ -39,14 +40,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return true;
                 }
 
-                value = default;
+                value = null;
                 return false;
             }
 
-            public override Task<Optional<AssemblyMetadata>> GetValueAsync(CancellationToken cancellationToken)
+            public override Task<AssemblyMetadata> GetValueAsync(CancellationToken cancellationToken)
                 => Task.FromResult(GetValue(cancellationToken));
 
-            public override Optional<AssemblyMetadata> GetValue(CancellationToken cancellationToken)
+            public override AssemblyMetadata GetValue(CancellationToken cancellationToken)
             {
                 if (_weakValue.TryGetTarget(out var value))
                 {
