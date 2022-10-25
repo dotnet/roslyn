@@ -206,10 +206,12 @@ namespace RunTests
 
                 AddRehydrateTestFoldersCommand(command, workItemInfo, isUnix);
 
+                var xmlResultsFilePath = ProcessTestExecutor.GetResultsFilePath(workItemInfo, options, "xml");
+
                 // Build an rsp file to send to dotnet test that contains all the assemblies and tests to run.
                 // This gets around command line length limitations and avoids weird escaping issues.
                 // See https://docs.microsoft.com/en-us/dotnet/standard/commandline/syntax#response-files
-                var rspFileContents = ProcessTestExecutor.BuildRspFileContents(workItemInfo, options);
+                var rspFileContents = ProcessTestExecutor.BuildRspFileContents(workItemInfo, options, xmlResultsFilePath, htmlResultsFilePath: null);
                 var rspFileName = $"vstest_{workItemInfo.PartitionIndex}.rsp";
                 File.WriteAllText(Path.Combine(payloadDirectory, rspFileName), rspFileContents);
 
@@ -256,6 +258,8 @@ namespace RunTests
                 {
                     postCommands.AppendLine("for /r %%f in (*.dmp) do copy %%f %HELIX_DUMP_FOLDER%");
                 }
+
+                postCommands.AppendLine(isUnix ? $"cp {xmlResultsFilePath} %24{{HELIX_WORKITEM_UPLOAD_ROOT}}" : $"copy {xmlResultsFilePath} %HELIX_WORKITEM_UPLOAD_ROOT%");
 
                 var workItem = $@"
         <HelixWorkItem Include=""{workItemInfo.DisplayName}"">
