@@ -32,8 +32,10 @@ pr:
 
 jobs:
 - job: VS_Integration
+  variables:
+  - template: /eng/common/templates/variables/pool-providers.yml
   pool:
-    name: NetCore-Svc-Public
+    name: $(DncEngPublicBuildPool)
     demands: ImageOverride -equals windows.vs2022.amd64.open
   strategy:
     maxParallel: 4

@@ -18,6 +18,9 @@ parameters:
 - name: testArguments
   type: string
   default: ''
+- name: poolName
+  type: string
+  default: 'NetCore-Svc-Public'
 - name: queueName
   type: string
   default: ''
@@ -30,7 +33,7 @@ jobs:
   dependsOn: ${{ parameters.buildJobName }}
   pool:
     ${{ if ne(parameters.queueName, '') }}:
-      name: NetCore-Svc-Public
+      name: ${{ parameters.poolName }}
       demands: ImageOverride -equals ${{ parameters.queueName }}
 
     ${{ if ne(parameters.vmImageName, '') }}:
