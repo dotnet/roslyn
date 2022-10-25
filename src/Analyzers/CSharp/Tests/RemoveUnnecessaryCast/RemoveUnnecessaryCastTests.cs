@@ -12549,7 +12549,7 @@ class C
     void M()
     {
         int? a = false ? (int?)1 : default;
-        Console.WriteLine(a.HasValue);
+        System.Console.WriteLine(a.HasValue);
     }
 }
 ";
@@ -12560,6 +12560,8 @@ class C
         public async Task DoNotRemoveNullableRefCastToVar()
         {
             var code = @"
+#nullable enable
+
 class Bar
 {
 }
