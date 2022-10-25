@@ -15,38 +15,17 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal static class DiagnosticProvider
     {
-#pragma warning disable IDE0060 // Remove unused parameter
-        public static void Enable(Workspace workspace, Options options)
+        public static void Enable(Workspace workspace)
         {
             // 'options' intentionally ignored, but kept around for binary compat.
             var service = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
             service.Register(workspace);
         }
-#pragma warning restore IDE0060 // Remove unused parameter
 
         public static void Disable(Workspace workspace)
         {
             var service = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
             service.Unregister(workspace);
-        }
-
-        [Flags]
-        public enum Options
-        {
-            /// <summary>
-            /// Include syntax errors
-            /// </summary>
-            Syntax = 0x01,
-
-            /// <summary>
-            /// Include semantic errors
-            /// </summary>
-            Semantic = 0x02,
-
-            /// <summary>
-            /// Include script semantic errors
-            /// </summary>
-            ScriptSemantic = 0x04,
         }
     }
 }
