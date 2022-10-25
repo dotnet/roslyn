@@ -2489,6 +2489,48 @@ class C
         }
 
         [Fact]
+        public async Task TestSealed()
+        {
+            var input = """
+                internal sealed class MyClass
+                {
+                    public void [||]M()
+                    {
+                    }
+                }
+                """;
+
+            var expected1 = """
+                internal sealed class MyClass : MyBase
+                {
+                }
+                """;
+
+            var expected2 = """
+                internal class MyBase
+                {
+                    public void M()
+                    {
+                    }
+                }
+                """;
+
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                FileName = "Test1.cs"
+            }.RunAsync();
+        }
+
+        [Fact]
         [WorkItem(63315, "https://github.com/dotnet/roslyn/issues/63315")]
         public async Task TestMethodInsideNamespace_NoException()
         {
