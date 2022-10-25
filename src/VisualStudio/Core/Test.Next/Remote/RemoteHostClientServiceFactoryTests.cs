@@ -102,6 +102,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var project = workspace.AddProject("proj", LanguageNames.CSharp);
             var document = workspace.AddDocument(project.Id, "doc.cs", SourceText.From(""));
 
+            var assetStorage = workspace.Services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
+
             var tasks = new List<Task>();
 
             // Kick off a ton of work in parallel to try to shake out race conditions with pinning/syncing.
@@ -112,29 +114,39 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                 // 100 inner loops producing variants of the file.
                 for (var j = 0; j < 100; j++)
                 {
-                    tasks.Add(Task.Run(async () => await PerformSearchesAsync(service, document, name: "Goo" + i)));
+                    tasks.Add(Task.Run(async () => await PerformSearchesAsync(service, assetStorage, document, name: "Goo" + i)));
                 }
             }
 
             await Task.WhenAll(tasks);
         }
 
-        private static async Task PerformSearchesAsync(IRemoteHostClientProvider service, Document document, string name)
+        private static async Task PerformSearchesAsync(IRemoteHostClientProvider service, SolutionAssetStorage storage, Document document, string name)
         {
             // Fork the document, with 100 variants of methods called 'name' in it.
             var forked = document.Project.Solution.WithDocumentText(document.Id, SourceText.From(CreateText(name)));
 
             using var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
+            Checksum checksum = null!;
+
             // Search teh forked document, ensuring we find all the results we expect.
             var stream = client.TryInvokeStreamAsync<IRemoteNavigateToSearchService, RoslynNavigateToItem>(
                 forked,
-                (service, checksum, _) => service.SearchProjectAsync(checksum, document.Project.Id, ImmutableArray<DocumentId>.Empty, name, s_kinds, CancellationToken.None),
+                (service, solutionChecksum, _) =>
+                {
+                    checksum = solutionChecksum;
+                    return service.SearchProjectAsync(solutionChecksum, document.Project.Id, ImmutableArray<DocumentId>.Empty, name, s_kinds, CancellationToken.None);
+                },
                 CancellationToken.None);
 
             var count = 0;
             await foreach (var result in stream)
+            {
+                Assert.Equal(document.Id, result.DocumentId);
+                Assert.True(storage.GetTestAccessor().IsPinned(checksum));
                 count++;
+            }
 
             Assert.True(count >= 100);
         }
