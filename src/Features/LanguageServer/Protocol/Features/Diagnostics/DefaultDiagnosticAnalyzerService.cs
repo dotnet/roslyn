@@ -117,8 +117,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (!_workspace.IsDocumentOpen(document.Id))
                         return false;
 
-                    // Misc workspace never supports semantics.
-                    if (_workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+                    // Misc and cloud workspaces never supports semantics.
+                    if (_workspace.Kind is WorkspaceKind.MiscellaneousFiles or WorkspaceKind.CloudEnvironmentClientWorkspace)
                         return false;
 
                     return true;
