@@ -31,6 +31,15 @@ namespace Microsoft.CodeAnalysis.InlineHints
             TextSpan span,
             ImmutableArray<TaggedText> displayParts,
             TextChange? replacementTextChange,
+            Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>>? getDescriptionAsync = null)
+            : this(span, displayParts, replacementTextChange, ranking: 0.0, getDescriptionAsync)
+        {
+        }
+
+        public InlineHint(
+            TextSpan span,
+            ImmutableArray<TaggedText> displayParts,
+            TextChange? replacementTextChange,
             double ranking,
             Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>>? getDescriptionAsync = null)
         {
