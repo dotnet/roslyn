@@ -123,12 +123,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var key = new FileKey(fullPath, snapshotTimestamp);
             // check existing metadata
             if (_metadataCache.TryGetMetadata(key, out var metadata))
-            {
                 return metadata;
-            }
 
-            if (VsSmartScopeCandidate(key.FullPath) && TryCreateAssemblyMetadataFromMetadataImporter(key, out var newMetadata))
+            if (VsSmartScopeCandidate(key.FullPath))
             {
+                var newMetadata = CreateAssemblyMetadataFromMetadataImporter(key);
                 var metadataValueSource = ValueSource.Constant<Optional<AssemblyMetadata>>(newMetadata);
                 if (!_metadataCache.GetOrAddMetadata(key, metadataValueSource, out metadata))
                 {
@@ -137,43 +136,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 return metadata;
             }
-
-            // use temporary storage
-            using var _ = ArrayBuilder<TemporaryStorageService.TemporaryStreamStorage>.GetInstance(out var storages);
-
-            newMetadata = CreateAssemblyMetadataFromTemporaryStorage();
-            var storagesArray = storages.ToImmutable();
-
-            var valueSource = _configurationService.Options.DisableReferenceManagerRecoverableMetadata
-                ? ValueSource.Constant(new Optional<AssemblyMetadata>(newMetadata))
-                : new RecoverableMetadataValueSource(newMetadata, storagesArray);
-
-            s_valueSourceToStorages.Add(valueSource, storagesArray);
-
-            // don't dispose assembly metadata since it shares module metadata
-            if (!_metadataCache.GetOrAddMetadata(key, valueSource, out metadata))
+            else
             {
-                newMetadata.Dispose();
-            }
-
-            // guarantee that the metadata is alive while we add the source to the cache
-            GC.KeepAlive(newMetadata);
-
-            return metadata;
-
-            // <exception cref="IOException"/>
-            // <exception cref="BadImageFormatException" />
-            AssemblyMetadata CreateAssemblyMetadataFromTemporaryStorage()
-            {
-                var moduleMetadata = CreateModuleMetadata(key);
-                return CreateAssemblyMetadata(key, moduleMetadata, CreateModuleMetadata);
-
-                ModuleMetadata CreateModuleMetadata(FileKey moduleFileKey)
+                // use temporary storage
+                using var _ = ArrayBuilder<TemporaryStorageService.TemporaryStreamStorage>.GetInstance(out var storages);
+                var newMetadata = CreateAssemblyMetadata(key, key =>
                 {
-                    GetMetadataFromTemporaryStorage(moduleFileKey, out var storage, out var metadata);
+                    // <exception cref="IOException"/>
+                    // <exception cref="BadImageFormatException" />
+                    GetMetadataFromTemporaryStorage(key, out var storage, out var metadata);
                     storages.Add(storage);
                     return metadata;
+                });
+
+                var storagesArray = storages.ToImmutable();
+
+                var valueSource = _configurationService.Options.DisableReferenceManagerRecoverableMetadata
+                    ? ValueSource.Constant(new Optional<AssemblyMetadata>(newMetadata))
+                    : new RecoverableMetadataValueSource(newMetadata, storagesArray);
+
+                s_valueSourceToStorages.Add(valueSource, storagesArray);
+
+                // don't dispose assembly metadata since it shares module metadata
+                if (!_metadataCache.GetOrAddMetadata(key, valueSource, out metadata))
+                {
+                    newMetadata.Dispose();
                 }
+
+                // guarantee that the metadata is alive while we add the source to the cache
+                GC.KeepAlive(newMetadata);
+
+                return metadata;
             }
         }
 
@@ -248,29 +241,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         /// <exception cref="IOException"/>
         /// <exception cref="BadImageFormatException" />
-        private bool TryCreateAssemblyMetadataFromMetadataImporter(FileKey fileKey, [NotNullWhen(true)] out AssemblyMetadata? metadata)
+        private AssemblyMetadata CreateAssemblyMetadataFromMetadataImporter(FileKey fileKey)
         {
-            metadata = null;
-
-            var manifestModule = TryCreateModuleMetadataFromMetadataImporter(fileKey);
-            if (manifestModule == null)
+            return CreateAssemblyMetadata(fileKey, fileKey =>
             {
-                return false;
-            }
-
-            metadata = CreateAssemblyMetadata(fileKey, manifestModule, CreateModuleMetadata);
-            return true;
-
-            ModuleMetadata CreateModuleMetadata(FileKey moduleFileKey)
-            {
-                var metadata = TryCreateModuleMetadataFromMetadataImporter(moduleFileKey);
+                var metadata = TryCreateModuleMetadataFromMetadataImporter(fileKey);
 
                 // getting metadata didn't work out through importer. fallback to shadow copy one
                 if (metadata == null)
-                    GetMetadataFromTemporaryStorage(moduleFileKey, out _, out metadata);
+                    GetMetadataFromTemporaryStorage(fileKey, out _, out metadata);
 
                 return metadata;
-            }
+            });
 
             ModuleMetadata? TryCreateModuleMetadataFromMetadataImporter(FileKey moduleFileKey)
             {
@@ -326,9 +308,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <exception cref="BadImageFormatException" />
         private static AssemblyMetadata CreateAssemblyMetadata(
             FileKey fileKey,
-            ModuleMetadata manifestModule,
             Func<FileKey, ModuleMetadata> moduleMetadataFactory)
         {
+            var manifestModule = moduleMetadataFactory(fileKey);
+
             using var _ = ArrayBuilder<ModuleMetadata>.GetInstance(out var moduleBuilder);
 
             string? assemblyDir = null;
