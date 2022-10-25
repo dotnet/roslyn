@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis
     {
         public static void Enable(Workspace workspace)
         {
-            // 'options' intentionally ignored, but kept around for binary compat.
             var service = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
             service.Register(workspace);
         }
