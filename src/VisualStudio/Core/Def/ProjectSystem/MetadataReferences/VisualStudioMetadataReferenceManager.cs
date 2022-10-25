@@ -125,48 +125,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (_metadataCache.TryGetMetadata(key, out var metadata))
                 return metadata;
 
-            if (VsSmartScopeCandidate(key.FullPath))
+            var (newMetadata, newMetadataValueSource) = GetMetadataWorker();
+
+            if (!_metadataCache.GetOrAddMetadata(key, newMetadataValueSource, out metadata))
+                newMetadata.Dispose();
+
+            return metadata;
+
+            (AssemblyMetadata newMetadata, ValueSource<AssemblyMetadata> newMetadataValueSource) GetMetadataWorker()
             {
-                var newMetadata = CreateAssemblyMetadataFromMetadataImporter(key);
-                var metadataValueSource = ValueSource.Constant<Optional<AssemblyMetadata>>(newMetadata);
-                if (!_metadataCache.GetOrAddMetadata(key, metadataValueSource, out metadata))
+                if (VsSmartScopeCandidate(key.FullPath))
                 {
-                    newMetadata.Dispose();
+                    var newMetadata = CreateAssemblyMetadataFromMetadataImporter(key);
+                    return (newMetadata, ValueSource.Constant(newMetadata));
                 }
-
-                return metadata;
-            }
-            else
-            {
-                // use temporary storage
-                using var _ = ArrayBuilder<TemporaryStorageService.TemporaryStreamStorage>.GetInstance(out var storages);
-                var newMetadata = CreateAssemblyMetadata(key, key =>
+                else
                 {
-                    // <exception cref="IOException"/>
-                    // <exception cref="BadImageFormatException" />
-                    GetMetadataFromTemporaryStorage(key, out var storage, out var metadata);
-                    storages.Add(storage);
-                    return metadata;
-                });
+                    // use temporary storage
+                    using var _ = ArrayBuilder<TemporaryStorageService.TemporaryStreamStorage>.GetInstance(out var storages);
+                    var newMetadata = CreateAssemblyMetadata(key, key =>
+                    {
+                        // <exception cref="IOException"/>
+                        // <exception cref="BadImageFormatException" />
+                        GetMetadataFromTemporaryStorage(key, out var storage, out var metadata);
+                        storages.Add(storage);
+                        return metadata;
+                    });
 
-                var storagesArray = storages.ToImmutable();
+                    var storagesArray = storages.ToImmutable();
 
-                var valueSource = _configurationService.Options.DisableReferenceManagerRecoverableMetadata
-                    ? ValueSource.Constant(new Optional<AssemblyMetadata>(newMetadata))
-                    : new RecoverableMetadataValueSource(newMetadata, storagesArray);
+                    var valueSource = _configurationService.Options.DisableReferenceManagerRecoverableMetadata
+                        ? ValueSource.Constant(newMetadata)
+                        : new RecoverableMetadataValueSource(newMetadata, storagesArray);
 
-                s_valueSourceToStorages.Add(valueSource, storagesArray);
+                    s_valueSourceToStorages.Add(valueSource, storagesArray);
 
-                // don't dispose assembly metadata since it shares module metadata
-                if (!_metadataCache.GetOrAddMetadata(key, valueSource, out metadata))
-                {
-                    newMetadata.Dispose();
+                    return (newMetadata, valueSource);
                 }
-
-                // guarantee that the metadata is alive while we add the source to the cache
-                GC.KeepAlive(newMetadata);
-
-                return metadata;
             }
         }
 
