@@ -7085,7 +7085,6 @@ public class DisplayAttribute : System.Attribute
             Assert.Equal(RefKind.Ref, lambdaParameter2.RefKind);
         }
 
-        // PROTOTYPE: Add separate test cases for lang version 11 vs. lang version 11 preview
         [Fact]
         public void LambdaWithExplicitDefaultParam()
         {
@@ -7099,9 +7098,12 @@ public class DisplayAttribute : System.Attribute
     }
 }
 ";
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (5,27): error CS8652: The feature 'lambda optional parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var lam1 = (int x = 7) => x;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "=").WithArguments("lambda optional parameters").WithLocation(5, 27));
 
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -7919,6 +7921,21 @@ class Program
                 // (6,9): error CS7036: There is no argument given that corresponds to the required parameter 'arg2' of '<anonymous delegate>'
                 //         lam(5);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam").WithArguments("arg2", "<anonymous delegate>").WithLocation(6, 9));
+        }
+
+        [Fact]
+        public void ParamsArray_Langversion()
+        {
+            var source = """
+                var lam = (params int[] xs) => xs.Length;
+                """;
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (1,12): error CS8652: The feature 'lambda params array' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // var lam = (params int[] xs) => xs.Length;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "params").WithArguments("lambda params array").WithLocation(1, 12));
+
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
