@@ -47,8 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             ITextView textView,
             SnapshotSpan span,
             InlineHint hint,
-            InlineHintsTaggerProvider taggerProvider,
-            int ranking)
+            InlineHintsTaggerProvider taggerProvider)
             : base(adornment,
                    removalCallback: null,
                    topSpace: null,
@@ -56,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                    textHeight: null,
                    bottomSpace: null,
                    PositionAffinity.Predecessor,
-                   ranking)
+                   hint.Ranking)
         {
             _textView = textView;
             _span = span;
@@ -88,12 +87,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             SnapshotSpan span,
             InlineHintsTaggerProvider taggerProvider,
             IClassificationFormatMap formatMap,
-            bool classify,
-            int ranking)
+            bool classify)
         {
             return new InlineHintsTag(
                 CreateElement(hint.DisplayParts, textView, format, formatMap, taggerProvider.TypeMap, classify),
-                textView, span, hint, taggerProvider, ranking);
+                textView, span, hint, taggerProvider);
         }
 
         public async Task<IReadOnlyCollection<object>> CreateDescriptionAsync(CancellationToken cancellationToken)

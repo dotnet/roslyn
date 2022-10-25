@@ -180,13 +180,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                         {
                             if (_cache[i].tagSpan is not { } hintTagSpan)
                             {
-                                var inlineHintDataTag = _cache[i].mappingTagSpan.Tag.Hint;
-                                var ranking = inlineHintDataTag.DisplayParts.Length > 1
-                                    ? 1
-                                    : 0;
-
                                 var hintUITag = InlineHintsTag.Create(
-                                        _cache[i].mappingTagSpan.Tag.Hint, Format, _textView, tagSpan, _taggerProvider, _formatMap, classify, ranking);
+                                        _cache[i].mappingTagSpan.Tag.Hint, Format, _textView, tagSpan, _taggerProvider, _formatMap, classify);
 
                                 hintTagSpan = new TagSpan<IntraTextAdornmentTag>(tagSpan, hintUITag);
                                 _cache[i] = (_cache[i].mappingTagSpan, hintTagSpan);

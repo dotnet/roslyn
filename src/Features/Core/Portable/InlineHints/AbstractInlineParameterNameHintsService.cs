@@ -104,6 +104,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                             textSpan,
                             ImmutableArray.Create(new TaggedText(TextTags.Text, parameter.Name + ": ")),
                             new TextChange(textSpan, inlineHintText),
+                            ranking: 0.0,
                             InlineHintHelpers.GetDescriptionFunction(position, parameter.GetSymbolKey(cancellationToken: cancellationToken), displayOptions)));
                     }
                 }

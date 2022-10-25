@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 var taggedText = finalParts.ToTaggedText();
 
                 result.Add(new InlineHint(
-                    span, taggedText, textChange,
+                    span, taggedText, textChange, ranking: 1.0,
                     InlineHintHelpers.GetDescriptionFunction(span.Start, type.GetSymbolKey(cancellationToken: cancellationToken), displayOptions)));
             }
 
