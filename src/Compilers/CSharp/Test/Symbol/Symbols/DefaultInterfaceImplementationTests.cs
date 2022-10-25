@@ -12055,7 +12055,7 @@ class Test1 : I1
             {
                 var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.StandardLatest);
+                                                     targetFramework: TargetFramework.Net50);
 
                 compilation3.VerifyDiagnostics();
 
@@ -12116,7 +12116,7 @@ class Test1 : I1
             {
                 var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.StandardLatest);
+                                                     targetFramework: TargetFramework.Net50);
 
                 compilation3.VerifyDiagnostics();
 
@@ -12177,7 +12177,7 @@ class Test1 : I1
             {
                 var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.StandardLatest);
+                                                     targetFramework: TargetFramework.Net50);
 
                 compilation3.VerifyDiagnostics(
                     // (10,13): error CS0122: 'I1.M1()' is inaccessible due to its protection level
@@ -45722,7 +45722,7 @@ class Test4 : Test1
             {
                 var compilation2 = CreateCompilation(source2, options: TestOptions.DebugExe,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.StandardLatest);
+                                                     targetFramework: TargetFramework.Net50);
                 compilation2 = compilation2.AddReferences(refs.comp0);
 
                 CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -45740,7 +45740,7 @@ C6.M
 
                 var compilation3 = CreateCompilation(source3, options: TestOptions.DebugExe,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.StandardLatest);
+                                                     targetFramework: TargetFramework.Net50);
                 compilation3 = compilation3.AddReferences(refs.comp1);
 
                 CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -50164,9 +50164,6 @@ namespace System.Runtime.InteropServices
         [Fact]
         public void NoPia_01()
         {
-            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net50);
-            var attributesRef = attributes.EmitToImageReference();
-
             string pia = @"
 using System;
 using System.Runtime.InteropServices;
@@ -50183,7 +50180,7 @@ public interface ITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.Net50);
+            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net50);
 
             string consumer = @"
 class UsePia7 : ITest33
@@ -50191,7 +50188,7 @@ class UsePia7 : ITest33
 }
 ";
 
-            var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true), attributesRef }, targetFramework: TargetFramework.Net50);
+            var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true) }, targetFramework: TargetFramework.Net50);
 
             compilation1.VerifyEmitDiagnostics(
                 // (2,17): error CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
@@ -50203,9 +50200,6 @@ class UsePia7 : ITest33
         [Fact]
         public void NoPia_02()
         {
-            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net50);
-            var attributesRef = attributes.EmitToImageReference();
-
             string pia = @"
 using System;
 using System.Runtime.InteropServices;
@@ -50222,7 +50216,7 @@ public interface ITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.Net50);
+            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net50);
 
             string consumer = @"
 class UsePia
@@ -50234,7 +50228,7 @@ class UsePia
 } 
 ";
 
-            var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true), attributesRef }, targetFramework: TargetFramework.Net50);
+            var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true) }, targetFramework: TargetFramework.Net50);
 
             compilation1.VerifyEmitDiagnostics(
                 // (4,29): error CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
@@ -50246,9 +50240,6 @@ class UsePia
         [Fact]
         public void NoPia_03()
         {
-            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net50);
-            var attributesRef = attributes.EmitToImageReference();
-
             string pia = @"
 using System;
 using System.Runtime.InteropServices;
@@ -50266,7 +50257,7 @@ public interface ITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.Net50);
+            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net50);
 
             string consumer = @"
 class UsePia
@@ -50278,7 +50269,7 @@ class UsePia
 } 
 ";
 
-            var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true), attributesRef }, targetFramework: TargetFramework.Net50);
+            var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true) }, targetFramework: TargetFramework.Net50);
 
             compilation1.VerifyEmitDiagnostics(
                 // (4,29): error CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
@@ -50290,9 +50281,6 @@ class UsePia
         [Fact]
         public void NoPia_04()
         {
-            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net50);
-            var attributesRef = attributes.EmitToImageReference();
-
             string pia = @"
 using System;
 using System.Runtime.InteropServices;
@@ -50309,7 +50297,7 @@ public interface ITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.Net50);
+            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net50);
 
             string consumer = @"
 class UsePia
@@ -50321,7 +50309,7 @@ class UsePia
 } 
 ";
 
-            var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true), attributesRef }, targetFramework: TargetFramework.Net50);
+            var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true) }, targetFramework: TargetFramework.Net50);
 
             compilation1.VerifyEmitDiagnostics(
                 // (4,29): error CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
@@ -50333,9 +50321,6 @@ class UsePia
         [Fact]
         public void NoPia_05()
         {
-            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net50);
-            var attributesRef = attributes.EmitToImageReference();
-
             string pia = @"
 using System;
 using System.Runtime.InteropServices;
@@ -50352,7 +50337,7 @@ public interface ITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.Net50);
+            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net50);
 
             string consumer = @"
 class UsePia
@@ -50364,7 +50349,7 @@ class UsePia
 } 
 ";
 
-            var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true), attributesRef }, targetFramework: TargetFramework.Net50);
+            var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true) }, targetFramework: TargetFramework.Net50);
 
             compilation1.VerifyEmitDiagnostics(
                 // (6,9): error CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
@@ -50376,9 +50361,6 @@ class UsePia
         [Fact]
         public void NoPia_06()
         {
-            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net50);
-            var attributesRef = attributes.EmitToImageReference();
-
             string pia = @"
 using System;
 using System.Runtime.InteropServices;
@@ -50399,7 +50381,7 @@ public interface ITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.Net50);
+            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net50);
 
             CompileAndVerify(piaCompilation, verify: VerifyOnMonoOrCoreClr);
 
@@ -50414,7 +50396,7 @@ class UsePia
 
             foreach (var reference in new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true), piaCompilation.EmitToImageReference(embedInteropTypes: true) })
             {
-                var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference, attributesRef }, targetFramework: TargetFramework.Net50);
+                var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference }, targetFramework: TargetFramework.Net50);
 
                 compilation1.VerifyEmitDiagnostics(
                     // (4,37): error CS1754: Type 'ITest33.I1' cannot be embedded because it is a nested type. Consider setting the 'Embed Interop Types' property to false.
@@ -50427,9 +50409,6 @@ class UsePia
         [Fact]
         public void NoPia_07()
         {
-            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net50);
-            var attributesRef = attributes.EmitToImageReference();
-
             string pia = @"
 using System;
 using System.Runtime.InteropServices;
@@ -50446,7 +50425,7 @@ public interface ITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.Net50);
+            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net50);
 
             CompileAndVerify(piaCompilation, verify: VerifyOnMonoOrCoreClr);
 
@@ -50462,7 +50441,7 @@ class UsePia
 
             foreach (var reference in new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true), piaCompilation.EmitToImageReference(embedInteropTypes: true) })
             {
-                var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference, attributesRef }, targetFramework: TargetFramework.Net50);
+                var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference }, targetFramework: TargetFramework.Net50);
 
                 compilation1.VerifyEmitDiagnostics(
                     // (6,13): error CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
@@ -50475,9 +50454,6 @@ class UsePia
         [Fact]
         public void NoPia_08()
         {
-            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net50);
-            var attributesRef = attributes.EmitToImageReference();
-
             string pia = @"
 using System;
 using System.Runtime.InteropServices;
@@ -50501,7 +50477,7 @@ public interface ITest44 : ITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.Net50);
+            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net50);
 
             string consumer = @"
 class UsePia
@@ -50513,7 +50489,7 @@ class UsePia
 } 
 ";
 
-            var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true), attributesRef }, targetFramework: TargetFramework.Net50);
+            var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true) }, targetFramework: TargetFramework.Net50);
 
             compilation1.VerifyEmitDiagnostics(
                 // (4,29): error CS8711: Type 'ITest44' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
@@ -50525,9 +50501,6 @@ class UsePia
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
         public void NoPia_09()
         {
-            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net50);
-            var attributesRef = attributes.EmitToImageReference();
-
             string pia = @"
 using System;
 using System.Runtime.InteropServices;
@@ -50556,7 +50529,7 @@ public interface ITest44 : ITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.Net50);
+            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net50);
 
             string consumer1 = @"
 public class UsePia
@@ -50602,7 +50575,7 @@ public interface ITest33
             var pia2Compilation = CreateCompilation(pia2, options: TestOptions.ReleaseDll);
             var pia2Reference = pia2Compilation.EmitToImageReference();
 
-            var compilation1 = CreateCompilation(consumer1, options: TestOptions.ReleaseDll, references: new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true), attributesRef }, targetFramework: TargetFramework.StandardLatest);
+            var compilation1 = CreateCompilation(consumer1, options: TestOptions.ReleaseDll, references: new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true) }, targetFramework: TargetFramework.StandardLatest);
 
             foreach (var reference2 in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
@@ -50616,9 +50589,6 @@ public interface ITest33
         [WorkItem(35911, "https://github.com/dotnet/roslyn/issues/35911")]
         public void NoPia_10()
         {
-            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net50);
-            var attributesRef = attributes.EmitToImageReference();
-
             string pia = @"
 using System;
 using System.Runtime.InteropServices;
@@ -50642,7 +50612,7 @@ public interface ITest44 : ITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.Net50);
+            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net50);
 
             CompileAndVerify(piaCompilation, verify: VerifyOnMonoOrCoreClr);
 
@@ -50658,7 +50628,7 @@ class UsePia
 
             foreach (var reference in new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true), piaCompilation.EmitToImageReference(embedInteropTypes: true) })
             {
-                var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference, attributesRef }, targetFramework: TargetFramework.Net50);
+                var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference }, targetFramework: TargetFramework.Net50);
 
                 compilation1.VerifyEmitDiagnostics(
                     // (4,29): error CS8750: Type 'ITest44' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.

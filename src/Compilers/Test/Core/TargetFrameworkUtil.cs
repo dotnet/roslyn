@@ -263,5 +263,9 @@ namespace Roslyn.Test.Utilities
                 return null;
             }
         }
+
+        public static IEnumerable<MetadataReference> GetReferencesWithout(TargetFramework targetFramework, params string[] excludeReferenceNames) =>
+            GetReferences(targetFramework)
+            .Where(x => !(x is PortableExecutableReference pe && excludeReferenceNames.Contains(pe.FilePath)));
     }
 }
