@@ -135,5 +135,16 @@ internal partial class SolutionAssetStorage
                     scope.RefCount >= 1;
             }
         }
+
+        public int PinnedScopesCount
+        {
+            get
+            {
+                lock (_solutionAssetStorage._gate)
+                {
+                    return _solutionAssetStorage._checksumToScope.Count;
+                }
+            }
+        }
     }
 }

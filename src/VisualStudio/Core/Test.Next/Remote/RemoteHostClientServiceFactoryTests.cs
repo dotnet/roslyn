@@ -119,6 +119,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             }
 
             await Task.WhenAll(tasks);
+
+            Assert.Equal(0, assetStorage.GetTestAccessor().PinnedScopesCount);
         }
 
         private static async Task PerformSearchesAsync(IRemoteHostClientProvider service, SolutionAssetStorage storage, Document document, string name)
