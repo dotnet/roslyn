@@ -24,15 +24,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 
         protected virtual string WorkspaceKind => CodeAnalysis.WorkspaceKind.Host;
 
-        internal virtual BlockStructureOptions GetOptions()
-            => new(MaximumBannerLength: 120, IsMetadataAsSource: WorkspaceKind == CodeAnalysis.WorkspaceKind.MetadataAsSource);
+        internal virtual BlockStructureOptions GetDefaultOptions()
+            => new()
+            {
+                MaximumBannerLength = 120,
+                IsMetadataAsSource = WorkspaceKind == CodeAnalysis.WorkspaceKind.MetadataAsSource,
+            };
 
-        private Task<ImmutableArray<BlockSpan>> GetBlockSpansAsync(Document document, int position)
-            => GetBlockSpansWorkerAsync(document, position);
+        private Task<ImmutableArray<BlockSpan>> GetBlockSpansAsync(Document document, BlockStructureOptions options, int position)
+            => GetBlockSpansWorkerAsync(document, options, position);
 
-        internal abstract Task<ImmutableArray<BlockSpan>> GetBlockSpansWorkerAsync(Document document, int position);
+        internal abstract Task<ImmutableArray<BlockSpan>> GetBlockSpansWorkerAsync(Document document, BlockStructureOptions options, int position);
 
-        private protected async Task VerifyBlockSpansAsync(string markupCode, params RegionData[] expectedRegionData)
+        private protected Task VerifyBlockSpansAsync(string markupCode, params RegionData[] expectedRegionData)
+            => VerifyBlockSpansAsync(markupCode, GetDefaultOptions(), expectedRegionData);
+
+        private protected async Task VerifyBlockSpansAsync(string markupCode, BlockStructureOptions options, params RegionData[] expectedRegionData)
         {
             using var workspace = TestWorkspace.Create(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, content: markupCode);
 
@@ -43,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             var expectedRegions = expectedRegionData.Select(data => CreateBlockSpan(data, hostDocument.AnnotatedSpans)).ToArray();
 
             var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-            var actualRegions = await GetBlockSpansAsync(document, position);
+            var actualRegions = await GetBlockSpansAsync(document, options, position);
 
             Assert.True(expectedRegions.Length == actualRegions.Length, $"Expected {expectedRegions.Length} regions but there were {actualRegions.Length}");
 
@@ -62,7 +69,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             var position = hostDocument.CursorPosition.Value;
 
             var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-            var actualRegions = await GetBlockSpansAsync(document, position);
+            var options = GetDefaultOptions();
+            var actualRegions = await GetBlockSpansAsync(document, options, position);
 
             Assert.True(actualRegions.Length == 0, $"Expected no regions but found {actualRegions.Length}.");
         }

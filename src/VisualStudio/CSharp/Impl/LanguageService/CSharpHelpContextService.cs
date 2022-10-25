@@ -14,10 +14,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.F1Help;
@@ -133,6 +133,21 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
+            if (token.IsKind(SyntaxKind.Utf8StringLiteralToken) ||
+                token.IsKind(SyntaxKind.Utf8SingleLineRawStringLiteralToken) ||
+                token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken))
+            {
+                text = Keyword("Utf8StringLiteral");
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.SingleLineRawStringLiteralToken) ||
+                token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken))
+            {
+                text = Keyword("RawStringLiteral");
+                return true;
+            }
+
             text = null;
             return false;
         }
@@ -155,7 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
             else
             {
-                symbol = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace.Services, cancellationToken)
+                symbol = semanticModel.GetSemanticInfo(token, document.Project.Solution.Services, cancellationToken)
                                       .GetAnySymbol(includeType: true);
 
                 if (symbol == null)
@@ -167,7 +182,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
 
             // Local: return the name if it's the declaration, otherwise the type
-            if (symbol is ILocalSymbol localSymbol && !symbol.DeclaringSyntaxReferences.Any(d => d.GetSyntax().DescendantTokens().Contains(token)))
+            if (symbol is ILocalSymbol localSymbol && !symbol.DeclaringSyntaxReferences.Any(static (d, token) => d.GetSyntax().DescendantTokens().Contains(token), token))
             {
                 symbol = localSymbol.Type;
             }
@@ -288,7 +303,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.LessThanToken, SyntaxKind.GreaterThanToken))
+            if (token.Kind() is SyntaxKind.LessThanToken or SyntaxKind.GreaterThanToken)
             {
                 if (token.Parent.IsKind(SyntaxKind.FunctionPointerParameterList))
                 {
@@ -309,7 +324,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.LessThanToken, SyntaxKind.GreaterThanToken) && token.Parent.IsKind(SyntaxKind.TypeParameterList, SyntaxKind.TypeArgumentList))
+            if (token.Kind() is SyntaxKind.LessThanToken or SyntaxKind.GreaterThanToken &&
+                token.Parent is (kind: SyntaxKind.TypeParameterList or SyntaxKind.TypeArgumentList))
             {
                 text = Keyword("generics");
                 return true;
@@ -370,6 +386,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                             ? "whereconstraint_CSharpKeyword"
                             : "whereclause_CSharpKeyword";
 
+                        return true;
+
+                    case SyntaxKind.RequiredKeyword:
+                        text = Keyword("required");
                         return true;
                 }
             }

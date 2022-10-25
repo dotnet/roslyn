@@ -43,12 +43,12 @@ namespace Microsoft.CodeAnalysis
             {
                 if (graphState.DriverState.TrackIncrementalSteps)
                 {
-                    return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, stepName);
+                    return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, stepName, EqualityComparer<TOutput>.Default);
                 }
                 return previousTable;
             }
 
-            var nodeTable = graphState.CreateTableBuilder(previousTable, stepName);
+            var nodeTable = graphState.CreateTableBuilder(previousTable, stepName, EqualityComparer<TOutput>.Default);
             foreach (var entry in sourceTable)
             {
                 var inputs = nodeTable.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;
@@ -85,11 +85,11 @@ namespace Microsoft.CodeAnalysis
             return nodeTable.ToImmutableAndFree();
         }
 
-        IIncrementalGeneratorNode<TOutput> IIncrementalGeneratorNode<TOutput>.WithComparer(IEqualityComparer<TOutput> comparer) => throw ExceptionUtilities.Unreachable;
+        IIncrementalGeneratorNode<TOutput> IIncrementalGeneratorNode<TOutput>.WithComparer(IEqualityComparer<TOutput> comparer) => throw ExceptionUtilities.Unreachable();
 
-        public IIncrementalGeneratorNode<(IEnumerable<GeneratedSourceText>, IEnumerable<Diagnostic>)> WithTrackingName(string name) => throw ExceptionUtilities.Unreachable;
+        public IIncrementalGeneratorNode<(IEnumerable<GeneratedSourceText>, IEnumerable<Diagnostic>)> WithTrackingName(string name) => throw ExceptionUtilities.Unreachable();
 
-        void IIncrementalGeneratorNode<TOutput>.RegisterOutput(IIncrementalGeneratorOutputNode output) => throw ExceptionUtilities.Unreachable;
+        void IIncrementalGeneratorNode<TOutput>.RegisterOutput(IIncrementalGeneratorOutputNode output) => throw ExceptionUtilities.Unreachable();
 
         public void AppendOutputs(IncrementalExecutionContext context, CancellationToken cancellationToken)
         {

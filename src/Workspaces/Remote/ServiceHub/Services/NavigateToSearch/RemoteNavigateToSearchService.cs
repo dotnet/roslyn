@@ -3,124 +3,138 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Storage;
+using Roslyn.Utilities;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed class RemoteNavigateToSearchService : BrokeredServiceBase, IRemoteNavigateToSearchService
     {
-        internal sealed class Factory : FactoryBase<IRemoteNavigateToSearchService, IRemoteNavigateToSearchService.ICallback>
+        /// <summary>
+        /// Navigate to is implemented using <see cref="IAsyncEnumerable{T}"/>.  This API works by having the client
+        /// "pull" for results from the server.  That means that the computation to produce the next result happens only
+        /// when the client is actually asking for that.  We would like to utilize resources more thoroughly when
+        /// searching, allowing for searching for results on multiple cores.  As such, we set a "max read ahead" amount
+        /// that allows the server to keep processing and producing results, even as the client is processing the batch
+        /// of results.
+        /// </summary>
+        /// <remarks>
+        /// This value was not determined empirically.
+        /// </remarks>
+        private const int MaxReadAhead = 64;
+
+        internal sealed class Factory : FactoryBase<IRemoteNavigateToSearchService>
         {
-            protected override IRemoteNavigateToSearchService CreateService(
-                in ServiceConstructionArguments arguments, RemoteCallback<IRemoteNavigateToSearchService.ICallback> callback)
-                => new RemoteNavigateToSearchService(arguments, callback);
+            protected override IRemoteNavigateToSearchService CreateService(in ServiceConstructionArguments arguments)
+                => new RemoteNavigateToSearchService(arguments);
         }
 
-        private readonly RemoteCallback<IRemoteNavigateToSearchService.ICallback> _callback;
-
-        public RemoteNavigateToSearchService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteNavigateToSearchService.ICallback> callback)
+        public RemoteNavigateToSearchService(in ServiceConstructionArguments arguments)
             : base(arguments)
         {
-            _callback = callback;
         }
 
-        private Func<RoslynNavigateToItem, Task> GetCallback(
-            RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
+        public ValueTask HydrateAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
-            return async i => await _callback.InvokeAsync((callback, c) =>
-                callback.OnResultFoundAsync(callbackId, i),
-                cancellationToken).ConfigureAwait(false);
+            // All we need to do is request the solution.  This will ensure that all assets are
+            // pulled over from the host side to the remote side.  Once this completes, the next
+            // call to SearchFullyLoadedDocumentAsync or SearchFullyLoadedProjectAsync will be
+            // quick as very little will need to by sync'ed over.
+            return RunServiceAsync(solutionChecksum, solution => ValueTaskFactory.CompletedTask, cancellationToken);
         }
 
-        public ValueTask HydrateAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(async cancellationToken =>
-            {
-                // All we need to do is request the solution.  This will ensure that all assets are
-                // pulled over from the host side to the remote side.  Once this completes, the next
-                // call to SearchFullyLoadedDocumentAsync or SearchFullyLoadedProjectAsync will be
-                // quick as very little will need to by sync'ed over.
-                await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-            }, cancellationToken);
-        }
-
-        public ValueTask SearchDocumentAsync(
-            PinnedSolutionInfo solutionInfo,
+        public IAsyncEnumerable<RoslynNavigateToItem> SearchDocumentAsync(
+            Checksum solutionChecksum,
             DocumentId documentId,
             string searchPattern,
             ImmutableArray<string> kinds,
-            RemoteServiceCallbackId callbackId,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
-            {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                var document = solution.GetRequiredDocument(documentId);
-                var callback = GetCallback(callbackId, cancellationToken);
+            return StreamWithSolutionAsync(solutionChecksum, SearchDocumentWorkerAsync, cancellationToken).WithJsonRpcSettings(
+                new JsonRpcEnumerableSettings { MaxReadAhead = MaxReadAhead });
 
-                await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
-                    document, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
-            }, cancellationToken);
+            async IAsyncEnumerable<RoslynNavigateToItem> SearchDocumentWorkerAsync(Solution solution, [EnumeratorCancellation] CancellationToken cancellationToken)
+            {
+                var document = solution.GetRequiredDocument(documentId);
+
+                await foreach (var item in AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
+                    document, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false))
+                {
+                    yield return item;
+                }
+            }
         }
 
-        public ValueTask SearchProjectAsync(
-            PinnedSolutionInfo solutionInfo,
+        public IAsyncEnumerable<RoslynNavigateToItem> SearchProjectAsync(
+            Checksum solutionChecksum,
             ProjectId projectId,
             ImmutableArray<DocumentId> priorityDocumentIds,
             string searchPattern,
             ImmutableArray<string> kinds,
-            RemoteServiceCallbackId callbackId,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return StreamWithSolutionAsync(solutionChecksum, SearchProjectWorkerAsync, cancellationToken).WithJsonRpcSettings(
+                new JsonRpcEnumerableSettings { MaxReadAhead = MaxReadAhead });
+
+            async IAsyncEnumerable<RoslynNavigateToItem> SearchProjectWorkerAsync(Solution solution, [EnumeratorCancellation] CancellationToken cancellationToken)
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var project = solution.GetRequiredProject(projectId);
-                var callback = GetCallback(callbackId, cancellationToken);
 
                 var priorityDocuments = priorityDocumentIds.SelectAsArray(d => solution.GetRequiredDocument(d));
 
-                await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
-                    project, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
-            }, cancellationToken);
+                await foreach (var item in AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
+                    project, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false))
+                {
+                    yield return item;
+                }
+            }
         }
 
-        public ValueTask SearchGeneratedDocumentsAsync(
-            PinnedSolutionInfo solutionInfo,
+        public IAsyncEnumerable<RoslynNavigateToItem> SearchGeneratedDocumentsAsync(
+            Checksum solutionChecksum,
             ProjectId projectId,
             string searchPattern,
             ImmutableArray<string> kinds,
-            RemoteServiceCallbackId callbackId,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
-            {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                var project = solution.GetRequiredProject(projectId);
-                var callback = GetCallback(callbackId, cancellationToken);
+            return StreamWithSolutionAsync(solutionChecksum, SearchGeneratedDocumentsWorkerAsync, cancellationToken).WithJsonRpcSettings(
+                new JsonRpcEnumerableSettings { MaxReadAhead = MaxReadAhead });
 
-                await AbstractNavigateToSearchService.SearchGeneratedDocumentsInCurrentProcessAsync(
-                    project, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
-            }, cancellationToken);
+            async IAsyncEnumerable<RoslynNavigateToItem> SearchGeneratedDocumentsWorkerAsync(Solution solution, [EnumeratorCancellation] CancellationToken cancellationToken)
+            {
+                var project = solution.GetRequiredProject(projectId);
+
+                await foreach (var item in AbstractNavigateToSearchService.SearchGeneratedDocumentsInCurrentProcessAsync(
+                    project, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false))
+                {
+                    yield return item;
+                }
+            }
         }
 
-        public ValueTask SearchCachedDocumentsAsync(ImmutableArray<DocumentKey> documentKeys, ImmutableArray<DocumentKey> priorityDocumentKeys, StorageDatabase database, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
+        public IAsyncEnumerable<RoslynNavigateToItem> SearchCachedDocumentsAsync(
+            ImmutableArray<DocumentKey> documentKeys,
+            ImmutableArray<DocumentKey> priorityDocumentKeys,
+            string searchPattern,
+            ImmutableArray<string> kinds,
+            CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
-            {
-                // Intentionally do not call GetSolutionAsync here.  We do not want the cost of
-                // synchronizing the solution over to the remote side.  Instead, we just directly
-                // check whatever cached data we have from the previous vs session.
-                var callback = GetCallback(callbackId, cancellationToken);
-                var storageService = GetWorkspaceServices().GetPersistentStorageService(database);
-                await AbstractNavigateToSearchService.SearchCachedDocumentsInCurrentProcessAsync(
-                    storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
-            }, cancellationToken);
+            WorkspaceManager.SolutionAssetCache.UpdateLastActivityTime();
+
+            // Intentionally do not call GetSolutionAsync here.  We do not want the cost of
+            // synchronizing the solution over to the remote side.  Instead, we just directly
+            // check whatever cached data we have from the previous vs session.
+            var storageService = GetWorkspaceServices().GetPersistentStorageService();
+            return AbstractNavigateToSearchService.SearchCachedDocumentsInCurrentProcessAsync(
+                storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableHashSet(), cancellationToken);
         }
     }
 }

@@ -15,9 +15,9 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(FindImplementationsHandler)), Shared]
+    [ExportCSharpVisualBasicStatelessLspService(typeof(FindImplementationsHandler)), Shared]
     [Method(LSP.Methods.TextDocumentImplementationName)]
-    internal sealed class FindImplementationsHandler : AbstractStatelessRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
+    internal sealed class FindImplementationsHandler : ILspServiceDocumentRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
     {
         private readonly IGlobalOptionService _globalOptions;
 
@@ -28,15 +28,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
-        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
+        public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
 
-        public override async Task<LSP.Location[]> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<LSP.Location[]> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = context.Document;
-            Contract.ThrowIfNull(document);
+            var document = context.GetRequiredDocument();
+            var clientCapabilities = context.GetRequiredClientCapabilities();
 
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var text = definition.GetClassifiedText();
                 foreach (var sourceSpan in definition.SourceSpans)
                 {
-                    if (context.ClientCapabilities?.HasVisualStudioLspCapability() == true)
+                    if (clientCapabilities.HasVisualStudioLspCapability() == true)
                     {
                         locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationWithTextAsync(sourceSpan, text, cancellationToken).ConfigureAwait(false));
                     }

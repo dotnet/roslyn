@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -52,9 +53,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return VSConstants.E_FAIL;
             }
 
-            var root = document.GetSyntaxRootSynchronously(cancellationToken);
-            var text = root.SyntaxTree.GetText(cancellationToken);
-            var options = SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+            var documentSyntax = ParsedDocument.CreateSynchronously(document, cancellationToken);
+            var text = documentSyntax.Text;
+            var root = documentSyntax.Root;
+            var formattingOptions = textBuffer.GetSyntaxFormattingOptions(EditorOptionsService, document.Project.Services, explicitFormat: true);
 
             var ts = selections.Single();
             var start = text.Lines[ts.iStartLine].Start + ts.iStartIndex;
@@ -64,23 +66,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // Since we know we are on the UI thread, lets get the base indentation now, so that there is less
             // cleanup work to do later in Venus.
             var ruleFactory = Workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
-            var rules = ruleFactory.CreateRule(document, start).Concat(Formatter.GetDefaultFormattingRules(document));
+            var rules = ruleFactory.CreateRule(documentSyntax, start).Concat(Formatter.GetDefaultFormattingRules(document.Project.Services));
 
             // use formatting that return text changes rather than tree rewrite which is more expensive
             var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
-            var originalChanges = formatter.GetFormattingResult(root, SpecializedCollections.SingletonEnumerable(adjustedSpan), options, rules, cancellationToken)
+            var originalChanges = formatter.GetFormattingResult(root, SpecializedCollections.SingletonEnumerable(adjustedSpan), formattingOptions, rules, cancellationToken)
                 .GetTextChanges(cancellationToken);
 
             var originalSpan = RoslynTextSpan.FromBounds(start, end);
-            var formattedChanges = ruleFactory.FilterFormattedChanges(document, originalSpan, originalChanges);
+            var formattedChanges = ruleFactory.FilterFormattedChanges(document.Id, originalSpan, originalChanges);
             if (formattedChanges.IsEmpty())
             {
                 return VSConstants.S_OK;
             }
 
-            // create new formatted document
-            var formattedDocument = document.WithText(text.WithChanges(formattedChanges));
-            Workspace.ApplyDocumentChanges(formattedDocument, cancellationToken);
+            textBuffer.ApplyChanges(formattedChanges);
 
             return VSConstants.S_OK;
         }

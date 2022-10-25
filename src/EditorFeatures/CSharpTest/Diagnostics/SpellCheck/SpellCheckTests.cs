@@ -18,6 +18,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SpellCheck
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
     public class SpellCheckTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public SpellCheckTests(ITestOutputHelper logger)
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SpellCheck
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [Fact]
         public async Task TestNoSpellcheckForIfOnly2Characters()
         {
             var text =
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SpellCheck
             await TestMissingInRegularAndScriptAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [Fact]
         public async Task TestAfterNewExpression()
         {
             var text =
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SpellCheck
             await TestExactActionSetOfferedAsync(text, new[] { String.Format(FeaturesResources.Change_0_to_1, "Gooa", "Goo") });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [Fact]
         public async Task TestInLocalType()
         {
             var text = @"class Foo
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SpellCheck
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [Fact]
         public async Task TestInFunc()
         {
             var text = @"
@@ -94,7 +95,7 @@ class Goo
                 new[] { String.Format(FeaturesResources.Change_0_to_1, "Goa", "Goo") });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [Fact]
         public async Task TestInExpression()
         {
             var text = @"class Program
@@ -108,7 +109,7 @@ class Goo
             await TestExactActionSetOfferedAsync(text, new[] { String.Format(FeaturesResources.Change_0_to_1, "zza", "zzz") });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [Fact]
         public async Task TestInTypeOfIsExpression()
         {
             var text = @"using System;
@@ -126,7 +127,7 @@ public class Class1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [Fact]
         public async Task TestInvokeCorrectIdentifier()
         {
             var text = @"class Program
@@ -150,7 +151,7 @@ public class Class1
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [Fact]
         public async Task TestAfterDot()
         {
             var text = @"class Program
@@ -172,7 +173,7 @@ public class Class1
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [Fact]
         public async Task TestNotInaccessibleProperty()
         {
             var text = @"class Program
@@ -191,7 +192,7 @@ class c
             await TestMissingInRegularAndScriptAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [Fact]
         public async Task TestGenericName1()
         {
             var text = @"class Goo<T>
@@ -207,7 +208,7 @@ class c
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [Fact]
         public async Task TestGenericName2()
         {
             var text = @"class Goo<T>
@@ -223,7 +224,7 @@ class c
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [Fact]
         public async Task TestQualifiedName1()
         {
             var text = @"class Program
@@ -253,7 +254,7 @@ class Goo
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [Fact]
         public async Task TestQualifiedName2()
         {
             var text = @"class Program
@@ -283,7 +284,7 @@ class Goo
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [Fact]
         public async Task TestMiddleOfDottedExpression()
         {
             var text = @"class Program
@@ -315,7 +316,7 @@ class c
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [Fact]
         public async Task TestNotForOverloadResolutionFailure()
         {
             var text = @"class Program
@@ -337,7 +338,7 @@ class c
             await TestMissingInRegularAndScriptAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [Fact]
         public async Task TestHandlePredefinedTypeKeywordCorrectly()
         {
             var text = @"
@@ -369,7 +370,7 @@ class Program
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [Fact]
         public async Task TestHandlePredefinedTypeKeywordCorrectly1()
         {
             var text = @"
@@ -401,7 +402,7 @@ class Program
             await TestInRegularAndScriptAsync(text, expected, index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [Fact]
         public async Task TestOnGeneric()
         {
             var text = @"
@@ -433,7 +434,7 @@ class C
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [Fact]
         public async Task TestTestObjectConstruction()
         {
             await TestInRegularAndScriptAsync(
@@ -453,15 +454,14 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [Fact]
         public async Task TestTestMissingName()
         {
             await TestMissingInRegularAndScriptAsync(
 @"[assembly: Microsoft.CodeAnalysis.[||]]");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
-        [WorkItem(12990, "https://github.com/dotnet/roslyn/issues/12990")]
+        [Fact, WorkItem(12990, "https://github.com/dotnet/roslyn/issues/12990")]
         public async Task TestTrivia1()
         {
             var text = @"
@@ -487,8 +487,7 @@ class C
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
-        [WorkItem(13345, "https://github.com/dotnet/roslyn/issues/13345")]
+        [Fact, WorkItem(13345, "https://github.com/dotnet/roslyn/issues/13345")]
         public async Task TestNotMissingOnKeywordWhichIsAlsoASnippet()
         {
             await TestInRegularAndScriptAsync(
@@ -510,8 +509,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
-        [WorkItem(18626, "https://github.com/dotnet/roslyn/issues/18626")]
+        [Fact, WorkItem(18626, "https://github.com/dotnet/roslyn/issues/18626")]
         public async Task TestForExplicitInterfaceTypeName()
         {
             await TestInRegularAndScriptAsync(
@@ -541,8 +539,7 @@ class Program : IProjectConfigurationsService
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
-        [WorkItem(13345, "https://github.com/dotnet/roslyn/issues/13345")]
+        [Fact, WorkItem(13345, "https://github.com/dotnet/roslyn/issues/13345")]
         public async Task TestMissingOnKeywordWhichIsOnlyASnippet()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -556,8 +553,7 @@ class Program : IProjectConfigurationsService
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
-        [WorkItem(15733, "https://github.com/dotnet/roslyn/issues/15733")]
+        [Fact, WorkItem(15733, "https://github.com/dotnet/roslyn/issues/15733")]
         public async Task TestMissingOnVar()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -574,7 +570,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [Fact]
         public async Task TestUnmanagedConstraint()
         {
             await TestInRegularAndScriptAsync(
@@ -586,8 +582,7 @@ class C
 }");
         }
 
-        [WorkItem(28244, "https://github.com/dotnet/roslyn/issues/28244")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [Fact, WorkItem(28244, "https://github.com/dotnet/roslyn/issues/28244")]
         public async Task TestMisspelledConstructor()
         {
             await TestInRegularAndScriptAsync(
@@ -601,7 +596,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [Fact]
         public async Task TestInExplicitInterfaceImplementation1()
         {
             var text = @"
@@ -623,7 +618,7 @@ class Program : IDisposable
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [Fact]
         public async Task TestInExplicitInterfaceImplementation2()
         {
             var text = @"
@@ -655,7 +650,7 @@ class Program : IInterface
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [Fact]
         public async Task TestInExplicitInterfaceImplementation3()
         {
             var text = @"
@@ -685,6 +680,18 @@ class Program : IInterface
 }";
 
             await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, WorkItem(1640728, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1640728")]
+        public async Task TestMisspelledWordThatIsAlsoSnippetName()
+        {
+            await TestInRegularAndScriptAsync(
+@"public [|interfacce|] IWhatever
+{
+}",
+@"public interface IWhatever
+{
+}");
         }
     }
 }

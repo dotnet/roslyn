@@ -4,8 +4,10 @@
 
 using System;
 using System.Linq;
+using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -17,26 +19,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     {
         private readonly IThreadingContext _threadingContext;
         private readonly InlineRenameService _renameService;
+        private readonly IAsynchronousOperationListener _listener;
 
         protected AbstractRenameCommandHandler(
             IThreadingContext threadingContext,
-            InlineRenameService renameService)
+            InlineRenameService renameService,
+            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
         {
             _threadingContext = threadingContext;
             _renameService = renameService;
+            _listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Rename);
         }
 
         public string DisplayName => EditorFeaturesResources.Rename;
 
-        protected abstract bool DashboardShouldReceiveKeyboardNavigation(ITextView textView);
+        protected abstract bool AdornmentShouldReceiveKeyboardNavigation(ITextView textView);
 
         protected abstract void SetFocusToTextView(ITextView textView);
 
-        protected abstract void SetFocusToDashboard(ITextView textView);
+        protected abstract void SetFocusToAdornment(ITextView textView);
 
-        protected abstract void SetDashboardFocusToPreviousElement(ITextView textView);
+        protected abstract void SetAdornmentFocusToPreviousElement(ITextView textView);
 
-        protected abstract void SetDashboardFocusToNextElement(ITextView textView);
+        protected abstract void SetAdornmentFocusToNextElement(ITextView textView);
 
         private CommandState GetCommandState(Func<CommandState> nextHandler)
         {

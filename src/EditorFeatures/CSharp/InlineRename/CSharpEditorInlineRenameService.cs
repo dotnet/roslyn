@@ -12,16 +12,19 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.InlineRename
 {
     [ExportLanguageService(typeof(IEditorInlineRenameService), LanguageNames.CSharp), Shared]
-    internal class CSharpEditorInlineRenameService : AbstractEditorInlineRenameService
+    internal sealed class CSharpEditorInlineRenameService : AbstractEditorInlineRenameService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpEditorInlineRenameService(
-            [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices) : base(refactorNotifyServices)
+            [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
+            IGlobalOptionService globalOptions)
+            : base(refactorNotifyServices, globalOptions)
         {
         }
 
@@ -62,11 +65,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.InlineRename
             if (parent.IsKind(SyntaxKind.IdentifierName))
             {
                 TypeSyntax? declaredType = null;
-                if (parent.IsParentKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax? varDecl))
+                if (parent?.Parent is VariableDeclarationSyntax varDecl)
                 {
                     declaredType = varDecl.Type;
                 }
-                else if (parent.IsParentKind(SyntaxKind.FieldDeclaration, out FieldDeclarationSyntax? fieldDecl))
+                else if (parent?.Parent is FieldDeclarationSyntax fieldDecl)
                 {
                     declaredType = fieldDecl.Declaration.Type;
                 }

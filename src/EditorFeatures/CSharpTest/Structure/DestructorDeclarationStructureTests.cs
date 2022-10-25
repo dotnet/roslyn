@@ -13,11 +13,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
 {
+    [Trait(Traits.Feature, Traits.Features.Outlining)]
     public class DestructorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<DestructorDeclarationSyntax>
     {
         internal override AbstractSyntaxStructureProvider CreateProvider() => new DestructorDeclarationStructureProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestDestructor()
         {
             const string code = @"
@@ -32,7 +33,7 @@ class C
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestDestructorWithComments()
         {
             const string code = @"
@@ -50,7 +51,7 @@ class C
                 Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestDestructorMissingCloseParenAndBody()
         {
             // Expected behavior is that the class should be outlined, but the destructor should not.

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -10,12 +11,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -42,16 +45,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public ActiveStatementTaggerProvider(
             IThreadingContext threadingContext,
             IGlobalOptionService globalOptions,
+            [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.Classification))
+            : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Classification))
         {
         }
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
 
-        protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
+        protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
 
             return TaggerEventSources.Compose(
                 new EventSource(subjectBuffer),
@@ -72,7 +76,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return;
             }
 
-            var activeStatementTrackingService = document.Project.Solution.Workspace.Services.GetService<IActiveStatementTrackingService>();
+            var activeStatementTrackingService = document.Project.Solution.Services.GetService<IActiveStatementTrackingService>();
             if (activeStatementTrackingService == null)
             {
                 return;
@@ -97,6 +101,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // Let the context know that this was the span we actually tried to tag.
             context.SetSpansTagged(ImmutableArray.Create(spanToTag.SnapshotSpan));
+        }
+
+        protected override bool TagEquals(ITextMarkerTag tag1, ITextMarkerTag tag2)
+        {
+            Contract.ThrowIfFalse(tag1 == tag2, "ActiveStatementTag is a supposed to be a singleton");
+            return true;
         }
     }
 }

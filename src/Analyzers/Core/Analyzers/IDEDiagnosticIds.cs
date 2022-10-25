@@ -10,13 +10,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         public const string SimplifyNamesDiagnosticId = "IDE0001";
         public const string SimplifyMemberAccessDiagnosticId = "IDE0002";
-        public const string RemoveQualificationDiagnosticId = "IDE0003";
+        public const string RemoveThisOrMeQualificationDiagnosticId = "IDE0003";
         public const string RemoveUnnecessaryCastDiagnosticId = "IDE0004";
         public const string RemoveUnnecessaryImportsDiagnosticId = "IDE0005";
         public const string IntellisenseBuildFailedDiagnosticId = "IDE0006";
         public const string UseImplicitTypeDiagnosticId = "IDE0007";
         public const string UseExplicitTypeDiagnosticId = "IDE0008";
-        public const string AddQualificationDiagnosticId = "IDE0009";
+        public const string AddThisOrMeQualificationDiagnosticId = "IDE0009";
         public const string PopulateSwitchStatementDiagnosticId = "IDE0010";
         public const string AddBracesDiagnosticId = "IDE0011";
 
@@ -167,15 +167,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UseTupleSwapDiagnosticId = "IDE0180";
 
-        public const string UseParameterNullCheckingId = "IDE0190";
+        // Don't use "IDE0190". It corresponds to the deleted field UseParameterNullCheckingId which was previously shipped.
 
         public const string RemoveUnnecessaryLambdaExpressionDiagnosticId = "IDE0200";
+
+        public const string UseTopLevelStatementsId = "IDE0210";
+        public const string UseProgramMainId = "IDE0211";
+
+        public const string ForEachCastDiagnosticId = "IDE0220";
+
+        public const string UseUtf8StringLiteralDiagnosticId = "IDE0230";
+
+        public const string RemoveRedundantNullableDirectiveDiagnosticId = "IDE0240";
+        public const string RemoveUnnecessaryNullableDirectiveDiagnosticId = "IDE0241";
+
+        public const string MakeStructReadOnlyDiagnosticId = "IDE0250";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";
         public const string MissingAnalyzerReferenceId = "IDE1003";
-        public const string ErrorReadingRulesetId = "IDE1004";
+        // public const string ErrorReadingRulesetId = "IDE1004";
         public const string InvokeDelegateWithConditionalAccessId = "IDE1005";
         public const string NamingRuleId = "IDE1006";
         public const string UnboundIdentifierId = "IDE1007";

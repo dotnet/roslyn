@@ -6,21 +6,23 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.CallHierarchy;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
@@ -28,7 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
     [Export(typeof(CallHierarchyProvider))]
     internal partial class CallHierarchyProvider
     {
-        private readonly IAsynchronousOperationListener _asyncListener;
+        public readonly IAsynchronousOperationListener AsyncListener;
+        public readonly IUIThreadOperationExecutor ThreadOperationExecutor;
+        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
         public IThreadingContext ThreadingContext { get; }
         public IGlyphService GlyphService { get; }
@@ -37,16 +41,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CallHierarchyProvider(
             IThreadingContext threadingContext,
+            IUIThreadOperationExecutor threadOperationExecutor,
             IAsynchronousOperationListenerProvider listenerProvider,
-            IGlyphService glyphService)
+            IGlyphService glyphService,
+            Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
         {
-            _asyncListener = listenerProvider.GetListener(FeatureAttribute.CallHierarchy);
+            AsyncListener = listenerProvider.GetListener(FeatureAttribute.CallHierarchy);
             ThreadingContext = threadingContext;
+            ThreadOperationExecutor = threadOperationExecutor;
             this.GlyphService = glyphService;
+            _streamingPresenter = streamingPresenter;
         }
 
-        public async Task<ICallHierarchyMemberItem> CreateItemAsync(ISymbol symbol,
-            Project project, IEnumerable<Location> callsites, CancellationToken cancellationToken)
+        public async Task<ICallHierarchyMemberItem> CreateItemAsync(
+            ISymbol symbol, Project project, ImmutableArray<Location> callsites, CancellationToken cancellationToken)
         {
             if (symbol.Kind is SymbolKind.Method or
                                SymbolKind.Property or
@@ -56,14 +64,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                 symbol = GetTargetSymbol(symbol);
 
                 var finders = await CreateFindersAsync(symbol, project, cancellationToken).ConfigureAwait(false);
-
-                ICallHierarchyMemberItem item = new CallHierarchyItem(symbol,
-                    project.Id,
+                var location = await GoToDefinitionHelpers.GetDefinitionLocationAsync(
+                    symbol, project.Solution, this.ThreadingContext, _streamingPresenter.Value, cancellationToken).ConfigureAwait(false);
+                ICallHierarchyMemberItem item = new CallHierarchyItem(
+                    this,
+                    symbol,
+                    location,
                     finders,
                     () => symbol.GetGlyph().GetImageSource(GlyphService),
-                    this,
                     callsites,
-                    project.Solution.Workspace);
+                    project);
 
                 return item;
             }
@@ -99,33 +109,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             {
                 var finders = new List<AbstractCallFinder>();
 
-                finders.Add(new MethodCallFinder(symbol, project.Id, _asyncListener, this));
+                finders.Add(new MethodCallFinder(symbol, project.Id, AsyncListener, this));
 
                 if (symbol.IsVirtual || symbol.IsAbstract)
                 {
-                    finders.Add(new OverridingMemberFinder(symbol, project.Id, _asyncListener, this));
+                    finders.Add(new OverridingMemberFinder(symbol, project.Id, AsyncListener, this));
                 }
 
                 var @overrides = await SymbolFinder.FindOverridesAsync(symbol, project.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
                 if (overrides.Any())
                 {
-                    finders.Add(new CallToOverrideFinder(symbol, project.Id, _asyncListener, this));
+                    finders.Add(new CallToOverrideFinder(symbol, project.Id, AsyncListener, this));
                 }
 
                 if (symbol.GetOverriddenMember() != null)
                 {
-                    finders.Add(new BaseMemberFinder(symbol.GetOverriddenMember(), project.Id, _asyncListener, this));
+                    finders.Add(new BaseMemberFinder(symbol.GetOverriddenMember(), project.Id, AsyncListener, this));
                 }
 
                 var implementedInterfaceMembers = await SymbolFinder.FindImplementedInterfaceMembersAsync(symbol, project.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
                 foreach (var implementedInterfaceMember in implementedInterfaceMembers)
                 {
-                    finders.Add(new InterfaceImplementationCallFinder(implementedInterfaceMember, project.Id, _asyncListener, this));
+                    finders.Add(new InterfaceImplementationCallFinder(implementedInterfaceMember, project.Id, AsyncListener, this));
                 }
 
                 if (symbol.IsImplementableMember())
                 {
-                    finders.Add(new ImplementerFinder(symbol, project.Id, _asyncListener, this));
+                    finders.Add(new ImplementerFinder(symbol, project.Id, AsyncListener, this));
                 }
 
                 return finders;
@@ -133,22 +143,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 
             if (symbol.Kind == SymbolKind.Field)
             {
-                return SpecializedCollections.SingletonEnumerable(new FieldReferenceFinder(symbol, project.Id, _asyncListener, this));
+                return SpecializedCollections.SingletonEnumerable(new FieldReferenceFinder(symbol, project.Id, AsyncListener, this));
             }
 
             return null;
-        }
-
-        public async Task NavigateToAsync(SymbolKey id, Project project, CancellationToken cancellationToken)
-        {
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var resolution = id.Resolve(compilation, cancellationToken: cancellationToken);
-            var workspace = project.Solution.Workspace;
-            var options = NavigationOptions.Default with { PreferProvisionalTab = true };
-            var symbolNavigationService = workspace.Services.GetService<ISymbolNavigationService>();
-
-            await symbolNavigationService.TryNavigateToSymbolAsync(
-                resolution.Symbol, project, options, cancellationToken).ConfigureAwait(false);
         }
     }
 }

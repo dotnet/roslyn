@@ -13,15 +13,20 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
 {
     public abstract class AbstractSemanticTokensTests : AbstractLanguageServerProtocolTests
     {
+        protected AbstractSemanticTokensTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         private protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensRangeAsync(TestLspServer testLspServer, LSP.Location caret, LSP.Range range)
         {
-            var result = await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensRangeParams, RoslynSemanticTokens>(LSP.Methods.TextDocumentSemanticTokensRangeName,
+            var result = await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>(LSP.Methods.TextDocumentSemanticTokensRangeName,
                 CreateSemanticTokensRangeParams(caret, range), CancellationToken.None);
             Contract.ThrowIfNull(result);
             return result;

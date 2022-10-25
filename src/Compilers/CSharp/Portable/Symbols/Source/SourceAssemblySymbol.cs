@@ -1844,7 +1844,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void SetNoPiaResolutionAssemblies(ImmutableArray<AssemblySymbol> assemblies)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override ImmutableArray<AssemblySymbol> GetLinkedReferencedAssemblies()
@@ -1858,7 +1858,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // SourceAssemblySymbol is never used directly as a reference
             // when it is or any of its references is linked.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override bool IsLinked
@@ -1939,7 +1939,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // (c) There is no applied CompilationRelaxationsAttribute assembly attribute for any of the added PE modules.
             // Above requirements also hold for synthesizing RuntimeCompatibilityAttribute attribute.
 
-            bool emitCompilationRelaxationsAttribute = !isBuildingNetModule && !this.Modules.Any(m => m.HasAssemblyCompilationRelaxationsAttribute);
+            bool emitCompilationRelaxationsAttribute = !isBuildingNetModule && !this.Modules.Any(static m => m.HasAssemblyCompilationRelaxationsAttribute);
             if (emitCompilationRelaxationsAttribute)
             {
                 // Synthesize attribute: [CompilationRelaxationsAttribute(CompilationRelaxations.NoStringInterning)]
@@ -1959,7 +1959,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            bool emitRuntimeCompatibilityAttribute = !isBuildingNetModule && !this.Modules.Any(m => m.HasAssemblyRuntimeCompatibilityAttribute);
+            bool emitRuntimeCompatibilityAttribute = !isBuildingNetModule && !this.Modules.Any(static m => m.HasAssemblyRuntimeCompatibilityAttribute);
             if (emitRuntimeCompatibilityAttribute)
             {
                 // Synthesize attribute: [RuntimeCompatibilityAttribute(WrapNonExceptionThrows = true)]
@@ -2326,7 +2326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        protected override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             DecodeWellKnownAttribute(ref arguments, arguments.Index, isFromNetModule: false);
         }

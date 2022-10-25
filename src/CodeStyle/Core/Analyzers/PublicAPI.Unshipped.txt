@@ -41,6 +41,8 @@ Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsOverride.get -> b
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsPartial.get -> bool
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsReadOnly.get -> bool
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsRef.get -> bool
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsRequired.get -> bool
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsFile.get -> bool
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsSealed.get -> bool
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsStatic.get -> bool
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsUnsafe.get -> bool
@@ -56,6 +58,8 @@ Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsNew(bool isNe
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsOverride(bool isOverride) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsReadOnly(bool isReadOnly) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsRef(bool isRef) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsRequired(bool isRequired) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsFile(bool isFile) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsSealed(bool isSealed) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsStatic(bool isStatic) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsUnsafe(bool isUnsafe) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
@@ -84,6 +88,8 @@ static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Override.get
 static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Partial.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.ReadOnly.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Ref.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Required.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.File.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Sealed.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Static.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.TryParse(string value, out Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers modifiers) -> bool

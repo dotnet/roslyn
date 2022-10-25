@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -31,12 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices provider)
-            => new CSharpSyntaxTreeFactoryService(provider);
+            => new CSharpSyntaxTreeFactoryService(provider.LanguageServices.SolutionServices);
 
         private partial class CSharpSyntaxTreeFactoryService : AbstractSyntaxTreeFactoryService
         {
-            public CSharpSyntaxTreeFactoryService(HostLanguageServices languageServices)
-                : base(languageServices)
+            public CSharpSyntaxTreeFactoryService(SolutionServices services)
+                : base(services)
             {
             }
 
@@ -69,10 +70,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return csharpOptions1.WithPreprocessorSymbols(csharpOptions2.PreprocessorSymbolNames) == csharpOptions2;
             }
 
-            public override SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, Encoding encoding, SyntaxNode root)
+            public override SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, SyntaxNode root)
             {
                 options ??= GetDefaultParseOptions();
-                return CSharpSyntaxTree.Create((CSharpSyntaxNode)root, (CSharpParseOptions)options, filePath, encoding);
+                return new ParsedSyntaxTree(lazyText: null, (CSharpSyntaxNode)root, (CSharpParseOptions)options, filePath, encoding, checksumAlgorithm);
             }
 
             public override SyntaxTree ParseSyntaxTree(string filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken)
@@ -83,28 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override SyntaxNode DeserializeNodeFrom(Stream stream, CancellationToken cancellationToken)
                 => CSharpSyntaxNode.DeserializeFrom(stream, cancellationToken);
-
-            public override bool CanCreateRecoverableTree(SyntaxNode root)
-                => base.CanCreateRecoverableTree(root) && root is CompilationUnitSyntax cu && cu.AttributeLists.Count == 0;
-
-            public override SyntaxTree CreateRecoverableTree(
-                ProjectId cacheKey,
-                string filePath,
-                ParseOptions options,
-                ValueSource<TextAndVersion> text,
-                Encoding encoding,
-                SyntaxNode root)
-            {
-                System.Diagnostics.Debug.Assert(CanCreateRecoverableTree(root));
-                return RecoverableSyntaxTree.CreateRecoverableTree(
-                    this,
-                    cacheKey,
-                    filePath,
-                    options ?? GetDefaultParseOptions(),
-                    text,
-                    encoding,
-                    (CompilationUnitSyntax)root);
-            }
         }
     }
 }

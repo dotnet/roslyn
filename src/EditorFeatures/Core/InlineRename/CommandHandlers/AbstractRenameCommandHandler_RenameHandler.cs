@@ -4,12 +4,19 @@
 
 #nullable disable
 
+using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -38,16 +45,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return false;
             }
 
-            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Finding_token_to_rename))
-            {
-                ExecuteRenameWorker(args, context);
-            }
-
+            var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
+            _ = ExecuteCommandAsync(args).CompletesAsyncOperation(token);
             return true;
         }
 
-        private void ExecuteRenameWorker(RenameCommandArgs args, CommandExecutionContext context)
+        private async Task ExecuteCommandAsync(RenameCommandArgs args)
         {
+            _threadingContext.ThrowIfNotOnUIThread();
+
             if (!args.SubjectBuffer.TryGetWorkspace(out var workspace))
             {
                 return;
@@ -56,9 +62,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
             if (!caretPoint.HasValue)
             {
-                ShowErrorDialog(workspace, EditorFeaturesResources.You_must_rename_an_identifier);
+                await ShowErrorDialogAsync(workspace, EditorFeaturesResources.You_must_rename_an_identifier).ConfigureAwait(false);
                 return;
             }
+
+            var backgroundWorkIndicatorFactory = workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
+            using var context = backgroundWorkIndicatorFactory.Create(
+                    args.TextView,
+                    args.TextView.GetTextElementSpan(caretPoint.Value),
+                    EditorFeaturesResources.Finding_token_to_rename);
 
             // If there is already an active session, commit it first
             if (_renameService.ActiveSession != null)
@@ -67,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // If so, focus the dashboard
                 if (_renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out _))
                 {
-                    SetFocusToDashboard(args.TextView);
+                    SetFocusToAdornment(args.TextView);
                     return;
                 }
                 else
@@ -77,12 +89,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            var cancellationToken = context.OperationContext.UserCancellationToken;
-            var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
-                context.OperationContext, _threadingContext);
+            var cancellationToken = context.UserCancellationToken;
+
+            var document = await args
+                .SubjectBuffer
+                .CurrentSnapshot
+                .GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(context)
+                .ConfigureAwait(false);
+
             if (document == null)
             {
-                ShowErrorDialog(workspace, EditorFeaturesResources.You_must_rename_an_identifier);
+                await ShowErrorDialogAsync(workspace, EditorFeaturesResources.You_must_rename_an_identifier).ConfigureAwait(false);
                 return;
             }
 
@@ -92,14 +109,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // There can be zero selectedSpans in projection scenarios.
             if (selectedSpans.Count != 1)
             {
-                ShowErrorDialog(workspace, EditorFeaturesResources.You_must_rename_an_identifier);
+                await ShowErrorDialogAsync(workspace, EditorFeaturesResources.You_must_rename_an_identifier).ConfigureAwait(false);
                 return;
             }
 
-            var sessionInfo = _renameService.StartInlineSession(document, selectedSpans.Single().Span.ToTextSpan(), cancellationToken);
+            var sessionInfo = await _renameService.StartInlineSessionAsync(document, selectedSpans.Single().Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
             if (!sessionInfo.CanRename)
             {
-                ShowErrorDialog(workspace, sessionInfo.LocalizedErrorMessage);
+                await ShowErrorDialogAsync(workspace, sessionInfo.LocalizedErrorMessage).ConfigureAwait(false);
+                return;
             }
         }
 
@@ -110,8 +128,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 args.SubjectBuffer.SupportsRename() && !args.SubjectBuffer.IsInLspEditorContext();
         }
 
-        private static void ShowErrorDialog(Workspace workspace, string message)
+        private async Task ShowErrorDialogAsync(Workspace workspace, string message)
         {
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
             var notificationService = workspace.Services.GetService<INotificationService>();
             notificationService.SendNotification(message, title: EditorFeaturesResources.Rename, severity: NotificationSeverity.Error);
         }

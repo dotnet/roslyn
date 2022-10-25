@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.EditorConfig;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
@@ -52,16 +51,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
             var language = diagnostic.Location.SourceTree.Options.Language;
             return IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOptions(diagnostic.Id, language, out var options) &&
                !options.IsEmpty &&
-               options.All(o => o.StorageLocations.Any(l => l is IEditorConfigStorageLocation2));
+               options.All(o => o.StorageLocations.Any(static l => l is IEditorConfigStorageLocation2));
         }
 
         public FixAllProvider GetFixAllProvider()
             => null;
 
-        public Task<ImmutableArray<CodeFix>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        public Task<ImmutableArray<CodeFix>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
             => Task.FromResult(GetConfigurations(document.Project, diagnostics, cancellationToken));
 
-        public Task<ImmutableArray<CodeFix>> GetFixesAsync(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        public Task<ImmutableArray<CodeFix>> GetFixesAsync(Project project, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
             => Task.FromResult(GetConfigurations(project, diagnostics, cancellationToken));
 
         private static ImmutableArray<CodeFix> GetConfigurations(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
@@ -80,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                 // For example, if the option value is CodeStyleOption<bool>, we will have two nested actions, one for 'true' setting and one
                 // for 'false' setting. If the option value is CodeStyleOption<SomeEnum>, we will have a nested action for each enum field.
                 using var _ = ArrayBuilder<CodeAction>.GetInstance(out var nestedActions);
-                var optionSet = project.Solution.Workspace.Options;
+                var optionSet = project.Solution.Options;
                 var hasMultipleOptions = codeStyleOptions.Length > 1;
                 foreach (var (optionKey, codeStyleOption, editorConfigLocation, perLanguageOption) in codeStyleOptions.OrderBy(t => t.optionKey.Option.Name))
                 {
@@ -162,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
 
                         // Add code action to configure the optionValue.
                         nestedActions.Add(
-                            new SolutionChangeAction(
+                            SolutionChangeAction.Create(
                                 parts.optionValue,
                                 solution => ConfigurationUpdater.ConfigureCodeStyleOptionAsync(parts.optionName, parts.optionValue, diagnostic, isPerLanguage, project, cancellationToken),
                                 parts.optionValue));

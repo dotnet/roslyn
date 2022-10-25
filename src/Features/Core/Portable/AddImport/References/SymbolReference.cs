@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             private async Task<ImmutableArray<TextChange>> GetTextChangesAsync(
                 Document document, SyntaxNode contextNode,
-                AddImportPlacementOptions options, bool hasExistingImport,
+                CodeCleanupOptions options, bool hasExistingImport,
                 CancellationToken cancellationToken)
             {
                 // Defer to the language to add the actual import/using.
@@ -66,10 +67,10 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 var updatedDocument = await provider.AddImportAsync(
                     newContextNode, SymbolResult.Symbol, newDocument,
-                    options, cancellationToken).ConfigureAwait(false);
+                    options.AddImportOptions, cancellationToken).ConfigureAwait(false);
 
                 var cleanedDocument = await CodeAction.CleanupDocumentAsync(
-                    updatedDocument, cancellationToken).ConfigureAwait(false);
+                    updatedDocument, options, cancellationToken).ConfigureAwait(false);
 
                 var textChanges = await cleanedDocument.GetTextChangesAsync(
                     document, cancellationToken).ConfigureAwait(false);
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             public sealed override async Task<AddImportFixData> TryGetFixDataAsync(
                 Document document, SyntaxNode node,
-                AddImportPlacementOptions options, CancellationToken cancellationToken)
+                CodeCleanupOptions options, CancellationToken cancellationToken)
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var (description, hasExistingImport) = GetDescription(document, options, node, semanticModel, cancellationToken);
@@ -127,11 +128,11 @@ namespace Microsoft.CodeAnalysis.AddImport
             protected abstract CodeActionPriority GetPriority(Document document);
 
             protected virtual (string description, bool hasExistingImport) GetDescription(
-                Document document, AddImportPlacementOptions options, SyntaxNode node,
+                Document document, CodeCleanupOptions options, SyntaxNode node,
                 SemanticModel semanticModel, CancellationToken cancellationToken)
             {
                 return provider.GetDescription(
-                    document, options, SymbolResult.Symbol, semanticModel, node, cancellationToken);
+                    document, options.AddImportOptions, SymbolResult.Symbol, semanticModel, node, cancellationToken);
             }
         }
     }

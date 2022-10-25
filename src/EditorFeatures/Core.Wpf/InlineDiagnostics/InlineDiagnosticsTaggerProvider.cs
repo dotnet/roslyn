@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
@@ -40,25 +41,33 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         public InlineDiagnosticsTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
+            IDiagnosticAnalyzerService analyzerService,
             IGlobalOptionService globalOptions,
+            [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider,
             IEditorFormatMapService editorFormatMapService,
             IClassificationFormatMapService classificationFormatMapService,
             IClassificationTypeRegistryService classificationTypeRegistryService)
-            : base(threadingContext, diagnosticService, globalOptions, listenerProvider)
+            : base(threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listenerProvider)
         {
             _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
             _classificationFormatMapService = classificationFormatMapService;
             _classificationTypeRegistryService = classificationTypeRegistryService;
         }
 
+        protected internal override bool SupportsDignosticMode(DiagnosticMode mode)
+        {
+            // We support inline diagnostics in both push and pull (since lsp doesn't support inline diagnostics yet).
+            return true;
+        }
+
         // Need to override this from AbstractDiagnosticsTaggerProvider because the location option needs to be added
         // to the TaggerEventSource, otherwise it does not get updated until there is a change in the editor.
-        protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
         {
             return TaggerEventSources.Compose(
-                base.CreateEventSource(textViewOpt, subjectBuffer),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineDiagnosticsOptions.Location));
+                base.CreateEventSource(textView, subjectBuffer),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineDiagnosticsOptions.Location));
         }
 
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
@@ -112,5 +121,19 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 return null;
             }
         }
+
+        /// <summary>
+        /// TODO: is there anything we can do better here? Inline diagnostic tags are not really data, but more UI
+        /// elements with specific constrols, positions and events attached to them.  There doesn't seem to be a safe
+        /// way to reuse any of these currently.  Ideally we could do something similar to inline-hints where there's a
+        /// data tagger portion (which is async and has clean equality semantics), and then the UI portion which just
+        /// translates those data-tags to the UI tags.
+        /// <para>
+        /// Doing direct equality means we'll always end up regenerating all tags.  But hopefully there won't be that
+        /// many in a document to matter.
+        /// </para>
+        /// </summary>
+        protected override bool TagEquals(InlineDiagnosticsTag tag1, InlineDiagnosticsTag tag2)
+            => tag1 == tag2;
     }
 }

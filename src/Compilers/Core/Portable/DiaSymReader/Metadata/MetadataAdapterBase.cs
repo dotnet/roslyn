@@ -92,7 +92,7 @@ namespace Microsoft.DiaSymReader
         int IMetadataImport.GetModuleRefProps(int moduleRef, char* name, int nameBufferLength, int* nameLength) => throw new NotImplementedException();
         int IMetadataImport.EnumModuleRefs(ref void* enumHandle, int* moduleRefs, int bufferLength, int* count) => throw new NotImplementedException();
         int IMetadataImport.GetTypeSpecFromToken(int typeSpec, byte** signature, int* signatureLength) => throw new NotImplementedException();
-        int IMetadataImport.GetNameFromToken(int token, byte* nameUTF8) => throw new NotImplementedException();
+        int IMetadataImport.GetNameFromToken(int token, byte* nameUtf8) => throw new NotImplementedException();
         int IMetadataImport.EnumUnresolvedMethods(ref void* enumHandle, int* methodDefs, int bufferLength, int* count) => throw new NotImplementedException();
         int IMetadataImport.GetUserString(int userStringToken, char* buffer, int bufferLength, int* length) => throw new NotImplementedException();
         int IMetadataImport.GetPinvokeMap(int memberDef, int* attributes, char* importName, int importNameBufferLength, int* importNameLength, int* moduleRef) => throw new NotImplementedException();

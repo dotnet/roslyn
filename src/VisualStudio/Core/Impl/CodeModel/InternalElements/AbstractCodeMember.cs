@@ -190,10 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
                 var codeElement = ComAggregate.TryGetManagedObject<AbstractCodeElement>(element);
 
-                if (codeElement == null)
-                {
-                    codeElement = ComAggregate.TryGetManagedObject<AbstractCodeElement>(this.Parameters.Item(element));
-                }
+                codeElement ??= ComAggregate.TryGetManagedObject<AbstractCodeElement>(this.Parameters.Item(element));
 
                 if (codeElement == null)
                 {

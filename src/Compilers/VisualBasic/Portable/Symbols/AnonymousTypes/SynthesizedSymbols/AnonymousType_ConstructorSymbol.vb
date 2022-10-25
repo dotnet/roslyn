@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -12,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Partial Private NotInheritable Class AnonymousTypeConstructorSymbol
             Inherits SynthesizedConstructorBase
 
-            Private _parameters As ImmutableArray(Of ParameterSymbol)
+            Private ReadOnly _parameters As ImmutableArray(Of ParameterSymbol)
 
             Public Sub New(container As AnonymousTypeTemplateSymbol)
                 MyBase.New(VisualBasicSyntaxTree.DummyReference, container, False, Nothing, Nothing)
@@ -39,8 +40,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-                MyBase.AddSynthesizedAttributes(compilationState, attributes)
+            Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
                 Dim compilation = DirectCast(Me.ContainingType, AnonymousTypeTemplateSymbol).Manager.Compilation
                 AddSynthesizedAttribute(attributes, compilation.SynthesizeDebuggerHiddenAttribute())

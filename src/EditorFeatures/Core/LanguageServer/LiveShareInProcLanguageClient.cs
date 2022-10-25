@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -25,21 +26,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
     [Export(typeof(ILanguageClient))]
     internal class LiveShareInProcLanguageClient : AbstractInProcLanguageClient
     {
-        private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
+        private readonly ExperimentalCapabilitiesProvider _experimentalCapabilitiesProvider;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public LiveShareInProcLanguageClient(
-            RequestDispatcherFactory csharpVBRequestDispatcherFactory,
+            CSharpVisualBasicLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            DefaultCapabilitiesProvider defaultCapabilitiesProvider,
-            ILspLoggerFactory lspLoggerFactory,
+            ExperimentalCapabilitiesProvider experimentalCapabilitiesProvider,
+            ILspServiceLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext)
-            : base(csharpVBRequestDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
+            : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext)
         {
-            _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
+            _experimentalCapabilitiesProvider = experimentalCapabilitiesProvider;
         }
 
         protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 };
             }
 
-            var defaultCapabilities = _defaultCapabilitiesProvider.GetCapabilities(clientCapabilities);
+            var defaultCapabilities = _experimentalCapabilitiesProvider.GetCapabilities(clientCapabilities);
 
             // If the LSP semantic tokens feature flag is enabled, advertise no semantic tokens capabilities for this Live Share
             // LSP server as LSP semantic tokens requests will be serviced by the AlwaysActiveInProcLanguageClient in both local and

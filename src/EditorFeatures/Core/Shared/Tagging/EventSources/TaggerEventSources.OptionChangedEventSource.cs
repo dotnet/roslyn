@@ -9,37 +9,32 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     internal partial class TaggerEventSources
     {
-        private class OptionChangedEventSource : AbstractWorkspaceTrackingTaggerEventSource
+        private sealed class GlobalOptionChangedEventSource : AbstractTaggerEventSource
         {
-            private readonly IOption _option;
-            private IOptionService? _optionService;
+            private readonly IOption _globalOption;
+            private readonly IGlobalOptionService _globalOptions;
 
-            public OptionChangedEventSource(ITextBuffer subjectBuffer, IOption option) : base(subjectBuffer)
-                => _option = option;
-
-            protected override void ConnectToWorkspace(Workspace workspace)
+            public GlobalOptionChangedEventSource(IGlobalOptionService globalOptions, IOption globalOption)
             {
-                _optionService = workspace.Services.GetService<IOptionService>();
-                if (_optionService != null)
-                {
-                    _optionService.OptionChanged += OnOptionChanged;
-                }
+                _globalOptions = globalOptions;
+                _globalOption = globalOption;
             }
 
-            protected override void DisconnectFromWorkspace(Workspace workspace)
+            public override void Connect()
             {
-                if (_optionService != null)
-                {
-                    _optionService.OptionChanged -= OnOptionChanged;
-                    _optionService = null;
-                }
+                _globalOptions.OptionChanged += OnGlobalOptionChanged;
             }
 
-            private void OnOptionChanged(object? sender, OptionChangedEventArgs e)
+            public override void Disconnect()
             {
-                if (e.Option == _option)
+                _globalOptions.OptionChanged -= OnGlobalOptionChanged;
+            }
+
+            private void OnGlobalOptionChanged(object? sender, OptionChangedEventArgs e)
+            {
+                if (e.Option == _globalOption)
                 {
-                    this.RaiseChanged();
+                    RaiseChanged();
                 }
             }
         }

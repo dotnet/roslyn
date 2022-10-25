@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         public static async Task<IEnumerable<ClassifiedSpan>> GetClassifiedSpansAsync(Document document, TextSpan textSpan, RazorClassificationOptionsWrapper options, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return Classifier.GetClassifiedSpans(document.Project.Solution.Workspace.Services, semanticModel, textSpan, options.UnderlyingObject, cancellationToken);
+            return Classifier.GetClassifiedSpans(
+                document.Project.Solution.Services, document.Project, semanticModel, textSpan, options.UnderlyingObject, cancellationToken);
         }
     }
 }

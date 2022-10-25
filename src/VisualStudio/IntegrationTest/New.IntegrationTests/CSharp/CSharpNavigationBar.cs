@@ -128,10 +128,10 @@ struct S
         public async Task VerifyOption()
         {
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-            globalOptions.SetGlobalOption(new OptionKey(NavigationBarViewOptions.ShowNavigationBar, LanguageNames.CSharp), false);
+            globalOptions.SetGlobalOption(new OptionKey(NavigationBarViewOptionsStorage.ShowNavigationBar, LanguageNames.CSharp), false);
             Assert.False(await TestServices.Editor.IsNavigationBarEnabledAsync(HangMitigatingCancellationToken));
 
-            globalOptions.SetGlobalOption(new OptionKey(NavigationBarViewOptions.ShowNavigationBar, LanguageNames.CSharp), true);
+            globalOptions.SetGlobalOption(new OptionKey(NavigationBarViewOptionsStorage.ShowNavigationBar, LanguageNames.CSharp), true);
             Assert.True(await TestServices.Editor.IsNavigationBarEnabledAsync(HangMitigatingCancellationToken));
         }
     }

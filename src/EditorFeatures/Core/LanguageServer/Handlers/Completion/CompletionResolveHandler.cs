@@ -9,8 +9,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
@@ -25,8 +26,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// references to VS icon types and classified text runs are removed.
     /// See https://github.com/dotnet/roslyn/issues/55142
     /// </summary>
+    /// <remarks>
+    /// This isn't a <see cref="ILspServiceDocumentRequestHandler{TRequest, TResponse}" /> because it could return null.
+    /// </remarks>
     [Method(LSP.Methods.TextDocumentCompletionResolveName)]
-    internal sealed class CompletionResolveHandler : IRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
+    internal sealed class CompletionResolveHandler : ILspServiceRequestHandler<LSP.CompletionItem, LSP.CompletionItem>, ITextDocumentIdentifierHandler<LSP.CompletionItem, LSP.TextDocumentIdentifier?>
     {
         private readonly CompletionListCache _completionListCache;
         private readonly IGlobalOptionService _globalOptions;
@@ -45,10 +49,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = context.Document;
-            Contract.ThrowIfNull(document);
+            var document = context.GetRequiredDocument();
+            var clientCapabilities = context.GetRequiredClientCapabilities();
 
-            var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
+            var completionService = document.Project.Services.GetRequiredService<CompletionService>();
+
             var cacheEntry = GetCompletionListCacheEntry(completionItem);
             if (cacheEntry == null)
             {
@@ -60,7 +65,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var list = cacheEntry.CompletionList;
 
             // Find the matching completion item in the completion list
-            var selectedItem = list.Items.FirstOrDefault(cachedCompletionItem => MatchesLSPCompletionItem(completionItem, cachedCompletionItem));
+            var selectedItem = list.ItemsList.FirstOrDefault(cachedCompletionItem => MatchesLSPCompletionItem(completionItem, cachedCompletionItem));
             if (selectedItem == null)
             {
                 return completionItem;
@@ -71,7 +76,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var description = await completionService.GetDescriptionAsync(document, selectedItem, completionOptions, displayOptions, cancellationToken).ConfigureAwait(false)!;
             if (description != null)
             {
-                var supportsVSExtensions = context.ClientCapabilities.HasVisualStudioLspCapability();
+                var supportsVSExtensions = clientCapabilities.HasVisualStudioLspCapability();
                 if (supportsVSExtensions)
                 {
                     var vsCompletionItem = (LSP.VSInternalCompletionItem)completionItem;
@@ -80,7 +85,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
                 else
                 {
-                    var clientSupportsMarkdown = context.ClientCapabilities.TextDocument?.Completion?.CompletionItem?.DocumentationFormat.Contains(LSP.MarkupKind.Markdown) == true;
+                    var clientSupportsMarkdown = clientCapabilities.TextDocument?.Completion?.CompletionItem?.DocumentationFormat.Contains(LSP.MarkupKind.Markdown) == true;
                     completionItem.Documentation = ProtocolConversions.GetDocumentationMarkupContent(description.TaggedParts, document, clientSupportsMarkdown);
                 }
             }
@@ -95,7 +100,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Contract.ThrowIfTrue(completionItem.InsertText != null);
                 Contract.ThrowIfTrue(completionItem.TextEdit != null);
 
-                var snippetsSupported = context.ClientCapabilities.TextDocument?.Completion?.CompletionItem?.SnippetSupport ?? false;
+                var snippetsSupported = clientCapabilities?.TextDocument?.Completion?.CompletionItem?.SnippetSupport ?? false;
 
                 completionItem.TextEdit = await GenerateTextEditAsync(
                     document, completionService, selectedItem, snippetsSupported, cancellationToken).ConfigureAwait(false);

@@ -72,7 +72,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
         {
             if (diagnosticId is "IDE0043" // Intentionally undocumented because it's being removed in favor of CA2241
                     or "IDE1007"
-                    or "RemoveUnnecessaryImportsFixable"
+                    or "RemoveUnnecessaryImportsFixable" // this diagnostic is hidden and not configurable.
+                    or "IDE0005_gen" // this diagnostic is hidden and not configurable.
                     or "RE0001"
                     or "JSON001"
                     or "JSON002") // Tracked by https://github.com/dotnet/roslyn/issues/48530
@@ -81,12 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
                 return;
             }
 
-            if (diagnosticId == "IDE0005_gen")
-            {
-                diagnosticId = "IDE0005";
-            }
-
-            if (helpLinkUri != $"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{diagnosticId.ToLowerInvariant()}")
+            if (helpLinkUri != $"https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{diagnosticId.ToLowerInvariant()}")
             {
                 Assert.True(false, $"Invalid help link for {diagnosticId}");
             }
@@ -396,29 +392,20 @@ dotnet_diagnostic.IDE0083.severity = %value%
 # IDE0090
 dotnet_diagnostic.IDE0090.severity = %value%
 
-# IDE0110
-dotnet_diagnostic.IDE0110.severity = %value%
-
 # IDE0100
 dotnet_diagnostic.IDE0100.severity = %value%
 
-# IDE0150
-dotnet_diagnostic.IDE0150.severity = %value%
-
-# IDE1005
-dotnet_diagnostic.IDE1005.severity = %value%
-
-# IDE1006
-dotnet_diagnostic.IDE1006.severity = %value%
-
-# IDE1007
-dotnet_diagnostic.IDE1007.severity = %value%
+# IDE0110
+dotnet_diagnostic.IDE0110.severity = %value%
 
 # IDE0120
 dotnet_diagnostic.IDE0120.severity = %value%
 
 # IDE0130
 dotnet_diagnostic.IDE0130.severity = %value%
+
+# IDE0150
+dotnet_diagnostic.IDE0150.severity = %value%
 
 # IDE0160
 dotnet_diagnostic.IDE0160.severity = %value%
@@ -432,11 +419,38 @@ dotnet_diagnostic.IDE0170.severity = %value%
 # IDE0180
 dotnet_diagnostic.IDE0180.severity = %value%
 
-# IDE0190
-dotnet_diagnostic.IDE0190.severity = %value%
-
 # IDE0200
 dotnet_diagnostic.IDE0200.severity = %value%
+
+# IDE0210
+dotnet_diagnostic.IDE0210.severity = %value%
+
+# IDE0211
+dotnet_diagnostic.IDE0211.severity = %value%
+
+# IDE0220
+dotnet_diagnostic.IDE0220.severity = %value%
+
+# IDE0230
+dotnet_diagnostic.IDE0230.severity = %value%
+
+# IDE0240
+dotnet_diagnostic.IDE0240.severity = %value%
+
+# IDE0241
+dotnet_diagnostic.IDE0241.severity = %value%
+
+# IDE0250
+dotnet_diagnostic.IDE0250.severity = %value%
+
+# IDE1005
+dotnet_diagnostic.IDE1005.severity = %value%
+
+# IDE1006
+dotnet_diagnostic.IDE1006.severity = %value%
+
+# IDE1007
+dotnet_diagnostic.IDE1007.severity = %value%
 
 # IDE2000
 dotnet_diagnostic.IDE2000.severity = %value%
@@ -849,7 +863,7 @@ csharp_prefer_simple_default_expression = true
 No editorconfig based code style option
 
 # IDE0036, PreferredModifierOrder
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async
+csharp_preferred_modifier_order = public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async
 
 # IDE0037, PreferInferredTupleNames
 dotnet_style_prefer_inferred_tuple_names = true
@@ -1031,11 +1045,29 @@ csharp_style_prefer_extended_property_pattern = true
 # IDE0180, PreferTupleSwap
 csharp_style_prefer_tuple_swap = true
 
-# IDE0190, PreferParameterNullChecking
-csharp_style_prefer_parameter_null_checking = true
-
 # IDE0200, PreferMethodGroupConversion
 csharp_style_prefer_method_group_conversion = true
+
+# IDE0210, PreferTopLevelStatements
+csharp_style_prefer_top_level_statements = true
+
+# IDE0211, PreferTopLevelStatements
+csharp_style_prefer_top_level_statements = true
+
+# IDE0220, ForEachExplicitCastInSource
+dotnet_style_prefer_foreach_explicit_cast_in_source = when_strongly_typed
+
+# IDE0230, PreferUtf8StringLiterals
+csharp_style_prefer_utf8_string_literals = true
+
+# IDE0240
+No editorconfig based code style option
+
+# IDE0241
+No editorconfig based code style option
+
+# IDE0250, PreferReadOnlyStruct
+csharp_style_prefer_readonly_struct = true
 
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 var firstStringToken = stringLiterals[0].GetFirstToken();
                 isVerbatimStringLiteral = syntaxFacts.IsVerbatimStringLiteral(firstStringToken);
                 if (stringLiterals.Any(
-                        lit => isVerbatimStringLiteral != syntaxFacts.IsVerbatimStringLiteral(lit.GetFirstToken())))
+                        static (lit, arg) => arg.isVerbatimStringLiteral != arg.syntaxFacts.IsVerbatimStringLiteral(lit.GetFirstToken()), (syntaxFacts, isVerbatimStringLiteral)))
                 {
                     return;
                 }
@@ -106,8 +106,10 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var interpolatedString = CreateInterpolatedString(document, isVerbatimStringLiteral, pieces);
             context.RegisterRefactoring(
-                new MyCodeAction(
-                    _ => UpdateDocumentAsync(document, root, top, interpolatedString)),
+                CodeAction.Create(
+                    FeaturesResources.Convert_to_interpolated_string,
+                    _ => UpdateDocumentAsync(document, root, top, interpolatedString),
+                    nameof(FeaturesResources.Convert_to_interpolated_string)),
                 top.Span);
         }
 
@@ -249,14 +251,6 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                    method.ContainingType?.SpecialType == SpecialType.System_String &&
                    (method.MetadataName == WellKnownMemberNames.AdditionOperatorName ||
                     method.MetadataName == WellKnownMemberNames.ConcatenateOperatorName);
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Convert_to_interpolated_string, createChangedDocument, nameof(FeaturesResources.Convert_to_interpolated_string))
-            {
-            }
         }
     }
 }

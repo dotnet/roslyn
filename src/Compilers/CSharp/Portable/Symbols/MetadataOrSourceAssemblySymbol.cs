@@ -123,6 +123,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override NamedTypeSymbol GetNativeIntegerType(NamedTypeSymbol underlyingType)
         {
+            Debug.Assert(!underlyingType.IsNativeIntegerType);
+
             if (_lazyNativeIntegerTypes == null)
             {
                 Interlocked.CompareExchange(ref _lazyNativeIntegerTypes, new NativeIntegerTypeSymbol[2], null);

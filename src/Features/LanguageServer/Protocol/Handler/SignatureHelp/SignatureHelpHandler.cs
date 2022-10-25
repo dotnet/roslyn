@@ -18,9 +18,9 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(SignatureHelpHandler)), Shared]
+    [ExportCSharpVisualBasicStatelessLspService(typeof(SignatureHelpHandler)), Shared]
     [Method(LSP.Methods.TextDocumentSignatureHelpName)]
-    internal class SignatureHelpHandler : AbstractStatelessRequestHandler<LSP.TextDocumentPositionParams, LSP.SignatureHelp?>
+    internal class SignatureHelpHandler : ILspServiceDocumentRequestHandler<LSP.TextDocumentPositionParams, LSP.SignatureHelp?>
     {
         private readonly IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _allProviders;
         private readonly IGlobalOptionService _globalOptions;
@@ -35,13 +35,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
-        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
+        public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
 
-        public override async Task<LSP.SignatureHelp?> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<LSP.SignatureHelp?> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
+            var clientCapabilities = context.GetRequiredClientCapabilities();
             var document = context.Document;
             if (document == null)
                 return null;
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     foreach (var item in items.Items)
                     {
                         LSP.SignatureInformation sigInfo;
-                        if (context.ClientCapabilities?.HasVisualStudioLspCapability() == true)
+                        if (clientCapabilities.HasVisualStudioLspCapability() == true)
                         {
                             sigInfo = new LSP.VSInternalSignatureInformation
                             {

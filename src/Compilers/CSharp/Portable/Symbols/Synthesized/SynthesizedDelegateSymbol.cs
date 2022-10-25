@@ -32,16 +32,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly NamedTypeSymbol _containingType;
 
-        internal SynthesizedDelegateInvokeMethod(NamedTypeSymbol containingType, ArrayBuilder<TypeWithAnnotations> parameterTypes, ArrayBuilder<RefKind> parameterRefKinds, TypeWithAnnotations returnType, RefKind refKind)
+        internal SynthesizedDelegateInvokeMethod(NamedTypeSymbol containingType, ArrayBuilder<(TypeWithAnnotations Type, RefKind RefKind, DeclarationScope Scope)> parameterDescriptions, TypeWithAnnotations returnType, RefKind refKind)
         {
             _containingType = containingType;
 
-            var parameters = ArrayBuilder<ParameterSymbol>.GetInstance(parameterTypes.Count);
-            for (int i = 0; i < parameterTypes.Count; i++)
-            {
-                parameters.Add(SynthesizedParameterSymbol.Create(this, parameterTypes[i], i, parameterRefKinds[i]));
-            }
-            Parameters = parameters.ToImmutableAndFree();
+            Parameters = parameterDescriptions.SelectAsArrayWithIndex(static (p, i, a) =>
+                SynthesizedParameterSymbol.Create(a.Method, p.Type, i, p.RefKind, GeneratedNames.AnonymousDelegateParameterName(i, a.ParameterCount), p.Scope),
+                (Method: this, ParameterCount: parameterDescriptions.Count));
             ReturnTypeWithAnnotations = returnType;
             RefKind = refKind;
         }
@@ -106,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation
@@ -238,5 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return false; }
         }
+
+        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
     }
 }

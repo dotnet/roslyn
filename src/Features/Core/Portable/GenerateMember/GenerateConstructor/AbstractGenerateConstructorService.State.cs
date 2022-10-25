@@ -14,7 +14,8 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -29,6 +30,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
         {
             private readonly TService _service;
             private readonly SemanticDocument _document;
+            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
 
             private readonly NamingRule _fieldNamingRule;
             private readonly NamingRule _propertyNamingRule;
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             public ImmutableDictionary<string, string> ParameterToNewPropertyMap { get; private set; }
             public bool IsContainedInUnsafeType { get; private set; }
 
-            private State(TService service, SemanticDocument document, NamingRule fieldNamingRule, NamingRule propertyNamingRule, NamingRule parameterNamingRule)
+            private State(TService service, SemanticDocument document, NamingRule fieldNamingRule, NamingRule propertyNamingRule, NamingRule parameterNamingRule, CodeAndImportGenerationOptionsProvider fallbackOptions)
             {
                 _service = service;
                 _document = document;
@@ -64,19 +66,21 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 ParameterToNewFieldMap = ImmutableDictionary<string, string>.Empty;
                 ParameterToNewPropertyMap = ImmutableDictionary<string, string>.Empty;
+                _fallbackOptions = fallbackOptions;
             }
 
             public static async Task<State?> GenerateAsync(
                 TService service,
                 SemanticDocument document,
                 SyntaxNode node,
+                CodeAndImportGenerationOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
-                var fieldNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Field, Accessibility.Private, cancellationToken).ConfigureAwait(false);
-                var propertyNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Property, Accessibility.Public, cancellationToken).ConfigureAwait(false);
-                var parameterNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Parameter, Accessibility.NotApplicable, cancellationToken).ConfigureAwait(false);
+                var fieldNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Field, Accessibility.Private, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var propertyNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Property, Accessibility.Public, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var parameterNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Parameter, Accessibility.NotApplicable, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-                var state = new State(service, document, fieldNamingRule, propertyNamingRule, parameterNamingRule);
+                var state = new State(service, document, fieldNamingRule, propertyNamingRule, parameterNamingRule, fallbackOptions);
                 if (!await state.TryInitializeAsync(node, cancellationToken).ConfigureAwait(false))
                 {
                     return null;
@@ -235,9 +239,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             {
                 Contract.ThrowIfNull(TypeToGenerateIn);
 
-                var destinationProvider = _document.Project.Solution.Workspace.Services.GetLanguageServices(TypeToGenerateIn.Language);
-                var syntaxFacts = destinationProvider.GetRequiredService<ISyntaxFactsService>();
-                return TypeToGenerateIn.InstanceConstructors.Any(c => Matches(c, syntaxFacts));
+                var syntaxFacts = _document.Project.Solution.Services.GetRequiredLanguageService<ISyntaxFactsService>(TypeToGenerateIn.Language);
+                return TypeToGenerateIn.InstanceConstructors.Any(static (c, arg) => arg.self.Matches(c, arg.syntaxFacts), (self: this, syntaxFacts));
             }
 
             private bool Matches(IMethodSymbol ctor, ISyntaxFactsService service)
@@ -339,7 +342,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     Token = token;
                     _arguments = arguments;
                     //// Attribute parameters are restricted to be constant values (simple types or string, etc).
-                    if (GetParameterTypes(cancellationToken).Any(t => !IsValidAttributeParameterType(t)))
+                    if (GetParameterTypes(cancellationToken).Any(static t => !IsValidAttributeParameterType(t)))
                         return false;
                 }
                 else
@@ -576,13 +579,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 Contract.ThrowIfNull(TypeToGenerateIn);
 
-                var provider = document.Project.Solution.Workspace.Services.GetLanguageServices(TypeToGenerateIn.Language);
+                var provider = document.Project.Solution.Services.GetLanguageServices(TypeToGenerateIn.Language);
                 var (members, assignments) = await GenerateMembersAndAssignmentsAsync(document, withFields, withProperties, cancellationToken).ConfigureAwait(false);
                 var isThis = _delegatedConstructor.ContainingType.OriginalDefinition.Equals(TypeToGenerateIn.OriginalDefinition);
                 var delegatingArguments = provider.GetService<SyntaxGenerator>().CreateArguments(_delegatedConstructor.Parameters);
 
                 var newParameters = _delegatedConstructor.Parameters.Concat(_parameters);
-                var generateUnsafe = !IsContainedInUnsafeType && newParameters.Any(p => p.RequiresUnsafeModifier());
+                var generateUnsafe = !IsContainedInUnsafeType && newParameters.Any(static p => p.RequiresUnsafeModifier());
 
                 var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                     attributes: default,
@@ -594,11 +597,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     baseConstructorArguments: isThis ? default : delegatingArguments,
                     thisConstructorArguments: isThis ? delegatingArguments : default);
 
-                return await provider.GetRequiredService<ICodeGenerationService>().AddMembersAsync(
+                var context = new CodeGenerationSolutionContext(
                     document.Project.Solution,
+                    new CodeGenerationContext(Token.GetLocation()),
+                    _fallbackOptions);
+
+                return await provider.GetRequiredService<ICodeGenerationService>().AddMembersAsync(
+                    context,
                     TypeToGenerateIn,
                     members.Concat(constructor),
-                    new CodeGenerationContext(Token.GetLocation()),
                     cancellationToken).ConfigureAwait(false);
             }
 
@@ -607,7 +614,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             {
                 Contract.ThrowIfNull(TypeToGenerateIn);
 
-                var provider = document.Project.Solution.Workspace.Services.GetLanguageServices(TypeToGenerateIn.Language);
+                var provider = document.Project.Solution.Services.GetLanguageServices(TypeToGenerateIn.Language);
 
                 var members = withFields ? SyntaxGeneratorExtensions.CreateFieldsForParameters(_parameters, ParameterToNewFieldMap, IsContainedInUnsafeType) :
                               withProperties ? SyntaxGeneratorExtensions.CreatePropertiesForParameters(_parameters, ParameterToNewPropertyMap, IsContainedInUnsafeType) :
@@ -630,7 +637,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             {
                 Contract.ThrowIfNull(TypeToGenerateIn);
 
-                var provider = document.Project.Solution.Workspace.Services.GetLanguageServices(TypeToGenerateIn.Language);
+                var provider = document.Project.Solution.Services.GetLanguageServices(TypeToGenerateIn.Language);
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 var newMemberMap =
@@ -639,7 +646,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     ImmutableDictionary<string, string>.Empty;
 
                 return await provider.GetRequiredService<ICodeGenerationService>().AddMembersAsync(
-                    document.Project.Solution,
+                    new CodeGenerationSolutionContext(
+                        document.Project.Solution,
+                        new CodeGenerationContext(Token.GetLocation()),
+                        _fallbackOptions),
                     TypeToGenerateIn,
                     provider.GetRequiredService<SyntaxGenerator>().CreateMemberDelegatingConstructor(
                         semanticModel,
@@ -653,7 +663,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                         preferThrowExpression: false,
                         generateProperties: withProperties,
                         IsContainedInUnsafeType),
-                    new CodeGenerationContext(Token.GetLocation()),
                     cancellationToken).ConfigureAwait(false);
             }
         }

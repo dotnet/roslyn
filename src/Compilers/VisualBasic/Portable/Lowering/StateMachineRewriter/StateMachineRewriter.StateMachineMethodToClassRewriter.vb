@@ -7,6 +7,7 @@ Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -16,7 +17,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Inherits MethodToClassRewriter(Of TProxy)
 
             Protected Friend ReadOnly F As SyntheticBoundNodeFactory
-            Protected NextState As Integer = 0
+
+            Private ReadOnly _resumableStateAllocator As ResumableStateMachineStateAllocator
+            Private _nextFinalizerState As StateMachineState
 
             ''' <summary>
             ''' The "state" of the state machine that is the translation of the iterator method.
@@ -47,33 +50,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ''' <summary>
             ''' A try block might have no state (transitions) within it, in which case it does not need
-            ''' to have a state to represent finalization.  This flag tells us whether the current try
-            ''' block that we are within has a finalizer state.  Initially true as we have the (trivial)
-            ''' finalizer state of -1 at the top level.
+            ''' to have a state to represent finalization.  This field tells us whether the current try
+            ''' block that we are within has a finalizer state. If so it will hold on the syntax node associated
+            ''' with the try block.
             ''' </summary>
-            Private _hasFinalizerState As Boolean = True
+            Private _tryBlockSyntaxForNextFinalizerState As SyntaxNode
 
             ''' <summary>
-            ''' If hasFinalizerState is true, this is the state for finalization from anywhere in this try block.
+            ''' If <see cref="_tryBlockSyntaxForNextFinalizerState"/> is not Nothing,
+            ''' this is the state for finalization from anywhere in this try block.
             ''' Initially set to -1, representing the no-op finalization required at the top level.
             ''' </summary>
-            Private _currentFinalizerState As Integer = -1
+            Private _currentFinalizerState As StateMachineState = StateMachineState.NotStartedOrRunningState
 
             ''' <summary>
             ''' The set of local variables and parameters that were hoisted and need a proxy.
             ''' </summary>
             Private ReadOnly _hoistedVariables As IReadOnlySet(Of Symbol) = Nothing
 
-            Private ReadOnly _synthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser
-            Private ReadOnly _nextFreeHoistedLocalSlot As Integer
+            ''' <summary>
+            ''' EnC support: the rewriter stores debug info for each await/yield in this builder.
+            ''' </summary>
+            Private ReadOnly _stateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo)
 
             Public Sub New(F As SyntheticBoundNodeFactory,
                            stateField As FieldSymbol,
                            hoistedVariables As IReadOnlySet(Of Symbol),
                            initialProxies As Dictionary(Of Symbol, TProxy),
-                           synthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser,
+                           stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                            slotAllocatorOpt As VariableSlotAllocator,
-                           nextFreeHoistedLocalSlot As Integer,
                            diagnostics As BindingDiagnosticBag)
 
                 MyBase.New(slotAllocatorOpt, F.CompilationState, diagnostics, preserveOriginalLocals:=False)
@@ -82,20 +87,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(stateField IsNot Nothing)
                 Debug.Assert(hoistedVariables IsNot Nothing)
                 Debug.Assert(initialProxies IsNot Nothing)
-                Debug.Assert(nextFreeHoistedLocalSlot >= 0)
                 Debug.Assert(diagnostics IsNot Nothing)
 
                 Me.F = F
                 Me.StateField = stateField
-                Me.CachedState = F.SynthesizedLocal(F.SpecialType(SpecialType.System_Int32), SynthesizedLocalKind.StateMachineCachedState, F.Syntax)
-                Me._hoistedVariables = hoistedVariables
-                Me._synthesizedLocalOrdinals = synthesizedLocalOrdinals
-                Me._nextFreeHoistedLocalSlot = nextFreeHoistedLocalSlot
+
+                CachedState = F.SynthesizedLocal(F.SpecialType(SpecialType.System_Int32), SynthesizedLocalKind.StateMachineCachedState, F.Syntax)
+                _hoistedVariables = hoistedVariables
+                _stateDebugInfoBuilder = stateMachineStateDebugInfoBuilder
+
+                _resumableStateAllocator = New ResumableStateMachineStateAllocator(
+                    slotAllocatorOpt, firstState:=FirstIncreasingResumableState, increasing:=True)
+
+                _nextFinalizerState = If(slotAllocatorOpt?.GetFirstUnusedStateMachineState(increasing:=False), StateMachineState.FirstIteratorFinalizeState)
 
                 For Each p In initialProxies
-                    Me.Proxies.Add(p.Key, p.Value)
+                    Proxies.Add(p.Key, p.Value)
                 Next
             End Sub
+
+            Protected MustOverride ReadOnly Property FirstIncreasingResumableState As StateMachineState
+            Protected MustOverride ReadOnly Property EncMissingStateMessage As String
 
             ''' <summary>
             ''' Implementation-specific name for labels to mark state machine resume points.
@@ -144,33 +156,73 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Sub
             End Structure
 
-            Protected Function AddState() As StateInfo
-                Dim stateNumber As Integer = Me.NextState
-                Me.NextState += 1
+            Protected Sub AddResumableState(awaitOrYieldReturnSyntax As SyntaxNode, <Out> ByRef state As StateMachineState, <Out> ByRef resumeLabel As GeneratedLabelSymbol)
+                state = _resumableStateAllocator.AllocateState(awaitOrYieldReturnSyntax)
 
-                If Me.Dispatches Is Nothing Then
-                    Me.Dispatches = New Dictionary(Of LabelSymbol, List(Of Integer))()
+                If _tryBlockSyntaxForNextFinalizerState IsNot Nothing Then
+                    If SlotAllocatorOpt Is Nothing OrElse
+                       Not SlotAllocatorOpt.TryGetPreviousStateMachineState(_tryBlockSyntaxForNextFinalizerState, _currentFinalizerState) Then
+                        _currentFinalizerState = _nextFinalizerState
+                        _nextFinalizerState = CType(_nextFinalizerState - 1, StateMachineState)
+                    End If
+
+                    AddStateDebugInfo(_tryBlockSyntaxForNextFinalizerState, _currentFinalizerState)
+                    _tryBlockSyntaxForNextFinalizerState = Nothing
                 End If
 
-                If Not Me._hasFinalizerState Then
-                    Me._currentFinalizerState = Me.NextState
-                    Me.NextState += 1
-                    Me._hasFinalizerState = True
+                AddStateDebugInfo(awaitOrYieldReturnSyntax, state)
+                AddState(state, resumeLabel)
+            End Sub
+
+            Protected Sub AddStateDebugInfo(node As SyntaxNode, state As StateMachineState)
+                Debug.Assert(SyntaxBindingUtilities.BindsToResumableStateMachineState(node) OrElse
+                             SyntaxBindingUtilities.BindsToTryStatement(node), $"Unexpected syntax: {node.Kind()}")
+
+                Dim syntaxOffset = CurrentMethod.CalculateLocalSyntaxOffset(node.SpanStart, node.SyntaxTree)
+                _stateDebugInfoBuilder.Add(New StateMachineStateDebugInfo(syntaxOffset, state))
+            End Sub
+
+            Protected Sub AddState(stateNumber As Integer, <Out> ByRef resumeLabel As GeneratedLabelSymbol)
+                If Dispatches Is Nothing Then
+                    Dispatches = New Dictionary(Of LabelSymbol, List(Of Integer))()
                 End If
 
-                Dim resumeLabel As GeneratedLabelSymbol = Me.F.GenerateLabel(ResumeLabelName)
-                Me.Dispatches.Add(resumeLabel, New List(Of Integer)() From {stateNumber})
-                Me.FinalizerStateMap.Add(stateNumber, Me._currentFinalizerState)
+                resumeLabel = F.GenerateLabel(ResumeLabelName)
+                Dispatches.Add(resumeLabel, New List(Of Integer)() From {stateNumber})
+                FinalizerStateMap.Add(stateNumber, _currentFinalizerState)
+            End Sub
 
-                Return New StateInfo(stateNumber, resumeLabel)
+            ''' <summary>
+            ''' Generates code that switches over states and jumps to the target labels listed in <see cref="Dispatches"/>.
+            ''' </summary>
+            ''' <param name="isOutermost">
+            ''' If this is the outermost state dispatch switching over all states of the state machine - i.e. not state dispatch generated for a try-block.
+            ''' </param>
+            Protected Function Dispatch(isOutermost As Boolean) As BoundStatement
+                Dim sections = From kv In Dispatches
+                               Order By kv.Value(0)
+                               Select F.SwitchSection(kv.Value, F.Goto(kv.Key))
+
+                Dim result = F.Select(F.Local(CachedState, isLValue:=False), sections)
+
+                ' Suspension states that were generated for any previous generation of the state machine
+                ' but are not present in the current version (awaits/yields have been deleted) need to be dispatched to a throw expression.
+                ' When an instance of previous version of the state machine is suspended in a state that does not exist anymore
+                ' in the current version dispatch that state to a throw expression. We do not know for sure where to resume in the new version of the method.
+                ' Guessing would likely result in unexpected behavior. Resuming in an incorrect point might result in an execution of code that
+                ' has already been executed or skipping code that initializes some user state.
+                If isOutermost Then
+                    Dim missingStateDispatch = GenerateMissingStateDispatch()
+                    If missingStateDispatch IsNot Nothing Then
+                        result = F.Block(result, missingStateDispatch)
+                    End If
+                End If
+
+                Return result
             End Function
 
-            Protected Function Dispatch() As BoundStatement
-                Return Me.F.Select(
-                            Me.F.Local(Me.CachedState, isLValue:=False),
-                            From kv In Me.Dispatches
-                            Order By kv.Value(0)
-                            Select Me.F.SwitchSection(kv.Value, F.Goto(kv.Key)))
+            Private Function GenerateMissingStateDispatch() As BoundStatement
+                Return _resumableStateAllocator.GenerateThrowMissingStateDispatch(F, F.Local(CachedState, isLValue:=False), EncMissingStateMessage)
             End Function
 
 #Region "Visitors"
@@ -280,38 +332,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' try block for all of those states.
             ''' </summary>
             Public Overrides Function VisitTryStatement(node As BoundTryStatement) As BoundNode
-
                 Dim oldDispatches As Dictionary(Of LabelSymbol, List(Of Integer)) = Me.Dispatches
-                Dim oldFinalizerState As Integer = Me._currentFinalizerState
-                Dim oldHasFinalizerState As Boolean = Me._hasFinalizerState
+                Dim oldFinalizerState As StateMachineState = Me._currentFinalizerState
+                Dim oldTryBlockSyntax As SyntaxNode = Me._tryBlockSyntaxForNextFinalizerState
 
                 Me.Dispatches = Nothing
-                Me._currentFinalizerState = -1
-                Me._hasFinalizerState = False
+                Me._currentFinalizerState = StateMachineState.NotStartedOrRunningState
+                Me._tryBlockSyntaxForNextFinalizerState = node.Syntax
 
                 Dim tryBlock As BoundBlock = Me.F.Block(DirectCast(Me.Visit(node.TryBlock), BoundStatement))
                 Dim dispatchLabel As GeneratedLabelSymbol = Nothing
                 If Me.Dispatches IsNot Nothing Then
                     dispatchLabel = Me.F.GenerateLabel("tryDispatch")
 
-                    If Me._hasFinalizerState Then
-                        ' cause the current finalizer state to arrive here and then "return false"
+                    ' finalizer state was allocated, consuming the try-block syntax:
+                    If Me._tryBlockSyntaxForNextFinalizerState Is Nothing Then
+                        ' Yield has been encountered within the Try block.
+
+                        ' Cause the current finalizer state to arrive here and then "return false"
                         Dim finalizer As GeneratedLabelSymbol = Me.F.GenerateLabel("finalizer")
                         Me.Dispatches.Add(finalizer, New List(Of Integer)() From {Me._currentFinalizerState})
 
                         Dim skipFinalizer As GeneratedLabelSymbol = Me.F.GenerateLabel("skipFinalizer")
                         tryBlock = Me.F.Block(SyntheticBoundNodeFactory.HiddenSequencePoint(),
-                                              Me.Dispatch(),
+                                              Me.Dispatch(isOutermost:=False),
                                               Me.F.Goto(skipFinalizer),
                                               Me.F.Label(finalizer),
                                               Me.F.Assignment(
                                                   F.Field(F.Me(), Me.StateField, True),
-                                                  F.AssignmentExpression(F.Local(Me.CachedState, True), F.Literal(StateMachineStates.NotStartedStateMachine))),
+                                                  F.AssignmentExpression(F.Local(Me.CachedState, True), F.Literal(StateMachineState.NotStartedOrRunningState))),
                                               Me.GenerateReturn(False),
                                               Me.F.Label(skipFinalizer),
                                               tryBlock)
                     Else
-                        tryBlock = Me.F.Block(SyntheticBoundNodeFactory.HiddenSequencePoint(), Me.Dispatch(), tryBlock)
+                        ' No Yield within the Try block
+                        tryBlock = Me.F.Block(SyntheticBoundNodeFactory.HiddenSequencePoint(), Me.Dispatch(isOutermost:=False), tryBlock)
                     End If
 
                     If oldDispatches Is Nothing Then
@@ -321,7 +376,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     oldDispatches.Add(dispatchLabel, New List(Of Integer)(From kv In Dispatches.Values From n In kv Order By n Select n))
                 End If
 
-                Me._hasFinalizerState = oldHasFinalizerState
+                Me._tryBlockSyntaxForNextFinalizerState = oldTryBlockSyntax
                 Me._currentFinalizerState = oldFinalizerState
 
                 Me.Dispatches = oldDispatches
@@ -333,7 +388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                            Me.F.If(
                                                                condition:=Me.F.IntLessThan(
                                                                    Me.F.Local(Me.CachedState, False),
-                                                                   Me.F.Literal(StateMachineStates.FirstUnusedState)),
+                                                                   Me.F.Literal(StateMachineState.FirstUnusedState)),
                                                                thenClause:=DirectCast(Me.Visit(node.FinallyBlockOpt), BoundBlock)),
                                                            SyntheticBoundNodeFactory.HiddenSequencePoint()))
 

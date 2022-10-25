@@ -38,14 +38,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public VSTypeScriptInProcLanguageClient(
             [Import(AllowDefault = true)] IVSTypeScriptCapabilitiesProvider? typeScriptCapabilitiesProvider,
-            VSTypeScriptRequestDispatcherFactory requestDispatcherFactory,
+            VSTypeScriptLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            DefaultCapabilitiesProvider defaultCapabilitiesProvider,
-            ILspLoggerFactory lspLoggerFactory,
+            ILspServiceLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext)
-            : base(requestDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
+            : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext)
         {
             _typeScriptCapabilitiesProvider = typeScriptCapabilitiesProvider;
         }

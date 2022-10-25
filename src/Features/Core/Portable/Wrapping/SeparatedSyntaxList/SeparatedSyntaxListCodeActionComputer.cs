@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -107,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 var openToken = _listSyntax.GetFirstToken();
                 var afterOpenTokenOffset = OriginalSourceText.GetOffset(openToken.Span.End);
 
-                var indentString = afterOpenTokenOffset.CreateIndentationString(Options.UseTabs, Options.TabSize);
+                var indentString = afterOpenTokenOffset.CreateIndentationString(Options.FormattingOptions.UseTabs, Options.FormattingOptions.TabSize);
                 return indentString;
             }
 
@@ -133,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 var previousToken = _listSyntax.GetFirstToken().GetPreviousToken();
 
                 // Block indentation is the only style that correctly indents across all initializer expressions
-                return GetIndentationAfter(previousToken, Formatting.FormattingOptions.IndentStyle.Block);
+                return GetIndentationAfter(previousToken, FormattingOptions2.IndentStyle.Block);
             }
 
             protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
@@ -159,13 +158,13 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 var parentTitle = Wrapper.Unwrap_list;
 
                 // MethodName(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j)
-                unwrapActions.Add(await GetUnwrapAllCodeActionAsync(parentTitle, WrappingStyle.UnwrapFirst_IndentRest).ConfigureAwait(false));
+                unwrapActions.AddIfNotNull(await GetUnwrapAllCodeActionAsync(parentTitle, WrappingStyle.UnwrapFirst_IndentRest).ConfigureAwait(false));
 
                 if (this.Wrapper.Supports_UnwrapGroup_WrapFirst_IndentRest)
                 {
                     // MethodName(
                     //      int a, int b, int c, int d, int e, int f, int g, int h, int i, int j)
-                    unwrapActions.Add(await GetUnwrapAllCodeActionAsync(parentTitle, WrappingStyle.WrapFirst_IndentRest).ConfigureAwait(false));
+                    unwrapActions.AddIfNotNull(await GetUnwrapAllCodeActionAsync(parentTitle, WrappingStyle.WrapFirst_IndentRest).ConfigureAwait(false));
                 }
 
                 // The 'unwrap' title strings are unique and do not collide with any other code
@@ -173,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 return new WrappingGroup(isInlinable: true, unwrapActions.ToImmutable());
             }
 
-            private async Task<WrapItemsAction> GetUnwrapAllCodeActionAsync(string parentTitle, WrappingStyle wrappingStyle)
+            private async Task<WrapItemsAction?> GetUnwrapAllCodeActionAsync(string parentTitle, WrappingStyle wrappingStyle)
             {
                 var edits = GetUnwrapAllEdits(wrappingStyle);
                 var title = wrappingStyle == WrappingStyle.WrapFirst_IndentRest
@@ -220,14 +219,14 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                     //            int d, int e, int f,
                     //            int g, int h, int i,
                     //            int j)
-                    codeActions.Add(await GetWrapLongLineCodeActionAsync(
+                    codeActions.AddIfNotNull(await GetWrapLongLineCodeActionAsync(
                         parentTitle, WrappingStyle.UnwrapFirst_AlignRest).ConfigureAwait(false));
                 }
 
                 // MethodName(
                 //     int a, int b, int c, int d, int e,
                 //     int f, int g, int h, int i, int j)
-                codeActions.Add(await GetWrapLongLineCodeActionAsync(
+                codeActions.AddIfNotNull(await GetWrapLongLineCodeActionAsync(
                     parentTitle, WrappingStyle.WrapFirst_IndentRest).ConfigureAwait(false));
 
                 if (this.Wrapper.Supports_WrapLongGroup_UnwrapFirst)
@@ -235,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                     // MethodName(int a, int b, int c, 
                     //     int d, int e, int f, int g,
                     //     int h, int i, int j)
-                    codeActions.Add(await GetWrapLongLineCodeActionAsync(
+                    codeActions.AddIfNotNull(await GetWrapLongLineCodeActionAsync(
                     parentTitle, WrappingStyle.UnwrapFirst_IndentRest).ConfigureAwait(false));
                 }
 
@@ -254,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 return new WrappingGroup(isInlinable: false, codeActions.ToImmutable());
             }
 
-            private async Task<WrapItemsAction> GetWrapLongLineCodeActionAsync(
+            private async Task<WrapItemsAction?> GetWrapLongLineCodeActionAsync(
                 string parentTitle, WrappingStyle wrappingStyle)
             {
                 var indentationTrivia = GetIndentationTrivia(wrappingStyle);
@@ -344,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                     //            int b,
                     //            ...
                     //            int j);
-                    codeActions.Add(await GetWrapEveryNestedCodeActionAsync(
+                    codeActions.AddIfNotNull(await GetWrapEveryNestedCodeActionAsync(
                         parentTitle, WrappingStyle.UnwrapFirst_AlignRest).ConfigureAwait(false));
                 }
 
@@ -353,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 //     int b,
                 //     ...
                 //     int j)
-                codeActions.Add(await GetWrapEveryNestedCodeActionAsync(
+                codeActions.AddIfNotNull(await GetWrapEveryNestedCodeActionAsync(
                     parentTitle, WrappingStyle.WrapFirst_IndentRest).ConfigureAwait(false));
 
                 if (this.Wrapper.Supports_WrapEveryGroup_UnwrapFirst)
@@ -362,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                     //     int b,
                     //     ...
                     //     int j)
-                    codeActions.Add(await GetWrapEveryNestedCodeActionAsync(
+                    codeActions.AddIfNotNull(await GetWrapEveryNestedCodeActionAsync(
                         parentTitle, WrappingStyle.UnwrapFirst_IndentRest).ConfigureAwait(false));
                 }
 
@@ -371,7 +370,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 return new WrappingGroup(isInlinable: false, codeActions.ToImmutable());
             }
 
-            private async Task<WrapItemsAction> GetWrapEveryNestedCodeActionAsync(
+            private async Task<WrapItemsAction?> GetWrapEveryNestedCodeActionAsync(
                 string parentTitle, WrappingStyle wrappingStyle)
             {
                 var indentationTrivia = GetIndentationTrivia(wrappingStyle);

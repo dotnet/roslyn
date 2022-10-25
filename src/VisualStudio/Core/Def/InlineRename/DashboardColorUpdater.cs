@@ -28,6 +28,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
             InlineRenameColors.BackgroundBrushKey = VsBrushes.CommandBarGradientBeginKey;
             InlineRenameColors.AccentBarColorKey = EnvironmentColors.FileTabInactiveDocumentBorderEdgeBrushKey;
             InlineRenameColors.ButtonStyleKey = VsResourceKeys.ButtonStyleKey;
+            InlineRenameColors.GrayTextKey = VsBrushes.GrayTextKey;
+            InlineRenameColors.TextBoxBackgroundBrushKey = EnvironmentColors.SearchBoxBackgroundBrushKey;
+            InlineRenameColors.TextBoxTextBrushKey = EnvironmentColors.SystemWindowTextBrushKey;
+            InlineRenameColors.TextBoxBorderBrushKey = EnvironmentColors.SearchBoxBorderBrushKey;
         }
     }
 }

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -9,13 +10,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
     internal partial class CodeFixService
     {
-        private sealed class FixAllDiagnosticProvider : FixAllContext.DiagnosticProvider
+        private sealed class FixAllDiagnosticProvider : FixAllContext.SpanBasedDiagnosticProvider
         {
             private readonly IDiagnosticAnalyzerService _diagnosticService;
             private readonly ImmutableHashSet<string>? _diagnosticIds;
@@ -44,6 +46,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 var solution = document.Project.Solution;
                 var diagnostics = await _diagnosticService.GetDiagnosticsForIdsAsync(solution, null, document.Id, _diagnosticIds, _includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId != null));
+                return await diagnostics.ToDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            }
+
+            public override async Task<IEnumerable<Diagnostic>> GetDocumentSpanDiagnosticsAsync(Document document, TextSpan fixAllSpan, CancellationToken cancellationToken)
+            {
+                bool shouldIncludeDiagnostic(string id) => _diagnosticIds == null || _diagnosticIds.Contains(id);
+                var diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(document, fixAllSpan, shouldIncludeDiagnostic, _includeSuppressedDiagnostics, cancellationToken: cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId != null));
                 return await diagnostics.ToDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false);
             }

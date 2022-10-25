@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             F.Assignment(
                                 F.Field(null, frame.SingletonCache),
                                 F.New(frame.Constructor)),
-                            new BoundReturnStatement(syntax, RefKind.None, null));
+                            new BoundReturnStatement(syntax, RefKind.None, null, @checked: false));
 
                     AddSynthesizedMethod(frame.StaticConstructor, body);
                 }
@@ -1732,7 +1732,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLambda(BoundLambda node)
         {
             // these nodes have been handled in the context of the enclosing anonymous method conversion.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         #endregion

@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
@@ -41,6 +38,12 @@ internal enum WellKnownLspServerKinds
     /// LSP server for TypeScript
     /// </summary>
     RoslynTypeScriptLspServer,
+
+    /// <summary>
+    /// Flag representing any LSP server - used by <see cref="ExportLspServiceFactoryAttribute"/>
+    /// to specify that something applies to any LSP server.
+    /// </summary>
+    Any,
 }
 
 internal static class WellKnownLspServerExtensions
@@ -85,6 +88,21 @@ internal static class WellKnownLspServerExtensions
             WellKnownLspServerKinds.XamlLspServerDisableUX => "XamlInProcLanguageClientDisableUX",
 
             WellKnownLspServerKinds.RoslynTypeScriptLspServer => "RoslynTypeScriptLspServer",
+            _ => throw ExceptionUtilities.UnexpectedValue(server),
+        };
+    }
+
+    public static string GetContractName(this WellKnownLspServerKinds server)
+    {
+        return server switch
+        {
+            WellKnownLspServerKinds.RazorLspServer => ProtocolConstants.RoslynLspLanguagesContract,
+            WellKnownLspServerKinds.LiveShareLspServer => ProtocolConstants.RoslynLspLanguagesContract,
+            WellKnownLspServerKinds.AlwaysActiveVSLspServer => ProtocolConstants.RoslynLspLanguagesContract,
+            WellKnownLspServerKinds.CSharpVisualBasicLspServer => ProtocolConstants.RoslynLspLanguagesContract,
+            WellKnownLspServerKinds.XamlLspServer => "XamlLspLanguages",
+            WellKnownLspServerKinds.XamlLspServerDisableUX => "XamlLspLanguages",
+            WellKnownLspServerKinds.RoslynTypeScriptLspServer => ProtocolConstants.TypeScriptLanguageContract,
             _ => throw ExceptionUtilities.UnexpectedValue(server),
         };
     }

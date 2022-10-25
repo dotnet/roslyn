@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
             _getInput = getInput;
             _comparer = comparer ?? EqualityComparer<T>.Default;
             _inputComparer = inputComparer ?? EqualityComparer<T>.Default;
-            _registerOutput = registerOutput ?? (o => throw ExceptionUtilities.Unreachable);
+            _registerOutput = registerOutput ?? (o => throw ExceptionUtilities.Unreachable());
             _name = name;
         }
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(added);
             }
 
-            var builder = graphState.CreateTableBuilder(previousTable, _name);
+            var builder = graphState.CreateTableBuilder(previousTable, _name, _comparer);
 
             // We always have no inputs steps into an InputNode, but we track the difference between "no inputs" (empty collection) and "no step information" (default value)
             var noInputStepsStepInfo = builder.TrackIncrementalSteps ? ImmutableArray<(IncrementalGeneratorRunStep, int)>.Empty : default;

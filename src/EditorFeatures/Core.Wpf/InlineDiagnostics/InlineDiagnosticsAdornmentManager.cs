@@ -130,83 +130,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             }
 
             var viewLines = TextView.TextViewLines;
-            using var _ = PooledDictionary<int, IMappingTagSpan<InlineDiagnosticsTag>>.GetInstance(out var map);
-            AddSpansOnEachLine(changedSpanCollection, map);
-            foreach (var (lineNum, tagMappingSpan) in map)
-            {
-                // Mapping the IMappingTagSpan back up to the TextView's visual snapshot to ensure there will
-                // be no adornments drawn on disjoint spans.
-                if (!TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span))
-                {
-                    continue;
-                }
+            using var _ = PooledDictionary<IWpfTextViewLine, IMappingTagSpan<InlineDiagnosticsTag>>.GetInstance(out var map);
 
-                var geometry = viewLines.GetMarkerGeometry(span);
-                if (geometry is null)
-                {
-                    continue;
-                }
-
-                // Need to get the SnapshotPoint to be able to get the IWpfTextViewLine
-                var point = tagMappingSpan.Span.End.GetPoint(TextView.TextSnapshot, PositionAffinity.Predecessor);
-                if (point == null)
-                {
-                    continue;
-                }
-
-                var lineView = viewLines.GetTextViewLineContainingBufferPosition(point.Value);
-
-                if (lineView is null)
-                {
-                    continue;
-                }
-
-                // Looking for IEndOfLineTags and seeing if they exist on the same line as where the
-                // diagnostic would be drawn. If they are the same, then we do not want to draw
-                // the diagnostic.
-
-                var obstructingTags = _endLineTagAggregator.GetTags(lineView.Extent);
-                if (obstructingTags.Where(tag => tag.Tag.Type is not "Inline Diagnostics").Any())
-                {
-                    continue;
-                }
-
-                var tag = tagMappingSpan.Tag;
-                var classificationType = _classificationRegistryService.GetClassificationType(InlineDiagnosticsTag.GetClassificationId(tag.ErrorType));
-                var graphicsResult = tag.GetGraphics(TextView, geometry, GetFormat(classificationType));
-
-                var visualElement = graphicsResult.VisualElement;
-                // Only place the diagnostics if the diagnostic would not intersect with the editor window
-                if (lineView.Right >= TextView.ViewportWidth - visualElement.DesiredSize.Width)
-                {
-                    graphicsResult.Dispose();
-                    continue;
-                }
-
-                Canvas.SetLeft(visualElement,
-                    tag.Location == InlineDiagnosticsLocations.PlacedAtEndOfCode ? lineView.Right :
-                    tag.Location == InlineDiagnosticsLocations.PlacedAtEndOfEditor ? TextView.ViewportRight - visualElement.DesiredSize.Width :
-                    throw ExceptionUtilities.UnexpectedValue(tag.Location));
-
-                Canvas.SetTop(visualElement, geometry.Bounds.Bottom - visualElement.DesiredSize.Height);
-
-                AdornmentLayer.AddAdornment(
-                    behavior: AdornmentPositioningBehavior.TextRelative,
-                    visualSpan: lineView.Extent,
-                    tag: tag,
-                    adornment: visualElement,
-                    removedCallback: delegate { graphicsResult.Dispose(); });
-            }
-        }
-
-        /// <summary>
-        /// Get the spans located on each line so that it can only display the first one that appears on the line
-        /// </summary>
-        private void AddSpansOnEachLine(NormalizedSnapshotSpanCollection changedSpanCollection,
-            Dictionary<int, IMappingTagSpan<InlineDiagnosticsTag>> map)
-        {
-            var viewLines = TextView.TextViewLines;
-
+            // First loop iterates through the snap collection and determines if an inline diagnostic can be drawn.
+            // Creates a mapping of the view line to the IMappingTagSpan with getting the first error that appears
+            // on the line if there are multiple.
             foreach (var changedSpan in changedSpanCollection)
             {
                 if (!viewLines.IntersectsBufferSpan(changedSpan))
@@ -222,21 +150,63 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                         continue;
                     }
 
-                    // mappedPoint is known to not be null here because it is checked in the ShouldDrawTag method call.
-                    var lineNum = mappedPoint.GetContainingLine().LineNumber;
+                    var viewLine = viewLines.GetTextViewLineContainingBufferPosition(mappedPoint);
 
                     // If the line does not have an associated tagMappingSpan and changedSpan, then add the first one.
-                    if (!map.TryGetValue(lineNum, out var value))
+                    if (!map.TryGetValue(viewLine, out var value))
                     {
-                        map.Add(lineNum, tagMappingSpan);
+                        map.Add(viewLine, tagMappingSpan);
                     }
                     else if (value.Tag.ErrorType is not PredefinedErrorTypeNames.SyntaxError && tagMappingSpan.Tag.ErrorType is PredefinedErrorTypeNames.SyntaxError)
                     {
                         // Draw the first instance of an error, if what is stored in the map at a specific line is
                         // not an error, then replace it. Otherwise, just get the first warning on the line.
-                        map[lineNum] = tagMappingSpan;
+                        map[viewLine] = tagMappingSpan;
                     }
                 }
+            }
+
+            // Second loop iterates through the map to go through and create the graphics that is being drawn
+            // on the canvas as well adding the tag to the Inline Diagnostics adornment layer.
+            foreach (var (lineView, tagMappingSpan) in map)
+            {
+                // Looking for IEndOfLineTags and seeing if they exist on the same line as where the
+                // diagnostic would be drawn. If they are the same, then we do not want to draw
+                // the diagnostic.
+                var obstructingTags = _endLineTagAggregator.GetTags(lineView.Extent);
+                if (obstructingTags.Where(tag => tag.Tag.Type is not "Inline Diagnostics").Any())
+                {
+                    continue;
+                }
+
+                var tag = tagMappingSpan.Tag;
+                var classificationType = _classificationRegistryService.GetClassificationType(InlineDiagnosticsTag.GetClassificationId(tag.ErrorType));
+
+                // Pass in null! because the geometry is unused for drawing anything for Inline Diagnostics
+                var graphicsResult = tag.GetGraphics(TextView, unused: null!, GetFormat(classificationType));
+
+                var visualElement = graphicsResult.VisualElement;
+
+                // Only place the diagnostics if the diagnostic would not intersect with the editor window
+                if (lineView.Right >= TextView.ViewportWidth - visualElement.DesiredSize.Width)
+                {
+                    graphicsResult.Dispose();
+                    continue;
+                }
+
+                Canvas.SetLeft(visualElement,
+                    tag.Location == InlineDiagnosticsLocations.PlacedAtEndOfCode ? lineView.Right :
+                    tag.Location == InlineDiagnosticsLocations.PlacedAtEndOfEditor ? TextView.ViewportRight - visualElement.DesiredSize.Width :
+                    throw ExceptionUtilities.UnexpectedValue(tag.Location));
+
+                Canvas.SetTop(visualElement, lineView.Bottom - visualElement.DesiredSize.Height);
+
+                AdornmentLayer.AddAdornment(
+                    behavior: AdornmentPositioningBehavior.TextRelative,
+                    visualSpan: lineView.Extent,
+                    tag: tag,
+                    adornment: visualElement,
+                    removedCallback: delegate { graphicsResult.Dispose(); });
             }
         }
     }

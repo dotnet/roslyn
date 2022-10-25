@@ -333,8 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             /// <summary>
             /// We always unilaterally add "global::" to all named types/namespaces.  This
-            /// will then be trimmed off if possible by calls to 
-            /// <see cref="Simplifier.ReduceAsync(Document, OptionSet, CancellationToken)"/>
+            /// will then be trimmed off if possible by the simplifier.
             /// </summary>
             private static TypeSyntax AddGlobalAlias(INamespaceOrTypeSymbol symbol, SimpleNameSyntax syntax)
             {

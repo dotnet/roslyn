@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             using (Logger.LogBlock(FunctionId.DiagnosticIncrementalAnalyzer_SynchronizeWithBuildAsync, LogSynchronizeWithBuild, buildDiagnostics, cancellationToken))
             {
-                DebugVerifyDiagnosticLocations(buildDiagnostics);
+                DebugVerifyBuildDiagnostics(buildDiagnostics);
 
                 var solution = Workspace.CurrentSolution;
 
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         // Enqueue re-analysis of projects, if required.
                         foreach (var projectsByLanguage in solution.Projects.GroupBy(p => p.Language))
                         {
-                            if (GlobalOptions.GetBackgroundAnalysisScope(projectsByLanguage.Key) == BackgroundAnalysisScope.FullSolution)
+                            if (GlobalOptions.IsFullSolutionAnalysisEnabled(projectsByLanguage.Key))
                             {
                                 AnalyzerService.Reanalyze(Workspace, projectsByLanguage.Select(p => p.Id));
                             }
@@ -102,14 +102,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         [Conditional("DEBUG")]
-        private static void DebugVerifyDiagnosticLocations(ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> buildDiagnostics)
+        private static void DebugVerifyBuildDiagnostics(ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> buildDiagnostics)
         {
             foreach (var diagnostic in buildDiagnostics.Values.SelectMany(v => v))
             {
-                // errors from build shouldn't have any span set.
-                // this is debug check since it gets data from us only not from third party unlike one in compiler
-                // that checks span for third party reported diagnostics
-                Debug.Assert(!diagnostic.HasTextSpan);
+                Debug.Assert(diagnostic.IsBuildDiagnostic());
             }
         }
 

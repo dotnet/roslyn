@@ -63,13 +63,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = @"#nullable enable
 
 public class C {
-    public void M(string? x  !!) { // no error.
+    public void M(string? x  !!) {
     }
 }";
             var oldTree = this.ParsePreview(text);
             var newTree = oldTree.WithReplaceFirst("?", "");
-            Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
-            Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
+            oldTree.GetDiagnostics().Verify(
+                // (4,30): error CS8989: The 'parameter null-checking' feature is not supported.
+                //     public void M(string? x  !!) {
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(4, 30));
+            newTree.GetDiagnostics().Verify(
+                // (4,29): error CS8989: The 'parameter null-checking' feature is not supported.
+                //     public void M(string x  !!) {
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(4, 29));
 
             var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
@@ -79,7 +85,8 @@ public class C {
                             SyntaxKind.ParameterList,
                             SyntaxKind.Parameter,
                             SyntaxKind.PredefinedType,
-                            SyntaxKind.StringKeyword);
+                            SyntaxKind.StringKeyword,
+                            SyntaxKind.IdentifierToken);
         }
 
         [Fact]
@@ -3244,6 +3251,43 @@ if (b) { }
             var substring = "Goo[Goo]";
             var span = new TextSpan(start: source.IndexOf(substring), length: 3); // Goo[Goo] -> [Goo]
             var change = new TextChange(span, "");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Fact]
+        [WorkItem(62126, "https://github.com/dotnet/roslyn/issues/62126")]
+        public void StartAttributeOnABlock()
+        {
+            var source = @"
+using System;
+
+switch (getVirtualKey())
+{
+	case VirtualKey.Up or VirtualKey.Down or VirtualKey.Left or VirtualKey.Right:
+	{
+
+	}
+}
+
+// A local function to simulate get operation.
+static VirtualKey getVirtualKey() => VirtualKey.Up;
+
+
+enum VirtualKey
+{
+	Up,
+	Down,
+	Left,
+	Right
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var span = new TextSpan(start: source.IndexOf(":") + 1, length: 0);
+            var change = new TextChange(span, "[");
             text = text.WithChanges(change);
             tree = tree.WithChangedText(text);
             var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());

@@ -50,6 +50,7 @@ try {
   # Verify the state of our various build artifacts
   Write-Host "Running BuildBoss"
   $buildBossPath = GetProjectOutputBinary "BuildBoss.exe"
+  Write-Host "$buildBossPath -r `"$RepoRoot/`" -c $configuration -p Roslyn.sln"
   Exec-Console $buildBossPath "-r `"$RepoRoot/`" -c $configuration" -p Roslyn.sln
   Write-Host ""
 
@@ -64,6 +65,7 @@ try {
 catch [exception] {
   Write-Host $_
   Write-Host $_.Exception
+  Write-Host "How to investigate bootstrap failures: https://github.com/dotnet/roslyn/blob/main/docs/compilers/Bootstrap%20Builds.md#Investigating"
   exit 1
 }
 finally {

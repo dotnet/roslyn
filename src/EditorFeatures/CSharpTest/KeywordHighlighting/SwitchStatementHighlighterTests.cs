@@ -13,12 +13,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 {
+    [Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
     public class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
     {
         internal override Type GetHighlighterType()
             => typeof(SwitchStatementHighlighter);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExample1_OnSwitchKeyword()
         {
             await TestAsync(
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExample1_OnCaseKeyword()
         {
             await TestAsync(
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExample1_AfterCaseColon()
         {
             await TestAsync(
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExample1_NotOnCaseValue()
         {
             await TestAsync(
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExample1_OnBreakStatement()
         {
             await TestAsync(
@@ -138,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExample1_OnDefaultLabel()
         {
             await TestAsync(
@@ -162,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExample2_OnGotoCaseKeywords()
         {
             await TestAsync(
@@ -186,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExample2_AfterGotoCaseSemicolon()
         {
             await TestAsync(
@@ -210,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExample2_NotOnGotoCaseValue()
         {
             await TestAsync(
@@ -234,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExample2_OnGotoDefaultStatement()
         {
             await TestAsync(
@@ -258,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestNestedExample1_OnSwitchKeyword()
         {
             await TestAsync(
@@ -300,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestNestedExample1_OnCaseKeyword()
         {
             await TestAsync(
@@ -342,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestNestedExample1_NotBeforeCaseValue()
         {
             await TestAsync(
@@ -384,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestNestedExample1_AfterCaseColon()
         {
             await TestAsync(
@@ -426,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestNestedExample1_OnBreakStatement()
         {
             await TestAsync(
@@ -468,7 +469,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task Bug3483()
         {
             await TestAsync(
@@ -485,8 +486,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact, WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
         public async Task TestWithUnrelatedGotoStatement_OnGotoCaseGotoKeyword()
         {
             await TestAsync(
@@ -511,8 +511,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact, WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
         public async Task TestWithUnrelatedGotoStatement_OnGotoDefaultGotoKeyword()
         {
             await TestAsync(
@@ -537,8 +536,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact, WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
         public async Task TestWithUnrelatedGotoStatement_NotOnGotoLabelGotoKeyword()
         {
             await TestAsync(
@@ -563,8 +561,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact, WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
         public async Task TestWithNestedStatements_OnSwitchKeyword()
         {
             await TestAsync(
@@ -594,8 +591,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact, WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
         public async Task TestWithNestedStatements_OnBreakKeyword()
         {
             await TestAsync(
@@ -625,8 +621,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact, WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
         public async Task TestWithGotoCaseAndBreakInsideLoop_OnSwitchKeyword()
         {
             await TestAsync(
@@ -654,8 +649,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact, WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
         public async Task TestWithGotoCaseAndBreakInsideLoop_OnGotoCaseGotoKeyword()
         {
             await TestAsync(
@@ -683,8 +677,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact, WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
         public async Task TestWithGotoCaseAndBreakInsideLoop_NotOnLoopBreakKeyword()
         {
             await TestAsync(
@@ -712,7 +705,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestWithWhenClauseAndPattern_OnSwitchKeyword()
         {
             await TestAsync(
@@ -731,7 +724,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestWithWhenClauseAndPattern_NotOnWhenKeyword()
         {
             await TestAsync(
@@ -750,7 +743,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestWithWhenClauseAndPattern_AfterWhenCaseColon()
         {
             await TestAsync(
@@ -769,7 +762,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestWithWhenClauseAndPattern_AfterPatternCaseColon()
         {
             await TestAsync(
@@ -788,7 +781,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestWithWhenClauseAndPattern_NotOnWhenValue()
         {
             await TestAsync(
@@ -807,7 +800,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestWithWhenClauseAndPattern_NotOnPattern()
         {
             await TestAsync(

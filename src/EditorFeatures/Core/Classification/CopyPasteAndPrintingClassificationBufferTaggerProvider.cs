@@ -27,9 +27,10 @@ namespace Microsoft.CodeAnalysis.Classification
     [TagType(typeof(IClassificationTag))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
-    internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider : ForegroundThreadAffinitizedObject, ITaggerProvider
+    internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider : ITaggerProvider
     {
         private readonly IAsynchronousOperationListener _asyncListener;
+        private readonly IThreadingContext _threadingContext;
         private readonly ClassificationTypeMap _typeMap;
         private readonly IGlobalOptionService _globalOptions;
 
@@ -40,8 +41,8 @@ namespace Microsoft.CodeAnalysis.Classification
             ClassificationTypeMap typeMap,
             IAsynchronousOperationListenerProvider listenerProvider,
             IGlobalOptionService globalOptions)
-            : base(threadingContext)
         {
+            _threadingContext = threadingContext;
             _typeMap = typeMap;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.Classification);
             _globalOptions = globalOptions;
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
         public IAccurateTagger<T>? CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
-            this.AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             // The LSP client will handle producing tags when running under the LSP editor.
             // Our tagger implementation should return nothing to prevent conflicts.

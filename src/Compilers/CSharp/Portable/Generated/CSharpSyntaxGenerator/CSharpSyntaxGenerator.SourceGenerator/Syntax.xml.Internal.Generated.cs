@@ -2209,6 +2209,107 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
+    /// <summary>The 'scoped' modifier of a local.</summary>
+    internal sealed partial class ScopedTypeSyntax : TypeSyntax
+    {
+        internal readonly SyntaxToken scopedKeyword;
+        internal readonly TypeSyntax type;
+
+        internal ScopedTypeSyntax(SyntaxKind kind, SyntaxToken scopedKeyword, TypeSyntax type, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+          : base(kind, diagnostics, annotations)
+        {
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(scopedKeyword);
+            this.scopedKeyword = scopedKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+        }
+
+        internal ScopedTypeSyntax(SyntaxKind kind, SyntaxToken scopedKeyword, TypeSyntax type, SyntaxFactoryContext context)
+          : base(kind)
+        {
+            this.SetFactoryContext(context);
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(scopedKeyword);
+            this.scopedKeyword = scopedKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+        }
+
+        internal ScopedTypeSyntax(SyntaxKind kind, SyntaxToken scopedKeyword, TypeSyntax type)
+          : base(kind)
+        {
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(scopedKeyword);
+            this.scopedKeyword = scopedKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+        }
+
+        public SyntaxToken ScopedKeyword => this.scopedKeyword;
+        public TypeSyntax Type => this.type;
+
+        internal override GreenNode? GetSlot(int index)
+            => index switch
+            {
+                0 => this.scopedKeyword,
+                1 => this.type,
+                _ => null,
+            };
+
+        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ScopedTypeSyntax(this, parent, position);
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitScopedType(this);
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitScopedType(this);
+
+        public ScopedTypeSyntax Update(SyntaxToken scopedKeyword, TypeSyntax type)
+        {
+            if (scopedKeyword != this.ScopedKeyword || type != this.Type)
+            {
+                var newNode = SyntaxFactory.ScopedType(scopedKeyword, type);
+                var diags = GetDiagnostics();
+                if (diags?.Length > 0)
+                    newNode = newNode.WithDiagnosticsGreen(diags);
+                var annotations = GetAnnotations();
+                if (annotations?.Length > 0)
+                    newNode = newNode.WithAnnotationsGreen(annotations);
+                return newNode;
+            }
+
+            return this;
+        }
+
+        internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+            => new ScopedTypeSyntax(this.Kind, this.scopedKeyword, this.type, diagnostics, GetAnnotations());
+
+        internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+            => new ScopedTypeSyntax(this.Kind, this.scopedKeyword, this.type, GetDiagnostics(), annotations);
+
+        internal ScopedTypeSyntax(ObjectReader reader)
+          : base(reader)
+        {
+            this.SlotCount = 2;
+            var scopedKeyword = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(scopedKeyword);
+            this.scopedKeyword = scopedKeyword;
+            var type = (TypeSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(type);
+            this.type = type;
+        }
+
+        internal override void WriteTo(ObjectWriter writer)
+        {
+            base.WriteTo(writer);
+            writer.WriteValue(this.scopedKeyword);
+            writer.WriteValue(this.type);
+        }
+
+        static ScopedTypeSyntax()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(ScopedTypeSyntax), r => new ScopedTypeSyntax(r));
+        }
+    }
+
     internal abstract partial class ExpressionOrPatternSyntax : CSharpSyntaxNode
     {
         internal ExpressionOrPatternSyntax(SyntaxKind kind, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
@@ -25009,16 +25110,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal readonly TypeSyntax returnType;
         internal readonly ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier;
         internal readonly SyntaxToken operatorKeyword;
+        internal readonly SyntaxToken? checkedKeyword;
         internal readonly SyntaxToken operatorToken;
         internal readonly ParameterListSyntax parameterList;
         internal readonly BlockSyntax? body;
         internal readonly ArrowExpressionClauseSyntax? expressionBody;
         internal readonly SyntaxToken? semicolonToken;
 
-        internal OperatorDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, SyntaxToken operatorToken, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken? semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal OperatorDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, SyntaxToken? checkedKeyword, SyntaxToken operatorToken, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken? semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
-            this.SlotCount = 10;
+            this.SlotCount = 11;
             if (attributeLists != null)
             {
                 this.AdjustFlagsAndWidth(attributeLists);
@@ -25038,6 +25140,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             this.AdjustFlagsAndWidth(operatorKeyword);
             this.operatorKeyword = operatorKeyword;
+            if (checkedKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(checkedKeyword);
+                this.checkedKeyword = checkedKeyword;
+            }
             this.AdjustFlagsAndWidth(operatorToken);
             this.operatorToken = operatorToken;
             this.AdjustFlagsAndWidth(parameterList);
@@ -25059,11 +25166,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal OperatorDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, SyntaxToken operatorToken, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken? semicolonToken, SyntaxFactoryContext context)
+        internal OperatorDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, SyntaxToken? checkedKeyword, SyntaxToken operatorToken, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken? semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-            this.SlotCount = 10;
+            this.SlotCount = 11;
             if (attributeLists != null)
             {
                 this.AdjustFlagsAndWidth(attributeLists);
@@ -25083,6 +25190,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             this.AdjustFlagsAndWidth(operatorKeyword);
             this.operatorKeyword = operatorKeyword;
+            if (checkedKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(checkedKeyword);
+                this.checkedKeyword = checkedKeyword;
+            }
             this.AdjustFlagsAndWidth(operatorToken);
             this.operatorToken = operatorToken;
             this.AdjustFlagsAndWidth(parameterList);
@@ -25104,10 +25216,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal OperatorDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, SyntaxToken operatorToken, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken? semicolonToken)
+        internal OperatorDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, SyntaxToken? checkedKeyword, SyntaxToken operatorToken, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken? semicolonToken)
           : base(kind)
         {
-            this.SlotCount = 10;
+            this.SlotCount = 11;
             if (attributeLists != null)
             {
                 this.AdjustFlagsAndWidth(attributeLists);
@@ -25127,6 +25239,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             this.AdjustFlagsAndWidth(operatorKeyword);
             this.operatorKeyword = operatorKeyword;
+            if (checkedKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(checkedKeyword);
+                this.checkedKeyword = checkedKeyword;
+            }
             this.AdjustFlagsAndWidth(operatorToken);
             this.operatorToken = operatorToken;
             this.AdjustFlagsAndWidth(parameterList);
@@ -25155,6 +25272,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier => this.explicitInterfaceSpecifier;
         /// <summary>Gets the "operator" keyword.</summary>
         public SyntaxToken OperatorKeyword => this.operatorKeyword;
+        /// <summary>Gets the "checked" keyword.</summary>
+        public SyntaxToken? CheckedKeyword => this.checkedKeyword;
         /// <summary>Gets the operator token.</summary>
         public SyntaxToken OperatorToken => this.operatorToken;
         public override ParameterListSyntax ParameterList => this.parameterList;
@@ -25171,11 +25290,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 2 => this.returnType,
                 3 => this.explicitInterfaceSpecifier,
                 4 => this.operatorKeyword,
-                5 => this.operatorToken,
-                6 => this.parameterList,
-                7 => this.body,
-                8 => this.expressionBody,
-                9 => this.semicolonToken,
+                5 => this.checkedKeyword,
+                6 => this.operatorToken,
+                7 => this.parameterList,
+                8 => this.body,
+                9 => this.expressionBody,
+                10 => this.semicolonToken,
                 _ => null,
             };
 
@@ -25184,11 +25304,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOperatorDeclaration(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitOperatorDeclaration(this);
 
-        public OperatorDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken operatorKeyword, SyntaxToken operatorToken, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+        public OperatorDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken operatorKeyword, SyntaxToken checkedKeyword, SyntaxToken operatorToken, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
         {
-            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || returnType != this.ReturnType || explicitInterfaceSpecifier != this.ExplicitInterfaceSpecifier || operatorKeyword != this.OperatorKeyword || operatorToken != this.OperatorToken || parameterList != this.ParameterList || body != this.Body || expressionBody != this.ExpressionBody || semicolonToken != this.SemicolonToken)
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || returnType != this.ReturnType || explicitInterfaceSpecifier != this.ExplicitInterfaceSpecifier || operatorKeyword != this.OperatorKeyword || checkedKeyword != this.CheckedKeyword || operatorToken != this.OperatorToken || parameterList != this.ParameterList || body != this.Body || expressionBody != this.ExpressionBody || semicolonToken != this.SemicolonToken)
             {
-                var newNode = SyntaxFactory.OperatorDeclaration(attributeLists, modifiers, returnType, explicitInterfaceSpecifier, operatorKeyword, operatorToken, parameterList, body, expressionBody, semicolonToken);
+                var newNode = SyntaxFactory.OperatorDeclaration(attributeLists, modifiers, returnType, explicitInterfaceSpecifier, operatorKeyword, checkedKeyword, operatorToken, parameterList, body, expressionBody, semicolonToken);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -25202,15 +25322,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new OperatorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.returnType, this.explicitInterfaceSpecifier, this.operatorKeyword, this.operatorToken, this.parameterList, this.body, this.expressionBody, this.semicolonToken, diagnostics, GetAnnotations());
+            => new OperatorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.returnType, this.explicitInterfaceSpecifier, this.operatorKeyword, this.checkedKeyword, this.operatorToken, this.parameterList, this.body, this.expressionBody, this.semicolonToken, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new OperatorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.returnType, this.explicitInterfaceSpecifier, this.operatorKeyword, this.operatorToken, this.parameterList, this.body, this.expressionBody, this.semicolonToken, GetDiagnostics(), annotations);
+            => new OperatorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.returnType, this.explicitInterfaceSpecifier, this.operatorKeyword, this.checkedKeyword, this.operatorToken, this.parameterList, this.body, this.expressionBody, this.semicolonToken, GetDiagnostics(), annotations);
 
         internal OperatorDeclarationSyntax(ObjectReader reader)
           : base(reader)
         {
-            this.SlotCount = 10;
+            this.SlotCount = 11;
             var attributeLists = (GreenNode?)reader.ReadValue();
             if (attributeLists != null)
             {
@@ -25235,6 +25355,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var operatorKeyword = (SyntaxToken)reader.ReadValue();
             AdjustFlagsAndWidth(operatorKeyword);
             this.operatorKeyword = operatorKeyword;
+            var checkedKeyword = (SyntaxToken?)reader.ReadValue();
+            if (checkedKeyword != null)
+            {
+                AdjustFlagsAndWidth(checkedKeyword);
+                this.checkedKeyword = checkedKeyword;
+            }
             var operatorToken = (SyntaxToken)reader.ReadValue();
             AdjustFlagsAndWidth(operatorToken);
             this.operatorToken = operatorToken;
@@ -25269,6 +25395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             writer.WriteValue(this.returnType);
             writer.WriteValue(this.explicitInterfaceSpecifier);
             writer.WriteValue(this.operatorKeyword);
+            writer.WriteValue(this.checkedKeyword);
             writer.WriteValue(this.operatorToken);
             writer.WriteValue(this.parameterList);
             writer.WriteValue(this.body);
@@ -25290,16 +25417,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal readonly SyntaxToken implicitOrExplicitKeyword;
         internal readonly ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier;
         internal readonly SyntaxToken operatorKeyword;
+        internal readonly SyntaxToken? checkedKeyword;
         internal readonly TypeSyntax type;
         internal readonly ParameterListSyntax parameterList;
         internal readonly BlockSyntax? body;
         internal readonly ArrowExpressionClauseSyntax? expressionBody;
         internal readonly SyntaxToken? semicolonToken;
 
-        internal ConversionOperatorDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken implicitOrExplicitKeyword, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, TypeSyntax type, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken? semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal ConversionOperatorDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken implicitOrExplicitKeyword, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, SyntaxToken? checkedKeyword, TypeSyntax type, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken? semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
-            this.SlotCount = 10;
+            this.SlotCount = 11;
             if (attributeLists != null)
             {
                 this.AdjustFlagsAndWidth(attributeLists);
@@ -25319,6 +25447,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             this.AdjustFlagsAndWidth(operatorKeyword);
             this.operatorKeyword = operatorKeyword;
+            if (checkedKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(checkedKeyword);
+                this.checkedKeyword = checkedKeyword;
+            }
             this.AdjustFlagsAndWidth(type);
             this.type = type;
             this.AdjustFlagsAndWidth(parameterList);
@@ -25340,11 +25473,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal ConversionOperatorDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken implicitOrExplicitKeyword, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, TypeSyntax type, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken? semicolonToken, SyntaxFactoryContext context)
+        internal ConversionOperatorDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken implicitOrExplicitKeyword, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, SyntaxToken? checkedKeyword, TypeSyntax type, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken? semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-            this.SlotCount = 10;
+            this.SlotCount = 11;
             if (attributeLists != null)
             {
                 this.AdjustFlagsAndWidth(attributeLists);
@@ -25364,6 +25497,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             this.AdjustFlagsAndWidth(operatorKeyword);
             this.operatorKeyword = operatorKeyword;
+            if (checkedKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(checkedKeyword);
+                this.checkedKeyword = checkedKeyword;
+            }
             this.AdjustFlagsAndWidth(type);
             this.type = type;
             this.AdjustFlagsAndWidth(parameterList);
@@ -25385,10 +25523,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal ConversionOperatorDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken implicitOrExplicitKeyword, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, TypeSyntax type, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken? semicolonToken)
+        internal ConversionOperatorDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken implicitOrExplicitKeyword, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, SyntaxToken? checkedKeyword, TypeSyntax type, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken? semicolonToken)
           : base(kind)
         {
-            this.SlotCount = 10;
+            this.SlotCount = 11;
             if (attributeLists != null)
             {
                 this.AdjustFlagsAndWidth(attributeLists);
@@ -25408,6 +25546,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             this.AdjustFlagsAndWidth(operatorKeyword);
             this.operatorKeyword = operatorKeyword;
+            if (checkedKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(checkedKeyword);
+                this.checkedKeyword = checkedKeyword;
+            }
             this.AdjustFlagsAndWidth(type);
             this.type = type;
             this.AdjustFlagsAndWidth(parameterList);
@@ -25436,6 +25579,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier => this.explicitInterfaceSpecifier;
         /// <summary>Gets the "operator" token.</summary>
         public SyntaxToken OperatorKeyword => this.operatorKeyword;
+        /// <summary>Gets the "checked" keyword.</summary>
+        public SyntaxToken? CheckedKeyword => this.checkedKeyword;
         /// <summary>Gets the type.</summary>
         public TypeSyntax Type => this.type;
         public override ParameterListSyntax ParameterList => this.parameterList;
@@ -25452,11 +25597,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 2 => this.implicitOrExplicitKeyword,
                 3 => this.explicitInterfaceSpecifier,
                 4 => this.operatorKeyword,
-                5 => this.type,
-                6 => this.parameterList,
-                7 => this.body,
-                8 => this.expressionBody,
-                9 => this.semicolonToken,
+                5 => this.checkedKeyword,
+                6 => this.type,
+                7 => this.parameterList,
+                8 => this.body,
+                9 => this.expressionBody,
+                10 => this.semicolonToken,
                 _ => null,
             };
 
@@ -25465,11 +25611,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConversionOperatorDeclaration(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConversionOperatorDeclaration(this);
 
-        public ConversionOperatorDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken implicitOrExplicitKeyword, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken operatorKeyword, TypeSyntax type, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+        public ConversionOperatorDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken implicitOrExplicitKeyword, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken operatorKeyword, SyntaxToken checkedKeyword, TypeSyntax type, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
         {
-            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || implicitOrExplicitKeyword != this.ImplicitOrExplicitKeyword || explicitInterfaceSpecifier != this.ExplicitInterfaceSpecifier || operatorKeyword != this.OperatorKeyword || type != this.Type || parameterList != this.ParameterList || body != this.Body || expressionBody != this.ExpressionBody || semicolonToken != this.SemicolonToken)
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || implicitOrExplicitKeyword != this.ImplicitOrExplicitKeyword || explicitInterfaceSpecifier != this.ExplicitInterfaceSpecifier || operatorKeyword != this.OperatorKeyword || checkedKeyword != this.CheckedKeyword || type != this.Type || parameterList != this.ParameterList || body != this.Body || expressionBody != this.ExpressionBody || semicolonToken != this.SemicolonToken)
             {
-                var newNode = SyntaxFactory.ConversionOperatorDeclaration(attributeLists, modifiers, implicitOrExplicitKeyword, explicitInterfaceSpecifier, operatorKeyword, type, parameterList, body, expressionBody, semicolonToken);
+                var newNode = SyntaxFactory.ConversionOperatorDeclaration(attributeLists, modifiers, implicitOrExplicitKeyword, explicitInterfaceSpecifier, operatorKeyword, checkedKeyword, type, parameterList, body, expressionBody, semicolonToken);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -25483,15 +25629,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new ConversionOperatorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.implicitOrExplicitKeyword, this.explicitInterfaceSpecifier, this.operatorKeyword, this.type, this.parameterList, this.body, this.expressionBody, this.semicolonToken, diagnostics, GetAnnotations());
+            => new ConversionOperatorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.implicitOrExplicitKeyword, this.explicitInterfaceSpecifier, this.operatorKeyword, this.checkedKeyword, this.type, this.parameterList, this.body, this.expressionBody, this.semicolonToken, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new ConversionOperatorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.implicitOrExplicitKeyword, this.explicitInterfaceSpecifier, this.operatorKeyword, this.type, this.parameterList, this.body, this.expressionBody, this.semicolonToken, GetDiagnostics(), annotations);
+            => new ConversionOperatorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.implicitOrExplicitKeyword, this.explicitInterfaceSpecifier, this.operatorKeyword, this.checkedKeyword, this.type, this.parameterList, this.body, this.expressionBody, this.semicolonToken, GetDiagnostics(), annotations);
 
         internal ConversionOperatorDeclarationSyntax(ObjectReader reader)
           : base(reader)
         {
-            this.SlotCount = 10;
+            this.SlotCount = 11;
             var attributeLists = (GreenNode?)reader.ReadValue();
             if (attributeLists != null)
             {
@@ -25516,6 +25662,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var operatorKeyword = (SyntaxToken)reader.ReadValue();
             AdjustFlagsAndWidth(operatorKeyword);
             this.operatorKeyword = operatorKeyword;
+            var checkedKeyword = (SyntaxToken?)reader.ReadValue();
+            if (checkedKeyword != null)
+            {
+                AdjustFlagsAndWidth(checkedKeyword);
+                this.checkedKeyword = checkedKeyword;
+            }
             var type = (TypeSyntax)reader.ReadValue();
             AdjustFlagsAndWidth(type);
             this.type = type;
@@ -25550,6 +25702,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             writer.WriteValue(this.implicitOrExplicitKeyword);
             writer.WriteValue(this.explicitInterfaceSpecifier);
             writer.WriteValue(this.operatorKeyword);
+            writer.WriteValue(this.checkedKeyword);
             writer.WriteValue(this.type);
             writer.WriteValue(this.parameterList);
             writer.WriteValue(this.body);
@@ -27736,13 +27889,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal readonly GreenNode? modifiers;
         internal readonly TypeSyntax? type;
         internal readonly SyntaxToken identifier;
-        internal readonly SyntaxToken? exclamationExclamationToken;
         internal readonly EqualsValueClauseSyntax? @default;
 
-        internal ParameterSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, TypeSyntax? type, SyntaxToken identifier, SyntaxToken? exclamationExclamationToken, EqualsValueClauseSyntax? @default, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal ParameterSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, TypeSyntax? type, SyntaxToken identifier, EqualsValueClauseSyntax? @default, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
-            this.SlotCount = 6;
+            this.SlotCount = 5;
             if (attributeLists != null)
             {
                 this.AdjustFlagsAndWidth(attributeLists);
@@ -27760,11 +27912,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             this.AdjustFlagsAndWidth(identifier);
             this.identifier = identifier;
-            if (exclamationExclamationToken != null)
-            {
-                this.AdjustFlagsAndWidth(exclamationExclamationToken);
-                this.exclamationExclamationToken = exclamationExclamationToken;
-            }
             if (@default != null)
             {
                 this.AdjustFlagsAndWidth(@default);
@@ -27772,11 +27919,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal ParameterSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, TypeSyntax? type, SyntaxToken identifier, SyntaxToken? exclamationExclamationToken, EqualsValueClauseSyntax? @default, SyntaxFactoryContext context)
+        internal ParameterSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, TypeSyntax? type, SyntaxToken identifier, EqualsValueClauseSyntax? @default, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-            this.SlotCount = 6;
+            this.SlotCount = 5;
             if (attributeLists != null)
             {
                 this.AdjustFlagsAndWidth(attributeLists);
@@ -27794,11 +27941,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             this.AdjustFlagsAndWidth(identifier);
             this.identifier = identifier;
-            if (exclamationExclamationToken != null)
-            {
-                this.AdjustFlagsAndWidth(exclamationExclamationToken);
-                this.exclamationExclamationToken = exclamationExclamationToken;
-            }
             if (@default != null)
             {
                 this.AdjustFlagsAndWidth(@default);
@@ -27806,10 +27948,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal ParameterSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, TypeSyntax? type, SyntaxToken identifier, SyntaxToken? exclamationExclamationToken, EqualsValueClauseSyntax? @default)
+        internal ParameterSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, TypeSyntax? type, SyntaxToken identifier, EqualsValueClauseSyntax? @default)
           : base(kind)
         {
-            this.SlotCount = 6;
+            this.SlotCount = 5;
             if (attributeLists != null)
             {
                 this.AdjustFlagsAndWidth(attributeLists);
@@ -27827,11 +27969,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             this.AdjustFlagsAndWidth(identifier);
             this.identifier = identifier;
-            if (exclamationExclamationToken != null)
-            {
-                this.AdjustFlagsAndWidth(exclamationExclamationToken);
-                this.exclamationExclamationToken = exclamationExclamationToken;
-            }
             if (@default != null)
             {
                 this.AdjustFlagsAndWidth(@default);
@@ -27846,7 +27983,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override TypeSyntax? Type => this.type;
         /// <summary>Gets the identifier.</summary>
         public SyntaxToken Identifier => this.identifier;
-        public SyntaxToken? ExclamationExclamationToken => this.exclamationExclamationToken;
         public EqualsValueClauseSyntax? Default => this.@default;
 
         internal override GreenNode? GetSlot(int index)
@@ -27856,8 +27992,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 1 => this.modifiers,
                 2 => this.type,
                 3 => this.identifier,
-                4 => this.exclamationExclamationToken,
-                5 => this.@default,
+                4 => this.@default,
                 _ => null,
             };
 
@@ -27866,11 +28001,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParameter(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParameter(this);
 
-        public ParameterSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax type, SyntaxToken identifier, SyntaxToken exclamationExclamationToken, EqualsValueClauseSyntax @default)
+        public ParameterSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax @default)
         {
-            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || type != this.Type || identifier != this.Identifier || exclamationExclamationToken != this.ExclamationExclamationToken || @default != this.Default)
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || type != this.Type || identifier != this.Identifier || @default != this.Default)
             {
-                var newNode = SyntaxFactory.Parameter(attributeLists, modifiers, type, identifier, exclamationExclamationToken, @default);
+                var newNode = SyntaxFactory.Parameter(attributeLists, modifiers, type, identifier, @default);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -27884,15 +28019,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new ParameterSyntax(this.Kind, this.attributeLists, this.modifiers, this.type, this.identifier, this.exclamationExclamationToken, this.@default, diagnostics, GetAnnotations());
+            => new ParameterSyntax(this.Kind, this.attributeLists, this.modifiers, this.type, this.identifier, this.@default, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new ParameterSyntax(this.Kind, this.attributeLists, this.modifiers, this.type, this.identifier, this.exclamationExclamationToken, this.@default, GetDiagnostics(), annotations);
+            => new ParameterSyntax(this.Kind, this.attributeLists, this.modifiers, this.type, this.identifier, this.@default, GetDiagnostics(), annotations);
 
         internal ParameterSyntax(ObjectReader reader)
           : base(reader)
         {
-            this.SlotCount = 6;
+            this.SlotCount = 5;
             var attributeLists = (GreenNode?)reader.ReadValue();
             if (attributeLists != null)
             {
@@ -27914,12 +28049,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var identifier = (SyntaxToken)reader.ReadValue();
             AdjustFlagsAndWidth(identifier);
             this.identifier = identifier;
-            var exclamationExclamationToken = (SyntaxToken?)reader.ReadValue();
-            if (exclamationExclamationToken != null)
-            {
-                AdjustFlagsAndWidth(exclamationExclamationToken);
-                this.exclamationExclamationToken = exclamationExclamationToken;
-            }
             var @default = (EqualsValueClauseSyntax?)reader.ReadValue();
             if (@default != null)
             {
@@ -27935,7 +28064,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             writer.WriteValue(this.modifiers);
             writer.WriteValue(this.type);
             writer.WriteValue(this.identifier);
-            writer.WriteValue(this.exclamationExclamationToken);
             writer.WriteValue(this.@default);
         }
 
@@ -28940,15 +29068,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal sealed partial class OperatorMemberCrefSyntax : MemberCrefSyntax
     {
         internal readonly SyntaxToken operatorKeyword;
+        internal readonly SyntaxToken? checkedKeyword;
         internal readonly SyntaxToken operatorToken;
         internal readonly CrefParameterListSyntax? parameters;
 
-        internal OperatorMemberCrefSyntax(SyntaxKind kind, SyntaxToken operatorKeyword, SyntaxToken operatorToken, CrefParameterListSyntax? parameters, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal OperatorMemberCrefSyntax(SyntaxKind kind, SyntaxToken operatorKeyword, SyntaxToken? checkedKeyword, SyntaxToken operatorToken, CrefParameterListSyntax? parameters, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
-            this.SlotCount = 3;
+            this.SlotCount = 4;
             this.AdjustFlagsAndWidth(operatorKeyword);
             this.operatorKeyword = operatorKeyword;
+            if (checkedKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(checkedKeyword);
+                this.checkedKeyword = checkedKeyword;
+            }
             this.AdjustFlagsAndWidth(operatorToken);
             this.operatorToken = operatorToken;
             if (parameters != null)
@@ -28958,13 +29092,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal OperatorMemberCrefSyntax(SyntaxKind kind, SyntaxToken operatorKeyword, SyntaxToken operatorToken, CrefParameterListSyntax? parameters, SyntaxFactoryContext context)
+        internal OperatorMemberCrefSyntax(SyntaxKind kind, SyntaxToken operatorKeyword, SyntaxToken? checkedKeyword, SyntaxToken operatorToken, CrefParameterListSyntax? parameters, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-            this.SlotCount = 3;
+            this.SlotCount = 4;
             this.AdjustFlagsAndWidth(operatorKeyword);
             this.operatorKeyword = operatorKeyword;
+            if (checkedKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(checkedKeyword);
+                this.checkedKeyword = checkedKeyword;
+            }
             this.AdjustFlagsAndWidth(operatorToken);
             this.operatorToken = operatorToken;
             if (parameters != null)
@@ -28974,12 +29113,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal OperatorMemberCrefSyntax(SyntaxKind kind, SyntaxToken operatorKeyword, SyntaxToken operatorToken, CrefParameterListSyntax? parameters)
+        internal OperatorMemberCrefSyntax(SyntaxKind kind, SyntaxToken operatorKeyword, SyntaxToken? checkedKeyword, SyntaxToken operatorToken, CrefParameterListSyntax? parameters)
           : base(kind)
         {
-            this.SlotCount = 3;
+            this.SlotCount = 4;
             this.AdjustFlagsAndWidth(operatorKeyword);
             this.operatorKeyword = operatorKeyword;
+            if (checkedKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(checkedKeyword);
+                this.checkedKeyword = checkedKeyword;
+            }
             this.AdjustFlagsAndWidth(operatorToken);
             this.operatorToken = operatorToken;
             if (parameters != null)
@@ -28990,6 +29134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         public SyntaxToken OperatorKeyword => this.operatorKeyword;
+        public SyntaxToken? CheckedKeyword => this.checkedKeyword;
         /// <summary>Gets the operator token.</summary>
         public SyntaxToken OperatorToken => this.operatorToken;
         public CrefParameterListSyntax? Parameters => this.parameters;
@@ -28998,8 +29143,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             => index switch
             {
                 0 => this.operatorKeyword,
-                1 => this.operatorToken,
-                2 => this.parameters,
+                1 => this.checkedKeyword,
+                2 => this.operatorToken,
+                3 => this.parameters,
                 _ => null,
             };
 
@@ -29008,11 +29154,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOperatorMemberCref(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitOperatorMemberCref(this);
 
-        public OperatorMemberCrefSyntax Update(SyntaxToken operatorKeyword, SyntaxToken operatorToken, CrefParameterListSyntax parameters)
+        public OperatorMemberCrefSyntax Update(SyntaxToken operatorKeyword, SyntaxToken checkedKeyword, SyntaxToken operatorToken, CrefParameterListSyntax parameters)
         {
-            if (operatorKeyword != this.OperatorKeyword || operatorToken != this.OperatorToken || parameters != this.Parameters)
+            if (operatorKeyword != this.OperatorKeyword || checkedKeyword != this.CheckedKeyword || operatorToken != this.OperatorToken || parameters != this.Parameters)
             {
-                var newNode = SyntaxFactory.OperatorMemberCref(operatorKeyword, operatorToken, parameters);
+                var newNode = SyntaxFactory.OperatorMemberCref(operatorKeyword, checkedKeyword, operatorToken, parameters);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -29026,18 +29172,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new OperatorMemberCrefSyntax(this.Kind, this.operatorKeyword, this.operatorToken, this.parameters, diagnostics, GetAnnotations());
+            => new OperatorMemberCrefSyntax(this.Kind, this.operatorKeyword, this.checkedKeyword, this.operatorToken, this.parameters, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new OperatorMemberCrefSyntax(this.Kind, this.operatorKeyword, this.operatorToken, this.parameters, GetDiagnostics(), annotations);
+            => new OperatorMemberCrefSyntax(this.Kind, this.operatorKeyword, this.checkedKeyword, this.operatorToken, this.parameters, GetDiagnostics(), annotations);
 
         internal OperatorMemberCrefSyntax(ObjectReader reader)
           : base(reader)
         {
-            this.SlotCount = 3;
+            this.SlotCount = 4;
             var operatorKeyword = (SyntaxToken)reader.ReadValue();
             AdjustFlagsAndWidth(operatorKeyword);
             this.operatorKeyword = operatorKeyword;
+            var checkedKeyword = (SyntaxToken?)reader.ReadValue();
+            if (checkedKeyword != null)
+            {
+                AdjustFlagsAndWidth(checkedKeyword);
+                this.checkedKeyword = checkedKeyword;
+            }
             var operatorToken = (SyntaxToken)reader.ReadValue();
             AdjustFlagsAndWidth(operatorToken);
             this.operatorToken = operatorToken;
@@ -29053,6 +29205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             base.WriteTo(writer);
             writer.WriteValue(this.operatorKeyword);
+            writer.WriteValue(this.checkedKeyword);
             writer.WriteValue(this.operatorToken);
             writer.WriteValue(this.parameters);
         }
@@ -29071,17 +29224,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         internal readonly SyntaxToken implicitOrExplicitKeyword;
         internal readonly SyntaxToken operatorKeyword;
+        internal readonly SyntaxToken? checkedKeyword;
         internal readonly TypeSyntax type;
         internal readonly CrefParameterListSyntax? parameters;
 
-        internal ConversionOperatorMemberCrefSyntax(SyntaxKind kind, SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, CrefParameterListSyntax? parameters, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal ConversionOperatorMemberCrefSyntax(SyntaxKind kind, SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, SyntaxToken? checkedKeyword, TypeSyntax type, CrefParameterListSyntax? parameters, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
-            this.SlotCount = 4;
+            this.SlotCount = 5;
             this.AdjustFlagsAndWidth(implicitOrExplicitKeyword);
             this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
             this.AdjustFlagsAndWidth(operatorKeyword);
             this.operatorKeyword = operatorKeyword;
+            if (checkedKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(checkedKeyword);
+                this.checkedKeyword = checkedKeyword;
+            }
             this.AdjustFlagsAndWidth(type);
             this.type = type;
             if (parameters != null)
@@ -29091,15 +29250,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal ConversionOperatorMemberCrefSyntax(SyntaxKind kind, SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, CrefParameterListSyntax? parameters, SyntaxFactoryContext context)
+        internal ConversionOperatorMemberCrefSyntax(SyntaxKind kind, SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, SyntaxToken? checkedKeyword, TypeSyntax type, CrefParameterListSyntax? parameters, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-            this.SlotCount = 4;
+            this.SlotCount = 5;
             this.AdjustFlagsAndWidth(implicitOrExplicitKeyword);
             this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
             this.AdjustFlagsAndWidth(operatorKeyword);
             this.operatorKeyword = operatorKeyword;
+            if (checkedKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(checkedKeyword);
+                this.checkedKeyword = checkedKeyword;
+            }
             this.AdjustFlagsAndWidth(type);
             this.type = type;
             if (parameters != null)
@@ -29109,14 +29273,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal ConversionOperatorMemberCrefSyntax(SyntaxKind kind, SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, CrefParameterListSyntax? parameters)
+        internal ConversionOperatorMemberCrefSyntax(SyntaxKind kind, SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, SyntaxToken? checkedKeyword, TypeSyntax type, CrefParameterListSyntax? parameters)
           : base(kind)
         {
-            this.SlotCount = 4;
+            this.SlotCount = 5;
             this.AdjustFlagsAndWidth(implicitOrExplicitKeyword);
             this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
             this.AdjustFlagsAndWidth(operatorKeyword);
             this.operatorKeyword = operatorKeyword;
+            if (checkedKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(checkedKeyword);
+                this.checkedKeyword = checkedKeyword;
+            }
             this.AdjustFlagsAndWidth(type);
             this.type = type;
             if (parameters != null)
@@ -29128,6 +29297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public SyntaxToken ImplicitOrExplicitKeyword => this.implicitOrExplicitKeyword;
         public SyntaxToken OperatorKeyword => this.operatorKeyword;
+        public SyntaxToken? CheckedKeyword => this.checkedKeyword;
         public TypeSyntax Type => this.type;
         public CrefParameterListSyntax? Parameters => this.parameters;
 
@@ -29136,8 +29306,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 0 => this.implicitOrExplicitKeyword,
                 1 => this.operatorKeyword,
-                2 => this.type,
-                3 => this.parameters,
+                2 => this.checkedKeyword,
+                3 => this.type,
+                4 => this.parameters,
                 _ => null,
             };
 
@@ -29146,11 +29317,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConversionOperatorMemberCref(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConversionOperatorMemberCref(this);
 
-        public ConversionOperatorMemberCrefSyntax Update(SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, CrefParameterListSyntax parameters)
+        public ConversionOperatorMemberCrefSyntax Update(SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, SyntaxToken checkedKeyword, TypeSyntax type, CrefParameterListSyntax parameters)
         {
-            if (implicitOrExplicitKeyword != this.ImplicitOrExplicitKeyword || operatorKeyword != this.OperatorKeyword || type != this.Type || parameters != this.Parameters)
+            if (implicitOrExplicitKeyword != this.ImplicitOrExplicitKeyword || operatorKeyword != this.OperatorKeyword || checkedKeyword != this.CheckedKeyword || type != this.Type || parameters != this.Parameters)
             {
-                var newNode = SyntaxFactory.ConversionOperatorMemberCref(implicitOrExplicitKeyword, operatorKeyword, type, parameters);
+                var newNode = SyntaxFactory.ConversionOperatorMemberCref(implicitOrExplicitKeyword, operatorKeyword, checkedKeyword, type, parameters);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -29164,21 +29335,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new ConversionOperatorMemberCrefSyntax(this.Kind, this.implicitOrExplicitKeyword, this.operatorKeyword, this.type, this.parameters, diagnostics, GetAnnotations());
+            => new ConversionOperatorMemberCrefSyntax(this.Kind, this.implicitOrExplicitKeyword, this.operatorKeyword, this.checkedKeyword, this.type, this.parameters, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new ConversionOperatorMemberCrefSyntax(this.Kind, this.implicitOrExplicitKeyword, this.operatorKeyword, this.type, this.parameters, GetDiagnostics(), annotations);
+            => new ConversionOperatorMemberCrefSyntax(this.Kind, this.implicitOrExplicitKeyword, this.operatorKeyword, this.checkedKeyword, this.type, this.parameters, GetDiagnostics(), annotations);
 
         internal ConversionOperatorMemberCrefSyntax(ObjectReader reader)
           : base(reader)
         {
-            this.SlotCount = 4;
+            this.SlotCount = 5;
             var implicitOrExplicitKeyword = (SyntaxToken)reader.ReadValue();
             AdjustFlagsAndWidth(implicitOrExplicitKeyword);
             this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
             var operatorKeyword = (SyntaxToken)reader.ReadValue();
             AdjustFlagsAndWidth(operatorKeyword);
             this.operatorKeyword = operatorKeyword;
+            var checkedKeyword = (SyntaxToken?)reader.ReadValue();
+            if (checkedKeyword != null)
+            {
+                AdjustFlagsAndWidth(checkedKeyword);
+                this.checkedKeyword = checkedKeyword;
+            }
             var type = (TypeSyntax)reader.ReadValue();
             AdjustFlagsAndWidth(type);
             this.type = type;
@@ -29195,6 +29372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             base.WriteTo(writer);
             writer.WriteValue(this.implicitOrExplicitKeyword);
             writer.WriteValue(this.operatorKeyword);
+            writer.WriteValue(this.checkedKeyword);
             writer.WriteValue(this.type);
             writer.WriteValue(this.parameters);
         }
@@ -34189,6 +34367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual TResult VisitTupleElement(TupleElementSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitOmittedTypeArgument(OmittedTypeArgumentSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitRefType(RefTypeSyntax node) => this.DefaultVisit(node);
+        public virtual TResult VisitScopedType(ScopedTypeSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitParenthesizedExpression(ParenthesizedExpressionSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitTupleExpression(TupleExpressionSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node) => this.DefaultVisit(node);
@@ -34430,6 +34609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual void VisitTupleElement(TupleElementSyntax node) => this.DefaultVisit(node);
         public virtual void VisitOmittedTypeArgument(OmittedTypeArgumentSyntax node) => this.DefaultVisit(node);
         public virtual void VisitRefType(RefTypeSyntax node) => this.DefaultVisit(node);
+        public virtual void VisitScopedType(ScopedTypeSyntax node) => this.DefaultVisit(node);
         public virtual void VisitParenthesizedExpression(ParenthesizedExpressionSyntax node) => this.DefaultVisit(node);
         public virtual void VisitTupleExpression(TupleExpressionSyntax node) => this.DefaultVisit(node);
         public virtual void VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node) => this.DefaultVisit(node);
@@ -34708,6 +34888,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public override CSharpSyntaxNode VisitRefType(RefTypeSyntax node)
             => node.Update((SyntaxToken)Visit(node.RefKeyword), (SyntaxToken)Visit(node.ReadOnlyKeyword), (TypeSyntax)Visit(node.Type));
+
+        public override CSharpSyntaxNode VisitScopedType(ScopedTypeSyntax node)
+            => node.Update((SyntaxToken)Visit(node.ScopedKeyword), (TypeSyntax)Visit(node.Type));
 
         public override CSharpSyntaxNode VisitParenthesizedExpression(ParenthesizedExpressionSyntax node)
             => node.Update((SyntaxToken)Visit(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression), (SyntaxToken)Visit(node.CloseParenToken));
@@ -35184,10 +35367,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.ReturnType), (ExplicitInterfaceSpecifierSyntax)Visit(node.ExplicitInterfaceSpecifier), (SyntaxToken)Visit(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (ParameterListSyntax)Visit(node.ParameterList), VisitList(node.ConstraintClauses), (BlockSyntax)Visit(node.Body), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), (SyntaxToken)Visit(node.SemicolonToken));
 
         public override CSharpSyntaxNode VisitOperatorDeclaration(OperatorDeclarationSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.ReturnType), (ExplicitInterfaceSpecifierSyntax)Visit(node.ExplicitInterfaceSpecifier), (SyntaxToken)Visit(node.OperatorKeyword), (SyntaxToken)Visit(node.OperatorToken), (ParameterListSyntax)Visit(node.ParameterList), (BlockSyntax)Visit(node.Body), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), (SyntaxToken)Visit(node.SemicolonToken));
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.ReturnType), (ExplicitInterfaceSpecifierSyntax)Visit(node.ExplicitInterfaceSpecifier), (SyntaxToken)Visit(node.OperatorKeyword), (SyntaxToken)Visit(node.CheckedKeyword), (SyntaxToken)Visit(node.OperatorToken), (ParameterListSyntax)Visit(node.ParameterList), (BlockSyntax)Visit(node.Body), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), (SyntaxToken)Visit(node.SemicolonToken));
 
         public override CSharpSyntaxNode VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.ImplicitOrExplicitKeyword), (ExplicitInterfaceSpecifierSyntax)Visit(node.ExplicitInterfaceSpecifier), (SyntaxToken)Visit(node.OperatorKeyword), (TypeSyntax)Visit(node.Type), (ParameterListSyntax)Visit(node.ParameterList), (BlockSyntax)Visit(node.Body), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), (SyntaxToken)Visit(node.SemicolonToken));
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.ImplicitOrExplicitKeyword), (ExplicitInterfaceSpecifierSyntax)Visit(node.ExplicitInterfaceSpecifier), (SyntaxToken)Visit(node.OperatorKeyword), (SyntaxToken)Visit(node.CheckedKeyword), (TypeSyntax)Visit(node.Type), (ParameterListSyntax)Visit(node.ParameterList), (BlockSyntax)Visit(node.Body), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), (SyntaxToken)Visit(node.SemicolonToken));
 
         public override CSharpSyntaxNode VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.Identifier), (ParameterListSyntax)Visit(node.ParameterList), (ConstructorInitializerSyntax)Visit(node.Initializer), (BlockSyntax)Visit(node.Body), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), (SyntaxToken)Visit(node.SemicolonToken));
@@ -35223,7 +35406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             => node.Update((SyntaxToken)Visit(node.OpenBracketToken), VisitList(node.Parameters), (SyntaxToken)Visit(node.CloseBracketToken));
 
         public override CSharpSyntaxNode VisitParameter(ParameterSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.Type), (SyntaxToken)Visit(node.Identifier), (SyntaxToken)Visit(node.ExclamationExclamationToken), (EqualsValueClauseSyntax)Visit(node.Default));
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.Type), (SyntaxToken)Visit(node.Identifier), (EqualsValueClauseSyntax)Visit(node.Default));
 
         public override CSharpSyntaxNode VisitFunctionPointerParameter(FunctionPointerParameterSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.Type));
@@ -35250,10 +35433,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             => node.Update((SyntaxToken)Visit(node.ThisKeyword), (CrefBracketedParameterListSyntax)Visit(node.Parameters));
 
         public override CSharpSyntaxNode VisitOperatorMemberCref(OperatorMemberCrefSyntax node)
-            => node.Update((SyntaxToken)Visit(node.OperatorKeyword), (SyntaxToken)Visit(node.OperatorToken), (CrefParameterListSyntax)Visit(node.Parameters));
+            => node.Update((SyntaxToken)Visit(node.OperatorKeyword), (SyntaxToken)Visit(node.CheckedKeyword), (SyntaxToken)Visit(node.OperatorToken), (CrefParameterListSyntax)Visit(node.Parameters));
 
         public override CSharpSyntaxNode VisitConversionOperatorMemberCref(ConversionOperatorMemberCrefSyntax node)
-            => node.Update((SyntaxToken)Visit(node.ImplicitOrExplicitKeyword), (SyntaxToken)Visit(node.OperatorKeyword), (TypeSyntax)Visit(node.Type), (CrefParameterListSyntax)Visit(node.Parameters));
+            => node.Update((SyntaxToken)Visit(node.ImplicitOrExplicitKeyword), (SyntaxToken)Visit(node.OperatorKeyword), (SyntaxToken)Visit(node.CheckedKeyword), (TypeSyntax)Visit(node.Type), (CrefParameterListSyntax)Visit(node.Parameters));
 
         public override CSharpSyntaxNode VisitCrefParameterList(CrefParameterListSyntax node)
             => node.Update((SyntaxToken)Visit(node.OpenParenToken), VisitList(node.Parameters), (SyntaxToken)Visit(node.CloseParenToken));
@@ -35808,6 +35991,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
+        public ScopedTypeSyntax ScopedType(SyntaxToken scopedKeyword, TypeSyntax type)
+        {
+#if DEBUG
+            if (scopedKeyword == null) throw new ArgumentNullException(nameof(scopedKeyword));
+            if (scopedKeyword.Kind != SyntaxKind.ScopedKeyword) throw new ArgumentException(nameof(scopedKeyword));
+            if (type == null) throw new ArgumentNullException(nameof(type));
+#endif
+
+            int hash;
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.ScopedType, scopedKeyword, type, this.context, out hash);
+            if (cached != null) return (ScopedTypeSyntax)cached;
+
+            var result = new ScopedTypeSyntax(SyntaxKind.ScopedType, scopedKeyword, type, this.context);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
         public ParenthesizedExpressionSyntax ParenthesizedExpression(SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
         {
 #if DEBUG
@@ -36099,6 +36303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.ModuloExpression:
                 case SyntaxKind.LeftShiftExpression:
                 case SyntaxKind.RightShiftExpression:
+                case SyntaxKind.UnsignedRightShiftExpression:
                 case SyntaxKind.LogicalOrExpression:
                 case SyntaxKind.LogicalAndExpression:
                 case SyntaxKind.BitwiseOrExpression:
@@ -36127,6 +36332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.PercentToken:
                 case SyntaxKind.LessThanLessThanToken:
                 case SyntaxKind.GreaterThanGreaterThanToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                 case SyntaxKind.BarBarToken:
                 case SyntaxKind.AmpersandAmpersandToken:
                 case SyntaxKind.BarToken:
@@ -36174,6 +36380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.OrAssignmentExpression:
                 case SyntaxKind.LeftShiftAssignmentExpression:
                 case SyntaxKind.RightShiftAssignmentExpression:
+                case SyntaxKind.UnsignedRightShiftAssignmentExpression:
                 case SyntaxKind.CoalesceAssignmentExpression: break;
                 default: throw new ArgumentException(nameof(kind));
             }
@@ -36193,6 +36400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.BarEqualsToken:
                 case SyntaxKind.LessThanLessThanEqualsToken:
                 case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
                 case SyntaxKind.QuestionQuestionEqualsToken: break;
                 default: throw new ArgumentException(nameof(operatorToken));
             }
@@ -36274,6 +36482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.ArgListExpression:
                 case SyntaxKind.NumericLiteralExpression:
                 case SyntaxKind.StringLiteralExpression:
+                case SyntaxKind.Utf8StringLiteralExpression:
                 case SyntaxKind.CharacterLiteralExpression:
                 case SyntaxKind.TrueLiteralExpression:
                 case SyntaxKind.FalseLiteralExpression:
@@ -36288,8 +36497,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.ArgListKeyword:
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.Utf8StringLiteralToken:
                 case SyntaxKind.MultiLineRawStringLiteralToken:
+                case SyntaxKind.Utf8MultiLineRawStringLiteralToken:
                 case SyntaxKind.SingleLineRawStringLiteralToken:
+                case SyntaxKind.Utf8SingleLineRawStringLiteralToken:
                 case SyntaxKind.CharacterLiteralToken:
                 case SyntaxKind.TrueKeyword:
                 case SyntaxKind.FalseKeyword:
@@ -39133,12 +39345,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new MethodDeclarationSyntax(SyntaxKind.MethodDeclaration, attributeLists.Node, modifiers.Node, returnType, explicitInterfaceSpecifier, identifier, typeParameterList, parameterList, constraintClauses.Node, body, expressionBody, semicolonToken, this.context);
         }
 
-        public OperatorDeclarationSyntax OperatorDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, SyntaxToken operatorToken, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken? semicolonToken)
+        public OperatorDeclarationSyntax OperatorDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, SyntaxToken? checkedKeyword, SyntaxToken operatorToken, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken? semicolonToken)
         {
 #if DEBUG
             if (returnType == null) throw new ArgumentNullException(nameof(returnType));
             if (operatorKeyword == null) throw new ArgumentNullException(nameof(operatorKeyword));
             if (operatorKeyword.Kind != SyntaxKind.OperatorKeyword) throw new ArgumentException(nameof(operatorKeyword));
+            if (checkedKeyword != null)
+            {
+                switch (checkedKeyword.Kind)
+                {
+                    case SyntaxKind.CheckedKeyword:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(checkedKeyword));
+                }
+            }
             if (operatorToken == null) throw new ArgumentNullException(nameof(operatorToken));
             switch (operatorToken.Kind)
             {
@@ -39153,6 +39374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.PercentToken:
                 case SyntaxKind.LessThanLessThanToken:
                 case SyntaxKind.GreaterThanGreaterThanToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                 case SyntaxKind.BarToken:
                 case SyntaxKind.AmpersandToken:
                 case SyntaxKind.CaretToken:
@@ -39179,10 +39401,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 #endif
 
-            return new OperatorDeclarationSyntax(SyntaxKind.OperatorDeclaration, attributeLists.Node, modifiers.Node, returnType, explicitInterfaceSpecifier, operatorKeyword, operatorToken, parameterList, body, expressionBody, semicolonToken, this.context);
+            return new OperatorDeclarationSyntax(SyntaxKind.OperatorDeclaration, attributeLists.Node, modifiers.Node, returnType, explicitInterfaceSpecifier, operatorKeyword, checkedKeyword, operatorToken, parameterList, body, expressionBody, semicolonToken, this.context);
         }
 
-        public ConversionOperatorDeclarationSyntax ConversionOperatorDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken implicitOrExplicitKeyword, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, TypeSyntax type, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken? semicolonToken)
+        public ConversionOperatorDeclarationSyntax ConversionOperatorDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken implicitOrExplicitKeyword, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, SyntaxToken? checkedKeyword, TypeSyntax type, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken? semicolonToken)
         {
 #if DEBUG
             if (implicitOrExplicitKeyword == null) throw new ArgumentNullException(nameof(implicitOrExplicitKeyword));
@@ -39194,6 +39416,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             if (operatorKeyword == null) throw new ArgumentNullException(nameof(operatorKeyword));
             if (operatorKeyword.Kind != SyntaxKind.OperatorKeyword) throw new ArgumentException(nameof(operatorKeyword));
+            if (checkedKeyword != null)
+            {
+                switch (checkedKeyword.Kind)
+                {
+                    case SyntaxKind.CheckedKeyword:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(checkedKeyword));
+                }
+            }
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
             if (semicolonToken != null)
@@ -39207,7 +39438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 #endif
 
-            return new ConversionOperatorDeclarationSyntax(SyntaxKind.ConversionOperatorDeclaration, attributeLists.Node, modifiers.Node, implicitOrExplicitKeyword, explicitInterfaceSpecifier, operatorKeyword, type, parameterList, body, expressionBody, semicolonToken, this.context);
+            return new ConversionOperatorDeclarationSyntax(SyntaxKind.ConversionOperatorDeclaration, attributeLists.Node, modifiers.Node, implicitOrExplicitKeyword, explicitInterfaceSpecifier, operatorKeyword, checkedKeyword, type, parameterList, body, expressionBody, semicolonToken, this.context);
         }
 
         public ConstructorDeclarationSyntax ConstructorDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken identifier, ParameterListSyntax parameterList, ConstructorInitializerSyntax? initializer, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken? semicolonToken)
@@ -39474,7 +39705,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public ParameterSyntax Parameter(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax? type, SyntaxToken identifier, SyntaxToken? exclamationExclamationToken, EqualsValueClauseSyntax? @default)
+        public ParameterSyntax Parameter(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax? type, SyntaxToken identifier, EqualsValueClauseSyntax? @default)
         {
 #if DEBUG
             if (identifier == null) throw new ArgumentNullException(nameof(identifier));
@@ -39484,18 +39715,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.ArgListKeyword: break;
                 default: throw new ArgumentException(nameof(identifier));
             }
-            if (exclamationExclamationToken != null)
-            {
-                switch (exclamationExclamationToken.Kind)
-                {
-                    case SyntaxKind.ExclamationExclamationToken:
-                    case SyntaxKind.None: break;
-                    default: throw new ArgumentException(nameof(exclamationExclamationToken));
-                }
-            }
 #endif
 
-            return new ParameterSyntax(SyntaxKind.Parameter, attributeLists.Node, modifiers.Node, type, identifier, exclamationExclamationToken, @default, this.context);
+            return new ParameterSyntax(SyntaxKind.Parameter, attributeLists.Node, modifiers.Node, type, identifier, @default, this.context);
         }
 
         public FunctionPointerParameterSyntax FunctionPointerParameter(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax type)
@@ -39629,11 +39851,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public OperatorMemberCrefSyntax OperatorMemberCref(SyntaxToken operatorKeyword, SyntaxToken operatorToken, CrefParameterListSyntax? parameters)
+        public OperatorMemberCrefSyntax OperatorMemberCref(SyntaxToken operatorKeyword, SyntaxToken? checkedKeyword, SyntaxToken operatorToken, CrefParameterListSyntax? parameters)
         {
 #if DEBUG
             if (operatorKeyword == null) throw new ArgumentNullException(nameof(operatorKeyword));
             if (operatorKeyword.Kind != SyntaxKind.OperatorKeyword) throw new ArgumentException(nameof(operatorKeyword));
+            if (checkedKeyword != null)
+            {
+                switch (checkedKeyword.Kind)
+                {
+                    case SyntaxKind.CheckedKeyword:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(checkedKeyword));
+                }
+            }
             if (operatorToken == null) throw new ArgumentNullException(nameof(operatorToken));
             switch (operatorToken.Kind)
             {
@@ -39648,6 +39879,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.PercentToken:
                 case SyntaxKind.LessThanLessThanToken:
                 case SyntaxKind.GreaterThanGreaterThanToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                 case SyntaxKind.BarToken:
                 case SyntaxKind.AmpersandToken:
                 case SyntaxKind.CaretToken:
@@ -39663,20 +39895,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 #endif
 
-            int hash;
-            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.OperatorMemberCref, operatorKeyword, operatorToken, parameters, this.context, out hash);
-            if (cached != null) return (OperatorMemberCrefSyntax)cached;
-
-            var result = new OperatorMemberCrefSyntax(SyntaxKind.OperatorMemberCref, operatorKeyword, operatorToken, parameters, this.context);
-            if (hash >= 0)
-            {
-                SyntaxNodeCache.AddNode(result, hash);
-            }
-
-            return result;
+            return new OperatorMemberCrefSyntax(SyntaxKind.OperatorMemberCref, operatorKeyword, checkedKeyword, operatorToken, parameters, this.context);
         }
 
-        public ConversionOperatorMemberCrefSyntax ConversionOperatorMemberCref(SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, CrefParameterListSyntax? parameters)
+        public ConversionOperatorMemberCrefSyntax ConversionOperatorMemberCref(SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, SyntaxToken? checkedKeyword, TypeSyntax type, CrefParameterListSyntax? parameters)
         {
 #if DEBUG
             if (implicitOrExplicitKeyword == null) throw new ArgumentNullException(nameof(implicitOrExplicitKeyword));
@@ -39688,10 +39910,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             if (operatorKeyword == null) throw new ArgumentNullException(nameof(operatorKeyword));
             if (operatorKeyword.Kind != SyntaxKind.OperatorKeyword) throw new ArgumentException(nameof(operatorKeyword));
+            if (checkedKeyword != null)
+            {
+                switch (checkedKeyword.Kind)
+                {
+                    case SyntaxKind.CheckedKeyword:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(checkedKeyword));
+                }
+            }
             if (type == null) throw new ArgumentNullException(nameof(type));
 #endif
 
-            return new ConversionOperatorMemberCrefSyntax(SyntaxKind.ConversionOperatorMemberCref, implicitOrExplicitKeyword, operatorKeyword, type, parameters, this.context);
+            return new ConversionOperatorMemberCrefSyntax(SyntaxKind.ConversionOperatorMemberCref, implicitOrExplicitKeyword, operatorKeyword, checkedKeyword, type, parameters, this.context);
         }
 
         public CrefParameterListSyntax CrefParameterList(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<CrefParameterSyntax> parameters, SyntaxToken closeParenToken)
@@ -40831,6 +41062,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
+        public static ScopedTypeSyntax ScopedType(SyntaxToken scopedKeyword, TypeSyntax type)
+        {
+#if DEBUG
+            if (scopedKeyword == null) throw new ArgumentNullException(nameof(scopedKeyword));
+            if (scopedKeyword.Kind != SyntaxKind.ScopedKeyword) throw new ArgumentException(nameof(scopedKeyword));
+            if (type == null) throw new ArgumentNullException(nameof(type));
+#endif
+
+            int hash;
+            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ScopedType, scopedKeyword, type, out hash);
+            if (cached != null) return (ScopedTypeSyntax)cached;
+
+            var result = new ScopedTypeSyntax(SyntaxKind.ScopedType, scopedKeyword, type);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
         public static ParenthesizedExpressionSyntax ParenthesizedExpression(SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
         {
 #if DEBUG
@@ -41122,6 +41374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.ModuloExpression:
                 case SyntaxKind.LeftShiftExpression:
                 case SyntaxKind.RightShiftExpression:
+                case SyntaxKind.UnsignedRightShiftExpression:
                 case SyntaxKind.LogicalOrExpression:
                 case SyntaxKind.LogicalAndExpression:
                 case SyntaxKind.BitwiseOrExpression:
@@ -41150,6 +41403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.PercentToken:
                 case SyntaxKind.LessThanLessThanToken:
                 case SyntaxKind.GreaterThanGreaterThanToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                 case SyntaxKind.BarBarToken:
                 case SyntaxKind.AmpersandAmpersandToken:
                 case SyntaxKind.BarToken:
@@ -41197,6 +41451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.OrAssignmentExpression:
                 case SyntaxKind.LeftShiftAssignmentExpression:
                 case SyntaxKind.RightShiftAssignmentExpression:
+                case SyntaxKind.UnsignedRightShiftAssignmentExpression:
                 case SyntaxKind.CoalesceAssignmentExpression: break;
                 default: throw new ArgumentException(nameof(kind));
             }
@@ -41216,6 +41471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.BarEqualsToken:
                 case SyntaxKind.LessThanLessThanEqualsToken:
                 case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
                 case SyntaxKind.QuestionQuestionEqualsToken: break;
                 default: throw new ArgumentException(nameof(operatorToken));
             }
@@ -41297,6 +41553,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.ArgListExpression:
                 case SyntaxKind.NumericLiteralExpression:
                 case SyntaxKind.StringLiteralExpression:
+                case SyntaxKind.Utf8StringLiteralExpression:
                 case SyntaxKind.CharacterLiteralExpression:
                 case SyntaxKind.TrueLiteralExpression:
                 case SyntaxKind.FalseLiteralExpression:
@@ -41311,8 +41568,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.ArgListKeyword:
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.Utf8StringLiteralToken:
                 case SyntaxKind.MultiLineRawStringLiteralToken:
+                case SyntaxKind.Utf8MultiLineRawStringLiteralToken:
                 case SyntaxKind.SingleLineRawStringLiteralToken:
+                case SyntaxKind.Utf8SingleLineRawStringLiteralToken:
                 case SyntaxKind.CharacterLiteralToken:
                 case SyntaxKind.TrueKeyword:
                 case SyntaxKind.FalseKeyword:
@@ -44156,12 +44416,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new MethodDeclarationSyntax(SyntaxKind.MethodDeclaration, attributeLists.Node, modifiers.Node, returnType, explicitInterfaceSpecifier, identifier, typeParameterList, parameterList, constraintClauses.Node, body, expressionBody, semicolonToken);
         }
 
-        public static OperatorDeclarationSyntax OperatorDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, SyntaxToken operatorToken, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken? semicolonToken)
+        public static OperatorDeclarationSyntax OperatorDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, SyntaxToken? checkedKeyword, SyntaxToken operatorToken, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken? semicolonToken)
         {
 #if DEBUG
             if (returnType == null) throw new ArgumentNullException(nameof(returnType));
             if (operatorKeyword == null) throw new ArgumentNullException(nameof(operatorKeyword));
             if (operatorKeyword.Kind != SyntaxKind.OperatorKeyword) throw new ArgumentException(nameof(operatorKeyword));
+            if (checkedKeyword != null)
+            {
+                switch (checkedKeyword.Kind)
+                {
+                    case SyntaxKind.CheckedKeyword:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(checkedKeyword));
+                }
+            }
             if (operatorToken == null) throw new ArgumentNullException(nameof(operatorToken));
             switch (operatorToken.Kind)
             {
@@ -44176,6 +44445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.PercentToken:
                 case SyntaxKind.LessThanLessThanToken:
                 case SyntaxKind.GreaterThanGreaterThanToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                 case SyntaxKind.BarToken:
                 case SyntaxKind.AmpersandToken:
                 case SyntaxKind.CaretToken:
@@ -44202,10 +44472,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 #endif
 
-            return new OperatorDeclarationSyntax(SyntaxKind.OperatorDeclaration, attributeLists.Node, modifiers.Node, returnType, explicitInterfaceSpecifier, operatorKeyword, operatorToken, parameterList, body, expressionBody, semicolonToken);
+            return new OperatorDeclarationSyntax(SyntaxKind.OperatorDeclaration, attributeLists.Node, modifiers.Node, returnType, explicitInterfaceSpecifier, operatorKeyword, checkedKeyword, operatorToken, parameterList, body, expressionBody, semicolonToken);
         }
 
-        public static ConversionOperatorDeclarationSyntax ConversionOperatorDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken implicitOrExplicitKeyword, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, TypeSyntax type, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken? semicolonToken)
+        public static ConversionOperatorDeclarationSyntax ConversionOperatorDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken implicitOrExplicitKeyword, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, SyntaxToken? checkedKeyword, TypeSyntax type, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken? semicolonToken)
         {
 #if DEBUG
             if (implicitOrExplicitKeyword == null) throw new ArgumentNullException(nameof(implicitOrExplicitKeyword));
@@ -44217,6 +44487,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             if (operatorKeyword == null) throw new ArgumentNullException(nameof(operatorKeyword));
             if (operatorKeyword.Kind != SyntaxKind.OperatorKeyword) throw new ArgumentException(nameof(operatorKeyword));
+            if (checkedKeyword != null)
+            {
+                switch (checkedKeyword.Kind)
+                {
+                    case SyntaxKind.CheckedKeyword:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(checkedKeyword));
+                }
+            }
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
             if (semicolonToken != null)
@@ -44230,7 +44509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 #endif
 
-            return new ConversionOperatorDeclarationSyntax(SyntaxKind.ConversionOperatorDeclaration, attributeLists.Node, modifiers.Node, implicitOrExplicitKeyword, explicitInterfaceSpecifier, operatorKeyword, type, parameterList, body, expressionBody, semicolonToken);
+            return new ConversionOperatorDeclarationSyntax(SyntaxKind.ConversionOperatorDeclaration, attributeLists.Node, modifiers.Node, implicitOrExplicitKeyword, explicitInterfaceSpecifier, operatorKeyword, checkedKeyword, type, parameterList, body, expressionBody, semicolonToken);
         }
 
         public static ConstructorDeclarationSyntax ConstructorDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken identifier, ParameterListSyntax parameterList, ConstructorInitializerSyntax? initializer, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken? semicolonToken)
@@ -44497,7 +44776,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public static ParameterSyntax Parameter(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax? type, SyntaxToken identifier, SyntaxToken? exclamationExclamationToken, EqualsValueClauseSyntax? @default)
+        public static ParameterSyntax Parameter(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax? type, SyntaxToken identifier, EqualsValueClauseSyntax? @default)
         {
 #if DEBUG
             if (identifier == null) throw new ArgumentNullException(nameof(identifier));
@@ -44507,18 +44786,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.ArgListKeyword: break;
                 default: throw new ArgumentException(nameof(identifier));
             }
-            if (exclamationExclamationToken != null)
-            {
-                switch (exclamationExclamationToken.Kind)
-                {
-                    case SyntaxKind.ExclamationExclamationToken:
-                    case SyntaxKind.None: break;
-                    default: throw new ArgumentException(nameof(exclamationExclamationToken));
-                }
-            }
 #endif
 
-            return new ParameterSyntax(SyntaxKind.Parameter, attributeLists.Node, modifiers.Node, type, identifier, exclamationExclamationToken, @default);
+            return new ParameterSyntax(SyntaxKind.Parameter, attributeLists.Node, modifiers.Node, type, identifier, @default);
         }
 
         public static FunctionPointerParameterSyntax FunctionPointerParameter(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax type)
@@ -44652,11 +44922,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public static OperatorMemberCrefSyntax OperatorMemberCref(SyntaxToken operatorKeyword, SyntaxToken operatorToken, CrefParameterListSyntax? parameters)
+        public static OperatorMemberCrefSyntax OperatorMemberCref(SyntaxToken operatorKeyword, SyntaxToken? checkedKeyword, SyntaxToken operatorToken, CrefParameterListSyntax? parameters)
         {
 #if DEBUG
             if (operatorKeyword == null) throw new ArgumentNullException(nameof(operatorKeyword));
             if (operatorKeyword.Kind != SyntaxKind.OperatorKeyword) throw new ArgumentException(nameof(operatorKeyword));
+            if (checkedKeyword != null)
+            {
+                switch (checkedKeyword.Kind)
+                {
+                    case SyntaxKind.CheckedKeyword:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(checkedKeyword));
+                }
+            }
             if (operatorToken == null) throw new ArgumentNullException(nameof(operatorToken));
             switch (operatorToken.Kind)
             {
@@ -44671,6 +44950,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.PercentToken:
                 case SyntaxKind.LessThanLessThanToken:
                 case SyntaxKind.GreaterThanGreaterThanToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                 case SyntaxKind.BarToken:
                 case SyntaxKind.AmpersandToken:
                 case SyntaxKind.CaretToken:
@@ -44686,20 +44966,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 #endif
 
-            int hash;
-            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.OperatorMemberCref, operatorKeyword, operatorToken, parameters, out hash);
-            if (cached != null) return (OperatorMemberCrefSyntax)cached;
-
-            var result = new OperatorMemberCrefSyntax(SyntaxKind.OperatorMemberCref, operatorKeyword, operatorToken, parameters);
-            if (hash >= 0)
-            {
-                SyntaxNodeCache.AddNode(result, hash);
-            }
-
-            return result;
+            return new OperatorMemberCrefSyntax(SyntaxKind.OperatorMemberCref, operatorKeyword, checkedKeyword, operatorToken, parameters);
         }
 
-        public static ConversionOperatorMemberCrefSyntax ConversionOperatorMemberCref(SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, CrefParameterListSyntax? parameters)
+        public static ConversionOperatorMemberCrefSyntax ConversionOperatorMemberCref(SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, SyntaxToken? checkedKeyword, TypeSyntax type, CrefParameterListSyntax? parameters)
         {
 #if DEBUG
             if (implicitOrExplicitKeyword == null) throw new ArgumentNullException(nameof(implicitOrExplicitKeyword));
@@ -44711,10 +44981,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             if (operatorKeyword == null) throw new ArgumentNullException(nameof(operatorKeyword));
             if (operatorKeyword.Kind != SyntaxKind.OperatorKeyword) throw new ArgumentException(nameof(operatorKeyword));
+            if (checkedKeyword != null)
+            {
+                switch (checkedKeyword.Kind)
+                {
+                    case SyntaxKind.CheckedKeyword:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(checkedKeyword));
+                }
+            }
             if (type == null) throw new ArgumentNullException(nameof(type));
 #endif
 
-            return new ConversionOperatorMemberCrefSyntax(SyntaxKind.ConversionOperatorMemberCref, implicitOrExplicitKeyword, operatorKeyword, type, parameters);
+            return new ConversionOperatorMemberCrefSyntax(SyntaxKind.ConversionOperatorMemberCref, implicitOrExplicitKeyword, operatorKeyword, checkedKeyword, type, parameters);
         }
 
         public static CrefParameterListSyntax CrefParameterList(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<CrefParameterSyntax> parameters, SyntaxToken closeParenToken)
@@ -45436,6 +45715,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 typeof(TupleElementSyntax),
                 typeof(OmittedTypeArgumentSyntax),
                 typeof(RefTypeSyntax),
+                typeof(ScopedTypeSyntax),
                 typeof(ParenthesizedExpressionSyntax),
                 typeof(TupleExpressionSyntax),
                 typeof(PrefixUnaryExpressionSyntax),

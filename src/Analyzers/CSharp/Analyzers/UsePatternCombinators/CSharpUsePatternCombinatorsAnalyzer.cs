@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 case IIsTypeOperation { Syntax: BinaryExpressionSyntax binaryExpression } op:
                     return Type.TryCreate(binaryExpression, op);
 
-                case IIsPatternOperation { Pattern: { Syntax: PatternSyntax pattern } } op:
+                case IIsPatternOperation { Pattern.Syntax: PatternSyntax pattern } op:
                     return new Source(pattern, op.Value);
 
                 case IParenthesizedOperation op:

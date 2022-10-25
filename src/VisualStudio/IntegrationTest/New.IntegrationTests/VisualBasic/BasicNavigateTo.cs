@@ -7,8 +7,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.VisualStudio.IntegrationTests;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
@@ -36,8 +36,8 @@ End Class", cancellationToken: HangMitigatingCancellationToken);
 
             await TestServices.SolutionExplorer.AddFileAsync(project, "test2.vb", open: true, contents: @"
 ", cancellationToken: HangMitigatingCancellationToken);
-            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd12CmdID.NavigateTo, HangMitigatingCancellationToken);
-            await TestServices.Input.SendToNavigateToAsync("FirstMethod", VirtualKey.Enter);
+            await TestServices.Shell.ShowNavigateToDialogAsync(HangMitigatingCancellationToken);
+            await TestServices.Input.SendToNavigateToAsync("FirstMethod", VirtualKeyCode.RETURN);
             await TestServices.Workarounds.WaitForNavigationAsync(HangMitigatingCancellationToken);
             Assert.Equal($"test1.vb", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
             Assert.Equal("FirstMethod", await TestServices.Editor.GetSelectedTextAsync(HangMitigatingCancellationToken));
@@ -46,8 +46,8 @@ End Class", cancellationToken: HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.AddProjectAsync(csProject, WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp, HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.AddFileAsync(csProject, "csfile.cs", open: true, cancellationToken: HangMitigatingCancellationToken);
 
-            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd12CmdID.NavigateTo, HangMitigatingCancellationToken);
-            await TestServices.Input.SendToNavigateToAsync("FirstClass", VirtualKey.Enter);
+            await TestServices.Shell.ShowNavigateToDialogAsync(HangMitigatingCancellationToken);
+            await TestServices.Input.SendToNavigateToAsync("FirstClass", VirtualKeyCode.RETURN);
             await TestServices.Workarounds.WaitForNavigationAsync(HangMitigatingCancellationToken);
             Assert.Equal($"test1.vb", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
             Assert.Equal("FirstClass", await TestServices.Editor.GetSelectedTextAsync(HangMitigatingCancellationToken));

@@ -27,9 +27,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class CompletionServiceTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void AcquireCompletionService()
         {
             var workspace = new AdhocWorkspace();
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
         /// <summary>
         /// Ensure that 3rd party can set options on solution and access them from within a custom completion provider.
         /// </summary>
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task PassThroughOptions1()
         {
             using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features.AddParts(typeof(ThirdPartyCompletionProvider)));
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
         /// <summary>
         /// Ensure that 3rd party can set options on solution and access them from within a custom completion provider.
         /// </summary>
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task PassThroughOptions2()
         {
             using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures.AddParts(typeof(ThirdPartyCompletionProvider)));
@@ -171,7 +172,7 @@ namespace N
             Assert.Equal(0, generatorRanCount);
 
             var expectedItem = forkBeforeFreeze ? "C2" : "C1";
-            Assert.True(completionList.Items.Select(item => item.DisplayText).Contains(expectedItem));
+            Assert.True(completionList.ItemsList.Select(item => item.DisplayText).Contains(expectedItem));
         }
     }
 }

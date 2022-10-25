@@ -18,7 +18,7 @@ namespace Roslyn.Test.Utilities
         private readonly ISourceGenerator _generator;
         private readonly Checksum _checksum;
 
-        public TestGeneratorReference(ISourceGenerator generator)
+        public TestGeneratorReference(ISourceGenerator generator, string? analyzerFilePath = null)
         {
             _generator = generator;
             Guid = Guid.NewGuid();
@@ -31,14 +31,16 @@ namespace Roslyn.Test.Utilities
             var checksumArray = Guid.ToByteArray();
             Array.Resize(ref checksumArray, Checksum.HashSize);
             _checksum = Checksum.From(checksumArray);
+
+            FullPath = analyzerFilePath;
         }
 
-        public TestGeneratorReference(IIncrementalGenerator generator)
-            : this(generator.AsSourceGenerator())
+        public TestGeneratorReference(IIncrementalGenerator generator, string? analyzerFilePath = null)
+            : this(generator.AsSourceGenerator(), analyzerFilePath)
         {
         }
 
-        public override string? FullPath => null;
+        public override string? FullPath { get; }
         public override object Id => this;
         public Guid Guid { get; }
 

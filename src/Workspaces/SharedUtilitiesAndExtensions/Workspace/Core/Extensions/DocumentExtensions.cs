@@ -7,11 +7,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SemanticModelReuse;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Editing;
 
 #if DEBUG
 using System.Collections.Immutable;
@@ -139,8 +141,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (node == null)
                 return document.GetRequiredSemanticModelAsync(cancellationToken);
 
-            var workspace = document.Project.Solution.Workspace;
-            var semanticModelService = workspace.Services.GetRequiredService<ISemanticModelReuseWorkspaceService>();
+            var semanticModelService = document.Project.Solution.Services.GetRequiredService<ISemanticModelReuseWorkspaceService>();
 
             return semanticModelService.ReuseExistingSpeculativeModelAsync(document, node, cancellationToken);
         }
@@ -203,5 +204,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 yield return solution.GetRequiredDocument(linkedDocumentId);
             }
         }
+
+#if CODE_STYLE
+        public static async ValueTask<AnalyzerConfigOptions> GetAnalyzerConfigOptionsAsync(this Document document, CancellationToken cancellationToken)
+        {
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            return document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
+        }
+#endif
     }
 }

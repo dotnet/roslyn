@@ -6,11 +6,6 @@
   },
   "tools": {
     "dotnet": "7.0.100-rc.1.22431.12",
-    "runtimes": {
-      "dotnet": [
-        "3.1.0"
-      ]
-    },
     "vs": {
       "version": "17.2"
     },

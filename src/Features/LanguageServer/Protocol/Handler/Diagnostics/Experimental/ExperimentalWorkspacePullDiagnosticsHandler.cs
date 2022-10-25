@@ -20,32 +20,36 @@ using WorkspaceDocumentDiagnosticReport = SumType<WorkspaceFullDocumentDiagnosti
 [Method(ExperimentalMethods.WorkspaceDiagnostic)]
 internal class ExperimentalWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticHandler<WorkspaceDiagnosticParams, WorkspaceDiagnosticReport, WorkspaceDiagnosticReport?>
 {
-    private readonly IDiagnosticAnalyzerService _analyzerService;
-
     public ExperimentalWorkspacePullDiagnosticsHandler(
-        WellKnownLspServerKinds serverKind,
-        IDiagnosticService diagnosticService,
         IDiagnosticAnalyzerService analyzerService,
-        EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource)
-        : base(serverKind, diagnosticService, editAndContinueDiagnosticUpdateSource)
+        EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
+        IGlobalOptionService globalOptions)
+        : base(analyzerService, editAndContinueDiagnosticUpdateSource, globalOptions)
     {
-        _analyzerService = analyzerService;
     }
-
-    public override TextDocumentIdentifier? GetTextDocumentIdentifier(WorkspaceDiagnosticParams diagnosticsParams) => null;
 
     protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
     {
         return ConvertTags(diagnosticData, potentialDuplicate: false);
     }
 
-    protected override WorkspaceDiagnosticReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[]? diagnostics, string? resultId)
-    {
-        var itemToReport = diagnostics == null
-            ? new WorkspaceDocumentDiagnosticReport(new WorkspaceUnchangedDocumentDiagnosticReport(identifier.Uri, resultId, version: null))
-            : new WorkspaceDocumentDiagnosticReport(new WorkspaceFullDocumentDiagnosticReport(identifier.Uri, diagnostics, version: null, resultId));
-        return new WorkspaceDiagnosticReport(new[] { itemToReport });
-    }
+    protected override WorkspaceDiagnosticReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[] diagnostics, string resultId)
+        => new(new[]
+        {
+            new WorkspaceDocumentDiagnosticReport(new WorkspaceFullDocumentDiagnosticReport(identifier.Uri, diagnostics, version: null, resultId))
+        });
+
+    protected override WorkspaceDiagnosticReport CreateRemovedReport(TextDocumentIdentifier identifier)
+        => new(new[]
+        {
+            new WorkspaceDocumentDiagnosticReport(new WorkspaceFullDocumentDiagnosticReport(identifier.Uri, Array.Empty<VisualStudio.LanguageServer.Protocol.Diagnostic>(), version: null, resultId: null))
+        });
+
+    protected override WorkspaceDiagnosticReport CreateUnchangedReport(TextDocumentIdentifier identifier, string resultId)
+        => new(new[]
+        {
+            new WorkspaceDocumentDiagnosticReport(new WorkspaceUnchangedDocumentDiagnosticReport(identifier.Uri, resultId, version: null))
+        });
 
     protected override WorkspaceDiagnosticReport? CreateReturn(BufferedProgress<WorkspaceDiagnosticReport> progress)
     {
@@ -56,16 +60,8 @@ internal class ExperimentalWorkspacePullDiagnosticsHandler : AbstractPullDiagnos
         return null;
     }
 
-    protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, Document document, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
-    {
-        var diagnostics = await _analyzerService.GetDiagnosticsForSpanAsync(document, range: null, cancellationToken: cancellationToken).ConfigureAwait(false);
-        return diagnostics;
-    }
-
-    protected override ValueTask<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, CancellationToken cancellationToken)
-    {
-        return WorkspacePullDiagnosticHandler.GetWorkspacePullDocumentsAsync(context, DiagnosticService.GlobalOptions, cancellationToken);
-    }
+    protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
+        => WorkspacePullDiagnosticHandler.GetDiagnosticSourcesAsync(context, GlobalOptions, cancellationToken);
 
     protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(WorkspaceDiagnosticParams diagnosticsParams)
     {

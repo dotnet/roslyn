@@ -20,13 +20,14 @@ Imports Microsoft.VisualStudio.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigableSymbols
 
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.NavigableSymbols)>
     Public Class NavigableSymbolsTest
 
         Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures.AddParts(
             GetType(MockDocumentNavigationServiceProvider),
             GetType(MockSymbolNavigationServiceProvider))
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigableSymbols)>
+        <WpfFact>
         Public Async Function TestCharp() As Task
             Dim markup = "
 class {|target:C|}
@@ -44,7 +45,7 @@ class {|target:C|}
         End Function
 
         <WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigableSymbols)>
+        <WpfFact>
         Public Async Function TestCharpLiteral() As Task
             Dim markup = "int x = 1$$23;"
             Dim text As String = Nothing
@@ -58,7 +59,7 @@ class {|target:C|}
         End Function
 
         <WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigableSymbols)>
+        <WpfFact>
         Public Async Function TestCharpStringLiteral() As Task
             Dim markup = "string x = ""w$$ow"";"
             Dim text As String = Nothing
@@ -71,7 +72,7 @@ class {|target:C|}
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigableSymbols)>
+        <WpfFact>
         Public Async Function TestVB() As Task
             Dim markup = "
 Class {|target:C|}
@@ -87,8 +88,7 @@ End Class"
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigableSymbols)>
-        <WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
+        <WpfFact, WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
         Public Async Function TestVBLiteral() As Task
             Dim markup = "Dim x as Integer = 1$$23"
             Dim text As String = Nothing
@@ -101,8 +101,7 @@ End Class"
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigableSymbols)>
-        <WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
+        <WpfFact, WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
         Public Async Function TestVBStringLiteral() As Task
             Dim markup = "Dim x as String = ""w$$ow"";"
             Dim text As String = Nothing
@@ -117,9 +116,8 @@ End Class"
 
         Private Shared Function ExtractSymbol(workspace As TestWorkspace, position As Integer) As Task(Of INavigableSymbol)
             Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
-            Dim presenter = New MockStreamingFindUsagesPresenter(workspace.GlobalOptions, Sub() Return)
             Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
-            Dim service = New NavigableSymbolService(workspace.ExportProvider.GetExportedValue(Of IUIThreadOperationExecutor)(), threadingContext, presenter, listenerProvider)
+            Dim service = New NavigableSymbolService(workspace.ExportProvider.GetExportedValue(Of IUIThreadOperationExecutor)(), threadingContext, listenerProvider)
             Dim view = workspace.Documents.First().GetTextView()
             Dim buffer = workspace.Documents.First().GetTextBuffer()
             Dim triggerSpan = New SnapshotSpan(buffer.CurrentSnapshot, New Span(position, 0))

@@ -193,7 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
 
             // We may need to look up source code within this solution
-            if (preferredLocation == null && symbol.Locations.Any(loc => loc.IsInMetadata))
+            if (preferredLocation == null && symbol.Locations.Any(static loc => loc.IsInMetadata))
             {
                 var newSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, contextProject.Solution, cancellationToken).ConfigureAwait(false);
                 if (newSymbol != null)
@@ -325,7 +325,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         private static void UpdateLabelsForNode(ISymbol symbol, Solution solution, GraphNode node)
         {
-            var progressionLanguageService = solution.Workspace.Services.GetLanguageServices(symbol.Language).GetService<IProgressionLanguageService>();
+            var progressionLanguageService = solution.Services.GetLanguageServices(symbol.Language).GetService<IProgressionLanguageService>();
 
             // A call from unittest may not have a proper language service.
             if (progressionLanguageService != null)

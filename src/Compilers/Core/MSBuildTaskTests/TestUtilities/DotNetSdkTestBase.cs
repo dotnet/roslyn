@@ -11,6 +11,7 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
@@ -46,6 +47,7 @@ public class TestClass
 }
 ";
 
+        protected readonly ITestOutputHelper TestOutputHelper;
         protected readonly TempDirectory ProjectDir;
         protected readonly TempDirectory ObjDir;
         protected readonly TempDirectory OutDir;
@@ -89,14 +91,17 @@ public class TestClass
         private static void EmitTestHelperProps(
             string objDirectory,
             string projectFileName,
-            string? content)
+            string? content,
+            ArtifactUploadUtil? uploadUtil)
         {
             // Common.props automatically import {project-name}.*.props files from MSBuildProjectExtensionsPath directory, 
             // which is by default set to the IntermediateOutputPath:
-            File.WriteAllText(Path.Combine(objDirectory, projectFileName + ".TestHelpers.g.props"),
+            var filePath = Path.Combine(objDirectory, projectFileName + ".TestHelpers.g.props");
+            File.WriteAllText(filePath,
 $@"<Project>
 {content}
 </Project>");
+            uploadUtil?.AddFile(filePath);
         }
 
         private static void EmitTestHelperTargets(
@@ -104,11 +109,13 @@ $@"<Project>
             string outputFile,
             string projectFileName,
             IEnumerable<string> expressions,
-            string? additionalContent)
+            string? additionalContent,
+            ArtifactUploadUtil? uploadUtil)
         {
             // Common.targets automatically import {project-name}.*.targets files from MSBuildProjectExtensionsPath directory, 
             // which is by defautl set to the IntermediateOutputPath:
-            File.WriteAllText(Path.Combine(objDirectory, projectFileName + ".TestHelpers.g.targets"),
+            var filePath = Path.Combine(objDirectory, projectFileName + ".TestHelpers.g.targets");
+            File.WriteAllText(filePath,
 $@"<Project>      
   <Target Name=""Test_EvaluateExpressions"">
     <PropertyGroup>
@@ -133,9 +140,11 @@ $@"<Project>
 
 {additionalContent}
 </Project>");
+
+            uploadUtil?.AddFile(filePath);
         }
 
-        public DotNetSdkTestBase()
+        public DotNetSdkTestBase(ITestOutputHelper testOutputHelper)
         {
             Assert.True(s_dotnetInstallDir is object, $"SDK not found. Use {nameof(ConditionalFactAttribute)}(typeof({nameof(DotNetSdkAvailable)})) to skip the test if the SDK is not found.");
             Debug.Assert(s_dotnetInstallDir is object);
@@ -144,12 +153,16 @@ $@"<Project>
             var testBinDirectory = Path.GetDirectoryName(typeof(DotNetSdkTests).Assembly.Location) ?? string.Empty;
             var sdksDir = Path.Combine(s_dotnetSdkPath ?? string.Empty, "Sdks");
 
+            TestOutputHelper = testOutputHelper;
             ProjectName = "test";
             ProjectFileName = ProjectName + ".csproj";
             Configuration = "Debug";
             TargetFramework = "netstandard2.0";
 
+            using var uploadUtil = new ArtifactUploadUtil(testOutputHelper);
             ProjectDir = Temp.CreateDirectory();
+            uploadUtil.AddDirectory(ProjectDir.Path);
+
             ObjDir = ProjectDir.CreateDirectory("obj");
             OutDir = ProjectDir.CreateDirectory("bin").CreateDirectory(Configuration).CreateDirectory(TargetFramework);
 
@@ -182,18 +195,21 @@ $@"<Project>
             Assert.True(File.Exists(Path.Combine(ObjDir.Path, "project.assets.json")));
             Assert.True(File.Exists(Path.Combine(ObjDir.Path, ProjectFileName + ".nuget.g.props")));
             Assert.True(File.Exists(Path.Combine(ObjDir.Path, ProjectFileName + ".nuget.g.targets")));
+            uploadUtil.SetSucceeded();
         }
 
         protected void VerifyValues(string? customProps, string? customTargets, string[] targets, string[] expressions, string[] expectedResults)
         {
+            using var uploadUtil = new ArtifactUploadUtil(TestOutputHelper);
             var evaluationResultsFile = Path.Combine(OutDir.Path, "EvaluationResult.txt");
 
-            EmitTestHelperProps(ObjDir.Path, ProjectFileName, customProps);
-            EmitTestHelperTargets(ObjDir.Path, evaluationResultsFile, ProjectFileName, expressions, customTargets);
+            EmitTestHelperProps(ObjDir.Path, ProjectFileName, customProps, uploadUtil);
+            EmitTestHelperTargets(ObjDir.Path, evaluationResultsFile, ProjectFileName, expressions, customTargets, uploadUtil);
 
             var targetsArg = string.Join(";", targets.Concat(new[] { "Test_EvaluateExpressions" }));
             var testBinDirectory = Path.GetDirectoryName(typeof(DotNetSdkTests).Assembly.Location);
             var binLog = Path.Combine(ProjectDir.Path, $"build{_logIndex++}.binlog");
+            uploadUtil.AddFile(binLog);
 
             // RoslynTargetsPath is a path to the built-in Roslyn compilers in the .NET SDK.
             // For testing we are using compilers from custom location (this emulates usage of Microsoft.Net.Compilers package.
@@ -204,6 +220,8 @@ $@"<Project>
 
             var evaluationResult = File.ReadAllLines(evaluationResultsFile).Select(l => (l != EmptyValueMarker) ? l : "");
             AssertEx.Equal(expectedResults, evaluationResult);
+
+            uploadUtil.SetSucceeded();
         }
     }
 }

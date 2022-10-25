@@ -24,21 +24,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private _methodValue As LocalSymbol
             Private _tryNestingLevel As Integer
 
-            Friend Sub New(method As MethodSymbol,
-                           F As SyntheticBoundNodeFactory,
+            Friend Sub New(F As SyntheticBoundNodeFactory,
                            state As FieldSymbol,
                            current As FieldSymbol,
                            hoistedVariables As IReadOnlySet(Of Symbol),
                            localProxies As Dictionary(Of Symbol, FieldSymbol),
-                           SynthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser,
+                           stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                            slotAllocatorOpt As VariableSlotAllocator,
-                           nextFreeHoistedLocalSlot As Integer,
                            diagnostics As BindingDiagnosticBag)
 
-                MyBase.New(F, state, hoistedVariables, localProxies, SynthesizedLocalOrdinals, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
+                MyBase.New(F, state, hoistedVariables, localProxies, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, diagnostics)
 
-                Me._current = current
+                _current = current
             End Sub
+
+            Protected Overrides ReadOnly Property FirstIncreasingResumableState As StateMachineState
+                Get
+                    Return StateMachineState.FirstResumableIteratorState
+                End Get
+            End Property
+
+            Protected Overrides ReadOnly Property EncMissingStateMessage As String
+                Get
+                    Return CodeAnalysisResources.EncCannotResumeSuspendedIteratorMethod
+                End Get
+            End Property
 
             Public Sub GenerateMoveNextAndDispose(Body As BoundStatement,
                                            moveNextMethod As SynthesizedMethod,
@@ -47,9 +57,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Generate the body for MoveNext()
                 F.CurrentMethod = moveNextMethod
 
-                Dim initialStateInfo = AddState()
-                Dim initialState As Integer = initialStateInfo.Number
-                Dim initialLabel As GeneratedLabelSymbol = initialStateInfo.ResumeLabel
+                Dim initialLabel As GeneratedLabelSymbol = Nothing
+                AddState(StateMachineState.InitialIteratorState, initialLabel)
 
                 Me._methodValue = Me.F.SynthesizedLocal(F.CurrentMethod.ReturnType, SynthesizedLocalKind.StateMachineReturnValue, F.Syntax)
 
@@ -71,10 +80,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ImmutableArray.Create(Me._methodValue, Me.CachedState),
                         SyntheticBoundNodeFactory.HiddenSequencePoint(),
                         F.Assignment(Me.F.Local(Me.CachedState, True), F.Field(F.Me, Me.StateField, False)),
-                        Dispatch(),
+                        Dispatch(isOutermost:=True),
                         GenerateReturn(finished:=True),
                         F.Label(initialLabel),
-                        F.Assignment(F.Field(F.Me, Me.StateField, True), Me.F.AssignmentExpression(Me.F.Local(Me.CachedState, True), Me.F.Literal(StateMachineStates.NotStartedStateMachine))),
+                        F.Assignment(F.Field(F.Me, Me.StateField, True), Me.F.AssignmentExpression(Me.F.Local(Me.CachedState, True), Me.F.Literal(StateMachineState.NotStartedOrRunningState))),
                         newBody,
                         HandleReturn()
                     ))
@@ -98,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         F.Select(
                             F.Field(F.Me, Me.StateField, False),
                             sections),
-                        F.Assignment(F.Field(F.Me, Me.StateField, True), F.Literal(StateMachineStates.NotStartedStateMachine)),
+                        F.Assignment(F.Field(F.Me, Me.StateField, True), F.Literal(StateMachineState.NotStartedOrRunningState)),
                         F.Label(breakLabel),
                         F.ExpressionStatement(F.Call(F.Me, moveNextMethod)),
                         F.Return()
@@ -180,15 +189,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '     return true
                 ' <next_state_label>: 
                 '     Me.state = -1
-                Dim newState = AddState()
+
+                Dim stateNumber As StateMachineState = 0
+                Dim resumeLabel As GeneratedLabelSymbol = Nothing
+                AddResumableState(node.Syntax, stateNumber, resumeLabel)
+
                 Return F.SequencePoint(
                     node.Syntax,
                     F.Block(
                         F.Assignment(F.Field(F.Me, Me._current, True), DirectCast(Visit(node.Expression), BoundExpression)),
-                        F.Assignment(F.Field(F.Me, Me.StateField, True), F.AssignmentExpression(F.Local(Me.CachedState, True), F.Literal(newState.Number))),
+                        F.Assignment(F.Field(F.Me, Me.StateField, True), F.AssignmentExpression(F.Local(Me.CachedState, True), F.Literal(stateNumber))),
                         GenerateReturn(finished:=False),
-                        F.Label(newState.ResumeLabel),
-                        F.Assignment(F.Field(F.Me, Me.StateField, True), F.AssignmentExpression(F.Local(Me.CachedState, True), F.Literal(StateMachineStates.NotStartedStateMachine)))
+                        F.Label(resumeLabel),
+                        F.Assignment(F.Field(F.Me, Me.StateField, True), F.AssignmentExpression(F.Local(Me.CachedState, True), F.Literal(StateMachineState.NotStartedOrRunningState)))
                     )
                 )
 

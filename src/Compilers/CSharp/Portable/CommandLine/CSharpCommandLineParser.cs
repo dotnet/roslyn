@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool embedAllSourceFiles = false;
             bool resourcesOrModulesSpecified = false;
             Encoding? codepage = null;
-            var checksumAlgorithm = SourceHashAlgorithmUtils.DefaultContentHashAlgorithm;
+            var checksumAlgorithm = SourceHashAlgorithms.Default;
             var defines = ArrayBuilder<string>.GetInstance();
             List<CommandLineReference> metadataReferences = new List<CommandLineReference>();
             List<CommandLineAnalyzerReference> analyzers = new List<CommandLineAnalyzerReference>();
@@ -956,7 +956,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else if (newWarningLevel < 0)
                             {
-                                AddDiagnostic(diagnostics, ErrorCode.ERR_BadWarningLevel, name);
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_BadWarningLevel);
                             }
                             else
                             {
@@ -1947,7 +1947,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (pathCount > 1)
                 {
                     commandLineReferences.RemoveRange(commandLineReferences.Count - pathCount, pathCount);
-                    AddDiagnostic(diagnostics, ErrorCode.ERR_OneAliasPerReference, value.ToString());
+                    AddDiagnostic(diagnostics, ErrorCode.ERR_OneAliasPerReference);
                     return;
                 }
 

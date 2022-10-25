@@ -73,6 +73,18 @@ namespace Roslyn.Utilities
             builder.Add(value);
         }
 
+        public static void MultiAddRange<TKey, TValue>(this IDictionary<TKey, ArrayBuilder<TValue>> dictionary, TKey key, IEnumerable<TValue> values)
+            where TKey : notnull
+        {
+            if (!dictionary.TryGetValue(key, out var builder))
+            {
+                builder = ArrayBuilder<TValue>.GetInstance();
+                dictionary.Add(key, builder);
+            }
+
+            builder.AddRange(values);
+        }
+
         public static bool MultiAdd<TKey, TValue>(this IDictionary<TKey, ImmutableHashSet<TValue>> dictionary, TKey key, TValue value, IEqualityComparer<TValue>? comparer = null)
             where TKey : notnull
         {

@@ -16,9 +16,11 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
+using Newtonsoft.Json;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
@@ -43,9 +45,10 @@ namespace Microsoft.CodeAnalysis.Classification
             IThreadingContext threadingContext,
             ClassificationTypeMap typeMap,
             IGlobalOptionService globalOptions,
+            ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider,
             ClassificationType type)
-            : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.Classification))
+            : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Classification))
         {
             _typeMap = typeMap;
             _globalOptions = globalOptions;
@@ -54,9 +57,10 @@ namespace Microsoft.CodeAnalysis.Classification
 
         protected sealed override TaggerDelay EventChangeDelay => TaggerDelay.Short;
 
-        protected sealed override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
+        protected sealed override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
+            Contract.ThrowIfNull(textView);
 
             // Note: we don't listen for OnTextChanged.  They'll get reported by the ViewSpan changing and also the
             // SemanticChange notification. 
@@ -70,12 +74,13 @@ namespace Microsoft.CodeAnalysis.Classification
                 TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, AsyncListener),
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, ClassificationOptionsStorage.ClassifyReassignedVariables));
+                TaggerEventSources.OnGlobalOptionChanged(_globalOptions, ClassificationOptionsStorage.ClassifyReassignedVariables));
         }
 
-        protected sealed override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
+        protected sealed override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
+            Contract.ThrowIfNull(textView);
 
             // Find the visible span some 100 lines +/- what's actually in view.  This way
             // if the user scrolls up/down, we'll already have the results.
@@ -107,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
             // The LSP client will handle producing tags when running under the LSP editor.
             // Our tagger implementation should return nothing to prevent conflicts.
-            var workspaceContextService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceContextService>();
+            var workspaceContextService = document.Project.Solution.Services.GetRequiredService<IWorkspaceContextService>();
             if (workspaceContextService?.IsInLspEditorContext() == true)
                 return Task.CompletedTask;
 
@@ -120,5 +125,8 @@ namespace Microsoft.CodeAnalysis.Classification
             return ClassificationUtilities.ProduceTagsAsync(
                 context, spanToTag, classificationService, _typeMap, classificationOptions, _type, cancellationToken);
         }
+
+        protected override bool TagEquals(IClassificationTag tag1, IClassificationTag tag2)
+            => tag1.ClassificationType.Classification == tag2.ClassificationType.Classification;
     }
 }

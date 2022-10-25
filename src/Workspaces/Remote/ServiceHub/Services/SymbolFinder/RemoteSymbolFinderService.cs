@@ -2,15 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -34,17 +34,15 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask FindReferencesAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             RemoteServiceCallbackId callbackId,
             SerializableSymbolAndProjectId symbolAndProjectIdArg,
             ImmutableArray<DocumentId> documentArgs,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-
                 var symbol = await symbolAndProjectIdArg.TryRehydrateAsync(
                     solution, cancellationToken).ConfigureAwait(false);
 
@@ -70,12 +68,11 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public ValueTask FindLiteralReferencesAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, object value, TypeCode typeCode, CancellationToken cancellationToken)
+        public ValueTask FindLiteralReferencesAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, object value, TypeCode typeCode, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
                 var convertedType = System.Convert.ChangeType(value, typeCode);
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
 
                 var progressCallback = new FindLiteralReferencesProgressCallback(_callback, callbackId);
                 await SymbolFinder.FindLiteralReferencesInCurrentProcessAsync(
@@ -94,17 +91,16 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<ImmutableArray<SerializableSymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             ProjectId projectId,
             string name,
             SearchKind searchKind,
             SymbolFilter criteria,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                var project = solution.GetProject(projectId);
+                var project = solution.GetRequiredProject(projectId);
 
                 using var query = SearchQuery.Create(name, searchKind);
 
@@ -116,15 +112,14 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<ImmutableArray<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithNormalQueryAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             string name,
             bool ignoreCase,
             SymbolFilter criteria,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var result = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
                     solution, name, ignoreCase, criteria, cancellationToken).ConfigureAwait(false);
 
@@ -133,17 +128,16 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<ImmutableArray<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithNormalQueryAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             ProjectId projectId,
             string name,
             bool ignoreCase,
             SymbolFilter criteria,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                var project = solution.GetProject(projectId);
+                var project = solution.GetRequiredProject(projectId);
 
                 var result = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
                     project, name, ignoreCase, criteria, cancellationToken).ConfigureAwait(false);
@@ -153,12 +147,10 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<ImmutableArray<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithPatternAsync(
-            PinnedSolutionInfo solutionInfo, string pattern, SymbolFilter criteria, CancellationToken cancellationToken)
+            Checksum solutionChecksum, string pattern, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-
                 var result = await DeclarationFinder.FindSourceDeclarationsWithPatternInCurrentProcessAsync(
                     solution, pattern, criteria, cancellationToken).ConfigureAwait(false);
 
@@ -167,12 +159,11 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<ImmutableArray<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithPatternAsync(
-            PinnedSolutionInfo solutionInfo, ProjectId projectId, string pattern, SymbolFilter criteria, CancellationToken cancellationToken)
+            Checksum solutionChecksum, ProjectId projectId, string pattern, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                var project = solution.GetProject(projectId);
+                var project = solution.GetRequiredProject(projectId);
 
                 var result = await DeclarationFinder.FindSourceDeclarationsWithPatternInCurrentProcessAsync(
                     project, pattern, criteria, cancellationToken).ConfigureAwait(false);

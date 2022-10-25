@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -92,10 +92,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     Contract.ThrowIfFalse(unused.Count == 0);
                 }
 
-                var thisParameterBeingRead = (IParameterSymbol?)dataFlowAnalysisData.ReadInside.FirstOrDefault(s => IsThisParameter(s));
-                var isThisParameterWritten = dataFlowAnalysisData.WrittenInside.Any(s => IsThisParameter(s));
+                var thisParameterBeingRead = (IParameterSymbol?)dataFlowAnalysisData.ReadInside.FirstOrDefault(IsThisParameter);
+                var isThisParameterWritten = dataFlowAnalysisData.WrittenInside.Any(static s => IsThisParameter(s));
 
-                var localFunctionCallsNotWithinSpan = symbolMap.Keys.Where(s => s.IsLocalFunction() && !s.Locations.Any(l => SelectionResult.FinalSpan.Contains(l.SourceSpan)));
+                var localFunctionCallsNotWithinSpan = symbolMap.Keys.Where(s => s.IsLocalFunction() && !s.Locations.Any(static (l, self) => self.SelectionResult.FinalSpan.Contains(l.SourceSpan), this));
 
                 // Checks to see if selection includes a local function call + if the given local function declaration is not included in the selection.
                 var containsAnyLocalFunctionCallNotWithinSpan = localFunctionCallsNotWithinSpan.Any();
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             private Dictionary<ISymbol, List<SyntaxToken>> GetSymbolMap(SemanticModel model)
             {
-                var syntaxFactsService = _semanticDocument.Document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFactsService = _semanticDocument.Document.Project.Services.GetService<ISyntaxFactsService>();
                 var context = SelectionResult.GetContainingScope();
                 var symbolMap = SymbolMapBuilder.Build(syntaxFactsService, model, context, SelectionResult.FinalSpan, CancellationToken);
                 return symbolMap;
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 // check whether the selection contains "&" over a symbol exist
                 var map = new HashSet<ISymbol>(dataFlowAnalysisData.UnsafeAddressTaken);
-                return symbols.Any(s => map.Contains(s));
+                return symbols.Any(map.Contains);
             }
 
             private DataFlowAnalysis GetDataFlowAnalysisData(SemanticModel model)
@@ -589,7 +589,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 // we probably need to move the API to syntaxFact service not semanticFact.
                 //
                 // if one wants to get result that also considers semantic, he should use data control flow analysis API.
-                var semanticFacts = _semanticDocument.Document.Project.LanguageServices.GetRequiredService<ISemanticFactsService>();
+                var semanticFacts = _semanticDocument.Document.Project.Services.GetRequiredService<ISemanticFactsService>();
                 return tokens.Any(t => semanticFacts.IsWrittenTo(model, t.Parent, CancellationToken.None));
             }
 
@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             private static bool UserDefinedValueType(Compilation compilation, ITypeSymbol type)
             {
-                if (!type.IsValueType || type.IsPointerType() || type.IsEnumType())
+                if (!type.IsValueType || type is IPointerTypeSymbol || type.IsEnumType())
                 {
                     return false;
                 }
@@ -912,7 +912,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
 
                 List<string>? names = null;
-                var semanticFacts = _semanticDocument.Document.Project.LanguageServices.GetRequiredService<ISemanticFactsService>();
+                var semanticFacts = _semanticDocument.Document.Project.Services.GetRequiredService<ISemanticFactsService>();
                 foreach (var pair in symbolMap.Where(p => p.Key.Kind == SymbolKind.Field))
                 {
                     var field = (IFieldSymbol)pair.Key;

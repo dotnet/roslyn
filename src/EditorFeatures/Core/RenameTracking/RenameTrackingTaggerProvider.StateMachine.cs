@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -34,8 +34,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         /// Keeps track of the rename tracking state for a given text buffer by tracking its
         /// changes over time.
         /// </summary>
-        private sealed class StateMachine : ForegroundThreadAffinitizedObject
+        private sealed class StateMachine
         {
+            public readonly IThreadingContext ThreadingContext;
+
             private readonly IInlineRenameService _inlineRenameService;
             private readonly IAsynchronousOperationListener _asyncListener;
             private readonly ITextBuffer _buffer;
@@ -62,8 +64,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 IDiagnosticAnalyzerService diagnosticAnalyzerService,
                 IGlobalOptionService globalOptions,
                 IAsynchronousOperationListener asyncListener)
-                : base(threadingContext)
             {
+                ThreadingContext = threadingContext;
                 _buffer = buffer;
                 _buffer.Changed += Buffer_Changed;
                 _inlineRenameService = inlineRenameService;
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             private void Buffer_Changed(object sender, TextContentChangedEventArgs e)
             {
-                AssertIsForeground();
+                ThreadingContext.ThrowIfNotOnUIThread();
 
                 if (!GlobalOptions.GetOption(InternalFeatureOnOffOptions.RenameTracking))
                 {
@@ -129,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             public void UpdateTrackingSessionIfRenamable()
             {
-                AssertIsForeground();
+                ThreadingContext.ThrowIfNotOnUIThread();
                 if (this.TrackingSession.IsDefinitelyRenamableIdentifier())
                 {
                     this.TrackingSession.CheckNewIdentifier(this, _buffer.CurrentSnapshot);
@@ -139,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             private bool ShouldClearTrackingSession(ITextChange change)
             {
-                AssertIsForeground();
+                ThreadingContext.ThrowIfNotOnUIThread();
                 if (!TryGetSyntaxFactsService(out var syntaxFactsService))
                 {
                     return true;
@@ -159,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             private void StartTrackingSession(TextContentChangedEventArgs eventArgs)
             {
-                AssertIsForeground();
+                ThreadingContext.ThrowIfNotOnUIThread();
                 ClearTrackingSession();
 
                 if (_inlineRenameService.ActiveSession != null)
@@ -204,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             public bool ClearTrackingSession()
             {
-                AssertIsForeground();
+                ThreadingContext.ThrowIfNotOnUIThread();
 
                 if (this.TrackingSession != null)
                 {
@@ -228,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             public bool ClearVisibleTrackingSession()
             {
-                AssertIsForeground();
+                ThreadingContext.ThrowIfNotOnUIThread();
 
                 if (this.TrackingSession != null && this.TrackingSession.IsDefinitelyRenamableIdentifier())
                 {
@@ -259,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             internal int StoreCurrentTrackingSessionAndGenerateId()
             {
-                AssertIsForeground();
+                ThreadingContext.ThrowIfNotOnUIThread();
 
                 var existingIndex = _committedSessions.IndexOf(TrackingSession);
                 if (existingIndex >= 0)
@@ -314,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                                 trackingSession.OriginalName,
                                 snapshotSpan.GetText());
 
-                            return (new RenameTrackingCodeAction(document, title, refactorNotifyServices, undoHistoryRegistry, GlobalOptions),
+                            return (new RenameTrackingCodeAction(ThreadingContext, document, title, refactorNotifyServices, undoHistoryRegistry, GlobalOptions),
                                     snapshotSpan.Span.ToTextSpan());
                         }
                     }
@@ -323,13 +325,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
             public void RestoreTrackingSession(int trackingSessionId)
             {
-                AssertIsForeground();
+                ThreadingContext.ThrowIfNotOnUIThread();
                 ClearTrackingSession();
 
                 this.TrackingSession = _committedSessions[trackingSessionId];
@@ -338,7 +340,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             public void OnTrackingSessionUpdated(TrackingSession trackingSession)
             {
-                AssertIsForeground();
+                ThreadingContext.ThrowIfNotOnUIThread();
 
                 if (this.TrackingSession == trackingSession)
                 {
@@ -376,13 +378,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             public void Connect()
             {
-                AssertIsForeground();
+                ThreadingContext.ThrowIfNotOnUIThread();
                 _refCount++;
             }
 
             public void Disconnect()
             {
-                AssertIsForeground();
+                ThreadingContext.ThrowIfNotOnUIThread();
                 _refCount--;
                 Contract.ThrowIfFalse(_refCount >= 0);
 

@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundEvaluationDecisionDagNode p:
                         {
                             var evaluation = p.Evaluation;
-                            (int inputSlot, TypeSymbol inputType) = tempMap.TryGetValue(evaluation.Input, out var slotAndType) ? slotAndType : throw ExceptionUtilities.Unreachable;
+                            (int inputSlot, TypeSymbol inputType) = tempMap.TryGetValue(evaluation.Input, out var slotAndType) ? slotAndType : throw ExceptionUtilities.Unreachable();
                             Debug.Assert(inputSlot > 0);
 
                             switch (evaluation)
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         var output = new BoundDagTemp(e.Syntax, e.Type, e);
                                         var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                                         int outputSlot;
-                                        switch (_conversions.WithNullability(false).ClassifyConversionFromType(inputType, e.Type, ref discardedUseSiteInfo).Kind)
+                                        switch (_conversions.WithNullability(false).ClassifyConversionFromType(inputType, e.Type, isChecked: false, ref discardedUseSiteInfo).Kind)
                                         {
                                             case ConversionKind.Identity:
                                             case ConversionKind.ImplicitReference:
@@ -705,7 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                return _conversions.WithNullability(false).ClassifyConversionFromType(derivedType, baseType, ref discardedUseSiteInfo).Kind switch
+                return _conversions.WithNullability(false).ClassifyConversionFromType(derivedType, baseType, isChecked: false, ref discardedUseSiteInfo).Kind switch
                 {
                     ConversionKind.Identity => true,
                     ConversionKind.ImplicitReference => true,

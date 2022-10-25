@@ -40,12 +40,12 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// An .exe that can run in an app container.
-        /// </summary>
-        /// <remarks>
+        /// <para>
         /// Equivalent to a WindowsApplication, but with an extra bit set in the Portable Executable file
         /// so that the application can only be run in an app container.
         /// Also known as a "Windows Store app".
-        /// </remarks>
+        /// </para>
+        /// </summary>
         WindowsRuntimeApplication = 5,
     }
 

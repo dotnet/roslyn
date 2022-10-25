@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,6 +21,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         Task AnalyzeProjectAsync(Project project, bool semanticsChanged, UnitTestingInvocationReasonsWrapper reasons, CancellationToken cancellationToken);
         void RemoveDocument(DocumentId documentId);
         void RemoveProject(ProjectId projectId);
+
+        [Obsolete]
         bool NeedsReanalysisOnOptionChanged(object sender, UnitTestingOptionChangedEventArgsWrapper e);
     }
 }

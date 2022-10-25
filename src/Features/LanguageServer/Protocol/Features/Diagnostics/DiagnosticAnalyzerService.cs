@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private const string DiagnosticsUpdatedEventName = "DiagnosticsUpdated";
 
         // use eventMap and taskQueue to serialize events
-        private readonly EventMap _eventMap;
+        private readonly EventMap _eventMap = new();
         private readonly TaskQueue _eventQueue;
 
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; private set; }
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public IAsynchronousOperationListener Listener { get; }
         public IGlobalOptionService GlobalOptions { get; }
 
-        private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer> _map;
+        private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer> _map = new();
         private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>.CreateValueCallback _createIncrementalAnalyzer;
 
         [ImportingConstructor]
@@ -44,15 +44,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DiagnosticAnalyzerService(
             IDiagnosticUpdateSourceRegistrationService registrationService,
             IAsynchronousOperationListenerProvider listenerProvider,
+            DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache,
             IGlobalOptionService globalOptions)
         {
-            AnalyzerInfoCache = new DiagnosticAnalyzerInfoCache();
+            AnalyzerInfoCache = globalCache.AnalyzerInfoCache;
             Listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
             GlobalOptions = globalOptions;
 
-            _map = new ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>();
             _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
-            _eventMap = new EventMap();
 
             _eventQueue = new TaskQueue(Listener, TaskScheduler.Default);
 
@@ -69,22 +68,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, ArrayBuilder<DiagnosticData> diagnostics, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+        public Task<(ImmutableArray<DiagnosticData> diagnostics, bool upToDate)> TryGetDiagnosticsForSpanAsync(
+            Document document,
+            TextSpan range,
+            Func<string, bool>? shouldIncludeDiagnostic,
+            bool includeSuppressedDiagnostics = false,
+            CodeActionRequestPriority priority = CodeActionRequestPriority.None,
+            CancellationToken cancellationToken = default)
         {
             if (_map.TryGetValue(document.Project.Solution.Workspace, out var analyzer))
             {
                 // always make sure that analyzer is called on background thread.
-                return Task.Run(() => analyzer.TryAppendDiagnosticsForSpanAsync(
-                    document, range, diagnostics, shouldIncludeDiagnostic: null, includeSuppressedDiagnostics, CodeActionRequestPriority.None, blockForData: false, addOperationScope: null, cancellationToken), cancellationToken);
+                return Task.Run(async () =>
+                {
+                    using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
+                    var upToDate = await analyzer.TryAppendDiagnosticsForSpanAsync(
+                        document, range, diagnostics, shouldIncludeDiagnostic,
+                        includeSuppressedDiagnostics, true, priority, blockForData: false,
+                        addOperationScope: null, cancellationToken).ConfigureAwait(false);
+                    return (diagnostics.ToImmutable(), upToDate);
+                }, cancellationToken);
             }
 
-            return SpecializedTasks.False;
+            return Task.FromResult((ImmutableArray<DiagnosticData>.Empty, upToDate: false));
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
             Document document,
             TextSpan? range,
             Func<string, bool>? shouldIncludeDiagnostic,
+            bool includeCompilerDiagnostics,
             bool includeSuppressedDiagnostics,
             CodeActionRequestPriority priority,
             Func<string, IDisposable?>? addOperationScope,
@@ -94,8 +107,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // always make sure that analyzer is called on background thread.
                 return Task.Run(() => analyzer.GetDiagnosticsForSpanAsync(
-                    document, range, shouldIncludeDiagnostic, includeSuppressedDiagnostics, priority,
-                    blockForData: true, addOperationScope, cancellationToken), cancellationToken);
+                    document, range, shouldIncludeDiagnostic, includeSuppressedDiagnostics, includeCompilerDiagnostics,
+                    priority, blockForData: true, addOperationScope, cancellationToken), cancellationToken);
             }
 
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();

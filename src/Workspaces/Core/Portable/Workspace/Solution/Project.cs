@@ -94,12 +94,21 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// If <see langword="false"/> then <see cref="GetCompilationAsync(CancellationToken)"/> method will return <see langword="null"/> instead.
         /// </summary>
-        public bool SupportsCompilation => this.LanguageServices.GetService<ICompilationFactoryService>() != null;
+        public bool SupportsCompilation => this.Services.GetService<ICompilationFactoryService>() != null;
 
         /// <summary>
         /// The language services from the host environment associated with this project's language.
         /// </summary>
+        [Obsolete($"Use {nameof(Services)} instead.")]
         public HostLanguageServices LanguageServices => _projectState.LanguageServices;
+
+        /// <summary>
+        /// Immutable snapshot of language services from the host environment associated with this project's language.
+        /// Use this over <see cref="LanguageServices"/> when possible.
+        /// </summary>
+#pragma warning disable CS0618 // Type or member is obsolete. Use Services instead. - This is the implementation of Services.
+        public LanguageServices Services => LanguageServices.LanguageServices;
+#pragma warning restore CS0618 // Type or member is obsolete. Use Services instead. - This is the implementation of Services.
 
         /// <summary>
         /// The language associated with the project.
@@ -334,6 +343,11 @@ namespace Microsoft.CodeAnalysis
             }
 
             return ImmutableHashMapExtensions.GetOrAdd(ref _idToSourceGeneratedDocumentMap, documentId, s_createSourceGeneratedDocumentFunction, (documentState, this));
+        }
+
+        internal ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(CancellationToken cancellationToken)
+        {
+            return _solution.State.GetSourceGeneratorDiagnosticsAsync(this.State, cancellationToken);
         }
 
         internal Task<bool> ContainsSymbolsWithNameAsync(
@@ -769,7 +783,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal AnalyzerConfigOptionsResult? GetAnalyzerConfigOptions()
+        internal AnalyzerConfigData? GetAnalyzerConfigOptions()
             => _projectState.GetAnalyzerConfigOptions();
 
         private string GetDebuggerDisplay()

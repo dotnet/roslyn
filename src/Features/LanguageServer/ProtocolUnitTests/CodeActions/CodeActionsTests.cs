@@ -25,12 +25,17 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
 {
     public class CodeActionsTests : AbstractLanguageServerProtocolTests
     {
+        public CodeActionsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         [WpfFact]
         public async Task TestCodeActionHandlerAsync()
         {
@@ -42,7 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         {|caret:|}int i = 1;
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var caretLocation = testLspServer.GetLocations("caret").Single();
             var expected = CreateCodeAction(
@@ -75,7 +80,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         int {|caret:|}i = 1;
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
 
             var caretLocation = testLspServer.GetLocations("caret").Single();
             var expected = CreateCodeAction(
@@ -86,14 +91,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                     FeaturesResources.Introduce_constant + '|' + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                     caretLocation),
                 priority: VSInternalPriorityLevel.Normal,
-                groupName: "Roslyn2",
+                groupName: "Roslyn3",
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 12 }, End = new Position { Line = 4, Character = 12 } },
                 diagnostics: null);
 
             var results = await RunGetCodeActionsAsync(testLspServer, CreateCodeActionParams(caretLocation));
-            var introduceConstant = results[0].Children.FirstOrDefault(
-                r => ((JObject)r.Data).ToObject<CodeActionResolveData>().UniqueIdentifier == FeaturesResources.Introduce_constant
-                + '|' + string.Format(FeaturesResources.Introduce_constant_for_0, "1"));
+
+            var topLevelAction = Assert.Single(results.Where(action => action.Title == FeaturesResources.Introduce_constant));
+            var expectedChildActionTitle = FeaturesResources.Introduce_constant + '|' + string.Format(FeaturesResources.Introduce_constant_for_0, "1");
+            var introduceConstant = topLevelAction.Children.FirstOrDefault(
+                r => ((JObject)r.Data).ToObject<CodeActionResolveData>().UniqueIdentifier == expectedChildActionTitle);
 
             AssertJsonEquals(expected, introduceConstant);
         }
@@ -109,7 +116,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         {|caret:|}int i = 1;
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
             var cache = GetCodeActionsCache(testLspServer);
             var testAccessor = cache.GetTestAccessor();
 
@@ -199,11 +206,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         {|caret:|}Task.Delay(1);
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
-
-            testLspServer.InitializeDiagnostics(BackgroundAnalysisScope.ActiveFile, DiagnosticMode.Default,
-                new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()));
-            await testLspServer.WaitForDiagnosticsAsync();
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var caret = testLspServer.GetLocations("caret").Single();
             var codeActionParams = new LSP.CodeActionParams
@@ -298,11 +301,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
 
         private static CodeActionsCache GetCodeActionsCache(TestLspServer testLspServer)
         {
-            var dispatchAccessor = testLspServer.GetDispatcherAccessor();
-            var handler = (CodeActionsHandler)dispatchAccessor.GetHandler<LSP.CodeActionParams, LSP.CodeAction[]>(LSP.Methods.TextDocumentCodeActionName);
-            Assert.NotNull(handler);
-            var cache = handler.GetTestAccessor().GetCache();
-            return Assert.IsType<CodeActionsCache>(cache);
+            var cache = testLspServer.GetRequiredLspService<CodeActionsCache>();
+            return cache;
         }
 
         private static Document GetDocument(Workspace workspace, LSP.TextDocumentIdentifier textDocument)

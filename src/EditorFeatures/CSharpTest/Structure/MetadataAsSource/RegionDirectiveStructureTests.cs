@@ -14,12 +14,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource
 {
+    [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
     public class RegionDirectiveStructureTests : AbstractCSharpSyntaxNodeStructureTests<RegionDirectiveTriviaSyntax>
     {
         protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
         internal override AbstractSyntaxStructureProvider CreateProvider() => new RegionDirectiveStructureProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact]
         public async Task FileHeader()
         {
             const string code = @"
@@ -28,10 +29,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
 #endregion|}";
 
             await VerifyBlockSpansAsync(code,
-                Region("span", "Assembly mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", autoCollapse: true));
+                Region("span", "Assembly mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", autoCollapse: true, isDefaultCollapsed: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact]
         public async Task EmptyFileHeader()
         {
             const string code = @"
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
 #endregion|}";
 
             await VerifyBlockSpansAsync(code,
-                Region("span", "#region", autoCollapse: true));
+                Region("span", "#region", autoCollapse: true, isDefaultCollapsed: true));
         }
     }
 }

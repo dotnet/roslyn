@@ -164,4 +164,51 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public string HintName { get; }
     }
+
+    /// <summary>
+    /// Contains timing information for a full generation pass.
+    /// </summary>
+    public readonly struct GeneratorDriverTimingInfo
+    {
+        internal GeneratorDriverTimingInfo(TimeSpan elapsedTime, ImmutableArray<GeneratorTimingInfo> generatorTimes)
+        {
+            ElapsedTime = elapsedTime;
+            GeneratorTimes = generatorTimes;
+        }
+
+        /// <summary>
+        /// The wall clock time that the entire generation pass took.
+        /// </summary>
+        /// <remarks>
+        /// This can be more than the sum of times in <see cref="GeneratorTimes"/> as it includes other costs such as setup.
+        /// </remarks>
+        public TimeSpan ElapsedTime { get; }
+
+        /// <summary>
+        /// Individual timings per generator.
+        /// </summary>
+        public ImmutableArray<GeneratorTimingInfo> GeneratorTimes { get; }
+    }
+
+    /// <summary>
+    /// Contains timing information for a single generator.
+    /// </summary>
+    public readonly struct GeneratorTimingInfo
+    {
+        internal GeneratorTimingInfo(ISourceGenerator generator, TimeSpan elapsedTime)
+        {
+            Generator = generator;
+            ElapsedTime = elapsedTime;
+        }
+
+        /// <summary>
+        /// The <see cref="ISourceGenerator"/> that was running during the recorded time.
+        /// </summary>
+        public ISourceGenerator Generator { get; }
+
+        /// <summary>
+        /// The wall clock time the generator spent running.
+        /// </summary>
+        public TimeSpan ElapsedTime { get; }
+    }
 }

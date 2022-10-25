@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         IImmutableSet<string> KindsProvided { get; }
         bool CanFilter { get; }
 
-        Task SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken);
+        IAsyncEnumerable<INavigateToSearchResult> SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, CancellationToken cancellationToken);
 
         /// <summary>
         /// Searches the documents inside <paramref name="project"/> for symbols that matches <paramref name="searchPattern"/>.
@@ -23,18 +22,18 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         /// be used to prioritize work.  Generates files should not be searched.  Results should be up to date with the actual
         /// document contents for the requested project.
         /// </summary>
-        Task SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken);
+        IAsyncEnumerable<INavigateToSearchResult> SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, CancellationToken cancellationToken);
 
         /// <summary>
         /// Searches the documents inside <paramref name="project"/> for symbols that matches <paramref name="searchPattern"/>.
         /// Results should be reported from a previous computed cache (even if that cache is out of date) to produce results as
         /// quickly as possible.
         /// </summary>
-        Task SearchCachedDocumentsAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken);
+        IAsyncEnumerable<INavigateToSearchResult> SearchCachedDocumentsAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, CancellationToken cancellationToken);
 
         /// <summary>
         /// Searches the generated documents inside <paramref name="project"/> for symbols that matches <paramref name="searchPattern"/>.
         /// </summary>
-        Task SearchGeneratedDocumentsAsync(Project project, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken);
+        IAsyncEnumerable<INavigateToSearchResult> SearchGeneratedDocumentsAsync(Project project, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, CancellationToken cancellationToken);
     }
 }

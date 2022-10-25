@@ -10,6 +10,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -20,6 +21,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -50,8 +52,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
             IThreadingContext threadingContext,
             IHighlightingService highlightingService,
             IGlobalOptionService globalOptions,
+            [Import(AllowDefault = true)] ITextBufferVisibilityTracker visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.KeywordHighlighting))
+            : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.KeywordHighlighting))
         {
             _highlightingService = highlightingService;
         }
@@ -100,8 +103,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
             // want to actually go recompute things.  Note: this only works for containment.  If the
             // user moves their caret to the end of a highlighted reference, we do want to recompute
             // as they may now be at the start of some other reference that should be highlighted instead.
-            var existingTags = context.GetExistingContainingTags(new SnapshotPoint(snapshot, position));
-            if (!existingTags.IsEmpty())
+            var onExistingTags = context.HasExistingContainingTags(new SnapshotPoint(snapshot, position));
+            if (onExistingTags)
             {
                 context.SetSpansTagged(ImmutableArray<SnapshotSpan>.Empty);
                 return;
@@ -119,6 +122,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
                     context.AddTag(new TagSpan<KeywordHighlightTag>(span.ToSnapshotSpan(snapshot), KeywordHighlightTag.Instance));
                 }
             }
+        }
+
+        protected override bool TagEquals(KeywordHighlightTag tag1, KeywordHighlightTag tag2)
+        {
+            Contract.ThrowIfFalse(tag1 == tag2, "KeywordHighlightTag is supposed to be a singleton");
+            return true;
         }
     }
 }

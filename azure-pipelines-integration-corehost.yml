@@ -36,25 +36,46 @@ pr:
   paths:
     exclude:
       - docs/*
+      - eng/config/OptProf.json
+      - eng/config/PublishData.json
       - .vscode/*
       - .github/*
       - .devcontainer/*
+      - src/Compilers/*
       - .git-blame-ignore-revs
       - .vsconfig
       - CODE-OF-CONDUCT.md
       - CONTRIBUTING.md
       - README.md
 
-variables:
+parameters:
+- name: poolName
+  displayName: Pool Name
+  type: string
+  default: NetCore-Svc-Public
+  values:
+  - NetCore-Public
+  - NetCore-Svc-Public
 - name: queueName
-  value: windows.vs2022.amd64.open  
+  displayName: Queue Name
+  type: string
+  default: windows.vs2022preview.amd64.open
+  values:
+  - windows.vs2022.amd64.open
+  - windows.vs2022.scout.amd64.open
+  - windows.vs2022preview.amd64.open
+  - windows.vs2022preview.scout.amd64.open
+- name: timeout
+  displayName: Timeout in Minutes
+  type: number
+  default: 150
 
 jobs:
 - job: VS_Integration_CoreHost_Debug
   pool:
-    name: NetCore-Svc-Public
-    demands: ImageOverride -equals $(queueName)
-  timeoutInMinutes: 135
+    name: ${{ parameters.poolName }}
+    demands: ImageOverride -equals ${{ parameters.queueName }}
+  timeoutInMinutes: ${{ parameters.timeout }}
   variables:
     - name: XUNIT_LOGS
       value: $(Build.SourcesDirectory)\artifacts\log\Debug
@@ -68,9 +89,9 @@ jobs:
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
   - job: VS_Integration_CoreHost_Release
     pool:
-      name: NetCore-Svc-Public
-      demands: ImageOverride -equals $(queueName)
-    timeoutInMinutes: 135
+      name: ${{ parameters.poolName }}
+      demands: ImageOverride -equals ${{ parameters.queueName }}
+    timeoutInMinutes: ${{ parameters.timeout }}
     variables:
       - name: XUNIT_LOGS
         value: $(Build.SourcesDirectory)\artifacts\log\Debug

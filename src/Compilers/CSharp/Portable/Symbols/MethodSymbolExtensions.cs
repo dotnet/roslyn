@@ -217,5 +217,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return (CSharpSyntaxNode)CSharpSyntaxTree.Dummy.GetRoot();
         }
+
+        internal static bool IsValidUnscopedRefAttributeTarget(this MethodSymbol method)
+        {
+            return !method.IsStatic &&
+                method.ContainingType?.IsStructType() == true &&
+                !method.IsConstructor() &&
+                !method.IsInitOnly;
+        }
+
+#nullable enable
+        internal static ImmutableArray<DeclarationScope> GetParameterEffectiveScopes(this MethodSymbol? method)
+        {
+            if (method is null)
+                return default;
+
+            if (method.Parameters.All(p => p.EffectiveScope == DeclarationScope.Unscoped))
+                return default;
+
+            return method.Parameters.SelectAsArray(p => p.EffectiveScope);
+        }
     }
 }

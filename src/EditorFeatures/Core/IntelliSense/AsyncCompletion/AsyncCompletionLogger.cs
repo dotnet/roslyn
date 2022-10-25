@@ -2,15 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
     internal static class AsyncCompletionLogger
     {
-        private static readonly LogAggregator s_logAggregator = new();
-        private static readonly StatisticLogAggregator s_statisticLogAggregator = new();
-        private static readonly HistogramLogAggregator s_histogramLogAggregator = new(25, 500);
+        private static readonly CountLogAggregator<ActionInfo> s_countLogAggregator = new();
+        private static readonly StatisticLogAggregator<ActionInfo> s_statisticLogAggregator = new();
+        private static readonly HistogramLogAggregator<ActionInfo> s_histogramLogAggregator = new(25, 500);
 
         private enum ActionInfo
         {
@@ -31,20 +32,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             AdditionalTicksToCompleteDelayedImportCompletion,
             ExpanderUsageCount,
 
-            // For targeted type completion
-            SessionHasTargetTypeFilterEnabled,
-
-            // TargetTypeFilterChosenInSession / SessionContainsTargetTypeFilter indicates % of the time 
-            // the Target Type Completion Filter is chosen of the sessions offering it.
-            SessionContainsTargetTypeFilter,
-            TargetTypeFilterChosenInSession,
-
-            // CommitItemWithTargetTypeFilter / CommitWithTargetTypeCompletionExperimentEnabled indicates 
-            // % of the time a completion item is committed that could have been picked via the Target Type 
-            // Completion Filter.
-            CommitWithTargetTypeCompletionExperimentEnabled,
-            CommitItemWithTargetTypeFilter,
-
             GetDefaultsMatchTicks,
 
             SourceInitializationTicks,
@@ -58,75 +45,60 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         internal static void LogImportCompletionGetContext(bool isBlocking, bool delayed)
         {
-            s_logAggregator.IncreaseCount((int)ActionInfo.SessionWithTypeImportCompletionEnabled);
+            s_countLogAggregator.IncreaseCount(ActionInfo.SessionWithTypeImportCompletionEnabled);
 
             if (isBlocking)
-                s_logAggregator.IncreaseCount((int)ActionInfo.SessionWithImportCompletionBlocking);
+                s_countLogAggregator.IncreaseCount(ActionInfo.SessionWithImportCompletionBlocking);
 
             if (delayed)
-                s_logAggregator.IncreaseCount((int)ActionInfo.SessionWithImportCompletionDelayed);
+                s_countLogAggregator.IncreaseCount(ActionInfo.SessionWithImportCompletionDelayed);
         }
 
         internal static void LogSessionWithDelayedImportCompletionIncludedInUpdate() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.SessionWithDelayedImportCompletionIncludedInUpdate);
+            s_countLogAggregator.IncreaseCount(ActionInfo.SessionWithDelayedImportCompletionIncludedInUpdate);
 
-        internal static void LogAdditionalTicksToCompleteDelayedImportCompletionDataPoint(int count) =>
-            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.AdditionalTicksToCompleteDelayedImportCompletion, count);
+        internal static void LogAdditionalTicksToCompleteDelayedImportCompletionDataPoint(TimeSpan timeSpan) =>
+            s_histogramLogAggregator.LogTime(ActionInfo.AdditionalTicksToCompleteDelayedImportCompletion, timeSpan);
 
         internal static void LogDelayedImportCompletionIncluded() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.SessionWithTypeImportCompletionEnabled);
+            s_countLogAggregator.IncreaseCount(ActionInfo.SessionWithTypeImportCompletionEnabled);
 
         internal static void LogExpanderUsage() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.ExpanderUsageCount);
-
-        internal static void LogCommitWithTargetTypeCompletionExperimentEnabled() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.CommitWithTargetTypeCompletionExperimentEnabled);
-
-        internal static void LogCommitItemWithTargetTypeFilter() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.CommitItemWithTargetTypeFilter);
-
-        internal static void LogSessionContainsTargetTypeFilter() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.SessionContainsTargetTypeFilter);
-
-        internal static void LogTargetTypeFilterChosenInSession() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.TargetTypeFilterChosenInSession);
-
-        internal static void LogSessionHasTargetTypeFilterEnabled() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.SessionHasTargetTypeFilterEnabled);
+            s_countLogAggregator.IncreaseCount(ActionInfo.ExpanderUsageCount);
 
         internal static void LogGetDefaultsMatchTicksDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.GetDefaultsMatchTicks, count);
+            s_statisticLogAggregator.AddDataPoint(ActionInfo.GetDefaultsMatchTicks, count);
 
-        internal static void LogSourceInitializationTicksDataPoint(int count)
+        internal static void LogSourceInitializationTicksDataPoint(TimeSpan elapsed)
         {
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.SourceInitializationTicks, count);
-            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.SourceInitializationTicks, count);
+            s_statisticLogAggregator.AddDataPoint(ActionInfo.SourceInitializationTicks, elapsed);
+            s_histogramLogAggregator.LogTime(ActionInfo.SourceInitializationTicks, elapsed);
         }
 
-        internal static void LogSourceGetContextTicksDataPoint(int count, bool isCanceled)
+        internal static void LogSourceGetContextTicksDataPoint(TimeSpan elapsed, bool isCanceled)
         {
             var key = isCanceled
                 ? ActionInfo.SourceGetContextCanceledTicks
                 : ActionInfo.SourceGetContextCompletedTicks;
 
-            s_statisticLogAggregator.AddDataPoint((int)key, count);
-            s_histogramLogAggregator.IncreaseCount((int)key, count);
+            s_statisticLogAggregator.AddDataPoint(key, elapsed);
+            s_histogramLogAggregator.LogTime(key, elapsed);
         }
 
-        internal static void LogItemManagerSortTicksDataPoint(int count)
+        internal static void LogItemManagerSortTicksDataPoint(TimeSpan elapsed)
         {
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ItemManagerSortTicks, count);
-            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.ItemManagerSortTicks, count);
+            s_statisticLogAggregator.AddDataPoint(ActionInfo.ItemManagerSortTicks, elapsed);
+            s_histogramLogAggregator.LogTime(ActionInfo.ItemManagerSortTicks, elapsed);
         }
 
-        internal static void LogItemManagerUpdateDataPoint(int count, bool isCanceled)
+        internal static void LogItemManagerUpdateDataPoint(TimeSpan elapsed, bool isCanceled)
         {
             var key = isCanceled
                 ? ActionInfo.ItemManagerUpdateCanceledTicks
                 : ActionInfo.ItemManagerUpdateCompletedTicks;
 
-            s_statisticLogAggregator.AddDataPoint((int)key, count);
-            s_histogramLogAggregator.IncreaseCount((int)key, count);
+            s_statisticLogAggregator.AddDataPoint(key, elapsed);
+            s_histogramLogAggregator.LogTime(key, elapsed);
         }
 
         internal static void ReportTelemetry()
@@ -135,33 +107,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 foreach (var kv in s_statisticLogAggregator)
                 {
-                    var info = ((ActionInfo)kv.Key).ToString("f");
                     var statistics = kv.Value.GetStatisticResult();
-
-                    m[CreateProperty(info, nameof(StatisticResult.Maximum))] = statistics.Maximum;
-                    m[CreateProperty(info, nameof(StatisticResult.Minimum))] = statistics.Minimum;
-                    m[CreateProperty(info, nameof(StatisticResult.Mean))] = statistics.Mean;
-                    m[CreateProperty(info, nameof(StatisticResult.Range))] = statistics.Range;
-                    m[CreateProperty(info, nameof(StatisticResult.Count))] = statistics.Count;
+                    statistics.WriteTelemetryPropertiesTo(m, prefix: kv.Key.ToString());
                 }
 
-                foreach (var kv in s_logAggregator)
+                foreach (var kv in s_countLogAggregator)
                 {
-                    var mergeInfo = ((ActionInfo)kv.Key).ToString("f");
-                    m[mergeInfo] = kv.Value.GetCount();
+                    m[kv.Key.ToString()] = kv.Value.GetCount();
                 }
 
                 foreach (var kv in s_histogramLogAggregator)
                 {
-                    var info = ((ActionInfo)kv.Key).ToString("f");
-                    m[$"{info}.BucketSize"] = kv.Value.BucketSize;
-                    m[$"{info}.MaxBucketValue"] = kv.Value.MaxBucketValue;
-                    m[$"{info}.Buckets"] = kv.Value.GetBucketsAsString();
+                    kv.Value.WriteTelemetryPropertiesTo(m, prefix: kv.Key.ToString());
                 }
             }));
         }
-
-        private static string CreateProperty(string parent, string child)
-            => parent + "." + child;
     }
 }

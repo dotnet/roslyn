@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseSystemHashCode
 {
@@ -29,14 +30,14 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             context.RegisterCompilationStartAction(c =>
             {
                 // var hashCodeType = c.Compilation.GetTypeByMetadataName("System.HashCode");
-                if (Analyzer.TryGetAnalyzer(c.Compilation, out var analyzer))
+                if (HashCodeAnalyzer.TryGetAnalyzer(c.Compilation, out var analyzer))
                 {
                     c.RegisterOperationBlockAction(ctx => AnalyzeOperationBlock(analyzer, ctx));
                 }
             });
         }
 
-        private void AnalyzeOperationBlock(Analyzer analyzer, OperationBlockAnalysisContext context)
+        private void AnalyzeOperationBlock(HashCodeAnalyzer analyzer, OperationBlockAnalysisContext context)
         {
             if (context.OperationBlocks.Length != 1)
                 return;
@@ -64,13 +65,11 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             // We've got multiple members to hash, or multiple statements that can be reduced at this point.
             Debug.Assert(elementCount >= 2 || statements.Length >= 2);
 
-            var syntaxTree = operation.Syntax.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-
-            var option = context.Options.GetOption(CodeStyleOptions2.PreferSystemHashCode, operation.Language, syntaxTree, cancellationToken);
+            var option = context.Options.GetIdeOptions().PreferSystemHashCode;
             if (option?.Value != true)
                 return;
 
+            var cancellationToken = context.CancellationToken;
             var operationLocation = operation.Syntax.GetLocation();
             var declarationLocation = context.OwningSymbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken).GetLocation();
             context.ReportDiagnostic(DiagnosticHelper.Create(

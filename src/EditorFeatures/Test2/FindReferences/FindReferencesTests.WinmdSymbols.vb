@@ -5,8 +5,9 @@
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
+    <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestWinmdCSInterfaceProjection(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -43,7 +44,7 @@ namespace SampleComponent
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestWinmdVBInterfaceProjection(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -83,7 +84,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestWinmdCSCollectionProjection(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -125,7 +126,7 @@ namespace SampleComponent
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestWinmdVBCollectionProjection(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -155,7 +156,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestWinmdCSEventProjection(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -215,7 +216,7 @@ namespace SampleComponent
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestWinmdVBEventProjection(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -268,7 +269,7 @@ End Module
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestWinmdCSAllIsWellTest(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -472,7 +473,7 @@ namespace SampleComponent
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestWinmdVBAllIsWellTest_Api(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -594,7 +595,7 @@ End Class
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestWinmdVBAllIsWellTest_Feature(host As TestHost) As Task
             Dim input =
 <Workspace>

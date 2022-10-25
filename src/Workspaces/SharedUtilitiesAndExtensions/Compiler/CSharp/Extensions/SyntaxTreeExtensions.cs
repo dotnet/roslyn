@@ -18,9 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => syntaxTree.GetPrecedingModifiers(position, cancellationToken, out _);
 
         public static ISet<SyntaxKind> GetPrecedingModifiers(
-#pragma warning disable IDE0060 // Remove unused parameter - Unused this parameter for consistency with other extension methods.
             this SyntaxTree syntaxTree,
-#pragma warning restore IDE0060 // Remove unused parameter
             int position,
             CancellationToken cancellationToken,
             out int positionBeforeModifiers)
@@ -52,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.RefKeyword:
                     case SyntaxKind.OutKeyword:
                     case SyntaxKind.InKeyword:
+                    case SyntaxKind.RequiredKeyword:
                         result.Add(token.Kind());
                         positionBeforeModifiers = token.FullSpan.Start;
                         token = token.GetPreviousToken(includeSkipped: true);
@@ -353,10 +352,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static bool AtEndOfIncompleteStringOrCharLiteral(SyntaxToken token, int position, char lastChar, CancellationToken cancellationToken)
         {
-            if (!token.IsKind(
-                    SyntaxKind.StringLiteralToken,
-                    SyntaxKind.CharacterLiteralToken,
-                    SyntaxKind.SingleLineRawStringLiteralToken,
+            if (token.Kind() is not (
+                    SyntaxKind.StringLiteralToken or
+                    SyntaxKind.CharacterLiteralToken or
+                    SyntaxKind.SingleLineRawStringLiteralToken or
                     SyntaxKind.MultiLineRawStringLiteralToken))
             {
                 throw new ArgumentException(CSharpCompilerExtensionsResources.Expected_string_or_char_literal, nameof(token));
@@ -365,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (position != token.Span.End)
                 return false;
 
-            if (token.IsKind(SyntaxKind.SingleLineRawStringLiteralToken, SyntaxKind.MultiLineRawStringLiteralToken))
+            if (token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
             {
                 var sourceText = token.SyntaxTree!.GetText(cancellationToken);
                 var startDelimeterLength = 0;
@@ -412,12 +411,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // If we ask right at the end of the file, we'll get back nothing. We handle that case
             // specially for now, though SyntaxTree.FindToken should work at the end of a file.
-            if (token.IsKind(SyntaxKind.EndOfDirectiveToken, SyntaxKind.EndOfFileToken))
+            if (token.Kind() is SyntaxKind.EndOfDirectiveToken or SyntaxKind.EndOfFileToken)
             {
                 token = token.GetPreviousToken(includeSkipped: true, includeDirectives: true);
             }
 
-            if (token.Kind() is SyntaxKind.StringLiteralToken or SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
+            if (token.Kind() is
+                    SyntaxKind.StringLiteralToken or
+                    SyntaxKind.SingleLineRawStringLiteralToken or
+                    SyntaxKind.MultiLineRawStringLiteralToken or
+                    SyntaxKind.Utf8StringLiteralToken or
+                    SyntaxKind.Utf8SingleLineRawStringLiteralToken or
+                    SyntaxKind.Utf8MultiLineRawStringLiteralToken)
             {
                 var span = token.Span;
 
@@ -428,13 +433,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     || AtEndOfIncompleteStringOrCharLiteral(token, position, '"', cancellationToken);
             }
 
-            if (token.IsKind(
-                    SyntaxKind.InterpolatedStringStartToken,
-                    SyntaxKind.InterpolatedStringTextToken,
-                    SyntaxKind.InterpolatedStringEndToken,
-                    SyntaxKind.InterpolatedRawStringEndToken,
-                    SyntaxKind.InterpolatedSingleLineRawStringStartToken,
-                    SyntaxKind.InterpolatedMultiLineRawStringStartToken))
+            if (token.Kind() is
+                    SyntaxKind.InterpolatedStringStartToken or
+                    SyntaxKind.InterpolatedStringTextToken or
+                    SyntaxKind.InterpolatedStringEndToken or
+                    SyntaxKind.InterpolatedRawStringEndToken or
+                    SyntaxKind.InterpolatedSingleLineRawStringStartToken or
+                    SyntaxKind.InterpolatedMultiLineRawStringStartToken)
             {
                 return token.SpanStart < position && token.Span.End > position;
             }
@@ -465,6 +470,98 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // '|  (e.g. incomplete char literal)
                 return (position > span.Start && position < span.End)
                     || AtEndOfIncompleteStringOrCharLiteral(token, position, '\'', cancellationToken);
+            }
+
+            return false;
+        }
+
+        public static bool IsInInactiveRegion(
+            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(syntaxTree);
+
+            // cases:
+            // $ is EOF
+
+            // #if false
+            //    |
+
+            // #if false
+            //    |$
+
+            // #if false
+            // |
+
+            // #if false
+            // |$
+
+            if (syntaxTree.IsPreProcessorKeywordContext(position, cancellationToken))
+            {
+                return false;
+            }
+
+            // The latter two are the hard cases we don't actually have an 
+            // DisabledTextTrivia yet. 
+            var trivia = syntaxTree.GetRoot(cancellationToken).FindTrivia(position, findInsideTrivia: false);
+            if (trivia.Kind() == SyntaxKind.DisabledTextTrivia)
+            {
+                return true;
+            }
+
+            var token = syntaxTree.FindTokenOrEndToken(position, cancellationToken);
+            if (token.Kind() == SyntaxKind.EndOfFileToken)
+            {
+                var triviaList = token.LeadingTrivia;
+                foreach (var triviaTok in triviaList.Reverse())
+                {
+                    if (triviaTok.Span.Contains(position))
+                    {
+                        return false;
+                    }
+
+                    if (triviaTok.Span.End < position)
+                    {
+                        if (!triviaTok.HasStructure)
+                        {
+                            return false;
+                        }
+
+                        var structure = triviaTok.GetStructure();
+                        if (structure is BranchingDirectiveTriviaSyntax branch)
+                        {
+                            return !branch.IsActive || !branch.BranchTaken;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public static bool IsPreProcessorKeywordContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            return IsPreProcessorKeywordContext(
+                syntaxTree, position,
+                syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives: true));
+        }
+
+#pragma warning disable IDE0060 // Remove unused parameter
+        public static bool IsPreProcessorKeywordContext(this SyntaxTree syntaxTree, int position, SyntaxToken preProcessorTokenOnLeftOfPosition)
+#pragma warning restore IDE0060 // Remove unused parameter
+        {
+            // cases:
+            //  #|
+            //  #d|
+            //  # |
+            //  # d|
+
+            // note: comments are not allowed between the # and item.
+            var token = preProcessorTokenOnLeftOfPosition;
+            token = token.GetPreviousTokenIfTouchingWord(position);
+
+            if (token.IsKind(SyntaxKind.HashToken))
+            {
+                return true;
             }
 
             return false;

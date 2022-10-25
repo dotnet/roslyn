@@ -255,6 +255,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             return _lazyUnmanagedAttributeData;
         }
+
+        internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
+        {
+            if (!_underlyingMethod.TryGetThisParameter(out var underlyingParameter))
+            {
+                thisParameter = null;
+                return false;
+            }
+
+            thisParameter = underlyingParameter is { }
+                ? new ThisParameterSymbol(this)
+                : null;
+            return true;
+        }
 #nullable disable
 
         public override AssemblySymbol ContainingAssembly
@@ -358,9 +372,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
             // retargeting symbols refer to a symbol from another compilation, they don't define locals in the current compilation
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
-        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
+        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable();
     }
 }

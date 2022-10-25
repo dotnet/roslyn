@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundSpillSequenceBuilder builder = null;
             var expression = VisitExpression(ref builder, node.Expression);
-            return UpdateStatement(builder, node.Update(expression, node.Cases, node.DefaultLabel, node.EqualityMethod));
+            return UpdateStatement(builder, node.Update(expression, node.Cases, node.DefaultLabel));
         }
 
         public override BoundNode VisitThrowStatement(BoundThrowStatement node)
@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundSpillSequenceBuilder builder = null;
             var expression = VisitExpression(ref builder, node.ExpressionOpt);
-            return UpdateStatement(builder, node.Update(node.RefKind, expression));
+            return UpdateStatement(builder, node.Update(node.RefKind, expression, @checked: node.Checked));
         }
 
         public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
@@ -807,7 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator node)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
@@ -976,7 +976,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitMethodGroup(BoundMethodGroup node)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
@@ -1034,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return UpdateExpression(leftBuilder, _F.Local(tmp));
             }
 
-            return UpdateExpression(builder, node.Update(left, right, node.LeftPlaceholder, node.LeftConversion, node.OperatorResultKind, node.Type));
+            return UpdateExpression(builder, node.Update(left, right, node.LeftPlaceholder, node.LeftConversion, node.OperatorResultKind, @checked: node.Checked, node.Type));
         }
 
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)

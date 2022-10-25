@@ -3,11 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class WhenKeywordRecommenderTests
         Inherits RecommenderTests
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WhenAfterCatchBlockTest()
             VerifyRecommendationsContain(<MethodBody>
 Try
@@ -16,7 +16,6 @@ End Try</MethodBody>, "When")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WhenAfterCatchBlockWithoutAsTest()
             VerifyRecommendationsContain(<MethodBody>
 Dim x
@@ -25,16 +24,12 @@ Catch x |
 End Try</MethodBody>, "When")
         End Sub
 
-        <WorkItem(542803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542803")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(542803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542803")>
         Public Sub NoWhenAfterDimStatementTest()
             VerifyRecommendationsMissing(<MethodBody>Dim ex As Exception |</MethodBody>, "When")
         End Sub
 
-        <WorkItem(542803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542803")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(542803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542803")>
         Public Sub NoWhenAfterLambdaInExceptionFilterTest()
             VerifyRecommendationsMissing(
 <MethodBody>
@@ -47,8 +42,7 @@ End Try
  "When")
         End Sub
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub NotAfterEolTest()
             VerifyRecommendationsMissing(
 <MethodBody>
@@ -58,8 +52,7 @@ Catch x As Exception
 End Try</MethodBody>, "When")
         End Sub
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub AfterExplicitLineContinuationTest()
             VerifyRecommendationsContain(
 <MethodBody>
@@ -69,7 +62,7 @@ Catch x As Exception _
 End Try</MethodBody>, "When")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AfterExplicitLineContinuationTestCommentsAfterLineContinuation()
             VerifyRecommendationsContain(
 <MethodBody>

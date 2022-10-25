@@ -666,6 +666,11 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IMethodSymbol? OperatorMethod { get; }
         /// <summary>
+        /// Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="OperatorMethod" />, if any.
+        /// Null if <see cref="OperatorMethod" /> is resolved statically, or is null.
+        /// </summary>
+        ITypeSymbol? ConstrainedToType { get; }
+        /// <summary>
         /// Gets the underlying common conversion information.
         /// </summary>
         /// <remarks>
@@ -713,6 +718,11 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Method to be invoked.
         /// </summary>
         IMethodSymbol TargetMethod { get; }
+        /// <summary>
+        /// Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="TargetMethod" />.
+        /// Null if <see cref="TargetMethod" /> is resolved statically, or is an instance method.
+        /// </summary>
+        ITypeSymbol? ConstrainedToType { get; }
         /// <summary>
         /// 'This' or 'Me' instance to be supplied to the method, or null if the method is static.
         /// </summary>
@@ -830,6 +840,11 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Referenced member.
         /// </summary>
         ISymbol Member { get; }
+        /// <summary>
+        /// Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="Member" />.
+        /// Null if <see cref="Member" /> is resolved statically, or is an instance member.
+        /// </summary>
+        ITypeSymbol? ConstrainedToType { get; }
     }
     /// <summary>
     /// Represents a reference to a field.
@@ -985,6 +1000,11 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Operator method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         IMethodSymbol? OperatorMethod { get; }
+        /// <summary>
+        /// Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="OperatorMethod" />, if any.
+        /// Null if <see cref="OperatorMethod" /> is resolved statically, or is null.
+        /// </summary>
+        ITypeSymbol? ConstrainedToType { get; }
     }
     /// <summary>
     /// Represents an operation with two operands and a binary operator that produces a result with a non-null type.
@@ -1036,6 +1056,12 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Operator method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         IMethodSymbol? OperatorMethod { get; }
+        /// <summary>
+        /// Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="OperatorMethod" />
+        /// or corresponding true/false operator, if any.
+        /// Null if operators are resolved statically, or are not used.
+        /// </summary>
+        ITypeSymbol? ConstrainedToType { get; }
     }
     /// <summary>
     /// Represents a conditional operation with:
@@ -1393,6 +1419,11 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Operator method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         IMethodSymbol? OperatorMethod { get; }
+        /// <summary>
+        /// Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="OperatorMethod" />, if any.
+        /// Null if <see cref="OperatorMethod" /> is resolved statically, or is null.
+        /// </summary>
+        ITypeSymbol? ConstrainedToType { get; }
     }
     /// <summary>
     /// Represents a parenthesized operation.
@@ -1999,6 +2030,11 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Operator method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         IMethodSymbol? OperatorMethod { get; }
+        /// <summary>
+        /// Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="OperatorMethod" />, if any.
+        /// Null if <see cref="OperatorMethod" /> is resolved statically, or is null.
+        /// </summary>
+        ITypeSymbol? ConstrainedToType { get; }
     }
     /// <summary>
     /// Represents an operation to throw an exception.
@@ -3539,6 +3575,51 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ISymbol IndexerSymbol { get; }
     }
+    /// <summary>
+    /// Represents a UTF-8 encoded byte representation of a string.
+    /// <para>
+    ///   Current usage:
+    ///   (1) C# UTF-8 string literal expression.
+    /// </para>
+    /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following operation kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="OperationKind.Utf8String"/></description></item>
+    /// </list>
+    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.</para>
+    /// </remarks>
+    public interface IUtf8StringOperation : IOperation
+    {
+        /// <summary>
+        /// The underlying string value.
+        /// </summary>
+        string Value { get; }
+    }
+    /// <summary>
+    /// Represents the application of an attribute.
+    /// <para>
+    ///   Current usage:
+    ///   (1) C# attribute application.
+    ///   (2) VB attribute application.
+    /// </para>
+    /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following operation kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="OperationKind.Attribute"/></description></item>
+    /// </list>
+    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.</para>
+    /// </remarks>
+    public interface IAttributeOperation : IOperation
+    {
+        /// <summary>
+        /// The operation representing the attribute. This can be a <see cref="IObjectCreationOperation" /> in non-error cases, or an <see cref="IInvalidOperation" /> in error cases.
+        /// </summary>
+        IOperation Operation { get; }
+    }
     #endregion
 
     #region Implementations
@@ -4697,16 +4778,18 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class InvocationOperation : Operation, IInvocationOperation
     {
-        internal InvocationOperation(IMethodSymbol targetMethod, IOperation? instance, bool isVirtual, ImmutableArray<IArgumentOperation> arguments, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+        internal InvocationOperation(IMethodSymbol targetMethod, ITypeSymbol? constrainedToType, IOperation? instance, bool isVirtual, ImmutableArray<IArgumentOperation> arguments, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
             TargetMethod = targetMethod;
+            ConstrainedToType = constrainedToType;
             Instance = SetParentOperation(instance, this);
             IsVirtual = isVirtual;
             Arguments = SetParentOperation(arguments, this);
             Type = type;
         }
         public IMethodSymbol TargetMethod { get; }
+        public ITypeSymbol? ConstrainedToType { get; }
         public IOperation? Instance { get; }
         public bool IsVirtual { get; }
         public ImmutableArray<IArgumentOperation> Arguments { get; }
@@ -4882,6 +4965,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Instance = SetParentOperation(instance, this);
         }
         public IOperation? Instance { get; }
+        public abstract ITypeSymbol? ConstrainedToType { get; }
     }
     internal sealed partial class FieldReferenceOperation : BaseMemberReferenceOperation, IFieldReferenceOperation
     {
@@ -4940,14 +5024,16 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class MethodReferenceOperation : BaseMemberReferenceOperation, IMethodReferenceOperation
     {
-        internal MethodReferenceOperation(IMethodSymbol method, bool isVirtual, IOperation? instance, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+        internal MethodReferenceOperation(IMethodSymbol method, ITypeSymbol? constrainedToType, bool isVirtual, IOperation? instance, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(instance, semanticModel, syntax, isImplicit)
         {
             Method = method;
+            ConstrainedToType = constrainedToType;
             IsVirtual = isVirtual;
             Type = type;
         }
         public IMethodSymbol Method { get; }
+        public override ITypeSymbol? ConstrainedToType { get; }
         public bool IsVirtual { get; }
         internal override int ChildOperationsCount =>
             (Instance is null ? 0 : 1);
@@ -4994,14 +5080,16 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class PropertyReferenceOperation : BaseMemberReferenceOperation, IPropertyReferenceOperation
     {
-        internal PropertyReferenceOperation(IPropertySymbol property, ImmutableArray<IArgumentOperation> arguments, IOperation? instance, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+        internal PropertyReferenceOperation(IPropertySymbol property, ITypeSymbol? constrainedToType, ImmutableArray<IArgumentOperation> arguments, IOperation? instance, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(instance, semanticModel, syntax, isImplicit)
         {
             Property = property;
+            ConstrainedToType = constrainedToType;
             Arguments = SetParentOperation(arguments, this);
             Type = type;
         }
         public IPropertySymbol Property { get; }
+        public override ITypeSymbol? ConstrainedToType { get; }
         public ImmutableArray<IArgumentOperation> Arguments { get; }
         internal override int ChildOperationsCount =>
             Arguments.Length +
@@ -5061,13 +5149,15 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class EventReferenceOperation : BaseMemberReferenceOperation, IEventReferenceOperation
     {
-        internal EventReferenceOperation(IEventSymbol @event, IOperation? instance, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+        internal EventReferenceOperation(IEventSymbol @event, ITypeSymbol? constrainedToType, IOperation? instance, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(instance, semanticModel, syntax, isImplicit)
         {
             Event = @event;
+            ConstrainedToType = constrainedToType;
             Type = type;
         }
         public IEventSymbol Event { get; }
+        public override ITypeSymbol? ConstrainedToType { get; }
         internal override int ChildOperationsCount =>
             (Instance is null ? 0 : 1);
         internal override IOperation GetCurrent(int slot, int index)
@@ -5113,7 +5203,7 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class UnaryOperation : Operation, IUnaryOperation
     {
-        internal UnaryOperation(UnaryOperatorKind operatorKind, IOperation operand, bool isLifted, bool isChecked, IMethodSymbol? operatorMethod, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
+        internal UnaryOperation(UnaryOperatorKind operatorKind, IOperation operand, bool isLifted, bool isChecked, IMethodSymbol? operatorMethod, ITypeSymbol? constrainedToType, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
             OperatorKind = operatorKind;
@@ -5121,6 +5211,7 @@ namespace Microsoft.CodeAnalysis.Operations
             IsLifted = isLifted;
             IsChecked = isChecked;
             OperatorMethod = operatorMethod;
+            ConstrainedToType = constrainedToType;
             OperationConstantValue = constantValue;
             Type = type;
         }
@@ -5129,6 +5220,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public bool IsLifted { get; }
         public bool IsChecked { get; }
         public IMethodSymbol? OperatorMethod { get; }
+        public ITypeSymbol? ConstrainedToType { get; }
         internal override int ChildOperationsCount =>
             (Operand is null ? 0 : 1);
         internal override IOperation GetCurrent(int slot, int index)
@@ -5174,7 +5266,7 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class BinaryOperation : Operation, IBinaryOperation
     {
-        internal BinaryOperation(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol? operatorMethod, IMethodSymbol? unaryOperatorMethod, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
+        internal BinaryOperation(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol? operatorMethod, ITypeSymbol? constrainedToType, IMethodSymbol? unaryOperatorMethod, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
             OperatorKind = operatorKind;
@@ -5184,6 +5276,7 @@ namespace Microsoft.CodeAnalysis.Operations
             IsChecked = isChecked;
             IsCompareText = isCompareText;
             OperatorMethod = operatorMethod;
+            ConstrainedToType = constrainedToType;
             UnaryOperatorMethod = unaryOperatorMethod;
             OperationConstantValue = constantValue;
             Type = type;
@@ -5195,6 +5288,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public bool IsChecked { get; }
         public bool IsCompareText { get; }
         public IMethodSymbol? OperatorMethod { get; }
+        public ITypeSymbol? ConstrainedToType { get; }
         public IMethodSymbol? UnaryOperatorMethod { get; }
         internal override int ChildOperationsCount =>
             (LeftOperand is null ? 0 : 1) +
@@ -5836,7 +5930,7 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class CompoundAssignmentOperation : BaseAssignmentOperation, ICompoundAssignmentOperation
     {
-        internal CompoundAssignmentOperation(IConvertibleConversion inConversion, IConvertibleConversion outConversion, BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol? operatorMethod, IOperation target, IOperation value, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+        internal CompoundAssignmentOperation(IConvertibleConversion inConversion, IConvertibleConversion outConversion, BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol? operatorMethod, ITypeSymbol? constrainedToType, IOperation target, IOperation value, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(target, value, semanticModel, syntax, isImplicit)
         {
             InConversionConvertible = inConversion;
@@ -5845,6 +5939,7 @@ namespace Microsoft.CodeAnalysis.Operations
             IsLifted = isLifted;
             IsChecked = isChecked;
             OperatorMethod = operatorMethod;
+            ConstrainedToType = constrainedToType;
             Type = type;
         }
         internal IConvertibleConversion InConversionConvertible { get; }
@@ -5855,6 +5950,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public bool IsLifted { get; }
         public bool IsChecked { get; }
         public IMethodSymbol? OperatorMethod { get; }
+        public ITypeSymbol? ConstrainedToType { get; }
         internal override int ChildOperationsCount =>
             (Target is null ? 0 : 1) +
             (Value is null ? 0 : 1);
@@ -6784,7 +6880,7 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class IncrementOrDecrementOperation : Operation, IIncrementOrDecrementOperation
     {
-        internal IncrementOrDecrementOperation(bool isPostfix, bool isLifted, bool isChecked, IOperation target, IMethodSymbol? operatorMethod, OperationKind kind, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+        internal IncrementOrDecrementOperation(bool isPostfix, bool isLifted, bool isChecked, IOperation target, IMethodSymbol? operatorMethod, ITypeSymbol? constrainedToType, OperationKind kind, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
             IsPostfix = isPostfix;
@@ -6792,6 +6888,7 @@ namespace Microsoft.CodeAnalysis.Operations
             IsChecked = isChecked;
             Target = SetParentOperation(target, this);
             OperatorMethod = operatorMethod;
+            ConstrainedToType = constrainedToType;
             Type = type;
             Kind = kind;
         }
@@ -6800,6 +6897,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public bool IsChecked { get; }
         public IOperation Target { get; }
         public IMethodSymbol? OperatorMethod { get; }
+        public ITypeSymbol? ConstrainedToType { get; }
         internal override int ChildOperationsCount =>
             (Target is null ? 0 : 1);
         internal override IOperation GetCurrent(int slot, int index)
@@ -10062,6 +10160,76 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitImplicitIndexerReference(this);
         public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitImplicitIndexerReference(this, argument);
     }
+    internal sealed partial class Utf8StringOperation : Operation, IUtf8StringOperation
+    {
+        internal Utf8StringOperation(string value, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Value = value;
+            Type = type;
+        }
+        public string Value { get; }
+        internal override int ChildOperationsCount => 0;
+        internal override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.Utf8String;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitUtf8String(this);
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitUtf8String(this, argument);
+    }
+    internal sealed partial class AttributeOperation : Operation, IAttributeOperation
+    {
+        internal AttributeOperation(IOperation operation, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Operation = SetParentOperation(operation, this);
+        }
+        public IOperation Operation { get; }
+        internal override int ChildOperationsCount =>
+            (Operation is null ? 0 : 1);
+        internal override IOperation GetCurrent(int slot, int index)
+            => slot switch
+            {
+                0 when Operation != null
+                    => Operation,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Operation != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+            }
+        }
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case int.MaxValue:
+                    if (Operation != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case -1:
+                    return (false, -1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+            }
+        }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.Attribute;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitAttribute(this);
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitAttribute(this, argument);
+    }
     #endregion
     #region Cloner
     internal sealed partial class OperationCloner : OperationVisitor<object?, IOperation>
@@ -10072,7 +10240,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public OperationCloner() { }
         [return: NotNullIfNotNull("node")]
         private T? Visit<T>(T? node) where T : IOperation? => (T?)Visit(node, argument: null);
-        public override IOperation DefaultVisit(IOperation operation, object? argument) => throw ExceptionUtilities.Unreachable;
+        public override IOperation DefaultVisit(IOperation operation, object? argument) => throw ExceptionUtilities.Unreachable();
         private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> nodes) where T : IOperation => nodes.SelectAsArray((n, @this) => @this.Visit(n), this)!;
         private ImmutableArray<(ISymbol, T)> VisitArray<T>(ImmutableArray<(ISymbol, T)> nodes) where T : IOperation => nodes.SelectAsArray((n, @this) => (n.Item1, @this.Visit(n.Item2)), this)!;
         public override IOperation VisitBlock(IBlockOperation operation, object? argument)
@@ -10183,7 +10351,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitInvocation(IInvocationOperation operation, object? argument)
         {
             var internalOperation = (InvocationOperation)operation;
-            return new InvocationOperation(internalOperation.TargetMethod, Visit(internalOperation.Instance), internalOperation.IsVirtual, VisitArray(internalOperation.Arguments), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+            return new InvocationOperation(internalOperation.TargetMethod, internalOperation.ConstrainedToType, Visit(internalOperation.Instance), internalOperation.IsVirtual, VisitArray(internalOperation.Arguments), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitArrayElementReference(IArrayElementReferenceOperation operation, object? argument)
         {
@@ -10208,27 +10376,27 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitMethodReference(IMethodReferenceOperation operation, object? argument)
         {
             var internalOperation = (MethodReferenceOperation)operation;
-            return new MethodReferenceOperation(internalOperation.Method, internalOperation.IsVirtual, Visit(internalOperation.Instance), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+            return new MethodReferenceOperation(internalOperation.Method, internalOperation.ConstrainedToType, internalOperation.IsVirtual, Visit(internalOperation.Instance), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitPropertyReference(IPropertyReferenceOperation operation, object? argument)
         {
             var internalOperation = (PropertyReferenceOperation)operation;
-            return new PropertyReferenceOperation(internalOperation.Property, VisitArray(internalOperation.Arguments), Visit(internalOperation.Instance), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+            return new PropertyReferenceOperation(internalOperation.Property, internalOperation.ConstrainedToType, VisitArray(internalOperation.Arguments), Visit(internalOperation.Instance), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitEventReference(IEventReferenceOperation operation, object? argument)
         {
             var internalOperation = (EventReferenceOperation)operation;
-            return new EventReferenceOperation(internalOperation.Event, Visit(internalOperation.Instance), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+            return new EventReferenceOperation(internalOperation.Event, internalOperation.ConstrainedToType, Visit(internalOperation.Instance), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitUnaryOperator(IUnaryOperation operation, object? argument)
         {
             var internalOperation = (UnaryOperation)operation;
-            return new UnaryOperation(internalOperation.OperatorKind, Visit(internalOperation.Operand), internalOperation.IsLifted, internalOperation.IsChecked, internalOperation.OperatorMethod, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
+            return new UnaryOperation(internalOperation.OperatorKind, Visit(internalOperation.Operand), internalOperation.IsLifted, internalOperation.IsChecked, internalOperation.OperatorMethod, internalOperation.ConstrainedToType, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
         }
         public override IOperation VisitBinaryOperator(IBinaryOperation operation, object? argument)
         {
             var internalOperation = (BinaryOperation)operation;
-            return new BinaryOperation(internalOperation.OperatorKind, Visit(internalOperation.LeftOperand), Visit(internalOperation.RightOperand), internalOperation.IsLifted, internalOperation.IsChecked, internalOperation.IsCompareText, internalOperation.OperatorMethod, internalOperation.UnaryOperatorMethod, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
+            return new BinaryOperation(internalOperation.OperatorKind, Visit(internalOperation.LeftOperand), Visit(internalOperation.RightOperand), internalOperation.IsLifted, internalOperation.IsChecked, internalOperation.IsCompareText, internalOperation.OperatorMethod, internalOperation.ConstrainedToType, internalOperation.UnaryOperatorMethod, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
         }
         public override IOperation VisitConditional(IConditionalOperation operation, object? argument)
         {
@@ -10283,7 +10451,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitCompoundAssignment(ICompoundAssignmentOperation operation, object? argument)
         {
             var internalOperation = (CompoundAssignmentOperation)operation;
-            return new CompoundAssignmentOperation(internalOperation.InConversionConvertible, internalOperation.OutConversionConvertible, internalOperation.OperatorKind, internalOperation.IsLifted, internalOperation.IsChecked, internalOperation.OperatorMethod, Visit(internalOperation.Target), Visit(internalOperation.Value), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+            return new CompoundAssignmentOperation(internalOperation.InConversionConvertible, internalOperation.OutConversionConvertible, internalOperation.OperatorKind, internalOperation.IsLifted, internalOperation.IsChecked, internalOperation.OperatorMethod, internalOperation.ConstrainedToType, Visit(internalOperation.Target), Visit(internalOperation.Value), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitParenthesized(IParenthesizedOperation operation, object? argument)
         {
@@ -10378,7 +10546,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitIncrementOrDecrement(IIncrementOrDecrementOperation operation, object? argument)
         {
             var internalOperation = (IncrementOrDecrementOperation)operation;
-            return new IncrementOrDecrementOperation(internalOperation.IsPostfix, internalOperation.IsLifted, internalOperation.IsChecked, Visit(internalOperation.Target), internalOperation.OperatorMethod, internalOperation.Kind, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+            return new IncrementOrDecrementOperation(internalOperation.IsPostfix, internalOperation.IsLifted, internalOperation.IsChecked, Visit(internalOperation.Target), internalOperation.OperatorMethod, internalOperation.ConstrainedToType, internalOperation.Kind, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitThrow(IThrowOperation operation, object? argument)
         {
@@ -10660,6 +10828,16 @@ namespace Microsoft.CodeAnalysis.Operations
             var internalOperation = (ImplicitIndexerReferenceOperation)operation;
             return new ImplicitIndexerReferenceOperation(Visit(internalOperation.Instance), Visit(internalOperation.Argument), internalOperation.LengthSymbol, internalOperation.IndexerSymbol, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
+        public override IOperation VisitUtf8String(IUtf8StringOperation operation, object? argument)
+        {
+            var internalOperation = (Utf8StringOperation)operation;
+            return new Utf8StringOperation(internalOperation.Value, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitAttribute(IAttributeOperation operation, object? argument)
+        {
+            var internalOperation = (AttributeOperation)operation;
+            return new AttributeOperation(Visit(internalOperation.Operation), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
     }
     #endregion
     
@@ -10797,6 +10975,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual void VisitListPattern(IListPatternOperation operation) => DefaultVisit(operation);
         public virtual void VisitSlicePattern(ISlicePatternOperation operation) => DefaultVisit(operation);
         public virtual void VisitImplicitIndexerReference(IImplicitIndexerReferenceOperation operation) => DefaultVisit(operation);
+        public virtual void VisitUtf8String(IUtf8StringOperation operation) => DefaultVisit(operation);
+        public virtual void VisitAttribute(IAttributeOperation operation) => DefaultVisit(operation);
     }
     public abstract partial class OperationVisitor<TArgument, TResult>
     {
@@ -10931,6 +11111,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual TResult? VisitListPattern(IListPatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitSlicePattern(ISlicePatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitImplicitIndexerReference(IImplicitIndexerReferenceOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult? VisitUtf8String(IUtf8StringOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult? VisitAttribute(IAttributeOperation operation, TArgument argument) => DefaultVisit(operation, argument);
     }
     #endregion
 }

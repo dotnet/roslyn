@@ -89,6 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsCompilerGenerated => _underlyingLocal.IsCompilerGenerated;
         internal override uint RefEscapeScope => _underlyingLocal.RefEscapeScope;
         internal override uint ValEscapeScope => _underlyingLocal.ValEscapeScope;
+        internal override DeclarationScope Scope => _underlyingLocal.Scope;
         internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag? diagnostics = null) =>
             _underlyingLocal.GetConstantValue(node, inProgress, diagnostics);
         internal override ImmutableBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue) =>
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override SyntaxNode GetDeclaratorSyntax() =>
             _underlyingLocal.GetDeclaratorSyntax();
         internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax) =>
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         #endregion
     }
 }

@@ -8,14 +8,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(DidChangeHandler)), Shared]
+    [ExportCSharpVisualBasicStatelessLspService(typeof(DidChangeHandler)), Shared]
     [Method(LSP.Methods.TextDocumentDidChangeName)]
-    internal class DidChangeHandler : AbstractStatelessRequestHandler<LSP.DidChangeTextDocumentParams, object?>
+    internal class DidChangeHandler : ILspServiceDocumentRequestHandler<LSP.DidChangeTextDocumentParams, object?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -23,12 +24,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
         {
         }
 
-        public override bool MutatesSolutionState => true;
-        public override bool RequiresLSPSolution => false;
+        public bool MutatesSolutionState => true;
+        public bool RequiresLSPSolution => false;
 
-        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DidChangeTextDocumentParams request) => request.TextDocument;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.DidChangeTextDocumentParams request) => request.TextDocument;
 
-        public override Task<object?> HandleRequestAsync(LSP.DidChangeTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
+        public Task<object?> HandleRequestAsync(LSP.DidChangeTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var text = context.GetTrackedDocumentSourceText(request.TextDocument.Uri);
 

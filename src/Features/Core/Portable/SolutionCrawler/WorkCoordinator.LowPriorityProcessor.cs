@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                         {
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
                         }
                     }
 
@@ -85,9 +85,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
-                    protected override void PauseOnGlobalOperation()
+                    protected override void OnPaused()
                     {
-                        base.PauseOnGlobalOperation();
+                        base.OnPaused();
 
                         _workItemQueue.RequestCancellationOnRunningTasks();
                     }
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                         {
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
                         }
                         finally
                         {

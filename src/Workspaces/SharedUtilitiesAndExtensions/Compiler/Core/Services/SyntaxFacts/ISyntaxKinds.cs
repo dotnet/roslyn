@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     /// <summary>
     /// Provides a uniform view of SyntaxKinds over C# and VB for constructs they have
@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int? MultiLineDocCommentTrivia { get; }
         int? ShebangDirectiveTrivia { get; }
 
+        int IfDirectiveTrivia { get; }
+
         #endregion
 
         #region keywords
@@ -55,6 +57,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int StringLiteralToken { get; }
         int? SingleLineRawStringLiteralToken { get; }
         int? MultiLineRawStringLiteralToken { get; }
+        int? Utf8StringLiteralToken { get; }
+        int? Utf8SingleLineRawStringLiteralToken { get; }
+        int? Utf8MultiLineRawStringLiteralToken { get; }
 
         #endregion
 
@@ -68,6 +73,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int IdentifierToken { get; }
         int InterpolatedStringTextToken { get; }
         int QuestionToken { get; }
+
+        #endregion
+
+        #region xml tokens
+
+        int XmlTextLiteralToken { get; }
 
         #endregion
 
@@ -110,6 +121,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int? IndexExpression { get; }
         int InterpolatedStringExpression { get; }
         int InvocationExpression { get; }
+        int IsTypeExpression { get; }
+        int? IsNotTypeExpression { get; }
+        int? IsPatternExpression { get; }
         int LogicalAndExpression { get; }
         int LogicalOrExpression { get; }
         int LogicalNotExpression { get; }
@@ -117,6 +131,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int ParenthesizedExpression { get; }
         int QueryExpression { get; }
         int? RangeExpression { get; }
+        int? RefExpression { get; }
         int ReferenceEqualsExpression { get; }
         int ReferenceNotEqualsExpression { get; }
         int SimpleMemberAccessExpression { get; }
@@ -127,16 +142,33 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         #endregion
 
+        #region patterns
+
+        int? AndPattern { get; }
+        int? ConstantPattern { get; }
+        int? DeclarationPattern { get; }
+        int? NotPattern { get; }
+        int? OrPattern { get; }
+        int? ParenthesizedPattern { get; }
+        int? RecursivePattern { get; }
+        int? RelationalPattern { get; }
+        int? TypePattern { get; }
+        int? VarPattern { get; }
+
+        #endregion
+
         #region statements
 
         int ExpressionStatement { get; }
         int ForEachStatement { get; }
+        int IfStatement { get; }
         int LocalDeclarationStatement { get; }
         int? LocalFunctionStatement { get; }
         int LockStatement { get; }
         int ReturnStatement { get; }
         int ThrowStatement { get; }
         int UsingStatement { get; }
+        int YieldReturnStatement { get; }
 
         #endregion
 
@@ -144,12 +176,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         int Attribute { get; }
         int ClassDeclaration { get; }
+        int InterfaceDeclaration { get; }
         int? RecordDeclaration { get; }
         int? RecordStructDeclaration { get; }
+        int? StructDeclaration { get; }
         int Parameter { get; }
         int TypeConstraint { get; }
         int VariableDeclarator { get; }
         int FieldDeclaration { get; }
+        int PropertyDeclaration { get; }
 
         int IncompleteMember { get; }
         int TypeArgumentList { get; }
@@ -167,6 +202,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         int Interpolation { get; }
         int InterpolatedStringText { get; }
+        int? IndexerMemberCref { get; }
 
         #endregion
     }

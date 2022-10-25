@@ -36,6 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly IAsynchronousOperationListener _listener;
 
         public InheritanceMarginGlyph(
+            Workspace workspace,
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
             ClassificationTypeMap classificationTypeMap,
@@ -47,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         {
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
-            _workspace = tag.Workspace;
+            _workspace = workspace;
             _operationExecutor = operationExecutor;
             _textView = textView;
             _listener = listener;
@@ -163,7 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private void ContextMenu_OnOpen(object sender, RoutedEventArgs e)
         {
             if (e.OriginalSource is ContextMenu { DataContext: InheritanceMarginGlyphViewModel inheritanceMarginViewModel }
-                && inheritanceMarginViewModel.MenuItemViewModels.Any(vm => vm is TargetMenuItemViewModel))
+                && inheritanceMarginViewModel.MenuItemViewModels.Any(static vm => vm is TargetMenuItemViewModel))
             {
                 // We have two kinds of context menu. e.g.
                 // 1. [margin] -> Header

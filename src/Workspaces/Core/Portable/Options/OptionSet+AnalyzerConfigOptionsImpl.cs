@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -13,19 +16,19 @@ namespace Microsoft.CodeAnalysis.Options
         private sealed class AnalyzerConfigOptionsImpl : AnalyzerConfigOptions
         {
             private readonly OptionSet _optionSet;
-            private readonly IOptionService _optionService;
+            private readonly IEditorConfigOptionMappingService _optionMappingService;
             private readonly string? _language;
 
-            public AnalyzerConfigOptionsImpl(OptionSet optionSet, IOptionService optionService, string? language)
+            public AnalyzerConfigOptionsImpl(OptionSet optionSet, IEditorConfigOptionMappingService optionMappingService, string? language)
             {
                 _optionSet = optionSet;
-                _optionService = optionService;
+                _optionMappingService = optionMappingService;
                 _language = language;
             }
 
             public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
             {
-                if (!_optionService.TryMapEditorConfigKeyToOption(key, _language, out var storageLocation, out var optionKey))
+                if (!_optionMappingService.TryMapEditorConfigKeyToOption(key, _language, out var storageLocation, out var optionKey))
                 {
                     // There are couple of reasons this assert might fire:
                     //  1. Attempting to access an option which does not have an IEditorConfigStorageLocation.
@@ -39,6 +42,10 @@ namespace Microsoft.CodeAnalysis.Options
                 value = storageLocation.GetEditorConfigStringValue(typedValue, _optionSet);
                 return true;
             }
+
+            // no way to enumerate OptionSet
+            public override IEnumerable<string> Keys
+                => throw new NotImplementedException();
         }
     }
 }
