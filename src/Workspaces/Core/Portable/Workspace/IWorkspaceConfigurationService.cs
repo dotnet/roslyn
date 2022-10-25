@@ -22,9 +22,8 @@ namespace Microsoft.CodeAnalysis.Host
     [DataContract]
     internal readonly record struct WorkspaceConfigurationOptions(
         [property: DataMember(Order = 0)] StorageDatabase CacheStorage = StorageDatabase.SQLite,
-        [property: DataMember(Order = 2)] bool DisableProjectCacheService = false,
-        [property: DataMember(Order = 3)] bool EnableOpeningSourceGeneratedFiles = false,
-        [property: DataMember(Order = 4)] bool DisableCloneWhenProducingSkeletonReferences = false)
+        [property: DataMember(Order = 1)] bool EnableOpeningSourceGeneratedFiles = false,
+        [property: DataMember(Order = 2)] bool DisableCloneWhenProducingSkeletonReferences = false)
     {
         public WorkspaceConfigurationOptions()
             : this(CacheStorage: StorageDatabase.SQLite)
@@ -39,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Host
         /// </summary>
         public static readonly WorkspaceConfigurationOptions RemoteDefault = new(
             CacheStorage: StorageDatabase.None,
-            DisableProjectCacheService: false,
             EnableOpeningSourceGeneratedFiles: false,
             DisableCloneWhenProducingSkeletonReferences: false);
     }
