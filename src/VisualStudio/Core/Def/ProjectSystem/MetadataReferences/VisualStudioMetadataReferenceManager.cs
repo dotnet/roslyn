@@ -139,7 +139,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 // use temporary storage
                 using var _ = ArrayBuilder<TemporaryStorageService.TemporaryStreamStorage>.GetInstance(out var storages);
-                var newMetadata = CreateAssemblyMetadata(key, CreateModuleMetadata);
+                var newMetadata = CreateAssemblyMetadata(key, key =>
+                {
+                    // <exception cref="IOException"/>
+                    // <exception cref="BadImageFormatException" />
+                    GetMetadataFromTemporaryStorage(key, out var storage, out var metadata);
+                    storages.Add(storage);
+                    return metadata;
+                });
 
                 // don't dispose assembly metadata since it shares module metadata
                 if (!_metadataCache.GetOrAddMetadata(key, new RecoverableMetadataValueSource(newMetadata, storages.ToImmutable()), out metadata))
@@ -151,15 +158,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 GC.KeepAlive(newMetadata);
 
                 return metadata;
-
-                // <exception cref="IOException"/>
-                // <exception cref="BadImageFormatException" />
-                ModuleMetadata CreateModuleMetadata(FileKey moduleFileKey)
-                {
-                    GetMetadataFromTemporaryStorage(moduleFileKey, out var storage, out var metadata);
-                    storages.Add(storage);
-                    return metadata;
-                }
             }
         }
 
@@ -236,18 +234,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <exception cref="BadImageFormatException" />
         private AssemblyMetadata CreateAssemblyMetadataFromMetadataImporter(FileKey fileKey)
         {
-            return CreateAssemblyMetadata(fileKey, CreateModuleMetadata);
-
-            ModuleMetadata CreateModuleMetadata(FileKey moduleFileKey)
+            return CreateAssemblyMetadata(fileKey, fileKey =>
             {
-                var metadata = TryCreateModuleMetadataFromMetadataImporter(moduleFileKey);
+                var metadata = TryCreateModuleMetadataFromMetadataImporter(fileKey);
 
                 // getting metadata didn't work out through importer. fallback to shadow copy one
                 if (metadata == null)
-                    GetMetadataFromTemporaryStorage(moduleFileKey, out _, out metadata);
+                    GetMetadataFromTemporaryStorage(fileKey, out _, out metadata);
 
                 return metadata;
-            }
+            });
 
             ModuleMetadata? TryCreateModuleMetadataFromMetadataImporter(FileKey moduleFileKey)
             {
