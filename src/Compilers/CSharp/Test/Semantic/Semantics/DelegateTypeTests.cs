@@ -12555,11 +12555,11 @@ class Program
 }
 """;
             var verifier = CompileAndVerify(source, expectedOutput: "file::member:0");
-            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", """
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", $$"""
                 .class private auto ansi sealed '<>f__AnonymousDelegate0'
-                	extends [netstandard]System.MulticastDelegate
+                	extends [{{s_libPrefix}}]System.MulticastDelegate
                 {
-                	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 		01 00 00 00
                 	)
                 	// Methods
@@ -13507,11 +13507,11 @@ class Program
 3
 <>f__AnonymousDelegate0
 <>f__AnonymousDelegate0").VerifyDiagnostics();
-            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", """
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", $$"""
                 .class private auto ansi sealed '<>f__AnonymousDelegate0'
-                	extends [netstandard]System.MulticastDelegate
+                	extends [{{s_libPrefix}}]System.MulticastDelegate
                 {
-                	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 		01 00 00 00
                 	)
                 	// Methods
