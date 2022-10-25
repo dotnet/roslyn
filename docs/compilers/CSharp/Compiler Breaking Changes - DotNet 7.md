@@ -5,7 +5,7 @@
 ***Introduced in Visual Studio 2022 version 17.5, .NET SDK version 7.0.200***
 
 In previous versions of the compiler, the `IOperation` tree for an attribute was rooted with an `INoneOperation` node.
-We have added native support attributes, which means that the root of the tree is now an `IAttributeOperation`. Some
+We have added native support for attributes, which means that the root of the tree is now an `IAttributeOperation`. Some
 analyzers, including older versions of the .NET SDK analyzers, are not expecting this tree shape, and will incorrectly
 warn (or potentially fail to warn) when encountering it. The workarounds for this are:
 
