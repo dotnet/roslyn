@@ -28,9 +28,11 @@ parameters:
 jobs:
 - job: ${{ parameters.jobName }}
   dependsOn: ${{ parameters.buildJobName }}
+  variables:
+  - template: /eng/common/templates/variables/pool-providers.yml
   pool:
     ${{ if ne(parameters.queueName, '') }}:
-      name: NetCore-Svc-Public
+      name: $(DncEngPublicBuildPool)
       demands: ImageOverride -equals ${{ parameters.queueName }}
 
     ${{ if ne(parameters.vmImageName, '') }}:

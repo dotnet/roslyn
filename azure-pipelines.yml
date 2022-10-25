@@ -152,8 +152,10 @@ jobs:
 # Build Correctness Jobs
 
 - job: Correctness_Determinism
+  variables:
+  - template: /eng/common/templates/variables/pool-providers.yml
   pool:
-    name: NetCore-Svc-Public
+    name: $(DncEngPublicBuildPool)
     demands: ImageOverride -equals windows.vs2022.amd64.open
   timeoutInMinutes: 90
   steps:
@@ -168,8 +170,10 @@ jobs:
         configuration: Debug
 
 - job: Correctness_Build
+  variables:
+  - template: /eng/common/templates/variables/pool-providers.yml
   pool:
-    name: NetCore-Svc-Public
+    name: $(DncEngPublicBuildPool)
     demands: ImageOverride -equals windows.vs2022.amd64.open
   timeoutInMinutes: 90
   steps:
@@ -200,8 +204,10 @@ jobs:
       condition: succeeded()
 
 - job: Correctness_Rebuild
+  variables:
+  - template: /eng/common/templates/variables/pool-providers.yml
   pool:
-    name: NetCore-Svc-Public
+    name: $(DncEngPublicBuildPool)
     demands: ImageOverride -equals windows.vs2022.amd64.open
   timeoutInMinutes: 90
   steps:

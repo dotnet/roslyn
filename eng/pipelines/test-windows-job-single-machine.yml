@@ -25,8 +25,10 @@ parameters:
 jobs:
 - job: ${{ parameters.jobName }}
   dependsOn: ${{ parameters.buildJobName }}
+  variables:
+  - template: /eng/common/templates/variables/pool-providers.yml
   pool:
-    name: NetCore-Svc-Public
+    name: $(DncEngPublicBuildPool)
     demands: ImageOverride -equals ${{ parameters.queueName }}
   timeoutInMinutes: 120
   variables:
