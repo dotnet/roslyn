@@ -14,6 +14,9 @@ pr:
 - features/*
 - demos/*
 
+variables:
+- template: /eng/common/templates/variables/pool-providers.yml
+
 # Windows Build and Test Jobs
 jobs:
 - template: eng/pipelines/build-windows-job.yml
@@ -21,6 +24,7 @@ jobs:
     jobName: Build_Windows_Debug
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
+    poolName: $(DncEngPublicBuildPool)
     queueName: windows.vs2022.amd64.open
 
 - template: eng/pipelines/build-windows-job.yml
@@ -28,6 +32,7 @@ jobs:
     jobName: Build_Windows_Release
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
+    poolName: $(DncEngPublicBuildPool)
     queueName: windows.vs2022.amd64.open
 
 - template: eng/pipelines/test-windows-job.yml
@@ -65,6 +70,7 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
     testArguments: -testCoreClr
+    poolName: $(DncEngPublicBuildPool)
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -117,6 +123,7 @@ jobs:
     jobName: Build_Unix_Debug
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
+    poolName: $(DncEngPublicBuildPool)
     queueName: Build.Ubuntu.1804.Amd64.Open
 
 - template: eng/pipelines/test-unix-job.yml
@@ -136,6 +143,7 @@ jobs:
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
     testArguments: --testCoreClr
+    poolName: $(DncEngPublicBuildPool)
     queueName: Build.Ubuntu.1804.Amd64.Open
 
 - template: eng/pipelines/test-unix-job.yml
@@ -153,7 +161,7 @@ jobs:
 
 - job: Correctness_Determinism
   pool:
-    name: NetCore-Svc-Public
+    name: $(DncEngPublicBuildPool)
     demands: ImageOverride -equals windows.vs2022.amd64.open
   timeoutInMinutes: 90
   steps:
@@ -169,7 +177,7 @@ jobs:
 
 - job: Correctness_Build
   pool:
-    name: NetCore-Svc-Public
+    name: $(DncEngPublicBuildPool)
     demands: ImageOverride -equals windows.vs2022.amd64.open
   timeoutInMinutes: 90
   steps:
@@ -201,7 +209,7 @@ jobs:
 
 - job: Correctness_Rebuild
   pool:
-    name: NetCore-Svc-Public
+    name: $(DncEngPublicBuildPool)
     demands: ImageOverride -equals windows.vs2022.amd64.open
   timeoutInMinutes: 90
   steps:

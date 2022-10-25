@@ -72,13 +72,14 @@ variables:
     value: '[Auto Insertion]'
   - name: Insertion.TitleSuffix
     value: ''
+  - template: /eng/common/templates/variables/pool-providers.yml
 
 stages:
 
 - stage: build
   displayName: Build and Test
   pool:
-    name: NetCore1ESPool-Svc-Internal
+    name: $(DncEngInternalBuildPool)
     demands: ImageOverride -equals windows.vs2022.amd64
 
   jobs:
@@ -308,7 +309,7 @@ stages:
       dependsOn:
         - OfficialBuild
       pool:
-        name: NetCore1ESPool-Svc-Internal
+        name: $(DncEngInternalBuildPool)
         demands: ImageOverride -equals windows.vs2022.amd64
 
 - stage: insert
@@ -320,7 +321,7 @@ stages:
   - job: insert
     displayName: Insert to VS
     pool:
-      name: NetCore1ESPool-Svc-Internal
+      name: $(DncEngInternalBuildPool)
       demands: ImageOverride -equals windows.vs2022.amd64
     steps:
     - download: current
