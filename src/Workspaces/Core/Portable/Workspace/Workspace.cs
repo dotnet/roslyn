@@ -248,10 +248,6 @@ namespace Microsoft.CodeAnalysis
 
             var oldSolution = Volatile.Read(ref _latestSolution);
 
-            // Ensure our event handlers are realized prior to taking this lock.  We don't want to deadlock trying
-            // to obtain them when calling one of our callbacks. See https://github.com/dotnet/roslyn/issues/64681
-            EnsureEventListeners();
-
             while (true)
             {
                 // Run the transformation outside of the lock as it should not be making any state changes to us.

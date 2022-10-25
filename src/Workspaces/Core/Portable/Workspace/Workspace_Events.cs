@@ -246,13 +246,8 @@ namespace Microsoft.CodeAnalysis
         {
             // this will register features that want to listen to workspace events
             // lazily first time workspace event is actually fired
-            EnsureEventListeners();
-            return _eventMap.GetEventHandlers<EventHandler<T>>(eventName);
-        }
-
-        private void EnsureEventListeners()
-        {
             this.Services.GetService<IWorkspaceEventListenerService>()?.EnsureListeners();
+            return _eventMap.GetEventHandlers<EventHandler<T>>(eventName);
         }
     }
 }
