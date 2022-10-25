@@ -153,8 +153,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             await WaitWaiterAsync(workspace.ExportProvider);
 
             var worker = await ExecuteOperation(workspace, w => w.ClearSolution());
-            await WaitWaiterAsync(workspace.ExportProvider);
-
             Assert.Equal(10, worker.InvalidateDocumentIds.Count);
         }
 

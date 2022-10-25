@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 workspaceConfigurationService.Options = new WorkspaceConfigurationOptions(EnableOpeningSourceGeneratedFiles: true);
             }
 
-            SetCurrentSolutionEx(CreateSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create()).WithTelemetryId(solutionTelemetryId)));
+            SetCurrentSolution(CreateSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create()).WithTelemetryId(solutionTelemetryId)));
 
             _workspaceKind = workspaceKind ?? WorkspaceKind.Host;
             this.Projects = new List<TestHostProject>();
@@ -158,6 +158,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         protected override void Dispose(bool finalize)
         {
             _metadataAsSourceFileService?.CleanupGeneratedFiles();
+
+            this.ClearSolutionData();
 
             foreach (var document in Documents)
             {
@@ -763,7 +765,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public Task ChangeDocumentAsync(DocumentId documentId, Solution solution)
         {
-            var (oldSolution, newSolution) = this.SetCurrentSolutionEx(solution);
+            var oldSolution = this.CurrentSolution;
+            var newSolution = this.SetCurrentSolution(solution);
 
             return this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId.ProjectId, documentId);
         }
@@ -772,21 +775,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             var documentId = documentInfo.Id;
 
-            var (oldSolution, newSolution) = this.SetCurrentSolutionEx(this.CurrentSolution.AddDocument(documentInfo));
+            var oldSolution = this.CurrentSolution;
+            var newSolution = this.SetCurrentSolution(oldSolution.AddDocument(documentInfo));
 
             return this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentAdded, oldSolution, newSolution, documentId: documentId);
         }
 
         public void ChangeAdditionalDocument(DocumentId documentId, SourceText text)
         {
-            var (oldSolution, newSolution) = this.SetCurrentSolutionEx(this.CurrentSolution.WithAdditionalDocumentText(documentId, text));
+            var oldSolution = this.CurrentSolution;
+            var newSolution = this.SetCurrentSolution(oldSolution.WithAdditionalDocumentText(documentId, text));
 
             this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentChanged, oldSolution, newSolution, documentId.ProjectId, documentId);
         }
 
         public void ChangeAnalyzerConfigDocument(DocumentId documentId, SourceText text)
         {
-            var (oldSolution, newSolution) = this.SetCurrentSolutionEx(this.CurrentSolution.WithAnalyzerConfigDocumentText(documentId, text));
+            var oldSolution = this.CurrentSolution;
+            var newSolution = this.SetCurrentSolution(oldSolution.WithAnalyzerConfigDocumentText(documentId, text));
 
             this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentChanged, oldSolution, newSolution, documentId.ProjectId, documentId);
         }
@@ -798,7 +804,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public Task ChangeProjectAsync(ProjectId projectId, Solution solution)
         {
-            var (oldSolution, newSolution) = this.SetCurrentSolutionEx(solution);
+            var oldSolution = this.CurrentSolution;
+            var newSolution = this.SetCurrentSolution(solution);
 
             return this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
         }
@@ -813,7 +820,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public Task ChangeSolutionAsync(Solution solution)
         {
-            var (oldSolution, newSolution) = this.SetCurrentSolutionEx(solution);
+            var oldSolution = this.CurrentSolution;
+            var newSolution = this.SetCurrentSolution(solution);
 
             return this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
         }
