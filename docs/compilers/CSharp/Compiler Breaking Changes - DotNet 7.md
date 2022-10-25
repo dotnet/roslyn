@@ -10,7 +10,7 @@ analyzers, including older versions of the .NET SDK analyzers, are not expecting
 warn (or potentially fail to warn) when encountering it. The workarounds for this are:
 
 * Update your analyzer version, if possible. If using the .NET SDK or older versions of Microsoft.CodeAnalysis.FxCopAnalyzers,
-update to at least Microsoft.CodeAnalysis.NetAnalyzers 7.0.0-preview1.22464.1 or later.
+update to Microsoft.CodeAnalysis.NetAnalyzers 7.0.0-preview1.22464.1 or newer.
 * Suppress any false-positives from the analyzers until they can be updated with a version that takes this change into
 account.
 
