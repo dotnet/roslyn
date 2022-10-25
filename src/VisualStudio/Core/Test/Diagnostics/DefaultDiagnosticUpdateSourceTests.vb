@@ -70,7 +70,7 @@ class 123 { }
         End Function
 
         <Fact>
-        Public Async Function TestDefaultDiagnosticProviderSyntax() As Task
+        Public Async Function TestDefaultDiagnosticProviderSyntaxAndSemantics() As Task
             Dim code = <code>
 class A
 {
@@ -102,7 +102,7 @@ class A
                 Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
                     workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, DiagnosticMode.Default, CancellationToken.None)
 
-                Assert.Single(diagnostics)
+                Assert.Equal(2, diagnostics.Count())
             End Using
         End Function
 
