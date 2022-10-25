@@ -237,11 +237,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression argument = (node.Expression == null)
                 ? BadExpression(node).MakeCompilerGenerated()
                 : BindValue(node.Expression, diagnostics, BindValueKind.RValue);
-            argument = ValidateEscape(argument, ReturnOnlyScope, isByRef: false, diagnostics: diagnostics);
 
             if (!argument.HasAnyErrors)
             {
                 argument = GenerateConversionForAssignment(elementType, argument, diagnostics);
+                argument = ValidateEscape(argument, ReturnOnlyScope, isByRef: false, diagnostics: diagnostics);
             }
             else
             {

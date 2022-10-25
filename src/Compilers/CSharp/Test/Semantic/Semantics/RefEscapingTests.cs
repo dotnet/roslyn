@@ -182,10 +182,11 @@ class C
         yield return s;
     }
 }", parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            // Note: an escape analysis error is not given here because we already gave a conversion error.
             comp.VerifyDiagnostics(
-                // (9,22): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                // (9,22): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'object'
                 //         yield return s;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(9, 22));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s").WithArguments("System.Span<int>", "object").WithLocation(9, 22));
         }
 
         [Theory]
