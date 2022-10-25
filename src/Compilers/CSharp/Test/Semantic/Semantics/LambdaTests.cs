@@ -7057,8 +7057,6 @@ public class DisplayAttribute : System.Attribute
             comp.VerifyDiagnostics();
         }
 
-
-        // PROTOTYPE: Add separate test cases for lang version 11 vs. lang version 11 preview
         [Fact]
         public void AnonymousMethodWithExplicitDefaultParam()
         {
