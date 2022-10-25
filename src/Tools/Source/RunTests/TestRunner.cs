@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -207,6 +208,7 @@ namespace RunTests
                 AddRehydrateTestFoldersCommand(command, workItemInfo, isUnix);
 
                 var xmlResultsFilePath = ProcessTestExecutor.GetResultsFilePath(workItemInfo, options, "xml");
+                Contract.Assert(!options.IncludeHtml);
 
                 // Build an rsp file to send to dotnet test that contains all the assemblies and tests to run.
                 // This gets around command line length limitations and avoids weird escaping issues.
