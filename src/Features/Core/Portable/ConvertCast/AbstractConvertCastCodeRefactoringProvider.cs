@@ -47,13 +47,14 @@ namespace Microsoft.CodeAnalysis.ConvertCast
             var typeNode = GetTypeNode(from);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var type = semanticModel.GetTypeInfo(typeNode, cancellationToken).Type;
+            var nullableContext = semanticModel.GetNullableContext(from.SpanStart);
             if (type is { TypeKind: not TypeKind.Error, IsReferenceType: true })
             {
                 var title = GetTitle();
                 context.RegisterRefactoring(
                     CodeAction.Create(
                         title,
-                        c => ConvertAsync(document, from, semanticModel, cancellationToken),
+                        c => ConvertAsync(document, from, nullableContext, cancellationToken),
                         title),
                     from.Span);
             }
@@ -62,11 +63,11 @@ namespace Microsoft.CodeAnalysis.ConvertCast
         protected async Task<Document> ConvertAsync(
             Document document,
             TFromExpression from,
-            SemanticModel semanticModel,
+            NullableContext nullableContext,
             CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var newRoot = root.ReplaceNode(from, ConvertExpression(from, semanticModel.GetNullableContext(from.SpanStart)));
+            var newRoot = root.ReplaceNode(from, ConvertExpression(from, nullableContext));
             return document.WithSyntaxRoot(newRoot);
         }
     }
