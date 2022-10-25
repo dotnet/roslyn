@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
 
             var service = workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
-            using var outerClient = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
+            using var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
             // add solution, change document
             workspace.AddSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Default));
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                 // 100 inner loops producing variants of the file.
                 for (var j = 0; j < 100; j++)
                 {
-                    tasks.Add(Task.Run(async () => await PerformSearchesAsync(service, assetStorage, document, name: "Goo" + i)));
+                    tasks.Add(Task.Run(async () => await PerformSearchesAsync(client, assetStorage, document, name: "Goo" + i)));
                 }
             }
 
@@ -123,12 +123,10 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             Assert.Equal(0, assetStorage.GetTestAccessor().PinnedScopesCount);
         }
 
-        private static async Task PerformSearchesAsync(IRemoteHostClientProvider service, SolutionAssetStorage storage, Document document, string name)
+        private static async Task PerformSearchesAsync(RemoteHostClient client, SolutionAssetStorage storage, Document document, string name)
         {
             // Fork the document, with 100 variants of methods called 'name' in it.
             var forked = document.Project.Solution.WithDocumentText(document.Id, SourceText.From(CreateText(name)));
-
-            using var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
             Checksum checksum = null!;
 
