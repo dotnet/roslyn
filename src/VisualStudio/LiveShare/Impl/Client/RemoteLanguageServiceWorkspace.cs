@@ -125,8 +125,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         {
             _session = session;
 
-            StartSolutionCrawler();
-
             // Get the initial workspace roots and update any files that have been opened.
             await UpdatePathsToRemoteFilesAsync(session).ConfigureAwait(false);
 
@@ -205,7 +203,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         {
             _session = null;
             _vsFolderWorkspaceService.OnActiveWorkspaceChanged -= OnActiveWorkspaceChangedAsync;
-            StopSolutionCrawler();
 
             // Clear the remote paths on end of session.  Live share handles closing all the files.
             using (s_RemotePathsGate.DisposableWait())
@@ -537,16 +534,5 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 edit.Apply();
             }
         }
-
-        private void StartSolutionCrawler()
-        {
-            if (GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
-            {
-                DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Syntax);
-            }
-        }
-
-        private void StopSolutionCrawler()
-            => DiagnosticProvider.Disable(this);
     }
 }

@@ -20,7 +20,7 @@ Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
-    <[UseExportProvider]>
+    <UseExportProvider>
     Public Class DefaultDiagnosticUpdateSourceTests
         Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures _
             .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
@@ -45,8 +45,6 @@ class 123 { }
                 Dim diagnosticService = DirectCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticService), DiagnosticService)
 
                 Dim miscService = DirectCast(workspace.GetService(Of IDiagnosticAnalyzerService), DiagnosticAnalyzerService)
-
-                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
 
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
@@ -92,8 +90,6 @@ class A
                 Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
                 Assert.False(miscService.SupportGetDiagnostics)
 
-                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
-
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
 
@@ -131,8 +127,6 @@ class A
                 Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
                 Assert.False(miscService.SupportGetDiagnostics)
 
-                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Semantic)
-
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
                 Await analyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, CancellationToken.None)
@@ -169,8 +163,6 @@ class A
 
                 Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
                 Assert.False(miscService.SupportGetDiagnostics)
-
-                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Semantic Or DiagnosticProvider.Options.Syntax)
 
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
@@ -210,8 +202,6 @@ class A
                 Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
                 Assert.False(miscService.SupportGetDiagnostics)
 
-                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Semantic Or DiagnosticProvider.Options.Syntax)
-
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
 
@@ -241,8 +231,6 @@ class 123 { }
                 Dim registrationService = Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
                 Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
 
-                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
-
                 Dim buildTool = String.Empty
 
                 AddHandler miscService.DiagnosticsUpdated, Sub(e, a)
@@ -269,8 +257,6 @@ End Class
 
                 Dim registrationService = Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
                 Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
-
-                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
 
                 Dim buildTool = String.Empty
 
@@ -313,8 +299,6 @@ End Class
 
                 Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
                 Assert.False(miscService.SupportGetDiagnostics)
-
-                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.ScriptSemantic)
 
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
