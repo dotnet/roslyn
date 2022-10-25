@@ -12538,11 +12538,6 @@ class Program
             CompileAndVerify(source, expectedOutput: "0.3333333333333333333333333333");
         }
 
-
-        // PROTOTYPE: Do we want to allow [Caller{MemberName, LineNumber, FilePath, ArgumentExpression}] attributes for lambdas since
-        // we now have default parameters? The current behavior is to ignore these attributes so that the provided
-        // default would always be used in these cases.
-
         [Fact]
         public void CallerAttributesOnLambdaWithDefaultParam()
         {
@@ -12559,9 +12554,36 @@ class Program
     }
 }
 """;
-            CompileAndVerify(source, expectedOutput: "file::member:0");
+            var verifier = CompileAndVerify(source, expectedOutput: "file::member:0");
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", """
+                .class private auto ansi sealed '<>f__AnonymousDelegate0'
+                	extends [netstandard]System.MulticastDelegate
+                {
+                	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Methods
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor (
+                			object 'object',
+                			native int 'method'
+                		) runtime managed 
+                	{
+                	} // end of method '<>f__AnonymousDelegate0'::.ctor
+                	.method public hidebysig newslot virtual 
+                		instance void Invoke (
+                			[opt] string arg1,
+                			[opt] string arg2,
+                			[opt] int32 arg3
+                		) runtime managed 
+                	{
+                		.param [1] = "member"
+                		.param [2] = "file"
+                		.param [3] = int32(0)
+                	} // end of method '<>f__AnonymousDelegate0'::Invoke
+                } // end of class <>f__AnonymousDelegate0
+                """);
         }
-
 
         [Fact]
         public void CallerArgumentExpressionAttributeOnLambdaWithDefaultParam()
@@ -12579,9 +12601,34 @@ class Program
     }
 }
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net60,
-                                     verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Skipped,
-                                     expectedOutput: ExecutionConditionUtil.IsCoreClr ? "callerArgExpression" : null);
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net60,
+                verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Skipped,
+                expectedOutput: ExecutionConditionUtil.IsCoreClr ? "callerArgExpression" : null);
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", """
+                .class private auto ansi sealed '<>f__AnonymousDelegate0'
+                	extends [System.Runtime]System.MulticastDelegate
+                {
+                	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Methods
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor (
+                			object 'object',
+                			native int 'method'
+                		) runtime managed 
+                	{
+                	} // end of method '<>f__AnonymousDelegate0'::.ctor
+                	.method public hidebysig newslot virtual 
+                		instance void Invoke (
+                			int32 arg1,
+                			[opt] string arg2
+                		) runtime managed 
+                	{
+                		.param [2] = "callerArgExpression"
+                	} // end of method '<>f__AnonymousDelegate0'::Invoke
+                } // end of class <>f__AnonymousDelegate0
+                """);
         }
 
         [Fact]
