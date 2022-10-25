@@ -271,7 +271,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static bool isValidTypeArgument(bool useUpdatedEscapeRules, AnonymousTypeField field)
             {
-                return hasDefaultScope(useUpdatedEscapeRules, field) &&
+                return !field.IsParams &&
+                    hasDefaultScope(useUpdatedEscapeRules, field) &&
                     field.DefaultValue is null &&
                     field.Type is { } type &&
                     !type.IsPointerOrFunctionPointer() &&

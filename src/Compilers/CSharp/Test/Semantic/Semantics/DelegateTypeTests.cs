@@ -13757,5 +13757,94 @@ class Program
 $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
 {s_expressionOfTDelegate1ArgTypeName}[System.Func`2[System.Int32,<>f__AnonymousDelegate0]]").VerifyDiagnostics();
         }
+
+        [Fact]
+        public void ParamsArray_SynthesizedTypesMatch()
+        {
+            var source = """
+                static void Report(object obj1, object obj2) => System.Console.WriteLine($"{obj1.GetType() == obj2.GetType()}, {obj1.GetType()}");
+
+                var lam1 = (params int[] xs) => xs.Length;
+                int Method1(params int[] xs) => xs.Length;
+                var del1 = Method1;
+                Report(lam1, del1);
+
+                var lam2 = (params int[] ys) => ys.Length;
+                int Method2(params int[] ys) => ys.Length;
+                var del2 = Method2;
+                Report(lam2, del2);
+                Report(lam1, lam2);
+
+                var lam3 = (int[] xs) => xs.Length;
+                int Method3(int[] xs) => xs.Length;
+                var del3 = Method3;
+                Report(lam3, del3);
+
+                var lam4 = (ref int a, int b, int[] xs) => { };
+                void Method4(ref int a, int b, int[] xs) { }
+                var del4 = Method4;
+                Report(lam4, del4);
+
+                var lam5 = (ref int a, int b, params int[] xs) => { };
+                void Method5(ref int a, int b, params int[] xs) { }
+                var del5 = Method5;
+                Report(lam5, del5);
+
+                var lam6 = (int a, System.TypedReference b, params int[] xs) => { };
+                void Method6(int a, System.TypedReference b, params int[] xs) { }
+                var del6 = Method6;
+                Report(lam6, del6);
+
+                var lam7 = (int x, System.TypedReference y, params int[] ys) => { };
+                void Method7(int x, System.TypedReference y, params int[] ys) { }
+                var del7 = Method7;
+                Report(lam7, del7);
+                """;
+            CompileAndVerify(source, expectedOutput: """
+                True, <>f__AnonymousDelegate0
+                True, <>f__AnonymousDelegate0
+                True, <>f__AnonymousDelegate0
+                True, System.Func`2[System.Int32[],System.Int32]
+                True, <>A{00000001}`3[System.Int32,System.Int32,System.Int32[]]
+                True, <>f__AnonymousDelegate1
+                True, <>f__AnonymousDelegate2
+                True, <>f__AnonymousDelegate2
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParamsArray_SynthesizedDelegateIL()
+        {
+            var source = """
+                static void Report(object obj) => System.Console.WriteLine(obj.GetType());
+                var lam = (int x, params int[] ys) => { };
+                Report(lam);
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "<>f__AnonymousDelegate0").VerifyDiagnostics();
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", $$"""
+                .class private auto ansi sealed '<>f__AnonymousDelegate0'
+                	extends [{{s_libPrefix}}]System.MulticastDelegate
+                {
+                	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Methods
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor (
+                			object 'object',
+                			native int 'method'
+                		) runtime managed 
+                	{
+                	} // end of method '<>f__AnonymousDelegate0'::.ctor
+                	.method public hidebysig newslot virtual 
+                		instance void Invoke (
+                			int32 arg1,
+                			int32[] arg2
+                		) runtime managed 
+                	{
+                	} // end of method '<>f__AnonymousDelegate0'::Invoke
+                } // end of class <>f__AnonymousDelegate0
+                """);
+        }
     }
 }

@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (parameterIndex > lastIndex) break;
 
-                CheckParameterModifiers(parameterSyntax, diagnostics, parsingFunctionPointer, parsingLambdaParams: false);
+                CheckParameterModifiers(parameterSyntax, diagnostics, parsingFunctionPointer, parsingLambdaParams: false, parsingAnonymousMethodParams: false);
 
                 var refKind = GetModifiers(parameterSyntax.Modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword, out DeclarationScope scope);
                 if (thisKeyword.Kind() != SyntaxKind.None && !allowThis)
@@ -409,8 +409,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BaseParameterSyntax parameter,
             BindingDiagnosticBag diagnostics,
             bool parsingFunctionPointerParams,
-            bool parsingLambdaParams)
+            bool parsingLambdaParams,
+            bool parsingAnonymousMethodParams)
         {
+            Debug.Assert(!parsingLambdaParams || !parsingAnonymousMethodParams);
+
             var seenThis = false;
             var seenRef = false;
             var seenOut = false;
@@ -430,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             Binder.CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods, diagnostics);
                         }
 
-                        if (parsingLambdaParams)
+                        if (parsingLambdaParams || parsingAnonymousMethodParams)
                         {
                             diagnostics.Add(ErrorCode.ERR_ThisInBadContext, modifier.GetLocation());
                         }
@@ -508,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SyntaxKind.ParamsKeyword when !parsingFunctionPointerParams:
-                        if (parsingLambdaParams)
+                        if (parsingAnonymousMethodParams)
                         {
                             diagnostics.Add(ErrorCode.ERR_IllegalParams, modifier.GetLocation());
                         }

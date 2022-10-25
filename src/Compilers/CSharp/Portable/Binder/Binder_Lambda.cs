@@ -92,6 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var isAsync = syntax.Modifiers.Any(SyntaxKind.AsyncKeyword);
             var isStatic = syntax.Modifiers.Any(SyntaxKind.StaticKeyword);
+            var hasParamsArray = false;
 
             if (parameterSyntaxList != null)
             {
@@ -111,9 +112,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // However, we still want to give errors on every bad type in the list, even if one
                 // is missing.
 
+                int parameterCount = 0;
                 int underscoresCount = 0;
                 foreach (var p in parameterSyntaxList.Value)
                 {
+                    parameterCount++;
+
                     if (p.Identifier.IsUnderscoreToken())
                     {
                         underscoresCount++;
@@ -139,8 +143,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         type = BindType(typeSyntax, diagnostics);
-                        ParameterHelpers.CheckParameterModifiers(p, diagnostics, parsingFunctionPointerParams: false, parsingLambdaParams: true);
-                        refKind = ParameterHelpers.GetModifiers(p.Modifiers, out _, out _, out _, out scope);
+                        var isAnonymousMethod = syntax.IsKind(SyntaxKind.AnonymousMethodExpression);
+                        ParameterHelpers.CheckParameterModifiers(p, diagnostics, parsingFunctionPointerParams: false,
+                            parsingLambdaParams: !isAnonymousMethod,
+                            parsingAnonymousMethodParams: isAnonymousMethod);
+                        refKind = ParameterHelpers.GetModifiers(p.Modifiers, out _, out var paramsKeyword, out _, out scope);
+
+                        var isLastParameter = parameterCount == parameterSyntaxList.Value.Count;
+                        if (isLastParameter && paramsKeyword.Kind() != SyntaxKind.None)
+                        {
+                            hasParamsArray = true;
+                        }
                     }
 
                     namesBuilder.Add(p.Identifier.ValueText);
@@ -192,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             namesBuilder.Free();
 
-            return UnboundLambda.Create(syntax, this, diagnostics.AccumulatesDependencies, returnRefKind, returnType, parameterAttributes, refKinds, scopes, types, names, discardsOpt, parameterSyntaxList, defaultValues, isAsync, isStatic);
+            return UnboundLambda.Create(syntax, this, diagnostics.AccumulatesDependencies, returnRefKind, returnType, parameterAttributes, refKinds, scopes, types, names, discardsOpt, parameterSyntaxList, defaultValues, isAsync: isAsync, isStatic: isStatic, hasParamsArray: hasParamsArray);
 
             static ImmutableArray<bool> computeDiscards(SeparatedSyntaxList<ParameterSyntax> parameters, int underscoresCount)
             {
@@ -315,6 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // UNDONE: Where do we report improper use of pointer types?
+                    // PROTOTYPE: Set `isParams` to report errors about them.
                     ParameterHelpers.ReportParameterErrors(owner: null, paramSyntax, ordinal: i, isParams: false, lambda.ParameterTypeWithAnnotations(i),
                          lambda.RefKind(i), lambda.DeclaredScope(i), containingSymbol: null, thisKeyword: default, paramsKeyword: default, firstDefault, diagnostics);
                 }

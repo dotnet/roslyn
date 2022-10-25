@@ -25,8 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
            DeclarationScope? effectiveScope,
            string name,
            bool isDiscard,
+           bool isParams,
            ImmutableArray<Location> locations)
-           : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, isParams: false, isExtensionMethodThis: false, scope: declaredScope)
+           : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, isParams, isExtensionMethodThis: false, scope: declaredScope)
         {
             Debug.Assert(declaredScope.HasValue != effectiveScope.HasValue);
             _attributeLists = attributeLists;
@@ -37,11 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsDiscard { get; }
 
         internal override DeclarationScope EffectiveScope => _effectiveScope ?? base.EffectiveScope;
-
-        public override bool IsParams
-        {
-            get { return false; }
-        }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {

@@ -2543,6 +2543,32 @@ class Program
         }
 
         [Fact]
+        public void ParamsArray_Symbol_MultipleParamsArrays()
+        {
+            var source = """
+                int Method1(params int[] xs, params int[] ys, int[] zs) => xs.Length + ys.Length + zs.Length;
+                int Method2(params int[] xs, int[] ys, params int[] zs) => xs.Length + ys.Length + zs.Length;
+                """;
+            var comp = CreateCompilation(source);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().ToImmutableArray();
+            var methods = exprs.SelectAsArray(e => (IMethodSymbol)model.GetDeclaredSymbol(e));
+            Assert.Equal(2, methods.Length);
+            // Method1
+            Assert.Equal(3, methods[0].Parameters.Length);
+            Assert.True(methods[0].Parameters[0].IsParams);
+            Assert.True(methods[0].Parameters[1].IsParams);
+            Assert.False(methods[0].Parameters[2].IsParams);
+            // Method2
+            Assert.Equal(3, methods[1].Parameters.Length);
+            Assert.True(methods[1].Parameters[0].IsParams);
+            Assert.False(methods[1].Parameters[1].IsParams);
+            Assert.True(methods[1].Parameters[2].IsParams);
+        }
+
+        [Fact]
         public void BadRefWithDefault()
         {
             var source = @"

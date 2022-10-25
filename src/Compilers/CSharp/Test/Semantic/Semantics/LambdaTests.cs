@@ -231,12 +231,6 @@ class C
                 // (66,39): error CS1670: params is not valid in this context
                 //         Action<int[]> q16 = delegate (params int[] p) { };
                 Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(66, 39),
-                // (67,33): error CS1670: params is not valid in this context
-                //         Action<string[]> q17 = (params string[] s)=>{};
-                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(67, 33),
-                // (68,45): error CS1670: params is not valid in this context
-                //         Action<int, double[]> q18 = (int x, params double[] s)=>{};
-                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(68, 45),
                 // (70,34): error CS1593: Delegate 'Action' does not take 1 arguments
                 //         object q19 = new Action( (int x)=>{} );
                 Diagnostic(ErrorCode.ERR_BadDelArgCount, "(int x)=>{}").WithArguments("System.Action", "1").WithLocation(70, 34),
@@ -7828,9 +7822,6 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,31): error CS1670: params is not valid in this context
-                //         var lam = (int i = 3, params int[] args) => i;
-                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(5, 31),
                 // (5,48): error CS1737: Optional parameters must appear after all required parameters
                 //         var lam = (int i = 3, params int[] args) => i;
                 Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(5, 48));
@@ -7853,6 +7844,104 @@ class Program
                 // (6,9): error CS7036: There is no argument given that corresponds to the required parameter 'arg2' of '<anonymous delegate>'
                 //         lam(5);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam").WithArguments("arg2", "<anonymous delegate>").WithLocation(6, 9));
+        }
+
+        [Fact]
+        public void ParamsArray_Call()
+        {
+            var source = """
+                var lam = (params int[] xs) => System.Console.WriteLine(xs?.Length.ToString() ?? "null");
+                lam();
+                lam(1);
+                lam(1, 2, 3);
+                lam(new[] { 1, 2, 3 });
+                lam(null);
+                """;
+            CompileAndVerify(source, expectedOutput: """
+                0
+                1
+                3
+                3
+                null
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParamsArray_WithDefaultValue()
+        {
+            var source = """
+                var lam = (params int[] xs = null) => xs.Length;
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,12): error CS1751: Cannot specify a default value for a parameter array
+                // var lam = (params int[] xs = null) => xs.Length;
+                Diagnostic(ErrorCode.ERR_DefaultValueForParamsParameter, "params").WithLocation(1, 12));
+        }
+
+        [Fact]
+        public void ParamsArray_CompilerAttribute()
+        {
+            var source = """
+                var lam = ([System.ParamArray] int[] xs) => xs.Length;
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,13): error CS0674: Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.
+                // var lam = ([System.ParamArray] int[] xs) => xs.Length;
+                Diagnostic(ErrorCode.ERR_ExplicitParamArray, "System.ParamArray").WithLocation(1, 13));
+        }
+
+        [Fact]
+        public void ParamsArray_Symbol()
+        {
+            var source = """
+                var lam1 = (params int[] xs) => xs.Length;
+                var lam2 = (int[] xs) => xs.Length;
+                var lam3 = (int[] xs, params int[] ys) => xs.Length + ys.Length;
+                """;
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().ToImmutableArray();
+            var lambdas = exprs.SelectAsArray(e => GetLambdaSymbol(model, e));
+            Assert.Equal(3, lambdas.Length);
+            // lam1
+            Assert.True(((SourceParameterSymbol)lambdas[0].Parameters.Single()).IsParams);
+            // lam2
+            Assert.False(((SourceParameterSymbol)lambdas[1].Parameters.Single()).IsParams);
+            // lam3
+            Assert.Equal(2, lambdas[2].ParameterCount);
+            Assert.Equal(2, lambdas[2].Parameters.Length);
+            Assert.False(((SourceParameterSymbol)lambdas[2].Parameters[0]).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[2].Parameters[1]).IsParams);
+        }
+
+        [Fact]
+        public void ParamsArray_Symbol_MultipleParamsArrays()
+        {
+            var source = """
+                var lam1 = (params int[] xs, params int[] ys, int[] zs) => xs.Length + ys.Length + zs.Length;
+                var lam2 = (params int[] xs, int[] ys, params int[] zs) => xs.Length + ys.Length + zs.Length;
+                """;
+            var comp = CreateCompilation(source);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().ToImmutableArray();
+            var lambdas = exprs.SelectAsArray(e => GetLambdaSymbol(model, e));
+            Assert.Equal(2, lambdas.Length);
+            // lam1
+            Assert.Equal(3, lambdas[0].ParameterCount);
+            Assert.Equal(3, lambdas[0].Parameters.Length);
+            Assert.True(((SourceParameterSymbol)lambdas[0].Parameters[0]).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[0].Parameters[1]).IsParams);
+            Assert.False(((SourceParameterSymbol)lambdas[0].Parameters[2]).IsParams);
+            // lam2
+            Assert.Equal(3, lambdas[1].ParameterCount);
+            Assert.Equal(3, lambdas[1].Parameters.Length);
+            Assert.True(((SourceParameterSymbol)lambdas[1].Parameters[0]).IsParams);
+            Assert.False(((SourceParameterSymbol)lambdas[1].Parameters[1]).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[1].Parameters[2]).IsParams);
         }
     }
 }
