@@ -30,14 +30,14 @@ variables:
 # Any new -Svc alternative pools should have variables added here to allow for splitting work
 
 # Main branch pools
-- ${{ if ne(contains( ${{ coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main') }} , 'release'), true) }}:
+- ${{ if ne(contains( coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main') , 'release'), true) }}:
   - name: DncEngPublicBuildPool
     value: NetCore-Public
   - name: DncEngInternalBuildPool
     value: NetCore1ESPool-Internal
 
 # Release branch pools
-- ${{ if contains( ${{ coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main') }} , 'release') }}:
+- ${{ if contains( coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main') , 'release') }}:
   - name: DncEngPublicBuildPool
     value: NetCore-Svc-Public
   - name: DncEngInternalBuildPool
