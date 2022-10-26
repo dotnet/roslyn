@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (constantValueOpt == null)
                 {
-                    if (convertedExpression is BoundConversion conversion && conversion.ConversionKind == ConversionKind.ImplicitUserDefined)
+                    if (convertedExpression is BoundConversion conversion && conversion.ConversionKind is ConversionKind.ImplicitUserDefined or ConversionKind.ExplicitUserDefined)
                     {
                         if (expression.IsLiteralNull() && !inputType.IsNullableType())
                         {
@@ -552,8 +552,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            Debug.Assert(expression.Type is not null);
-                            diagnostics.Add(ErrorCode.ERR_NonConstantConversionInConstantPattern, patternExpression.Location, expression.Type, inputType);
+                            Debug.Assert(conversion.Operand is not null);
+                            SymbolDistinguisher distinguisher1 = new SymbolDistinguisher(this.Compilation, conversion.Operand.Type, inputType);
+                            diagnostics.Add(ErrorCode.ERR_NonConstantConversionInConstantPattern, patternExpression.Location, distinguisher1.First, distinguisher1.Second);
                         }
                     }
                     else
