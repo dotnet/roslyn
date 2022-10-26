@@ -48,7 +48,11 @@ namespace Microsoft.CodeAnalysis.ConvertCast
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var type = semanticModel.GetTypeInfo(typeNode, cancellationToken).Type;
             var nullableContext = semanticModel.GetNullableContext(from.SpanStart);
-            if (type is { TypeKind: not TypeKind.Error } and ({ IsReferenceType: true } or { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T }))
+
+            if (type is { TypeKind: TypeKind.Error })
+                return;
+
+            if (type is { IsReferenceType: true } or { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T })
             {
                 var title = GetTitle();
                 var isReferenceType = type.IsReferenceType;
