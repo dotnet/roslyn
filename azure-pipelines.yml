@@ -16,6 +16,8 @@ pr:
 
 variables:
 - template: /eng/common/templates/variables/pool-providers.yml
+- name: System.Debug
+  value: true
 
 # Windows Build and Test Jobs
 jobs:
