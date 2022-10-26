@@ -57,15 +57,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 return _tokenComparer.Compare(x.GetFirstToken(includeSkipped: true), y.GetFirstToken());
             }
-            else if (x is GenericNameSyntax genericX && y is GenericNameSyntax genericY)
+            else if (x is GenericNameSyntax && y is GenericNameSyntax)
             {
                 // if both names are generic, then use a specialized routine
                 // that will check the names *and* the arguments.
-                return Compare(genericX, genericY);
+                return Compare((GenericNameSyntax)x, (GenericNameSyntax)y);
             }
-            else if (x is IdentifierNameSyntax identifierX && y is GenericNameSyntax genericY)
+            else if (x is IdentifierNameSyntax && y is GenericNameSyntax)
             {
-                var compare = _tokenComparer.Compare(identifierX.Identifier, y.GetFirstToken());
+                var compare = _tokenComparer.Compare(x.GetFirstToken(includeSkipped: true), y.GetFirstToken());
                 if (compare != 0)
                 {
                     return compare;

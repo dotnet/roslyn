@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
             {
                 return typeToNameSegments.GetOrAdd(symbol, static symbol =>
                 {
-                    using var _ = ArrayBuilder<string>.GetInstance(out var result);
+                    using var _ = TemporaryArray<string>.Empty;
 
                     for (ISymbol current = symbol; current != null; current = current.ContainingSymbol)
                     {
