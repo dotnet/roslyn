@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
             var generator = SyntaxGenerator.GetGenerator(document);
             var whileStatement = generator.WhileStatement(generator.TrueLiteralExpression(), Array.Empty<SyntaxNode>());
 
-            return new TextChange(TextSpan.FromBounds(position, position), ifStatement.ToFullString());
+            return new TextChange(TextSpan.FromBounds(position, position), whileStatement.ToFullString());
         }
     }
 }
