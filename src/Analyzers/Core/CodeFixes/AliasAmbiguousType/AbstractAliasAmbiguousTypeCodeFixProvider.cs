@@ -81,35 +81,35 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
         {
             // get all the name portions of the fully-qualified-names of the types in 'types'.
             // cache these in this local dictionary so we only have to compute them once.
-            var typeToNames = new Dictionary<ITypeSymbol, ImmutableArray<string>>();
+            var typeToNameSegments = new Dictionary<ITypeSymbol, ImmutableArray<string>>();
 
             return types.OrderBy((t1, t2) =>
             {
-                var t1Names = GetNames(t1);
-                var t2Names = GetNames(t2);
+                var t1NameSegments = GetNameSegments(t1);
+                var t2NameSegments = GetNameSegments(t2);
 
                 // compare all the name segments the two types have in common.
-                for (int i = 0, n = Math.Min(t1Names.Length, t2Names.Length); i < n; i++)
+                for (int i = 0, n = Math.Min(t1NameSegments.Length, t2NameSegments.Length); i < n; i++)
                 {
-                    var t1Name = t1Names[i];
-                    var t2Name = t2Names[i];
+                    var t1NameSegment = t1NameSegments[i];
+                    var t2NameSegment = t2NameSegments[i];
 
                     // if we're on the first name segment, ensure we sort 'System' properly if the user
                     // prefers them coming first.
                     var comparer = i == 0 && sortSystemFirst ? SortSystemFirstComparer.Instance : StringComparer.Ordinal;
 
-                    var diff = comparer.Compare(t1Name, t2Name);
+                    var diff = comparer.Compare(t1NameSegment, t2NameSegment);
                     if (diff != 0)
                         return diff;
                 }
 
                 // if all the names matched up to this point, then the type with the shorter number of segments comes first.
-                return t1Names.Length - t2Names.Length;
+                return t1NameSegments.Length - t2NameSegments.Length;
             });
 
-            ImmutableArray<string> GetNames(ITypeSymbol symbol)
+            ImmutableArray<string> GetNameSegments(ITypeSymbol symbol)
             {
-                return typeToNames.GetOrAdd(symbol, static symbol =>
+                return typeToNameSegments.GetOrAdd(symbol, static symbol =>
                 {
                     using var _ = ArrayBuilder<string>.GetInstance(out var result);
 
