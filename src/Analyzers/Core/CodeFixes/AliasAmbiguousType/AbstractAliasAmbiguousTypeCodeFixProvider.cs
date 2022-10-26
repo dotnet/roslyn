@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
             {
                 return typeToNameSegments.GetOrAdd(symbol, static symbol =>
                 {
-                    using var _ = TemporaryArray<string>.Empty;
+                    using var result = TemporaryArray<string>.Empty;
 
                     for (ISymbol current = symbol; current != null; current = current.ContainingSymbol)
                     {
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
                     // We walked upwards to get the name segments.  So reverse teh order here so it goes from outer-most to
                     // inner-most names.
                     result.ReverseContents();
-                    return result.ToImmutable();
+                    return result.ToImmutableAndClear();
                 });
             }
         }
