@@ -21,11 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeDeclarationPartial
         Public Sub New()
         End Sub
 
-        Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
-            Get
-                Return ImmutableArray.Create(BC40046)
-            End Get
-        End Property
+        Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC40046)
 
         Protected Overrides Function GetDeclarationName(node As TypeStatementSyntax) As String
             Return node.Identifier.ValueText
