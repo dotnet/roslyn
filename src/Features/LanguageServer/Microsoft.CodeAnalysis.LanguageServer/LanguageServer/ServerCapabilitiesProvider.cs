@@ -16,7 +16,8 @@ internal sealed class ServerCapabilitiesProvider : ICapabilitiesProvider
             {
                 Change = TextDocumentSyncKind.Incremental,
                 OpenClose = true,
-            }
+            },
+            DefinitionProvider = true,
         };
     }
 }

@@ -14,6 +14,9 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsLoggingConsoleVersion)" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
+
+    <!-- Dlls we don't directly reference but need to include to build the MEF composition -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="$(MicrosoftCodeAnalysisCSharpFeaturesVersion)" />
   </ItemGroup>
 
   <ItemGroup>
