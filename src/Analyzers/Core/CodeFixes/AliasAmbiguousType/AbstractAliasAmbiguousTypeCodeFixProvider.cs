@@ -121,6 +121,8 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
                         result.Add(current.Name);
                     }
 
+                    // We walked upwards to get the name segments.  So reverse teh order here so it goes from outer-most to
+                    // inner-most names.
                     result.ReverseContents();
                     return result.ToImmutable();
                 });
