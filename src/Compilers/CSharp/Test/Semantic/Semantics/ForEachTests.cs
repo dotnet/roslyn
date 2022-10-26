@@ -3744,5 +3744,21 @@ class C2 : C {}
             );
         }
 
+        [Fact]
+        public void ForEachIterator_ReadonlySpan_RefAssignmentWithoutReadonly()
+        {
+            string source = @"
+using System;
+ReadOnlySpan<C2> items = new ReadOnlySpan<C2>(new C2[1]);
+foreach (ref C t in items) {}
+class C {}
+class C2 : C {}
+";
+            CreateCompilationWithMscorlibAndSpan(source).VerifyDiagnostics(
+                    // (4,21): error CS8331: Cannot assign to method 'Current.get' or use it as the right hand side of a ref assignment because it is a readonly variable
+                    // foreach (ref C t in items) {}
+                    Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "items").WithArguments("method", "Current.get").WithLocation(4, 21)
+            );
+        }
     }
 }
