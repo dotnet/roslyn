@@ -1703,5 +1703,40 @@ class C
     }
 }", new TestParameters(options: PreferImplicitTypeAlways));
         }
+
+        [Fact, WorkItem(33284, "https://github.com/dotnet/roslyn/issues/33284")]
+        public async Task TestConditinalWithLambdas()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    void M(bool containsHighBits)
+    {
+        Action<char> write;
+
+        [||]if (containsHighBits)
+        {
+            write = (char character) => Console.WriteLine(1);
+        }
+        else
+        {
+            write = (char character) => Console.WriteLine(2);
+        }
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void M(bool containsHighBits)
+    {
+        Action<char> write = containsHighBits ? ((char character) => Console.WriteLine(1)) : ((char character) => Console.WriteLine(2));
+    }
+}");
+        }
     }
 }
