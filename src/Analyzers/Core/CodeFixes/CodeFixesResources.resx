@@ -168,4 +168,7 @@
   <data name="Convert_type_to_0" xml:space="preserve">
     <value>Convert type to '{0}'</value>
   </data>
+  <data name="Make_this_declaration_of_0_partial" xml:space="preserve">
+    <value>Make this declaration of '{0}' partial</value>
+  </data>
 </root>

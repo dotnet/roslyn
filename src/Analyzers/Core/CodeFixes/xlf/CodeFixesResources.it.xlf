@@ -57,6 +57,11 @@
         <target state="translated">Imposta come statici</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_this_declaration_of_0_partial">
+        <source>Make this declaration of '{0}' partial</source>
+        <target state="new">Make this declaration of '{0}' partial</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_extra_blank_lines">
         <source>Remove extra blank lines</source>
         <target state="translated">Rimuovere le righe vuote aggiuntive</target>
