@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ConvertCast
             }
         }
 
-        protected async Task<Document> ConvertAsync(
+        private async Task<Document> ConvertAsync(
             Document document,
             TFromExpression from,
             NullableContext nullableContext,
