@@ -1818,7 +1818,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // using |
             // await using |
             if (token.IsKind(SyntaxKind.UsingKeyword) &&
-                token.Parent is UsingStatementSyntax)
+                token.Parent is LocalDeclarationStatementSyntax)
             {
                 return true;
             }

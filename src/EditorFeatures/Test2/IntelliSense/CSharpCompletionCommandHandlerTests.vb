@@ -10417,7 +10417,7 @@ namespace NS
 
             End Using
         End Function
-        
+
         <WpfTheory, WorkItem(40393, "https://github.com/dotnet/roslyn/issues/40393")>
         Public Async Function TestAfterUsingStatement1() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
