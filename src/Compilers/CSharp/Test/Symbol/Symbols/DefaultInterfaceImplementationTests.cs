@@ -12059,7 +12059,9 @@ class Test1 : I1
 
                 compilation3.VerifyDiagnostics();
 
+#if NETCOREAPP
                 CompileAndVerify(compilation3, expectedOutput: "M1", symbolValidator: (m) => ValidateMethodModifiersExplicit_10(m, Accessibility.Protected));
+#endif
 
                 ValidateMethodModifiersExplicit_10(compilation3.SourceModule, Accessibility.Protected);
             }
@@ -12120,7 +12122,9 @@ class Test1 : I1
 
                 compilation3.VerifyDiagnostics();
 
-                CompileAndVerify(compilation3, expectedOutput: "M1", symbolValidator: (m) => ValidateMethodModifiersExplicit_10(m, Accessibility.ProtectedOrInternal));
+#if NETCOREAPP
+                CompileAndVerify(compilation3, expectedOutput: "M1", symbolValidator: (m) => ValidateMethodModifiersExplicit_10(m, Accessibility.ProtectedOrInternal), verify: Verification.Skipped);
+#endif
 
                 ValidateMethodModifiersExplicit_10(compilation3.SourceModule, Accessibility.ProtectedOrInternal);
             }
@@ -50572,16 +50576,19 @@ public interface ITest33
 }
 " + NoPiaAttributes;
 
-            var pia2Compilation = CreateCompilation(pia2, options: TestOptions.ReleaseDll);
+            var pia2Compilation = CreateCompilation(pia2, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net50);
             var pia2Reference = pia2Compilation.EmitToImageReference();
 
-            var compilation1 = CreateCompilation(consumer1, options: TestOptions.ReleaseDll, references: new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true) }, targetFramework: TargetFramework.StandardLatest);
+            var compilation1 = CreateCompilation(consumer1, options: TestOptions.ReleaseDll, references: new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true) }, targetFramework: TargetFramework.Net50);
 
             foreach (var reference2 in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                var compilation2 = CreateCompilation(consumer2, options: TestOptions.ReleaseExe, references: new[] { reference2, pia2Reference }, targetFramework: TargetFramework.StandardLatest);
+                var compilation2 = CreateCompilation(consumer2, options: TestOptions.ReleaseExe, references: new[] { reference2, pia2Reference }, targetFramework: TargetFramework.Net50);
+
+#if NETCOREAPP
                 // ILVerify: Missing method 'Void UsePia.Test(ITest33)'
                 CompileAndVerify(compilation2, expectedOutput: "Test.M1", verify: Verification.Skipped);
+#endif
             }
         }
 

@@ -43,12 +43,6 @@ namespace Roslyn.Test.Utilities
         DefaultVb,
 
         /// <summary>
-        /// This will eventually be folded into NetCoreApp. The default experience for compiling .NET Core code 
-        /// includes the Microsoft.CSharp reference hence it should be the default for our tests
-        /// </summary>
-        NetCoreAppAndCSharp,
-
-        /// <summary>
         /// Used for building tests against WinRT scenarios
         /// </summary>
         WinRT,
