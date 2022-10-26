@@ -1469,6 +1469,14 @@ class C
     }
 }",
                 CodeFixTestBehaviors = Testing.CodeFixTestBehaviors.FixOne,
+                FixedState =
+                {
+                    ExpectedDiagnostics =
+                    {
+                        // /0/Test0.cs(6,9): hidden IDE0045: 'if' statement can be simplified
+                        VerifyCS.Diagnostic().WithSpan(6, 9, 6, 11).WithSpan(6, 9, 7, 32),
+                    }
+                }
             }.RunAsync();
         }
 
