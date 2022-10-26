@@ -16,4 +16,8 @@
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
   </ItemGroup>
 
+  <ItemGroup>
+      <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.UnitTests" Key="$(MicrosoftCodeAnalysisLanguageServerKey)"/>
+  </ItemGroup>
+
 </Project>

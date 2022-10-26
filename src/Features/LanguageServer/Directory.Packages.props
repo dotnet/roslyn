@@ -6,6 +6,7 @@
     <MicrosoftExtensionsLoggingAbstractionsVersion>6.0.2</MicrosoftExtensionsLoggingAbstractionsVersion>
     <MicrosoftExtensionsLoggingConsoleVersion>$(MicrosoftExtensionsLoggingVersion)</MicrosoftExtensionsLoggingConsoleVersion>
     <MicrosoftVisualStudioCompositionVersion>17.2.41</MicrosoftVisualStudioCompositionVersion>
+    <NerdbankStreamsVersion>2.9.112</NerdbankStreamsVersion>
     <StreamJsonRpcVersion>2.12.27</StreamJsonRpcVersion>
   </PropertyGroup>
 </Project>

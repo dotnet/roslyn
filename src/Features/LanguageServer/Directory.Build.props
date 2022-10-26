@@ -9,5 +9,7 @@
     <AnalysisLevel>latest-All</AnalysisLevel>
     <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+    <MicrosoftCodeAnalysisLanguageServerKey>002400000480000094000000060200000024000052534131000400000100010009f3c8fcb7cb2592cc6e6d3646d4d9a2bda9e7a243d357bc17a5a06f50ed0dae74a343cd9538fe45bbc90a3f7cbecb23558205e3b246b69f7f7730e520460d560da1c68cda9e2256e3b801629e2dc1fd588b1681aaf4f2c98abcfc50086ecbcd55f76f7dbaf018e708527d8ae3a2714b3ec9b62bd9aaf56cf55b3ffc9eee31aa</MicrosoftCodeAnalysisLanguageServerKey>
   </PropertyGroup>
 </Project>
