@@ -79,6 +79,8 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
 
         private static IEnumerable<ITypeSymbol> Sort(IEnumerable<ITypeSymbol> types, bool sortSystemFirst)
         {
+            // get all the name portions of the fully-qualified-names of the types in 'types'.
+            // cache these in this local dictionary so we only have to compute them once.
             var typeToNames = new Dictionary<ITypeSymbol, ImmutableArray<string>>();
 
             return types.OrderBy((t1, t2) =>
@@ -86,11 +88,14 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
                 var t1Names = GetNames(t1);
                 var t2Names = GetNames(t2);
 
+                // compare all the name segments the two types have in common.
                 for (int i = 0, n = Math.Min(t1Names.Length, t2Names.Length); i < n; i++)
                 {
                     var t1Name = t1Names[i];
                     var t2Name = t2Names[i];
 
+                    // if we're on the first name segment, ensure we sort 'System' properly if the user
+                    // prefers them coming first.
                     var comparer = i == 0 && sortSystemFirst ? SortSystemFirstComparer.Instance : StringComparer.Ordinal;
 
                     var diff = comparer.Compare(t1Name, t2Name);
@@ -98,6 +103,7 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
                         return diff;
                 }
 
+                // if all the names matched up to this point, then the type with the shorter number of segments comes first.
                 return t1Names.Length - t2Names.Length;
             });
 
