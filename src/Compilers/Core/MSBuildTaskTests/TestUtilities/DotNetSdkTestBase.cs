@@ -158,9 +158,7 @@ $@"<Project>
             Configuration = "Debug";
             TargetFramework = "netstandard2.0";
 
-            using var uploadUtil = new ArtifactUploadUtil(testOutputHelper);
             ProjectDir = Temp.CreateDirectory();
-            uploadUtil.AddDirectory(ProjectDir.Path);
 
             ObjDir = ProjectDir.CreateDirectory("obj");
             OutDir = ProjectDir.CreateDirectory("bin").CreateDirectory(Configuration).CreateDirectory(TargetFramework);
@@ -198,7 +196,6 @@ $@"<Project>
             Assert.True(File.Exists(Path.Combine(ObjDir.Path, "project.assets.json")));
             Assert.True(File.Exists(Path.Combine(ObjDir.Path, ProjectFileName + ".nuget.g.props")));
             Assert.True(File.Exists(Path.Combine(ObjDir.Path, ProjectFileName + ".nuget.g.targets")));
-            uploadUtil.SetSucceeded();
         }
 
         protected void RunMSBuild(
@@ -207,8 +204,9 @@ $@"<Project>
             string? binlogName = null,
             IEnumerable<KeyValuePair<string, string>>? additionalEnvironmentVars = null)
         {
-            using var uploadUtil = new ArtifactUploadUtil(TestOutputHelper);
             var workingDirectory = Path.GetDirectoryName(projectFilePath)!;
+            using var uploadUtil = new ArtifactUploadUtil(TestOutputHelper);
+            uploadUtil.AddDirectory(workingDirectory);
             var projectFileName = Path.GetFileName(projectFilePath);
             binlogName ??= $"{Guid.NewGuid()}.binlog";
             arguments = $@"msbuild /bl:{binlogName} ""{projectFileName}"" {arguments}";
