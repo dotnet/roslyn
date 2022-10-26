@@ -140,10 +140,10 @@ function initialPass() {
         # uncomment the desired condition to filter the builds we measure
         if (
             # use builds from any branch
-            $false
+            # $false
 
             # distrust all PR/feature/release branch builds and only get main CI builds
-            # $refName -ne "refs/heads/main"
+            $refName -ne "refs/heads/main"
 
             # ignore specific PRs which modify infra and thus don't measure the "production" behavior
             # $refName -eq "refs/pulls/50046/merge" -or $refName -eq "refs/pulls/49626/merge"

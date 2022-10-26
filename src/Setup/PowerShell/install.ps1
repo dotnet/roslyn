@@ -1,4 +1,5 @@
-﻿param($installPath, $toolsPath, $package, $project)
+﻿[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '')]
+param($installPath, $toolsPath, $package, $project)
 
 if($project.Object.SupportsPackageDependencyResolution)
 {

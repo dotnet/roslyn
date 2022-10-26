@@ -1,4 +1,11 @@
 # Collection of powershell build utility functions that we use across our scripts.
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidGlobalVars', '', Scope='Function', Target='GetPublishData')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', 'VSSetupDir')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', 'PackagesDir')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidAssignmentToAutomaticVariable', '', Scope="Function", Target="Run-MSBuild")]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidDefaultValueSwitchParameter', '', Scope="Function", Target="Exec-CommandCore")]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidDefaultValueSwitchParameter', '', Scope="Function", Target="Run-MSBuild")]
+Param()
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
@@ -237,7 +244,7 @@ function Get-PackageVersion([string]$name) {
 # with the logic in Version.props
 function Get-PackagesDir() {
   $d = $null
-  if ($env:NUGET_PACKAGES -ne $null) {
+  if ($null -ne $env:NUGET_PACKAGES) {
     $d = $env:NUGET_PACKAGES
   }
   else {

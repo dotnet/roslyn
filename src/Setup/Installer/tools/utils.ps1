@@ -1,3 +1,6 @@
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidDefaultValueSwitchParameter', '', Scope="Function", Target="Exec-CommandCore")]
+param()
+
 function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useConsole = $true) {
   $startInfo = New-Object System.Diagnostics.ProcessStartInfo
   $startInfo.FileName = $command
@@ -90,7 +93,7 @@ function Get-VisualStudioInstances() {
 
 function Test-Process([string]$processName) {
   $all = Get-Process $processName -ErrorAction SilentlyContinue
-  return $all -ne $null
+  return $null -ne $all
 }
 
 function Get-VisualStudioLocalDir([string]$vsMajorVersion, [string]$vsId, [string]$rootSuffix) {
@@ -160,8 +163,8 @@ function Stop-Processes([string]$vsDir, [string]$extensionDir) {
     Write-Host "> $($process.Path)"
   }
 
-  $input = Read-Host
-  if ($input -ne "y" -and $input -ne "yes") {
+  $userInput = Read-Host
+  if ($userInput -ne "y" -and $userInput -ne "yes") {
     Write-Host "Installation cancelled" -ForegroundColor Yellow
     exit 1
   }

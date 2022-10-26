@@ -7,6 +7,8 @@
 # Repeatable is important here because we have to assume that publishes can and will fail with some
 # degree of regularity.
 [CmdletBinding(PositionalBinding=$false)]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'test')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'nugetApiKey')]
 Param(
   # Standard options
   [string]$configuration = "",
@@ -151,7 +153,7 @@ try {
 
   if ($branchName -ne "") {
     $data = GetBranchPublishData $branchName
-    if ($data -eq $null) {
+    if ($null -eq $data) {
       Write-Host "Branch $branchName not listed for publishing."
       exit 0
     }
@@ -160,7 +162,7 @@ try {
   }
   elseif ($releaseName -ne "") {
     $data = GetReleasePublishData $releaseName
-    if ($data -eq $null) {
+    if ($null -eq $data) {
       Write-Host "Release $releaseName not listed for publishing."
       exit 1
     }

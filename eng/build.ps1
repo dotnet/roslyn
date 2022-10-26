@@ -15,6 +15,40 @@
 # `.\build.ps1 -testDesktop`.
 
 [CmdletBinding(PositionalBinding=$false)]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidAssignmentToAutomaticVariable', '', Scope="Function", Target="TestUsingRunTests")]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidDefaultValueSwitchParameter', '')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidGlobalVars', '')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'binaryLog')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'bootstrapConfiguration')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'buildServerLog')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'collectDumps')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'configuration')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'deployExtensions')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'helix')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'helixQueueName')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'help')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'lspEditor')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'msbuildEngine')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'officialBuildId')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'officialIbcDrop')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'officialSkipApplyOptimizationData')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'officialSkipTests')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'officialSourceBranchName')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'officialVisualStudioDropAccessToken')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'oop64bit')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'oopCoreClr')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'prepareMachine')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'properties')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'runAnalyzers')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'sequential')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'skipDocumentation')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'sourceBuild')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'testCompilerOnly')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'testUsedAssemblies')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'useGlobalNuGetCache')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'verbosity')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'warnAsError')]
+
 param (
   [string][Alias('c')]$configuration = "Debug",
   [string][Alias('v')]$verbosity = "m",
@@ -147,7 +181,7 @@ function Process-Arguments() {
     }
   }
 
-  if ($help -or (($properties -ne $null) -and ($properties.Contains("/help") -or $properties.Contains("/?")))) {
+  if ($help -or (($null -ne $properties) -and ($properties.Contains("/help") -or $properties.Contains("/?")))) {
        Print-Usage
        exit 0
   }
@@ -286,7 +320,7 @@ function GetIbcSourceBranchName() {
     $fallback = "main"
 
     $branchData = GetBranchPublishData $officialSourceBranchName
-    if ($branchData -eq $null) {
+    if ($null -eq $branchData) {
       Write-LogIssue -Type "warning" -Message "Branch $officialSourceBranchName is not listed in PublishData.json. Using IBC data from '$fallback'."
       Write-Host "Override by setting IbcDrop build variable." -ForegroundColor Yellow
       return $fallback
@@ -493,7 +527,7 @@ function TestUsingRunTests() {
 
 function EnablePreviewSdks() {
   $vsInfo = LocateVisualStudio
-  if ($vsInfo -eq $null) {
+  if ($null -eq $vsInfo) {
     # Preview SDKs are allowed when no Visual Studio instance is installed
     return
   }
@@ -514,7 +548,7 @@ function Deploy-VsixViaTool() {
   $vsixExe = Join-Path $vsixDir "tools\VsixExpInstaller.exe"
 
   $vsInfo = LocateVisualStudio
-  if ($vsInfo -eq $null) {
+  if ($null -eq $vsInfo) {
     throw "Unable to locate required Visual Studio installation"
   }
 

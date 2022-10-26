@@ -2,6 +2,7 @@
 # for both generating this code and verifying the generated code is always up to date with 
 # the generator source files. 
 [CmdletBinding(PositionalBinding=$false)]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'test')]
 param ([string]$configuration = "Debug", 
        [switch]$test = $false)
 

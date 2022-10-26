@@ -27,8 +27,8 @@ try {
         Write-Host "[$($i + 1)]:  $devenvPath" -ForegroundColor White
       }
 
-      $input = Read-Host
-      $vsInstallNumber = $input -as [int]
+      $userInput = Read-Host
+      $vsInstallNumber = $userInput -as [int]
       if (($vsInstallNumber -is [int]) -and ($vsInstallNumber -gt 0) -and ($vsInstallNumber -le $vsInstances.Length)) {
         $vsInstance = $vsInstances[$vsInstallNumber - 1]
         break
@@ -61,8 +61,8 @@ try {
     Get-ChildItem -Path $mefCacheFolder -Include *.* -File -Recurse | foreach { Remove-Item $_ }
   }
 
-  $args = "/updateconfiguration"
-  Exec-Console $vsExe $args
+  $vsArgs = "/updateconfiguration"
+  Exec-Console $vsExe $vsArgs
 
   Write-Host "Install Succeeded" -ForegroundColor Green
   exit 0

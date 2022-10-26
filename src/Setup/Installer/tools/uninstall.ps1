@@ -33,8 +33,8 @@ try {
     }
 
     $vsExe = Join-Path $vsDir "Common7\IDE\devenv.exe"
-    $args = "/updateconfiguration"
-    Exec-Console $vsExe $args
+    $vsArgs = "/updateconfiguration"
+    Exec-Console $vsExe $vsArgs
   }
 
   Write-Host "Uninstall Succeeded" -ForegroundColor Green

@@ -3,6 +3,9 @@
 #>
 
 [CmdletBinding(PositionalBinding=$false)]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'ci')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'useGlobalNuGetCache')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidDefaultValueSwitchParameter', '')]
 param(
   [string]$configuration = "Debug",
   [switch]$ci = $false,

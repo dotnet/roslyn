@@ -1,3 +1,4 @@
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'msbuildEngine')]
 param (
   [Parameter(Mandatory = $true)][string]$filePath,
   [string]$msbuildEngine = "vs",
