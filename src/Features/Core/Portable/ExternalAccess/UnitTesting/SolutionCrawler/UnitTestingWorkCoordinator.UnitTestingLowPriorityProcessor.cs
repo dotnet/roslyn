@@ -157,15 +157,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                                            reasons.Contains(UnitTestingPredefinedInvocationReasons.SolutionRemoved);
 #endif
 
-                                    using (Processor.EnableCaching(project.Id))
-                                    {
-                                        await Processor.RunAnalyzersAsync(analyzers, project, workItem,
-                                            (a, p, c) => a.AnalyzeProjectAsync(p,
+                                    await Processor.RunAnalyzersAsync(analyzers, project, workItem,
+                                        (a, p, c) => a.AnalyzeProjectAsync(p,
 #if false // Not used in unit testing crawling
                                                 semanticsChanged,
 #endif
-                                                reasons, c), cancellationToken).ConfigureAwait(false);
-                                    }
+                                            reasons, c), cancellationToken).ConfigureAwait(false);
                                 }
                                 else
                                 {
