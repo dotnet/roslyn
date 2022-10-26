@@ -737,16 +737,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LambdaSymbol createLambdaSymbol()
             {
-                return new LambdaSymbol(
-                                    Binder,
-                                    Binder.Compilation,
-                                    Binder.ContainingMemberOrLambda,
-                                    _unboundLambda,
-                                    parameterTypes,
-                                    parameterRefKinds,
-                                    parameterEffectiveScopesBuilder.ToImmutable(),
-                                    refKind: default,
-                                    returnType: default);
+                // This can be null only if `HasExplicitlyTypedParameterList == false`
+                // which has been ruled out at this point.
+                var lambdaSymbol = LambdaForParameterDefaultValues;
+                Debug.Assert(lambdaSymbol is not null);
+                return lambdaSymbol;
             }
         }
 
@@ -874,9 +869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 refKind,
                 returnType);
 
-        // PROTOTYPE: If possible, re-use the default values from this temporary field if they are already bound
         private LambdaSymbol? _lambdaForParameterDefaultValues = null;
-
 
         // On certain code paths(such as target type conversion), we need to instantiate a temporary lambda symbol
         // for binding default parameter values, and this may cause diagnostics to be produced if there is an error
