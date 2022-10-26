@@ -3691,6 +3691,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(61238, "https://github.com/dotnet/roslyn/issues/61238")]
         public void ForEachIterator_RefAssignmentWithoutIdentityConversion()
         {
             string source = @"
@@ -3708,6 +3709,7 @@ class C2 : C {}
         }
 
         [Fact]
+        [WorkItem(61238, "https://github.com/dotnet/roslyn/issues/61238")]
         public void ForEachIterator_RefReadonlyAssignmentWithoutIdentityConversion()
         {
             string source = @"
@@ -3723,5 +3725,24 @@ class C2 : C {}
                 Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "items").WithArguments("C").WithLocation(4, 30)
             );
         }
+
+        [Fact]
+        [WorkItem(61238, "https://github.com/dotnet/roslyn/issues/61238")]
+        public void ForEachIterator_ReadonlySpan_RefReadonlyAssignmentWithoutIdentityConversion()
+        {
+            string source = @"
+using System;
+ReadOnlySpan<C2> items = new ReadOnlySpan<C2>(new C2[1]);
+foreach (ref readonly C t in items) {}
+class C {}
+class C2 : C {}
+";
+            CreateCompilationWithMscorlibAndSpan(source).VerifyDiagnostics(
+                // (4,21): error CS8173: The expression must be of type 'C' because it is being assigned by reference
+                // foreach (ref C t in items) {}
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "items").WithArguments("C").WithLocation(4, 30)
+            );
+        }
+
     }
 }
