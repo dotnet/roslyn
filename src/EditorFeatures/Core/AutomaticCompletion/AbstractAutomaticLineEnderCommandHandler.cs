@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -15,6 +16,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AutomaticCompletion
 {
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
     {
         private readonly ITextUndoHistoryRegistry _undoRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly IGlobalOptionService _globalOptions;
+        public readonly IGlobalOptionService GlobalOptions;
 
         public string DisplayName => EditorFeaturesResources.Automatic_Line_Ender;
 
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
         {
             _undoRegistry = undoRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
-            _globalOptions = globalOptions;
+            GlobalOptions = globalOptions;
         }
 
         /// <summary>
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
         /// <summary>
         /// format after inserting ending string
         /// </summary>
-        protected abstract Document FormatAndApplyBasedOnEndToken(Document document, int position, CancellationToken cancellationToken);
+        protected abstract Document FormatAndApplyBasedOnEndToken(Document document, int position, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken);
 
         /// <summary>
         /// special cases where we do not want to do line completion but just fall back to line break and formatting.
@@ -88,7 +90,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
             }
 
             // feature off
-            if (!_globalOptions.GetOption(InternalFeatureOnOffOptions.AutomaticLineEnder))
+            if (!GlobalOptions.GetOption(InternalFeatureOnOffOptions.AutomaticLineEnder))
             {
                 NextAction(operations, nextHandler);
                 return;
@@ -140,7 +142,8 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
                 if (endingInsertionPosition != null)
                 {
                     using var transaction = args.TextView.CreateEditTransaction(EditorFeaturesResources.Automatic_Line_Ender, _undoRegistry, _editorOperationsFactoryService);
-                    InsertEnding(args.TextView, document, endingInsertionPosition.Value, caretPosition, cancellationToken);
+                    var formattingOptions = document.GetSyntaxFormattingOptionsAsync(GlobalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
+                    InsertEnding(args.TextView, document, endingInsertionPosition.Value, caretPosition, formattingOptions, cancellationToken);
                     NextAction(operations, nextHandler);
                     transaction.Complete();
                     return;
@@ -190,6 +193,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
             Document document,
             int insertPosition,
             SnapshotPoint caretPosition,
+            SyntaxFormattingOptions formattingOptions,
             CancellationToken cancellationToken)
         {
             // 1. Move the caret to line end.
@@ -204,7 +208,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
             }
 
             // 3. format the document and apply the changes to the workspace
-            FormatAndApplyBasedOnEndToken(newDocument, insertPosition, cancellationToken);
+            FormatAndApplyBasedOnEndToken(newDocument, insertPosition, formattingOptions, cancellationToken);
         }
     }
 }

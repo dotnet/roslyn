@@ -8,6 +8,8 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Roslyn.Utilities;
 
 #if CODE_STYLE
@@ -59,10 +61,9 @@ namespace Microsoft.CodeAnalysis.Options
             _getEditorConfigStringForValue = getEditorConfigStringForValue ?? throw new ArgumentNullException(nameof(getEditorConfigStringForValue));
         }
 
-        public bool TryGetOption(IReadOnlyDictionary<string, string?> rawOptions, Type type, out object? result)
+        public bool TryGetOption(StructuredAnalyzerConfigOptions options, Type type, out object? result)
         {
-            if (rawOptions.TryGetValue(KeyName, out var value)
-                && value is object)
+            if (options.TryGetValue(KeyName, out var value))
             {
                 var ret = TryGetOption(value, type, out var typedResult);
                 result = typedResult;

@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
 
             var semanticModel = context.SemanticModel;
 
-            var option = context.GetOption(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, semanticModel.Language);
+            var option = context.GetAnalyzerOptions().PreferIsNullCheckOverReferenceEqualityMethod;
             if (!option.Value)
             {
                 return;

@@ -7,10 +7,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Diagnostics.CodeAnalysis;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#endif
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
@@ -23,11 +20,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public abstract EnforceOnBuild EnforceOnBuild { get; }
         public abstract ImmutableArray<SyntaxKind> SyntaxKinds { get; }
 
+        public abstract CodeStyleOption2<ExpressionBodyPreference> GetExpressionBodyPreference(CSharpCodeGenerationOptions options);
         public abstract BlockSyntax? GetBody(SyntaxNode declaration);
         public abstract ArrowExpressionClauseSyntax? GetExpressionBody(SyntaxNode declaration);
+        public abstract bool IsRelevantDeclarationNode(SyntaxNode node);
 
-        public abstract bool CanOfferUseExpressionBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer);
-        public abstract bool CanOfferUseBlockBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer, out bool fixesError, [NotNullWhen(true)] out ArrowExpressionClauseSyntax? expressionBody);
+        public abstract bool CanOfferUseExpressionBody(CodeStyleOption2<ExpressionBodyPreference> preference, SyntaxNode declaration, bool forAnalyzer);
+        public abstract bool CanOfferUseBlockBody(CodeStyleOption2<ExpressionBodyPreference> preference, SyntaxNode declaration, bool forAnalyzer, out bool fixesError, [NotNullWhen(true)] out ArrowExpressionClauseSyntax? expressionBody);
         public abstract SyntaxNode Update(SemanticModel semanticModel, SyntaxNode declaration, bool useExpressionBody);
 
         public abstract Location GetDiagnosticLocation(SyntaxNode declaration);

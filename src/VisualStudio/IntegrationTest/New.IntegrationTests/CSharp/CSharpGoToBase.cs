@@ -20,7 +20,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
         {
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/60386")]
+        [IdeFact]
         public async Task GoToBaseFromMetadataAsSource()
         {
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "C.cs", cancellationToken: HangMitigatingCancellationToken);
@@ -37,7 +37,7 @@ class C
 }", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("ToString", charsOffset: -1, HangMitigatingCancellationToken);
             await TestServices.Editor.GoToBaseAsync(HangMitigatingCancellationToken);
-            Assert.Equal("Object [from metadata]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            Assert.Equal("Object [decompiled] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
 
             await TestServices.EditorVerifier.TextContainsAsync(@"public virtual string ToString$$()", assertCaretPosition: true);
         }

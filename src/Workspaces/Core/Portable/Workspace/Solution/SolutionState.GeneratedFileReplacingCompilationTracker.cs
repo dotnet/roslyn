@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis
                     await UnderlyingTracker.GetDependentChecksumAsync(solution, cancellationToken).ConfigureAwait(false),
                     await _replacedGeneratedDocumentState.GetChecksumAsync(cancellationToken).ConfigureAwait(false));
 
-            public CompilationReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
+            public MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
             {
                 // This method is used if you're forking a solution with partial semantics, and used to quickly produce references.
                 // So this method should only be called if:
@@ -185,6 +185,15 @@ namespace Microsoft.CodeAnalysis
                 {
                     return UnderlyingTracker.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
                 }
+            }
+
+            public ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(SolutionState solution, CancellationToken cancellationToken)
+            {
+                // We can directly return the diagnostics from the underlying tracker; this is because
+                // a generated document cannot have any diagnostics that are produced by a generator:
+                // a generator cannot add diagnostics to it's own file outputs, and generators don't see the
+                // outputs of each other.
+                return UnderlyingTracker.GetSourceGeneratorDiagnosticsAsync(solution, cancellationToken);
             }
         }
     }

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PullMemberUp
 
         private async Task TestQuickActionNotProvidedAsync(
             string initialMarkup,
-            TestParameters? parameters = null)
+            TestParameters parameters = null)
         {
             var service = new TestPullMemberUpService(null, null);
             var parametersValue = (parameters ?? TestParameters.Default).WithFixProviderData(service);
@@ -4272,7 +4272,7 @@ public class Bar : BaseClass
             IEnumerable<(string name, bool makeAbstract)> selection = null,
             string destinationName = null,
             int index = 0,
-            TestParameters? parameters = null,
+            TestParameters parameters = null,
             OptionsCollection options = null)
         {
             var service = new TestPullMemberUpService(selection, destinationName);
@@ -4788,9 +4788,9 @@ namespace PushUpTest
 using System;
 namespace PushUpTest
 {
-    public abstract class Base2
+    public class Base2
     {
-        private static abstract event EventHandler Event3;
+        private static event EventHandler Event3;
     }
 
     public abstract class Testclass2 : Base2

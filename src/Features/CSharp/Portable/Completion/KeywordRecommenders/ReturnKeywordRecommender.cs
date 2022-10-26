@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             return
                 context.IsStatementContext ||
+                context.IsRegularTopLevelStatementsContext() ||
                 context.TargetToken.IsAfterYieldKeyword() ||
                 IsAttributeContext(context, cancellationToken);
         }

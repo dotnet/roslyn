@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -147,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         }
 
         private async ValueTask NotifyProjectSystemAsync(
-            ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
+            ImmutableSegmentedList<DesignerAttributeData> data, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -166,14 +167,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
-        private static void AddFilteredInfos(ImmutableArray<DesignerAttributeData> data, ArrayBuilder<DesignerAttributeData> filteredData)
+        private static void AddFilteredInfos(ImmutableSegmentedList<DesignerAttributeData> data, ArrayBuilder<DesignerAttributeData> filteredData)
         {
             using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenDocumentIds);
 
             // Walk the list of designer items in reverse, and skip any items for a project once
             // we've already seen it once.  That way, we're only reporting the most up to date
             // information for a project, and we're skipping the stale information.
-            for (var i = data.Length - 1; i >= 0; i--)
+            for (var i = data.Count - 1; i >= 0; i--)
             {
                 var info = data[i];
                 if (seenDocumentIds.Add(info.DocumentId))

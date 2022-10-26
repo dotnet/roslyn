@@ -97,9 +97,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral
                 return false;
             }
 
-            var indentation = token.GetPreferredIndentation(document, cancellationToken);
+            var indentationOptions = document.GetIndentationOptionsAsync(_globalOptions, cancellationToken).WaitAndGetResult(cancellationToken);
+            var indentation = token.GetPreferredIndentation(document, indentationOptions, cancellationToken);
 
-            var newLine = document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp);
+            var newLine = indentationOptions.FormattingOptions.NewLine;
 
             using var transaction = CaretPreservingEditTransaction.TryCreate(
                 CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);

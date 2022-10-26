@@ -98,7 +98,7 @@ function Print-Usage() {
   Write-Host "  -testCompilerOnly         Run only the compiler unit tests"
   Write-Host "  -testVsi                  Run all integration tests"
   Write-Host "  -testIOperation           Run extra checks to validate IOperations"
-  Write-Host "  -testUsedAssemblies       Run extra checks to validate used assemblies feature"
+  Write-Host "  -testUsedAssemblies       Run extra checks to validate used assemblies feature (see ROSLYN_TEST_USEDASSEMBLIES in codebase)"
   Write-Host ""
   Write-Host "Advanced settings:"
   Write-Host "  -ci                       Set when running on CI server"
@@ -471,7 +471,7 @@ function TestUsingRunTests() {
       }
 
       if ($lspEditor) {
-        $lspLogs = Join-Path $TempDir "VisualStudio\LSP"
+        $lspLogs = Join-Path $TempDir "VSLogs"
         $telemetryLog = Join-Path $TempDir "VSTelemetryLog"
         if (Test-Path $lspLogs) {
           Write-Host "Copying LSP logs to $LogDir"

@@ -193,7 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
 
             // We may need to look up source code within this solution
-            if (preferredLocation == null && symbol.Locations.Any(loc => loc.IsInMetadata))
+            if (preferredLocation == null && symbol.Locations.Any(static loc => loc.IsInMetadata))
             {
                 var newSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, contextProject.Solution, cancellationToken).ConfigureAwait(false);
                 if (newSymbol != null)

@@ -13,9 +13,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Shell;
@@ -33,16 +35,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private readonly VisualStudioWorkspace _visualStudioWorkspace;
         private readonly IServiceProvider _serviceProvider;
-
         private readonly IThreadingContext _threadingContext;
 
         private readonly AsyncBatchingWorkQueue<DocumentId> _documentsToFireEventsFor;
+
+        public readonly IGlobalOptionService GlobalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ProjectCodeModelFactory(
             VisualStudioWorkspace visualStudioWorkspace,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider)
             : base(threadingContext, assertIsForeground: false)
@@ -50,6 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _visualStudioWorkspace = visualStudioWorkspace;
             _serviceProvider = serviceProvider;
             _threadingContext = threadingContext;
+            GlobalOptions = globalOptions;
 
             Listener = listenerProvider.GetListener(FeatureAttribute.CodeModel);
 
@@ -71,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         internal IAsynchronousOperationListener Listener { get; }
 
         private async ValueTask ProcessNextDocumentBatchAsync(
-            ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
+            ImmutableSegmentedList<DocumentId> documentIds, CancellationToken cancellationToken)
         {
             // This logic preserves the previous behavior we had with IForegroundNotificationService.
             // Specifically, we don't run on the UI thread for more than 15ms at a time.  And once we 

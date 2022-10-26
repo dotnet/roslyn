@@ -56,6 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             HasReturnWithExpression = 1 << 8,
 
             IsSimpleProgram = 1 << 9,
+
+            HasRequiredMembers = 1 << 10,
         }
 
         internal SingleTypeDeclaration(
@@ -188,6 +190,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (_flags & TypeDeclarationFlags.IsSimpleProgram) != 0;
             }
         }
+
+        public bool HasRequiredMembers => (_flags & TypeDeclarationFlags.HasRequiredMembers) != 0;
 
         protected override ImmutableArray<SingleNamespaceOrTypeDeclaration> GetNamespaceOrTypeDeclarationChildren()
         {

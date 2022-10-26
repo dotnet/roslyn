@@ -4,20 +4,25 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Roslyn.Utilities
 {
     /// <summary>
-    /// A queue where items can be added to to be processed in batches after some delay has passed.
-    /// When processing happens, all the items added since the last processing point will be passed
-    /// along to be worked on.  Rounds of processing happen serially, only starting up after a
-    /// previous round has completed.
+    /// A queue where items can be added to to be processed in batches after some delay has passed. When processing
+    /// happens, all the items added since the last processing point will be passed along to be worked on.  Rounds of
+    /// processing happen serially, only starting up after a previous round has completed.
+    /// <para>
+    /// Failure to complete a particular batch (either due to cancellation or some faulting error) will not prevent
+    /// further batches from executing. The only thing that will permenantly stop this queue from processing items is if
+    /// the <see cref="CancellationToken"/> passed to the constructor switches to <see
+    /// cref="CancellationToken.IsCancellationRequested"/>.
+    /// </para>
     /// </summary>
     internal class AsyncBatchingWorkQueue<TItem, TResult>
     {
@@ -34,7 +39,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Callback to actually perform the processing of the next batch of work.
         /// </summary>
-        private readonly Func<ImmutableArray<TItem>, CancellationToken, ValueTask<TResult>> _processBatchAsync;
+        private readonly Func<ImmutableSegmentedList<TItem>, CancellationToken, ValueTask<TResult>> _processBatchAsync;
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly CancellationToken _cancellationToken;
 
@@ -51,13 +56,13 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Data added that we want to process in our next update task.
         /// </summary>
-        private readonly ArrayBuilder<TItem> _nextBatch = ArrayBuilder<TItem>.GetInstance();
+        private readonly ImmutableSegmentedList<TItem>.Builder _nextBatch = ImmutableSegmentedList.CreateBuilder<TItem>();
 
         /// <summary>
         /// Used if <see cref="_equalityComparer"/> is present to ensure only unique items are added to <see
         /// cref="_nextBatch"/>.
         /// </summary>
-        private readonly HashSet<TItem> _uniqueItems;
+        private readonly SegmentedHashSet<TItem> _uniqueItems;
 
         /// <summary>
         /// Task kicked off to do the next batch of processing of <see cref="_nextBatch"/>. These
@@ -76,7 +81,7 @@ namespace Roslyn.Utilities
 
         public AsyncBatchingWorkQueue(
             TimeSpan delay,
-            Func<ImmutableArray<TItem>, CancellationToken, ValueTask<TResult>> processBatchAsync,
+            Func<ImmutableSegmentedList<TItem>, CancellationToken, ValueTask<TResult>> processBatchAsync,
             IEqualityComparer<TItem>? equalityComparer,
             IAsynchronousOperationListener asyncListener,
             CancellationToken cancellationToken)
@@ -87,7 +92,7 @@ namespace Roslyn.Utilities
             _asyncListener = asyncListener;
             _cancellationToken = cancellationToken;
 
-            _uniqueItems = new HashSet<TItem>(equalityComparer);
+            _uniqueItems = new SegmentedHashSet<TItem>(equalityComparer);
         }
 
         public void AddWork(TItem item)
@@ -141,7 +146,13 @@ namespace Roslyn.Utilities
             async Task<TResult?> ContinueAfterDelay(Task lastTask)
             {
                 using var _ = _asyncListener.BeginAsyncOperation(nameof(AddWork));
-                await lastTask.ConfigureAwait(false);
+
+                // Await the previous item in the task chain in a non-throwing fashion.  Regardless of whether that last
+                // task completed successfully or not, we want to move onto the next batch.
+                await lastTask.NoThrowAwaitableInternal(captureContext: false);
+
+                // If we were asked to shutdown, immediately transition to the canceled state without doing any more work.
+                _cancellationToken.ThrowIfCancellationRequested();
 
                 // Ensure that we always yield the current thread this is necessary for correctness as we are called
                 // inside a lock that _taskInFlight to true.  We must ensure that the work to process the next batch
@@ -153,24 +164,43 @@ namespace Roslyn.Utilities
             }
         }
 
+        /// <summary>
+        /// Waits until the current batch of work completes and returns the last value successfully computed from <see
+        /// cref="_processBatchAsync"/>.  If the last <see cref="_processBatchAsync"/> canceled or failed, then a
+        /// corresponding canceled or faulted task will be returned that propagates that outwards.
+        /// </summary>
         public Task<TResult?> WaitUntilCurrentBatchCompletesAsync()
         {
             lock (_gate)
                 return _updateTask;
         }
 
-        private ValueTask<TResult> ProcessNextBatchAsync(CancellationToken cancellationToken)
+        private async ValueTask<TResult> ProcessNextBatchAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return _processBatchAsync(GetNextBatchAndResetQueue(), _cancellationToken);
+            try
+            {
+                return await _processBatchAsync(GetNextBatchAndResetQueue(), _cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, ErrorSeverity.Critical))
+            {
+                // Report an exception if the batch fails for a non-cancellation reason.
+                //
+                // Note: even though we propagate this exception outwards, we will still continue processing further
+                // batches due to the `await NoThrowAwaitableInternal()` above.  The sentiment being that generally
+                // failures are recoverable here, and we will have reported the error so we can see in telemetry if we
+                // have a problem that needs addressing.
+                //
+                // Not this code is unreachable because ReportAndPropagateUnlessCanceled returns false along all codepaths.
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
-        private ImmutableArray<TItem> GetNextBatchAndResetQueue()
+        private ImmutableSegmentedList<TItem> GetNextBatchAndResetQueue()
         {
             lock (_gate)
             {
-                var result = ArrayBuilder<TItem>.GetInstance();
-                result.AddRange(_nextBatch);
+                var result = _nextBatch.ToImmutable();
 
                 // mark there being no existing update task so that the next OOP notification will
                 // kick one off.
@@ -178,7 +208,7 @@ namespace Roslyn.Utilities
                 _uniqueItems.Clear();
                 _taskInFlight = false;
 
-                return result.ToImmutableAndFree();
+                return result;
             }
         }
     }

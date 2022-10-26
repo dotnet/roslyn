@@ -789,14 +789,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         End If
 
                         ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                        aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position, ImmutableArray(Of AssemblySymbol).Empty)
+                        aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position, syntaxReference:=Nothing, ImmutableArray(Of AssemblySymbol).Empty)
                     Else
                         If importsBuilder Is Nothing Then
                             importsBuilder = ArrayBuilder(Of NamespaceOrTypeAndImportsClausePosition).GetInstance()
                         End If
 
                         ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                        importsBuilder.Add(New NamespaceOrTypeAndImportsClausePosition(typeSymbol, position, ImmutableArray(Of AssemblySymbol).Empty))
+                        importsBuilder.Add(New NamespaceOrTypeAndImportsClausePosition(typeSymbol, position, syntaxReference:=Nothing, ImmutableArray(Of AssemblySymbol).Empty))
                     End If
 
                 ' Dev12 treats the current namespace the same as any other namespace (see ProcedureContext::LoadImportsAndDefaultNamespaceNormal).
@@ -826,7 +826,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         End If
 
                         ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                        importsBuilder.Add(New NamespaceOrTypeAndImportsClausePosition(namespaceOrTypeSymbol, position, ImmutableArray(Of AssemblySymbol).Empty))
+                        importsBuilder.Add(New NamespaceOrTypeAndImportsClausePosition(namespaceOrTypeSymbol, position, syntaxReference:=Nothing, ImmutableArray(Of AssemblySymbol).Empty))
                     Else
                         Dim aliasSymbol As New AliasSymbol(importBinder.Compilation, importBinder.ContainingNamespaceOrType, [alias], namespaceOrTypeSymbol, NoLocation.Singleton)
 
@@ -835,7 +835,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         End If
 
                         ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                        aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position, ImmutableArray(Of AssemblySymbol).Empty)
+                        aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position, syntaxReference:=Nothing, ImmutableArray(Of AssemblySymbol).Empty)
                     End If
 
                 Case ImportTargetKind.NamespaceOrType ' Aliased namespace or type (native PDB only)
@@ -858,7 +858,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     End If
 
                     ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                    aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position, ImmutableArray(Of AssemblySymbol).Empty)
+                    aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position, syntaxReference:=Nothing, ImmutableArray(Of AssemblySymbol).Empty)
 
                 Case ImportTargetKind.XmlNamespace
                     If xmlImports Is Nothing Then
@@ -866,7 +866,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     End If
 
                     ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                    xmlImports(importRecord.Alias) = New XmlNamespaceAndImportsClausePosition(importRecord.TargetString, position)
+                    xmlImports(importRecord.Alias) = New XmlNamespaceAndImportsClausePosition(importRecord.TargetString, position, syntaxReference:=Nothing)
                 Case ImportTargetKind.DefaultNamespace
                     ' Processed ahead of time so that it can be incorporated into the compilation before
                     ' constructing the binder chain.
@@ -903,29 +903,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Next
 
             Return fileLevel
-        End Function
-
-        Private Shared Function SelectAndInitializeCollection(Of T)(
-            scope As VBImportScopeKind,
-            ByRef projectLevelCollection As T,
-            ByRef fileLevelCollection As T,
-            initializeCollection As Func(Of T)) As T
-
-            If scope = VBImportScopeKind.Project Then
-                If projectLevelCollection Is Nothing Then
-                    projectLevelCollection = initializeCollection()
-                End If
-
-                Return projectLevelCollection
-            Else
-                Debug.Assert(scope = VBImportScopeKind.File OrElse scope = VBImportScopeKind.Unspecified)
-
-                If fileLevelCollection Is Nothing Then
-                    fileLevelCollection = initializeCollection()
-                End If
-
-                Return fileLevelCollection
-            End If
         End Function
 
         ''' <summary>

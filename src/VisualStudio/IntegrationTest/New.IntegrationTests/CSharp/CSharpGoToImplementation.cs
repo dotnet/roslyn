@@ -26,7 +26,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
         {
         }
 
-        [IdeTheory, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+        [IdeTheory]
         [CombinatorialData]
         public async Task SimpleGoToImplementation(bool asyncNavigation)
         {
@@ -75,7 +75,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             Assert.False(await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
         }
 
-        [IdeTheory, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+        [IdeTheory]
         [CombinatorialData]
         public async Task GoToImplementationOpensProvisionalTabIfDocumentNotOpen(bool asyncNavigation)
         {
@@ -146,7 +146,7 @@ class Implementation : IDisposable
 }", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("IDisposable d", charsOffset: -1, HangMitigatingCancellationToken);
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
-            Assert.Equal("IDisposable [from metadata]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            Assert.Equal("IDisposable [decompiled] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
             await TestServices.Editor.GoToImplementationAsync(HangMitigatingCancellationToken);
 
             string identifierWithCaret;

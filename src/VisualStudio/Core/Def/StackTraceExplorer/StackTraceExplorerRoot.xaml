@@ -52,7 +52,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <StackPanel Orientation="Horizontal" Grid.Row="0" MinHeight="20" MinWidth="20" Margin="5">
-            <Button Click="Clear_Click" x:Name="ClearButton">
+            <Button Click="Clear_Click" x:Name="ClearButton" AutomationProperties.Name="{Binding ElementName=Root, Path=Clear_Text}">
                 <Button.Content>
                     <StackPanel Orientation="Horizontal">
                         <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.ClearCollection}" Margin="0 0 5 0" />
@@ -125,7 +125,7 @@
                                         SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" 
                                         VerticalAlignment="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
 
-                                    <Button Grid.Row="0" Grid.Column="1" Command="{Binding CloseClick}" Margin="0" Padding="0" BorderThickness="0" Width="16" MinWidth="16" MinHeight="16" Height="16">
+                                    <Button Grid.Row="0" Grid.Column="1" Command="{Binding CloseClick}" Margin="0" Padding="0" BorderThickness="0" Width="16" MinWidth="16" MinHeight="16" Height="16" AutomationProperties.Name="{Binding CloseTab}">
                                         <Button.Template>
                                             <ControlTemplate>
                                                 <Grid Background="{TemplateBinding Background}">

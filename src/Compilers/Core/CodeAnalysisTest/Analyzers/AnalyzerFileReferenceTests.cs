@@ -244,6 +244,85 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, errors.First().ErrorCode);
         }
 
+        [Fact]
+        [WorkItem(1032909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032909")]
+        public void TestReferencingFakeCompiler()
+        {
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(_testFixture.AnalyzerWithFakeCompilerDependency.Path);
+
+            List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
+            EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
+            reference.AnalyzerLoadFailed += errorHandler;
+            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+            reference.AddAnalyzers(builder, LanguageNames.CSharp);
+            var analyzers = builder.ToImmutable();
+            reference.AnalyzerLoadFailed -= errorHandler;
+
+            Assert.Equal(1, errors.Count);
+            var error = errors[0];
+
+            // failure is in the analyzer itself, i.e. abstract members on DiagnosticAnalyzer are not implemented.
+            Assert.Equal(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, error.ErrorCode);
+            Assert.Equal("Analyzer", error.TypeName);
+        }
+
+        [Fact]
+        [WorkItem(1032909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032909")]
+        public void TestReferencingLaterFakeCompiler()
+        {
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(_testFixture.AnalyzerWithLaterFakeCompilerDependency.Path);
+
+            List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
+            EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
+            reference.AnalyzerLoadFailed += errorHandler;
+            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+            reference.AddAnalyzers(builder, LanguageNames.CSharp);
+            var analyzers = builder.ToImmutable();
+            reference.AnalyzerLoadFailed -= errorHandler;
+
+            Assert.Equal(1, errors.Count);
+            var error = errors[0];
+            Assert.Equal(AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesNewerCompiler, error.ErrorCode);
+            Assert.Null(error.TypeName);
+        }
+
+        private class AnalyzerLoaderMockCSharpCompiler : CSharpCompiler
+        {
+            public AnalyzerLoaderMockCSharpCompiler(CSharpCommandLineParser parser, string? responseFile, string[] args, BuildPaths buildPaths, string? additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader, GeneratorDriverCache? driverCache = null, ICommonCompilerFileSystem? fileSystem = null)
+                : base(parser, responseFile, args, buildPaths, additionalReferenceDirectories, assemblyLoader, driverCache, fileSystem)
+            {
+            }
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public void AssemblyLoading_ReferencesLaterFakeCompiler_EndToEnd_CSharp()
+        {
+            var directory = Temp.CreateDirectory();
+
+            TempFile corlib = directory.CreateFile("mscorlib.dll");
+            corlib.WriteAllBytes(TestResources.NetFX.Minimal.mincorlib);
+
+            TempFile source = directory.CreateFile("in.cs");
+            source.WriteAllText("int x = 0;");
+
+            var compiler = new AnalyzerLoaderMockCSharpCompiler(
+                CSharpCommandLineParser.Default,
+                responseFile: null,
+                args: new[] { "/nologo", $@"/analyzer:""{_testFixture.AnalyzerWithLaterFakeCompilerDependency.Path}""", "/nostdlib", $@"/r:""{corlib.Path}""", "/out:something.dll", source.Path },
+                new BuildPaths(clientDir: directory.Path, workingDir: directory.Path, sdkDir: null, tempDir: null),
+                additionalReferenceDirectories: null,
+                new DefaultAnalyzerAssemblyLoader());
+
+            var writer = new StringWriter();
+            var result = compiler.Run(writer);
+            Assert.Equal(0, result);
+            AssertEx.Equal($"""
+                warning CS9057: The analyzer assembly '{_testFixture.AnalyzerWithLaterFakeCompilerDependency.Path}' references version '100.0.0.0' of the compiler, which is newer than the currently running version '{typeof(DefaultAnalyzerAssemblyLoader).Assembly.GetName().Version}'.
+                in.cs(1,5): warning CS0219: The variable 'x' is assigned but its value is never used
+
+                """, writer.ToString());
+        }
+
         [ConditionalFact(typeof(CoreClrOnly), Reason = "Can't load a framework targeting generator, which these are in desktop")]
         public void TestLoadGenerators()
         {

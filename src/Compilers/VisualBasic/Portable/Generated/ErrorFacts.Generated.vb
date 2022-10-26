@@ -175,7 +175,8 @@
                      ERRID.WRN_GeneratorFailedDuringGeneration,
                      ERRID.WRN_AnalyzerReferencesFramework,
                      ERRID.WRN_CallerArgumentExpressionAttributeSelfReferential,
-                     ERRID.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName
+                     ERRID.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName,
+                     ERRID.WRN_AnalyzerReferencesNewerCompiler
                     Return True
                 Case Else
                     Return False

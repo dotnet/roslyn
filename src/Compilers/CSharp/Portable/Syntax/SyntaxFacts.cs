@@ -403,6 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ExclusiveOrAssignmentExpression:
                 case LeftShiftAssignmentExpression:
                 case RightShiftAssignmentExpression:
+                case UnsignedRightShiftAssignmentExpression:
                 case CoalesceAssignmentExpression:
                 case PostIncrementExpression:
                 case PostDecrementExpression:

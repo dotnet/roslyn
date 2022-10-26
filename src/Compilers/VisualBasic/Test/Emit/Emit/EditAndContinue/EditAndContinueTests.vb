@@ -5508,5 +5508,62 @@ End Class
 }")
         End Sub
 
+        <Fact>
+        Public Sub Method_Delete()
+
+            Dim source0 = MarkedSource("
+Imports System.ComponentModel
+
+Class C
+    <Description(""C.M"")>
+    Function M(c as C) As C
+        Return Nothing
+    End Function
+End Class
+")
+            Dim source1 = MarkedSource("
+Imports System.ComponentModel
+
+Class C
+End Class
+")
+            Dim compilation0 = CreateCompilation(source0.Tree, targetFramework:=TargetFramework.NetStandard20, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim m0 = compilation0.GetMember(Of MethodSymbol)("C.M")
+            Dim c0 = compilation1.GetMember(Of NamedTypeSymbol)("C")
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+
+            ' Pretend there was an update to C.E to ensure we haven't invalidated the test
+
+            Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Delete, m0, c0)))
+
+            Dim reader0 = md0.MetadataReader
+
+            ' Verify delta metadata contains expected rows.
+            Using md1 = diff1.GetMetadata()
+                Dim reader1 = md1.Reader
+                Dim readers = {reader0, reader1}
+                EncValidation.VerifyModuleMvid(1, reader0, reader1)
+                CheckNames(readers, reader1.GetTypeDefNames())
+                CheckNames(readers, reader1.GetMethodDefNames(), "M")
+
+                CheckEncLogDefinitions(reader1,
+                    Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                    Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                    Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+
+                CheckEncMapDefinitions(reader1,
+                    Handle(2, TableIndex.MethodDef),
+                    Handle(1, TableIndex.Param),
+                    Handle(4, TableIndex.CustomAttribute))
+            End Using
+        End Sub
+
     End Class
 End Namespace

@@ -155,7 +155,7 @@ namespace RunTests
                 // figure out solutions for issues such as creating file paths in the correct format for the target machine.
                 var isUnix = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
-                var commandLineArguments = _testExecutor.GetCommandLineArguments(assemblyInfo, useSingleQuotes: isUnix);
+                var commandLineArguments = _testExecutor.GetCommandLineArguments(assemblyInfo, useSingleQuotes: isUnix, isHelix: true);
                 commandLineArguments = SecurityElement.Escape(commandLineArguments);
                 var setEnvironmentVariable = isUnix ? "export" : "set";
 

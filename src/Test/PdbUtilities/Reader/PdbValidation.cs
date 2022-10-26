@@ -642,7 +642,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             expectedTags.Sort((x, y) => x.StartIndex.CompareTo(y.StartIndex));
 
             // Ensure the tag for the method start is the first element
-            expectedTags.Insert(0, new { Tag = "<M>", StartIndex = methodStart });
+            expectedTags.Insert(0, new { Tag = "<M:0>", StartIndex = methodStart });
 
             // Now reverse the list so we can insert without worrying about offsets
             expectedTags.Reverse();

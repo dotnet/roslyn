@@ -46,24 +46,76 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Await VerifyNSATIsAbsentAsync(AddImportsStatement("Imports System", "$$"))
         End Function
 
+        <WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestTypeConstraint1() As Task
-            Await VerifyNSATExistsAsync(AddImportsStatement("Imports System", "Class A(Of T As $$"))
+            Await VerifyItemExistsAsync(AddImportsStatement("Imports System", "Class A(Of T As $$"), "System")
         End Function
 
+        <WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypeConstraint1_NotStaticClass() As Task
+            Await VerifyItemIsAbsentAsync(AddImportsStatement("Imports System", "Class A(Of T As $$"), "Console")
+        End Function
+
+        <WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypeConstraint1_NotSealedClass() As Task
+            Await VerifyItemIsAbsentAsync(AddImportsStatement("Imports System", "Class A(Of T As $$"), "String")
+        End Function
+
+        <WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestTypeConstraint2() As Task
-            Await VerifyNSATExistsAsync(AddImportsStatement("Imports System", "Class A(Of T As { II, $$"))
+            Await VerifyItemExistsAsync(AddImportsStatement("Imports System", "Class A(Of T As { II, $$"), "System")
         End Function
 
+        <WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypeConstraint2_NotStaticClass() As Task
+            Await VerifyItemIsAbsentAsync(AddImportsStatement("Imports System", "Class A(Of T As { II, $$"), "Console")
+        End Function
+
+        <WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypeConstraint2_NotSealedClass() As Task
+            Await VerifyItemIsAbsentAsync(AddImportsStatement("Imports System", "Class A(Of T As { II, $$"), "String")
+        End Function
+
+        <WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestTypeConstraint3() As Task
-            Await VerifyNSATExistsAsync(AddImportsStatement("Imports System", "Class A(Of T As $$)"))
+            Await VerifyItemExistsAsync(AddImportsStatement("Imports System", "Class A(Of T As $$)"), "System")
         End Function
 
+        <WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypeConstraint3_NotStaticClass() As Task
+            Await VerifyItemIsAbsentAsync(AddImportsStatement("Imports System", "Class A(Of T As $$)"), "Console")
+        End Function
+
+        <WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypeConstraint3_NotSealedClass() As Task
+            Await VerifyItemIsAbsentAsync(AddImportsStatement("Imports System", "Class A(Of T As $$)"), "String")
+        End Function
+
+        <WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestTypeConstraint4() As Task
-            Await VerifyNSATExistsAsync(AddImportsStatement("Imports System", "Class A(Of T As { II, $$})"))
+            Await VerifyItemExistsAsync(AddImportsStatement("Imports System", "Class A(Of T As { II, $$})"), "System")
+        End Function
+
+        <WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypeConstraint4_NotStaticClass() As Task
+            Await VerifyItemIsAbsentAsync(AddImportsStatement("Imports System", "Class A(Of T As { II, $$})"), "Console")
+        End Function
+
+        <WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypeConstraint4_NotSealedClass() As Task
+            Await VerifyItemIsAbsentAsync(AddImportsStatement("Imports System", "Class A(Of T As { II, $$})"), "String")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -7874,10 +7926,10 @@ End Namespace
                 Dim position = workspace.DocumentWithCursor.CursorPosition.Value
                 Await CheckResultsAsync(document, position, "InstanceMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
                                         glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, displayTextPrefix:=Nothing, inlineDescription:=Nothing,
-                                        isComplexTextEdit:=Nothing, matchingFilters:=Nothing, flags:=Nothing)
+                                        isComplexTextEdit:=Nothing, matchingFilters:=Nothing, flags:=Nothing, options:=Nothing)
                 Await CheckResultsAsync(document, position, "SharedMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
                                         glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, displayTextPrefix:=Nothing, inlineDescription:=Nothing,
-                                        isComplexTextEdit:=Nothing, matchingFilters:=Nothing, flags:=Nothing)
+                                        isComplexTextEdit:=Nothing, matchingFilters:=Nothing, flags:=Nothing, options:=Nothing)
             End Using
 
         End Function
@@ -8487,7 +8539,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
         Public Async Function TestTargetTypeFilterWithExperimentEnabled() As Task
-            TargetTypedCompletionFilterFeatureFlag = True
+            ShowTargetTypedCompletionFilter = True
             Dim markup =
 "Class C
     Dim intField As Integer
@@ -8502,7 +8554,7 @@ End Class"
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
         Public Async Function TestNoTargetTypeFilterWithExperimentDisabled() As Task
-            TargetTypedCompletionFilterFeatureFlag = False
+            ShowTargetTypedCompletionFilter = False
             Dim markup =
 "Class C
     Dim intField As Integer
@@ -8517,7 +8569,7 @@ End Class"
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
         Public Async Function TestTargetTypeFilter_NotOnObjectMembers() As Task
-            TargetTypedCompletionFilterFeatureFlag = True
+            ShowTargetTypedCompletionFilter = True
             Dim markup =
 "Class C
     Dim intField As Integer

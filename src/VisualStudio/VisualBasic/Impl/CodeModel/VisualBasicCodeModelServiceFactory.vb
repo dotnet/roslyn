@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.Text.Editor
 
@@ -21,21 +22,25 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         Private ReadOnly _refactorNotifyServices As IEnumerable(Of IRefactorNotifyService)
         Private ReadOnly _commitBufferManagerFactory As CommitBufferManagerFactory
         Private ReadOnly _threadingContext As IThreadingContext
+        Private ReadOnly _globalOptions As IGlobalOptionService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(editorOptionsFactoryService As IEditorOptionsFactoryService,
-                        <ImportMany> refactorNotifyServices As IEnumerable(Of IRefactorNotifyService),
-                        commitBufferManagerFactory As CommitBufferManagerFactory,
-                        threadingContext As IThreadingContext)
-            Me._editorOptionsFactoryService = editorOptionsFactoryService
-            Me._refactorNotifyServices = refactorNotifyServices
-            Me._commitBufferManagerFactory = commitBufferManagerFactory
-            Me._threadingContext = threadingContext
+                       <ImportMany> refactorNotifyServices As IEnumerable(Of IRefactorNotifyService),
+                       commitBufferManagerFactory As CommitBufferManagerFactory,
+                       threadingContext As IThreadingContext,
+                       globalOptions As IGlobalOptionService)
+
+            _editorOptionsFactoryService = editorOptionsFactoryService
+            _refactorNotifyServices = refactorNotifyServices
+            _commitBufferManagerFactory = commitBufferManagerFactory
+            _threadingContext = threadingContext
+            _globalOptions = globalOptions
         End Sub
 
         Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicCodeModelService(provider, Me._editorOptionsFactoryService, _refactorNotifyServices, _commitBufferManagerFactory, _threadingContext)
+            Return New VisualBasicCodeModelService(provider, _editorOptionsFactoryService, _refactorNotifyServices, _commitBufferManagerFactory, _globalOptions, _threadingContext)
         End Function
     End Class
 End Namespace

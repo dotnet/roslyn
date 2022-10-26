@@ -25,16 +25,10 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
         where TAnonymousObjectInitializer : SyntaxNode
         where TAnonymousObjectMemberDeclaratorSyntax : SyntaxNode
     {
-        protected AbstractAddAnonymousTypeMemberNameCodeFixProvider()
-        {
-        }
-
         protected abstract bool HasName(TAnonymousObjectMemberDeclaratorSyntax declarator);
         protected abstract TExpressionSyntax GetExpression(TAnonymousObjectMemberDeclaratorSyntax declarator);
         protected abstract TAnonymousObjectMemberDeclaratorSyntax WithName(TAnonymousObjectMemberDeclaratorSyntax declarator, SyntaxToken name);
         protected abstract IEnumerable<string> GetAnonymousObjectMemberNames(TAnonymousObjectInitializer initializer);
-
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -49,7 +43,10 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
             }
 
             context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(document, diagnostic, c)),
+                CodeAction.Create(
+                    FeaturesResources.Add_member_name,
+                    GetDocumentUpdater(context),
+                    nameof(FeaturesResources.Add_member_name)),
                 context.Diagnostics);
         }
 
@@ -85,7 +82,7 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // If we're only introducing one name, then add the rename annotation to
             // it so the user can pick a better name if they want.
@@ -136,14 +133,6 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
 
                     return WithName(currentDeclarator, nameToken);
                 });
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Add_member_name, createChangedDocument, nameof(FeaturesResources.Add_member_name))
-            {
-            }
         }
     }
 }

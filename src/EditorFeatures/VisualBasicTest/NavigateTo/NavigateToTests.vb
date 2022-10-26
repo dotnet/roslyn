@@ -852,7 +852,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, DefaultComposition)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _provider = CreateProvider(workspace)
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(
@@ -887,7 +887,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, DefaultComposition)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _provider = CreateProvider(workspace)
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(
@@ -920,7 +920,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, DefaultComposition)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _provider = CreateProvider(workspace)
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(
@@ -950,7 +950,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, DefaultComposition)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _provider = CreateProvider(workspace)
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(
@@ -986,7 +986,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, DefaultComposition)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _provider = CreateProvider(workspace)
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(
@@ -1012,7 +1012,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, DefaultComposition)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _provider = CreateProvider(workspace)
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(
@@ -1039,7 +1039,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, DefaultComposition)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _provider = CreateProvider(workspace)
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(

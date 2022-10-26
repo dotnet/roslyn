@@ -18,8 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineHints
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(globalOptions As IGlobalOptionService)
-            MyBase.New(globalOptions)
+        Public Sub New()
         End Sub
 
         Protected Overrides Sub AddAllParameterNameHintLocations(
@@ -48,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineHints
                     Continue For
                 End If
 
-                Dim parameter = argument.DetermineParameter(semanticModel, allowParamArray:=False, cancellationToken)
+                Dim parameter = argument.DetermineParameter(semanticModel, allowParamArray:=False, cancellationToken:=cancellationToken)
                 If String.IsNullOrEmpty(parameter?.Name) Then
                     Continue For
                 End If

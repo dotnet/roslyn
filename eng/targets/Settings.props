@@ -173,7 +173,7 @@
     <!-- VB specific settings -->
     <When Condition="'$(Language)' == 'VB'">
       <PropertyGroup>
-        <LangVersion>16</LangVersion>
+        <LangVersion>latest</LangVersion>
         <NoWarn>$(NoWarn);40057</NoWarn>
         <VBRuntime>Embed</VBRuntime>
       </PropertyGroup>

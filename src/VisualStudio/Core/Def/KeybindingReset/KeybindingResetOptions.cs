@@ -11,8 +11,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
 {
-    [ExportGlobalOptionProvider, Shared]
-    internal sealed class KeybindingResetOptions : IOptionProvider
+    internal sealed class KeybindingResetOptions
     {
         private const string LocalRegistryPath = @"Roslyn\Internal\KeybindingsStatus\";
 
@@ -31,17 +30,5 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
         public static readonly Option2<bool> EnabledFeatureFlag = new(nameof(KeybindingResetOptions),
             nameof(EnabledFeatureFlag), defaultValue: false,
             storageLocation: new FeatureFlagStorageLocation("Roslyn.KeybindingResetEnabled"));
-
-        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
-            ReSharperStatus,
-            NeedsReset,
-            NeverShowAgain,
-            EnabledFeatureFlag);
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public KeybindingResetOptions()
-        {
-        }
     }
 }

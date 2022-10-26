@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Once a document state is <see cref="DocumentState.MatchesBuildOutput"/> or <see cref="DocumentState.DesignTimeOnly"/>
         /// it will never change.
         /// </summary>
-        private readonly Dictionary<DocumentId, DocumentState> _documentState;
+        private readonly Dictionary<DocumentId, DocumentState> _documentState = new();
 
         private readonly object _guard = new();
 
@@ -94,7 +94,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             _solution = solution;
             _debuggingSession = debuggingSession;
-            _documentState = new Dictionary<DocumentId, DocumentState>();
             _documentState.AddRange(initialDocumentStates);
         }
 
@@ -132,11 +131,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             => _solution.ContainsDocument(documentId);
 
         /// <summary>
-        /// Captures the content of a file that is about to be overwritten by saving an open document,
-        /// if the document is currently out-of-sync and the content of the file matches the PDB.
-        /// If we didn't capture the content before the save we might never be able to find a document
-        /// snapshot that matches the PDB.
+        /// Observes the content of the specified document checks if it matches the PDB.
         /// </summary>
+        /// <remarks>
+        /// When the <see cref="DebuggingSession"/> is started we check the content of all open documents against the PDB.
+        /// Then we check the content whenever another document is opened. This approach gives us the opportunity to record the
+        /// document content state before the user has a chance to edit the files.
+        /// </remarks>
         public Task OnSourceFileUpdatedAsync(Document document, CancellationToken cancellationToken)
             => GetDocumentAndStateAsync(document.Id, document, cancellationToken, reloadOutOfSyncDocument: true);
 

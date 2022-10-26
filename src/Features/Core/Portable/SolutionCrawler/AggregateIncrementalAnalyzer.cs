@@ -69,12 +69,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
         }
 
-        public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
-        {
-            // TODO: Is this correct?
-            return false;
-        }
-
         public async Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             if (TryGetAnalyzer(document.Project, out var analyzer))
@@ -170,5 +164,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public int Priority => 1;
+
+        public void Shutdown()
+        {
+            foreach (var (_, analyzer) in Analyzers)
+            {
+                if (analyzer.IsValueCreated)
+                {
+                    analyzer.Value.Shutdown();
+                }
+            }
+        }
     }
 }

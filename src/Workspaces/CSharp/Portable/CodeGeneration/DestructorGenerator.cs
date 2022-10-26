@@ -21,33 +21,33 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static TypeDeclarationSyntax AddDestructorTo(
             TypeDeclarationSyntax destination,
             IMethodSymbol destructor,
-            CSharpCodeGenerationOptions options,
+            CSharpCodeGenerationContextInfo info,
             IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
-            var destructorDeclaration = GenerateDestructorDeclaration(destructor, options, cancellationToken);
+            var destructorDeclaration = GenerateDestructorDeclaration(destructor, info, cancellationToken);
 
             // Generate after the last constructor, or after the last field, or at the start of the
             // type.
-            var members = Insert(destination.Members, destructorDeclaration, options,
+            var members = Insert(destination.Members, destructorDeclaration, info,
                 availableIndices, after: LastConstructorOrField, before: FirstMember);
 
             return AddMembersTo(destination, members, cancellationToken);
         }
 
         internal static DestructorDeclarationSyntax GenerateDestructorDeclaration(
-            IMethodSymbol destructor, CSharpCodeGenerationOptions options, CancellationToken cancellationToken)
+            IMethodSymbol destructor, CSharpCodeGenerationContextInfo info, CancellationToken cancellationToken)
         {
-            var reusableSyntax = GetReuseableSyntaxNodeForSymbol<DestructorDeclarationSyntax>(destructor, options);
+            var reusableSyntax = GetReuseableSyntaxNodeForSymbol<DestructorDeclarationSyntax>(destructor, info);
             if (reusableSyntax != null)
             {
                 return reusableSyntax;
             }
 
-            var hasNoBody = !options.Context.GenerateMethodBodies;
+            var hasNoBody = !info.Context.GenerateMethodBodies;
 
             var declaration = SyntaxFactory.DestructorDeclaration(
-                attributeLists: AttributeGenerator.GenerateAttributeLists(destructor.GetAttributes(), options),
+                attributeLists: AttributeGenerator.GenerateAttributeLists(destructor.GetAttributes(), info),
                 modifiers: default,
                 tildeToken: SyntaxFactory.Token(SyntaxKind.TildeToken),
                 identifier: CodeGenerationDestructorInfo.GetTypeName(destructor).ToIdentifierToken(),
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default);
 
             return AddFormatterAndCodeGeneratorAnnotationsTo(
-                ConditionallyAddDocumentationCommentTo(declaration, destructor, options, cancellationToken));
+                ConditionallyAddDocumentationCommentTo(declaration, destructor, info, cancellationToken));
         }
 
         private static BlockSyntax GenerateBlock(

@@ -96,7 +96,7 @@ class Program
                 renameOverloads:=True,
                 hasRenameOverload:=True,
                 unresolvableConflictText:=String.Format(EditorFeaturesResources._0_unresolvable_conflict_s, 1),
-                severity:=DashboardSeverity.Error)
+                severity:=RenameDashboardSeverity.Error)
         End Function
 
         <WpfTheory>
@@ -116,7 +116,7 @@ class AttributeAttribute : System.Attribute { }
                     newName:="AttributeAttributeAttribute",
                     searchResultText:=EditorFeaturesResources.Rename_will_update_1_reference_in_1_file,
                     resolvableConflictText:=String.Format(EditorFeaturesResources._0_conflict_s_will_be_resolved, 1),
-                    severity:=DashboardSeverity.Info)
+                    severity:=RenameDashboardSeverity.Info)
         End Function
 
         <WpfTheory>
@@ -334,7 +334,7 @@ class $$Program
                 newName:="goo",
                 searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 2),
                 resolvableConflictText:=String.Format(EditorFeaturesResources._0_conflict_s_will_be_resolved, 1),
-                severity:=DashboardSeverity.Info)
+                severity:=RenameDashboardSeverity.Info)
         End Function
 
         <WorkItem(5923, "DevDiv_Projects/Roslyn")>
@@ -359,7 +359,7 @@ class $$Program
                 newName:="goo",
                 searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 2),
                 resolvableConflictText:=String.Format(EditorFeaturesResources._0_conflict_s_will_be_resolved, 2),
-                severity:=DashboardSeverity.Info)
+                severity:=RenameDashboardSeverity.Info)
         End Function
 
         <WpfTheory>
@@ -382,7 +382,7 @@ class $$Program
                 newName:="goo",
                 searchResultText:=EditorFeaturesResources.Rename_will_update_1_reference_in_1_file,
                 unresolvableConflictText:=String.Format(EditorFeaturesResources._0_unresolvable_conflict_s, 1),
-                severity:=DashboardSeverity.Error)
+                severity:=RenameDashboardSeverity.Error)
         End Function
 
         <WpfTheory>
@@ -407,7 +407,7 @@ class $$Program
                 newName:="goo",
                 searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 3),
                 unresolvableConflictText:=String.Format(EditorFeaturesResources._0_unresolvable_conflict_s, 3),
-                severity:=DashboardSeverity.Error)
+                severity:=RenameDashboardSeverity.Error)
         End Function
 
         <WpfTheory>
@@ -444,7 +444,7 @@ class $$Program
                    newName:="Bar",
                    searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_files, 4, 2),
                    resolvableConflictText:=String.Format(EditorFeaturesResources._0_conflict_s_will_be_resolved, 1),
-                   severity:=DashboardSeverity.Info)
+                   severity:=RenameDashboardSeverity.Info)
         End Function
 
         <WpfTheory>
@@ -543,7 +543,7 @@ class D : B
             Optional renameFile As Boolean = False,
             Optional resolvableConflictText As String = Nothing,
             Optional unresolvableConflictText As String = Nothing,
-            Optional severity As DashboardSeverity = DashboardSeverity.None
+            Optional severity As RenameDashboardSeverity = RenameDashboardSeverity.None
         ) As Tasks.Task
 
             Using workspace = CreateWorkspaceWithWaiter(test, host)
@@ -577,14 +577,14 @@ class D : B
                     edit.Apply()
                 End Using
 
-                Using dashboard = New Dashboard(
-                    New DashboardViewModel(DirectCast(sessionInfo.Session, InlineRenameSession)),
+                Using dashboard = New RenameDashboard(
+                    New RenameDashboardViewModel(DirectCast(sessionInfo.Session, InlineRenameSession)),
                     editorFormatMapService:=Nothing,
                     textView:=cursorDocument.GetTextView())
 
                     Await WaitForRename(workspace)
 
-                    Dim model = DirectCast(dashboard.DataContext, DashboardViewModel)
+                    Dim model = DirectCast(dashboard.DataContext, RenameDashboardViewModel)
 
                     Assert.Equal(searchResultText, model.SearchText)
 

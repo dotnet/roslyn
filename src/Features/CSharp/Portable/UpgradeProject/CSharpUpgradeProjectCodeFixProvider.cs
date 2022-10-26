@@ -51,6 +51,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
                 "CS8704", // error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member in C# 9.0. Please use language version 'preview' or greater.
                 "CS8957", // error CS8957: Conditional expression is not valid in language version '8.0' because a common type was not found between 'int' and '<null>'. To use a target-typed conversion, upgrade to language version '9.0' or greater.
                 "CS8967", // error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 8.0. Please use language version preview or greater.
+
+                "CS0171", // error CS0171: Field 'S.Test1' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+                "CS0188", // error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
+                "CS0843", // error CS0843: Auto-implemented property 'S.Test1' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
+                "CS8880", // warning CS8880: Auto-implemented property 'S.Test1' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
+                "CS8881", // warning CS8881: Field 'S.Test1' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+                "CS8885", // warning CS8885: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
             });
 
         public override string UpgradeThisProjectResource => CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0;

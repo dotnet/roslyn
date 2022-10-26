@@ -201,141 +201,147 @@ class Driver
     sequencePoints: "TestCase+<Run>d__1.MoveNext");
 
                 v.VerifyPdb(@"
-    <symbols>
-    <files>
-        <file id=""1"" name="""" language=""C#"" />
-    </files>
-    <methods>
-        <method containingType=""DynamicMembers"" name=""get_Prop"">
-        <sequencePoints>
-            <entry offset=""0x0"" startLine=""8"" startColumn=""35"" endLine=""8"" endColumn=""39"" document=""1"" />
-        </sequencePoints>
-        </method>
-        <method containingType=""DynamicMembers"" name=""set_Prop"" parameterNames=""value"">
-        <sequencePoints>
-            <entry offset=""0x0"" startLine=""8"" startColumn=""40"" endLine=""8"" endColumn=""44"" document=""1"" />
-        </sequencePoints>
-        </method>
-        <method containingType=""TestCase"" name=""Run"">
-        <customDebugInfo>
-            <forwardIterator name=""&lt;Run&gt;d__1"" />
-            <encLocalSlotMap>
-            <slot kind=""0"" offset=""26"" />
-            <slot kind=""0"" offset=""139"" />
-            <slot kind=""28"" offset=""146"" />
-            </encLocalSlotMap>
-            <encLambdaMap>
-            <methodOrdinal>1</methodOrdinal>
-            <lambda offset=""86"" />
-            </encLambdaMap>
-        </customDebugInfo>
-        </method>
-        <method containingType=""Driver"" name=""Main"">
-        <customDebugInfo>
-            <using>
-            <namespace usingCount=""3"" />
-            </using>
-            <encLocalSlotMap>
-            <slot kind=""0"" offset=""15"" />
-            <slot kind=""21"" offset=""0"" />
-            </encLocalSlotMap>
-        </customDebugInfo>
-        <sequencePoints>
-            <entry offset=""0x0"" startLine=""30"" startColumn=""5"" endLine=""30"" endColumn=""6"" document=""1"" />
-            <entry offset=""0x1"" startLine=""31"" startColumn=""9"" endLine=""31"" endColumn=""32"" document=""1"" />
-            <entry offset=""0x7"" startLine=""32"" startColumn=""9"" endLine=""32"" endColumn=""17"" document=""1"" />
-            <entry offset=""0xe"" startLine=""34"" startColumn=""9"" endLine=""34"" endColumn=""35"" document=""1"" />
-            <entry offset=""0x19"" startLine=""35"" startColumn=""9"" endLine=""35"" endColumn=""30"" document=""1"" />
-            <entry offset=""0x21"" startLine=""36"" startColumn=""5"" endLine=""36"" endColumn=""6"" document=""1"" />
-        </sequencePoints>
-        <scope startOffset=""0x0"" endOffset=""0x23"">
-            <namespace name=""System"" />
-            <namespace name=""System.Threading"" />
-            <namespace name=""System.Threading.Tasks"" />
-            <local name=""t"" il_index=""0"" il_start=""0x0"" il_end=""0x23"" attributes=""0"" />
-        </scope>
-        </method>
-        <method containingType=""Driver"" name="".cctor"">
-        <customDebugInfo>
-            <forward declaringType=""Driver"" methodName=""Main"" />
-        </customDebugInfo>
-        <sequencePoints>
-            <entry offset=""0x0"" startLine=""27"" startColumn=""5"" endLine=""27"" endColumn=""35"" document=""1"" />
-            <entry offset=""0x6"" startLine=""28"" startColumn=""5"" endLine=""28"" endColumn=""78"" document=""1"" />
-        </sequencePoints>
-        </method>
-        <method containingType=""TestCase+&lt;&gt;c"" name=""&lt;Run&gt;b__1_0"">
-        <customDebugInfo>
-            <forwardIterator name=""&lt;&lt;Run&gt;b__1_0&gt;d"" />
-        </customDebugInfo>
-        </method>
-        <method containingType=""TestCase+&lt;Run&gt;d__1"" name=""MoveNext"">
-        <customDebugInfo>
-            <forward declaringType=""Driver"" methodName=""Main"" />
-            <hoistedLocalScopes>
-            <slot startOffset=""0x0"" endOffset=""0x12f"" />
-            <slot startOffset=""0x0"" endOffset=""0x12f"" />
-            </hoistedLocalScopes>
-            <encLocalSlotMap>
-            <slot kind=""27"" offset=""0"" />
-            <slot kind=""33"" offset=""146"" />
-            <slot kind=""temp"" />
-            <slot kind=""1"" offset=""173"" />
-            <slot kind=""temp"" />
-            </encLocalSlotMap>
-        </customDebugInfo>
-        <sequencePoints>
-            <entry offset=""0x0"" hidden=""true"" document=""1"" />
-            <entry offset=""0x7"" hidden=""true"" document=""1"" />
-            <entry offset=""0xe"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""1"" />
-            <entry offset=""0xf"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""51"" document=""1"" />
-            <entry offset=""0x1a"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""71"" document=""1"" />
-            <entry offset=""0x45"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""37"" document=""1"" />
-            <entry offset=""0x5b"" hidden=""true"" document=""1"" />
-            <entry offset=""0xc0"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""23"" document=""1"" />
-            <entry offset=""0xca"" hidden=""true"" document=""1"" />
-            <entry offset=""0xcd"" startLine=""18"" startColumn=""24"" endLine=""18"" endColumn=""32"" document=""1"" />
-            <entry offset=""0xd9"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""44"" document=""1"" />
-            <entry offset=""0xe5"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""38"" document=""1"" />
-            <entry offset=""0xf2"" hidden=""true"" document=""1"" />
-            <entry offset=""0x113"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" document=""1"" />
-            <entry offset=""0x11b"" hidden=""true"" document=""1"" />
-        </sequencePoints>
-        <asyncInfo>
-            <catchHandler offset=""0xf2"" />
-            <kickoffMethod declaringType=""TestCase"" methodName=""Run"" />
-            <await yield=""0x6d"" resume=""0x8b"" declaringType=""TestCase+&lt;Run&gt;d__1"" methodName=""MoveNext"" />
-        </asyncInfo>
-        </method>
-        <method containingType=""TestCase+&lt;&gt;c+&lt;&lt;Run&gt;b__1_0&gt;d"" name=""MoveNext"">
-        <customDebugInfo>
-            <forward declaringType=""Driver"" methodName=""Main"" />
-            <encLocalSlotMap>
-            <slot kind=""27"" offset=""86"" />
-            <slot kind=""20"" offset=""86"" />
-            <slot kind=""33"" offset=""88"" />
-            <slot kind=""temp"" />
-            <slot kind=""temp"" />
-            </encLocalSlotMap>
-        </customDebugInfo>
-        <sequencePoints>
-            <entry offset=""0x0"" hidden=""true"" document=""1"" />
-            <entry offset=""0x7"" hidden=""true"" document=""1"" />
-            <entry offset=""0xe"" startLine=""16"" startColumn=""32"" endLine=""16"" endColumn=""33"" document=""1"" />
-            <entry offset=""0xf"" startLine=""16"" startColumn=""34"" endLine=""16"" endColumn=""58"" document=""1"" />
-            <entry offset=""0x1f"" hidden=""true"" document=""1"" />
-            <entry offset=""0x70"" startLine=""16"" startColumn=""59"" endLine=""16"" endColumn=""68"" document=""1"" />
-            <entry offset=""0x74"" hidden=""true"" document=""1"" />
-            <entry offset=""0x8e"" startLine=""16"" startColumn=""69"" endLine=""16"" endColumn=""70"" document=""1"" />
-            <entry offset=""0x96"" hidden=""true"" document=""1"" />
-        </sequencePoints>
-        <asyncInfo>
-            <kickoffMethod declaringType=""TestCase+&lt;&gt;c"" methodName=""&lt;Run&gt;b__1_0"" />
-            <await yield=""0x31"" resume=""0x4c"" declaringType=""TestCase+&lt;&gt;c+&lt;&lt;Run&gt;b__1_0&gt;d"" methodName=""MoveNext"" />
-        </asyncInfo>
-        </method>
-    </methods>
-    </symbols>");
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""DynamicMembers"" name=""get_Prop"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""8"" startColumn=""35"" endLine=""8"" endColumn=""39"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""DynamicMembers"" name=""set_Prop"" parameterNames=""value"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""8"" startColumn=""40"" endLine=""8"" endColumn=""44"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""TestCase"" name=""Run"">
+      <customDebugInfo>
+        <forwardIterator name=""&lt;Run&gt;d__1"" />
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""26"" />
+          <slot kind=""0"" offset=""139"" />
+          <slot kind=""28"" offset=""146"" />
+        </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>1</methodOrdinal>
+          <lambda offset=""86"" />
+        </encLambdaMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""146"" />
+        </encStateMachineStateMap>
+      </customDebugInfo>
+    </method>
+    <method containingType=""Driver"" name=""Main"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""3"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""15"" />
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""30"" startColumn=""5"" endLine=""30"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""31"" startColumn=""9"" endLine=""31"" endColumn=""32"" document=""1"" />
+        <entry offset=""0x7"" startLine=""32"" startColumn=""9"" endLine=""32"" endColumn=""17"" document=""1"" />
+        <entry offset=""0xe"" startLine=""34"" startColumn=""9"" endLine=""34"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x19"" startLine=""35"" startColumn=""9"" endLine=""35"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x21"" startLine=""36"" startColumn=""5"" endLine=""36"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x23"">
+        <namespace name=""System"" />
+        <namespace name=""System.Threading"" />
+        <namespace name=""System.Threading.Tasks"" />
+        <local name=""t"" il_index=""0"" il_start=""0x0"" il_end=""0x23"" attributes=""0"" />
+      </scope>
+    </method>
+    <method containingType=""Driver"" name="".cctor"">
+      <customDebugInfo>
+        <forward declaringType=""Driver"" methodName=""Main"" />
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""27"" startColumn=""5"" endLine=""27"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x6"" startLine=""28"" startColumn=""5"" endLine=""28"" endColumn=""78"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""TestCase+&lt;&gt;c"" name=""&lt;Run&gt;b__1_0"">
+      <customDebugInfo>
+        <forwardIterator name=""&lt;&lt;Run&gt;b__1_0&gt;d"" />
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""88"" />
+        </encStateMachineStateMap>
+      </customDebugInfo>
+    </method>
+    <method containingType=""TestCase+&lt;Run&gt;d__1"" name=""MoveNext"">
+      <customDebugInfo>
+        <forward declaringType=""Driver"" methodName=""Main"" />
+        <hoistedLocalScopes>
+          <slot startOffset=""0x0"" endOffset=""0x12f"" />
+          <slot startOffset=""0x0"" endOffset=""0x12f"" />
+        </hoistedLocalScopes>
+        <encLocalSlotMap>
+          <slot kind=""27"" offset=""0"" />
+          <slot kind=""33"" offset=""146"" />
+          <slot kind=""temp"" />
+          <slot kind=""1"" offset=""173"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7"" hidden=""true"" document=""1"" />
+        <entry offset=""0xe"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xf"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""51"" document=""1"" />
+        <entry offset=""0x1a"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""71"" document=""1"" />
+        <entry offset=""0x45"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""37"" document=""1"" />
+        <entry offset=""0x5b"" hidden=""true"" document=""1"" />
+        <entry offset=""0xc0"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""23"" document=""1"" />
+        <entry offset=""0xca"" hidden=""true"" document=""1"" />
+        <entry offset=""0xcd"" startLine=""18"" startColumn=""24"" endLine=""18"" endColumn=""32"" document=""1"" />
+        <entry offset=""0xd9"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""44"" document=""1"" />
+        <entry offset=""0xe5"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""38"" document=""1"" />
+        <entry offset=""0xf2"" hidden=""true"" document=""1"" />
+        <entry offset=""0x113"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x11b"" hidden=""true"" document=""1"" />
+      </sequencePoints>
+      <asyncInfo>
+        <catchHandler offset=""0xf2"" />
+        <kickoffMethod declaringType=""TestCase"" methodName=""Run"" />
+        <await yield=""0x6d"" resume=""0x8b"" declaringType=""TestCase+&lt;Run&gt;d__1"" methodName=""MoveNext"" />
+      </asyncInfo>
+    </method>
+    <method containingType=""TestCase+&lt;&gt;c+&lt;&lt;Run&gt;b__1_0&gt;d"" name=""MoveNext"">
+      <customDebugInfo>
+        <forward declaringType=""Driver"" methodName=""Main"" />
+        <encLocalSlotMap>
+          <slot kind=""27"" offset=""86"" />
+          <slot kind=""20"" offset=""86"" />
+          <slot kind=""33"" offset=""88"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7"" hidden=""true"" document=""1"" />
+        <entry offset=""0xe"" startLine=""16"" startColumn=""32"" endLine=""16"" endColumn=""33"" document=""1"" />
+        <entry offset=""0xf"" startLine=""16"" startColumn=""34"" endLine=""16"" endColumn=""58"" document=""1"" />
+        <entry offset=""0x1f"" hidden=""true"" document=""1"" />
+        <entry offset=""0x70"" startLine=""16"" startColumn=""59"" endLine=""16"" endColumn=""68"" document=""1"" />
+        <entry offset=""0x74"" hidden=""true"" document=""1"" />
+        <entry offset=""0x8e"" startLine=""16"" startColumn=""69"" endLine=""16"" endColumn=""70"" document=""1"" />
+        <entry offset=""0x96"" hidden=""true"" document=""1"" />
+      </sequencePoints>
+      <asyncInfo>
+        <kickoffMethod declaringType=""TestCase+&lt;&gt;c"" methodName=""&lt;Run&gt;b__1_0"" />
+        <await yield=""0x31"" resume=""0x4c"" declaringType=""TestCase+&lt;&gt;c+&lt;&lt;Run&gt;b__1_0&gt;d"" methodName=""MoveNext"" />
+      </asyncInfo>
+    </method>
+  </methods>
+</symbols>");
             }
         }
 
@@ -405,6 +411,9 @@ namespace ConsoleApplication1
     <method containingType=""ConsoleApplication1.Program"" name=""QBar"">
       <customDebugInfo>
         <forwardIterator name=""&lt;QBar&gt;d__2"" />
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""15"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""ConsoleApplication1.Program"" name=""ZBar"">
@@ -418,6 +427,9 @@ namespace ConsoleApplication1
           <slot kind=""0"" offset=""132"" />
           <slot kind=""28"" offset=""141"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""141"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""ConsoleApplication1.Program"" name=""GetNextInt"" parameterNames=""random"">
@@ -549,6 +561,9 @@ class TestCase
           <slot kind=""28"" offset=""21"" ordinal=""1"" />
           <slot kind=""28"" offset=""21"" ordinal=""2"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""21"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""TestCase+&lt;Await&gt;d__0"" name=""MoveNext"">
@@ -900,6 +915,9 @@ class C
           <closure offset=""0"" />
           <lambda offset=""95"" closure=""0"" />
         </encLambdaMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""129"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
   </methods>
@@ -1090,6 +1108,9 @@ class C
           <closure offset=""0"" />
           <lambda offset=""95"" closure=""0"" />
         </encLambdaMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""129"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
   </methods>
@@ -1411,6 +1432,9 @@ class C
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""35"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
   </methods>
@@ -1590,6 +1614,9 @@ class C
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""58"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
   </methods>
@@ -1693,6 +1720,9 @@ class C
           <slot kind=""23"" offset=""34"" />
           <slot kind=""28"" offset=""105"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""105"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
   </methods>
@@ -1964,6 +1994,10 @@ class C
           <slot kind=""29"" offset=""150"" ordinal=""2"" />
           <slot kind=""29"" offset=""150"" ordinal=""3"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""70"" />
+          <state number=""1"" offset=""150"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
   </methods>

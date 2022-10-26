@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -244,7 +245,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 return null;
             }
 
-            var options = _globalOptions.GetMetadataAsSourceOptions();
+            var options = _globalOptions.GetMetadataAsSourceOptions(_document.Project.LanguageServices);
             var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(
                 _document.Project, symbol, signaturesOnly: true, options, cancellationToken).ConfigureAwait(false);
 
@@ -345,7 +346,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             return classifiedTextRuns.ToArray();
         }
 
-        private ValueTask ReportReferencesAsync(ImmutableArray<VSInternalReferenceItem> referencesToReport, CancellationToken cancellationToken)
+        private ValueTask ReportReferencesAsync(ImmutableSegmentedList<VSInternalReferenceItem> referencesToReport, CancellationToken cancellationToken)
         {
             // We can report outside of the lock here since _progress is thread-safe.
             _progress.Report(referencesToReport.ToArray());

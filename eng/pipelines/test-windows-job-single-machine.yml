@@ -35,6 +35,14 @@ jobs:
   steps:
     - checkout: none
 
+    # A .NET 6 runtime is needed since our unit tests target net6.0
+    - task: UseDotNet@2
+      displayName: 'Install .NET 6 Runtime'
+      inputs:
+        packageType: runtime
+        version: 6.0.8
+        installationPath: '$(Build.SourcesDirectory)/.dotnet'
+
     - task: DownloadPipelineArtifact@2
       displayName: Download Test Payload
       inputs:

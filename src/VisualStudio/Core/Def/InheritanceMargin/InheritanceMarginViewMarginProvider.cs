@@ -4,6 +4,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -27,6 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
     [TextViewRole(PredefinedTextViewRoles.Document)]
     internal class InheritanceMarginViewMarginProvider : IWpfTextViewMarginProvider
     {
+        private readonly Workspace _workspace;
         private readonly IViewTagAggregatorFactoryService _tagAggregatorFactoryService;
         private readonly IThreadingContext _threadingContext;
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
@@ -40,6 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InheritanceMarginViewMarginProvider(
+            VisualStudioWorkspace workspace,
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
             ClassificationTypeMap classificationTypeMap,
@@ -50,6 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
+            _workspace = workspace;
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
             _classificationTypeMap = classificationTypeMap;
@@ -75,6 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
             var listener = _listenerProvider.GetListener(FeatureAttribute.InheritanceMargin);
             return new InheritanceMarginViewMargin(
+                _workspace,
                 textView,
                 _threadingContext,
                 _streamingFindUsagesPresenter,

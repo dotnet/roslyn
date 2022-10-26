@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -37,8 +38,9 @@ namespace Microsoft.CodeAnalysis.CommentSelection
         internal AbstractToggleBlockCommentBase(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
-            ITextStructureNavigatorSelectorService navigatorSelectorService)
-            : base(undoHistoryRegistry, editorOperationsFactoryService)
+            ITextStructureNavigatorSelectorService navigatorSelectorService,
+            IGlobalOptionService globalOptions)
+            : base(undoHistoryRegistry, editorOperationsFactoryService, globalOptions)
         {
             _navigatorSelectorService = navigatorSelectorService;
         }

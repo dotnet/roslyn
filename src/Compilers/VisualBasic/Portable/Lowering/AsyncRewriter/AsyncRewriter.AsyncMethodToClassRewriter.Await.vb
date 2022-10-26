@@ -110,7 +110,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function GenerateAwaitForIncompleteTask(awaiterTemp As LocalSymbol) As BoundBlock
-                Dim state As StateInfo = Me.AddState()
+                Dim stateNumber As Integer = 0
+                Dim resumeLabel As GeneratedLabelSymbol = Nothing
+                AddResumableState(awaiterTemp.GetDeclaratorSyntax(), stateNumber, resumeLabel)
 
                 Dim awaiterType As TypeSymbol = awaiterTemp.Type
                 Dim awaiterFieldType As TypeSymbol = awaiterType
@@ -125,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 blockBuilder.Add(
                     Me.F.Assignment(
                         Me.F.Field(Me.F.Me(), Me.StateField, True),
-                        Me.F.AssignmentExpression(Me.F.Local(Me.CachedState, True), Me.F.Literal(state.Number))))
+                        Me.F.AssignmentExpression(Me.F.Local(Me.CachedState, True), Me.F.Literal(stateNumber))))
 
                 ' Emit Await yield point to be injected into PDB
                 blockBuilder.Add(Me.F.NoOp(NoOpStatementFlavor.AwaitYieldPoint))
@@ -241,7 +243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 blockBuilder.Add(Me.F.Goto(Me._exitLabel))
                 '----------------------------------------------
                 '   RESUME LABEL
-                blockBuilder.Add(Me.F.Label(state.ResumeLabel))
+                blockBuilder.Add(Me.F.Label(resumeLabel))
                 '----------------------------------------------
 
                 ' Emit Await resume point to be injected into PDB

@@ -187,7 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
             {
-                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, a => GetDiagnosticUpdatedMessage(GlobalOptions, a), e, CancellationToken.None))
+                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, static arg => GetDiagnosticUpdatedMessage(arg.globalOptions, arg.e), (globalOptions: GlobalOptions, e), CancellationToken.None))
                 {
                     if (_workspace != e.Workspace)
                     {

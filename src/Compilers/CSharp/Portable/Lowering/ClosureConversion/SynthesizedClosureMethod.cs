@@ -124,12 +124,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(moduleBuilder, Parameters);
 
-            if (ReturnType.ContainsNativeInteger())
+            if (moduleBuilder.Compilation.ShouldEmitNativeIntegerAttributes())
             {
-                moduleBuilder.EnsureNativeIntegerAttributeExists();
+                if (ReturnType.ContainsNativeIntegerWrapperType())
+                {
+                    moduleBuilder.EnsureNativeIntegerAttributeExists();
+                }
+
+                ParameterHelpers.EnsureNativeIntegerAttributeExists(moduleBuilder, Parameters);
             }
 
-            ParameterHelpers.EnsureNativeIntegerAttributeExists(moduleBuilder, Parameters);
+            ParameterHelpers.EnsureLifetimeAnnotationAttributeExists(moduleBuilder, Parameters);
 
             if (compilationState.Compilation.ShouldEmitNullableAttributes(this))
             {

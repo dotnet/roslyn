@@ -1007,6 +1007,96 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [Fact]
+        public async Task DocumentOpenedClosedEvents()
+        {
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
+
+            var document = new TestHostDocument();
+            var project = new TestHostProject(workspace, document);
+            workspace.AddTestProject(project);
+
+            await WaitWaiterAsync(workspace.ExportProvider);
+
+            var docOpened = false;
+            var docClosed = false;
+            var textDocOpened = false;
+            var textDocClosed = false;
+
+            workspace.DocumentOpened += (o, e) => docOpened = true;
+            workspace.DocumentClosed += (o, e) => docClosed = true;
+
+            workspace.TextDocumentOpened += (o, e) => textDocOpened = true;
+            workspace.TextDocumentClosed += (o, e) => textDocClosed = true;
+
+            var id = workspace.Documents.First().Id;
+            var worker = await ExecuteOperation(workspace, w => w.OpenDocument(id));
+            Assert.True(docOpened);
+            Assert.True(textDocOpened);
+            Assert.Equal(1, worker.OpenedDocumentIds.Count);
+
+            worker = await ExecuteOperation(workspace, w => w.CloseDocument(id));
+            Assert.True(docClosed);
+            Assert.True(textDocClosed);
+            Assert.Equal(1, worker.ClosedDocumentIds.Count);
+        }
+
+        [Fact]
+        public async Task AdditionalDocumentOpenedClosedEvents()
+        {
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
+
+            var document = new TestHostDocument();
+            var project = new TestHostProject(workspace, additionalDocuments: new[] { document });
+            workspace.AddTestProject(project);
+
+            await WaitWaiterAsync(workspace.ExportProvider);
+
+            var opened = false;
+            var closed = false;
+
+            workspace.TextDocumentOpened += (o, e) => opened = true;
+            workspace.TextDocumentClosed += (o, e) => closed = true;
+
+            var id = workspace.AdditionalDocuments.First().Id;
+            var worker = await ExecuteOperation(workspace, w => w.OpenAdditionalDocument(id));
+            Assert.True(opened);
+            Assert.Equal(1, worker.OpenedNonSourceDocumentIds.Count);
+
+            worker = await ExecuteOperation(workspace, w => w.CloseAdditionalDocument(id));
+            Assert.True(closed);
+            // TODO: Below check seems to fail occassionally. We should investigate and re-enable it.
+            //Assert.Equal(1, worker.ClosedNonSourceDocumentIds.Count);
+        }
+
+        [Fact]
+        public async Task AnalyzerConfigDocumentOpenedClosedEvents()
+        {
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
+
+            var document = new TestHostDocument();
+            var project = new TestHostProject(workspace, analyzerConfigDocuments: new[] { document });
+            workspace.AddTestProject(project);
+
+            await WaitWaiterAsync(workspace.ExportProvider);
+
+            var opened = false;
+            var closed = false;
+
+            workspace.TextDocumentOpened += (o, e) => opened = true;
+            workspace.TextDocumentClosed += (o, e) => closed = true;
+
+            var id = workspace.AnalyzerConfigDocuments.First().Id;
+            var worker = await ExecuteOperation(workspace, w => w.OpenAnalyzerConfigDocument(id));
+            Assert.True(opened);
+            Assert.Equal(1, worker.OpenedNonSourceDocumentIds.Count);
+
+            worker = await ExecuteOperation(workspace, w => w.CloseAnalyzerConfigDocument(id));
+            Assert.True(closed);
+            // TODO: Below check seems to fail occassionally. We should investigate and re-enable it.
+            //Assert.Equal(1, worker.ClosedNonSourceDocumentIds.Count);
+        }
+
+        [Fact]
         public async Task Document_TopLevelType_Whitespace()
         {
             var code = @"class C { $$ }";
@@ -1347,9 +1437,6 @@ class C
 
                 // and then wait them to be processed
                 await crawlerListener.WaitUntilConditionIsMetAsync(pendingTokens => pendingTokens.Where(token => token.Tag == workspace).IsEmpty());
-
-                // let analyzer to process
-                operation.Done();
             }
 
             token.Dispose();
@@ -1411,7 +1498,7 @@ class C
             Assert.False(worker.WaitForCancellation);
             Assert.False(worker.BlockedRun);
             var service = Assert.IsType<SolutionCrawlerRegistrationService>(workspace.Services.GetService<ISolutionCrawlerRegistrationService>());
-            worker.Reset();
+            worker.Reset(workspace);
 
             service.Register(workspace);
 
@@ -1644,7 +1731,15 @@ class C
 
             public readonly HashSet<DocumentId> InvalidateDocumentIds = new HashSet<DocumentId>();
             public readonly HashSet<ProjectId> InvalidateProjectIds = new HashSet<ProjectId>();
+
+            public readonly HashSet<DocumentId> OpenedDocumentIds = new HashSet<DocumentId>();
+            public readonly HashSet<DocumentId> OpenedNonSourceDocumentIds = new HashSet<DocumentId>();
+            public readonly HashSet<DocumentId> ClosedDocumentIds = new HashSet<DocumentId>();
+            public readonly HashSet<DocumentId> ClosedNonSourceDocumentIds = new HashSet<DocumentId>();
+
             private readonly IGlobalOptionService _globalOptions;
+
+            private Workspace _workspace;
 
             public Analyzer(IGlobalOptionService globalOptions, bool waitForCancellation = false, bool blockedRun = false)
             {
@@ -1654,14 +1749,34 @@ class C
 
                 this.BlockEvent = new ManualResetEventSlim(initialState: false);
                 this.RunningEvent = new ManualResetEventSlim(initialState: false);
+
+                _globalOptions.OptionChanged += GlobalOptionChanged;
+            }
+
+            public void Shutdown()
+            {
+                _globalOptions.OptionChanged -= GlobalOptionChanged;
+            }
+
+            private void GlobalOptionChanged(object sender, OptionChangedEventArgs e)
+            {
+                if (e.Option == TestOption ||
+                    e.Option == SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption ||
+                    e.Option == SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption)
+                {
+                    var service = _workspace.Services.GetService<ISolutionCrawlerService>();
+                    service?.Reanalyze(_workspace, this, projectIds: null, documentIds: null, highPriority: false);
+                }
             }
 
             public bool WaitForCancellation { get; }
 
             public bool BlockedRun { get; }
 
-            public void Reset()
+            public void Reset(Workspace workspace)
             {
+                _workspace = workspace;
+
                 BlockEvent.Reset();
                 RunningEvent.Reset();
 
@@ -1672,6 +1787,11 @@ class C
 
                 InvalidateDocumentIds.Clear();
                 InvalidateProjectIds.Clear();
+
+                OpenedDocumentIds.Clear();
+                ClosedDocumentIds.Clear();
+                OpenedNonSourceDocumentIds.Clear();
+                ClosedNonSourceDocumentIds.Clear();
             }
 
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
@@ -1733,6 +1853,30 @@ class C
                 return Task.CompletedTask;
             }
 
+            public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
+            {
+                OpenedDocumentIds.Add(document.Id);
+                return Task.CompletedTask;
+            }
+
+            public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
+            {
+                ClosedDocumentIds.Add(document.Id);
+                return Task.CompletedTask;
+            }
+
+            public Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken)
+            {
+                OpenedNonSourceDocumentIds.Add(textDocument.Id);
+                return Task.CompletedTask;
+            }
+
+            public Task NonSourceDocumentCloseAsync(TextDocument textDocument, CancellationToken cancellationToken)
+            {
+                ClosedNonSourceDocumentIds.Add(textDocument.Id);
+                return Task.CompletedTask;
+            }
+
             private void Process(DocumentId _, CancellationToken cancellationToken)
             {
                 if (BlockedRun && !RunningEvent.IsSet)
@@ -1752,30 +1896,11 @@ class C
                 }
             }
 
-            public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
-            {
-                return e.Option == TestOption
-                    || e.Option == SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption
-                    || e.Option == SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption;
-            }
-
             #region unused 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
                 => Task.CompletedTask;
 
-            public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
-                => Task.CompletedTask;
-
-            public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
-                => Task.CompletedTask;
-
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
-                => Task.CompletedTask;
-
-            public Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken)
-                => Task.CompletedTask;
-
-            public Task NonSourceDocumentCloseAsync(TextDocument textDocument, CancellationToken cancellationToken)
                 => Task.CompletedTask;
 
             public Task NonSourceDocumentResetAsync(TextDocument textDocument, CancellationToken cancellationToken)
@@ -1801,7 +1926,6 @@ class C
             }
 
             #region unused 
-            public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e) => false;
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken) => Task.CompletedTask;
@@ -1821,6 +1945,10 @@ class C
             }
 
             public int Priority => 1;
+
+            public void Shutdown()
+            {
+            }
 
             #endregion
         }

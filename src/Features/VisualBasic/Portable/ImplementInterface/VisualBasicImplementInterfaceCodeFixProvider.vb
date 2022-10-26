@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.ImplementInterface
 Imports Microsoft.CodeAnalysis.ImplementType
@@ -61,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
             Dim service = document.GetLanguageService(Of IImplementInterfaceService)()
             Dim actions = service.GetCodeActions(
                 document,
-                context.Options.ImplementTypeOptions,
+                context.Options.GetImplementTypeGenerationOptions(document.Project.LanguageServices),
                 Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False),
                 typeNode,
                 cancellationToken)

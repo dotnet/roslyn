@@ -53,6 +53,9 @@ Highlight references to symbol under cursor;
 Highlight related keywords under cursor;
 Outlining;
 Enter outlining mode when files open;
+Collapse #regions on file open;
+Collapse usings on file open;
+Collapse metadata implementations on file open;
 Show procedure line separators;
 Show outlining for declaration level constructs;
 Show outlining for code level constructs;
@@ -111,6 +114,9 @@ Using 指令；
 突出显示游标下的相关关键字；
 大纲；
 在文件打开时进入大纲模式；
+文件打开时折叠#regions；
+文件打开时折叠using：
+文件打开时折叠元数据实现；
 显示过程行分隔符；
 显示声明级别构造的大纲；
 显示代码级别构造的大纲；

@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
@@ -623,17 +624,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Return TypeOf expression Is SimpleNameSyntax
         End Function
 
-        Friend Overrides Async Function TryAddUsingsOrImportToDocumentAsync(updatedSolution As Solution, modifiedRoot As SyntaxNode, document As Document, simpleName As SimpleNameSyntax, includeUsingsOrImports As String, cancellationToken As CancellationToken) As Task(Of Solution)
+        Friend Overrides Async Function TryAddUsingsOrImportToDocumentAsync(
+                updatedSolution As Solution,
+                modifiedRoot As SyntaxNode,
+                document As Document,
+                simpleName As SimpleNameSyntax,
+                includeUsingsOrImports As String,
+                fallbackOptions As AddImportPlacementOptionsProvider,
+                cancellationToken As CancellationToken) As Task(Of Solution)
+
             ' Nothing to include
             If String.IsNullOrWhiteSpace(includeUsingsOrImports) Then
                 Return updatedSolution
             End If
 
-            Dim documentOptions = Await document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
-            Dim placeSystemNamespaceFirst = documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst)
-
             Dim root As SyntaxNode = Nothing
-            If (modifiedRoot Is Nothing) Then
+            If modifiedRoot Is Nothing Then
                 root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Else
                 root = modifiedRoot
@@ -670,7 +676,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                     Return updatedSolution
                 End If
 
-                Dim addedCompilationRoot = compilationRoot.AddImportsStatement(newImport, placeSystemNamespaceFirst, Formatter.Annotation, Simplifier.Annotation)
+                Dim addImportOptions = Await document.GetAddImportPlacementOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(False)
+                Dim addedCompilationRoot = compilationRoot.AddImportsStatement(newImport, addImportOptions.PlaceSystemNamespaceFirst, Formatter.Annotation, Simplifier.Annotation)
                 updatedSolution = updatedSolution.WithDocumentSyntaxRoot(document.Id, addedCompilationRoot, PreservationMode.PreserveIdentity)
             End If
 

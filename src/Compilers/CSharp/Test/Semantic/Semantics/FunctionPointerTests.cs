@@ -3822,7 +3822,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_TypeExpected, "__arglist").WithLocation(4, 64),
                 // (4,64): error CS1003: Syntax error, ',' expected
                 //     static void M(delegate*<string, int, void> ptr1, delegate*<__arglist, void> ptr2)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "__arglist").WithArguments(",", "__arglist").WithLocation(4, 64),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "__arglist").WithArguments(",").WithLocation(4, 64),
                 // (6,14): error CS1503: Argument 1: cannot convert from '__arglist' to 'string'
                 //         ptr1(__arglist(string.Empty, 1), 1);
                 Diagnostic(ErrorCode.ERR_BadArgType, "__arglist(string.Empty, 1)").WithArguments("1", "__arglist", "string").WithLocation(6, 14),
@@ -3991,7 +3991,7 @@ unsafe class C
             comp.VerifyDiagnostics(
                 // (6,38): error CS1003: Syntax error, ',' expected
                 //         delegate*<void> ptr = new () => {};
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(6, 38),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(6, 38),
                 // (6,41): error CS1002: ; expected
                 //         delegate*<void> ptr = new () => {};
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(6, 41),
@@ -4036,6 +4036,24 @@ public class C
                 // (6,13): error CS8904: A function pointer cannot be called with named arguments.
                 //         ptr(arg0: "a", arg1: 1);
                 Diagnostic(ErrorCode.ERR_FunctionPointersCannotBeCalledWithNamedArguments, "arg0").WithLocation(6, 13)
+            );
+        }
+
+        [Fact, WorkItem(53973, "https://github.com/dotnet/roslyn/issues/53973")]
+        public void FunctionPointerNullable()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+public class C
+{
+    
+    public unsafe void M(delegate*<void>? f) {
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (5,43): error CS0306: The type 'delegate*<void>' may not be used as a type argument
+                //     public unsafe void M(delegate*<void>? f) {
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "f").WithArguments("delegate*<void>").WithLocation(5, 43)
             );
         }
     }

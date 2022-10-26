@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
 Imports Microsoft.CodeAnalysis.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateMethod
-    Public Class GenerateMethodTests
+    Partial Public Class GenerateMethodTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
@@ -4400,290 +4400,72 @@ Namespace Goo
 End Namespace")
         End Function
 
-        Public Class GenerateConversionTests
-            Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        <WorkItem(61542, "https://github.com/dotnet/roslyn/issues/61542")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestAcrossFiles() As Task
+            Await TestInRegularAndScriptAsync(
+"<Workspace>
+    <Project Language=""Visual Basic"">
+        <Document>
+Public Class DataContainer
+    Property PossibleInProcessTests As string
+    Property PossibleEndProcessTests As string
+    Property Mixtures As string
+    Property Customers As string
+    Property Synonyms As string
+    Property Ingredients As string
+    Property Preservatives As string
+    Property TeamMembers As string
+    Property Vessels As string
 
-            Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-                Return (Nothing, New GenerateConversionCodeFixProvider())
-            End Function
-
-            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestGenerateExplicitConversionGenericClass() As Task
-                Await TestInRegularAndScriptAsync(
-    <text>Class Program
-    Private Shared Sub Main(args As String())
-        Dim a As C(Of Integer) = CType([|1|], C(Of Integer))
-    End Sub
-End Class
-
-Class C(Of T)
-End Class
-</text>.Value.Replace(vbLf, vbCrLf),
-    <text>Imports System
-
-Class Program
-    Private Shared Sub Main(args As String())
-        Dim a As C(Of Integer) = CType(1, C(Of Integer))
-    End Sub
-End Class
-
-Class C(Of T)
-    Public Shared Narrowing Operator CType(v As Integer) As C(Of T)
-        Throw New NotImplementedException()
-    End Operator
-End Class
-</text>.Value.Replace(vbLf, vbCrLf))
-            End Function
-
-            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestGenerateExplicitConversionClass() As Task
-                Await TestInRegularAndScriptAsync(
-    <text>Class Program
-    Private Shared Sub Main(args As String())
-        Dim a As C = CType([|1|], C)
-    End Sub
-End Class
-
-Class C
-End Class
-</text>.Value.Replace(vbLf, vbCrLf),
-    <text>Imports System
-
-Class Program
-    Private Shared Sub Main(args As String())
-        Dim a As C = CType(1, C)
-    End Sub
-End Class
-
-Class C
-    Public Shared Narrowing Operator CType(v As Integer) As C
-        Throw New NotImplementedException()
-    End Operator
-End Class
-</text>.Value.Replace(vbLf, vbCrLf))
-            End Function
-
-            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestGenerateExplicitConversionAwaitExpression() As Task
-                Await TestInRegularAndScriptAsync(
-    <text>Imports System
-Imports System.Threading.Tasks
-
-Class Program
-    Private Shared Async Sub Main(args As String())
-        Dim a = Task.FromResult(1)
-        Dim b As C = CType([|Await a|], C)
-    End Sub
-End Class
-
-Class C
-End Class
-</text>.Value.Replace(vbLf, vbCrLf),
-    <text>Imports System
-Imports System.Threading.Tasks
-
-Class Program
-    Private Shared Async Sub Main(args As String())
-        Dim a = Task.FromResult(1)
-        Dim b As C = CType(Await a, C)
-    End Sub
-End Class
-
-Class C
-    Public Shared Narrowing Operator CType(v As Integer) As C
-        Throw New NotImplementedException()
-    End Operator
-End Class
-</text>.Value.Replace(vbLf, vbCrLf))
-            End Function
-
-            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestGenerateImplicitConversionTargetTypeNotInSource() As Task
-                Await TestInRegularAndScriptAsync(
-    <text>Imports System
-Imports System.Threading.Tasks
-
-Class Program
-    Private Shared Async Sub Main(args As String())
-        Dim dig As Digit = New Digit(7)
-        Dim number As Double = [|dig|]
-    End Sub
-End Class
-
-Class Digit
-    Private val As Double
-
-    Public Sub New(v As Double)
-        Me.val = v
-    End Sub
-End Class
-</text>.Value.Replace(vbLf, vbCrLf),
-    <text>Imports System
-Imports System.Threading.Tasks
-
-Class Program
-    Private Shared Async Sub Main(args As String())
-        Dim dig As Digit = New Digit(7)
-        Dim number As Double = dig
-    End Sub
-End Class
-
-Class Digit
-    Private val As Double
-
-    Public Sub New(v As Double)
-        Me.val = v
+    Sub Goo()
     End Sub
 
-    Public Shared Widening Operator CType(v As Digit) As Double
-        Throw New NotImplementedException()
-    End Operator
-End Class
-</text>.Value.Replace(vbLf, vbCrLf))
-            End Function
-
-            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestGenerateImplicitConversionGenericClass() As Task
-                Await TestInRegularAndScriptAsync(
-    <text>Class Program
-    Private Shared Sub Main(args As String())
-        Dim a As C(Of Integer) = [|1|]
-    End Sub
-End Class
-
-Class C(Of T)
-End Class
-</text>.Value.Replace(vbLf, vbCrLf),
-    <text>Imports System
-
-Class Program
-    Private Shared Sub Main(args As String())
-        Dim a As C(Of Integer) = 1
-    End Sub
-End Class
-
-Class C(Of T)
-    Public Shared Widening Operator CType(v As Integer) As C(Of T)
-        Throw New NotImplementedException()
-    End Operator
-End Class
-</text>.Value.Replace(vbLf, vbCrLf))
-            End Function
-
-            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestGenerateImplicitConversionClass() As Task
-                Await TestInRegularAndScriptAsync(
-    <text>Class Program
-    Private Shared Sub Main(args As String())
-        Dim a As C = [|1|]
-    End Sub
-End Class
-
-Class C
-End Class
-</text>.Value.Replace(vbLf, vbCrLf),
-    <text>Imports System
-
-Class Program
-    Private Shared Sub Main(args As String())
-        Dim a As C = 1
-    End Sub
-End Class
-
-Class C
-    Public Shared Widening Operator CType(v As Integer) As C
-        Throw New NotImplementedException()
-    End Operator
-End Class
-</text>.Value.Replace(vbLf, vbCrLf))
-            End Function
-
-            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestGenerateImplicitConversionAwaitExpression() As Task
-                Await TestInRegularAndScriptAsync(
-    <text>Imports System
-Imports System.Threading.Tasks
-
-Class Program
-    Private Shared Async Sub Main(args As String())
-        Dim a = Task.FromResult(1)
-        Dim b As C = [|Await a|]
-    End Sub
-End Class
-
-Class C
-End Class
-</text>.Value.Replace(vbLf, vbCrLf),
-    <text>Imports System
-Imports System.Threading.Tasks
-
-Class Program
-    Private Shared Async Sub Main(args As String())
-        Dim a = Task.FromResult(1)
-        Dim b As C = Await a
-    End Sub
-End Class
-
-Class C
-    Public Shared Widening Operator CType(v As Integer) As C
-        Throw New NotImplementedException()
-    End Operator
-End Class
-</text>.Value.Replace(vbLf, vbCrLf))
-            End Function
-
-            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestGenerateExplicitConversionTargetTypeNotInSource() As Task
-                Await TestInRegularAndScriptAsync(
-    <text>Imports System
-Imports System.Threading.Tasks
-
-Class Program
-    Private Shared Async Sub Main(args As String())
-        Dim dig As Digit = New Digit(7)
-        Dim number As Double = CType([|dig|], Double)
-    End Sub
-End Class
-
-Class Digit
-    Private val As Double
-
-    Public Sub New(v As Double)
-        Me.val = v
-    End Sub
-End Class
-</text>.Value.Replace(vbLf, vbCrLf),
-    <text>Imports System
-Imports System.Threading.Tasks
-
-Class Program
-    Private Shared Async Sub Main(args As String())
-        Dim dig As Digit = New Digit(7)
-        Dim number As Double = CType(dig, Double)
-    End Sub
-End Class
-
-Class Digit
-    Private val As Double
-
-    Public Sub New(v As Double)
-        Me.val = v
+    Sub Bar()
     End Sub
 
-    Public Shared Narrowing Operator CType(v As Digit) As Double
-        Throw New NotImplementedException()
-    End Operator
+    Function Bazz() As Object
+        Return Nothing
+    End Function
+
+End Class</Document>
+        <Document>
+Public Class FileContainer
+    Sub S()
+        Dim DC As New DataContainer
+         ' importantly, we don't want use the position of 'S' to determine where in Doc1 we generate this method. 
+        DC.[|ArbitraryPositionMethod|]()
+    End Sub
 End Class
-</text>.Value.Replace(vbLf, vbCrLf))
-            End Function
-        End Class
+        </Document>
+    </Project>
+</Workspace>",
+"
+Public Class DataContainer
+    Property PossibleInProcessTests As string
+    Property PossibleEndProcessTests As string
+    Property Mixtures As string
+    Property Customers As string
+    Property Synonyms As string
+    Property Ingredients As string
+    Property Preservatives As string
+    Property TeamMembers As string
+    Property Vessels As string
+
+    Sub Goo()
+    End Sub
+
+    Sub Bar()
+    End Sub
+
+    Friend Sub ArbitraryPositionMethod()
+    End Sub
+
+    Function Bazz() As Object
+        Return Nothing
+    End Function
+
+End Class")
+        End Function
     End Class
 End Namespace

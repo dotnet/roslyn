@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // Force the previous submission to be analyzed. This is required for anonymous types unification.
-                if (previousScriptCompilation.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+                if (previousScriptCompilation.GetDiagnostics().Any(static d => d.Severity == DiagnosticSeverity.Error))
                 {
                     throw new InvalidOperationException(CodeAnalysisResources.PreviousSubmissionHasErrors);
                 }

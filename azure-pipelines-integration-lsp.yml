@@ -43,7 +43,7 @@ jobs:
   pool:
     name: NetCore-Svc-Public
     demands: ImageOverride -equals windows.vs2022.amd64.open
-  timeoutInMinutes: 135
+  timeoutInMinutes: 150
 
   steps:
     - template: eng/pipelines/test-integration-job.yml

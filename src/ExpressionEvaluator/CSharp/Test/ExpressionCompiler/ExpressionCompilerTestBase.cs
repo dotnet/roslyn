@@ -308,9 +308,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             string methodName,
             string expr,
             int atLineNumber = -1,
-            bool includeSymbols = true)
+            bool includeSymbols = true,
+            TargetFramework targetFramework = TargetFramework.Standard)
         {
-            var result = Evaluate(source, outputKind, methodName, expr, out _, out string error, atLineNumber, includeSymbols);
+            var result = Evaluate(source, outputKind, methodName, expr, out _, out string error, atLineNumber, includeSymbols, targetFramework: targetFramework);
             Assert.Null(error);
             return result;
         }
@@ -335,12 +336,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             out ResultProperties resultProperties,
             out string error,
             int atLineNumber = -1,
-            bool includeSymbols = true)
+            bool includeSymbols = true,
+            TargetFramework targetFramework = TargetFramework.Standard)
         {
             var compilation = CreateCompilation(
                 source,
                 parseOptions: SyntaxHelpers.ParseOptions,
-                options: (outputKind == OutputKind.DynamicallyLinkedLibrary) ? TestOptions.DebugDll : TestOptions.DebugExe);
+                options: (outputKind == OutputKind.DynamicallyLinkedLibrary) ? TestOptions.DebugDll : TestOptions.DebugExe,
+                targetFramework: targetFramework);
 
             return Evaluate(compilation, methodName, expr, out resultProperties, out error, atLineNumber, includeSymbols);
         }

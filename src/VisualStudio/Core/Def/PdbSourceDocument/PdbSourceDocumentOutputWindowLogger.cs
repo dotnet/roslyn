@@ -3,13 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PdbSourceDocument;
@@ -48,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.PdbSourceDocument
                 _cancellationTokenSource.Token);
         }
 
-        private async ValueTask ProcessLogMessagesAsync(ImmutableArray<string?> messages, CancellationToken cancellationToken)
+        private async ValueTask ProcessLogMessagesAsync(ImmutableSegmentedList<string?> messages, CancellationToken cancellationToken)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 

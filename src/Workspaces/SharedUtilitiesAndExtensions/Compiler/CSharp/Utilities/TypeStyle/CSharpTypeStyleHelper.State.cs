@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -33,15 +34,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             public State(
                 SyntaxNode declaration, SemanticModel semanticModel,
-                OptionSet optionSet, CancellationToken cancellationToken)
+                CSharpSimplifierOptions options, CancellationToken cancellationToken)
             {
                 TypeStylePreference = default;
                 IsInIntrinsicTypeContext = default;
                 IsTypeApparentInContext = default;
 
-                var styleForIntrinsicTypes = optionSet.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes);
-                var styleForApparent = optionSet.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent);
-                var styleForElsewhere = optionSet.GetOption(CSharpCodeStyleOptions.VarElsewhere);
+                var styleForIntrinsicTypes = options.VarForBuiltInTypes;
+                var styleForApparent = options.VarWhenTypeIsApparent;
+                var styleForElsewhere = options.VarElsewhere;
 
                 _forBuiltInTypes = styleForIntrinsicTypes.Notification.Severity;
                 _whenTypeIsApparent = styleForApparent.Notification.Severity;

@@ -307,6 +307,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             { WasCompilerGenerated = true };
         }
 
+        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
+
         /// <summary> A synthesized entrypoint that forwards all calls to an async Main Method </summary>
         internal sealed class AsyncForwardEntryPoint : SynthesizedEntryPointSymbol
         {
@@ -390,7 +392,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             new BoundReturnStatement(
                                 syntax: syntax,
                                 refKind: RefKind.None,
-                                expressionOpt: null
+                                expressionOpt: null,
+                                @checked: false
                             )
                             { WasCompilerGenerated = true }
                         )
@@ -407,7 +410,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             new BoundReturnStatement(
                                 syntax: syntax,
                                 refKind: RefKind.None,
-                                expressionOpt: _getAwaiterGetResultCall
+                                expressionOpt: _getAwaiterGetResultCall,
+                                @checked: false
                             )
                         )
                     )
@@ -499,7 +503,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         new BoundReturnStatement(
                             syntax,
                             RefKind.None,
-                            null)
+                            null,
+                            @checked: false)
                         { WasCompilerGenerated = true }))
                 { WasCompilerGenerated = true };
             }
@@ -588,7 +593,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var returnStatement = new BoundReturnStatement(
                     syntax,
                     RefKind.None,
-                    initializeResult)
+                    initializeResult,
+                    @checked: false)
                 { WasCompilerGenerated = true };
 
                 return new BoundBlock(syntax,

@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected readonly Guid LanguageServiceGuid;
         protected readonly ITextView TextView;
         protected readonly ITextBuffer SubjectBuffer;
-        protected readonly IGlobalOptionService GlobalOptions;
+        internal readonly IGlobalOptionService GlobalOptions;
 
         private readonly ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> _allArgumentProviders;
         private ImmutableArray<ArgumentProvider> _argumentProviders;
@@ -154,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
         }
         protected abstract ITrackingSpan? InsertEmptyCommentAndGetEndPositionTrackingSpan();
-        internal abstract Document AddImports(Document document, AddImportPlacementOptions options, int position, XElement snippetNode, CancellationToken cancellationToken);
+        internal abstract Document AddImports(Document document, AddImportPlacementOptions addImportOptions, SyntaxFormattingOptions formattingOptions, int position, XElement snippetNode, CancellationToken cancellationToken);
         protected abstract string FallbackDefaultLiteral { get; }
 
         public int FormatSpan(IVsTextLines pBuffer, VsTextSpan[] tsInSurfaceBuffer)
@@ -220,7 +220,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(SubjectBuffer.CurrentSnapshot, snippetTrackingSpan.GetSpan(SubjectBuffer.CurrentSnapshot));
 
-            SubjectBuffer.CurrentSnapshot.FormatAndApplyToBuffer(formattingSpan, CancellationToken.None);
+            SubjectBuffer.CurrentSnapshot.FormatAndApplyToBuffer(formattingSpan, GlobalOptions, CancellationToken.None);
 
             if (isFullSnippetFormat)
             {
@@ -290,8 +290,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                     var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                     if (document != null)
                     {
-                        var documentOptions = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-                        _indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, documentOptions.GetOption(FormattingOptions.TabSize));
+                        var formattingOptions = document.GetLineFormattingOptionsAsync(GlobalOptions, CancellationToken.None).AsTask().WaitAndGetResult(CancellationToken.None);
+                        _indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, formattingOptions.TabSize);
                     }
                     else
                     {
@@ -903,7 +903,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             // Now compute the new arguments for the new call
-            var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var semanticModel = document.GetRequiredSemanticModelAsync(cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
             var position = SubjectBuffer.CurrentSnapshot.GetPosition(adjustedTextSpan.iStartLine, adjustedTextSpan.iStartIndex);
 
@@ -913,7 +912,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
                 foreach (var provider in GetArgumentProviders(document.Project.Solution.Workspace))
                 {
-                    var context = new ArgumentContext(provider, options, semanticModel, position, parameter, value, cancellationToken);
+                    var context = new ArgumentContext(provider, semanticModel, position, parameter, value, cancellationToken);
                     ThreadingContext.JoinableTaskFactory.Run(() => provider.ProvideArgumentAsync(context));
 
                     if (context.DefaultValue is not null)
@@ -1076,9 +1075,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return;
             }
 
-            var options = AddImportPlacementOptions.FromDocumentAsync(documentWithImports, cancellationToken).WaitAndGetResult(cancellationToken);
+            var addImportOptions = documentWithImports.GetAddImportPlacementOptionsAsync(GlobalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
+            var formattingOptions = documentWithImports.GetSyntaxFormattingOptionsAsync(GlobalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
 
-            documentWithImports = AddImports(documentWithImports, options, position, snippetNode, cancellationToken);
+            documentWithImports = AddImports(documentWithImports, addImportOptions, formattingOptions, position, snippetNode, cancellationToken);
             AddReferences(documentWithImports.Project, snippetNode);
         }
 

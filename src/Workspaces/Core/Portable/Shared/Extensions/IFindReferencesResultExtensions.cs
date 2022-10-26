@@ -74,13 +74,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // Otherwise we still show the item even if there are no references to it.
             // And it's at least a source definition.
-            if (definition.Locations.Any(loc => loc.IsInSource))
+            if (definition.Locations.Any(static loc => loc.IsInSource))
             {
                 return true;
             }
 
             if (showMetadataSymbolsWithoutReferences &&
-                definition.Locations.Any(loc => loc.IsInMetadata))
+                definition.Locations.Any(static loc => loc.IsInMetadata))
             {
                 return true;
             }

@@ -18,6 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         /// strict adherence to our normal textual matching procedure.  The user can always still get this item simply
         /// by typing one additional character and unambiguously referring to <c>nui</c>.
         /// </summary>
-        protected override RecommendedKeyword Keyword => new RecommendedKeyword("nuint", matchPriority: MatchPriority.Default - 1);
+        protected override RecommendedKeyword Keyword => new("nuint", matchPriority: MatchPriority.Default - 1);
     }
 }

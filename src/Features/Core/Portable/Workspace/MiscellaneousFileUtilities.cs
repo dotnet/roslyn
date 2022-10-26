@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Features.Workspaces
             var referenceResolver = RuntimeMetadataReferenceResolver.CreateCurrentPlatformResolver(
                 searchPaths: ImmutableArray.Create(RuntimeEnvironment.GetRuntimeDirectory()),
                 baseDirectory: baseDirectory,
-                fileReferenceProvider: (path, properties) => metadataService.GetReference(path, properties));
+                fileReferenceProvider: metadataService.GetReference);
 
             return compilationOptions
                 .WithMetadataReferenceResolver(referenceResolver)

@@ -9,9 +9,11 @@ namespace Microsoft.CodeAnalysis.QuickInfo
     internal static class QuickInfoOptionsStorage
     {
         public static QuickInfoOptions GetQuickInfoOptions(this IGlobalOptionService globalOptions, string? language)
-          => new(
-              ShowRemarksInQuickInfo: globalOptions.GetOption(ShowRemarksInQuickInfo, language),
-              IncludeNavigationHintsInQuickInfo: globalOptions.GetOption(IncludeNavigationHintsInQuickInfo));
+          => new()
+          {
+              ShowRemarksInQuickInfo = globalOptions.GetOption(ShowRemarksInQuickInfo, language),
+              IncludeNavigationHintsInQuickInfo = globalOptions.GetOption(IncludeNavigationHintsInQuickInfo),
+          };
 
         private const string FeatureName = "QuickInfoOptions";
 

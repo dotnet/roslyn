@@ -288,7 +288,7 @@ namespace IOperationGenerator
 
         private void WriteInterfaceProperty(Property prop)
         {
-            if (prop.IsInternal)
+            if (prop.IsInternal || prop.IsOverride)
                 return;
             WriteComments(prop.Comments, operationKinds: Enumerable.Empty<string>(), writeReservedRemark: false);
             var modifiers = prop.IsNew ? "new " : "";
@@ -627,6 +627,10 @@ namespace IOperationGenerator
                     }
                     else
                     {
+                        if (prop.IsOverride)
+                        {
+                            propExtensibility += "override ";
+                        }
                         WriteLine($"public {propExtensibility}{prop.Type} {prop.Name} {{ get; }}");
                     }
                 }

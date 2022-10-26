@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
+using System.Runtime.ExceptionServices;
 
 namespace Roslyn.Utilities
 {
@@ -100,10 +101,24 @@ namespace Roslyn.Utilities
                 return null;
             }
 
-            if (stream.ReadByte() != VersionByte1 ||
-                stream.ReadByte() != VersionByte2)
+            try
             {
-                return null;
+                if (stream.ReadByte() != VersionByte1 ||
+                    stream.ReadByte() != VersionByte2)
+                {
+                    return null;
+                }
+            }
+            catch (AggregateException ex) when (ex.InnerException is not null)
+            {
+                // PipeReaderStream wraps any exception it throws in an AggregateException, which is not expected by
+                // callers treating it as a normal stream. Unwrap and rethrow the inner exception for clarity.
+                // https://github.com/dotnet/runtime/issues/70206
+#if NETCOREAPP
+                ExceptionDispatchInfo.Throw(ex.InnerException);
+#else
+                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+#endif
             }
 
             return new ObjectReader(stream, leaveOpen, cancellationToken);
@@ -282,12 +297,12 @@ namespace Roslyn.Utilities
                     return ReadArray(kind);
 
                 case EncodingKind.EncodingName: return Encoding.GetEncoding(ReadString());
-                case EncodingKind.EncodingUTF8: return s_encodingUTF8;
-                case EncodingKind.EncodingUTF8_BOM: return Encoding.UTF8;
-                case EncodingKind.EncodingUTF32_BE: return s_encodingUTF32_BE;
-                case EncodingKind.EncodingUTF32_BE_BOM: return s_encodingUTF32_BE_BOM;
-                case EncodingKind.EncodingUTF32_LE: return s_encodingUTF32_LE;
-                case EncodingKind.EncodingUTF32_LE_BOM: return Encoding.UTF32;
+                case EncodingKind.EncodingUtf8: return s_encodingUtf8;
+                case EncodingKind.EncodingUtf8_BOM: return Encoding.UTF8;
+                case EncodingKind.EncodingUtf32_BE: return s_encodingUtf32_BE;
+                case EncodingKind.EncodingUtf32_BE_BOM: return s_encodingUtf32_BE_BOM;
+                case EncodingKind.EncodingUtf32_LE: return s_encodingUtf32_LE;
+                case EncodingKind.EncodingUtf32_LE_BOM: return Encoding.UTF32;
                 case EncodingKind.EncodingUnicode_BE: return s_encodingUnicode_BE;
                 case EncodingKind.EncodingUnicode_BE_BOM: return Encoding.BigEndianUnicode;
                 case EncodingKind.EncodingUnicode_LE: return s_encodingUnicode_LE;
@@ -298,10 +313,10 @@ namespace Roslyn.Utilities
             }
         }
 
-        private static readonly Encoding s_encodingUTF8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
-        private static readonly Encoding s_encodingUTF32_BE = new UTF32Encoding(bigEndian: true, byteOrderMark: false);
-        private static readonly Encoding s_encodingUTF32_BE_BOM = new UTF32Encoding(bigEndian: true, byteOrderMark: true);
-        private static readonly Encoding s_encodingUTF32_LE = new UTF32Encoding(bigEndian: false, byteOrderMark: false);
+        private static readonly Encoding s_encodingUtf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+        private static readonly Encoding s_encodingUtf32_BE = new UTF32Encoding(bigEndian: true, byteOrderMark: false);
+        private static readonly Encoding s_encodingUtf32_BE_BOM = new UTF32Encoding(bigEndian: true, byteOrderMark: true);
+        private static readonly Encoding s_encodingUtf32_LE = new UTF32Encoding(bigEndian: false, byteOrderMark: false);
         private static readonly Encoding s_encodingUnicode_BE = new UnicodeEncoding(bigEndian: true, byteOrderMark: false);
         private static readonly Encoding s_encodingUnicode_LE = new UnicodeEncoding(bigEndian: false, byteOrderMark: false);
 
@@ -411,7 +426,7 @@ namespace Roslyn.Utilities
             }
             else
             {
-                // This is rare, just allocate UTF16 bytes for simplicity.
+                // This is rare, just allocate UTF-16 bytes for simplicity.
                 int characterCount = (int)ReadCompressedUInt();
                 byte[] bytes = _reader.ReadBytes(characterCount * sizeof(char));
                 fixed (byte* bytesPtr = bytes)

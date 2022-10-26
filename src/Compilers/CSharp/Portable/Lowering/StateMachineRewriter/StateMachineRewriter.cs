@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected readonly SynthesizedContainer stateMachineType;
         protected readonly VariableSlotAllocator slotAllocatorOpt;
         protected readonly SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals;
+        protected readonly ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder;
 
         protected FieldSymbol stateField;
         protected IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies;
@@ -37,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement body,
             MethodSymbol method,
             SynthesizedContainer stateMachineType,
+            ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
             BindingDiagnosticBag diagnostics)
@@ -47,10 +49,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(compilationState != null);
             Debug.Assert(diagnostics != null);
             Debug.Assert(diagnostics.DiagnosticBag != null);
+            Debug.Assert(stateMachineStateDebugInfoBuilder.IsEmpty());
 
             this.body = body;
             this.method = method;
             this.stateMachineType = stateMachineType;
+            this.stateMachineStateDebugInfoBuilder = stateMachineStateDebugInfoBuilder;
             this.slotAllocatorOpt = slotAllocatorOpt;
             this.synthesizedLocalOrdinals = new SynthesizedLocalOrdinalsDispenser();
             this.diagnostics = diagnostics;
@@ -433,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 makeIterator = F.If(
                     // if (this.state == -2 && this.initialThreadId == Thread.CurrentThread.ManagedThreadId)
                     condition: F.LogicalAnd(
-                        F.IntEqual(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
+                        F.IntEqual(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedState)),
                         F.IntEqual(F.Field(F.This(), initialThreadIdField), managedThreadId)),
                     thenClause: F.Block(thenBuilder.ToImmutableAndFree()),
                     elseClauseOpt: makeIterator);

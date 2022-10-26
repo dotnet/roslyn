@@ -93,23 +93,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Dispose();
         }
 
-        public async ValueTask<bool> HasChangesAsync(Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, string? sourceFilePath, CancellationToken cancellationToken)
-        {
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
-            if (client == null)
-            {
-                return await GetLocalService().HasChangesAsync(_sessionId, solution, activeStatementSpanProvider, sourceFilePath, cancellationToken).ConfigureAwait(false);
-            }
-
-            var result = await client.TryInvokeAsync<IRemoteEditAndContinueService, bool>(
-                solution,
-                (service, solutionInfo, callbackId, cancellationToken) => service.HasChangesAsync(solutionInfo, callbackId, _sessionId, sourceFilePath, cancellationToken),
-                callbackTarget: new ActiveStatementSpanProviderCallback(activeStatementSpanProvider),
-                cancellationToken).ConfigureAwait(false);
-
-            return result.HasValue ? result.Value : true;
-        }
-
         public async ValueTask<(
                 ManagedModuleUpdates updates,
                 ImmutableArray<DiagnosticData> diagnostics,

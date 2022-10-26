@@ -4509,6 +4509,27 @@ interface TestInterface
 }");
         }
 
+        [WorkItem(53031, "https://github.com/dotnet/roslyn/issues/53031")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestStaticMethodInInterface()
+        {
+            await TestInRegularAndScript1Async(@"
+interface TestInterface
+{
+    static bool TestMethod() => [|false|];
+}",
+@"
+interface TestInterface
+{
+    static bool TestMethod() => {|Rename:NewMethod|}();
+
+    static bool NewMethod()
+    {
+        return false;
+    }
+}");
+        }
+
         [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/56969")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TopLevelStatement_FullStatement()

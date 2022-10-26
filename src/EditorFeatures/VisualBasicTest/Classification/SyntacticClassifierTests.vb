@@ -5460,5 +5460,17 @@ End Try"
                 ControlKeyword("End"),
                 ControlKeyword("Try"))
         End Function
+
+        <Theory, CombinatorialData, WorkItem(61687, "https://github.com/dotnet/roslyn/issues/61687")>
+        Public Async Function TestThrow(testHost As TestHost) As Task
+            Dim code = "Throw New System.NotImplementedException"
+            Await TestInMethodAsync(code,
+                testHost,
+                ControlKeyword("Throw"),
+                Keyword("New"),
+                Identifier("System"),
+                Operators.Dot,
+                Identifier("NotImplementedException"))
+        End Function
     End Class
 End Namespace

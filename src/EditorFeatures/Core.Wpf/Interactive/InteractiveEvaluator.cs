@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             IViewClassifierAggregatorService classifierAggregator,
             IInteractiveWindowCommandsFactory commandsFactory,
             ImmutableArray<IInteractiveWindowCommand> commands,
+            ITextDocumentFactoryService textDocumentFactoryService,
             InteractiveEvaluatorLanguageInfoProvider languageInfo,
             string initialWorkingDirectory)
         {
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             _workspace = new InteractiveWindowWorkspace(hostServices, globalOptions);
 
-            _session = new InteractiveSession(_workspace, threadingContext, listener, languageInfo, initialWorkingDirectory);
+            _session = new InteractiveSession(_workspace, threadingContext, listener, textDocumentFactoryService, languageInfo, initialWorkingDirectory);
             _session.Host.ProcessInitialized += ProcessInitialized;
         }
 

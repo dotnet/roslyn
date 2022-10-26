@@ -48,7 +48,7 @@ class Test {
             var completions = await completionService.GetCompletionsAsync(document, caretPosition, CompletionOptions.Default, OptionValueSet.Empty);
 
             Assert.False(completions.IsEmpty);
-            var item = Assert.Single(completions.Items.Where(item => item.ProviderName == typeof(DebugAssertTestCompletionProvider).FullName));
+            var item = Assert.Single(completions.ItemsList.Where(item => item.ProviderName == typeof(DebugAssertTestCompletionProvider).FullName));
             Assert.Equal("Assertion failed", item.DisplayText);
         }
 

@@ -126,7 +126,7 @@ class C
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "[a]fod;").WithLocation(15, 1),
                 // (16,3): error CS1003: Syntax error, ']' expected
                 // [b
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]", "").WithLocation(16, 3)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(16, 3)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -227,13 +227,13 @@ class C { }
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "fg").WithArguments("+").WithLocation(2, 1),
                 // (2,4): error CS1003: Syntax error, 'operator' expected
                 // fg implicit//
-                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator", "implicit").WithLocation(2, 4),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator").WithLocation(2, 4),
                 // (2,4): error CS1037: Overloadable operator expected
                 // fg implicit//
                 Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "implicit").WithLocation(2, 4),
                 // (2,12): error CS1003: Syntax error, '(' expected
                 // fg implicit//
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "class").WithLocation(2, 12),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(2, 12),
                 // (2,12): error CS1026: ) expected
                 // fg implicit//
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(2, 12),
@@ -941,7 +941,7 @@ partial delegate E { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(2, 20),
                 // (2,20): error CS1003: Syntax error, '(' expected
                 // partial delegate E { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("(", "{").WithLocation(2, 20),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("(").WithLocation(2, 20),
                 // (2,20): error CS1026: ) expected
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(2, 20),
@@ -1302,7 +1302,7 @@ this[double E] { get { return /*<bind>*/E/*</bind>*/; } }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "double").WithArguments("double").WithLocation(2, 6),
                 // (2,13): error CS1003: Syntax error, ',' expected
                 // this[double E] { get { return /*<bind>*/E/*</bind>*/; } }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "E").WithArguments(",", "").WithLocation(2, 13),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "E").WithArguments(",").WithLocation(2, 13),
                 // (2,16): error CS1002: ; expected
                 // this[double E] { get { return /*<bind>*/E/*</bind>*/; } }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(2, 16),
@@ -2155,7 +2155,7 @@ e
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(1, 10),
                 // (1,10): error CS1003: Syntax error, ',' expected
                 // using int.Parse name = value;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",", ".").WithLocation(1, 10),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(1, 10),
                 // (1,11): error CS1002: ; expected
                 // using int.Parse name = value;
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "Parse").WithLocation(1, 11)
@@ -2227,10 +2227,10 @@ e
                 Diagnostic(ErrorCode.ERR_BadVarDecl, "(x, y").WithLocation(1, 11),
                 // (1,11): error CS1003: Syntax error, '[' expected
                 // using int (x, y)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(1, 11),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(1, 11),
                 // (1,16): error CS1003: Syntax error, ']' expected
                 // using int (x, y)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(1, 16),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(1, 16),
                 // (1,17): error CS1002: ; expected
                 // using int (x, y)
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 17)
@@ -2334,19 +2334,19 @@ e
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "using").WithLocation(1, 15),
                 // (1,15): error CS1003: Syntax error, ',' expected
                 // [_<_[delegate using'
-                Diagnostic(ErrorCode.ERR_SyntaxError, "using").WithArguments(",", "using").WithLocation(1, 15),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "using").WithArguments(",").WithLocation(1, 15),
                 // (1,15): error CS0443: Syntax error; value expected
                 // [_<_[delegate using'
                 Diagnostic(ErrorCode.ERR_ValueExpected, "").WithLocation(1, 15),
                 // (1,15): error CS1003: Syntax error, ']' expected
                 // [_<_[delegate using'
-                Diagnostic(ErrorCode.ERR_SyntaxError, "using").WithArguments("]", "using").WithLocation(1, 15),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "using").WithArguments("]").WithLocation(1, 15),
                 // (1,15): error CS1003: Syntax error, '>' expected
                 // [_<_[delegate using'
-                Diagnostic(ErrorCode.ERR_SyntaxError, "using").WithArguments(">", "using").WithLocation(1, 15),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "using").WithArguments(">").WithLocation(1, 15),
                 // (1,15): error CS1003: Syntax error, ']' expected
                 // [_<_[delegate using'
-                Diagnostic(ErrorCode.ERR_SyntaxError, "using").WithArguments("]", "using").WithLocation(1, 15),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "using").WithArguments("]").WithLocation(1, 15),
                 // (1,20): error CS1031: Type expected
                 // [_<_[delegate using'
                 Diagnostic(ErrorCode.ERR_TypeExpected, "'").WithLocation(1, 20),

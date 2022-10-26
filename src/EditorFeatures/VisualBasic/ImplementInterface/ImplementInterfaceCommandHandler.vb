@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementInterface
 
         Protected Overrides Function TryGetNewDocument(
             document As Document,
-            options As ImplementTypeOptions,
+            options As ImplementTypeGenerationOptions,
             typeSyntax As TypeSyntax,
             cancellationToken As CancellationToken
         ) As Document

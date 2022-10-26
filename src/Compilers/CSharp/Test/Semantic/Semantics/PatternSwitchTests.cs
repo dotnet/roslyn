@@ -3214,7 +3214,7 @@ static class Ex
         var q ").WithArguments("pattern matching", "7.0").WithLocation(8, 13),
                 // (10,15): error CS1003: Syntax error, ':' expected
                 //         var q = 3;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(":", "=").WithLocation(10, 15),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(":").WithLocation(10, 15),
                 // (10,15): error CS1525: Invalid expression term '='
                 //         var q = 3;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(10, 15),

@@ -295,15 +295,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 _membersSyntaxBuilder = membersSyntaxBuilder
             End Sub
 
-            Public Overrides Sub AddMember(syntaxRef As SyntaxReference, member As NamespaceOrTypeSymbol, importsClausePosition As Integer, dependencies As IReadOnlyCollection(Of AssemblySymbol))
-                Dim pair = New NamespaceOrTypeAndImportsClausePosition(member, importsClausePosition, dependencies.ToImmutableArray())
+            Public Overrides Sub AddMember(
+                    syntaxRef As SyntaxReference,
+                    member As NamespaceOrTypeSymbol,
+                    importsClausePosition As Integer,
+                    dependencies As IReadOnlyCollection(Of AssemblySymbol),
+                    isProjectImportDeclaration As Boolean)
+
+                ' Do not expose any locations for project level imports.  This matches the effective logic
+                ' we have for aliases, which are given NoLocation.Singleton (which never translates to a
+                ' DeclaringSyntaxReference).
+                Dim pair = New NamespaceOrTypeAndImportsClausePosition(
+                    member, importsClausePosition, If(isProjectImportDeclaration, Nothing, syntaxRef), dependencies.ToImmutableArray())
                 Members.Add(member)
                 _membersBuilder.Add(pair)
                 _membersSyntaxBuilder.Add(syntaxRef)
             End Sub
 
             Public Overrides Sub AddAlias(syntaxRef As SyntaxReference, name As String, [alias] As AliasSymbol, importsClausePosition As Integer, dependencies As IReadOnlyCollection(Of AssemblySymbol))
-                Aliases.Add(name, New AliasAndImportsClausePosition([alias], importsClausePosition, dependencies.ToImmutableArray()))
+                Aliases.Add(name, New AliasAndImportsClausePosition([alias], importsClausePosition, syntaxRef, dependencies.ToImmutableArray()))
             End Sub
         End Class
 

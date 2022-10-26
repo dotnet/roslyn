@@ -57,6 +57,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
             => visitor.VisitField(this);
 
+        public override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+            => visitor.VisitField(this, argument);
+
         public bool IsConst
         {
             get
@@ -75,9 +78,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool IsVolatile => false;
 
+        public bool IsRequired => Modifiers.IsRequired;
+
         public bool IsFixedSizeBuffer => false;
 
         public int FixedSize => 0;
+
+        public RefKind RefKind => RefKind.None;
+
+        public ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
         public ImmutableArray<CustomModifier> CustomModifiers
         {

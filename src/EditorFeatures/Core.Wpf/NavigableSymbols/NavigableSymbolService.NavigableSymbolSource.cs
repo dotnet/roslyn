@@ -70,9 +70,9 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
 
                 var snapshotSpan = new SnapshotSpan(snapshot, context.Span.ToSpan());
                 return new NavigableSymbol(
+                    document.Project.Solution.Workspace,
                     definitions.ToImmutableArray(),
                     snapshotSpan,
-                    document,
                     _threadingContext,
                     _presenter,
                     _uiThreadOperationExecutor,

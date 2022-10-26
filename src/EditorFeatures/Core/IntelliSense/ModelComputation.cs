@@ -9,17 +9,18 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 {
-    internal class ModelComputation<TModel> : ForegroundThreadAffinitizedObject
-        where TModel : class
+    internal class ModelComputation<TModel> where TModel : class
     {
         #region Fields that can be accessed from either thread
 
+        public readonly IThreadingContext ThreadingContext;
         private readonly CancellationToken _stopCancellationToken;
 
         /// <summary>
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
         {
             get
             {
-                AssertIsForeground();
+                ThreadingContext.ThrowIfNotOnUIThread();
                 return __taskScheduler;
             }
         }
@@ -55,9 +56,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
         #endregion
 
-        public ModelComputation(IThreadingContext threadingContext, IController<TModel> controller, TaskScheduler computationTaskScheduler)
-            : base(threadingContext)
+        public ModelComputation(
+            IThreadingContext threadingContext,
+            IController<TModel> controller,
+            TaskScheduler computationTaskScheduler)
         {
+            ThreadingContext = threadingContext;
             _controller = controller;
             __taskScheduler = computationTaskScheduler;
 
@@ -72,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
         {
             get
             {
-                AssertIsForeground();
+                ThreadingContext.ThrowIfNotOnUIThread();
                 return _initialUnfilteredModel;
             }
         }
@@ -81,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
         {
             get
             {
-                AssertIsForeground();
+                ThreadingContext.ThrowIfNotOnUIThread();
 
                 // We should never be called if we were stopped.
                 Contract.ThrowIfTrue(_stopCancellationToken.IsCancellationRequested);
@@ -91,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
         public TModel WaitForController()
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             var model = ModelTask.WaitAndGetResult(CancellationToken.None);
             if (!_notifyControllerTask.IsCompleted)
@@ -107,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
         public virtual void Stop()
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             // cancel all outstanding tasks.
             _stopTokenSource.Cancel();
@@ -127,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             Func<TModel, CancellationToken, Task<TModel>> transformModelAsync,
             bool updateController = true)
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             Contract.ThrowIfTrue(_stopCancellationToken.IsCancellationRequested, "should not chain tasks after we've been cancelled");
 
@@ -175,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
         private void OnModelUpdated(TModel result, bool updateController)
         {
-            this.AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
 
             // Store the first result so that anyone who cares knows we've computed something
             if (_initialUnfilteredModel == null)

@@ -150,10 +150,10 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(() => 0)").WithArguments("T", "2").WithLocation(8, 18),
                 // (8,22): error CS1003: Syntax error, ',' expected
                 //             case (() => 0):
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(8, 22),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(8, 22),
                 // (8,25): error CS1003: Syntax error, ',' expected
                 //             case (() => 0):
-                Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments(",", "").WithLocation(8, 25),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments(",").WithLocation(8, 25),
                 // (10,18): error CS0518: Predefined type 'System.Span`1' is not defined or imported
                 //             case stackalloc int[1] { 0 }:
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "stackalloc int[1] { 0 }").WithArguments("System.Span`1").WithLocation(10, 18),
@@ -1511,7 +1511,7 @@ class _
             compilation.VerifyDiagnostics(
                 // (9,20): error CS1003: Syntax error, ':' expected
                 //             case _ x: break;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(":", "").WithLocation(9, 20),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(":").WithLocation(9, 20),
                 // (9,20): warning CS0164: This label has not been referenced
                 //             case _ x: break;
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "x").WithLocation(9, 20)
@@ -1597,7 +1597,7 @@ class _
                 Diagnostic(ErrorCode.WRN_IsTypeNamedUnderscore, "_").WithArguments("_").WithLocation(9, 32),
                 // (9,34): error CS1003: Syntax error, ',' expected
                 //             Console.Write(e is _ x);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(9, 34),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(9, 34),
                 // (9,34): error CS0103: The name 'x' does not exist in the current context
                 //             Console.Write(e is _ x);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(9, 34)
@@ -1718,7 +1718,7 @@ class _
                 Diagnostic(ErrorCode.ERR_WrongNumberOfSubpatterns, "(_ x, _)").WithArguments("(object, object)", "2", "3").WithLocation(10, 22),
                 // (10,25): error CS1003: Syntax error, ',' expected
                 //             if (e is (_ x, _))
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(10, 25),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(10, 25),
                 // (10,25): error CS0103: The name 'x' does not exist in the current context
                 //             if (e is (_ x, _))
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(10, 25)
@@ -3718,37 +3718,37 @@ public class A
                 Diagnostic(ErrorCode.ERR_IsNullableType, "A?").WithArguments("A").WithLocation(7, 18),
                 // (8,23): error CS1003: Syntax error, ':' expected
                 //         if (o is A? b1) { }           // error 2 (missing :)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(8, 23),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(8, 23),
                 // (8,23): error CS1525: Invalid expression term ')'
                 //         if (o is A? b1) { }           // error 2 (missing :)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(8, 23),
                 // (9,28): error CS1003: Syntax error, ':' expected
                 //         if (o is A? b2 && c) { }      // error 3 (missing :)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(9, 28),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(9, 28),
                 // (9,28): error CS1525: Invalid expression term ')'
                 //         if (o is A? b2 && c) { }      // error 3 (missing :)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(9, 28),
                 // (10,25): error CS1003: Syntax error, ':' expected
                 //         if (o is A[]? b5) { }         // error 4 (missing :)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(10, 25),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(10, 25),
                 // (10,25): error CS1525: Invalid expression term ')'
                 //         if (o is A[]? b5) { }         // error 4 (missing :)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(10, 25),
                 // (11,30): error CS1003: Syntax error, ':' expected
                 //         if (o is A[]? b6 && c) { }    // error 5 (missing :)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(11, 30),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(11, 30),
                 // (11,30): error CS1525: Invalid expression term ')'
                 //         if (o is A[]? b6 && c) { }    // error 5 (missing :)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(11, 30),
                 // (12,27): error CS1003: Syntax error, ':' expected
                 //         if (o is A[][]? b7) { }       // error 6 (missing :)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(12, 27),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(12, 27),
                 // (12,27): error CS1525: Invalid expression term ')'
                 //         if (o is A[][]? b7) { }       // error 6 (missing :)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 27),
                 // (13,32): error CS1003: Syntax error, ':' expected
                 //         if (o is A[][]? b8 && c) { }  // error 7 (missing :)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(13, 32),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(13, 32),
                 // (13,32): error CS1525: Invalid expression term ')'
                 //         if (o is A[][]? b8 && c) { }  // error 7 (missing :)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(13, 32),

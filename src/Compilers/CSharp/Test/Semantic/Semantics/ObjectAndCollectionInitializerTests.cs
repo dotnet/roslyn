@@ -2854,7 +2854,7 @@ IInvalidOperation (OperationKind.Invalid, Type: Dictionary<System.Object, System
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1003: Syntax error, ',' expected
                 //         var x = 1/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(9, 13),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(9, 13),
                 // CS1513: } expected
                 //         var x = 1/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(9, 29),
@@ -2906,7 +2906,7 @@ IInvalidOperation (OperationKind.Invalid, Type: List<System.Int32>, IsInvalid) (
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "{").WithLocation(6, 39),
                 // CS1003: Syntax error, ',' expected
                 //         /*<bind>*/new List<int>() { { { 1 } }/*</bind>*/ };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(6, 39),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(6, 39),
                 // CS1002: ; expected
                 //         /*<bind>*/new List<int>() { { { 1 } }/*</bind>*/ };
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(6, 58),
@@ -3163,7 +3163,7 @@ IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation,
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "{").WithLocation(9, 46),
                 // CS1003: Syntax error, ',' expected
                 //         var a = /*<bind>*/new A { 5, { 1, 2, { 1, 2 } }/*</bind>*/, 3 };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(9, 46),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(9, 46),
                 // CS1001: Identifier expected
                 //         var a = /*<bind>*/new A { 5, { 1, 2, { 1, 2 } }/*</bind>*/, 3 };
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "3").WithLocation(9, 69),

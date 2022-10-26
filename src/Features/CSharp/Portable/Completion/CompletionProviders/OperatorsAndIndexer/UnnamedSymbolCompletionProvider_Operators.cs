@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 (WellKnownMemberNames.ExclusiveOrOperatorName, OperatorPosition.Infix),
                 (WellKnownMemberNames.LeftShiftOperatorName, OperatorPosition.Infix),
                 (WellKnownMemberNames.RightShiftOperatorName, OperatorPosition.Infix),
+                (WellKnownMemberNames.UnsignedRightShiftOperatorName, OperatorPosition.Infix),
                 (WellKnownMemberNames.OnesComplementOperatorName, OperatorPosition.Prefix));
 
         /// <summary>

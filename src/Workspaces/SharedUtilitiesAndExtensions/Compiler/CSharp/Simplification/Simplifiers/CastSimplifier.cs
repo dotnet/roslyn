@@ -456,6 +456,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (originalConvertedType.Equals(rewrittenConvertedType, SymbolEqualityComparer.IncludeNullability))
                 return true;
 
+            // We can safely remove convertion to object in interpolated strings regardless of nullability
+            if (castNode.IsParentKind(SyntaxKind.Interpolation) && originalConversionOperation.Type?.SpecialType is SpecialType.System_Object)
+                return true;
+
             // There are cases where the types change but things may still be safe to remove.
 
             // Case1.  A value type casted to `object` is safe if it's now getting converted to `dynamic`.

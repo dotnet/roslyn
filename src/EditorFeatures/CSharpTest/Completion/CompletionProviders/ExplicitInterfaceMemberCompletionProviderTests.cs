@@ -888,5 +888,110 @@ class C : I
             // TODO: Consider adding the default value too.
             await VerifyProviderCommitAsync(markup, "M(int x)", expected, '\t');
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(60215, "https://github.com/dotnet/roslyn/issues/60215")]
+        public async Task TestStaticAbstractCheckedUnaryOperator()
+        {
+            var markup = @"
+interface I1<T> where T : I1<T>
+{
+    abstract static T operator checked -(T x);
+
+    abstract static T operator -(T x);
+}
+
+class C : I1<C>
+{
+    static C I1<C>.$$
+}
+";
+
+            var expected = @"
+interface I1<T> where T : I1<T>
+{
+    abstract static T operator checked -(T x);
+
+    abstract static T operator -(T x);
+}
+
+class C : I1<C>
+{
+    static C I1<C>.operator checked -(C x)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "operator checked -(C x)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(60215, "https://github.com/dotnet/roslyn/issues/60215")]
+        public async Task TestStaticAbstractCheckedBinaryOperator()
+        {
+            var markup = @"
+interface I1<T> where T : I1<T>
+{
+    abstract static T operator checked +(T x, T y);
+
+    abstract static T operator +(T x, T y);
+}
+
+class C : I1<C>
+{
+    static C I1<C>.$$
+}
+";
+
+            var expected = @"
+interface I1<T> where T : I1<T>
+{
+    abstract static T operator checked +(T x, T y);
+
+    abstract static T operator +(T x, T y);
+}
+
+class C : I1<C>
+{
+    static C I1<C>.operator checked +(C x, C y)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "operator checked +(C x, C y)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(60215, "https://github.com/dotnet/roslyn/issues/60215")]
+        public async Task TestStaticAbstractCheckedCastOperator()
+        {
+            var markup = @"
+interface I1<T> where T : I1<T>
+{
+    abstract static explicit operator checked string(T x);
+    abstract static explicit operator string(T x);
+}
+
+
+class C3 : I1<C3>
+{
+    static C3 I1<C3>.$$
+}
+";
+
+            var expected = @"
+interface I1<T> where T : I1<T>
+{
+    abstract static explicit operator checked string(T x);
+    abstract static explicit operator string(T x);
+}
+
+
+class C3 : I1<C3>
+{
+    static C3 I1<C3>.operator checked string(C3 x)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "operator checked string(C3 x)", expected, '\t');
+        }
     }
 }

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -32,20 +33,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// </summary>
             private readonly ImmutableHashSet<ISymbol> _upSymbols;
 
-            public UnidirectionalSymbolSet(FindReferencesSearchEngine engine, MetadataUnifyingSymbolHashSet initialSymbols, HashSet<ISymbol> upSymbols)
+            public UnidirectionalSymbolSet(
+                FindReferencesSearchEngine engine,
+                MetadataUnifyingSymbolHashSet initialSymbols,
+                MetadataUnifyingSymbolHashSet upSymbols)
                 : base(engine)
             {
                 _initialAndDownSymbols = initialSymbols;
-                _upSymbols = upSymbols.ToImmutableHashSet();
+                _upSymbols = upSymbols.ToImmutableHashSet(MetadataUnifyingEquivalenceComparer.Instance);
             }
 
             public override ImmutableArray<ISymbol> GetAllSymbols()
             {
-                using var _ = ArrayBuilder<ISymbol>.GetInstance(_upSymbols.Count + _initialAndDownSymbols.Count, out var result);
+                var result = new MetadataUnifyingSymbolHashSet();
                 result.AddRange(_upSymbols);
                 result.AddRange(_initialAndDownSymbols);
-                result.RemoveDuplicates();
-                return result.ToImmutable();
+                return result.ToImmutableArray();
             }
 
             public override async Task InheritanceCascadeAsync(Project project, CancellationToken cancellationToken)

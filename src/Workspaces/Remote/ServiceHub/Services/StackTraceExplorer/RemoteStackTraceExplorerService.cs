@@ -22,11 +22,10 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        public ValueTask<SerializableDefinitionItem?> TryFindDefinitionAsync(PinnedSolutionInfo solutionInfo, string frameString, StackFrameSymbolPart symbolPart, CancellationToken cancellationToken)
+        public ValueTask<SerializableDefinitionItem?> TryFindDefinitionAsync(Checksum solutionChecksum, string frameString, StackFrameSymbolPart symbolPart, CancellationToken cancellationToken)
         {
-            return RunServiceAsync<SerializableDefinitionItem?>(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var result = await StackTraceAnalyzer.AnalyzeAsync(frameString, cancellationToken).ConfigureAwait(false);
                 if (result.ParsedFrames.Length != 1 || result.ParsedFrames[0] is not ParsedStackFrame parsedFrame)
                 {
@@ -36,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var definition = await StackTraceExplorerUtilities.GetDefinitionAsync(solution, parsedFrame.Root, symbolPart, cancellationToken).ConfigureAwait(false);
                 if (definition is null)
                 {
-                    return null;
+                    return (SerializableDefinitionItem?)null;
                 }
 
                 return SerializableDefinitionItem.Dehydrate(id: 0, definition);

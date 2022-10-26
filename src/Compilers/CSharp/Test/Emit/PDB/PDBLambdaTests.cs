@@ -91,7 +91,7 @@ class Test
     }
 
     static public int M(int p)
-    <M><C:0>{
+    <M:0><C:0>{
         Func<int, int> f1 = delegate(int x)
         <C:1><L:0.0>{
             int q = 2;
@@ -1833,7 +1833,7 @@ record R(int X);
 class Test
 {
     public static void M(int a)
-    <M><C:0>{
+    <M:0><C:0>{
         var x = new R(1);
         var y = x with
         {
@@ -1859,7 +1859,7 @@ record R(int X, int Y);
 class Test
 {
     public static void M(int a)
-    <M><C:0>{
+    <M:0><C:0>{
         var x = new R(1, 2);
         var b = 1;
         var y = x with
@@ -1888,7 +1888,7 @@ record Z(int A, R R);
 class Test
 {
     public static void M(int a)
-    <M><C:0>{
+    <M:0><C:0>{
         var r = new R(1, 2);
         var x = new Z(1, new R(2, 3));
         var b = 1;

@@ -5928,10 +5928,10 @@ class H
                 Diagnostic(ErrorCode.ERR_BadVarDecl, @"(""5948"" is var x1").WithLocation(3, 10),
                 // (3,10): error CS1003: Syntax error, '[' expected
                 // bool a, b("5948" is var x1);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(3, 10),
                 // (3,27): error CS1003: Syntax error, ']' expected
                 // bool a, b("5948" is var x1);
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 27)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(3, 27)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -5960,10 +5960,10 @@ class H
                     Diagnostic(ErrorCode.ERR_BadVarDecl, @"(""5948"" is var x1").WithLocation(3, 10),
                     // (3,10): error CS1003: Syntax error, '[' expected
                     // bool a, b("5948" is var x1);
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(3, 10),
                     // (3,27): error CS1003: Syntax error, ']' expected
                     // bool a, b("5948" is var x1);
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 27),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(3, 27),
                     // (4,9): error CS0165: Use of unassigned local variable 'x1'
                     // H.Dummy(x1);
                     Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(4, 9),
@@ -6013,10 +6013,10 @@ class H
                 Diagnostic(ErrorCode.ERR_BadVarDecl, "((1 is var x1)").WithLocation(3, 10),
                 // (3,10): error CS1003: Syntax error, '[' expected
                 // bool a, b((1 is var x1));
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(3, 10),
                 // (3,24): error CS1003: Syntax error, ']' expected
                 // bool a, b((1 is var x1));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 24),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(3, 24),
                 // (2,1): warning CS0164: This label has not been referenced
                 // label: 
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "label").WithLocation(2, 1)
@@ -6050,10 +6050,10 @@ class H
                     Diagnostic(ErrorCode.ERR_BadVarDecl, "((1 is var x1)").WithLocation(3, 10),
                     // (3,10): error CS1003: Syntax error, '[' expected
                     // bool a, b((1 is var x1));
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(3, 10),
                     // (3,24): error CS1003: Syntax error, ']' expected
                     // bool a, b((1 is var x1));
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 24),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(3, 24),
                     // (4,9): error CS0165: Use of unassigned local variable 'x1'
                     // H.Dummy(x1);
                     Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(4, 9)
@@ -6100,10 +6100,10 @@ class H
                 Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.Dummy(1 is var x1)").WithLocation(3, 25),
                 // (3,25): error CS1003: Syntax error, '[' expected
                 // event System.Action a, b(H.Dummy(1 is var x1));
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 25),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(3, 25),
                 // (3,46): error CS1003: Syntax error, ']' expected
                 // event System.Action a, b(H.Dummy(1 is var x1));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 46)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(3, 46)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -6126,10 +6126,10 @@ class H
                     Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.Dummy(1 is var x1)").WithLocation(3, 25),
                     // (3,25): error CS1003: Syntax error, '[' expected
                     // event System.Action a, b(H.Dummy(1 is var x1));
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 25),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(3, 25),
                     // (3,46): error CS1003: Syntax error, ']' expected
                     // event System.Action a, b(H.Dummy(1 is var x1));
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 46),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(3, 46),
                     // (4,9): error CS0103: The name 'x1' does not exist in the current context
                     // H.Dummy(x1);
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(4, 9),

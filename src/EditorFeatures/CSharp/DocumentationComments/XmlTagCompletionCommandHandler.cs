@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using System.Threading;
@@ -37,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
 
         protected override void TryCompleteTag(ITextView textView, ITextBuffer subjectBuffer, Document document, SnapshotPoint position, CancellationToken cancellationToken)
         {
-            var tree = document.GetSyntaxTreeSynchronously(cancellationToken);
+            var tree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDocumentationComments: true);
 
             if (token.IsKind(SyntaxKind.GreaterThanToken))
@@ -72,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
                 // We need to check for non-trivia XML text tokens after $$ that match the expected end tag text.
 
                 if (token.Parent.IsKind(SyntaxKind.XmlElementEndTag) &&
-                    token.Parent.IsParentKind(SyntaxKind.XmlElement, out XmlElementSyntax parentElement) &&
+                    token.Parent.IsParentKind(SyntaxKind.XmlElement, out XmlElementSyntax? parentElement) &&
                     !HasFollowingEndTagTrivia(parentElement, token))
                 {
                     CheckNameAndInsertText(textView, subjectBuffer, position, parentElement.StartTag, null, "{0}>");
@@ -100,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
 
         private bool HasUnmatchedIdenticalParent(XmlElementStartTagSyntax parentStartTag)
         {
-            if (parentStartTag.Parent.Parent is XmlElementSyntax grandParentElement)
+            if (parentStartTag.Parent?.Parent is XmlElementSyntax grandParentElement)
             {
                 if (grandParentElement.StartTag.Name.LocalName.ValueText == parentStartTag.Name.LocalName.ValueText)
                 {
@@ -143,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
 
             if (elementName.Length > 0)
             {
-                var parentElement = startTag.Parent as XmlElementSyntax;
+                var parentElement = (XmlElementSyntax)startTag.GetRequiredParent();
                 if (parentElement.EndTag.Name.LocalName.ValueText != elementName)
                 {
                     InsertTextAndMoveCaret(textView, subjectBuffer, position, string.Format(formatString, elementName), finalCaretPosition);

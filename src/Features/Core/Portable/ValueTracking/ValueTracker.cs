@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
                 // If the selection is within a declaration of the symbol, we want to include
                 // all declarations and assignments of the symbol
-                if (declaringSyntaxReferences.Any(r => r.Span.IntersectsWith(selection)))
+                if (declaringSyntaxReferences.Any(static (r, selection) => r.Span.IntersectsWith(selection), selection))
                 {
                     // Add all initializations of the symbol. Those are not caught in 
                     // the reference finder but should still show up in the tree
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
             static bool HasAnOutOrRefParam(IMethodSymbol methodSymbol)
             {
-                return methodSymbol.Parameters.Any(p => p.IsRefOrOut());
+                return methodSymbol.Parameters.Any(static p => p.IsRefOrOut());
             }
         }
 

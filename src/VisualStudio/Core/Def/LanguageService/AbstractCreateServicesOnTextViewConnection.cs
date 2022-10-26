@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.VisualStudio.Text;
@@ -94,6 +95,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             async Task InitializeServiceForOpenedDocumentOnBackgroundAsync(Document document)
             {
                 await TaskScheduler.Default;
+
+                // Preload project completion providers on a background thread since loading extensions can be slow
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1488945
+                if (document.GetLanguageService<CompletionService>() is not null)
+                    _ = CompletionService.GetProjectCompletionProviders(document.Project);
+
                 await InitializeServiceForOpenedDocumentAsync(document).ConfigureAwait(false);
             }
         }
@@ -108,10 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             // Preload completion providers on a background thread since assembly loads can be slow
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1242321
-            if (languageServices.GetService<CompletionService>() is CompletionServiceWithProviders service)
-            {
-                _ = service.GetImportedProviders().SelectAsArray(p => p.Value);
-            }
+            _ = languageServices.GetService<CompletionService>()?.GetImportedProviders().SelectAsArray(p => p.Value);
         }
     }
 }

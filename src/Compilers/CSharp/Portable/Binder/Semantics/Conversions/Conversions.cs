@@ -31,7 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new Conversions(_binder, currentRecursionDepth, IncludeNullability, otherNullabilityOpt: null);
         }
 
-        private CSharpCompilation Compilation { get { return _binder.Compilation; } }
+#nullable enable
+        protected override CSharpCompilation Compilation { get { return _binder.Compilation; } }
+#nullable disable
 
         protected override ConversionsBase WithNullabilityCore(bool includeNullability)
         {
@@ -366,6 +368,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return Conversion.NoConversion;
+        }
+
+        /// <summary>
+        /// Returns this instance if includeNullability is correct, and returns a
+        /// cached clone of this instance with distinct IncludeNullability otherwise.
+        /// </summary>
+        internal new Conversions WithNullability(bool includeNullability)
+        {
+            return (Conversions)base.WithNullability(includeNullability);
         }
     }
 }

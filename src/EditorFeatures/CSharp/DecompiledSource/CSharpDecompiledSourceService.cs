@@ -41,14 +41,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
         {
         }
 
-        public async Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, MetadataReference metadataReference, string assemblyLocation, CancellationToken cancellationToken)
+        public async Task<Document?> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, MetadataReference? metadataReference, string? assemblyLocation, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
         {
             // Get the name of the type the symbol is in
             var containingOrThis = symbol.GetContainingTypeOrThis();
             var fullName = GetFullReflectionName(containingOrThis);
 
             // Decompile
-            document = PerformDecompilation(document, fullName, symbolCompilation, metadataReference, assemblyLocation);
+            var decompiledDocument = PerformDecompilation(document, fullName, symbolCompilation, metadataReference, assemblyLocation);
+
+            if (decompiledDocument is null)
+                return null;
+
+            document = decompiledDocument;
 
             document = await AddAssemblyInfoRegionAsync(document, symbol, cancellationToken).ConfigureAwait(false);
 
@@ -56,13 +61,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             var docCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
             document = await ConvertDocCommentsToRegularCommentsAsync(document, docCommentFormattingService, cancellationToken).ConfigureAwait(false);
 
-            return await FormatDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            return await FormatDocumentAsync(document, formattingOptions, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async Task<Document> FormatDocumentAsync(Document document, CancellationToken cancellationToken)
+        public static async Task<Document> FormatDocumentAsync(Document document, SyntaxFormattingOptions options, CancellationToken cancellationToken)
         {
             var node = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 
             // Apply formatting rules
             var formattedDoc = await Formatter.FormatAsync(
@@ -75,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             return formattedDoc;
         }
 
-        private static Document PerformDecompilation(Document document, string fullName, Compilation compilation, MetadataReference? metadataReference, string assemblyLocation)
+        private static Document? PerformDecompilation(Document document, string fullName, Compilation compilation, MetadataReference? metadataReference, string? assemblyLocation)
         {
             var logger = new StringBuilder();
             var resolver = new AssemblyResolver(compilation, logger);
@@ -85,12 +89,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             if (metadataReference is not null)
                 file = resolver.TryResolve(metadataReference, PEStreamOptions.PrefetchEntireImage);
 
-            if (file is null && assemblyLocation is null)
-            {
-                throw new NotSupportedException(FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret);
-            }
+            if (file is null && assemblyLocation is not null)
+                file = new PEFile(assemblyLocation, PEStreamOptions.PrefetchEntireImage);
 
-            file ??= new PEFile(assemblyLocation, PEStreamOptions.PrefetchEntireImage);
+            if (file is null)
+                return null;
 
             // Initialize a decompiler with default settings.
             var decompiler = new CSharpDecompiler(file, resolver, new DecompilerSettings());

@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
 
         [ImportingConstructor]
@@ -40,29 +38,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             => !diagnostic.IsSuppressed ||
                diagnostic.Properties.ContainsKey(UseExpressionBodyDiagnosticAnalyzer.FixesError);
 
-        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();
-            var documentOptionSet = await context.Document.GetOptionsAsync(context.CancellationToken).ConfigureAwait(false);
 
-#if CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
-            var codeAction = new MyCodeAction(diagnostic.GetMessage(), c => FixAsync(context.Document, diagnostic, c));
-#else
             var priority = diagnostic.Severity == DiagnosticSeverity.Hidden
                 ? CodeActionPriority.Low
                 : CodeActionPriority.Medium;
 
-            var codeAction = new MyCodeAction(diagnostic.GetMessage(), priority, c => FixAsync(context.Document, diagnostic, c));
-#endif
+            var title = diagnostic.GetMessage();
 
-            context.RegisterCodeFix(
-                codeAction,
-                diagnostic);
+            RegisterCodeFix(context, title, title, priority);
+            return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -101,24 +93,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             {
                 accessorLists.Add(accessorList);
             }
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-#if CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
-#else
-            internal override CodeActionPriority Priority { get; }
-
-            public MyCodeAction(string title, CodeActionPriority priority, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-                Priority = priority;
-            }
-#endif
         }
     }
 }

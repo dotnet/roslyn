@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editing
     public class SyntaxEditor
     {
         private readonly SyntaxGenerator _generator;
-        private readonly List<Change> _changes;
+        private readonly List<Change> _changes = new();
         private bool _allowEditsOnLazilyCreatedTrackedNewNodes;
         private HashSet<SyntaxNode>? _lazyTrackedNewNodesOpt;
 
@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             OriginalRoot = root;
             _generator = generator;
-            _changes = new List<Change>();
         }
 
         [return: NotNullIfNotNull("node")]

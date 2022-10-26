@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // the XmlReader.Dispose() method will not be an explicit implementation of
             // IDisposable.Dispose()
             if ((!semanticFacts.SupportsImplicitInterfaceImplementation &&
-                typeSymbol.Locations.Any(location => location.IsInSource)) ||
+                typeSymbol.Locations.Any(static location => location.IsInSource)) ||
                 typeSymbol.TypeKind == TypeKind.Interface)
             {
                 return explicitMatches.FirstOrDefault();

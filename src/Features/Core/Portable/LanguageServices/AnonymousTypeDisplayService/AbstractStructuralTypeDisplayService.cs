@@ -78,8 +78,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             transitiveStructuralTypeReferences = OrderStructuralTypes(transitiveStructuralTypeReferences, orderSymbol);
 
             IList<SymbolDisplayPart> typeParts = new List<SymbolDisplayPart>();
-            typeParts.Add(PlainText(FeaturesResources.Types_colon));
-            typeParts.AddRange(LineBreak());
+
+            if (transitiveStructuralTypeReferences.Length > 0)
+            {
+                typeParts.Add(PlainText(FeaturesResources.Types_colon));
+                typeParts.AddRange(LineBreak());
+            }
 
             for (var i = 0; i < transitiveStructuralTypeReferences.Length; i++)
             {

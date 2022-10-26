@@ -1645,7 +1645,7 @@ class Program
 </Workspace>";
 
             await TestMissingAsync(initialWorkspace, new TestParameters(
-                codeActionOptions: CodeActionOptions.Default with { HideAdvancedMembers = true }));
+                globalOptions: Option(CompletionOptionsStorage.HideAdvancedMembers, true)));
         }
     }
 }

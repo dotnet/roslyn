@@ -72,29 +72,33 @@ namespace Microsoft.CodeAnalysis
 
             var includeDefaultSeverity = expected.Any() && expected.All(e => e.DefaultSeverity != null);
             var includeEffectiveSeverity = expected.Any() && expected.All(e => e.EffectiveSeverity != null);
-            var unmatched = actual.Select(d => new DiagnosticDescription(d, errorCodeOnly, includeDefaultSeverity, includeEffectiveSeverity))
+            var unmatchedActualDescription = actual.Select(d => new DiagnosticDescription(d, errorCodeOnly, includeDefaultSeverity, includeEffectiveSeverity))
                                   .ToList();
+            var unmatchedActualIndex = actual.Select((_, i) => i).ToList();
+            var unmatchedExpected = ArrayBuilder<DiagnosticDescription>.GetInstance();
 
             // Try to match each of the 'expected' errors to one of the 'actual' ones.
             // If any of the expected errors don't appear, fail test.
             foreach (var d in expected)
             {
-                int index = unmatched.IndexOf(d);
+                int index = unmatchedActualDescription.IndexOf(d);
                 if (index > -1)
                 {
-                    unmatched.RemoveAt(index);
+                    unmatchedActualDescription.RemoveAt(index);
+                    unmatchedActualIndex.RemoveAt(index);
                 }
                 else
                 {
-                    Assert.True(false, DiagnosticDescription.GetAssertText(expected, actual));
+                    unmatchedExpected.Add(d);
                 }
             }
 
-            // If any 'extra' errors appear that were not in the 'expected' list, fail test.
-            if (unmatched.Count > 0)
+            if (unmatchedActualDescription.Count > 0 || unmatchedExpected.Count > 0)
             {
-                Assert.True(false, DiagnosticDescription.GetAssertText(expected, actual));
+                Assert.True(false, DiagnosticDescription.GetAssertText(expected, actual, unmatchedExpected.ToArray(), actual.Select((a, i) => (a, i)).Join(unmatchedActualIndex, ai => ai.i, i => i, (ai, _) => ai.a)));
             }
+
+            unmatchedExpected.Free();
         }
 
         public static TCompilation VerifyDiagnostics<TCompilation>(this TCompilation c, params DiagnosticDescription[] expected)

@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
 
                 Dim contextLocation = (Await document.GetSyntaxTreeAsync()).GetLocation(New TextSpan(0, 0))
                 Dim generateCodeItem = DirectCast(rightItem, WrappedNavigationBarItem).UnderlyingItem
-                Dim newDocument = Await VisualBasicEditorNavigationBarItemService.GetGeneratedDocumentAsync(document, generateCodeItem, CancellationToken.None)
+                Dim newDocument = Await VisualBasicEditorNavigationBarItemService.GetGeneratedDocumentAsync(document, generateCodeItem, workspace.GlobalOptions, CancellationToken.None)
 
                 Dim actual = (Await newDocument.GetSyntaxRootAsync()).ToFullString().TrimEnd()
                 Dim expected = expectedText.NormalizedValue.TrimEnd()

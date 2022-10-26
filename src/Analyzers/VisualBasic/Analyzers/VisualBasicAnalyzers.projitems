@@ -16,9 +16,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\VisualBasicAddAccessibilityModifiers.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\VisualBasicAddAccessibilityModifiersDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\VisualBasicAddRequiredParenthesesDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\VisualBasicAnalyzerOptionsProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeofToNameof\VisualBasicConvertTypeOfToNameOfDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\VisualBasicFileHeaderDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\VisualBasicFileHeaderHelper.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\VisualBasicFormattingAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyle\VisualBasicNamingStyleDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveStatementPlacement\VisualBasicConsecutiveStatementPlacementDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\MultipleBlankLines\VisualBasicMultipleBlankLinesDiagnosticAnalyzer.vb" />

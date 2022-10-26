@@ -4,8 +4,11 @@
 
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
@@ -3385,11 +3388,7 @@ End Namespace"
 
                     Dim textView = workspace.Documents.Single().GetTextView()
 
-                    Dim handler = New ExtractMethodCommandHandler(
-                        workspace.GetService(Of IThreadingContext)(),
-                        workspace.GetService(Of ITextBufferUndoManagerProvider)(),
-                        workspace.GetService(Of IInlineRenameService)(),
-                        workspace.GetService(Of IGlobalOptionService)())
+                    Dim handler = workspace.ExportProvider.GetCommandHandler(Of ExtractMethodCommandHandler)(PredefinedCommandHandlerNames.ExtractMethod, ContentTypeNames.VisualBasicContentType)
 
                     Dim state = handler.GetCommandState(New ExtractMethodCommandArgs(textView, textView.TextBuffer))
                     Assert.True(state.IsUnspecified)

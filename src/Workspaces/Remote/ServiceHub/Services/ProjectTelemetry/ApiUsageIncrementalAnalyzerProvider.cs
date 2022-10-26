@@ -198,9 +198,6 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
             public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
                 => Task.CompletedTask;
 
-            public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
-                => false;
-
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
                 => Task.CompletedTask;
 
@@ -222,6 +219,10 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
             public int Priority => 1;
 
             public void LogAnalyzerCountSummary()
+            {
+            }
+
+            public void Shutdown()
             {
             }
         }

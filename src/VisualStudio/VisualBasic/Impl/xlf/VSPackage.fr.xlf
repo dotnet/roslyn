@@ -29,19 +29,25 @@ JSON;
 Colorize JSON strings;
 Report invalid JSON strings;
 Detect and offer editor features for JSON strings;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="translated">Souligner les variables réaffectées; afficher les indications en ligne; insérer automatiquement les constructions de fin; modifier les paramètres du listing en mode pretty; modifier le mode de contournement; insérer automatiquement les membres Interface et MustOverride; afficher ou masquer les séparateurs de ligne de procédure; activer ou désactiver les suggestions de correction des erreurs; activer ou désactiver la mise en évidence des références et des mots-clés; 
+        <target state="translated">Souligner les variables réaffectées;Afficher les indicateurs inline; Insertion automatique des constructions de fin ; Modifier les paramètres de liste de création de listes ; Modifier le mode plan ; Insertion automatique des membres Interface et MustOverride ; Afficher ou masquer les séparateurs de ligne de procédure ; Activer ou désactiver les suggestions de correction d’erreur ; Activer ou désactiver la mise en surbrillance des références et des mots clés ;
 Regex;
- expressions régulières; 
-composants associés sous le curseur; 
-Signaler les expressions régulières invalides; 
-regex;
- expression régulière; 
-JSON;
- Coloriser les chaînes JSON; 
-Signaler les chaînes JSON invalides;
- Détecter et proposer des fonctionnalités d'éditeur pour les chaînes JSON;
- Utiliser des couleurs améliorées; Schéma de couleurs de l'éditeur; Marge d'héritage; Directives d'importation;</target>
+expressions régulières ;
+composants associés sous le curseur ;
+signaler des expressions régulières non valides ;
+expression régulière ;
+expression régulière ;
+JSON ;
+coloriser les chaînes JSON ;
+signaler des chaînes JSON non valides ;
+détecter et proposer des fonctionnalités d’éditeur pour les chaînes JSON ;
+Réduire #regions sur le fichier ouvert ;
+réduire les importations à l’ouverture du fichier ;
+Réduire les implémentations de métadonnées lors de l’ouverture du fichier ;
+Utiliser des couleurs améliorées ; Modèle de couleurs de l’éditeur;Marge d’héritage;Directives d’importation;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">

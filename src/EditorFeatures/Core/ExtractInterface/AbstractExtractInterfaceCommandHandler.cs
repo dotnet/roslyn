@@ -5,10 +5,13 @@
 #nullable disable
 
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
@@ -19,9 +22,13 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
     internal abstract class AbstractExtractInterfaceCommandHandler : ICommandHandler<ExtractInterfaceCommandArgs>
     {
         private readonly IThreadingContext _threadingContext;
+        private readonly IGlobalOptionService _globalOptions;
 
-        protected AbstractExtractInterfaceCommandHandler(IThreadingContext threadingContext)
-            => _threadingContext = threadingContext;
+        protected AbstractExtractInterfaceCommandHandler(IThreadingContext threadingContext, IGlobalOptionService globalOptions)
+        {
+            _threadingContext = threadingContext;
+            _globalOptions = globalOptions;
+        }
 
         public string DisplayName => EditorFeaturesResources.Extract_Interface;
 
@@ -55,29 +62,32 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 // wait context. That means the command system won't attempt to show its own wait dialog 
                 // and also will take it into consideration when measuring command handling duration.
                 context.OperationContext.TakeOwnership();
+
                 var extractInterfaceService = document.GetLanguageService<AbstractExtractInterfaceService>();
-                var result = _threadingContext.JoinableTaskFactory.Run(() =>
-                    extractInterfaceService.ExtractInterfaceAsync(
+                _threadingContext.JoinableTaskFactory.Run(async () =>
+                {
+                    var result = await extractInterfaceService.ExtractInterfaceAsync(
                         document,
                         caretPoint.Value.Position,
+                        _globalOptions.CreateProvider(),
                         (errorMessage, severity) => workspace.Services.GetService<INotificationService>().SendNotification(errorMessage, severity: severity),
-                        CancellationToken.None));
+                        CancellationToken.None).ConfigureAwait(false);
 
-                if (result == null || !result.Succeeded)
-                {
-                    return true;
-                }
+                    if (result == null || !result.Succeeded)
+                    {
+                        return;
+                    }
 
-                if (!document.Project.Solution.Workspace.TryApplyChanges(result.UpdatedSolution))
-                {
-                    // TODO: handle failure
-                    return true;
-                }
+                    if (!document.Project.Solution.Workspace.TryApplyChanges(result.UpdatedSolution))
+                    {
+                        // TODO: handle failure
+                        return;
+                    }
 
-                // TODO: Use a threaded-wait-dialog here so we can cancel navigation.
-                var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
-                _threadingContext.JoinableTaskFactory.Run(() =>
-                    navigationService.TryNavigateToPositionAsync(workspace, result.NavigationDocumentId, 0, CancellationToken.None));
+                    var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
+                    await navigationService.TryNavigateToPositionAsync(
+                        _threadingContext, workspace, result.NavigationDocumentId, position: 0, CancellationToken.None).ConfigureAwait(false);
+                });
 
                 return true;
             }

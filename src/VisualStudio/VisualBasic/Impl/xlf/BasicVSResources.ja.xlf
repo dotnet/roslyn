@@ -7,6 +7,11 @@
         <target state="translated">貼り付け時に欠落している imports を追加する</target>
         <note>'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
+      <trans-unit id="Collapse_imports_on_file_open">
+        <source>Collapse Imports on file open</source>
+        <target state="translated">ファイルを開くときにインポートを折りたたむ</target>
+        <note />
+      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
         <target state="translated">関係演算子: = &lt;&gt; &lt; &gt; &lt;= &gt;= Like Is</target>

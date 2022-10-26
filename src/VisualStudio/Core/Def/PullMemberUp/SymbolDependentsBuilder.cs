@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             private readonly ImmutableHashSet<ISymbol> _membersInType;
             private readonly Project _project;
             private readonly ISymbolDeclarationService _declarationService;
-            private readonly HashSet<ISymbol> _dependents;
+            private readonly HashSet<ISymbol> _dependents = new();
             private readonly ISymbol _member;
             private readonly CancellationToken _cancellationToken;
 
@@ -49,7 +49,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                 _project = project;
                 _declarationService = project.LanguageServices.GetRequiredService<ISymbolDeclarationService>();
                 _membersInType = membersInType.ToImmutableHashSet();
-                _dependents = new HashSet<ISymbol>();
                 _member = member;
                 _cancellationToken = cancellationToken;
             }

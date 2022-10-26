@@ -35,7 +35,7 @@ unsafe class C
             }
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63026")]
         public async Task CPSProject_GeneralPropertyGroupUpdated()
         {
             var project = ProjectName;
@@ -48,7 +48,7 @@ unsafe class C
             VerifyPropertyOutsideConfiguration(await GetProjectFileElementAsync(project, HangMitigatingCancellationToken), "AllowUnsafeBlocks", "true");
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63026")]
         public async Task LegacyProject_AllConfigurationsUpdated()
         {
             var project = ProjectName;
@@ -60,7 +60,7 @@ unsafe class C
             VerifyPropertyInEachConfiguration(await GetProjectFileElementAsync(project, HangMitigatingCancellationToken), "AllowUnsafeBlocks", "true");
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63026")]
         [WorkItem(23342, "https://github.com/dotnet/roslyn/issues/23342")]
         public async Task LegacyProject_MultiplePlatforms_AllConfigurationsUpdated()
         {

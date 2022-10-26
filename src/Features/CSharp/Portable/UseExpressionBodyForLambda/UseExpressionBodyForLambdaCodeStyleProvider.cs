@@ -42,6 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 
         // Shared code needed by all parts of the style provider for this feature.
 
+        protected override CodeStyleOption2<ExpressionBodyPreference> GetCodeStyleOption(AnalyzerOptionsProvider provider)
+            => ((CSharpAnalyzerOptionsProvider)provider).PreferExpressionBodiedLambdas;
+
         private static ExpressionSyntax GetBodyAsExpression(LambdaExpressionSyntax declaration)
             => declaration.Body as ExpressionSyntax;
 
@@ -213,14 +216,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             }
 
             return true;
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
         }
     }
 

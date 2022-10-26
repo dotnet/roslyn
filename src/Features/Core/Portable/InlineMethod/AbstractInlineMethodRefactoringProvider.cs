@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 callerDeclarationNode,
                 inlineExpression, invocationOperation);
 
-            var nestedCodeAction = new CodeAction.CodeActionWithNestedActions(
+            var nestedCodeAction = CodeAction.CodeActionWithNestedActions.Create(
                 string.Format(FeaturesResources.Inline_0, calleeMethodSymbol.ToNameDisplayString()),
                 codeActions,
                 isInlinable: true);
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             IInvocationOperation invocationOperation)
         {
             var calleeMethodName = calleeMethodSymbol.ToNameDisplayString();
-            var codeActionRemovesCallee = new MySolutionChangeAction(
+            var codeActionRemovesCallee = CodeAction.Create(
                 string.Format(FeaturesResources.Inline_0, calleeMethodName),
                 cancellationToken =>
                     InlineMethodAsync(
@@ -265,9 +265,10 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         callerMethodNode,
                         inlineExpression,
                         invocationOperation,
-                        removeCalleeDeclarationNode: true, cancellationToken: cancellationToken));
+                        removeCalleeDeclarationNode: true, cancellationToken: cancellationToken),
+                nameof(FeaturesResources.Inline_0) + "_" + calleeMethodName);
 
-            var codeActionKeepsCallee = new MySolutionChangeAction(
+            var codeActionKeepsCallee = CodeAction.Create(
                 string.Format(FeaturesResources.Inline_and_keep_0, calleeMethodName),
                 cancellationToken =>
                     InlineMethodAsync(
@@ -279,7 +280,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         callerMethodNode,
                         inlineExpression,
                         invocationOperation,
-                        removeCalleeDeclarationNode: false, cancellationToken: cancellationToken));
+                        removeCalleeDeclarationNode: false, cancellationToken: cancellationToken),
+                nameof(FeaturesResources.Inline_and_keep_0) + "_" + calleeMethodName);
 
             return ImmutableArray.Create<CodeAction>(codeActionRemovesCallee, codeActionKeepsCallee);
         }
@@ -588,16 +590,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             return null;
-        }
-
-        private class MySolutionChangeAction : CodeAction.SolutionChangeAction
-        {
-            public MySolutionChangeAction(
-                string title,
-                Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution, title)
-            {
-            }
         }
     }
 }

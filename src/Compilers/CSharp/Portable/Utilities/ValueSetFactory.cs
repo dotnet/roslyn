@@ -55,6 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IValueSetFactory? ForType(TypeSymbol type)
         {
+            if (type.IsSpanOrReadOnlySpanChar())
+                return ForString;
             type = type.EnumUnderlyingTypeOrSelf();
             return ForSpecialType(type.SpecialType, type.IsNativeIntegerType);
         }

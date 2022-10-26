@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private DiagnosticDescriptorsInfo GetOrCreateDescriptorsInfo(DiagnosticAnalyzer analyzer)
             => _descriptorsInfo.GetValue(analyzer, CalculateDescriptorsInfo);
 
-        private DiagnosticDescriptorsInfo CalculateDescriptorsInfo(DiagnosticAnalyzer analyzer)
+        private static DiagnosticDescriptorsInfo CalculateDescriptorsInfo(DiagnosticAnalyzer analyzer)
         {
             ImmutableArray<DiagnosticDescriptor> descriptors;
             try
@@ -108,6 +108,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static bool IsTelemetryCollectionAllowed(DiagnosticAnalyzer analyzer, ImmutableArray<DiagnosticDescriptor> descriptors)
             => analyzer.IsCompilerAnalyzer() ||
                analyzer is IBuiltInAnalyzer ||
-               descriptors.Length > 0 && descriptors[0].ImmutableCustomTags().Any(t => t == WellKnownDiagnosticTags.Telemetry);
+               descriptors.Length > 0 && descriptors[0].ImmutableCustomTags().Any(static t => t == WellKnownDiagnosticTags.Telemetry);
     }
 }

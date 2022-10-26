@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.VSMac.API;
 
 internal interface IVSMacLspLoggerFactory
 {
-    Task<IVSMacLspLogger> CreateLoggerAsync(string serverTypeName, string? clientName, JsonRpc jsonRpc, CancellationToken cancellationToken);
+    Task<IVSMacLspLogger> CreateLoggerAsync(string serverTypeName, JsonRpc jsonRpc, CancellationToken cancellationToken);
 }
 
 internal interface IVSMacLspLogger

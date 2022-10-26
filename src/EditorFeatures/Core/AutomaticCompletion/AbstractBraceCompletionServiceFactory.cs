@@ -7,18 +7,15 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.AutomaticCompletion
 {
-    internal abstract class AbstractBraceCompletionServiceFactory : ForegroundThreadAffinitizedObject, IBraceCompletionServiceFactory
+    internal abstract class AbstractBraceCompletionServiceFactory : IBraceCompletionServiceFactory
     {
         private readonly ImmutableArray<IBraceCompletionService> _braceCompletionServices;
 
         protected AbstractBraceCompletionServiceFactory(
-            IEnumerable<IBraceCompletionService> braceCompletionServices,
-            IThreadingContext threadingContext)
-            : base(threadingContext)
+            IEnumerable<IBraceCompletionService> braceCompletionServices)
         {
             _braceCompletionServices = braceCompletionServices.ToImmutableArray();
         }

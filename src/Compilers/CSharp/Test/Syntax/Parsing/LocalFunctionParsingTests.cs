@@ -1098,7 +1098,7 @@ class C
             CreateCompilation(errorText).VerifyDiagnostics(
                 // (11,19): error CS1003: Syntax error, '(' expected
                 //             goo<T>) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(", ")").WithLocation(11, 19),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(").WithLocation(11, 19),
                 // (7,19): error CS0080: Constraints are not allowed on non-generic declarations
                 //             goo() where T : IFace => 5;
                 Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(7, 19),
@@ -1768,7 +1768,7 @@ class c
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 9),
                 // (5,16): error CS1031: Type expected
                 //         static static void F1() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(5, 16),
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(5, 16),
                 // (5,16): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         static static void F1() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 16),
@@ -1777,7 +1777,7 @@ class c
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(6, 9),
                 // (6,22): error CS1031: Type expected
                 //         static async static void F2() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(6, 22),
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(6, 22),
                 // (6,22): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         static async static void F2() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(6, 22)
@@ -1789,19 +1789,19 @@ class c
             UsingDeclaration(text, options: TestOptions.Regular8,
                 // (5,16): error CS1031: Type expected
                 //         static static void F1() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(5, 16),
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(5, 16),
                 // (6,22): error CS1031: Type expected
                 //         static async static void F2() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(6, 22));
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(6, 22));
             checkNodes();
 
             UsingDeclaration(text, options: TestOptions.Regular9,
                 // (5,16): error CS1031: Type expected
                 //         static static void F1() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(5, 16),
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(5, 16),
                 // (6,22): error CS1031: Type expected
                 //         static async static void F2() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(6, 22));
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(6, 22));
             checkNodes();
 
             void checkNodes()
