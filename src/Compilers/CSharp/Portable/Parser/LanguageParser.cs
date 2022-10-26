@@ -12912,10 +12912,29 @@ tryAgain:
         private PostSkipAction SkipBadInitializerListTokens<T>(ref SyntaxToken startToken, SeparatedSyntaxListBuilder<T> list, SyntaxKind expected)
             where T : CSharpSyntaxNode
         {
+            Func<LanguageParser, bool> abortFunc = p =>
+            {
+                if (p.CurrentToken.Kind == SyntaxKind.SemicolonToken)
+                {
+                    return p.IsNextToken(lp => lp.CurrentToken.Kind != SyntaxKind.CloseBraceToken && !lp.IsPossibleVariableInitializer());
+                }
+                return p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator();
+            };
+
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref startToken, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleExpression(),
-                p => p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator(),
+                abortFunc,
                 expected);
+        }
+
+        private T IsNextToken<T>(Func<LanguageParser, T> nextTokenParseFunc)
+        {
+            var resetPoint = this.GetResetPoint();
+            this.EatToken();
+            T result = nextTokenParseFunc(this);
+            this.Reset(ref resetPoint);
+            this.Release(ref resetPoint);
+            return result;
         }
 
         private ExpressionSyntax ParseObjectInitializerNamedAssignment()
@@ -13129,7 +13148,7 @@ tryAgain:
         {
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref openBrace, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleVariableInitializer(),
-                p => p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator(),
+                p => p.CurrentToken.Kind == SyntaxKind.SemicolonToken && !p.IsNextToken(lp => lp.IsPossibleVariableInitializer()) && (p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator()),
                 expected);
         }
 
