@@ -552,7 +552,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            diagnostics.Add(ErrorCode.ERR_NonConstantConversionInConstantPattern, patternExpression.Location, expression.Type!, inputType);
+                            Debug.Assert(expression.Type is not null);
+                            diagnostics.Add(ErrorCode.ERR_NonConstantConversionInConstantPattern, patternExpression.Location, expression.Type, inputType);
                         }
                     }
                     else
