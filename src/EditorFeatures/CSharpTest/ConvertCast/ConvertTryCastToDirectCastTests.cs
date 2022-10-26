@@ -257,7 +257,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/64466")]
+        [Fact]
         [WorkItem(64466, "https://github.com/dotnet/roslyn/issues/64466")]
         public async Task ConvertFromExplicitToAs_NullableValueType()
         {

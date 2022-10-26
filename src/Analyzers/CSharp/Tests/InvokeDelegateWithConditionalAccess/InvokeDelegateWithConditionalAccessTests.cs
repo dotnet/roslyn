@@ -944,5 +944,22 @@ class C
     }
 }");
         }
+
+        [Fact, WorkItem(50976, "https://github.com/dotnet/roslyn/issues/50976")]
+        public async Task TestMissingOnFunctionPointer()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    unsafe void M(delegate* managed<void> func)
+    {
+        if (func != null)
+        {
+            [||]func();
+        }
+    }
+}");
+        }
     }
 }

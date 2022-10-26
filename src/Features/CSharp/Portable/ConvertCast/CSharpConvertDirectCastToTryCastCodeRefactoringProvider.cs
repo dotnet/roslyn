@@ -37,15 +37,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertCast
         protected override TypeSyntax GetTypeNode(CastExpressionSyntax from)
             => from.Type;
 
-        protected override BinaryExpressionSyntax ConvertExpression(CastExpressionSyntax castExpression, NullableContext nullableContext)
+        protected override BinaryExpressionSyntax ConvertExpression(CastExpressionSyntax castExpression, NullableContext nullableContext, bool isReferenceType)
         {
             var typeNode = castExpression.Type;
             var expression = castExpression.Expression;
 
-            // Cannot use nullable types in `as` expression
+            // Cannot use nullable reference types in `as` expression
             // This check ensures we unwrap any nullables, e.g.
             // `(string?)null` -> `null as string`
-            if (typeNode is NullableTypeSyntax nullableType)
+            if (typeNode is NullableTypeSyntax nullableType && isReferenceType)
                 typeNode = nullableType.ElementType;
 
             // Trivia handling
