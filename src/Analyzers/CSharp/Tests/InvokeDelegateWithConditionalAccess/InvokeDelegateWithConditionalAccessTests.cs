@@ -944,5 +944,64 @@ class C
     }
 }");
         }
+
+        [Fact, WorkItem(31827, "https://github.com/dotnet/roslyn/issues/31827")]
+        public async Task TestWithExplicitInvokeCall1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        [||]if (Event != null)
+            Event.Invoke(this, EventArgs.Empty);
+    }
+
+    event EventHandler Event;
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        Event?.Invoke(this, EventArgs.Empty);
+    }
+
+    event EventHandler Event;
+}");
+        }
+
+        [Fact, WorkItem(31827, "https://github.com/dotnet/roslyn/issues/31827")]
+        public async Task TestWithExplicitInvokeCall2()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    System.Action a;
+
+    void Goo()
+    {
+        [||]var v = a;
+        if (v != null)
+        {
+            v.Invoke();
+        }
+    }
+}",
+@"class C
+{
+    System.Action a;
+
+    void Goo()
+    {
+        a?.Invoke();
+    }
+}");
+        }
     }
 }
