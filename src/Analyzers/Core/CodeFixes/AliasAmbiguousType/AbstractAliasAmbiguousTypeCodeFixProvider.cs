@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
         {
             public static readonly IComparer<string> Instance = new SortSystemFirstComparer();
 
-            public int Compare(string x, string y)
+            public int Compare(string? x, string? y)
             {
                 var xIsSystem = x == nameof(System);
                 var yIsSystem = y == nameof(System);
