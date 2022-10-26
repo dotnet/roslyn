@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
         protected override TextChange GenerateSnippetTextChange(Document document, int position)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
-            var ifStatement = generator.WhileStatement(generator.TrueLiteralExpression(), Array.Empty<SyntaxNode>());
+            var whileStatement = generator.WhileStatement(generator.TrueLiteralExpression(), Array.Empty<SyntaxNode>());
 
             return new TextChange(TextSpan.FromBounds(position, position), ifStatement.ToFullString());
         }
