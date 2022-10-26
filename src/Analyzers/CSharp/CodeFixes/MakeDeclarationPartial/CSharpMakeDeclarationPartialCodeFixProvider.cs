@@ -12,6 +12,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.MakeDeclarationPartial;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeDeclarationPartial
 {
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeDeclarationPartial
         private const string CS0260 = nameof(CS0260);
 
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpMakeDeclarationPartialCodeFixProvider()
         {
         }

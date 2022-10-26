@@ -2,31 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.MakeDeclarationPartial;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CSharp.UnitTests.MakeDeclarationPartial
 {
+    using VerifyCS = CSharpCodeFixVerifier<
+        EmptyDiagnosticAnalyzer,
+        CSharpMakeDeclarationPartialCodeFixProvider>;
+
     [Trait(Traits.Feature, Traits.Features.CodeActionsMakeDeclarationPartial)]
-    public sealed class MakeDeclarationPartialTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public sealed class MakeDeclarationPartialTests
     {
-        public MakeDeclarationPartialTests(ITestOutputHelper logger)
-            : base(logger)
-        {
-        }
-
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new CSharpMakeDeclarationPartialCodeFixProvider());
-
         public static IEnumerable<object[]> AllValidDeclarationTypes()
         {
             yield return new[] { "class" };
@@ -40,195 +32,226 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharp.UnitTests.MakeDeclarationPartial
         [MemberData(nameof(AllValidDeclarationTypes))]
         public async Task OutsideNamespace(string declarationType)
         {
-            await TestInRegularAndScriptAsync($$"""
+            await new VerifyCS.Test
+            {
+                TestCode = $$"""
                 partial {{declarationType}} Declaration
                 {
                 }
-
-                {{declarationType}} [|Declaration|]
+                
+                {{declarationType}} {|CS0260:Declaration|}
                 {
                 }
-                """, $$"""
+                """,
+                FixedCode = $$"""
                 partial {{declarationType}} Declaration
                 {
                 }
-
-                partial {{declarationType}} [|Declaration|]
+                
+                partial {{declarationType}} Declaration
                 {
                 }
-                """);
+                """,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
         }
 
         [Theory]
         [MemberData(nameof(AllValidDeclarationTypes))]
         public async Task InsideOneFileScopedNamespace(string declarationType)
         {
-            await TestInRegularAndScriptAsync($$"""
+            await new VerifyCS.Test
+            {
+                TestCode = $$"""
                 namespace TestNamespace;
-
+                
                 partial {{declarationType}} Declaration
                 {
                 }
-
-                {{declarationType}} [|Declaration|]
+                
+                {{declarationType}} {|CS0260:Declaration|}
                 {
                 }
-                """, $$"""
+                """,
+                FixedCode = $$"""
                 namespace TestNamespace;
-
+                
                 partial {{declarationType}} Declaration
                 {
                 }
-
-                partial {{declarationType}} [|Declaration|]
+                
+                partial {{declarationType}} Declaration
                 {
                 }
-                """);
+                """,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
         }
 
         [Theory]
         [MemberData(nameof(AllValidDeclarationTypes))]
         public async Task InsideOneBlockScopedNamespace(string declarationType)
         {
-            await TestInRegularAndScriptAsync($$"""
+            await new VerifyCS.Test
+            {
+                TestCode = $$"""
                 namespace TestNamespace
                 {
                     partial {{declarationType}} Declaration
                     {
                     }
-
-                    {{declarationType}} [|Declaration|]
+                
+                    {{declarationType}} {|CS0260:Declaration|}
                     {
                     }
                 }
-                """, $$"""
+                """,
+                FixedCode = $$"""
                 namespace TestNamespace
                 {
                     partial {{declarationType}} Declaration
                     {
                     }
-
-                    partial {{declarationType}} [|Declaration|]
+                
+                    partial {{declarationType}} Declaration
                     {
                     }
                 }
-                """);
+                """,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
         }
 
         [Theory]
         [MemberData(nameof(AllValidDeclarationTypes))]
         public async Task InsideTwoEqualBlockScopedNamespaces(string declarationType)
         {
-            await TestInRegularAndScriptAsync($$"""
+            await new VerifyCS.Test
+            {
+                TestCode = $$"""
                 namespace TestNamespace
                 {
                     partial {{declarationType}} Declaration
                     {
                     }
                 }
-
+                
                 namespace TestNamespace
                 {
-                    {{declarationType}} [|Declaration|]
+                    {{declarationType}} {|CS0260:Declaration|}
                     {
                     }
                 }
-                """, $$"""
+                """,
+                FixedCode = $$"""
                 namespace TestNamespace
                 {
                     partial {{declarationType}} Declaration
                     {
                     }
                 }
-
+                
                 namespace TestNamespace
                 {
-                    partial {{declarationType}} [|Declaration|]
+                    partial {{declarationType}} Declaration
                     {
                     }
                 }
-                """);
+                """,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
         }
 
         [Theory]
         [MemberData(nameof(AllValidDeclarationTypes))]
         public async Task InDifferentDocuments(string declarationType)
         {
-            await TestInRegularAndScriptAsync($$"""
-                <Workspace>
-                    <Project Language="C#">
-                        <Document>
+            var document1 = $$"""
                 partial {{declarationType}} Declaration
                 {
                 }
-                        </Document>
-                        <Document>
-                {{declarationType}} [|Declaration|]
+                """;
+
+            var document2 = $$"""
+                {{declarationType}} {|CS0260:Declaration|}
                 {
                 }
-                        </Document>
-                    </Project>
-                </Workspace>
-                """, $$"""
-                <Workspace>
-                    <Project Language="C#">
-                        <Document>
+                """;
+
+            var fixedDocument2 = $$"""
                 partial {{declarationType}} Declaration
                 {
                 }
-                        </Document>
-                        <Document>
-                partial {{declarationType}} [|Declaration|]
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestState =
                 {
-                }
-                        </Document>
-                    </Project>
-                </Workspace>
-                """);
+                    Sources = { document1, document2 }
+                },
+                FixedState =
+                {
+                    Sources = { document1, fixedDocument2 }
+                },
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
         }
 
         [Theory]
         [MemberData(nameof(AllValidDeclarationTypes))]
         public async Task WithOtherModifiers(string declarationType)
         {
-            await TestInRegularAndScriptAsync($$"""
+            await new VerifyCS.Test
+            {
+                TestCode = $$"""
                 public partial {{declarationType}} Declaration
                 {
                 }
-
-                public {{declarationType}} [|Declaration|]
+                
+                public {{declarationType}} {|CS0260:Declaration|}
                 {
                 }
-                """, $$"""
+                """,
+                FixedCode = $$"""
                 public partial {{declarationType}} Declaration
                 {
                 }
-
-                public partial {{declarationType}} [|Declaration|]
+                
+                public partial {{declarationType}} Declaration
                 {
                 }
-                """);
+                """,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
         }
 
         [Theory]
         [MemberData(nameof(AllValidDeclarationTypes))]
         public async Task NotInDifferentNamespaces(string declarationType)
         {
-            await TestMissingInRegularAndScriptAsync($$"""
+            var markup = $$"""
                 namespace TestNamespace1
                 {
                     partial {{declarationType}} Declaration
                     {
                     }
                 }
-
+                
                 namespace TestNamespace2
                 {
-                    {{declarationType}} [|Declaration|]
+                    {{declarationType}} Declaration
                     {
                     }
                 }
-                """);
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = markup,
+                FixedCode = markup,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
         }
     }
 }

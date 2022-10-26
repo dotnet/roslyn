@@ -9,7 +9,7 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.MakeDeclarationpartial
+Namespace Microsoft.CodeAnalysis.VisualBasic.MakeDeclarationPartial
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.MakeDeclarationPartial), [Shared]>
     Friend Class VisualBasicMakeDeclarationPartialCodeFixProvider
         Inherits AbstractMakeDeclarationPartialCodeFixProvider(Of TypeStatementSyntax)
