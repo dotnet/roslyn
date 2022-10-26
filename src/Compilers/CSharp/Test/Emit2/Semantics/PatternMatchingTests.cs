@@ -11787,7 +11787,7 @@ ref struct G<T> where T : class
 
         [Fact]
         [WorkItem(63476, "https://github.com/dotnet/roslyn/issues/63476")]
-        public void PatternNonConstant_UserDefined_ConvertionToInputType()
+        public void PatternNonConstant_UserDefinedImplicit_ConvertionToInputType()
         {
             var source =
 @"
@@ -11801,9 +11801,32 @@ class C
 }";
             CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                    // (8,38): error CS9098: Cannot implicitly convert type 'string' to type 'A' using user-defined conversion in pattern expression
-                    //     static bool M(A a) => a switch { "convertme" => true, _ => false };
-                    Diagnostic(ErrorCode.ERR_NonConstantConversionInConstantPattern, @"""implicitA""").WithArguments("string", "A").WithLocation(8, 38));
+                    // (8,38): error CS9098: Cannot convert type 'string' to type 'A' using user-defined conversion in pattern expression
+                    //     static bool M(A a) => a switch { "implicitA" => true, _ => false };
+                    Diagnostic(ErrorCode.ERR_NonConstantConversionInConstantPattern, @"""implicitA""").WithArguments("string", "A").WithLocation(8, 38)
+                );
+        }
+
+        [Fact]
+        [WorkItem(63476, "https://github.com/dotnet/roslyn/issues/63476")]
+        public void PatternNonConstant_UserDefinedExplicit_ConvertionToInputType()
+        {
+            var source =
+@"
+class A {
+    public string S { get; set; }
+    public static implicit operator A(string s) { return new A { S = s }; }
+}
+class C
+{
+    static bool M(A a) => a switch { (A)""castedA"" => true, _ => false };
+}";
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (8,38): error CS9098: Cannot convert type 'string' to type 'A' using user-defined conversion in pattern expression
+                    //     static bool M(A a) => a switch { "implicitA" => true, _ => false };
+                    Diagnostic(ErrorCode.ERR_NonConstantConversionInConstantPattern, @"(A)""castedA""").WithArguments("string", "A").WithLocation(8, 38)
+                );
         }
 
         [Fact]
@@ -11817,13 +11840,13 @@ class C
     static bool M(ReadOnlySpan<char> chars) => chars switch { """" => true, _ => false };
 }";
             CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
-                .VerifyDiagnostics(); //allowed due to built in conversion
+                .VerifyDiagnostics(); // Allowed due to built in conversion
         }
 
         [Fact]
         public void PatternNoImplicitConvertionToInputType()
         {
-            //cannot implicitly cast long to byte..
+            // Cannot implicitly cast long to byte..
             var source =
 @"
 class C
