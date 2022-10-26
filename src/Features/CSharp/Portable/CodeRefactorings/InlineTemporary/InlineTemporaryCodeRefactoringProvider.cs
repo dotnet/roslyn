@@ -136,8 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
         private static async Task<Document> InlineTemporaryAsync(Document document, VariableDeclaratorSyntax declarator, CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
             // Create the expression that we're actually going to inline.
             var expressionToInline = await CreateExpressionToInlineAsync(document, declarator, cancellationToken).ConfigureAwait(false);
             expressionToInline = expressionToInline.WithoutTrivia().Parenthesize().WithAdditionalAnnotations(Simplifier.Annotation, ExpressionAnnotation);
