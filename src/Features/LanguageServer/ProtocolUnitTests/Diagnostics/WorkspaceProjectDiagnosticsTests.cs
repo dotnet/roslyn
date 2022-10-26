@@ -13,11 +13,16 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
 public class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
 {
+    public WorkspaceProjectDiagnosticsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+    {
+    }
+
     [Theory, CombinatorialData]
     public async Task TestWorkspaceDiagnosticsReportsProjectDiagnostic(bool useVSDiagnostics)
     {
@@ -63,8 +68,10 @@ public class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
 
     protected override TestComposition Composition => base.Composition.AddParts(typeof(MockProjectDiagnosticAnalyzer));
 
-    private protected override TestAnalyzerReferenceByLanguage TestAnalyzerReferences => new(ImmutableDictionary.Create<string, ImmutableArray<DiagnosticAnalyzer>>()
-        .Add(LanguageNames.CSharp, ImmutableArray.Create(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp), new MockProjectDiagnosticAnalyzer())));
+    private protected override TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()
+        => new(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty.Add(LanguageNames.CSharp, ImmutableArray.Create(
+            DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp),
+            new MockProjectDiagnosticAnalyzer())));
 
     [DiagnosticAnalyzer(LanguageNames.CSharp), PartNotDiscoverable]
     private class MockProjectDiagnosticAnalyzer : DiagnosticAnalyzer

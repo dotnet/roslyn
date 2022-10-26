@@ -8846,5 +8846,73 @@ class C
     }
 }", optionName);
         }
+
+        [Fact]
+        [WorkItem(64291, "https://github.com/dotnet/roslyn/issues/64291")]
+        public async Task TestImplicitObjectCreationInInitialization()
+        {
+            var source =
+@"class C
+{
+    void M()
+    {
+        C {|IDE0059:c|} = new();
+    }
+}";
+            var fixedSource =
+@"class C
+{
+    void M()
+    {
+        _ = new C();
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(64291, "https://github.com/dotnet/roslyn/issues/64291")]
+        public async Task TestImplicitObjectCreationInAssignement()
+        {
+            var source =
+@"class C
+{
+    void M(C c)
+    {
+        System.Console.WriteLine(c);
+        {|IDE0059:c|} = new();
+    }
+}";
+            var fixedSource =
+@"class C
+{
+    void M(C c)
+    {
+        System.Console.WriteLine(c);
+        _ = new C();
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
     }
 }

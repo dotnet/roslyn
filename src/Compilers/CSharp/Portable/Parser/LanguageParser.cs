@@ -4913,7 +4913,7 @@ tryAgain:
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
             try
             {
-                this.ParseVariableDeclarators(type, flags: 0, variables: variables, parentKind: parentKind);
+                this.ParseVariableDeclarators(type, flags: VariableFlags.LocalOrField, variables: variables, parentKind: parentKind);
 
                 // Make 'scoped' part of the type when it is the last token in the modifiers list
                 if (modifiers.Count != 0 && modifiers[modifiers.Count - 1] is SyntaxToken { Kind: SyntaxKind.ScopedKeyword } scopedKeyword)
@@ -5081,7 +5081,7 @@ tryAgain:
         {
             Fixed = 0x01,
             Const = 0x02,
-            Local = 0x04
+            LocalOrField = 0x04
         }
 
         private static SyntaxTokenList GetOriginalModifiers(CSharp.CSharpSyntaxNode decl)
@@ -5150,7 +5150,7 @@ tryAgain:
 
             if (parent != null && (parent.Kind() == SyntaxKind.VariableDeclaration || parent.Kind() == SyntaxKind.LocalDeclarationStatement))
             {
-                flags |= VariableFlags.Local;
+                flags |= VariableFlags.LocalOrField;
             }
 
             return flags;
@@ -5284,7 +5284,7 @@ tryAgain:
             TerminatorState saveTerm = _termState;
             bool isFixed = (flags & VariableFlags.Fixed) != 0;
             bool isConst = (flags & VariableFlags.Const) != 0;
-            bool isLocal = (flags & VariableFlags.Local) != 0;
+            bool isLocalOrField = (flags & VariableFlags.LocalOrField) != 0;
 
             // Give better error message in the case where the user did something like:
             //
@@ -5308,7 +5308,7 @@ tryAgain:
                     var equals = this.EatToken();
 
                     SyntaxToken refKeyword = null;
-                    if (isLocal && !isConst &&
+                    if (isLocalOrField && !isConst &&
                         this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
                         // check for lambda expression with explicit ref return type: `ref int () => { ... }`
                         !this.IsPossibleLambdaExpression(Precedence.Expression)
@@ -9261,7 +9261,7 @@ tryAgain:
 
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
 
-            var variable = ParseExpressionOrDeclaration(ParseTypeMode.Normal, feature: MessageID.IDS_FeatureTuples, permitTupleDesignation: true, permitScoped: true);
+            var variable = ParseExpressionOrDeclaration(ParseTypeMode.Normal, feature: MessageID.IDS_FeatureTuples, permitTupleDesignation: true);
             var @in = this.EatToken(SyntaxKind.InKeyword, ErrorCode.ERR_InExpected);
             if (!IsValidForeachVariable(variable))
             {
@@ -9338,17 +9338,17 @@ tryAgain:
         //
         // See also ScanTypeArgumentList where these disambiguation rules are encoded.
         //
-        private ExpressionSyntax ParseExpressionOrDeclaration(ParseTypeMode mode, MessageID feature, bool permitTupleDesignation, bool permitScoped)
+        private ExpressionSyntax ParseExpressionOrDeclaration(ParseTypeMode mode, MessageID feature, bool permitTupleDesignation)
         {
             bool isScoped;
-            return IsPossibleDeclarationExpression(mode, permitTupleDesignation, permitScoped, out isScoped)
+            return IsPossibleDeclarationExpression(mode, permitTupleDesignation, out isScoped)
                 ? this.ParseDeclarationExpression(mode, feature, isScoped)
                 : this.ParseSubExpression(Precedence.Expression);
         }
 
-        private bool IsPossibleDeclarationExpression(ParseTypeMode mode, bool permitTupleDesignation, bool permitScoped, out bool isScoped)
+        private bool IsPossibleDeclarationExpression(ParseTypeMode mode, bool permitTupleDesignation, out bool isScoped)
         {
-            Debug.Assert(mode == ParseTypeMode.Normal || !permitScoped);
+            Debug.Assert(mode is ParseTypeMode.Normal or ParseTypeMode.FirstElementOfPossibleTupleLiteral or ParseTypeMode.AfterTupleComma);
             isScoped = false;
 
             if (this.IsInAsync && this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword)
@@ -9360,13 +9360,35 @@ tryAgain:
             var resetPoint = this.GetResetPoint();
             try
             {
-                if (permitScoped && this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword && mode == ParseTypeMode.Normal)
+                if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
                 {
                     this.EatToken();
                     if (ScanType() != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
                     {
-                        isScoped = true;
-                        return true;
+                        switch (mode)
+                        {
+                            case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
+                                if (this.PeekToken(1).Kind == SyntaxKind.CommaToken)
+                                {
+                                    isScoped = true;
+                                    return true;
+                                }
+                                break;
+
+                            case ParseTypeMode.AfterTupleComma:
+                                if (this.PeekToken(1).Kind is SyntaxKind.CommaToken or SyntaxKind.CloseParenToken)
+                                {
+                                    isScoped = true;
+                                    return true;
+                                }
+                                break;
+
+                            default:
+                                // The other case where we disambiguate between a declaration and expression is before the `in` of a foreach loop.
+                                // There we err on the side of accepting a declaration.
+                                isScoped = true;
+                                return true;
+                        }
                     }
 
                     this.Reset(ref resetPoint);
@@ -10130,7 +10152,7 @@ tryAgain:
         {
             type = allowLocalFunctions ? ParseReturnType() : this.ParseType();
 
-            VariableFlags flags = VariableFlags.Local;
+            VariableFlags flags = VariableFlags.LocalOrField;
             if (mods.Any((int)SyntaxKind.ConstKeyword))
             {
                 flags |= VariableFlags.Const;
@@ -11805,7 +11827,7 @@ tryAgain:
                 // that the ref/out of the argument must match the parameter when binding the argument list.
 
                 expression = (refKindKeyword?.Kind == SyntaxKind.OutKeyword)
-                    ? ParseExpressionOrDeclaration(ParseTypeMode.Normal, feature: MessageID.IDS_FeatureOutVar, permitTupleDesignation: false, permitScoped: false)
+                    ? ParseExpressionOrDeclaration(ParseTypeMode.Normal, feature: MessageID.IDS_FeatureOutVar, permitTupleDesignation: false)
                     : ParseSubExpression(Precedence.Expression);
             }
 
@@ -12108,7 +12130,7 @@ tryAgain:
                 {
                     this.Reset(ref resetPoint);
                     var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-                    var expression = this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, feature: 0, permitTupleDesignation: true, permitScoped: false);
+                    var expression = this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, feature: 0, permitTupleDesignation: true);
 
                     //  ( <expr>,    must be a tuple
                     if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
@@ -12121,7 +12143,7 @@ tryAgain:
                     if (expression.Kind == SyntaxKind.IdentifierName && this.CurrentToken.Kind == SyntaxKind.ColonToken)
                     {
                         var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
-                        expression = this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, feature: 0, permitTupleDesignation: true, permitScoped: false);
+                        expression = this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, feature: 0, permitTupleDesignation: true);
 
                         var firstArg = _syntaxFactory.Argument(nameColon, refKindKeyword: null, expression: expression);
                         return ParseTupleExpressionTail(openParen, firstArg);
@@ -12151,11 +12173,11 @@ tryAgain:
 
                     ArgumentSyntax arg;
 
-                    var expression = ParseExpressionOrDeclaration(ParseTypeMode.AfterTupleComma, feature: 0, permitTupleDesignation: true, permitScoped: false);
+                    var expression = ParseExpressionOrDeclaration(ParseTypeMode.AfterTupleComma, feature: 0, permitTupleDesignation: true);
                     if (expression.Kind == SyntaxKind.IdentifierName && this.CurrentToken.Kind == SyntaxKind.ColonToken)
                     {
                         var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
-                        expression = ParseExpressionOrDeclaration(ParseTypeMode.AfterTupleComma, feature: 0, permitTupleDesignation: true, permitScoped: false);
+                        expression = ParseExpressionOrDeclaration(ParseTypeMode.AfterTupleComma, feature: 0, permitTupleDesignation: true);
                         arg = _syntaxFactory.Argument(nameColon, refKindKeyword: null, expression: expression);
                     }
                     else

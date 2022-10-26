@@ -10,6 +10,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -121,6 +122,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
                     context.AddTag(new TagSpan<KeywordHighlightTag>(span.ToSnapshotSpan(snapshot), KeywordHighlightTag.Instance));
                 }
             }
+        }
+
+        protected override bool TagEquals(KeywordHighlightTag tag1, KeywordHighlightTag tag2)
+        {
+            Contract.ThrowIfFalse(tag1 == tag2, "KeywordHighlightTag is supposed to be a singleton");
+            return true;
         }
     }
 }
