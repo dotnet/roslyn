@@ -92,9 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             context.RegisterRefactoring(
                 CodeAction.Create(
-                    CSharpFeaturesResources.Inline_temporary_variable,
+                    FeaturesResources.Inline_temporary_variable,
                     c => InlineTemporaryAsync(document, variableDeclarator, c),
-                    nameof(CSharpFeaturesResources.Inline_temporary_variable)),
+                    nameof(FeaturesResources.Inline_temporary_variable)),
                 variableDeclarator.Span);
         }
 

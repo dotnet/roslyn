@@ -975,6 +975,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">"{0}" inline einbinden und beibehalten</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_temporary_variable">
+        <source>Inline temporary variable</source>
+        <target state="new">Inline temporary variable</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
         <source>Insufficient hexadecimal digits</source>
         <target state="translated">Nicht genügend Hexadezimalziffern.</target>
