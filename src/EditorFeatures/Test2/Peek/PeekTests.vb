@@ -181,7 +181,6 @@ End Module
                 Assert.Equal(1, result.Items.Count)
                 result.AssertNavigatesToIdentifier(0, "Identifier")
             End Using
-
         End Sub
 
         <WpfFact, WorkItem(820363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820363")>
@@ -212,6 +211,36 @@ public class Component
     public void M()
     {
     }
+}
+                                                          ]]></Document>
+                                                      </Project>
+                                                  </Workspace>)
+                Dim result = GetPeekResultCollection(workspace)
+
+                Assert.Equal(1, result.Items.Count)
+                result.AssertNavigatesToIdentifier(0, "Identifier")
+            End Using
+        End Sub
+
+        <WpfFact, WorkItem(64615, "https://github.com/dotnet/roslyn/issues/64615")>
+        Public Sub TestPartialMethods()
+            Using workspace = CreateTestWorkspace(<Workspace>
+                                                      <Project Language="C#" CommonReferences="true">
+                                                          <Document><![CDATA[
+public partial class D
+{
+    public void M()
+    {
+        $$PartialMethod();
+    }
+
+    partial void PartialMethod();
+}
+                                                          ]]></Document>
+                                                          <Document><![CDATA[
+public partial class D
+{
+    partial void {|Identifier:PartialMethod|}() { }
 }
                                                           ]]></Document>
                                                       </Project>

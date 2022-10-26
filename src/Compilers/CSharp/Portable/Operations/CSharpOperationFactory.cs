@@ -703,7 +703,9 @@ namespace Microsoft.CodeAnalysis.Operations
             ConstantValue? constantValue = boundObjectCreationExpression.ConstantValue;
             bool isImplicit = boundObjectCreationExpression.WasCompilerGenerated;
 
-            if (boundObjectCreationExpression.ResultKind == LookupResultKind.OverloadResolutionFailure || constructor == null || constructor.OriginalDefinition is ErrorMethodSymbol)
+            Debug.Assert(constructor is not null);
+
+            if (boundObjectCreationExpression.ResultKind == LookupResultKind.OverloadResolutionFailure || constructor.OriginalDefinition is ErrorMethodSymbol)
             {
                 var children = CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundObjectCreationExpression).InvalidNodeChildren);
                 return new InvalidOperation(children, _semanticModel, syntax, type, constantValue, isImplicit);
