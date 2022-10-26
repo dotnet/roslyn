@@ -7383,6 +7383,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A deconstruction variable cannot be declared as a ref local</value>
   </data>
   <data name="ERR_NonConstantConversionInConstantPattern" xml:space="preserve">
-    <value>Cannot implicitly convert type '{0}' to type '{1}' using user-defined conversion in pattern expression</value>
+    <value>Cannot convert type '{0}' to type '{1}' using user-defined conversion in pattern expression</value>
   </data>
 </root>

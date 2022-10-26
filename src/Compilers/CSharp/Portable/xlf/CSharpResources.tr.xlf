@@ -1068,8 +1068,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonConstantConversionInConstantPattern">
-        <source>Cannot implicitly convert type '{0}' to type '{1}' using user-defined conversion in pattern expression</source>
-        <target state="new">Cannot implicitly convert type '{0}' to type '{1}' using user-defined conversion in pattern expression</target>
+        <source>Cannot convert type '{0}' to type '{1}' using user-defined conversion in pattern expression</source>
+        <target state="new">Cannot convert type '{0}' to type '{1}' using user-defined conversion in pattern expression</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
