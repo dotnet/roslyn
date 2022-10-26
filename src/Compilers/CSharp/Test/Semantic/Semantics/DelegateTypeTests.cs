@@ -12632,6 +12632,29 @@ class Program
         }
 
         [Fact]
+        public void CallerInfoAttributes_Lambda_NoDefaultValue()
+        {
+            var source = """
+                using System.Runtime.CompilerServices;
+                var lam1 = ([CallerMemberName] string member, [CallerFilePath] string filePath, [CallerLineNumber] int lineNumber) => { };
+                var lam2 = (int arg, [CallerArgumentExpression("arg")] string argExpression) => { };
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net60).VerifyDiagnostics(
+                // (2,14): error CS4022: The CallerMemberNameAttribute may only be applied to parameters with default values
+                // var lam1 = ([CallerMemberName] string member, [CallerFilePath] string filePath, [CallerLineNumber] int lineNumber) => { };
+                Diagnostic(ErrorCode.ERR_BadCallerMemberNameParamWithoutDefaultValue, "CallerMemberName").WithLocation(2, 14),
+                // (2,48): error CS4021: The CallerFilePathAttribute may only be applied to parameters with default values
+                // var lam1 = ([CallerMemberName] string member, [CallerFilePath] string filePath, [CallerLineNumber] int lineNumber) => { };
+                Diagnostic(ErrorCode.ERR_BadCallerFilePathParamWithoutDefaultValue, "CallerFilePath").WithLocation(2, 48),
+                // (2,82): error CS4020: The CallerLineNumberAttribute may only be applied to parameters with default values
+                // var lam1 = ([CallerMemberName] string member, [CallerFilePath] string filePath, [CallerLineNumber] int lineNumber) => { };
+                Diagnostic(ErrorCode.ERR_BadCallerLineNumberParamWithoutDefaultValue, "CallerLineNumber").WithLocation(2, 82),
+                // (3,23): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+                // var lam2 = (int arg, [CallerArgumentExpression("arg")] string argExpression) => { };
+                Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(3, 23));
+        }
+
+        [Fact]
         public void LambdaDefaultParameterMatchesDelegateAfterBinding()
         {
             var source = """
