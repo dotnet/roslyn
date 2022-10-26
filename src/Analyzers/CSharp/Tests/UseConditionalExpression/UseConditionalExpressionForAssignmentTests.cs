@@ -326,7 +326,7 @@ class C
     {
         [|if|] (true)
         {
-            this.i = 0;
+            this.{|CS1061:i|} = 0;
         }
         else
         {
@@ -339,7 +339,7 @@ class C
 {
     void M()
     {
-        this.i = true ? 0 : throw new System.Exception();
+        this.{|CS1061:i|} = true ? 0 : throw new System.Exception();
     }
 }");
         }
@@ -368,6 +368,8 @@ class C
 @"
 class C
 {
+    private int i;
+
     void M()
     {
         this.i = true ? 0 : 1;
@@ -607,6 +609,8 @@ class C
             i = 1;
         }
     }
+
+    int Foo() => 0;
 }",
 @"
 class C
@@ -616,6 +620,8 @@ class C
         int i = Foo();
         i = true ? 0 : 1;
     }
+
+    int Foo() => 0;
 }");
         }
 
@@ -624,6 +630,8 @@ class C
         {
             await TestInRegularAndScript1Async(
 @"
+using System;
+
 class C
 {
     void M()
@@ -641,6 +649,8 @@ class C
     }
 }",
 @"
+using System;
+
 class C
 {
     void M()
@@ -671,6 +681,8 @@ class C
             i = 1;
         }
     }
+
+    bool Bar(int i) => true;
 }",
 @"
 class C
@@ -680,6 +692,8 @@ class C
         int i = 0;
         i = Bar(i) ? 0 : 1;
     }
+
+    bool Bar(int i) => true;
 }");
         }
 
@@ -1171,7 +1185,7 @@ class C
 {
     void M(int i)
     {
-        {|FixAllInDocument:if|} (true)
+        [|if|] (true)
         {
             i = 0;
         }
@@ -1181,7 +1195,7 @@ class C
         }
 
         string s;
-        if (true)
+        [|if|] (true)
         {
             s = ""a"";
         }
@@ -1223,7 +1237,7 @@ class C
         }
     }
 
-    void Foo(int x, int y, int z) { }
+    int Foo(int x, int y, int z) => 0;
 }",
 @"
 class C
@@ -1236,7 +1250,7 @@ class C
             : 1;
     }
 
-    void Foo(int x, int y, int z) { }
+    int Foo(int x, int y, int z) => 0;
 }");
         }
 
@@ -1259,6 +1273,8 @@ class C
                 1, 2, 3);
         }
     }
+
+    int Foo(int x, int y, int z) => 0;
 }",
 @"
 class C
@@ -1270,6 +1286,8 @@ class C
             : Foo(
                 1, 2, 3);
     }
+
+    int Foo(int x, int y, int z) => 0;
 }");
         }
 
@@ -1293,6 +1311,8 @@ class C
                 4, 5, 6);
         }
     }
+
+    int Foo(int x, int y, int z) => 0;
 }",
 @"
 class C
@@ -1305,6 +1325,8 @@ class C
             : Foo(
                 4, 5, 6);
     }
+
+    int Foo(int x, int y, int z) => 0;
 }");
         }
 
@@ -1425,8 +1447,9 @@ class C
         [Fact]
         public async Task TestElseIfWithoutBlock()
         {
-            await TestInRegularAndScript1Async(
-@"
+            await new VerifyCS.Test
+            {
+                TestCode = @"
 class C
 {
     void M(int i)
@@ -1436,14 +1459,17 @@ class C
         else i = 0;
     }
 }",
-@"
+                FixedCode = @"
 class C
 {
     void M(int i)
     {
-        i = true ? 2 : false : 1 : 0;
+        if (true) i = 2;
+        else i = false ? 1 : 0;
     }
-}");
+}",
+                CodeFixTestBehaviors = Testing.CodeFixTestBehaviors.FixOne,
+            }.RunAsync();
         }
 
         [Fact]
