@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -104,6 +105,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// Throws this exception if the given <paramref name="diagnostics"/> is empty,
         /// has a null element or has an element whose span is not equal to <paramref name="span"/>.
         /// </exception>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public CodeFixContext(
             Document document,
             TextSpan span,
@@ -164,6 +166,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <param name="registerCodeFix">Delegate to register a <see cref="CodeAction"/> fixing a subset of diagnostics.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <exception cref="ArgumentNullException">Throws this exception if any of the arguments is null.</exception>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public CodeFixContext(
             Document document,
             Diagnostic diagnostic,

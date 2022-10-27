@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.ComponentModel;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Text;
@@ -71,6 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// <summary>
         /// Creates a code refactoring context to be passed into <see cref="CodeRefactoringProvider.ComputeRefactoringsAsync(CodeRefactoringContext)"/> method.
         /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public CodeRefactoringContext(
             Document document,
             TextSpan span,
