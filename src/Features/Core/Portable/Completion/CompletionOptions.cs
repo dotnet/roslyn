@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public bool FilterOutOfScopeLocals { get; init; } = true;
         public bool ShowXmlDocCommentCompletion { get; init; } = true;
         public bool? ShowNewSnippetExperienceUserOption { get; init; } = null;
-        public bool SnippetCompletionFeatureFlag { get; init; } = true;
+        public bool ShowNewSnippetExperienceFeatureFlag { get; init; } = true;
         public ExpandedCompletionMode ExpandedCompletionBehavior { get; init; } = ExpandedCompletionMode.AllItems;
         public NamingStylePreferences? NamingStyleFallbackOptions { get; init; } = null;
 
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             // Don't trigger snippet completion if the option value is "default" and the experiment is disabled for the user. 
-            return ShowNewSnippetExperienceUserOption ?? SnippetCompletionFeatureFlag;
+            return ShowNewSnippetExperienceUserOption ?? ShowNewSnippetExperienceFeatureFlag;
         }
     }
 }

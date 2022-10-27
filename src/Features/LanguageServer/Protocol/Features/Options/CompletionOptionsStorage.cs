@@ -29,7 +29,7 @@ internal static class CompletionOptionsStorage
             ForceExpandedCompletionIndexCreation = options.GetOption(ForceExpandedCompletionIndexCreation),
             UpdateImportCompletionCacheInBackground = options.GetOption(UpdateImportCompletionCacheInBackground),
             NamingStyleFallbackOptions = options.GetNamingStylePreferences(language),
-            ShowNewSnippetExperienceUserOption = options.GetOption(ShowNewSnippetExperience, language),
+            ShowNewSnippetExperienceUserOption = options.GetOption(ShowNewSnippetExperienceUserOption, language),
             ShowNewSnippetExperienceFeatureFlag = options.GetOption(ShowNewSnippetExperienceFeatureFlag)
         };
 
@@ -44,7 +44,7 @@ internal static class CompletionOptionsStorage
         new FeatureFlagStorageLocation("Roslyn.UnnamedSymbolCompletionDisabled"));
 
     public static readonly Option2<bool> ShowNewSnippetExperienceFeatureFlag = new(nameof(CompletionOptions), nameof(ShowNewSnippetExperienceFeatureFlag),
-        CompletionOptions.Default.SnippetCompletionFeatureFlag,
+        CompletionOptions.Default.ShowNewSnippetExperienceFeatureFlag,
         new FeatureFlagStorageLocation("Roslyn.SnippetCompletion"));
 
     public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new(
@@ -109,7 +109,7 @@ internal static class CompletionOptionsStorage
             CompletionOptions.Default.ProvideDateAndTimeCompletions,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ProvideDateAndTimeCompletions"));
 
-    public static readonly PerLanguageOption2<bool?> ShowNewSnippetExperience
-        = new(nameof(CompletionOptions), nameof(ShowNewSnippetExperience), CompletionOptions.Default.ShowNewSnippetExperienceUserOption,
+    public static readonly PerLanguageOption2<bool?> ShowNewSnippetExperienceUserOption
+        = new(nameof(CompletionOptions), nameof(ShowNewSnippetExperienceUserOption), CompletionOptions.Default.ShowNewSnippetExperienceUserOption,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowNewSnippetExperience"));
 }
