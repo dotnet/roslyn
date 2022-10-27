@@ -128,6 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 switch (currentNode)
                 {
+                    case null:
                     case BoundLeafDecisionDagNode:
                         break;
 
