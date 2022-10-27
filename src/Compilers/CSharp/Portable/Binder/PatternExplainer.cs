@@ -157,10 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundWhenDecisionDagNode whenNode:
                         pathBuilder.Pop();
-                        if (!exploreToNode(whenNode.WhenFalse, currentRequiresFalseWhenClause: true))
-                            return false;
-
-                        return true; // already popped
+                        return exploreToNode(whenNode.WhenFalse, currentRequiresFalseWhenClause: true);
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(currentNode.Kind);
