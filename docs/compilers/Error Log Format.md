@@ -12,8 +12,8 @@ This section provides a high level overview of the contents of the SARIF v2 erro
 1. `schema` and `version` information: The first two lines of the error log file specifies the SARIF schema and version information. For example:
 
 ```json
-  "$schema": "http://json.schemastore.org/sarif-2.1.0",
-  "version": "2.1.0",
+"$schema": "http://json.schemastore.org/sarif-2.1.0",
+"version": "2.1.0",
 ```
 
 2. `runs` information: The core entry in the error log file is the `runs` section with a single run entry within it for the build. The run entry has 3 main parts:
@@ -21,27 +21,27 @@ This section provides a high level overview of the contents of the SARIF v2 erro
   2. `tools` section: This section contains information about the compiler build and version. Additionally, it contains a `rules` array, where each rule entry corresponds to metadata or `DiagnosticDescriptor` information about each reported analyzer diagnostic. More details in [`Rule` format for each analyzer supported `DiagnosticDescriptor` instance](#rule-format-for-each-analyzer-supported-diagnosticdescriptor-instance)
   3. `columnKind` section: This section contains information about the unit in which the tool measures columns. C# and Visual Basic compilers uses utf16 code units.
 
-   Example `runs` section, with stripped off `results` and `rules` sections:
-   ```json
-    "runs": [
-    {
-      "results": [
-      ],
-      "tool": {
-        "driver": {
-          "name": "Microsoft (R) Visual C# Compiler",
-          "version": "4.4.0-dev (<developer build>)",
-          "dottedQuadFileVersion": "42.42.42.42",
-          "semanticVersion": "42.42.42",
-          "language": "en-US",
-          "rules": [
-          ]
-        }
-      },
-      "columnKind": "utf16CodeUnits"
+Example `runs` section, with stripped off `results` and `rules` sections:
+```json
+"runs": [
+{
+  "results": [
+  ],
+  "tool": {
+    "driver": {
+      "name": "Microsoft (R) Visual C# Compiler",
+      "version": "4.4.0-dev (<developer build>)",
+      "dottedQuadFileVersion": "42.42.42.42",
+      "semanticVersion": "42.42.42",
+      "language": "en-US",
+      "rules": [
+      ]
     }
-  ]
-   ```
+  },
+  "columnKind": "utf16CodeUnits"
+}
+]
+```
 
 ### `Result` format for each compiler or analyzer `Diagnostic` instance
 
@@ -59,42 +59,41 @@ The results section contains an array of result entries, where each result corre
 
 Example `result` entry:
 ```json
-        {
-          "ruleId": "CA1822",
-          "ruleIndex": 97,
-          "level": "warning",
-          "message": {
-            "text": "Member 'M2' does not access instance data and can be marked as static"
-          },
-          "suppressions": [
-            {
-              "kind": "inSource",
-              "justification": "<Pending>",
-              "properties": {
-                "suppressionType": "SuppressMessageAttribute"
-              }
-            }
-          ],
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "file:///C:/source/repos/ClassLibrary1/Class1.cs"
-                },
-                "region": {
-                  "startLine": 13,
-                  "startColumn": 10,
-                  "endLine": 13,
-                  "endColumn": 12
-                }
-              }
-            }
-          ],
-          "properties": {
-            "warningLevel": 1
-          }
-        },
-]
+{
+  "ruleId": "CA1822",
+  "ruleIndex": 97,
+  "level": "warning",
+  "message": {
+    "text": "Member 'M2' does not access instance data and can be marked as static"
+  },
+  "suppressions": [
+  {
+    "kind": "inSource",
+    "justification": "<Pending>",
+    "properties": {
+      "suppressionType": "SuppressMessageAttribute"
+    }
+  }
+  ],
+  "locations": [
+  {
+    "physicalLocation": {
+      "artifactLocation": {
+        "uri": "file:///C:/source/repos/ClassLibrary1/Class1.cs"
+      },
+      "region": {
+        "startLine": 13,
+        "startColumn": 10,
+        "endLine": 13,
+        "endColumn": 12
+      }
+    }
+  }
+  ],
+  "properties": {
+    "warningLevel": 1
+  }
+}
 ```
 
 ### `Rule` format for each analyzer supported `DiagnosticDescriptor` instance
@@ -114,29 +113,29 @@ The `rules` section contains a rule entry that corresponds to metadata or `Diagn
   
 Example `rule` entry:
 ```json
-            {
-              "id": "CA1001",
-              "shortDescription": {
-                "text": "Types that own disposable fields should be disposable"
-              },
-              "fullDescription": {
-                "text": "A class declares and implements an instance field that is a System.IDisposable type, and the class does not implement IDisposable. A class that declares an IDisposable field indirectly owns an unmanaged resource and should implement the IDisposable interface."
-              },
-              "defaultConfiguration": {
-                "level": "note"
-              },
-              "helpUri": "https://docs.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1001",
-              "properties": {
-                "category": "Design",
-                "isEverSuppressed": "true",
-                "suppressionKinds": [
-                  "external"
-                ],
-                "tags": [
-                  "PortedFromFxCop",
-                  "Telemetry",
-                  "EnabledRuleInAggressiveMode"
-                ]
-              }
-            }
+{
+  "id": "CA1001",
+  "shortDescription": {
+    "text": "Types that own disposable fields should be disposable"
+  },
+  "fullDescription": {
+    "text": "A class declares and implements an instance field that is a System.IDisposable type, and the class does not implement IDisposable. A class that declares an IDisposable field indirectly owns an unmanaged resource and should implement the IDisposable interface."
+  },
+  "defaultConfiguration": {
+    "level": "note"
+  },
+  "helpUri": "https://docs.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1001",
+  "properties": {
+    "category": "Design",
+    "isEverSuppressed": "true",
+    "suppressionKinds": [
+      "external"
+    ],
+    "tags": [
+      "PortedFromFxCop",
+      "Telemetry",
+      "EnabledRuleInAggressiveMode"
+    ]
+  }
+}
 ```
