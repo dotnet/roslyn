@@ -546,16 +546,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (convertedExpression is BoundConversion conversion && conversion.ConversionKind is ConversionKind.ImplicitUserDefined or ConversionKind.ExplicitUserDefined)
                     {
-                        if (expression.IsLiteralNull() && !inputType.IsNullableType())
-                        {
-                            diagnostics.Add(ErrorCode.ERR_ValueCantBeNull, patternExpression.Location, inputType);
-                        }
-                        else
-                        {
-                            Debug.Assert(conversion.Operand is not null);
-                            SymbolDistinguisher distinguisher1 = new SymbolDistinguisher(this.Compilation, conversion.Operand.Type, inputType);
-                            diagnostics.Add(ErrorCode.ERR_NonConstantConversionInConstantPattern, patternExpression.Location, distinguisher1.First, distinguisher1.Second);
-                        }
+                        Debug.Assert(conversion.Operand is not null);
+                        SymbolDistinguisher distinguisher1 = new SymbolDistinguisher(this.Compilation, conversion.Operand.Type, inputType);
+                        diagnostics.Add(ErrorCode.ERR_NonConstantConversionInConstantPattern, patternExpression.Location, distinguisher1.First, distinguisher1.Second);
                     }
                     else
                     {
