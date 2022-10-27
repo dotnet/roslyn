@@ -7,14 +7,14 @@ using Spectre.Console.Cli;
 using System.IO;
 using PostSharp.Engineering.BuildTools.Build;
 
-var product = new Product( Dependencies.MetalamaCompiler )
+var product = new Product(Dependencies.MetalamaCompiler)
 {
     PrivateArtifactsDirectory = "artifacts\\packages\\$(MSSBuildConfiguration)\\Shipping",
     VersionsFilePath = "eng\\Versions.props",
     GenerateArcadeProperties = true,
-    AdditionalDirectoriesToClean = new [] { "artifacts" },
+    AdditionalDirectoriesToClean = new[] { "artifacts" },
     Solutions = new Solution[] { new RoslynSolution() },
-    PublicArtifacts = Pattern.Create( "Metalama.Compiler.$(PackageVersion).nupkg", "Metalama.Compiler.Sdk.$(PackageVersion).nupkg" ),
+    PublicArtifacts = Pattern.Create("Metalama.Compiler.$(PackageVersion).nupkg", "Metalama.Compiler.Sdk.$(PackageVersion).nupkg"),
     PrivateArtifacts = Pattern.Create(
     "Metalama.Roslyn.CodeAnalysis.Common.$(PackageVersion).nupkg",
     "Metalama.Roslyn.CodeAnalysis.CSharp.$(PackageVersion).nupkg",
@@ -29,13 +29,13 @@ var product = new Product( Dependencies.MetalamaCompiler )
     // Visual Basic is needed by Metalama.Try
     "Metalama.Roslyn.CodeAnalysis.VisualBasic.$(PackageVersion).nupkg",
     "Metalama.Roslyn.CodeAnalysis.VisualBasic.Features.$(PackageVersion).nupkg",
-    "Metalama.Roslyn.CodeAnalysis.VisualBasic.Workspaces.$(PackageVersion).nupkg" ),
+    "Metalama.Roslyn.CodeAnalysis.VisualBasic.Workspaces.$(PackageVersion).nupkg"),
     Dependencies = new[] { Dependencies.PostSharpEngineering, Dependencies.MetalamaBackstage },
     SupportedProperties = new() { ["TestAll"] = "Supported by the 'test' command. Run all tests instead of just Metalama's unit tests." },
     ExportedProperties = new[] { "RoslynVersion" },
     KeepEditorConfig = true,
-    Configurations = Product.DefaultConfigurations.WithValue( BuildConfiguration.Release, Product.DefaultConfigurations[BuildConfiguration.Release] with { ExportsToTeamCityBuild = true }),
-	BuildAgentType = "caravela03"
+    Configurations = Product.DefaultConfigurations.WithValue(BuildConfiguration.Release, Product.DefaultConfigurations[BuildConfiguration.Release] with { ExportsToTeamCityBuild = true }),
+    BumpStrategy = new PatchVersionBumpStrategy()
 };
 
 product.BuildCompleted += OnBuildCompleted;
