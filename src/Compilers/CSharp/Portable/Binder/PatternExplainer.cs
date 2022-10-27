@@ -99,19 +99,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Enumerate the paths from the root node to the node of interest, and invokes the handler
+        /// Enumerates the paths from the root node to the node of interest, and invokes the handler
         /// on each one until the handler returns false.
         /// The order is deterministic, but we're not starting from the shortest path.
         /// </summary>
-        /// <param name="nodes">The set of nodes in topological order.</param>
+        /// <param name="rootNode">The root node of the DAG.</param>
         /// <param name="targetNode">The node of interest.</param>
         /// <param name="nullPaths">Whether to permit following paths that test for null.</param>
         /// <param name="handler">Handler to call back for every path to the target node.</param>
-        private static void VisitPathsToNode(ImmutableArray<BoundDecisionDagNode> nodes, BoundDecisionDagNode targetNode, bool nullPaths,
+        private static void VisitPathsToNode(BoundDecisionDagNode rootNode, BoundDecisionDagNode targetNode, bool nullPaths,
             Func<ImmutableArray<BoundDecisionDagNode>, bool, bool> handler)
         {
             var pathBuilder = new ArrayBuilder<BoundDecisionDagNode>();
-            exploreToNode(nodes[0], currentRequiresFalseWhenClause: false);
+            exploreToNode(rootNode, currentRequiresFalseWhenClause: false);
             return;
 
             // Recursive exploration helper
@@ -120,8 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (currentNode == targetNode)
                 {
-                    if (!handler(pathBuilder.ToImmutable(), currentRequiresFalseWhenClause))
-                        return false;
+                    return handler(pathBuilder.ToImmutable(), currentRequiresFalseWhenClause);
                 }
 
                 pathBuilder.Push(currentNode);
@@ -189,7 +188,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
 #if DEBUG
             // Excercise enumeration of all paths to node
-            VisitPathsToNode(nodes, targetNode, nullPaths, handler: (currentPathToNode, currentRequiresFalseWhenClause) => true);
+            VisitPathsToNode(nodes[0], targetNode, nullPaths: true, handler: (currentPathToNode, currentRequiresFalseWhenClause) => true);
+            VisitPathsToNode(nodes[0], targetNode, nullPaths: false, handler: (currentPathToNode, currentRequiresFalseWhenClause) => true);
 #endif
 
             unnamedEnumValue = false;
@@ -207,35 +207,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // In rare cases, the shortest path isn't the one that yields a sample
-            string altSamplePatternForTemp = null;
-            bool altRequiresFalseWhenClause = false;
-            bool altUnnamedEnumValue = false;
+            return samplePatternFromOtherPaths(rootIdentifier, nodes[0], targetNode, nullPaths, out requiresFalseWhenClause, out unnamedEnumValue);
 
-            VisitPathsToNode(nodes, targetNode, nullPaths, handler: (currentPathToNode, currentRequiresFalseWhenClause) =>
+            static string samplePatternFromOtherPaths(BoundDagTemp rootIdentifier, BoundDecisionDagNode rootNode,
+                BoundDecisionDagNode targetNode, bool nullPaths, out bool requiresFalseWhenClause, out bool unnamedEnumValue)
             {
-                altRequiresFalseWhenClause = currentRequiresFalseWhenClause;
-                gatherConstraintsAndEvaluations(targetNode, currentPathToNode, out constraints, out evaluations);
+                string altSamplePatternForTemp = null;
+                bool altRequiresFalseWhenClause = false;
+                bool altUnnamedEnumValue = false;
 
-                try
+                VisitPathsToNode(rootNode, targetNode, nullPaths, handler: (currentPathToNode, currentRequiresFalseWhenClause) =>
                 {
-                    altUnnamedEnumValue = false;
-                    altSamplePatternForTemp = SamplePatternForTemp(rootIdentifier, constraints, evaluations, requireExactType: false, ref altUnnamedEnumValue);
-                    return false; // we've successfully produced a sample, so stop exploring paths
-                }
-                catch (NoRemainingValuesException)
-                {
-                    return true;
-                }
-            });
+                    altRequiresFalseWhenClause = currentRequiresFalseWhenClause;
+                    gatherConstraintsAndEvaluations(targetNode, currentPathToNode, out var constraints, out var evaluations);
 
-            if (altSamplePatternForTemp is not null)
-            {
-                unnamedEnumValue = altUnnamedEnumValue;
-                requiresFalseWhenClause = altRequiresFalseWhenClause;
-                return altSamplePatternForTemp;
+                    try
+                    {
+                        altUnnamedEnumValue = false;
+                        altSamplePatternForTemp = SamplePatternForTemp(rootIdentifier, constraints, evaluations, requireExactType: false, ref altUnnamedEnumValue);
+                        return false; // we've successfully produced a sample, so stop exploring paths
+                    }
+                    catch (NoRemainingValuesException)
+                    {
+                        return true;
+                    }
+                });
+
+                if (altSamplePatternForTemp is not null)
+                {
+                    unnamedEnumValue = altUnnamedEnumValue;
+                    requiresFalseWhenClause = altRequiresFalseWhenClause;
+                    return altSamplePatternForTemp;
+                }
+
+                throw ExceptionUtilities.Unreachable();
             }
-
-            throw ExceptionUtilities.Unreachable();
 
             static void gatherConstraintsAndEvaluations(BoundDecisionDagNode targetNode, ImmutableArray<BoundDecisionDagNode> pathToNode,
                 out Dictionary<BoundDagTemp, ArrayBuilder<(BoundDagTest, bool)>> constraints,
