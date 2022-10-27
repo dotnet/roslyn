@@ -131,20 +131,23 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     }
                 }
 
-                static bool IsCandidateField(IFieldSymbol symbol, INamedTypeSymbol threadStaticAttribute, INamedTypeSymbol dataContractAttribute, INamedTypeSymbol dataMemberAttribute) =>
-                        symbol.DeclaredAccessibility == Accessibility.Private &&
-                        !symbol.IsReadOnly &&
-                        !symbol.IsConst &&
-                        !symbol.IsImplicitlyDeclared &&
-                        symbol.Locations.Length == 1 &&
+                static bool IsCandidateField(IFieldSymbol symbol, INamedTypeSymbol? threadStaticAttribute, INamedTypeSymbol? dataContractAttribute, INamedTypeSymbol? dataMemberAttribute) =>
+                        symbol is
+                        {
+                            DeclaredAccessibility: Accessibility.Private,
+                            IsReadOnly: false,
+                            IsConst: false,
+                            IsImplicitlyDeclared: false,
+                            Locations.Length: 1,
+                            IsFixedSizeBuffer: false,
+                        } &&
                         symbol.Type.IsMutableValueType() == false &&
-                        !symbol.IsFixedSizeBuffer &&
                         !symbol.GetAttributes().Any(
                            static (a, threadStaticAttribute) => SymbolEqualityComparer.Default.Equals(a.AttributeClass, threadStaticAttribute),
                            threadStaticAttribute) &&
                         !IsDataContractSerializable(symbol, dataContractAttribute, dataMemberAttribute);
 
-                static bool IsDataContractSerializable(IFieldSymbol symbol, INamedTypeSymbol dataContractAttribute, INamedTypeSymbol dataMemberAttribute)
+                static bool IsDataContractSerializable(IFieldSymbol symbol, INamedTypeSymbol? dataContractAttribute, INamedTypeSymbol? dataMemberAttribute)
                 {
                     if (dataContractAttribute is null || dataMemberAttribute is null)
                         return false;
@@ -180,7 +183,13 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 }
 
                 // Method to compute the initial field state.
-                static (bool isCandidate, bool written) ComputeInitialFieldState(IFieldSymbol field, AnalyzerOptions options, INamedTypeSymbol threadStaticAttribute, INamedTypeSymbol dataContractAttribute, INamedTypeSymbol dataMemberAttribute, CancellationToken cancellationToken)
+                static (bool isCandidate, bool written) ComputeInitialFieldState(
+                    IFieldSymbol field,
+                    AnalyzerOptions options,
+                    INamedTypeSymbol? threadStaticAttribute,
+                    INamedTypeSymbol? dataContractAttribute,
+                    INamedTypeSymbol? dataMemberAttribute,
+                    CancellationToken cancellationToken)
                 {
                     Debug.Assert(IsCandidateField(field, threadStaticAttribute, dataContractAttribute, dataMemberAttribute));
 
@@ -238,6 +247,6 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         }
 
         private static CodeStyleOption2<bool> GetCodeStyleOption(IFieldSymbol field, AnalyzerOptions options)
-            => options.GetAnalyzerOptions(field.Locations[0].SourceTree).PreferReadonly;
+            => options.GetAnalyzerOptions(field.Locations[0].SourceTree!).PreferReadonly;
     }
 }
