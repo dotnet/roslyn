@@ -121,7 +121,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
         }
 
-        private CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersOptions analysisOptions, CancellationToken cancellationToken)
+        /// <inheritdoc cref="CompilationWithAnalyzers.CompilationWithAnalyzers(Compilation, ImmutableArray{DiagnosticAnalyzer}, CompilationWithAnalyzersOptions)"/>
+        /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
+        public CompilationWithAnalyzers(
+            Compilation compilation,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            CompilationWithAnalyzersOptions analysisOptions,
+            CancellationToken cancellationToken)
         {
             VerifyArguments(compilation, analyzers, analysisOptions);
 
