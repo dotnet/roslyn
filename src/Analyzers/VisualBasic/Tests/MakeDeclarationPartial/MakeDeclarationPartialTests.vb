@@ -5,14 +5,13 @@
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Testing
 Imports Microsoft.CodeAnalysis.VisualBasic.MakeDeclarationPartial
+Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
+    Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.VisualBasic.MakeDeclarationPartial.VisualBasicMakeDeclarationPartialCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeDeclarationPartial
     <Trait(Traits.Feature, Traits.Features.CodeActionsMakeDeclarationPartial)>
     Public Class MakeDeclarationPartialTests
-        Private Class TestVerifier
-            Inherits VisualBasicCodeFixVerifier(Of EmptyDiagnosticAnalyzer, VisualBasicMakeDeclarationPartialCodeFixProvider).Test
-        End Class
-
         <Fact>
         Public Async Function OutsideNamespace() As Task
             Dim document1 = "
@@ -33,7 +32,7 @@ End Class
 Partial Class Declaration
 End Class"
 
-            Dim test = New TestVerifier()
+            Dim test = New VerifyVB.Test()
 
             test.TestState.Sources.Add(document1)
             test.TestState.Sources.Add(document2)
@@ -70,7 +69,7 @@ Namespace TestNamespace
     End Class
 End Namespace"
 
-            Dim test = New TestVerifier()
+            Dim test = New VerifyVB.Test()
 
             test.TestState.Sources.Add(document1)
             test.TestState.Sources.Add(document2)
@@ -111,7 +110,7 @@ Namespace TestNamespace
     End Class
 End Namespace"
 
-            Dim test = New TestVerifier()
+            Dim test = New VerifyVB.Test()
 
             test.TestState.Sources.Add(document1)
             test.TestState.Sources.Add(document2)
@@ -142,7 +141,7 @@ End Class
 Partial Public Class Declaration
 End Class"
 
-            Dim test = New TestVerifier()
+            Dim test = New VerifyVB.Test()
 
             test.TestState.Sources.Add(document1)
             test.TestState.Sources.Add(document2)
