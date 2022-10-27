@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.InvertIf
 {
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
             }
 
             public bool IsEmpty => FirstStatement == null;
-            public SyntaxNode Parent => FirstStatement.Parent;
+            public SyntaxNode Parent => FirstStatement.GetRequiredParent();
         }
     }
 }
