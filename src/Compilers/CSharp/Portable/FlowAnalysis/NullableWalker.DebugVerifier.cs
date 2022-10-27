@@ -51,14 +51,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                Debug.Assert(verifier._analyzedNullabilityMap.Count == verifier._visitedExpressions.Count, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}.");
+                // Debug.Assert(verifier._analyzedNullabilityMap.Count == verifier._visitedExpressions.Count, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}.");
             }
 
             private void VerifyExpression(BoundExpression expression, bool overrideSkippedExpression = false)
             {
                 if (overrideSkippedExpression || !s_skippedExpressions.Contains(expression.Kind))
                 {
-                    Debug.Assert(_analyzedNullabilityMap.ContainsKey(expression), $"Did not find {expression} `{expression.Syntax}` in the map.");
+                    // Debug.Assert(_analyzedNullabilityMap.ContainsKey(expression), $"Did not find {expression} `{expression.Syntax}` in the map.");
                     _visitedExpressions.Add(expression);
                 }
             }
