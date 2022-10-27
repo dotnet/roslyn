@@ -2,17 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.FindUsages.DefinitionItem;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
     [DataContract]
-    internal readonly struct DetachedDefinitionItem
+    internal readonly struct DetachedDefinitionItem : IEquatable<DetachedDefinitionItem>
     {
         [DataMember(Order = 0)]
         public readonly ImmutableArray<string> Tags;
@@ -50,6 +53,21 @@ namespace Microsoft.CodeAnalysis.FindUsages
             DisplayIfNoReferences = displayIfNoReferences;
             SourceSpans = sourceSpans;
         }
+
+        public override int GetHashCode()
+            => throw ExceptionUtilities.Unreachable();
+
+        public override bool Equals(object? obj)
+            => obj is DetachedDefinitionItem item && Equals(item);
+
+        public bool Equals(DetachedDefinitionItem other)
+            => this.DisplayIfNoReferences == other.DisplayIfNoReferences &&
+               this.Tags.SequenceEqual(other.Tags) &&
+               this.DisplayParts.SequenceEqual(other.DisplayParts) &&
+               this.OriginationParts.SequenceEqual(other.OriginationParts) &&
+               this.SourceSpans.SequenceEqual(other.SourceSpans) &&
+               this.Properties.SetEquals(other.Properties) &&
+               this.DisplayableProperties.SetEquals(other.DisplayableProperties);
 
         public async Task<DefaultDefinitionItem?> TryRehydrateAsync(Solution solution, CancellationToken cancellationToken)
         {

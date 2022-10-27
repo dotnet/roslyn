@@ -124,6 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property ReturnStatement As Integer = SyntaxKind.ReturnStatement Implements ISyntaxKinds.ReturnStatement
         Public ReadOnly Property ThrowStatement As Integer = SyntaxKind.ThrowStatement Implements ISyntaxKinds.ThrowStatement
         Public ReadOnly Property UsingStatement As Integer = SyntaxKind.UsingStatement Implements ISyntaxKinds.UsingStatement
+        Public ReadOnly Property WhileStatement As Integer = SyntaxKind.WhileStatement Implements ISyntaxKinds.WhileStatement
         Public ReadOnly Property YieldReturnStatement As Integer = SyntaxKind.YieldStatement Implements ISyntaxKinds.YieldReturnStatement
 
         Public ReadOnly Property Attribute As Integer = SyntaxKind.Attribute Implements ISyntaxKinds.Attribute

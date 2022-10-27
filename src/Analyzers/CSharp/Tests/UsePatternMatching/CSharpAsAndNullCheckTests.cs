@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -1619,6 +1617,43 @@ class Program
             if (x != null)
             {
             }
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(37398, "https://github.com/dotnet/roslyn/issues/37398")]
+        public async Task TestPrecedingDirectiveTrivia()
+        {
+            await TestInRegularAndScript1Async(
+                @"
+class C
+{
+    public static void M(object o)
+    {
+#if DEBUG
+        Console.WriteLine(""in debug"");
+#endif
+
+        [|string|] s = o as string;
+        if (s != null)
+        {
+
+        }
+    }
+}",
+                @"
+class C
+{
+    public static void M(object o)
+    {
+#if DEBUG
+        Console.WriteLine(""in debug"");
+#endif
+
+        if (o is string s)
+        {
+
         }
     }
 }");

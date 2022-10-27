@@ -2284,5 +2284,46 @@ if (int.TryParse(v, out i))
     };
 }");
         }
+
+        [Fact, WorkItem(22881, "https://github.com/dotnet/roslyn/issues/22881")]
+        public async Task PriorRegionClose()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M()
+    {
+        #region test
+
+        int i = 0;
+
+        #endregion
+
+        int [|hello|];
+        TestMethod(out hello);
+    }
+
+    private void TestMethod(out int hello)
+    {
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        #region test
+
+        int i = 0;
+
+        #endregion
+
+        TestMethod(out int hello);
+    }
+
+    private void TestMethod(out int hello)
+    {
+    }
+}");
+        }
     }
 }
