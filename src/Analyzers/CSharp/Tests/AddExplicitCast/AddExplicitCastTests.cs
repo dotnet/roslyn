@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -3075,6 +3073,32 @@ class C
         var array = new int[10];
 
         if (array[(int)o] > 0) {}
+    }
+}");
+        }
+
+        [Fact, WorkItem(56141, "https://github.com/dotnet/roslyn/issues/56141")]
+        public async Task CompoundAssignment1()
+        {
+            await TestInRegularAndScriptAsync(
+                @"
+class C
+{
+    void M()
+    {
+        int a = 0;
+        double b = 0;
+        a += [||]b;
+    }
+}",
+                @"
+class C
+{
+    void M()
+    {
+        int a = 0;
+        double b = 0;
+        a += (int)b;
     }
 }");
         }

@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!rightToLeftConversion.IsImplicit || !rightToLeftConversion.IsValid)
                 {
                     hasError = true;
-                    GenerateImplicitConversionError(diagnostics, node, rightToLeftConversion, right, leftType);
+                    GenerateImplicitConversionError(diagnostics, right.Syntax, rightToLeftConversion, right, leftType);
                 }
             }
 
