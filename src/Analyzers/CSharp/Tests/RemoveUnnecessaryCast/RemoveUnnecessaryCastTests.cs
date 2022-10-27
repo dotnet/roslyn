@@ -12577,5 +12577,25 @@ class C
 ";
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
+
+        [Fact, WorkItem(65005, "https://github.com/dotnet/roslyn/issues/65005")]
+        public async Task DoNotRemoveImplicitNullableBoxingCast()
+        {
+            var code = @"
+using System;
+
+class C
+{
+    void Goo()
+    {
+        byte? temp = 10;
+        object? box = (int?)temp;
+
+        Console.WriteLine((int?)box);
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(code, code);
+        }
     }
 }
