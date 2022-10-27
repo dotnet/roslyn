@@ -19,13 +19,17 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.InvertIf
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InvertIf), Shared]
-    internal sealed class CSharpInvertIfCodeRefactoringProvider : AbstractInvertIfCodeRefactoringProvider<StatementSyntax, IfStatementSyntax, StatementSyntax>
+    internal sealed class CSharpInvertIfCodeRefactoringProvider : AbstractInvertIfCodeRefactoringProvider<
+        SyntaxKind, StatementSyntax, IfStatementSyntax, StatementSyntax>
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpInvertIfCodeRefactoringProvider()
         {
         }
+
+        protected override SyntaxKind GetKind(SyntaxNode? node)
+            => node is null ? SyntaxKind.None : node.Kind();
 
         protected override string GetTitle()
             => CSharpFeaturesResources.Invert_if;
@@ -83,46 +87,36 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
         }
 
         protected override SyntaxList<StatementSyntax> GetStatements(SyntaxNode node)
-        {
-            switch (node)
+            => node switch
             {
-                case BlockSyntax n:
-                    return n.Statements;
-                case SwitchSectionSyntax n:
-                    return n.Statements;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(node);
-            }
-        }
+                BlockSyntax n => n.Statements,
+                SwitchSectionSyntax n => n.Statements,
+                _ => throw ExceptionUtilities.UnexpectedValue(node),
+            };
 
-        protected override int GetJumpStatementRawKind(SyntaxNode node)
+        protected override SyntaxKind? GetJumpStatementKind(SyntaxNode node)
             => node switch
             {
                 SwitchSectionSyntax
-                    => (int)SyntaxKind.BreakStatement,
+                    => SyntaxKind.BreakStatement,
                 LocalFunctionStatementSyntax or AccessorDeclarationSyntax or MemberDeclarationSyntax
-                    => node.ContainsYield() ? (int)SyntaxKind.YieldBreakStatement : (int)SyntaxKind.ReturnStatement,
+                    => node.ContainsYield() ? SyntaxKind.YieldBreakStatement : SyntaxKind.ReturnStatement,
                 AnonymousFunctionExpressionSyntax
-                    => (int)SyntaxKind.ReturnStatement,
+                    => SyntaxKind.ReturnStatement,
                 CommonForEachStatementSyntax or DoStatementSyntax or WhileStatementSyntax or ForStatementSyntax
-                    => (int)SyntaxKind.ContinueStatement,
-                _ => -1,
+                    => SyntaxKind.ContinueStatement,
+                _ => null,
             };
 
-        protected override StatementSyntax GetJumpStatement(int rawKind)
-        {
-            switch ((SyntaxKind)rawKind)
+        protected override StatementSyntax GetJumpStatement(SyntaxKind kind)
+            => kind switch
             {
-                case SyntaxKind.ContinueStatement:
-                    return SyntaxFactory.ContinueStatement();
-                case SyntaxKind.BreakStatement:
-                    return SyntaxFactory.BreakStatement();
-                case SyntaxKind.ReturnStatement:
-                    return SyntaxFactory.ReturnStatement();
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(rawKind);
-            }
-        }
+                SyntaxKind.ContinueStatement => SyntaxFactory.ContinueStatement(),
+                SyntaxKind.BreakStatement => SyntaxFactory.BreakStatement(),
+                SyntaxKind.ReturnStatement => SyntaxFactory.ReturnStatement(),
+                SyntaxKind.YieldBreakStatement => SyntaxFactory.YieldStatement(SyntaxKind.YieldBreakStatement),
+                _ => throw ExceptionUtilities.UnexpectedValue(kind),
+            };
 
         protected override StatementSyntax AsEmbeddedStatement(IEnumerable<StatementSyntax> statements, StatementSyntax original)
         {

@@ -8,7 +8,8 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.InvertIf
 {
-    internal abstract partial class AbstractInvertIfCodeRefactoringProvider<TStatementSyntax, TIfStatementSyntax, TEmbeddedStatement>
+    internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
+        TSyntaxKind, TStatementSyntax, TIfStatementSyntax, TEmbeddedStatement>
     {
         protected readonly struct StatementRange
         {
