@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -39,8 +40,6 @@ namespace Microsoft.CodeAnalysis.InvertIf
         }
 
         protected abstract string GetTitle();
-
-        protected abstract TSyntaxKind GetKind(SyntaxNode? node);
 
         protected abstract SyntaxList<TStatementSyntax> GetStatements(SyntaxNode node);
         protected abstract TStatementSyntax? GetNextStatement(TStatementSyntax node);
@@ -102,6 +101,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
         }
 
         private InvertIfStyle GetInvertIfStyle(
+            ISyntaxKinds syntaxKinds,
             TIfStatementSyntax ifNode,
             SemanticModel semanticModel,
             out SyntaxNode? subsequentSingleExitPoint)
@@ -166,7 +166,8 @@ namespace Microsoft.CodeAnalysis.InvertIf
                 {
                     if (IsSingleStatementStatementRange(ifBodyStatementRange) &&
                         SubsequentStatementsAreInTheSameBlock(ifNode, subsequentStatementRanges) &&
-                        GetNearestParentJumpStatementKind(ifNode).Equals(GetKind(ifBodySingleExitPointOpt)))
+                        ifBodySingleExitPointOpt != null &&
+                        GetNearestParentJumpStatementKind(ifNode).Equals(syntaxKinds.Convert<TSyntaxKind>(ifBodySingleExitPointOpt.RawKind)))
                     {
                         // (3) Inverse of the case (2). Safe to move all subsequent statements to if-body.
                         // 
@@ -292,7 +293,9 @@ namespace Microsoft.CodeAnalysis.InvertIf
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var invertIfStyle = GetInvertIfStyle(ifNode, semanticModel, out var subsequentSingleExitPoint);
+            var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
+
+            var invertIfStyle = GetInvertIfStyle(syntaxKinds, ifNode, semanticModel, out var subsequentSingleExitPoint);
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
             return document.WithSyntaxRoot(
                 GetRootWithInvertIfStatement(

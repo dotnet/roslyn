@@ -28,9 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
         {
         }
 
-        protected override SyntaxKind GetKind(SyntaxNode? node)
-            => node is null ? SyntaxKind.None : node.Kind();
-
         protected override string GetTitle()
             => CSharpFeaturesResources.Invert_if;
 
