@@ -2420,9 +2420,9 @@ ICompoundAssignmentOperation (BinaryOperatorKind.Add, IsLifted) (OperationKind.C
     IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32?, IsInvalid) (Syntax: 'b')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0266: Cannot implicitly convert type 'int?' to 'int'. An explicit conversion exists (are you missing a cast?)
+                // (6,24): error CS0266: Cannot implicitly convert type 'int?' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         /*<bind>*/a += b/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a += b").WithArguments("int?", "int").WithLocation(6, 19)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b").WithArguments("int?", "int").WithLocation(6, 24)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
