@@ -5,6 +5,8 @@
 #nullable disable
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -12053,15 +12055,14 @@ class Test1 : I1
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
+                var targetFramework = ExecutionConditionUtil.IsMonoOrCoreClr ? TargetFramework.Net50 : TargetFramework.NetFramework;
                 var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.Net50);
+                                                     targetFramework: targetFramework);
 
                 compilation3.VerifyDiagnostics();
 
-#if NETCOREAPP
                 CompileAndVerify(compilation3, expectedOutput: "M1", symbolValidator: (m) => ValidateMethodModifiersExplicit_10(m, Accessibility.Protected));
-#endif
 
                 ValidateMethodModifiersExplicit_10(compilation3.SourceModule, Accessibility.Protected);
             }
@@ -12116,15 +12117,14 @@ class Test1 : I1
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
+                var targetFramework = ExecutionConditionUtil.IsMonoOrCoreClr ? TargetFramework.Net50 : TargetFramework.NetFramework;
                 var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.Net50);
+                                                     targetFramework: targetFramework);
 
                 compilation3.VerifyDiagnostics();
 
-#if NETCOREAPP
-                CompileAndVerify(compilation3, expectedOutput: "M1", symbolValidator: (m) => ValidateMethodModifiersExplicit_10(m, Accessibility.ProtectedOrInternal), verify: Verification.Skipped);
-#endif
+                CompileAndVerify(compilation3, expectedOutput: "M1", symbolValidator: (m) => ValidateMethodModifiersExplicit_10(m, Accessibility.ProtectedOrInternal));
 
                 ValidateMethodModifiersExplicit_10(compilation3.SourceModule, Accessibility.ProtectedOrInternal);
             }
@@ -50579,16 +50579,25 @@ public interface ITest33
             var pia2Compilation = CreateCompilation(pia2, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net50);
             var pia2Reference = pia2Compilation.EmitToImageReference();
 
-            var compilation1 = CreateCompilation(consumer1, options: TestOptions.ReleaseDll, references: new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true) }, targetFramework: TargetFramework.Net50);
+            IEnumerable<MetadataReference> baseReferences;
+            if (ExecutionConditionUtil.IsMonoOrCoreClr)
+            {
+                baseReferences = TargetFrameworkUtil.GetReferences(TargetFramework.Net50);
+            }
+            else
+            {
+                baseReferences = TargetFrameworkUtil.GetReferences(TargetFramework.NetFramework);
+                baseReferences = baseReferences.Concat(new[] { TestMetadata.Net461.SystemRuntimeInteropServices });
+            }
+
+            var compilation1 = CreateCompilation(consumer1, options: TestOptions.ReleaseDll, references: baseReferences.Concat(new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true) }), targetFramework: TargetFramework.Empty);
 
             foreach (var reference2 in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                var compilation2 = CreateCompilation(consumer2, options: TestOptions.ReleaseExe, references: new[] { reference2, pia2Reference }, targetFramework: TargetFramework.Net50);
+                var compilation2 = CreateCompilation(consumer2, options: TestOptions.ReleaseExe, references: baseReferences.Concat(new[] { reference2, pia2Reference }), targetFramework: TargetFramework.Empty);
 
-#if NETCOREAPP
                 // ILVerify: Missing method 'Void UsePia.Test(ITest33)'
                 CompileAndVerify(compilation2, expectedOutput: "Test.M1", verify: Verification.Skipped);
-#endif
             }
         }
 
