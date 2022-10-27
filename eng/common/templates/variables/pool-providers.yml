@@ -28,7 +28,7 @@
 variables:
 
 - name: DncEngPublicBuildPool
-  value: $[ iff(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), 'NetCore-Svc-Public', 'NetCore-Public') ]
+  value: ${{ iff(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), 'NetCore-Svc-Public', 'NetCore-Public') }}
 
 - name: DncEngInternalBuildPool
-  value: $[ iff(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), 'NetCore1ESPool-Svc-Internal', 'NetCore1ESPool-Internal') ]
+  value: ${{ iff(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), 'NetCore1ESPool-Svc-Internal', 'NetCore1ESPool-Internal') }}
