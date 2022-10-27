@@ -144,6 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
         Public ReadOnly Property EqualsValueClause As Integer = SyntaxKind.EqualsValue Implements ISyntaxKinds.EqualsValueClause
 
+        Public ReadOnly Property ImplicitElementAccess As Integer? Implements ISyntaxKinds.ImplicitElementAccess
         Public ReadOnly Property Interpolation As Integer = SyntaxKind.Interpolation Implements ISyntaxKinds.Interpolation
         Public ReadOnly Property InterpolatedStringExpression As Integer = SyntaxKind.InterpolatedStringExpression Implements ISyntaxKinds.InterpolatedStringExpression
         Public ReadOnly Property InterpolatedStringText As Integer = SyntaxKind.InterpolatedStringText Implements ISyntaxKinds.InterpolatedStringText
