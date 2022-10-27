@@ -2,24 +2,25 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal sealed class MakeFieldReadonlyDiagnosticAnalyzer
+    internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<
+        TSyntaxKind, TThisExpression>
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+        where TSyntaxKind : struct, Enum
+        where TThisExpression : SyntaxNode
     {
-        public MakeFieldReadonlyDiagnosticAnalyzer()
+        protected AbstractMakeFieldReadonlyDiagnosticAnalyzer()
             : base(
                 IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId,
                 EnforceOnBuildValues.MakeFieldReadonly,
@@ -29,6 +30,9 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         {
         }
 
+        protected abstract ISyntaxKinds SyntaxKinds { get; }
+        protected abstract bool IsWrittenTo(SemanticModel semanticModel, TThisExpression expression, CancellationToken cancellationToken);
+
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
         // We need to analyze generated code to get callbacks for read/writes to non-generated members in generated code.
@@ -36,16 +40,16 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-            context.RegisterCompilationStartAction(compilationStartContext =>
+            context.RegisterCompilationStartAction(context =>
             {
                 // State map for fields:
                 //  'isCandidate' : Indicates whether the field is a candidate to be made readonly based on it's options.
                 //  'written'     : Indicates if there are any writes to the field outside the constructor and field initializer.
                 var fieldStateMap = new ConcurrentDictionary<IFieldSymbol, (bool isCandidate, bool written)>();
 
-                var threadStaticAttribute = compilationStartContext.Compilation.ThreadStaticAttributeType();
-                var dataContractAttribute = compilationStartContext.Compilation.DataContractAttribute();
-                var dataMemberAttribute = compilationStartContext.Compilation.DataMemberAttribute();
+                var threadStaticAttribute = context.Compilation.ThreadStaticAttributeType();
+                var dataContractAttribute = context.Compilation.DataContractAttribute();
+                var dataMemberAttribute = context.Compilation.DataMemberAttribute();
 
                 // We register following actions in the compilation:
                 // 1. A symbol action for field symbols to ensure the field state is initialized for every field in
@@ -55,12 +59,26 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 // 3. A symbol start/end action for named types to report diagnostics for candidate fields that were
                 //    not written outside constructor and field initializer.
 
-                compilationStartContext.RegisterSymbolAction(AnalyzeFieldSymbol, SymbolKind.Field);
+                context.RegisterSymbolAction(AnalyzeFieldSymbol, SymbolKind.Field);
 
-                compilationStartContext.RegisterSymbolStartAction(symbolStartContext =>
+                context.RegisterSymbolStartAction(context =>
                 {
-                    symbolStartContext.RegisterOperationAction(AnalyzeOperation, OperationKind.FieldReference);
-                    symbolStartContext.RegisterSymbolEndAction(OnSymbolEnd);
+                    context.RegisterOperationAction(AnalyzeOperation, OperationKind.FieldReference);
+
+                    // Can't allow changing the fields to readonly if the struct overwrites itself.  e.g. `this = default;`
+                    var writesToThis = false;
+                    context.RegisterSyntaxNodeAction(context =>
+                    {
+                        writesToThis = writesToThis || IsWrittenTo(context.SemanticModel, (TThisExpression)context.Node, context.CancellationToken);
+                    }, SyntaxKinds.Convert<TSyntaxKind>(SyntaxKinds.ThisExpression));
+
+                    context.RegisterSymbolEndAction(context =>
+                    {
+                        if (writesToThis)
+                            return;
+
+                        OnSymbolEnd(context);
+                    });
                 }, SymbolKind.NamedType);
 
                 return;

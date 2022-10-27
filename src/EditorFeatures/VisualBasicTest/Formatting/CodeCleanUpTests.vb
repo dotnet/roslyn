@@ -27,6 +27,7 @@ Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
+Imports Microsoft.CodeAnalysis.VisualBasic.MakeFieldReadonly
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
     <UseExportProvider>
@@ -572,7 +573,7 @@ End Class
                 Dim solution = workspace.CurrentSolution.WithAnalyzerReferences(
                 {
                     New AnalyzerFileReference(GetType(VisualBasicCompilerDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
-                    New AnalyzerFileReference(GetType(MakeFieldReadonlyDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
+                    New AnalyzerFileReference(GetType(VisualBasicMakeFieldReadonlyDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
                     New AnalyzerFileReference(GetType(VisualBasicPreferFrameworkTypeDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)
                 })
 
