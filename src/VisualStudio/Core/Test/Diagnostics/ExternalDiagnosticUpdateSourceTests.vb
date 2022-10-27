@@ -440,18 +440,101 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
+        <Fact, WorkItem(64659, "https://github.com/dotnet/roslyn/issues/64659")>
+        Public Async Function TestExternalDiagnostics_BuildOnlyClearedOnDocumentChanged() As Task
+            Using workspace = TestWorkspace.CreateCSharp("class C { }", composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
+                Dim analyzer = New CompilationEndAnalyzer(hasCompilationEndTag:=True)
+                Dim compiler = DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp)
+
+                Dim analyzerReference = New AnalyzerImageReference(New DiagnosticAnalyzer() {compiler, analyzer}.ToImmutableArray())
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
+
+                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)()
+                Dim waiter = TryCast(listenerProvider.GetListener(FeatureAttribute.ErrorList), AsynchronousOperationListener)
+
+                Dim project = workspace.CurrentSolution.Projects.First()
+                Dim document = project.Documents.Single()
+
+                Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
+                Dim service = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
+                Dim registation = service.CreateIncrementalAnalyzer(workspace)
+                Using source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter, CancellationToken.None)
+
+                    Dim diagnostic = New DiagnosticData(
+                        id:=analyzer.Descriptor.Id,
+                        category:=analyzer.Descriptor.Category,
+                        message:=analyzer.Descriptor.MessageFormat.ToString(),
+                        severity:=analyzer.Descriptor.DefaultSeverity,
+                        defaultSeverity:=analyzer.Descriptor.DefaultSeverity,
+                        isEnabledByDefault:=analyzer.Descriptor.IsEnabledByDefault,
+                        warningLevel:=0,
+                        customTags:=analyzer.Descriptor.CustomTags.AsImmutable(),
+                        properties:=DiagnosticData.PropertiesForBuildDiagnostic,
+                        project.Id,
+                        location:=New DiagnosticDataLocation(
+                            New FileLinePositionSpan(document.FilePath, New LinePositionSpan()), document.Id),
+                        language:=project.Language)
+
+                    Dim actualDiagnostic As DiagnosticData = Nothing
+                    Dim diagnosticAdded = False
+                    Dim diagnosticRemoved = False
+                    AddHandler source.DiagnosticsUpdated, Sub(o, args)
+                                                              Assert.Equal(document.Id, args.DocumentId)
+                                                              Dim diagnostics = args.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode)
+                                                              If args.Kind = DiagnosticsUpdatedKind.DiagnosticsCreated Then
+                                                                  actualDiagnostic = Assert.Single(diagnostics)
+                                                                  diagnosticAdded = True
+                                                              Else
+                                                                  Assert.Equal(DiagnosticsUpdatedKind.DiagnosticsRemoved, args.Kind)
+                                                                  Assert.Empty(diagnostics)
+                                                                  actualDiagnostic = Nothing
+                                                                  diagnosticRemoved = True
+                                                              End If
+                                                          End Sub
+
+                    source.AddNewErrors(document.Id, diagnostic)
+                    Await waiter.ExpeditedWaitAsync()
+
+                    source.OnSolutionBuildCompleted()
+                    Await waiter.ExpeditedWaitAsync()
+
+                    Dim diagnosticServiceWaiter = TryCast(listenerProvider.GetListener(FeatureAttribute.DiagnosticService), AsynchronousOperationListener)
+                    Await diagnosticServiceWaiter.ExpeditedWaitAsync()
+
+                    Assert.True(diagnosticAdded)
+                    Assert.NotNull(actualDiagnostic)
+                    Assert.Equal(actualDiagnostic, diagnostic)
+
+                    Dim buildOnlyDiagnosticService = workspace.Services.GetRequiredService(Of IBuildOnlyDiagnosticsService)
+                    Dim buildOnlyDiagnostic = Assert.Single(buildOnlyDiagnosticService.GetBuildOnlyDiagnostics(document.Id))
+                    Assert.Equal(buildOnlyDiagnostic, diagnostic)
+
+                    ' Verify build-only diagnostics cleared after document changed event
+                    document = document.WithText(SourceText.From("class C2 { }"))
+                    source.OnWorkspaceChanged(workspace, New WorkspaceChangeEventArgs(WorkspaceChangeKind.DocumentChanged,
+                        oldSolution:=workspace.CurrentSolution, newSolution:=document.Project.Solution, project.Id, document.Id))
+                    Await waiter.ExpeditedWaitAsync()
+
+                    Assert.True(diagnosticRemoved)
+                    Assert.Null(actualDiagnostic)
+                    Assert.Empty(buildOnlyDiagnosticService.GetBuildOnlyDiagnostics(document.Id))
+                End Using
+            End Using
+        End Function
+
         Private Class CompilationEndAnalyzer
             Inherits DiagnosticAnalyzer
 
-            Private ReadOnly _descriptor As DiagnosticDescriptor
+            Public ReadOnly Descriptor As DiagnosticDescriptor
 
             Public Sub New(hasCompilationEndTag As Boolean)
                 Dim additionalCustomTags = If(hasCompilationEndTag, {WellKnownDiagnosticTags.CompilationEnd}, Array.Empty(Of String))
-                _descriptor = DescriptorFactory.CreateSimpleDescriptor("CompilationEndAnalyzer", additionalCustomTags)
+                Descriptor = DescriptorFactory.CreateSimpleDescriptor("CompilationEndAnalyzer", additionalCustomTags)
             End Sub
             Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
                 Get
-                    Return ImmutableArray.Create(_descriptor)
+                    Return ImmutableArray.Create(Descriptor)
                 End Get
             End Property
 

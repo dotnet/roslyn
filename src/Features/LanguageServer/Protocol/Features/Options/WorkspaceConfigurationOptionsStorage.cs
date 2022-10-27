@@ -12,7 +12,6 @@ internal static class WorkspaceConfigurationOptionsStorage
     public static WorkspaceConfigurationOptions GetWorkspaceConfigurationOptions(this IGlobalOptionService globalOptions)
         => new(
             CacheStorage: globalOptions.GetOption(CloudCacheFeatureFlag) ? StorageDatabase.CloudCache : globalOptions.GetOption(Database),
-            DisableProjectCacheService: globalOptions.GetOption(DisableProjectCacheService),
             EnableOpeningSourceGeneratedFiles: globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspace) ??
                                                globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag),
             DisableCloneWhenProducingSkeletonReferences: globalOptions.GetOption(DisableCloneWhenProducingSkeletonReferences));
@@ -24,10 +23,6 @@ internal static class WorkspaceConfigurationOptionsStorage
     public static readonly Option2<bool> CloudCacheFeatureFlag = new(
         "FeatureManager/Storage", "CloudCacheFeatureFlag", WorkspaceConfigurationOptions.Default.CacheStorage == StorageDatabase.CloudCache,
         new FeatureFlagStorageLocation("Roslyn.CloudCache3"));
-
-    public static readonly Option2<bool> DisableProjectCacheService = new(
-        "WorkspaceConfigurationOptions", nameof(DisableProjectCacheService), WorkspaceConfigurationOptions.Default.DisableProjectCacheService,
-        new FeatureFlagStorageLocation("Roslyn.DisableProjectCacheService"));
 
     public static readonly Option2<bool> DisableCloneWhenProducingSkeletonReferences = new(
         "WorkspaceConfigurationOptions", "DisableCloneWhenProducingSkeletonReferences", WorkspaceConfigurationOptions.Default.DisableCloneWhenProducingSkeletonReferences,

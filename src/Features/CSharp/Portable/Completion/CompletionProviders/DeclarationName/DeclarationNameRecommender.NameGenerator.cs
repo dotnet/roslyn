@@ -11,9 +11,9 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Words = System.Collections.Immutable.ImmutableArray<string>;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
+namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
 {
-    internal partial class DeclarationNameCompletionProvider
+    internal partial class DeclarationNameRecommender
     {
         internal class NameGenerator
         {
