@@ -10151,6 +10151,86 @@ class C
             End Using
         End Function
 
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionForLambdaParamsArray(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class C
+{
+    void M()
+    {
+        var lam = ($$
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("p")
+                Await state.AssertSelectedCompletionItem(displayText:="params")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionForLambdaParamsArray_BeforeParameter(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class C
+{
+    void M()
+    {
+        var lam = ($$ int[] xs) => { };
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("p")
+                Await state.AssertSelectedCompletionItem(displayText:="params")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionForLambdaParamsArray_AfterParameter(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class C
+{
+    void M()
+    {
+        var lam = (int x, $$
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("p")
+                Await state.AssertSelectedCompletionItem(displayText:="params")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionForLambdaParamsArray_AfterOptionalParameter(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class C
+{
+    void M()
+    {
+        var lam = (int x = 1, $$) => { };
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("p")
+                Await state.AssertSelectedCompletionItem(displayText:="params")
+            End Using
+        End Function
+
         ' Simulate the situation that some provider (e.g. IntelliCode) provides items with higher match priority that only match case-insensitively.
         <ExportCompletionProvider(NameOf(PreselectionProvider), LanguageNames.CSharp)>
         <[Shared]>
