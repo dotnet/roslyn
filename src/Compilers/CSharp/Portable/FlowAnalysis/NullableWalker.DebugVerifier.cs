@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                // Debug.Assert(verifier._analyzedNullabilityMap.Count == verifier._visitedExpressions.Count, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}.");
+                Debug.Assert(verifier._analyzedNullabilityMap.Count == verifier._visitedExpressions.Count, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}.");
             }
 
             private void VerifyExpression(BoundExpression expression, bool overrideSkippedExpression = false)
