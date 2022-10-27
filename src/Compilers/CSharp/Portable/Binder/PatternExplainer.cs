@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="nodes">The set of nodes in topological order.</param>
         /// <param name="targetNode">The node of interest.</param>
         /// <param name="nullPaths">Whether to permit following paths that test for null.</param>
-        /// <param name="handler">Handler to call back for every pather to the target node.</param>
+        /// <param name="handler">Handler to call back for every path to the target node.</param>
         private static void VisitPathsToNode(ImmutableArray<BoundDecisionDagNode> nodes, BoundDecisionDagNode targetNode, bool nullPaths,
             Func<ImmutableArray<BoundDecisionDagNode>, bool, bool> handler)
         {
