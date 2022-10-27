@@ -3100,9 +3100,9 @@ class C
                 // (18,9): error CS0154: The property or indexer 'C.WriteOnly' cannot be used in this context because it lacks the get accessor
                 //         c.WriteOnly += 1;
                 Diagnostic(ErrorCode.ERR_PropertyLacksGet, "c.WriteOnly").WithArguments("C.WriteOnly").WithLocation(18, 9),
-                // (34,9): error CS0266: Cannot implicitly convert type 'long' to 'int'. An explicit conversion exists (are you missing a cast?)
+                // (34,16): error CS0266: Cannot implicitly convert type 'long' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         i32 += i64;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "i32 += i64").WithArguments("long", "int").WithLocation(34, 9),
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "i64").WithArguments("long", "int").WithLocation(34, 16),
                 // (39,9): error CS0266: Cannot implicitly convert type 'C' to 'C.D'. An explicit conversion exists (are you missing a cast?)
                 //         d += c;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "d += c").WithArguments("C", "C.D").WithLocation(39, 9));
