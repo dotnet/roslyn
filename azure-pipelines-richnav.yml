@@ -18,11 +18,12 @@ pr: none
 
 jobs:
 - job: RichCodeNav_Indexing
-  pool:
-    name: NetCore-Svc-Public
-    demands: ImageOverride -equals windows.vs2022.amd64.open
   variables:
     EnableRichCodeNavigation: true
+  - template: /eng/common/templates/variables/pool-providers.yml
+  pool:
+    name: $(DncEngPublicBuildPool)
+    demands: ImageOverride -equals windows.vs2022.amd64.open
   timeoutInMinutes: 200
 
   steps:
