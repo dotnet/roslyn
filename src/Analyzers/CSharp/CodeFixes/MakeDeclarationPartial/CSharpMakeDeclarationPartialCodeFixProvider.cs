@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.MakeDeclarationPartial
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeDeclarationPartial), Shared]
-    internal sealed class CSharpMakeDeclarationPartialCodeFixProvider : AbstractMakeDeclarationPartialCodeFixProvider<TypeDeclarationSyntax>
+    internal sealed class CSharpMakeDeclarationPartialCodeFixProvider : AbstractMakeDeclarationPartialCodeFixProvider
     {
         private const string CS0260 = nameof(CS0260);
 
@@ -29,8 +29,5 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeDeclarationPartial
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(CS0260);
-
-        protected override string GetDeclarationName(TypeDeclarationSyntax node)
-            => node.Identifier.ValueText;
     }
 }

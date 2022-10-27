@@ -10,27 +10,24 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.MakeDeclarationPartial
 {
-    internal abstract class AbstractMakeDeclarationPartialCodeFixProvider<TDeclarationSyntax> : CodeFixProvider
-        where TDeclarationSyntax : SyntaxNode
+    internal abstract class AbstractMakeDeclarationPartialCodeFixProvider : CodeFixProvider
     {
-        protected abstract string GetDeclarationName(TDeclarationSyntax node);
-
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
 
             var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var declarationNode = (TDeclarationSyntax)syntaxRoot.FindNode(context.Span);
+            var declarationNode = syntaxRoot.FindNode(context.Span);
 
             context.RegisterCodeFix(
                 CodeAction.Create(
-                    string.Format(CodeFixesResources.Make_this_declaration_of_0_partial, GetDeclarationName(declarationNode)),
+                    CodeFixesResources.Make_partial,
                     c => MakeDeclarationPartialAsync(document, declarationNode, c)),
                 context.Diagnostics);
         }
 
-        private static async Task<Document> MakeDeclarationPartialAsync(Document document, TDeclarationSyntax declaration, CancellationToken cancellationToken)
+        private static async Task<Document> MakeDeclarationPartialAsync(Document document, SyntaxNode declaration, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 

@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.MakeDeclarationPartial
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.MakeDeclarationPartial), [Shared]>
     Friend Class VisualBasicMakeDeclarationPartialCodeFixProvider
-        Inherits AbstractMakeDeclarationPartialCodeFixProvider(Of TypeStatementSyntax)
+        Inherits AbstractMakeDeclarationPartialCodeFixProvider
 
         Private Const BC40046 As String = NameOf(BC40046)
 
@@ -22,9 +22,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeDeclarationPartial
         End Sub
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC40046)
-
-        Protected Overrides Function GetDeclarationName(node As TypeStatementSyntax) As String
-            Return node.Identifier.ValueText
-        End Function
     End Class
 End Namespace
