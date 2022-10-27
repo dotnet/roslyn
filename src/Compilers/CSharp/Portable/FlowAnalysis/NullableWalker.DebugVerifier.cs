@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (overrideSkippedExpression || !s_skippedExpressions.Contains(expression.Kind))
                 {
-                    // Debug.Assert(_analyzedNullabilityMap.ContainsKey(expression), $"Did not find {expression} `{expression.Syntax}` in the map.");
+                    Debug.Assert(_analyzedNullabilityMap.ContainsKey(expression), $"Did not find {expression} `{expression.Syntax}` in the map.");
                     _visitedExpressions.Add(expression);
                 }
             }
