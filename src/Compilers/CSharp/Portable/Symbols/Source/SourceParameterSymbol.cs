@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         private readonly ImmutableArray<Location> _locations;
         private readonly RefKind _refKind;
-        private readonly DeclarationScope? _scope;
+        private readonly DeclarationScope _scope;
 
         public static SourceParameterSymbol Create(
             Binder context,
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithAnnotations parameterType,
             int ordinal,
             RefKind refKind,
-            DeclarationScope? scope,
+            DeclarationScope scope,
             string name,
             ImmutableArray<Location> locations)
             : base(owner, ordinal)
@@ -225,16 +225,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The declared scope. From source, this is from the <c>scope</c> keyword only.
         /// </summary>
-        internal DeclarationScope? DeclaredScope => _scope;
+        internal DeclarationScope DeclaredScope => _scope;
 
         internal abstract override DeclarationScope EffectiveScope { get; }
 
         protected DeclarationScope CalculateEffectiveScopeIgnoringAttributes()
         {
-            // DeclaredScope is only null in LambdaParameterSymbol where EffectiveScope can be provided rather than computed
-            Debug.Assert(this.DeclaredScope is not null);
-            var declaredScope = this.DeclaredScope.Value;
-
+            var declaredScope = this.DeclaredScope;
             return declaredScope == DeclarationScope.Unscoped && ParameterHelpers.IsRefScopedByDefault(this) ?
                 DeclarationScope.RefScoped :
                 declaredScope;
