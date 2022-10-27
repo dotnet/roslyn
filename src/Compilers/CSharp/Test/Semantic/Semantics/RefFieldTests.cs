@@ -25820,7 +25820,6 @@ Block[B2] - Exit
         public void ConstructorInvocationValEscape_02()
         {
             var source = """
-
                 class Program
                 {
                     static void M()
