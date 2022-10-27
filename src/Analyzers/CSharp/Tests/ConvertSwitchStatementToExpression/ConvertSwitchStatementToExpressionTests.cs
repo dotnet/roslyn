@@ -2288,7 +2288,7 @@ class Program
 }");
         }
 
-        [Fact]
+        [Fact, WorkItem(61278, "https://github.com/dotnet/roslyn/issues/61278")]
         public async Task TestLeadingTrivia1()
         {
             await new VerifyCS.Test
@@ -2340,7 +2340,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact]
+        [Fact, WorkItem(61278, "https://github.com/dotnet/roslyn/issues/61278")]
         public async Task TestLeadingTrivia2()
         {
             await new VerifyCS.Test
