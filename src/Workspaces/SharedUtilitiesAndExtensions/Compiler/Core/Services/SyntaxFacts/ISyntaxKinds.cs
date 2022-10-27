@@ -201,6 +201,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         #region other
 
+        int? ImplicitElementAccess { get; }
         int Interpolation { get; }
         int InterpolatedStringText { get; }
         int? IndexerMemberCref { get; }
