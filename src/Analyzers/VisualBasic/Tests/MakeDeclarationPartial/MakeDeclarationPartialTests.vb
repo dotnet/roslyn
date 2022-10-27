@@ -2,178 +2,155 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.MakeDeclarationpartial
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
+Imports Microsoft.CodeAnalysis.Testing
+Imports Microsoft.CodeAnalysis.VisualBasic.MakeDeclarationPartial
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeDeclarationPartial
     <Trait(Traits.Feature, Traits.Features.CodeActionsMakeDeclarationPartial)>
     Public Class MakeDeclarationPartialTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
-
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (Nothing, New VisualBasicMakeDeclarationPartialCodeFixProvider())
-        End Function
+        Private Class TestVerifier
+            Inherits VisualBasicCodeFixVerifier(Of EmptyDiagnosticAnalyzer, VisualBasicMakeDeclarationPartialCodeFixProvider).Test
+        End Class
 
         <Fact>
         Public Async Function OutsideNamespace() As Task
-            Await TestInRegularAndScriptAsync(
-<Workspace>
-    <Project Language="Visual Basic">
-        <Document>
+            Dim document1 = "
 Partial Class Declaration
 End Class
 
-Class Declaration
-End Class
-        </Document>
-        <Document>
-Class [|Declaration|]
-End Class
-        </Document>
-    </Project>
-</Workspace>.ToString(),
-<Workspace>
-    <Project Language="Visual Basic">
-        <Document>
+Class {|BC40046:Declaration|}
+End Class"
+
+            Dim document2 = "
+Class {|BC40046:Declaration|}
+End Class"
+
+            Dim fixedDocument1 = "
 Partial Class Declaration
 End Class
 
-Class Declaration
-End Class
-        </Document>
-        <Document>
 Partial Class Declaration
-End Class
-        </Document>
-    </Project>
-</Workspace>.ToString())
+End Class"
+
+            Dim test = New TestVerifier()
+
+            test.TestState.Sources.Add(document1)
+            test.TestState.Sources.Add(document2)
+
+            test.FixedState.Sources.Add(fixedDocument1)
+            test.FixedState.Sources.Add(document2)
+
+            Await test.RunAsync()
         End Function
 
         <Fact>
         Public Async Function InsideOneNamespace() As Task
-            Await TestInRegularAndScriptAsync(
-<Workspace>
-    <Project Language="Visual Basic">
-        <Document>
+            Dim document1 = "
 Namespace TestNamespace
     Partial Class Declaration
     End Class
 
-    Class Declaration
+    Class {|BC40046:Declaration|}
     End Class
-End Namespace
-        </Document>
-        <Document>
+End Namespace"
+
+            Dim document2 = "
 Namespace TestNamespace
-    Class [|Declaration|]
+    Class {|BC40046:Declaration|}
     End Class
-End Namespace
-        </Document>
-    </Project>
-</Workspace>.ToString(),
-<Workspace>
-    <Project Language="Visual Basic">
-        <Document>
+End Namespace"
+
+            Dim fixedDocument1 = "
 Namespace TestNamespace
     Partial Class Declaration
     End Class
 
-    Class Declaration
-    End Class
-End Namespace
-        </Document>
-        <Document>
-Namespace TestNamespace
     Partial Class Declaration
     End Class
-End Namespace
-        </Document>
-    </Project>
-</Workspace>.ToString())
+End Namespace"
+
+            Dim test = New TestVerifier()
+
+            test.TestState.Sources.Add(document1)
+            test.TestState.Sources.Add(document2)
+
+            test.FixedState.Sources.Add(fixedDocument1)
+            test.FixedState.Sources.Add(document2)
+
+            Await test.RunAsync()
         End Function
 
         <Fact>
         Public Async Function InsideTwoEqualNamespaces() As Task
-            Await TestInRegularAndScriptAsync(
-<Workspace>
-    <Project Language="Visual Basic">
-        <Document>
+            Dim document1 = "
 Namespace TestNamespace
     Partial Class Declaration
     End Class
 End Namespace
 
 Namespace TestNamespace
-    Class Declaration
+    Class {|BC40046:Declaration|}
     End Class
-End Namespace
-        </Document>
-        <Document>
+End Namespace"
+
+            Dim document2 = "
 Namespace TestNamespace
-    Class [|Declaration|]
+    Class {|BC40046:Declaration|}
     End Class
-End Namespace
-        </Document>
-    </Project>
-</Workspace>.ToString(),
-<Workspace>
-    <Project Language="Visual Basic">
-        <Document>
+End Namespace"
+
+            Dim fixedDocument1 = "
 Namespace TestNamespace
     Partial Class Declaration
     End Class
 End Namespace
 
 Namespace TestNamespace
-    Class Declaration
-    End Class
-End Namespace
-        </Document>
-        <Document>
-Namespace TestNamespace
     Partial Class Declaration
     End Class
-End Namespace
-        </Document>
-    </Project>
-</Workspace>.ToString())
+End Namespace"
+
+            Dim test = New TestVerifier()
+
+            test.TestState.Sources.Add(document1)
+            test.TestState.Sources.Add(document2)
+
+            test.FixedState.Sources.Add(fixedDocument1)
+            test.FixedState.Sources.Add(document2)
+
+            Await test.RunAsync()
         End Function
 
         <Fact>
         Public Async Function WithOtherModifiers() As Task
-            Await TestInRegularAndScriptAsync(
-<Workspace>
-    <Project Language="Visual Basic">
-        <Document>
+            Dim document1 = "
 Partial Public Class Declaration
 End Class
 
-Public Class Declaration
-End Class
-        </Document>
-        <Document>
-Public Class [|Declaration|]
-End Class
-        </Document>
-    </Project>
-</Workspace>.ToString(),
-<Workspace>
-    <Project Language="Visual Basic">
-        <Document>
+Public Class {|BC40046:Declaration|}
+End Class"
+
+            Dim document2 = "
+Public Class {|BC40046:Declaration|}
+End Class"
+
+            Dim fixedDocument1 = "
 Partial Public Class Declaration
 End Class
 
-Public Class Declaration
-End Class
-        </Document>
-        <Document>
 Partial Public Class Declaration
-End Class
-        </Document>
-    </Project>
-</Workspace>.ToString())
+End Class"
+
+            Dim test = New TestVerifier()
+
+            test.TestState.Sources.Add(document1)
+            test.TestState.Sources.Add(document2)
+
+            test.FixedState.Sources.Add(fixedDocument1)
+            test.FixedState.Sources.Add(document2)
+
+            Await test.RunAsync()
         End Function
     End Class
 End Namespace
