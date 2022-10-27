@@ -7055,8 +7055,6 @@ public class DisplayAttribute : System.Attribute
             comp.VerifyDiagnostics();
         }
 
-
-        // PROTOTYPE: Add separate test cases for lang version 11 vs. lang version 11 preview
         [Fact]
         public void AnonymousMethodWithExplicitDefaultParam()
         {
@@ -7072,7 +7070,10 @@ class Program
 
 """;
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (5,34): error CS1065: Default values are not valid in this context.
+                //         var lam = delegate(int x = 7) { return x; };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 34));
         }
 
         [Fact]
@@ -7158,6 +7159,9 @@ class Program
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (5,34): error CS1065: Default values are not valid in this context.
+                //         var lam = delegate(int a = 3, int b) { return a + b; };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 34),
                 // (5,44): error CS1737: Optional parameters must appear after all required parameters
                 //         var lam = delegate(int a = 3, int b) { return a + b; };
                 Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(5, 44));
@@ -7197,6 +7201,9 @@ class Program
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                    // (5,41): error CS1065: Default values are not valid in this context.
+                    //         var lam = delegate(int x, int y = 3, int z) { return x + y + z; };
+                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 41),
                     // (5,51): error CS1737: Optional parameters must appear after all required parameters
                     //         var lam = delegate(int x, int y = 3, int z) { return x + y + z; };
                     Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(5, 51));
@@ -7237,7 +7244,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (5,32): error CS1750: A value of type 'string' cannot be used as a default parameter because there are no standard conversions to type 'int'
                 //         var lam = delegate(int x = "abcdef") { return x; };
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "x").WithArguments("string", "int").WithLocation(5, 32));
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "x").WithArguments("string", "int").WithLocation(5, 32),
+                // (5,34): error CS1065: Default values are not valid in this context.
+                //         var lam = delegate(int x = "abcdef") { return x; };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 34));
         }
 
         [Fact]
@@ -7293,6 +7303,9 @@ class Program
 """;
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (14,32): error CS1065: Default values are not valid in this context.
+                //         var lam = delegate(C c = new C(null)) { return c.Field; };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(14, 32),
                 // (14,34): error CS1736: Default parameter value for 'c' must be a compile-time constant
                 //         var lam = delegate(C c = new C(null)) { return c.Field; };
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new C(null)").WithArguments("c").WithLocation(14, 34));
@@ -7334,6 +7347,9 @@ class Program
 """;
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (7,37): error CS1065: Default values are not valid in this context.
+                //         var lam = delegate(string s = add(1, 2)) { return s; };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(7, 37),
                 // (7,39): error CS1736: Default parameter value for 's' must be a compile-time constant
                 //         var lam = delegate(string s = add(1, 2)) { return s; };
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "add(1, 2)").WithArguments("s").WithLocation(7, 39));
@@ -7383,7 +7399,10 @@ class Program
 }
 """;
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (12,35): error CS1065: Default values are not valid in this context.
+                //         var fn = delegate(int arg = b1 ? num1 : b2 ? num2 : num3) { return arg; };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(12, 35));
         }
 
         [Fact]
@@ -7419,7 +7438,10 @@ class Program
 }
 """;
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (7,37): error CS1065: Default values are not valid in this context.
+                //         var func = delegate(int arg = i1 + i2) { return arg + 1; };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(7, 37));
         }
 
         [Fact]
@@ -7484,7 +7506,10 @@ class Program
 }
 """;
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (5,62): error CS1065: Default values are not valid in this context.
+                //         var lam = delegate(ref int x, out object y, double c = 4.59) { y = c + (double) x; };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 62));
         }
 
         [Fact]
@@ -7542,6 +7567,9 @@ class Program
 """;
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (5,31): error CS1065: Default values are not valid in this context.
+                //        var _ = delegate(int i = M2(a)) { }; // parameter 'a' should be considered read/used
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 31),
                 // (5,33): error CS1736: Default parameter value for 'i' must be a compile-time constant
                 //        var _ = delegate(int i = M2(a)) { }; // parameter 'a' should be considered read/used
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M2(a)").WithArguments("i").WithLocation(5, 33));
