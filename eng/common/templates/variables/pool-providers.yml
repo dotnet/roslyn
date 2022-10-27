@@ -27,8 +27,15 @@
 
 variables:
 
+
 - name: DncEngPublicBuildPool
-  value: ${{ iff(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), 'NetCore-Svc-Public', 'NetCore-Public') }}
+  $[ if(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release')) ]
+    value: NetCore-Svc-Public
+  $[ if(ne(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), true)) ]
+    value: NetCore-Public
 
 - name: DncEngInternalBuildPool
-  value: ${{ iff(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), 'NetCore1ESPool-Svc-Internal', 'NetCore1ESPool-Internal') }}
+  $[ if(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release')) ]
+    value: NetCore1ESPool-Svc-Internal
+  $[ if(ne(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), true)) ]
+    value: NetCore1ESPool-Internal
