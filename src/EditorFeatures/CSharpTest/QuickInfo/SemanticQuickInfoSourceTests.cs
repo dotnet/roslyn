@@ -8180,7 +8180,7 @@ class C
         $$var lam = (int param = 42) => param;
     }
 }
-", MainDescription($"delegate int <anonymous delegate>(int arg)"));
+", MainDescription("delegate int <anonymous delegate>(int arg = 42)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
