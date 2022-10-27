@@ -3738,8 +3738,8 @@ class C {}
 class C2 : C {}
 ";
             CreateCompilationWithMscorlibAndSpan(source).VerifyDiagnostics(
-                // (4,21): error CS8173: The expression must be of type 'C' because it is being assigned by reference
-                // foreach (ref C t in items) {}
+                // (4,30): error CS8173: The expression must be of type 'C' because it is being assigned by reference
+                // foreach (ref readonly C t in items) {}
                 Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "items").WithArguments("C").WithLocation(4, 30)
             );
         }
