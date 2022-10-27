@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.MakeDeclarationPartial
 {
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.MakeDeclarationPartial
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
 
-            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var declarationNode = syntaxRoot.FindNode(context.Span);
 
             context.RegisterCodeFix(
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.MakeDeclarationPartial
 
         private static async Task<Document> MakeDeclarationPartialAsync(Document document, SyntaxNode declaration, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var editor = new SyntaxEditor(root, document.Project.Solution.Services);
             var generator = editor.Generator;
