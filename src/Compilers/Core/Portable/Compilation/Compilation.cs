@@ -628,6 +628,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal AsyncQueue<CompilationEvent>? EventQueue { get; }
 
+        /// <summary>
+        /// If this value is not 0, we might be about to enqueue more events into <see cref="EventQueue"/>.
+        /// In this case, we need to wait for the count to go to zero before completing the queue. 
+        /// </summary>
+        internal int _eventQueueEnqueuePendingCount;
+
         #endregion
 
         #region References
@@ -1768,6 +1774,11 @@ namespace Microsoft.CodeAnalysis
         internal void CompleteCompilationEventQueue_NoLock()
         {
             RoslynDebug.Assert(EventQueue != null);
+
+            if (Volatile.Read(ref _eventQueueEnqueuePendingCount) != 0)
+            {
+                SpinWait.SpinUntil(() => Volatile.Read(ref _eventQueueEnqueuePendingCount) == 0);
+            }
 
             // Signal the end of compilation.
             EventQueue.TryEnqueue(new CompilationCompletedEvent(this));
