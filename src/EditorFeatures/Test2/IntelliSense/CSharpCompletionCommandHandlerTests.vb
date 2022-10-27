@@ -9,6 +9,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.CSharp
+Imports Microsoft.CodeAnalysis.CSharp.ExternalAccess.Pythia.Api
 Imports Microsoft.CodeAnalysis.CSharp.Formatting
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
@@ -10416,6 +10417,76 @@ namespace NS
 
             End Using
         End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestDeclarationNameSuggestionDoNotCrash() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+using System;
+class MyClass
+{
+    public void MyMethod()
+    {
+        ArgumentException $$
+    }
+}
+                              </Document>)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp), False)
+                state.SendInvokeCompletionList()
+                ' We should still work normally w/o pythia recommender
+                Await state.AssertCompletionItemsContainAll("argumentException", "exception")
+            End Using
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestDeclarationNameSuggestionWithPythiaRecommender() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+using System;
+class MyClass
+{
+    public void MyMethod()
+    {
+        ArgumentException $$
+    }
+}
+                              </Document>,
+                              extraExportedTypes:={GetType(TestPythiaDeclarationNameRecommenderImplmentation)}.ToList())
+
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp), False)
+
+                state.SendInvokeCompletionList()
+                Dim computedItems = (Await state.GetCompletionSession()).GetComputedItems(CancellationToken.None)
+
+                Assert.NotNull(computedItems.SuggestionItem)
+
+                Dim firstItem = computedItems.Items.First()
+                Assert.Equal("PythiaRecommendName", firstItem.DisplayText)
+                Assert.True({"PythiaRecommendName", "argumentException", "exception"}.All(Function(v) computedItems.Items.Any(Function(i) i.DisplayText = v)))
+            End Using
+        End Function
+
+        <Export(GetType(IPythiaDeclarationNameRecommenderImplmentation))>
+        <[Shared]>
+        <PartNotDiscoverable>
+        Private Class TestPythiaDeclarationNameRecommenderImplmentation
+            Implements IPythiaDeclarationNameRecommenderImplmentation
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+            End Sub
+
+            Public Function ProvideRecommendationsAsync(context As PythiaDeclarationNameContext, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of String)) Implements IPythiaDeclarationNameRecommenderImplmentation.ProvideRecommendationsAsync
+                Dim result = ImmutableArray.Create("PythiaRecommendName")
+                Return Task.FromResult(result)
+            End Function
+        End Class
 
         <WpfFact, WorkItem(40393, "https://github.com/dotnet/roslyn/issues/40393")>
         Public Async Function TestAfterUsingStatement1() As Task
