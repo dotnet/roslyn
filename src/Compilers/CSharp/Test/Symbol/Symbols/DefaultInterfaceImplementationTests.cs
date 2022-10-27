@@ -50505,26 +50505,26 @@ class UsePia
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
         public void NoPia_09()
         {
+            IEnumerable<MetadataReference> baseReferences = TargetFrameworkUtil.GetReferencesWithout(TargetFramework.Net50, "System.Runtime.InteropServices.dll");
+            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, references: baseReferences, targetFramework: TargetFramework.Empty);
+            var attributesRef = attributes.EmitToImageReference();
+
             string pia = @"
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
-
 [assembly: PrimaryInteropAssemblyAttribute(1,1)]
 [assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
-
 [ComImport()]
 [Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
 public interface ITest33
 {
     void M1();
-
     public interface ITest55
     {
         void M2();
     }
 }
-
 [ComImport()]
 [Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58280"")]
 public interface ITest44 : ITest33
@@ -50533,7 +50533,8 @@ public interface ITest44 : ITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net50);
+            baseReferences = baseReferences.Concat(new[] { attributesRef });
+            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: baseReferences, targetFramework: TargetFramework.Empty);
 
             string consumer1 = @"
 public class UsePia
@@ -50544,7 +50545,6 @@ public class UsePia
     }
 } 
 ";
-
             string consumer2 = @"
 class Test : ITest33
 {
@@ -50552,22 +50552,18 @@ class Test : ITest33
     {
         UsePia.Test(new Test());
     }
-
     void ITest33.M1()
     {
         System.Console.WriteLine(""Test.M1"");
     }
 } 
 ";
-
             string pia2 = @"
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
-
 [assembly: PrimaryInteropAssemblyAttribute(1,1)]
 [assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
-
 [ComImport()]
 [Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
 public interface ITest33
@@ -50576,20 +50572,10 @@ public interface ITest33
 }
 " + NoPiaAttributes;
 
-            var pia2Compilation = CreateCompilation(pia2, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net50);
+            var pia2Compilation = CreateCompilation(pia2, baseReferences, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Empty);
             var pia2Reference = pia2Compilation.EmitToImageReference();
 
-            IEnumerable<MetadataReference> baseReferences;
-            if (ExecutionConditionUtil.IsMonoOrCoreClr)
-            {
-                baseReferences = TargetFrameworkUtil.GetReferences(TargetFramework.Net50);
-            }
-            else
-            {
-                baseReferences = TargetFrameworkUtil.GetReferences(TargetFramework.NetFramework);
-                baseReferences = baseReferences.Concat(new[] { TestMetadata.Net461.SystemRuntimeInteropServices });
-            }
-
+            baseReferences = TargetFrameworkUtil.GetReferencesWithout(TargetFramework.StandardLatest, "System.Runtime.InteropServices.dll").Concat(new[] { attributesRef });
             var compilation1 = CreateCompilation(consumer1, options: TestOptions.ReleaseDll, references: baseReferences.Concat(new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true) }), targetFramework: TargetFramework.Empty);
 
             foreach (var reference2 in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })

@@ -7,13 +7,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Basic.Reference.Assemblies;
 using static TestReferences;
 using static Roslyn.Test.Utilities.TestMetadata;
-using Basic.Reference.Assemblies;
-using System.Diagnostics;
 
 namespace Roslyn.Test.Utilities
 {
