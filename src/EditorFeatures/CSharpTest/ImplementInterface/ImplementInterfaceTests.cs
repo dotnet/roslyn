@@ -10615,5 +10615,67 @@ public abstract class BaseTest : ITest
 }",
             }.RunAsync();
         }
+
+        [Fact, WorkItem(58136, "https://github.com/dotnet/roslyn/issues/58136")]
+        public async Task TestStaticAbstractMembers1()
+        {
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+                LanguageVersion = LanguageVersion.Preview,
+                TestCode = @"
+using System;
+
+internal interface I
+{
+    internal static abstract int P { get; }
+
+    internal static abstract event Action E;
+
+    internal static abstract void M();
+}
+
+class C : {|CS0535:{|CS0535:{|CS0535:I|}|}|}
+{
+}
+",
+                FixedCode = @"
+using System;
+
+internal interface I
+{
+    internal static abstract int P { get; }
+
+    internal static abstract event Action E;
+
+    internal static abstract void M();
+}
+
+class C : I
+{
+    static int I.P => throw new NotImplementedException();
+
+    static event Action I.E
+    {
+        add
+        {
+            throw new NotImplementedException();
+        }
+
+        remove
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    static void I.M()
+    {
+        throw new NotImplementedException();
+    }
+}
+",
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(FeaturesResources.Implement_all_members_explicitly, codeAction.Title),
+            }.RunAsync();
+        }
     }
 }
