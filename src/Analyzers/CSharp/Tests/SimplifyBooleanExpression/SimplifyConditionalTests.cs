@@ -320,7 +320,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(69156, "https://github.com/dotnet/runtime/issues/69156")]
+        [Fact, WorkItem(62827, "https://github.com/dotnet/roslyn/issues/62827")]
         public async Task TestFixAll()
         {
             await TestInRegularAndScriptAsync(
