@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 return cached;
             }
 
- #nullable enable
+#nullable enable
 
             private static NamedTypeSymbol RetargetNamedTypeDefinition(PENamedTypeSymbol type, PEModuleSymbol addedModule)
             {
