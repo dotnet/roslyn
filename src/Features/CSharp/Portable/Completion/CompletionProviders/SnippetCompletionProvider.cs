@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             "#if", "#region", "Attribute", "checked", "ctor", "do", "else", "enum", "equals", "Exception",
             "for", "forr", "indexer", "invoke", "iterindex", "iterator", "lock", "mbox",
             "namespace", "propa", "propdp", "propfull", "propg", "sim", "svm", "switch", "testc", "testm",
-            "try", "tryf", "unchecked", "unsafe", "using", "while", "~"
+            "try", "tryf", "unchecked", "unsafe", "using", "~"
         };
 
         internal override bool IsSnippetProvider => true;

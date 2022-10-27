@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -1000,6 +998,23 @@ class C
     void Goo()
     {
         a?.Invoke();
+    }
+}");
+        }
+
+        [Fact, WorkItem(50976, "https://github.com/dotnet/roslyn/issues/50976")]
+        public async Task TestMissingOnFunctionPointer()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    unsafe void M(delegate* managed<void> func)
+    {
+        if (func != null)
+        {
+            [||]func();
+        }
     }
 }");
         }
