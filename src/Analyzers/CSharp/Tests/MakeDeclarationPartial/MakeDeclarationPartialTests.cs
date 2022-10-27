@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharp.UnitTests.MakeDeclarationPartial
             yield return new[] { "struct" };
             yield return new[] { "interface" };
             yield return new[] { "record" };
+            yield return new[] { "record class" };
             yield return new[] { "record struct" };
         }
 
