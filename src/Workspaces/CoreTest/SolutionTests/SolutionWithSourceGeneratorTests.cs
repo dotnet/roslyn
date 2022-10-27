@@ -87,6 +87,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             project = project.WithAnalyzerReferences(new[] { analyzerReference2 });
 
             Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
+
+            // Now remove and confirm that we don't have any files
+            project = project.WithAnalyzerReferences(SpecializedCollections.EmptyEnumerable<AnalyzerReference>());
+
+            Assert.Empty((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
         }
 
         private class TestGeneratorReferenceWithFilePathEquality : TestGeneratorReference, IEquatable<AnalyzerReference>
