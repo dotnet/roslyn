@@ -54,6 +54,9 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             }
 
             return null;
+
+            static string? GetArgumentString(TypedConstant argument)
+                => argument is { IsNull: false, Type.SpecialType: SpecialType.System_String, Value: string stringValue } ? stringValue.Trim() : null;
         }
 
         private static SyntaxNode? FindFirstNonNestedClass(
@@ -76,19 +79,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             }
 
             return null;
-        }
-
-        private static string? GetArgumentString(TypedConstant argument)
-        {
-            if (argument.Type == null ||
-                argument.Type.SpecialType != SpecialType.System_String ||
-                argument.IsNull ||
-                argument.Value is not string stringValue)
-            {
-                return null;
-            }
-
-            return stringValue.Trim();
         }
     }
 }
