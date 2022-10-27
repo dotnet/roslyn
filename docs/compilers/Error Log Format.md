@@ -16,7 +16,7 @@ This section provides a high level overview of the contents of the SARIF v2 erro
   "version": "2.1.0",
 ```
 
-2. `runs` information: The core entry in the error log file is the `runs` section with a single run entry within in for the build. The run entry has 3 main parts:
+2. `runs` information: The core entry in the error log file is the `runs` section with a single run entry within it for the build. The run entry has 3 main parts:
   1. `results` section: This section contains an array of result entries, where each result corresponds to information about a reported compiler or analyzer `Diagnostic`. More details in [`Result` format for each compiler or analyzer `Diagnostic` instance](#result-format-for-each-compiler-or-analyzer-diagnostic-instance).
   2. `tools` section: This section contains information about the compiler build and version. Additionally, it contains a `rules` array, where each rule entry corresponds to metadata or `DiagnosticDescriptor` information about each reported analyzer diagnostic. More details in [`Rule` format for each analyzer supported `DiagnosticDescriptor` instance](#rule-format-for-each-analyzer-supported-diagnosticdescriptor-instance)
   3. `columnKind` section: This section contains information about the unit in which the tool measures columns. C# and Visual Basic compilers uses utf16 code units.
@@ -105,7 +105,7 @@ The `rules` section contains a rule entry that corresponds to metadata or `Diagn
 3. `fullDescription`: User facing full description or `Description` associated with the descriptor.
 4. `defaultConfiguration`: Default severity level for the diagnostics reported for the descriptor, such as `error`, `warning`, `note`, etc.
 5. `helpUri`: Help uri for help information associated with the descriptor.
-6. `properties`: One or more custom properties associated with the diagnostic. It includes the following:
+6. `properties`: One or more custom properties associated with the descriptor. It includes the following:
   1. `category`: `Category` associated with the descriptor, such as, `Design`, `Performance`, `Security`, etc.
   2. `isEverSuppressed` and `suppressionKinds`: If a rule had either a source suppression or was disabled for part or whole of the compilation via options, the rule metadata contains a special flag `isEverSuppressed = true` and an array `suppressionKinds` with either or both of the below suppression kinds:
     1. `inSource` suppression kind for one or more reported diagnostic(s) that were suppressed through pragma directive, SuppressMessageAttribute or a DiagnosticSuppressor.
