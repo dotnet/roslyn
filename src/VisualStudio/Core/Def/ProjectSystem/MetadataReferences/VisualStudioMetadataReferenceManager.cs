@@ -34,6 +34,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private static readonly Guid s_IID_IMetaDataImport = new("7DAC8207-D3AE-4c75-9B67-92801A497D44");
 
         private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new();
+
+        /// <summary>
+        /// Mapping from an <see cref="AssemblyMetadata"/> we created, to the memory mapped files (mmf) corresponding to
+        /// the assembly and all the modules within it.  This is kept around to make OOP syncing more efficient.
+        /// Specifically, since we know we read the assembly into an mmf, we can just send the mmf name/offset/length to
+        /// the remote process, and it can map that same memory in directly, instead of needing the host to send the
+        /// entire contents of the assembly over the channel to the OOP process.
+        /// </summary>
         private static readonly ConditionalWeakTable<ValueSource<AssemblyMetadata>, IReadOnlyList<TemporaryStorageService.TemporaryStreamStorage>> s_valueSourceToStorages = new();
 
         private readonly MetadataCache _metadataCache = new();
