@@ -4,7 +4,9 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.Serialization;
+using System.Text;
 using MessagePack;
 using MessagePack.Formatters;
 using MessagePack.Resolvers;
@@ -24,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         internal static readonly ImmutableArray<IMessagePackFormatter> Formatters = ImmutableArray.Create<IMessagePackFormatter>(
             ProjectIdFormatter.Instance,
+            EncodingFormatter.Instance,
             // ForceTypelessFormatter<T> needs to be listed here for each Roslyn abstract type T that is being serialized OOP.
             // TODO: add a resolver that provides these https://github.com/dotnet/roslyn/issues/60724
             new ForceTypelessFormatter<SimplifierOptions>(),
@@ -99,6 +102,80 @@ namespace Microsoft.CodeAnalysis.Remote
                         writer.WriteArrayHeader(2);
                         GuidFormatter.Instance.Serialize(ref writer, value.Id, options);
                         writer.Write(value.DebugName);
+                    }
+                }
+                catch (Exception e) when (e is not MessagePackSerializationException)
+                {
+                    throw new MessagePackSerializationException(e.Message, e);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Supports (de)serialization of <see cref="Encoding"/> that do not customize <see cref="Encoding.EncoderFallback"/> or <see cref="Encoding.DecoderFallback"/>.
+        /// The fallback will be discarded if the <see cref="Encoding"/> has any.
+        /// </summary>
+        /// <remarks>
+        /// Only supports (de)serializing values that are statically typed to <see cref="Encoding"/>.
+        /// This is important as we can't assume anything about arbitrary subtypes of <see cref="Encoding"/>
+        /// and can only return general <see cref="Encoding"/> from the deserializer.
+        /// </remarks>
+        internal sealed class EncodingFormatter : IMessagePackFormatter<Encoding?>
+        {
+            public static readonly EncodingFormatter Instance = new();
+
+            public Encoding? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+            {
+                try
+                {
+                    if (reader.TryReadNil())
+                    {
+                        return null;
+                    }
+
+                    var kind = (TextEncodingKind)reader.ReadByte();
+                    if (kind != TextEncodingKind.None)
+                    {
+                        return kind.GetEncoding();
+                    }
+
+                    var codePage = reader.ReadInt32();
+                    if (codePage > 0)
+                    {
+                        return Encoding.GetEncoding(codePage);
+                    }
+
+                    var name = reader.ReadString();
+                    return Encoding.GetEncoding(name);
+                }
+                catch (Exception e) when (e is not MessagePackSerializationException)
+                {
+                    throw new MessagePackSerializationException(e.Message, e);
+                }
+            }
+
+            public void Serialize(ref MessagePackWriter writer, Encoding? value, MessagePackSerializerOptions options)
+            {
+                try
+                {
+                    if (value is null)
+                    {
+                        writer.WriteNil();
+                    }
+                    else if (value.TryGetEncodingKind(out var kind))
+                    {
+                        Debug.Assert(kind != TextEncodingKind.None);
+                        writer.WriteUInt8((byte)kind);
+                    }
+                    else
+                    {
+                        writer.WriteUInt8((byte)TextEncodingKind.None);
+                        var codePage = value.CodePage;
+                        writer.Write(codePage);
+                        if (codePage <= 0)
+                        {
+                            writer.Write(value.WebName);
+                        }
                     }
                 }
                 catch (Exception e) when (e is not MessagePackSerializationException)

@@ -62,7 +62,7 @@ internal static class Program
             Assert.Equal(HelloWorldGenerator.GeneratedEnglishClassName, await TestServices.Editor.GetSelectedTextAsync(HangMitigatingCancellationToken));
         }
 
-        [IdeTheory]
+        [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/64721")]
         [CombinatorialData]
         public async Task FindReferencesForFileWithDefinitionInSourceGeneratedFile(bool invokeFromSourceGeneratedFile)
         {
@@ -145,7 +145,7 @@ internal static class Program
             Assert.Equal(isPreview, await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/60477")]
+        [IdeFact]
         public async Task InvokeNavigateToForGeneratedFile()
         {
             await TestServices.Shell.ShowNavigateToDialogAsync(HangMitigatingCancellationToken);

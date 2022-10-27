@@ -15,11 +15,16 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Workspaces;
 
 public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 {
+    public LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+    {
+    }
+
     [Fact]
     public async Task TestUsesLspTextOnOpenCloseAsync()
     {
@@ -427,8 +432,8 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 
         var documentUri = testWorkspace.CurrentSolution.Projects.First().Documents.First().GetURI();
 
-        await using var testLspServerOne = await TestLspServer.CreateAsync(testWorkspace, new InitializationOptions());
-        await using var testLspServerTwo = await TestLspServer.CreateAsync(testWorkspace, new InitializationOptions());
+        await using var testLspServerOne = await TestLspServer.CreateAsync(testWorkspace, new InitializationOptions(), TestOutputLspLogger);
+        await using var testLspServerTwo = await TestLspServer.CreateAsync(testWorkspace, new InitializationOptions(), TestOutputLspLogger);
 
         Assert.NotEqual(testLspServerOne.GetManager(), testLspServerTwo.GetManager());
 
