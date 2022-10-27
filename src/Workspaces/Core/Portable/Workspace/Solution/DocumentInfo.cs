@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -71,6 +72,9 @@ namespace Microsoft.CodeAnalysis
             DocumentServiceProvider = documentServiceProvider;
         }
 
+        /// <summary>
+        /// Creates info.
+        /// </summary>
         public static DocumentInfo Create(
             DocumentId id,
             string name,
@@ -80,30 +84,17 @@ namespace Microsoft.CodeAnalysis
             string? filePath = null,
             bool isGenerated = false)
         {
-            return Create(
-                id ?? throw new ArgumentNullException(nameof(id)),
-                name ?? throw new ArgumentNullException(nameof(name)),
-                PublicContract.ToBoxedImmutableArrayWithNonNullItems(folders, nameof(folders)),
-                sourceCodeKind,
+            return new DocumentInfo(
+                new DocumentAttributes(
+                    id ?? throw new ArgumentNullException(nameof(id)),
+                    name ?? throw new ArgumentNullException(nameof(name)),
+                    PublicContract.ToBoxedImmutableArrayWithNonNullItems(folders, nameof(folders)),
+                    sourceCodeKind,
+                    filePath,
+                    isGenerated,
+                    designTimeOnly: false),
                 loader,
-                filePath,
-                isGenerated,
-                designTimeOnly: false,
                 documentServiceProvider: null);
-        }
-
-        internal static DocumentInfo Create(
-            DocumentId id,
-            string name,
-            IReadOnlyList<string> folders,
-            SourceCodeKind sourceCodeKind,
-            TextLoader? loader,
-            string? filePath,
-            bool isGenerated,
-            bool designTimeOnly,
-            IDocumentServiceProvider? documentServiceProvider)
-        {
-            return new DocumentInfo(new DocumentAttributes(id, name, folders, sourceCodeKind, filePath, isGenerated, designTimeOnly: designTimeOnly), loader, documentServiceProvider);
         }
 
         private DocumentInfo With(
@@ -142,6 +133,12 @@ namespace Microsoft.CodeAnalysis
 
         public DocumentInfo WithTextLoader(TextLoader? loader)
             => With(loader: loader);
+
+        internal DocumentInfo WithDesignTimeOnly(bool designTimeOnly)
+            => With(attributes: Attributes.With(designTimeOnly: designTimeOnly));
+
+        internal DocumentInfo WithDocumentServiceProvider(IDocumentServiceProvider? provider)
+            => With(documentServiceProvider: new(provider));
 
         private string GetDebuggerDisplay()
             => (FilePath == null) ? (nameof(Name) + " = " + Name) : (nameof(FilePath) + " = " + FilePath);
@@ -239,6 +236,12 @@ namespace Microsoft.CodeAnalysis
                 return new DocumentAttributes(newId, newName, newFolders, newSourceCodeKind, newFilePath, newIsGenerated, newDesignTimeOnly);
             }
 
+            // This is the string used to represent the FilePath property on a SyntaxTree object.
+            // if the document does not yet have a file path, use the document's name instead in regular code
+            // or an empty string in script code.
+            public string SyntaxTreeFilePath
+                => FilePath ?? (SourceCodeKind == SourceCodeKind.Regular ? Name : "");
+
             bool IObjectWritable.ShouldReuseInSerialization => true;
 
             public void WriteTo(ObjectWriter writer)
@@ -247,7 +250,7 @@ namespace Microsoft.CodeAnalysis
 
                 writer.WriteString(Name);
                 writer.WriteValue(Folders.ToArray());
-                writer.WriteInt32((int)SourceCodeKind);
+                writer.WriteByte(checked((byte)SourceCodeKind));
                 writer.WriteString(FilePath);
                 writer.WriteBoolean(IsGenerated);
                 writer.WriteBoolean(DesignTimeOnly);
@@ -259,12 +262,12 @@ namespace Microsoft.CodeAnalysis
 
                 var name = reader.ReadString();
                 var folders = (string[])reader.ReadValue();
-                var sourceCodeKind = reader.ReadInt32();
+                var sourceCodeKind = (SourceCodeKind)reader.ReadByte();
                 var filePath = reader.ReadString();
                 var isGenerated = reader.ReadBoolean();
                 var designTimeOnly = reader.ReadBoolean();
 
-                return new DocumentAttributes(documentId, name, folders, (SourceCodeKind)sourceCodeKind, filePath, isGenerated, designTimeOnly);
+                return new DocumentAttributes(documentId, name, folders, sourceCodeKind, filePath, isGenerated, designTimeOnly);
             }
 
             Checksum IChecksummedObject.Checksum

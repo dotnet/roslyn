@@ -2115,7 +2115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureNotAvailableInVersion11 = 9058,
         ERR_RefFieldInNonRefStruct = 9059,
         ERR_CannotMatchOnINumberBase = 9060,
-        // Available 9061,
+        ERR_ScopedDiscard = 9061,
         ERR_ScopedTypeNameDisallowed = 9062,
         ERR_UnscopedRefAttributeUnsupportedTarget = 9063,
         ERR_RuntimeDoesNotSupportRefFields = 9064,
@@ -2126,7 +2126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FilePathCannotBeConvertedToUtf8 = 9069,
         ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn = 9070,
         ERR_FileLocalDuplicateNameInNS = 9071,
-        // Available 9072,
+        ERR_DeconstructVariableCannotBeByRef = 9072,
         WRN_ScopedMismatchInParameterOfTarget = 9073,
         WRN_ScopedMismatchInParameterOfOverrideOrImplementation = 9074,
         ERR_RefReturnScopedParameter = 9075,
@@ -2151,6 +2151,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_RefAssignReturnOnly = 9093,
         WRN_RefReturnOnlyParameter = 9094,
         WRN_RefReturnOnlyParameter2 = 9095,
+        ERR_RefAssignValEscapeWider = 9096,
+        WRN_RefAssignValEscapeWider = 9097,
 
         #endregion
 

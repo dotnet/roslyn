@@ -33,14 +33,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             => "_Source_" + project.FilePath;
 
         public static Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
-            Project project, CancellationToken cancellationToken)
+            Project project, Checksum checksum, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
 
             return LoadOrCreateAsync(
                 solution.Services,
                 SolutionKey.ToSolutionKey(solution),
-                getChecksumAsync: async () => await GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false),
+                checksum,
                 createAsync: checksum => CreateSourceSymbolTreeInfoAsync(project, checksum, cancellationToken),
                 keySuffix: GetSourceKeySuffix(project),
                 cancellationToken);

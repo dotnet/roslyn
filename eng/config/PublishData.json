@@ -6,22 +6,22 @@
   "packages": {
     "default": {
       "Microsoft.CodeAnalysis": "arcade",
-      "Microsoft.CodeAnalysis.Common": "arcade",
+      "Microsoft.CodeAnalysis.Common": "vssdk",
       "Microsoft.CodeAnalysis.Compilers": "arcade",
       "Microsoft.CodeAnalysis.Scripting": "arcade",
       "Microsoft.CodeAnalysis.Scripting.Common": "arcade",
-      "Microsoft.CodeAnalysis.Workspaces.Common": "arcade",
+      "Microsoft.CodeAnalysis.Workspaces.Common": "vssdk",
       "Microsoft.CodeAnalysis.Workspaces.MSBuild": "arcade",
       "Microsoft.CodeAnalysis.Workspaces.Desktop": "arcade",
-      "Microsoft.CodeAnalysis.CSharp": "arcade",
+      "Microsoft.CodeAnalysis.CSharp": "vssdk",
       "Microsoft.CodeAnalysis.CSharp.CodeStyle": "arcade",
       "Microsoft.CodeAnalysis.CSharp.Features": "arcade",
       "Microsoft.CodeAnalysis.CSharp.Scripting": "arcade",
-      "Microsoft.CodeAnalysis.CSharp.Workspaces": "arcade",
-      "Microsoft.CodeAnalysis.VisualBasic": "arcade",
+      "Microsoft.CodeAnalysis.CSharp.Workspaces": "vssdk",
+      "Microsoft.CodeAnalysis.VisualBasic": "vssdk",
       "Microsoft.CodeAnalysis.VisualBasic.CodeStyle": "arcade",
       "Microsoft.CodeAnalysis.VisualBasic.Features": "arcade",
-      "Microsoft.CodeAnalysis.VisualBasic.Workspaces": "arcade",
+      "Microsoft.CodeAnalysis.VisualBasic.Workspaces": "vssdk",
       "Microsoft.CodeAnalysis.Build.Tasks": "arcade",
       "Microsoft.Net.Compilers": "arcade",
       "Microsoft.Net.Compilers.Toolset": "arcade",
@@ -62,7 +62,17 @@
       "Microsoft.CodeAnalysis.Remote.Workspaces": "vs-impl",
       "Microsoft.VisualStudio.LanguageServices.LiveShare": "vs-impl",
       "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient": "vs-impl",
-      "Microsoft.CommonLanguageServerProtocol.Framework": "vs-impl"
+      "Microsoft.CommonLanguageServerProtocol.Framework": "vs-impl",
+      "Microsoft.VisualStudio.LanguageServices.Implementation": "none",
+      "Microsoft.VisualStudio.LanguageServices.CSharp": "none",
+      "Microsoft.VisualStudio.LanguageServices.VisualBasic": "none",
+      "Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler": "none",
+      "Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider": "none",
+      "Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver": "none",
+      "Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler": "none",
+      "Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider": "none",
+      "Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler": "none",
+      "Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider": "none"
     }
   },
   "comment-about-servicing-branches": "For a list of VS versions under servicing, see https://docs.microsoft.com/en-us/visualstudio/releases/2019/servicing#support-options-for-enterprise-and-professional-customers",
@@ -144,6 +154,16 @@
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": true,
       "insertionTitlePrefix": "[d17.5]"
+    },
+    "dev/jorobich/fix-pr-val": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
+      "vsMajorVersion": 17,
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[Validation]"
     }
   }
 }

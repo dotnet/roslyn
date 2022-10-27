@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -32,18 +30,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<SymbolTreeInfo> LoadOrCreateAsync(
             SolutionServices services,
             SolutionKey solutionKey,
-            Func<ValueTask<Checksum>> getChecksumAsync,
+            Checksum checksum,
             Func<Checksum, ValueTask<SymbolTreeInfo>> createAsync,
             string keySuffix,
             CancellationToken cancellationToken)
         {
-            var checksum = await getChecksumAsync().ConfigureAwait(false);
-
             using (Logger.LogBlock(FunctionId.SymbolTreeInfo_TryLoadOrCreate, cancellationToken))
             {
-                if (checksum == null)
-                    return await CreateWithLoggingAsync().ConfigureAwait(false);
-
                 // Ok, we can use persistence.  First try to load from the persistence service. The data in the
                 // persistence store must match the checksum passed in.
 
@@ -59,8 +52,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // Now, try to create a new instance and write it to the persistence service.
-                var result = await CreateWithLoggingAsync().ConfigureAwait(false);
-                Contract.ThrowIfNull(result);
+                SymbolTreeInfo result;
+                using (Logger.LogBlock(FunctionId.SymbolTreeInfo_Create, cancellationToken))
+                {
+                    result = await createAsync(checksum).ConfigureAwait(false);
+                    Contract.ThrowIfNull(result);
+                }
 
                 var persistentStorageService = services.GetPersistentStorageService();
 
@@ -82,17 +79,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 return result;
             }
-
-            async Task<SymbolTreeInfo> CreateWithLoggingAsync()
-            {
-                using (Logger.LogBlock(FunctionId.SymbolTreeInfo_Create, cancellationToken))
-                {
-                    return await createAsync(checksum).ConfigureAwait(false);
-                }
-            }
         }
 
-        private static async Task<SymbolTreeInfo> LoadAsync(
+        private static async Task<SymbolTreeInfo?> LoadAsync(
             SolutionServices services,
             SolutionKey solutionKey,
             Checksum checksum,
@@ -194,7 +183,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static SymbolTreeInfo TryReadSymbolTreeInfo(
+        private static SymbolTreeInfo? TryReadSymbolTreeInfo(
             ObjectReader reader,
             Checksum checksum)
         {
@@ -230,7 +219,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
 
-                MultiDictionary<string, ExtensionMethodInfo> receiverTypeNameToExtensionMethodMap;
+                MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap;
 
                 var keyCount = reader.ReadInt32();
                 if (keyCount == 0)
@@ -275,11 +264,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         internal readonly partial struct TestAccessor
         {
-            internal static SymbolTreeInfo ReadSymbolTreeInfo(
-                ObjectReader reader, Checksum checksum)
-            {
-                return TryReadSymbolTreeInfo(reader, checksum);
-            }
+            public static SymbolTreeInfo? ReadSymbolTreeInfo(ObjectReader reader, Checksum checksum)
+                => TryReadSymbolTreeInfo(reader, checksum);
         }
     }
 }
