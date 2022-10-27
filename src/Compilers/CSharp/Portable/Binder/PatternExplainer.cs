@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // In rare cases, the shortest path isn't the one that yields a sample
-            string? altSamplePatternForTemp = null;
+            string altSamplePatternForTemp = null;
             bool altRequiresFalseWhenClause = false;
             bool altUnnamedEnumValue = false;
 
