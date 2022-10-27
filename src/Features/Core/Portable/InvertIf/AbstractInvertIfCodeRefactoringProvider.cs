@@ -21,9 +21,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.InvertIf
 {
     internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
-        TIfStatementSyntax, TStatementSyntax, TEmbeddedStatement> : CodeRefactoringProvider
-        where TIfStatementSyntax : class, TStatementSyntax
+        TStatementSyntax, TIfStatementSyntax, TEmbeddedStatement> : CodeRefactoringProvider
         where TStatementSyntax : SyntaxNode
+        where TIfStatementSyntax : TStatementSyntax
     {
         private enum InvertIfStyle
         {
@@ -43,14 +43,10 @@ namespace Microsoft.CodeAnalysis.InvertIf
 
             var ifNode = await context.TryGetRelevantNodeAsync<TIfStatementSyntax>().ConfigureAwait(false);
             if (ifNode == null)
-            {
                 return;
-            }
 
             if (!CanInvert(ifNode))
-            {
                 return;
-            }
 
             var title = GetTitle();
             context.RegisterRefactoring(

@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.InvertIf
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InvertIf), Shared]
-    internal sealed class CSharpInvertIfCodeRefactoringProvider : AbstractInvertIfCodeRefactoringProvider<IfStatementSyntax, StatementSyntax, StatementSyntax>
+    internal sealed class CSharpInvertIfCodeRefactoringProvider : AbstractInvertIfCodeRefactoringProvider<StatementSyntax, IfStatementSyntax, StatementSyntax>
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -96,27 +96,18 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
         }
 
         protected override int GetJumpStatementRawKind(SyntaxNode node)
-        {
-            switch (node)
+            => node switch
             {
-                case SwitchSectionSyntax:
-                    return (int)SyntaxKind.BreakStatement;
-
-                case LocalFunctionStatementSyntax:
-                case AccessorDeclarationSyntax:
-                case MemberDeclarationSyntax:
-                case AnonymousFunctionExpressionSyntax:
-                    return (int)SyntaxKind.ReturnStatement;
-
-                case CommonForEachStatementSyntax:
-                case DoStatementSyntax:
-                case WhileStatementSyntax:
-                case ForStatementSyntax:
-                    return (int)SyntaxKind.ContinueStatement;
-            }
-
-            return -1;
-        }
+                SwitchSectionSyntax
+                    => (int)SyntaxKind.BreakStatement,
+                LocalFunctionStatementSyntax or AccessorDeclarationSyntax or MemberDeclarationSyntax
+                    => node.ContainsYield() ? (int)SyntaxKind.YieldBreakStatement : (int)SyntaxKind.ReturnStatement,
+                AnonymousFunctionExpressionSyntax
+                    => (int)SyntaxKind.ReturnStatement,
+                CommonForEachStatementSyntax or DoStatementSyntax or WhileStatementSyntax or ForStatementSyntax
+                    => (int)SyntaxKind.ContinueStatement,
+                _ => -1,
+            };
 
         protected override StatementSyntax GetJumpStatement(int rawKind)
         {
