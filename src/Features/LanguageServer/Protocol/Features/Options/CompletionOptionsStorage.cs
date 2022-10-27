@@ -30,7 +30,7 @@ internal static class CompletionOptionsStorage
             UpdateImportCompletionCacheInBackground = options.GetOption(UpdateImportCompletionCacheInBackground),
             NamingStyleFallbackOptions = options.GetNamingStylePreferences(language),
             ShowNewSnippetExperienceUserOption = options.GetOption(ShowNewSnippetExperience, language),
-            SnippetCompletionFeatureFlag = options.GetOption(ShowNewSnippetExperienceFeatureFlag)
+            ShowNewSnippetExperienceFeatureFlag = options.GetOption(ShowNewSnippetExperienceFeatureFlag)
         };
 
     // feature flags
