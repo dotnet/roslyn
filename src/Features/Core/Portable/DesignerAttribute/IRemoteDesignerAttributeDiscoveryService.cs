@@ -2,13 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
-using System.Composition;
+using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.DesignerAttribute
 {
@@ -18,27 +13,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
     /// </summary>
     internal interface IRemoteDesignerAttributeDiscoveryService
     {
-        internal interface ICallback
-        {
-            ValueTask ReportDesignerAttributeDataAsync(RemoteServiceCallbackId callbackId, ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken);
-        }
-
-        ValueTask DiscoverDesignerAttributesAsync(RemoteServiceCallbackId callbackId, Checksum solutionChecksum, DocumentId? priorityDocument, CancellationToken cancellationToken);
-    }
-
-    [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteDesignerAttributeDiscoveryService)), Shared]
-    internal sealed class RemoteDesignerAttributeDiscoveryCallbackDispatcher : RemoteServiceCallbackDispatcher, IRemoteDesignerAttributeDiscoveryService.ICallback
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoteDesignerAttributeDiscoveryCallbackDispatcher()
-        {
-        }
-
-        private new IDesignerAttributeDiscoveryService.ICallback GetCallback(RemoteServiceCallbackId callbackId)
-            => (IDesignerAttributeDiscoveryService.ICallback)base.GetCallback(callbackId);
-
-        public ValueTask ReportDesignerAttributeDataAsync(RemoteServiceCallbackId callbackId, ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
-            => GetCallback(callbackId).ReportDesignerAttributeDataAsync(data, cancellationToken);
+        IAsyncEnumerable<DesignerAttributeData> DiscoverDesignerAttributesAsync(Checksum solutionChecksum, ProjectId project, DocumentId? priorityDocument, CancellationToken cancellationToken);
     }
 }

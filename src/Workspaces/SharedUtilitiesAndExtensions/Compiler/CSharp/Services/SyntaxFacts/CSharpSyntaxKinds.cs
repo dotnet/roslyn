@@ -141,6 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
 
         public int EqualsValueClause => (int)SyntaxKind.EqualsValueClause;
 
+        public int? ImplicitElementAccess => (int)SyntaxKind.ImplicitElementAccess;
         public int Interpolation => (int)SyntaxKind.Interpolation;
         public int InterpolatedStringExpression => (int)SyntaxKind.InterpolatedStringExpression;
         public int InterpolatedStringText => (int)SyntaxKind.InterpolatedStringText;
