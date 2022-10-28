@@ -975,6 +975,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">內嵌並保留 '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_temporary_variable">
+        <source>Inline temporary variable</source>
+        <target state="new">Inline temporary variable</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
         <source>Insufficient hexadecimal digits</source>
         <target state="translated">十六進位數位不足</target>

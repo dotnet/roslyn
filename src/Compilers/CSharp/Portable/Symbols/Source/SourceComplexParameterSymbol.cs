@@ -575,25 +575,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Binds attributes applied to this parameter.
         /// </summary>
-        public ImmutableArray<BoundAttribute> BindParameterAttributes()
+        public ImmutableArray<(CSharpAttributeData, BoundAttribute)> BindParameterAttributes()
         {
-            var binder = new ContextualAttributeBinder(WithTypeParametersBinderOpt, this);
-            var boundAttributeArrayBuilder = ArrayBuilder<BoundAttribute>.GetInstance();
-            foreach (var attributeListSyntaxList in GetAttributeDeclarations())
-            {
-                foreach (var attributeListSyntax in attributeListSyntaxList)
-                {
-                    foreach (var attributeSyntax in attributeListSyntax.Attributes)
-                    {
-                        var boundType = binder.BindType(attributeSyntax.Name, BindingDiagnosticBag.Discarded);
-                        var boundTypeSymbol = (NamedTypeSymbol)boundType.Type;
-                        var boundAttribute = new ExecutableCodeBinder(attributeSyntax, binder.ContainingMemberOrLambda, binder)
-                            .BindAttribute(attributeSyntax, boundTypeSymbol, this, BindingDiagnosticBag.Discarded);
-                        boundAttributeArrayBuilder.Add(boundAttribute);
-                    }
-                }
-            }
-            return boundAttributeArrayBuilder.ToImmutableAndFree();
+            return BindAttributes(GetAttributeDeclarations(), WithTypeParametersBinderOpt);
         }
 
         internal override void EarlyDecodeWellKnownAttributeType(NamedTypeSymbol attributeType, AttributeSyntax attributeSyntax)

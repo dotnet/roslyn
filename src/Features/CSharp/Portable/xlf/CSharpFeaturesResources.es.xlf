@@ -202,11 +202,6 @@
         <target state="translated">Directivas "using" globales</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">Variable temporal en línea</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Conflict_s_detected">
         <source>Conflict(s) detected.</source>
         <target state="translated">Conflicto(s) detectado(s).</target>
