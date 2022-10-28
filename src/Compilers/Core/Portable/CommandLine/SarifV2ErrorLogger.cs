@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis
             {
                 _writer.WriteArrayStart("rules");
 
-                foreach (var (_, (descriptor, hasAnyExternalSuppression)) in _descriptors.ToSortedList())
+                foreach (var (_, descriptor, hasAnyExternalSuppression) in _descriptors.ToSortedList())
                 {
                     _writer.WriteObjectStart(); // rule
                     _writer.Write("id", descriptor.Id);
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis
                                 _writer.Write("inSource");
                             }
 
-                            _writer.WriteArrayEnd(); // tags
+                            _writer.WriteArrayEnd(); // suppressionKinds
                         }
 
                         if (descriptor.ImmutableCustomTags.Any())
@@ -376,20 +376,20 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Converts the set to a list, sorted by index.
             /// </summary>
-            public List<KeyValuePair<int, (DiagnosticDescriptor Descriptor, bool HasAnyExternalSuppression)>> ToSortedList()
+            public List<(int Index, DiagnosticDescriptor Descriptor, bool HasAnyExternalSuppression)> ToSortedList()
             {
                 Debug.Assert(Count > 0);
 
-                var list = new List<KeyValuePair<int, (DiagnosticDescriptor Descriptor, bool HasAnyExternalSuppression)>>(Count);
+                var list = new List<(int Index, DiagnosticDescriptor Descriptor, bool HasAnyExternalSuppression)>(Count);
 
                 foreach (var pair in _distinctDescriptors)
                 {
                     Debug.Assert(list.Capacity > list.Count);
-                    list.Add(new KeyValuePair<int, (DiagnosticDescriptor Descriptor, bool HasAnyExternalSuppression)>(pair.Value.Index, (pair.Key, pair.Value.HasAnyExternalSuppression)));
+                    list.Add((pair.Value.Index, pair.Key, pair.Value.HasAnyExternalSuppression));
                 }
 
                 Debug.Assert(list.Capacity == list.Count);
-                list.Sort((x, y) => x.Key.CompareTo(y.Key));
+                list.Sort((x, y) => x.Index.CompareTo(y.Index));
                 return list;
             }
         }

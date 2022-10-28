@@ -436,7 +436,7 @@ class C
         public void AnalyzerPartiallyDisabledWithEditorconfig()
         {
             var source1 = @"
-[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category2"", ""ID1"", Justification = ""Justification1"")]
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category1"", ""ID1"", Justification = ""Justification1"")]
 [System.Diagnostics.CodeAnalysis.SuppressMessage(""Category2"", ""ID2"", Justification = ""Justification2"")]
 class C
 {
