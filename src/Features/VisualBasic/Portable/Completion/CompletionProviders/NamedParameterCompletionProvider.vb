@@ -86,13 +86,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                                                            Where(Function(p) Not existingNamedParameters.Contains(p.Name))
 
                 Dim rightToken = syntaxTree.FindTokenOnRightOfPosition(position, cancellationToken)
-                Dim shouldAddColonEquals = Not rightToken.IsKind(SyntaxKind.ColonEqualsToken)
+                Dim textSuffix = If(Not rightToken.IsKind(SyntaxKind.ColonEqualsToken), s_colonEquals, Nothing)
 
                 For Each parameter In unspecifiedParameters
                     context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                         displayText:=parameter.Name,
-                        displayTextSuffix:=If(shouldAddColonEquals, s_colonEquals, Nothing),
-                        insertionText:=parameter.Name.ToIdentifierToken().ToString() & If(shouldAddColonEquals, s_colonEquals, Nothing),
+                        displayTextSuffix:=textSuffix,
+                        insertionText:=parameter.Name.ToIdentifierToken().ToString() & textSuffix,
                         symbols:=ImmutableArray.Create(parameter),
                         contextPosition:=position,
                         rules:=s_itemRules))
