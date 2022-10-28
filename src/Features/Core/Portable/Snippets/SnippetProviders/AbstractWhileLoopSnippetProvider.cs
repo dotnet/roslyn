@@ -11,9 +11,9 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
 {
     internal abstract class AbstractWhileLoopSnippetProvider : AbstractConditionalBlockSnippetProvider
     {
-        public override string SnippetIdentifier => "while";
+        public override string Shortcut => "while";
 
-        public override string SnippetDescription => FeaturesResources.while_loop;
+        public override string Title => FeaturesResources.while_loop;
 
         protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts) => syntaxFacts.IsWhileStatement;
 

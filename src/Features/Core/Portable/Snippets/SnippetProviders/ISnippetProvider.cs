@@ -12,12 +12,17 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
         /// <summary>
         /// What we use to identify each SnippetProvider on the completion list
         /// </summary>
-        string SnippetIdentifier { get; }
+        string Shortcut { get; }
 
         /// <summary>
-        /// What is being displayed for the description of the snippet
+        /// What is being displayed for the inline-description of the snippet as well as the title on the tool-tip.
         /// </summary>
-        string SnippetDescription { get; }
+        string Title { get; }
+
+        /// <summary>
+        /// What is being displayed for the description of the snippet on the tool-tip.
+        /// </summary>
+        string Description { get; }
 
         /// <summary>
         /// Determines if a snippet can exist at a particular location.

@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.Snippets
     {
         protected abstract SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token);
 
-        public override string SnippetIdentifier => "cw";
+        public override string Shortcut => "cw";
 
-        public override string SnippetDescription => FeaturesResources.console_writeline;
+        public override string Title => FeaturesResources.console_writeline;
 
         public override ImmutableArray<string> AdditionalFilterTexts { get; } = ImmutableArray.Create("Console", "WriteLine");
 

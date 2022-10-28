@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         public CSharpClassSnippetProvider()
         {
         }
-        public override string SnippetIdentifier => "class";
+        public override string Shortcut => "class";
 
-        public override string SnippetDescription => FeaturesResources.class_;
+        public override string Title => FeaturesResources.class_;
 
         protected override async Task<SyntaxNode> GenerateTypeDeclarationAsync(Document document, int position, bool useAccessibility, CancellationToken cancellationToken)
         {

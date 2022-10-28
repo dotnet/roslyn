@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.Snippets
 {
     internal abstract class AbstractIfSnippetProvider : AbstractConditionalBlockSnippetProvider
     {
-        public override string SnippetIdentifier => "if";
+        public override string Shortcut => "if";
 
-        public override string SnippetDescription => FeaturesResources.if_statement;
+        public override string Title => FeaturesResources.if_statement;
 
         public override ImmutableArray<string> AdditionalFilterTexts { get; } = ImmutableArray.Create("statement");
 

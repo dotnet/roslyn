@@ -22,8 +22,9 @@ namespace Microsoft.CodeAnalysis.Snippets
 {
     internal abstract class AbstractSnippetProvider : ISnippetProvider
     {
-        public abstract string SnippetIdentifier { get; }
-        public abstract string SnippetDescription { get; }
+        public abstract string Shortcut { get; }
+        public abstract string Title { get; }
+        public string Description => string.Format(FeaturesResources.Code_snippet_for_0, Title);
 
         public virtual ImmutableArray<string> AdditionalFilterTexts => ImmutableArray<string>.Empty;
 
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Snippets
                 return null;
             }
 
-            return new SnippetData(SnippetDescription, SnippetIdentifier, AdditionalFilterTexts);
+            return new SnippetData(Title, Shortcut, Description, AdditionalFilterTexts);
         }
 
         /// <summary>

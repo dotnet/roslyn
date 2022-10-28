@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         {
         }
 
-        public override string SnippetIdentifier => "interface";
+        public override string Shortcut => "interface";
 
-        public override string SnippetDescription => FeaturesResources.interface_;
+        public override string Title => FeaturesResources.interface_;
 
         protected override async Task<SyntaxNode> GenerateTypeDeclarationAsync(Document document, int position, bool useAccessibility, CancellationToken cancellationToken)
         {

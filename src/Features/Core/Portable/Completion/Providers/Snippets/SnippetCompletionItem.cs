@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             int position,
             string snippetIdentifier,
             Glyph glyph,
+            ImmutableArray<SymbolDisplayPart> description,
             string inlineDescription,
             ImmutableArray<string> additionalFilterTexts)
         {
@@ -30,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
                 displayText: displayText,
                 displayTextSuffix: displayTextSuffix,
                 glyph: glyph,
+                description: description,
                 // Adding a space after the identifier string that way it will always be sorted after the original snippet.
                 sortText: snippetIdentifier + " ",
                 filterText: snippetIdentifier,
