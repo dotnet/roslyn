@@ -85,13 +85,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Dim unspecifiedParameters = parameterLists.SelectMany(Function(pl) pl).
                                                            Where(Function(p) Not existingNamedParameters.Contains(p.Name))
 
-                Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
+                Dim rightToken = semanticModel.SyntaxTree.FindTokenOnRightOfPosition(position, cancellationToken)
+                Dim shouldAddColonEquals = Not rightToken.IsKind(SyntaxKind.ColonEqualsToken)
 
                 For Each parameter In unspecifiedParameters
                     context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                         displayText:=parameter.Name,
-                        displayTextSuffix:=s_colonEquals,
-                        insertionText:=parameter.Name.ToIdentifierToken().ToString() & s_colonEquals,
+                        displayTextSuffix:=If(shouldAddColonEquals, s_colonEquals, Nothing),
+                        insertionText:=parameter.Name.ToIdentifierToken().ToString() & If(shouldAddColonEquals, s_colonEquals, Nothing),
                         symbols:=ImmutableArray.Create(parameter),
                         contextPosition:=position,
                         rules:=s_itemRules))
