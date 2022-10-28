@@ -10508,7 +10508,7 @@ class Class
             End Sub
 
             Public Overrides Async Function ProvideCompletionsAsync(context As CompletionContext) As Task
-                Await checkpoint.Task.ConfigureAwait(False)
+                Await Checkpoint.Task.ConfigureAwait(False)
                 Dim item = ImportCompletionItem.Create("TestUnimportedItem", 0, "Test.Name.Spaces", Glyph.ClassPublic, "", CompletionItemFlags.CachedAndExpanded, Nothing)
                 context.AddItem(item)
             End Function
@@ -10735,6 +10735,57 @@ namespace NS
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem(displayText:="return", isHardSelected:=Not hasYieldType)
 
+            End Using
+        End Function
+
+        <WpfFact, WorkItem(64531, "https://github.com/dotnet/roslyn/issues/64531")>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeCompletionNoColonsIfAlreadyPresent() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System;
+class TestAttribute : Attribute
+{
+    public string Text { get; set; }
+}
+ 
+[Test($$ = )]
+class Goo
+{
+}
+                </Document>)
+
+                state.SendTypeChars("Tex")
+                Await state.AssertSelectedCompletionItem("Text", displayTextSuffix:=Nothing)
+
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(7, "[Test(Text = )]")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem(64531, "https://github.com/dotnet/roslyn/issues/64531")>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeCompletionNoEqualsIfAlreadyPresent() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System;
+class TestAttribute : Attribute
+{
+    public TestAttribute(int argument = 42)
+    { }
+}
+[Test($$:)]
+class Goo
+{ }
+                </Document>)
+
+                state.SendTypeChars("argum")
+                Await state.AssertSelectedCompletionItem("argument", displayTextSuffix:=Nothing)
+
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(7, "[Test(argument:)]")
             End Using
         End Function
     End Class
