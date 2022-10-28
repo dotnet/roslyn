@@ -24,6 +24,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net50" Version="$(BasicReferenceAssembliesNet50Version)" />
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>

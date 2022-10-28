@@ -62447,7 +62447,7 @@ public class C0 : I1
             string accessorModifiers = isStatic ? "" : "instance";
             string implModifiers = isStatic ? "static " : "";
 
-            var windowsRuntimeRef = CompilationExtensions.CreateWindowsRuntimeMetadataReference();
+            var windowsRuntimeRef = CompilationExtensions.CreateWindowsRuntimeMetadataReference(TargetFramework.Net50);
             var ilSource =
 BuildAssemblyExternClause(windowsRuntimeRef) +
 @"

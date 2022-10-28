@@ -2454,7 +2454,7 @@ namespace System
         {
             if (ExecutionConditionUtil.IsCoreClr)
             {
-                return CreateCompilation(text, targetFramework: TargetFramework.Net50, options: options, parseOptions: parseOptions);
+                return CreateCompilation(text, targetFramework: TargetFramework.NetCoreApp, options: options, parseOptions: parseOptions);
             }
             else
             {
