@@ -4338,6 +4338,11 @@ If the "K" format specifier is used without other custom format specifiers, it's
 Если описатель формата "K" используется без других описателей пользовательского формата, он интерпретируется как описатель стандартного формата даты и времени и вызывает исключение FormatException.</target>
         <note />
       </trans-unit>
+      <trans-unit id="try_catch">
+        <source>try catch</source>
+        <target state="new">try catch</target>
+        <note />
+      </trans-unit>
       <trans-unit id="type">
         <source>type</source>
         <target state="translated">тип</target>

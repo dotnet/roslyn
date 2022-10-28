@@ -4338,6 +4338,11 @@ DateTimeOffset 값의 경우, "K" 형식 지정자는 "zzz" 형식 지정자와 
 다른 사용자 지정 형식 지정자 없이 "K" 형식 지정자를 사용하면 표준 날짜 및 시간 형식 지정자로 해석되어 FormatException을 throw합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="try_catch">
+        <source>try catch</source>
+        <target state="new">try catch</target>
+        <note />
+      </trans-unit>
       <trans-unit id="type">
         <source>type</source>
         <target state="translated">유형</target>

@@ -4338,6 +4338,11 @@ DateTimeOffset değerleri için "K" biçim belirticisi "zzz" biçim belirticisin
 "K" biçim belirticisi başka özel biçim belirticileri olmadan kullanılırsa, standart bir tarih ve saat biçimi belirticisi olarak yorumlanır ve bir FormatException oluşturur.</target>
         <note />
       </trans-unit>
+      <trans-unit id="try_catch">
+        <source>try catch</source>
+        <target state="new">try catch</target>
+        <note />
+      </trans-unit>
       <trans-unit id="type">
         <source>type</source>
         <target state="translated">tür</target>

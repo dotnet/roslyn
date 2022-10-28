@@ -4338,6 +4338,11 @@ W przypadku wartości typu DateTimeOffset specyfikator formatu „K” jest rów
 Jeśli specyfikator formatu „K” jest używany bez innych niestandardowych specyfikatorów formatu, jest on interpretowany jako standardowy specyfikator formatu daty i godziny i powoduje zgłoszenie wyjątku FormatException.</target>
         <note />
       </trans-unit>
+      <trans-unit id="try_catch">
+        <source>try catch</source>
+        <target state="new">try catch</target>
+        <note />
+      </trans-unit>
       <trans-unit id="type">
         <source>type</source>
         <target state="translated">typ</target>

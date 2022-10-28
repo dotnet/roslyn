@@ -4338,6 +4338,11 @@ Per i valori DateTimeOffset, l'identificatore di formato "K" è equivalente all'
 Se l'identificatore di formato "K" viene usato senza altri identificatori di formato personalizzati, viene interpretato come l'identificatore di formato di data e ora standard e viene generato un evento FormatException.</target>
         <note />
       </trans-unit>
+      <trans-unit id="try_catch">
+        <source>try catch</source>
+        <target state="new">try catch</target>
+        <note />
+      </trans-unit>
       <trans-unit id="type">
         <source>type</source>
         <target state="translated">tipo</target>

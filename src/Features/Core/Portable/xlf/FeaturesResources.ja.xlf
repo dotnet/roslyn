@@ -4338,6 +4338,11 @@ UTC 時刻の場合 (DateTime.Kind プロパティ値が DateTimeKind.Utc)、書
 他のカスタム書式指定子が使用されていない場合、"K" は標準の日時書式指定子として解釈され、FormatException をスローします。</target>
         <note />
       </trans-unit>
+      <trans-unit id="try_catch">
+        <source>try catch</source>
+        <target state="new">try catch</target>
+        <note />
+      </trans-unit>
       <trans-unit id="type">
         <source>type</source>
         <target state="translated">型</target>

@@ -4338,6 +4338,11 @@ Para los valores de DateTimeOffset, el especificador de formato "K" es equivalen
 Si el especificador de formato "K" se usa sin otros especificadores de formato personalizado, se interpreta como un especificador de formato de fecha y hora estándar y produce una FormatException.</target>
         <note />
       </trans-unit>
+      <trans-unit id="try_catch">
+        <source>try catch</source>
+        <target state="new">try catch</target>
+        <note />
+      </trans-unit>
       <trans-unit id="type">
         <source>type</source>
         <target state="translated">tipo</target>

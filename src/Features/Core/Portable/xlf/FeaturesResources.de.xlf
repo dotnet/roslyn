@@ -4338,6 +4338,11 @@ Für DateTimeOffset-Werte ist der Formatbezeichner "K" äquivalent zum Formatbez
 Bei Verwendung des Formatbezeichners "K" ohne weitere benutzerdefinierte Formatbezeichner wird er als Standardformatbezeichner für Datums- und Uhrzeitwerte interpretiert und löst eine FormatException aus.</target>
         <note />
       </trans-unit>
+      <trans-unit id="try_catch">
+        <source>try catch</source>
+        <target state="new">try catch</target>
+        <note />
+      </trans-unit>
       <trans-unit id="type">
         <source>type</source>
         <target state="translated">Typ</target>

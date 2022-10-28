@@ -4338,6 +4338,11 @@ If the "K" format specifier is used without other custom format specifiers, it's
 如果使用 "K" 格式規範，而且沒有其他自訂格式規範，則會將其解譯為標準日期和時間格式規範，並擲回 FormatException。</target>
         <note />
       </trans-unit>
+      <trans-unit id="try_catch">
+        <source>try catch</source>
+        <target state="new">try catch</target>
+        <note />
+      </trans-unit>
       <trans-unit id="type">
         <source>type</source>
         <target state="translated">類型</target>

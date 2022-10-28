@@ -4338,6 +4338,11 @@ Pro hodnoty DateTimeOffset je specifikátor formátu K ekvivalentní specifikát
 Pokud se specifikátor formátu K použije bez dalších specifikátorů vlastního formátu, interpretuje se jako standardní specifikátor formátu data a času a vyvolá FormatException.</target>
         <note />
       </trans-unit>
+      <trans-unit id="try_catch">
+        <source>try catch</source>
+        <target state="new">try catch</target>
+        <note />
+      </trans-unit>
       <trans-unit id="type">
         <source>type</source>
         <target state="translated">typ</target>

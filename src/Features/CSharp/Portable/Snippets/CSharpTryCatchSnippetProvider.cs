@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
     
 }
-catch (System.Exception e)
+catch (Exception e)
 {
     
     throw;
