@@ -58,16 +58,19 @@ namespace Microsoft.CodeAnalysis.Remote
             ImmutableArray<string> kinds,
             CancellationToken cancellationToken)
         {
-            return StreamWithSolutionAsync(
-                solutionChecksum,
-                (solution, cancellationToken) =>
-                {
-                    var document = solution.GetRequiredDocument(documentId);
+            return StreamWithSolutionAsync(solutionChecksum, SearchDocumentWorkerAsync, cancellationToken).WithJsonRpcSettings(
+                new JsonRpcEnumerableSettings { MaxReadAhead = MaxReadAhead });
 
-                    return AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
-                        document, searchPattern, kinds.ToImmutableHashSet(), cancellationToken);
-                },
-                cancellationToken).WithJsonRpcSettings(new JsonRpcEnumerableSettings { MaxReadAhead = MaxReadAhead });
+            async IAsyncEnumerable<RoslynNavigateToItem> SearchDocumentWorkerAsync(Solution solution, [EnumeratorCancellation] CancellationToken cancellationToken)
+            {
+                var document = solution.GetRequiredDocument(documentId);
+
+                await foreach (var item in AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
+                    document, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false))
+                {
+                    yield return item;
+                }
+            }
         }
 
         public IAsyncEnumerable<RoslynNavigateToItem> SearchProjectAsync(
@@ -78,17 +81,21 @@ namespace Microsoft.CodeAnalysis.Remote
             ImmutableArray<string> kinds,
             CancellationToken cancellationToken)
         {
-            return StreamWithSolutionAsync(
-                solutionChecksum,
-                (solution, cancellationToken) =>
+            return StreamWithSolutionAsync(solutionChecksum, SearchProjectWorkerAsync, cancellationToken).WithJsonRpcSettings(
+                new JsonRpcEnumerableSettings { MaxReadAhead = MaxReadAhead });
+
+            async IAsyncEnumerable<RoslynNavigateToItem> SearchProjectWorkerAsync(Solution solution, [EnumeratorCancellation] CancellationToken cancellationToken)
+            {
+                var project = solution.GetRequiredProject(projectId);
+
+                var priorityDocuments = priorityDocumentIds.SelectAsArray(d => solution.GetRequiredDocument(d));
+
+                await foreach (var item in AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
+                    project, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false))
                 {
-                    var project = solution.GetRequiredProject(projectId);
-
-                    var priorityDocuments = priorityDocumentIds.SelectAsArray(d => solution.GetRequiredDocument(d));
-
-                    return AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
-                        project, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), cancellationToken);
-                }, cancellationToken).WithJsonRpcSettings(new JsonRpcEnumerableSettings { MaxReadAhead = MaxReadAhead });
+                    yield return item;
+                }
+            }
         }
 
         public IAsyncEnumerable<RoslynNavigateToItem> SearchGeneratedDocumentsAsync(
@@ -98,16 +105,19 @@ namespace Microsoft.CodeAnalysis.Remote
             ImmutableArray<string> kinds,
             CancellationToken cancellationToken)
         {
-            return StreamWithSolutionAsync(
-                solutionChecksum,
-                (solution, cancellationToken) =>
-                {
-                    var project = solution.GetRequiredProject(projectId);
+            return StreamWithSolutionAsync(solutionChecksum, SearchGeneratedDocumentsWorkerAsync, cancellationToken).WithJsonRpcSettings(
+                new JsonRpcEnumerableSettings { MaxReadAhead = MaxReadAhead });
 
-                    return AbstractNavigateToSearchService.SearchGeneratedDocumentsInCurrentProcessAsync(
-                        project, searchPattern, kinds.ToImmutableHashSet(), cancellationToken);
-                },
-                cancellationToken).WithJsonRpcSettings(new JsonRpcEnumerableSettings { MaxReadAhead = MaxReadAhead });
+            async IAsyncEnumerable<RoslynNavigateToItem> SearchGeneratedDocumentsWorkerAsync(Solution solution, [EnumeratorCancellation] CancellationToken cancellationToken)
+            {
+                var project = solution.GetRequiredProject(projectId);
+
+                await foreach (var item in AbstractNavigateToSearchService.SearchGeneratedDocumentsInCurrentProcessAsync(
+                    project, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false))
+                {
+                    yield return item;
+                }
+            }
         }
 
         public IAsyncEnumerable<RoslynNavigateToItem> SearchCachedDocumentsAsync(
@@ -121,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // Intentionally do not call GetSolutionAsync here.  We do not want the cost of
             // synchronizing the solution over to the remote side.  Instead, we just directly
-            // check whatever cached data we have from the previous VS session.
+            // check whatever cached data we have from the previous vs session.
             var storageService = GetWorkspaceServices().GetPersistentStorageService();
             return AbstractNavigateToSearchService.SearchCachedDocumentsInCurrentProcessAsync(
                 storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableHashSet(), cancellationToken);
