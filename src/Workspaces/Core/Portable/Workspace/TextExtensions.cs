@@ -69,13 +69,13 @@ namespace Microsoft.CodeAnalysis.Text
                     return null;
                 }
 
+                if (workspace.TryGetOpenSourceGeneratedDocumentIdentity(id, out var documentIdentity))
+                {
+                    return solution.WithFrozenSourceGeneratedDocument(documentIdentity, text);
+                }
+
                 if (solution.ContainsDocument(id))
                 {
-                    if (workspace.TryGetOpenSourceGeneratedDocumentIdentity(id, out var documentIdentity))
-                    {
-                        return solution.WithFrozenSourceGeneratedDocument(documentIdentity, text);
-                    }
-
                     // We update all linked files to ensure they are all in sync. Otherwise code might try to jump from
                     // one linked file to another and be surprised if the text is entirely different.
                     var allIds = solution.GetRelatedDocumentIds(id);
