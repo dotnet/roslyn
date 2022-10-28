@@ -28,7 +28,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.Completion)>
     Public Class CSharpCompletionCommandHandlerTests
-
         <WpfTheory, CombinatorialData>
         Public Async Function CompletionOnFileType_SameFile_NonQualified(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -10417,8 +10416,7 @@ namespace NS
 
             End Using
         End Function
-
-        <WpfTheory, WorkItem(40393, "https://github.com/dotnet/roslyn/issues/40393")>
+        <WpfFact, WorkItem(40393, "https://github.com/dotnet/roslyn/issues/40393")>
         Public Async Function TestAfterUsingStatement1() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
@@ -10439,7 +10437,7 @@ namespace NS
             End Using
         End Function
 
-        <WpfTheory, WorkItem(40393, "https://github.com/dotnet/roslyn/issues/40393")>
+        <WpfFact, WorkItem(40393, "https://github.com/dotnet/roslyn/issues/40393")>
         Public Async Function TestAfterUsingStatement2() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
