@@ -110,10 +110,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
         public async ValueTask<Optional<TElement>> TryDequeueAsync(CancellationToken cancellationToken)
         {
-            await _channel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false);
-            return _channel.Reader.TryRead(out var element)
-                ? new Optional<TElement>(element)
-                : default;
+            while (await _channel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (_channel.Reader.TryRead(out var element))
+                    return new Optional<TElement>(element);
+
+                // someone else may have beat us to reading the element.  try again.
+            }
+
+            return default;
         }
 
         /// <summary>
