@@ -73,8 +73,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <returns>Whether or not the operation succeeded.</returns>
         public bool TryComplete()
         {
+            var result = _channel.Writer.TryComplete();
             _whenCompleted.TrySetResult(true);
-            return _channel.Writer.TryComplete();
+            return result;
         }
 
         /// <summary>
