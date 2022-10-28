@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.MakeMethodAsynchronous
 Imports Microsoft.CodeAnalysis.Simplification
@@ -53,8 +54,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
         End Function
 
         Protected Overrides Function AddAsyncTokenAndFixReturnType(
-                keepVoid As Boolean, methodSymbolOpt As IMethodSymbol, node As SyntaxNode,
-                knownTypes As KnownTypes) As SyntaxNode
+                keepVoid As Boolean,
+                methodSymbolOpt As IMethodSymbol,
+                node As SyntaxNode,
+                knownTypes As KnownTypes,
+                cancellationToken As CancellationToken) As SyntaxNode
 
             If node.IsKind(SyntaxKind.SingleLineSubLambdaExpression) OrElse
                node.IsKind(SyntaxKind.SingleLineFunctionLambdaExpression) Then
@@ -73,7 +77,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
         End Function
 
         Private Shared Function FixFunctionBlock(methodSymbol As IMethodSymbol, node As MethodBlockSyntax, knownTypes As KnownTypes) As SyntaxNode
-
             Dim functionStatement = node.SubOrFunctionStatement
             Dim newFunctionStatement = AddAsyncKeyword(functionStatement)
 
