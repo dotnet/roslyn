@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Dim unspecifiedParameters = parameterLists.SelectMany(Function(pl) pl).
                                                            Where(Function(p) Not existingNamedParameters.Contains(p.Name))
 
-                Dim rightToken = semanticModel.SyntaxTree.FindTokenOnRightOfPosition(position, cancellationToken)
+                Dim rightToken = syntaxTree.FindTokenOnRightOfPosition(position, cancellationToken)
                 Dim shouldAddColonEquals = Not rightToken.IsKind(SyntaxKind.ColonEqualsToken)
 
                 For Each parameter In unspecifiedParameters
