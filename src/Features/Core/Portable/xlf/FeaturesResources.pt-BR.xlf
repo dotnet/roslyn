@@ -4947,6 +4947,11 @@ Com os valores de DateTimeOffset, este especificador de formato representa o des
 O deslocamento é sempre exibido com um sinal à esquerda. Um sinal de adição (+) indica horas à frente do UTC e um sinal de subtração (-) indica horas atrás do UTC. Um deslocamento de dígito único é formatado com um zero à esquerda.</target>
         <note />
       </trans-unit>
+      <trans-unit id="while_loop">
+        <source>while loop</source>
+        <target state="new">while loop</target>
+        <note />
+      </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">
         <source>[x-y] range in reverse order</source>
         <target state="translated">intervalo [x-y] em ordem inversa</target>

@@ -87,6 +87,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 return;
             }
 
+            // Function pointers can only be invoked directly via the "()" operator, not "?.Invoke()".
+            if (syntaxContext.SemanticModel.GetTypeInfo(invocationExpression.Expression, syntaxContext.CancellationToken).Type is { TypeKind: TypeKind.FunctionPointer })
+            {
+                return;
+            }
+
             var severity = styleOption.Notification.Severity;
             var condition = (BinaryExpressionSyntax)ifStatement.Condition;
             if (TryCheckVariableAndIfStatementForm(

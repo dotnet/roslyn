@@ -4947,6 +4947,11 @@ The offset is always displayed with a leading sign. A plus sign (+) indicates ho
 Смещение всегда отображается с предшествующим знаком. Знак "плюс" (+) обозначает часы опережения UTC, а знак "минус" (-) — часы отставания от UTC. Смещение из одной цифры форматируется с начальным нулем.</target>
         <note />
       </trans-unit>
+      <trans-unit id="while_loop">
+        <source>while loop</source>
+        <target state="new">while loop</target>
+        <note />
+      </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">
         <source>[x-y] range in reverse order</source>
         <target state="translated">Диапазон [x-y] в обратном порядке</target>

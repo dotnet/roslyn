@@ -4947,6 +4947,11 @@ The offset is always displayed with a leading sign. A plus sign (+) indicates ho
 偏移量始终显示为带前导的符号。加号(+)表示小时数早于 UTC，减号(-)表示小时数迟于 UTC。一位数字的偏移量设置为带前导零的格式。</target>
         <note />
       </trans-unit>
+      <trans-unit id="while_loop">
+        <source>while loop</source>
+        <target state="new">while loop</target>
+        <note />
+      </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">
         <source>[x-y] range in reverse order</source>
         <target state="translated">按相反顺序排列的 [x-y] 范围</target>
