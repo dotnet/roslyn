@@ -140,6 +140,10 @@
           <LogicalName>net461.System.Runtime.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\net461\System.Runtime.dll</Link>
         </EmbeddedResource>
+        <EmbeddedResource Include="$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net461)\build\.NETFramework\v4.6.1\Facades\System.Runtime.InteropServices.dll">
+          <LogicalName>net461.System.Runtime.InteropServices.dll</LogicalName>
+          <Link>Resources\ReferenceAssemblies\net461\System.Runtime.InteropServices.dll</Link>
+        </EmbeddedResource>
         <EmbeddedResource Include="$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net461)\build\.NETFramework\v4.6.1\Facades\System.Threading.Tasks.dll">
           <LogicalName>net461.System.Threading.Tasks.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\net461\System.Threading.Tasks.dll</Link>
