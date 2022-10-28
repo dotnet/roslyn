@@ -158,13 +158,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var unspecifiedNamedParameters = attributeNamedParameters.Where(p => !existingNamedParameters.Contains(p.Name));
 
             var rightToken = semanticModel.SyntaxTree.FindTokenOnRightOfPosition(context.Position, context.CancellationToken);
-            var shouldAddEquals = !rightToken.IsKind(SyntaxKind.EqualsToken);
+            var displayTextSuffix = !rightToken.IsKind(SyntaxKind.EqualsToken) ? SpaceEqualsString : null;
 
             var q = from p in attributeNamedParameters
                     where !existingNamedParameters.Contains(p.Name)
                     select SymbolCompletionItem.CreateWithSymbolId(
                        displayText: p.Name.ToIdentifierToken().ToString(),
-                       displayTextSuffix: shouldAddEquals ? SpaceEqualsString : null,
+                       displayTextSuffix: displayTextSuffix,
                        insertionText: null,
                        symbols: ImmutableArray.Create(p),
                        contextPosition: token.SpanStart,
@@ -180,14 +180,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             parameterLists = parameterLists.Where(pl => IsValid(pl, existingNamedParameters));
 
             var rightToken = semanticModel.SyntaxTree.FindTokenOnRightOfPosition(context.Position, context.CancellationToken);
-            var shouldAddColon = !rightToken.IsKind(SyntaxKind.ColonToken);
+            var displayTextSuffix = !rightToken.IsKind(SyntaxKind.ColonToken) ? ColonString : null;
 
             return from pl in parameterLists
                    from p in pl
                    where !existingNamedParameters.Contains(p.Name)
                    select SymbolCompletionItem.CreateWithSymbolId(
                        displayText: p.Name.ToIdentifierToken().ToString(),
-                       displayTextSuffix: shouldAddColon ? ColonString : null,
+                       displayTextSuffix: displayTextSuffix,
                        insertionText: null,
                        symbols: ImmutableArray.Create(p),
                        contextPosition: token.SpanStart,
