@@ -60,6 +60,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void EnqueueAfterPromisingNotTo()
+        {
+            var queue = new AsyncQueue<int>();
+            Assert.True(queue.TryEnqueue(42));
+            queue.PromiseNotToEnqueue();
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                queue.Enqueue(42);
+            });
+        }
+
+        [Fact]
         public async Task DequeueThenEnqueue()
         {
             var queue = new AsyncQueue<int>();
@@ -167,7 +179,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var task = queue.DequeueAsync(cts.Token);
             Assert.False(task.IsCanceled);
             cts.Cancel();
-            await Assert.ThrowsAsync<TaskCanceledException>(() => task);
+            await Assert.ThrowsAsync<OperationCanceledException>(() => task);
             Assert.Equal(TaskStatus.Canceled, task.Status);
         }
 
@@ -179,7 +191,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var task = queue.DequeueAsync(cts.Token);
             Assert.False(task.IsCanceled);
             cts.Cancel();
-            await Assert.ThrowsAsync<TaskCanceledException>(() => task);
+            await Assert.ThrowsAsync<OperationCanceledException>(() => task);
             Assert.Equal(TaskStatus.Canceled, task.Status);
 
             queue.Enqueue(1);

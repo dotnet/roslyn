@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Channel<TElement> _channel = Channel.CreateUnbounded<TElement>();
         private readonly TaskCompletionSource<bool> _whenCompleted = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
+        private bool _promisedNotToEnqueue;
+
         /// <summary>
         /// Gets a task that transitions to a completed state when <see cref="Complete"/> or
         /// <see cref="TryComplete"/> is called.  This transition will not happen synchronously.
@@ -58,7 +60,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="value">The value to add.</param>
         public bool TryEnqueue(TElement value)
-            => _channel.Writer.TryWrite(value);
+        {
+            if (Volatile.Read(ref _promisedNotToEnqueue))
+                throw new InvalidOperationException($"Cannot enqueue data after {nameof(PromiseNotToEnqueue)}.");
+
+            return _channel.Writer.TryWrite(value);
+        }
 
         /// <summary>
         /// Attempts to dequeue an existing item and return whether or not it was available.
@@ -92,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public void PromiseNotToEnqueue()
-            => TryComplete();
+            => Volatile.Write(ref _promisedNotToEnqueue, true);
 
         /// <summary>
         /// Gets a task whose result is the element at the head of the queue. If the queue
