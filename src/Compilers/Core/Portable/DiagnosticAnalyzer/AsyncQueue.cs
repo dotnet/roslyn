@@ -118,6 +118,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // someone else may have beat us to reading the element.  try again.
             }
 
+            // Reader is entirely done.  Definitely can't dequeue anything at this point.
             return default;
         }
 

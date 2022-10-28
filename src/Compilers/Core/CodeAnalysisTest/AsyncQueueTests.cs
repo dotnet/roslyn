@@ -91,15 +91,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             for (var i = 0; i < count; i++)
             {
                 list.Add(queue.DequeueAsync());
+                var task = list[i];
+                Assert.False(task.IsCompleted);
             }
 
             for (var i = 0; i < count; i++)
             {
-                var task = list[i];
-                Assert.False(task.IsCompleted);
                 queue.Enqueue(i);
-                Assert.Equal(i, await task);
             }
+
+            await Task.WhenAll(list);
         }
 
         [Fact]
