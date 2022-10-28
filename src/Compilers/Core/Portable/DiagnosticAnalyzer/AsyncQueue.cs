@@ -8,16 +8,128 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
+    internal sealed class AsyncQueue<TElement>
+    {
+        private readonly Channel<TElement> _channel = Channel.CreateUnbounded<TElement>();
+        private readonly TaskCompletionSource<bool> _whenCompleted = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        /// <summary>
+        /// Gets a task that transitions to a completed state when <see cref="Complete"/> or
+        /// <see cref="TryComplete"/> is called.  This transition will not happen synchronously.
+        /// 
+        /// This Task will not complete until it has completed all existing values returned
+        /// from <see cref="DequeueAsync"/>.
+        /// </summary>
+        public Task WhenCompletedTask
+            => _whenCompleted.Task;
+
+        /// <summary>
+        /// Gets a value indicating whether the queue has completed.
+        /// </summary>
+        public bool IsCompleted
+            => _whenCompleted.Task.IsCompleted;
+
+        /// <summary>
+        /// The number of unconsumed elements in the queue.
+        /// </summary>
+        public int Count => _channel.Reader.Count;
+
+        /// <summary>
+        /// Adds an element to the tail of the queue.  This method will throw if the queue 
+        /// is completed.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">The queue is already completed.</exception>
+        /// <param name="value">The value to add.</param>
+        public void Enqueue(TElement value)
+        {
+            if (!TryEnqueue(value))
+                throw new InvalidOperationException($"Cannot call {nameof(Enqueue)} when the queue is already completed.");
+        }
+
+        /// <summary>
+        /// Tries to add an element to the tail of the queue.  This method will return false if the queue
+        /// is completed.
+        /// </summary>
+        /// <param name="value">The value to add.</param>
+        public bool TryEnqueue(TElement value)
+            => _channel.Writer.TryWrite(value);
+
+        /// <summary>
+        /// Attempts to dequeue an existing item and return whether or not it was available.
+        /// </summary>
+        public bool TryDequeue(out TElement d)
+            => _channel.Reader.TryRead(out d);
+
+        /// <summary>
+        /// Same operation as <see cref="AsyncQueue{TElement}.Complete"/> except it will not
+        /// throw if the queue is already completed.
+        /// </summary>
+        /// <returns>Whether or not the operation succeeded.</returns>
+        public bool TryComplete()
+        {
+            _whenCompleted.TrySetResult(true);
+            return _channel.Writer.TryComplete();
+        }
+
+        /// <summary>
+        /// Signals that no further elements will be enqueued.  All outstanding and future
+        /// Dequeue Task will be cancelled.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">The queue is already completed.</exception>
+        public void Complete()
+        {
+            if (!TryComplete())
+            {
+                throw new InvalidOperationException($"Cannot call {nameof(Complete)} when the queue is already completed.");
+            }
+        }
+
+        public void PromiseNotToEnqueue()
+            => TryComplete();
+
+        /// <summary>
+        /// Gets a task whose result is the element at the head of the queue. If the queue
+        /// is empty, the returned task waits for an element to be enqueued. If <see cref="Complete"/> 
+        /// is called before an element becomes available, the returned task is completed and
+        /// <see cref="Optional{T}.HasValue"/> will be <see langword="false"/>.
+        /// </summary>
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
+        public async ValueTask<Optional<TElement>> TryDequeueAsync(CancellationToken cancellationToken)
+        {
+            await _channel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false);
+            return _channel.Reader.TryRead(out var element)
+                ? new Optional<TElement>(element)
+                : default;
+        }
+
+        /// <summary>
+        /// Gets a task whose result is the element at the head of the queue. If the queue
+        /// is empty, the returned task waits for an element to be enqueued. If <see cref="Complete"/> 
+        /// is called before an element becomes available, the returned task is cancelled.
+        /// </summary>
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
+        public async Task<TElement> DequeueAsync(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var result = await TryDequeueAsync(cancellationToken).ConfigureAwait(false);
+            if (result.HasValue)
+                return result.Value;
+
+            new CancellationToken(canceled: true).ThrowIfCancellationRequested();
+            throw ExceptionUtilities.Unreachable();
+        }
+    }
+
     /// <summary>
     /// A queue whose enqueue and dequeue operations can be performed in parallel.
     /// </summary>
     /// <typeparam name="TElement">The type of values kept by the queue.</typeparam>
-    internal sealed class AsyncQueue<TElement>
+    internal sealed class AsyncQueue1<TElement>
     {
         // Continuations run asynchronously to ensure user code does not execute within protected regions and lead to
         // delays, deadlocks, and/or state corruption.
