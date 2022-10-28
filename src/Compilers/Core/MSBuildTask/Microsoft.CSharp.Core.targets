@@ -165,6 +165,7 @@
     </ItemGroup>
 
     <CallTarget Targets="$(TargetsTriggeredByCompilation)" Condition="'$(TargetsTriggeredByCompilation)' != ''" />
+    <OnError ExecuteTargets="$(TargetsTriggeredByFailedCompilation)" Condition="'$(TargetsTriggeredByFailedCompilation )' != ''" />
   </Target>
 
   <!-- When we load a project in Visual Studio, the project system first does an evaluation pass of the
