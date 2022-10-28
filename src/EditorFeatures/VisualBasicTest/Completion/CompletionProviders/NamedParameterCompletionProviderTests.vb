@@ -393,20 +393,6 @@ Class Goo
 End Class
 </Text>.Value)
         End Function
-
-        <Fact, WorkItem(64531, "https://github.com/dotnet/roslyn/issues/64531")>
-        Public Async Function TestNoColonEqualsIfAlreadyPresent() As Task
-            Await VerifyItemExistsAsync("
-Imports System
-Class Test
-    Inherits Attribute
-    Public Property Text As String
-End Class
-
-<Test($$:=)>
-Class Goo
-End Class", "Text", displayTextSuffix:=Nothing)
-        End Function
     End Class
 End Namespace
 

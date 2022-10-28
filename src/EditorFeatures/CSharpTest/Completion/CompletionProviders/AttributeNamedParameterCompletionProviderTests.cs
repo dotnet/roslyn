@@ -211,43 +211,5 @@ public class TestAttribute : Attribute
 
             await VerifyNoItemsExistAsync(markup);
         }
-
-        [Fact, WorkItem(64531, "https://github.com/dotnet/roslyn/issues/64531")]
-        public async Task NoEqualsIfAlreadyPresent()
-        {
-            var markup = @"
-using System;
-
-class TestAttribute : Attribute
-{
-    public string Text { get; set; }
-}
- 
-[Test($$ = )]
-class Goo
-{
-}";
-
-            await VerifyItemExistsAsync(markup, "Text", displayTextSuffix: null);
-        }
-
-        [Fact, WorkItem(64531, "https://github.com/dotnet/roslyn/issues/64531")]
-        public async Task NoColonIfAlreadyPresent()
-        {
-            var markup = @"
-using System;
-class TestAttribute : Attribute
-{
-    public TestAttribute(int a = 42)
-    { }
-}
-
-[Test($$:)]
-class Goo
-{ }
-";
-
-            await VerifyItemExistsAsync(markup, "a", displayTextSuffix: null);
-        }
     }
 }
