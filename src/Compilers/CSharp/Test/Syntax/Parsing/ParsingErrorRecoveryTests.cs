@@ -4925,8 +4925,100 @@ class C
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[0].Code);
+            var errors = file.Errors();
+            Assert.Equal(3, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_IdentifierExpected, errors[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, errors[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, errors[2].Code);
+        }
+
+        [Fact]
+        public void TestSemicolonAfterLocalDeclarationArrayInitializerExpression()
+        {
+            var text = "class c { void m() { int a = { e; ee; } }";
+            var file = this.ParseTree(text);
+
+            Assert.NotNull(file);
+            Assert.Equal(text, file.ToFullString());
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            var agg = (TypeDeclarationSyntax)file.Members[0];
+            Assert.Equal(1, agg.Members.Count);
+            Assert.Equal(SyntaxKind.MethodDeclaration, agg.Members[0].Kind());
+            var ms = (MethodDeclarationSyntax)agg.Members[0];
+            Assert.NotNull(ms.Body);
+            Assert.Equal(1, ms.Body.Statements.Count);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, ms.Body.Statements[0].Kind());
+            var errors = file.Errors();
+            Assert.Equal(5, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[2].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[3].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[4].Code);
+        }
+
+        [Fact]
+        public void TestSemicolonAfterObjectInitializerMember_WithTrailingInitializerMembers()
+        {
+            var text = "class c { void m() { var x = new C { a = 1; b = 2; c = 3, d = 4 } }";
+            var file = this.ParseTree(text);
+
+            Assert.NotNull(file);
+            Assert.Equal(text, file.ToFullString());
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            var agg = (TypeDeclarationSyntax)file.Members[0];
+            Assert.Equal(1, agg.Members.Count);
+            Assert.Equal(SyntaxKind.MethodDeclaration, agg.Members[0].Kind());
+            var ms = (MethodDeclarationSyntax)agg.Members[0];
+            Assert.NotNull(ms.Body);
+            Assert.Equal(1, ms.Body.Statements.Count);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, ms.Body.Statements[0].Kind());
+            var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
+            Assert.Equal(1, ds.Declaration.Variables.Count);
+            Assert.NotNull(ds.Declaration.Variables[0].Initializer);
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
+            Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
+            Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
+            var errors = file.Errors();
+            Assert.Equal(6, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, errors[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, errors[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, errors[2].Code);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, errors[3].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, errors[4].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, errors[5].Code);
+        }
+
+        [Fact]
+        public void TestSemicolonAfterObjectInitializerMember()
+        {
+            var text = "class c { void m() { var x = new C { a = 1; } }";
+            var file = this.ParseTree(text);
+
+            Assert.NotNull(file);
+            Assert.Equal(text, file.ToFullString());
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            var agg = (TypeDeclarationSyntax)file.Members[0];
+            Assert.Equal(1, agg.Members.Count);
+            Assert.Equal(SyntaxKind.MethodDeclaration, agg.Members[0].Kind());
+            var ms = (MethodDeclarationSyntax)agg.Members[0];
+            Assert.NotNull(ms.Body);
+            Assert.Equal(1, ms.Body.Statements.Count);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, ms.Body.Statements[0].Kind());
+            var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
+            Assert.Equal(1, ds.Declaration.Variables.Count);
+            Assert.NotNull(ds.Declaration.Variables[0].Initializer);
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
+            Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
+            Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
+            var errors = file.Errors();
+            Assert.Equal(3, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, errors[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, errors[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, errors[2].Code);
         }
 
         [Fact]
@@ -4952,8 +5044,11 @@ class C
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[0].Code);
+            var errors = file.Errors();
+            Assert.Equal(3, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, errors[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, errors[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, errors[2].Code);
         }
 
         [Fact]
@@ -4979,37 +5074,15 @@ class C
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(2, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[1].Code);
+            var errors = file.Errors();
+            Assert.Equal(4, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, errors[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, errors[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, errors[2].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, errors[3].Code);
         }
 
-        [Fact]
-        public void TestSemicolonAfterObjectInitializerMember()
-        {
-            var text = "class c { void m() { var x = new C { a = b; } }";
-            var file = this.ParseTree(text);
-
-            Assert.NotNull(file);
-            Assert.Equal(text, file.ToFullString());
-            Assert.Equal(1, file.Members.Count);
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
-            var agg = (TypeDeclarationSyntax)file.Members[0];
-            Assert.Equal(1, agg.Members.Count);
-            Assert.Equal(SyntaxKind.MethodDeclaration, agg.Members[0].Kind());
-            var ms = (MethodDeclarationSyntax)agg.Members[0];
-            Assert.NotNull(ms.Body);
-            Assert.Equal(1, ms.Body.Statements.Count);
-            Assert.Equal(SyntaxKind.LocalDeclarationStatement, ms.Body.Statements[0].Kind());
-            var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
-            Assert.Equal(1, ds.Declaration.Variables.Count);
-            Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
-            Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
-            Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[0].Code);
-        }
+        
 
         [Fact]
         public void TestSemicolonAfterObjectInitializerMemberComma()
@@ -5034,9 +5107,12 @@ class C
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(2, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[1].Code);
+            var errors = file.Errors();
+            Assert.Equal(4, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, errors[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, errors[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, errors[2].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, errors[3].Code);
         }
 
         [Fact]

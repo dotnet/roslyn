@@ -12912,19 +12912,19 @@ tryAgain:
         private PostSkipAction SkipBadInitializerListTokens<T>(ref SyntaxToken startToken, SeparatedSyntaxListBuilder<T> list, SyntaxKind expected)
             where T : CSharpSyntaxNode
         {
-            Func<LanguageParser, bool> abortFunc = p =>
-            {
-                if (p.CurrentToken.Kind == SyntaxKind.SemicolonToken)
-                {
-                    return p.IsNextToken(lp => lp.CurrentToken.Kind != SyntaxKind.CloseBraceToken && !lp.IsPossibleVariableInitializer());
-                }
-                return p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator();
-            };
-
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref startToken, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleExpression(),
                 abortFunc,
                 expected);
+
+            static bool abortFunc(LanguageParser p)
+            {
+                if (p.CurrentToken.Kind == SyntaxKind.SemicolonToken)
+                {
+                    return !p.IsNextToken(lp => lp.CurrentToken.Kind == SyntaxKind.CloseBraceToken || lp.IsPossibleVariableInitializer());
+                }
+                return p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator();
+            }
         }
 
         private T IsNextToken<T>(Func<LanguageParser, T> nextTokenParseFunc)
@@ -13148,8 +13148,17 @@ tryAgain:
         {
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref openBrace, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleVariableInitializer(),
-                p => p.CurrentToken.Kind == SyntaxKind.SemicolonToken && !p.IsNextToken(lp => lp.IsPossibleVariableInitializer()) && (p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator()),
+                abortFunc,
                 expected);
+
+            static bool abortFunc(LanguageParser p)
+            {
+                if (p.CurrentToken.Kind == SyntaxKind.SemicolonToken)
+                {
+                    return !p.IsNextToken(lp => lp.CurrentToken.Kind == SyntaxKind.CloseBraceToken || lp.IsPossibleVariableInitializer());
+                }
+                return p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator();
+            }
         }
 
         private ExpressionSyntax ParseStackAllocExpression()
