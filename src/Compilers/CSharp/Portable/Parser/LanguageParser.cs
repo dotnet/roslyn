@@ -2546,7 +2546,7 @@ parse_member_name:;
                         return this.ParseOperatorDeclaration(attributes, modifiers, type, explicitInterfaceOpt);
                     }
 
-                    if ((!typeIsRef || !IsScript) && IsFieldDeclaration(isEvent: false))
+                    if ((!typeIsRef || !IsScript) && IsFieldDeclaration(isEvent: false, isGlobalScriptLevel: true))
                     {
                         var saveTerm = _termState;
 
@@ -2933,7 +2933,7 @@ parse_member_name:;
                         }
                     }
 
-                    if (IsFieldDeclaration(isEvent: false))
+                    if (IsFieldDeclaration(isEvent: false, isGlobalScriptLevel: false))
                     {
                         return this.ParseNormalFieldDeclaration(attributes, modifiers, type, parentKind);
                     }
@@ -3013,7 +3013,7 @@ parse_member_name:;
             return true;
         }
 
-        private bool IsFieldDeclaration(bool isEvent)
+        private bool IsFieldDeclaration(bool isEvent, bool isGlobalScriptLevel)
         {
             if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
             {
@@ -3036,8 +3036,9 @@ parse_member_name:;
             // Error recovery, don't allow a misplaced semicolon after the name in a property to throw off the entire parse.
             //
             // e.g. `public int MyProperty; { get; set; }` should still be parsed as a property with a skipped token.
-            if (kind == SyntaxKind.SemicolonToken &&
-                this.PeekToken(2).Kind is SyntaxKind.OpenBraceToken or SyntaxKind.EqualsGreaterThanToken)
+            if (!isGlobalScriptLevel &&
+                kind == SyntaxKind.SemicolonToken &&
+                    this.PeekToken(2).Kind is SyntaxKind.OpenBraceToken or SyntaxKind.EqualsGreaterThanToken)
             {
                 return false;
             }
@@ -4799,7 +4800,7 @@ tryAgain:
             var eventToken = this.EatToken();
             var type = this.ParseType();
 
-            if (IsFieldDeclaration(isEvent: true))
+            if (IsFieldDeclaration(isEvent: true, isGlobalScriptLevel: parentKind == SyntaxKind.CompilationUnit))
             {
                 return this.ParseEventFieldDeclaration(attributes, modifiers, eventToken, type, parentKind);
             }
@@ -8202,7 +8203,7 @@ done:;
                     }
                     else if (st == ScanTypeFlags.NullableType)
                     {
-                        return IsPossibleDeclarationStatementFollowingNullableType();
+                        return IsPossibleDeclarationStatementFollowingNullableType(isGlobalScriptLevel);
                     }
                 }
 
@@ -8268,9 +8269,9 @@ done:;
         }
 
         // Looks ahead for a declaration of a field, property or method declaration following a nullable type T?.
-        private bool IsPossibleDeclarationStatementFollowingNullableType()
+        private bool IsPossibleDeclarationStatementFollowingNullableType(bool isGlobalScriptLevel)
         {
-            if (IsFieldDeclaration(isEvent: false))
+            if (IsFieldDeclaration(isEvent: false, isGlobalScriptLevel))
             {
                 return IsPossibleFieldDeclarationFollowingNullableType();
             }
@@ -8286,10 +8287,11 @@ done:;
             }
 
             // looks like a property:
+            //      T? Goo {
             //
-            //  T? Goo {
-            //  T? Goo =>
-            if (this.CurrentToken.Kind is SyntaxKind.OpenBraceToken or SyntaxKind.EqualsGreaterThanToken)
+            // Importantly, we don't consider `T? Goo =>` to be the start of a property.  This is because it's legal to write:
+            //      T ? Goo => Goo : Bar => Bar
+            if (this.CurrentToken.Kind is SyntaxKind.OpenBraceToken)
             {
                 return true;
             }
