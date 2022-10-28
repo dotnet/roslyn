@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharp.UnitTests.MakeDeclarationPartial
                 {
                 }
                 """,
-                LanguageVersion = LanguageVersion.Preview
+                LanguageVersion = LanguageVersion.CSharp10
             }.RunAsync();
         }
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharp.UnitTests.MakeDeclarationPartial
                 {
                 }
                 """,
-                LanguageVersion = LanguageVersion.Preview
+                LanguageVersion = LanguageVersion.CSharp10
             }.RunAsync();
         }
 
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharp.UnitTests.MakeDeclarationPartial
                     }
                 }
                 """,
-                LanguageVersion = LanguageVersion.Preview
+                LanguageVersion = LanguageVersion.CSharp10
             }.RunAsync();
         }
 
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharp.UnitTests.MakeDeclarationPartial
                     }
                 }
                 """,
-                LanguageVersion = LanguageVersion.Preview
+                LanguageVersion = LanguageVersion.CSharp10
             }.RunAsync();
         }
 
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharp.UnitTests.MakeDeclarationPartial
                 {
                     Sources = { document1, fixedDocument2 }
                 },
-                LanguageVersion = LanguageVersion.Preview
+                LanguageVersion = LanguageVersion.CSharp10
             }.RunAsync();
         }
 
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharp.UnitTests.MakeDeclarationPartial
                 {
                 }
                 """,
-                LanguageVersion = LanguageVersion.Preview
+                LanguageVersion = LanguageVersion.CSharp10
             }.RunAsync();
         }
 
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharp.UnitTests.MakeDeclarationPartial
             {
                 TestCode = markup,
                 FixedCode = markup,
-                LanguageVersion = LanguageVersion.Preview
+                LanguageVersion = LanguageVersion.CSharp10
             }.RunAsync();
         }
     }
