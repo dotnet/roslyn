@@ -86,10 +86,10 @@ namespace Microsoft.CodeAnalysis.Snippets
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            // Generates the snippet as a list of textchanges
+            // Generates the snippet as a list of TextChanges
             var textChanges = await GenerateSnippetTextChangesAsync(document, position, cancellationToken).ConfigureAwait(false);
 
-            // Applies the snippet textchanges to the document 
+            // Applies the snippet TextChanges to the document 
             var snippetDocument = await GetDocumentWithSnippetAsync(document, textChanges, cancellationToken).ConfigureAwait(false);
 
             // Finds the inserted snippet and replaces the node in the document with a node that has added trivia
@@ -102,8 +102,8 @@ namespace Microsoft.CodeAnalysis.Snippets
             // Goes through and calls upon the formatting engines that the previous step annotated.
             var reformattedDocument = await CleanupDocumentAsync(formatAnnotatedSnippetDocument, cancellationToken).ConfigureAwait(false);
 
-            // Finds the added snippet and adds identation where necessary (braces).
-            var documentWithIndentation = await AddIndentationToDocumentAsync(reformattedDocument, position, syntaxFacts, cancellationToken).ConfigureAwait(false);
+            // Finds the added snippet and adds indentation where necessary (braces).
+            var documentWithIndentation = await AddIndentationToDocumentAsync(reformattedDocument, cancellationToken).ConfigureAwait(false);
 
             var reformattedRoot = await documentWithIndentation.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var caretTarget = reformattedRoot.GetAnnotatedNodes(_cursorAnnotation).FirstOrDefault();
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Snippets
             var placeholders = GetPlaceHolderLocationsList(mainChangeNode, syntaxFacts, cancellationToken);
 
             // All the changes from the original document to the most updated. Will later be
-            // collpased into one collapsed TextChange.
+            // collapsed into one collapsed TextChange.
             var changesArray = changes.ToImmutableArray();
             var sourceText = await annotatedReformattedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Snippets
             }
 
             var nodeWithTrivia = node.ReplaceTokens(node.DescendantTokens(descendIntoTrivia: true),
-                (oldtoken, _) => oldtoken.WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation)
+                (oldToken, _) => oldToken.WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation)
                 .WithAppendedTrailingTrivia(syntaxFacts.ElasticMarker)
                 .WithPrependedLeadingTrivia(syntaxFacts.ElasticMarker));
 
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         }
 
         /// <summary>
-        /// Locates the snippet that was inserted. Generates trivia for every token in that syntaxnode.
+        /// Locates the snippet that was inserted. Generates trivia for every token in that SyntaxNode.
         /// Replaces the SyntaxNodes and gets back the new document.
         /// </summary>
         private async Task<Document> GetDocumentWithSnippetAndTriviaAsync(Document snippetDocument, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// The SyntaxGenerator does not insert this space for us nor does the LSP Snippet Expander.
         /// We need to manually add that spacing to snippets containing blocks.
         /// </summary>
-        protected virtual async Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        protected virtual async Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
         {
             return await Task.FromResult(document).ConfigureAwait(false);
         }

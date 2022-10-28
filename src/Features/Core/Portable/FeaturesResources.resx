@@ -3173,4 +3173,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="while_loop" xml:space="preserve">
     <value>while loop</value>
   </data>
+  <data name="try_catch" xml:space="preserve">
+    <value>try catch</value>
+  </data>
 </root>

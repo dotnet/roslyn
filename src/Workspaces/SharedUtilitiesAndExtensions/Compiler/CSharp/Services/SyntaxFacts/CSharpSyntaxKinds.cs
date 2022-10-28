@@ -120,6 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int LockStatement => (int)SyntaxKind.LockStatement;
         public int ReturnStatement => (int)SyntaxKind.ReturnStatement;
         public int ThrowStatement => (int)SyntaxKind.ThrowStatement;
+        public int TryStatement => (int)SyntaxKind.TryStatement;
         public int UsingStatement => (int)SyntaxKind.UsingStatement;
         public int WhileStatement => (int)SyntaxKind.WhileStatement;
         public int YieldReturnStatement => (int)SyntaxKind.YieldReturnStatement;
