@@ -13,8 +13,11 @@ internal static class PRFinderCommand
 {
     private static readonly PrFinderCommandDefaultHandler s_prFinderCommandHandler = new();
 
+    internal static readonly string[] SupportedFormats = { PRFinder.PRFinder.DefaultFormat, PRFinder.PRFinder.OmniSharpFormat };
+
     internal static readonly Option<string> PreviousCommitShaOption = new Option<string>(new[] { "--previous", "-p" }, "SHA of the commit you want to start looking for PRs from") { IsRequired = true };
     internal static readonly Option<string> CurrentCommitSHAOption = new Option<string>(new[] { "--current", "-c" }, "SHA of commit you want to stop looking for PRs at") { IsRequired = true };
+    internal static readonly Option<string> FormatOption = new Option<string>(new[] { "--format" }, () => PRFinder.PRFinder.DefaultFormat, "The formatting to apply to the PR list.").FromAmong(SupportedFormats);
 
     public static Symbol GetCommand()
     {
@@ -22,6 +25,7 @@ internal static class PRFinderCommand
         {
             PreviousCommitShaOption,
             CurrentCommitSHAOption,
+            FormatOption,
             VerbosityOption
         };
         prFinderCommand.Handler = s_prFinderCommandHandler;
@@ -36,8 +40,9 @@ internal static class PRFinderCommand
 
             var previousCommit = context.ParseResult.GetValueForOption(PreviousCommitShaOption)!;
             var currentCommit = context.ParseResult.GetValueForOption(CurrentCommitSHAOption)!;
+            var format = context.ParseResult.GetValueForOption(FormatOption)!;
 
-            return Task.FromResult(PRFinder.PRFinder.FindPRs(previousCommit, currentCommit, logger));
+            return Task.FromResult(PRFinder.PRFinder.FindPRs(previousCommit, currentCommit, format, logger));
         }
     }
 }

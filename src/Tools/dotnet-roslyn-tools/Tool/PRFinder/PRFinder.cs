@@ -6,10 +6,14 @@ namespace Microsoft.RoslynTools.PRFinder;
 
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
+using System.Runtime.Serialization;
 using System.Text;
 
 internal class PRFinder
 {
+    public const string DefaultFormat = "default";
+    public const string OmniSharpFormat = "o#";
+
     /// <summary>
     /// Finds the PRs merged between two given commits.
     /// </summary>
@@ -22,6 +26,7 @@ internal class PRFinder
     public static int FindPRs(
         string previousCommitSha,
         string currentCommitSha,
+        string format,
         ILogger logger,
         string? repoPath = null,
         StringBuilder? builder = null)
@@ -88,6 +93,10 @@ internal class PRFinder
             ? new Hosts.GitHub()
             : new Hosts.Azure();
 
+        IPRLogFormatter formatter = format == DefaultFormat
+            ? new Formatters.DefaultFormatter()
+            : new Formatters.OmniSharpFormatter();
+
         // Get commit history starting at the current commit and ending at the previous commit
         var commitLog = repo.Commits.QueryBy(
             new CommitFilter
@@ -96,9 +105,9 @@ internal class PRFinder
                 ExcludeReachableFrom = previousCommit
             });
 
-        logger.LogDebug($"### Changes from [{previousCommitSha}]({host.GetCommitUrl(repoUrl, previousCommitSha)}) to [{currentCommitSha}]({host.GetCommitUrl(repoUrl, currentCommitSha)}):");
+        logger.LogDebug(formatter.FormatChangesHeader(previousCommitSha, host.GetCommitUrl(repoUrl, previousCommitSha), currentCommitSha, host.GetCommitUrl(repoUrl, currentCommitSha)));
 
-        RecordLine($"[View Complete Diff of Changes]({host.GetDiffUrl(repoUrl, previousCommitSha, currentCommitSha)})", logger, builder);
+        RecordLine(formatter.FormatDiffHeader(host.GetDiffUrl(repoUrl, previousCommitSha, currentCommitSha)), logger, builder);
 
         var commitHeaderAdded = false;
         var mergePRHeaderAdded = false;
@@ -126,31 +135,25 @@ internal class PRFinder
                 if (commitHeaderAdded && !mergePRHeaderAdded)
                 {
                     mergePRHeaderAdded = true;
-                    RecordLine("### Merged PRs:", logger, builder);
+                    RecordLine(formatter.GetPRSectionHeader(), logger, builder);
                 }
 
                 mergePRFound = true;
 
-                // Replace "#{prNumber}" with "{prNumber}" so that AzDO won't linkify it
-                comment = comment.Replace($"#{prNumber}", prNumber);
-
-                prLink = $@"- [{comment}]({host.GetPullRequestUrl(repoUrl, prNumber)})";
+                prLink = formatter.FormatPRListItem(comment, prNumber, host.GetPullRequestUrl(repoUrl, prNumber));
             }
             else
             {
                 if (!commitHeaderAdded)
                 {
                     commitHeaderAdded = true;
-                    RecordLine("### Commits since last PR:", logger, builder);
+                    RecordLine(formatter.GetCommitSectionHeader(), logger, builder);
                 }
 
                 var fullSHA = commit.Sha;
                 var shortSHA = fullSHA.Substring(0, 7);
 
-                // Take the subject line since it should be descriptive.
-                comment = $"{commit.MessageShort} ({shortSHA})";
-
-                prLink = $@"- [{comment}]({host.GetCommitUrl(repoUrl, fullSHA)})";
+                prLink = formatter.FormatCommitListItem(commit.MessageShort, shortSHA, host.GetCommitUrl(repoUrl, fullSHA));
             }
 
             RecordLine(prLink, logger, builder);
