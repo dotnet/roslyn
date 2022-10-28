@@ -58,7 +58,7 @@ public class GitHub : IRepositoryHost
             // Try and extract the 1st non-empty line since it is the useful part of the message, otherwise take the first line.
             var lines = commit.Message.Split('\n', StringSplitOptions.RemoveEmptyEntries);
             comment = lines.Length > 1
-                ? $"{lines[1]} ({prNumber})"
+                ? $"{lines[1]} (#{prNumber})"
                 : commit.MessageShort;
             return true;
         }
