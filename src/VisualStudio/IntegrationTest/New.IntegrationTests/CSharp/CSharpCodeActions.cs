@@ -250,7 +250,7 @@ csharp_style_expression_bodied_properties = true:warning
                 HangMitigatingCancellationToken);
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CodeActionAsync(
-                "Use expression body for properties",
+                "Use expression body for property",
                 applyFix: true,
                 fixAllScope: FixAllScope.Project,
                 cancellationToken: HangMitigatingCancellationToken);
@@ -277,7 +277,7 @@ csharp_style_expression_bodied_properties = true:warning
                 HangMitigatingCancellationToken);
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CodeActionAsync(
-                "Use block body for properties",
+                "Use block body for property",
                 applyFix: true,
                 fixAllScope: FixAllScope.Project,
                 cancellationToken: HangMitigatingCancellationToken);
@@ -1412,7 +1412,7 @@ public class Program
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             var expectedItems = new[]
             {
-                "Use expression body for methods",
+                "Use expression body for method",
                 "Extract base class...",
             };
 

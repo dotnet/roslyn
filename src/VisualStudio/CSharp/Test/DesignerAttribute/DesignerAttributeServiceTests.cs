@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DesignerAttribute;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
@@ -20,40 +19,37 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.DesignerAttri
     [UseExportProvider]
     public class DesignerAttributeServiceTests
     {
-        private static readonly TestComposition s_inProcessComposition = EditorTestCompositions.EditorFeatures;
-        private static readonly TestComposition s_outOffProcessComposition = s_inProcessComposition.WithTestHostParts(TestHost.OutOfProcess);
-
-        [Theory, CombinatorialData]
-        public async Task NoDesignerTest1(TestHost host)
+        [Fact]
+        public async Task NoDesignerTest1()
         {
             var code = @"class Test { }";
 
-            await TestAsync(code, category: null, host);
+            await TestAsync(code, category: null);
         }
 
-        [Theory, CombinatorialData]
-        public async Task NoDesignerOnSecondClass(TestHost host)
+        [Fact]
+        public async Task NoDesignerOnSecondClass()
         {
 
             await TestAsync(
 @"class Test1 { }
 
 [System.ComponentModel.DesignerCategory(""Form"")]
-class Test2 { }", category: null, host);
+class Test2 { }", category: null);
         }
 
-        [Theory, CombinatorialData]
-        public async Task NoDesignerOnStruct(TestHost host)
+        [Fact]
+        public async Task NoDesignerOnStruct()
         {
 
             await TestAsync(
 @"
 [System.ComponentModel.DesignerCategory(""Form"")]
-struct Test1 { }", category: null, host);
+struct Test1 { }", category: null);
         }
 
-        [Theory, CombinatorialData]
-        public async Task NoDesignerOnNestedClass(TestHost host)
+        [Fact]
+        public async Task NoDesignerOnNestedClass()
         {
 
             await TestAsync(
@@ -61,56 +57,42 @@ struct Test1 { }", category: null, host);
 {
     [System.ComponentModel.DesignerCategory(""Form"")]
     class Test2 { }
-}", category: null, host);
+}", category: null);
         }
 
-        [Theory, CombinatorialData]
-        public async Task SimpleDesignerTest(TestHost host)
+        [Fact]
+        public async Task SimpleDesignerTest()
         {
 
             await TestAsync(
 @"[System.ComponentModel.DesignerCategory(""Form"")]
-class Test { }", "Form", host);
+class Test { }", "Form");
         }
 
-        [Theory, CombinatorialData]
-        public async Task SimpleDesignerTest2(TestHost host)
+        [Fact]
+        public async Task SimpleDesignerTest2()
         {
 
             await TestAsync(
 @"using System.ComponentModel;
 
 [DesignerCategory(""Form"")]
-class Test { }", "Form", host);
+class Test { }", "Form");
         }
 
-        private static async Task TestAsync(string codeWithMarker, string? category, TestHost host)
+        private static async Task TestAsync(string codeWithMarker, string category)
         {
-            using var workspace = TestWorkspace.CreateCSharp(
-                codeWithMarker, openDocuments: false, composition: host == TestHost.OutOfProcess ? s_outOffProcessComposition : s_inProcessComposition);
-
-            var solution = workspace.CurrentSolution;
+            using var workspace = TestWorkspace.CreateCSharp(codeWithMarker, openDocuments: false);
 
             var hostDocument = workspace.Documents.First();
             var documentId = hostDocument.Id;
+            var document = workspace.CurrentSolution.GetDocument(documentId);
 
-            var service = solution.Services.GetRequiredService<IDesignerAttributeDiscoveryService>();
-            var stream = service.ProcessProjectAsync(solution.GetRequiredProject(documentId.ProjectId), priorityDocumentId: null, CancellationToken.None);
+            var compilation = await document.Project.GetCompilationAsync();
+            var actual = await DesignerAttributeHelpers.ComputeDesignerAttributeCategoryAsync(
+                compilation.DesignerCategoryAttributeType(), document, CancellationToken.None);
 
-            var items = new List<DesignerAttributeData>();
-            await foreach (var item in stream)
-                items.Add(item);
-
-            if (category != null)
-            {
-                Assert.Equal(1, items.Count);
-                Assert.Equal(category, items.Single().Category);
-                Assert.Equal(documentId, items.Single().DocumentId);
-            }
-            else
-            {
-                Assert.Empty(items);
-            }
+            Assert.Equal(category, actual);
         }
     }
 }
