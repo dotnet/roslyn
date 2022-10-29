@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             parameterLists = parameterLists.Where(pl => IsValid(pl, existingNamedParameters));
 
             var rightToken = semanticModel.SyntaxTree.FindTokenOnRightOfPosition(context.Position, context.CancellationToken);
-            var displayTextSuffix = !rightToken.IsKind(SyntaxKind.ColonToken) ? ColonString : null;
+            var displayTextSuffix = rightToken.IsKind(SyntaxKind.ColonToken) ? null : ColonString;
 
             return from pl in parameterLists
                    from p in pl
