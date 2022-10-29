@@ -23553,6 +23553,57 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
             Assert.True(method.ContainingModule.UseUpdatedEscapeRules);
         }
 
+        /// <summary>
+        /// Use updated escape rules with either -langversion:11 or higher, or
+        /// with System.Runtime.CompilerServices.RuntimeFeature.ByRefFields.
+        /// </summary>
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10, TargetFramework.Net60, false, false)]
+        [InlineData(LanguageVersion.CSharp11, TargetFramework.Net60, false, true)]
+        [InlineData(LanguageVersion.Latest, TargetFramework.Net60, false, true)]
+        [InlineData(LanguageVersion.CSharp10, TargetFramework.Net70, true, true)]
+        [InlineData(LanguageVersion.CSharp11, TargetFramework.Net70, true, true)]
+        [InlineData(LanguageVersion.Latest, TargetFramework.Net70, true, true)]
+        public void UseUpdatedEscapeRules(LanguageVersion languageVersion, TargetFramework targetFramework, bool supportsRefFields, bool expectedUseUpdatedEscapeRules)
+        {
+            var source =
+@"class Program
+{
+    static ref T F1<T>(out T t) => throw null;
+    static ref T F2<T>() => ref F1(out T t);
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: targetFramework);
+            if (expectedUseUpdatedEscapeRules)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,33): error CS8347: Cannot use a result of 'Program.F1<T>(out T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                    //     static ref T F2<T>() => ref F1(out T t);
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "F1(out T t)").WithArguments("Program.F1<T>(out T)", "t").WithLocation(4, 33),
+                    // (4,40): error CS8168: Cannot return local 't' by reference because it is not a ref local
+                    //     static ref T F2<T>() => ref F1(out T t);
+                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "T t").WithArguments("t").WithLocation(4, 40));
+            }
+
+            Assert.Equal(supportsRefFields, comp.SourceAssembly.RuntimeSupportsByRefFields);
+
+            var runtimeFeature = (FieldSymbol)comp.GetMember<NamedTypeSymbol>("System.Runtime.CompilerServices.RuntimeFeature").GetMembers("ByRefFields").SingleOrDefault();
+            Assert.Equal(supportsRefFields, runtimeFeature is { });
+            if (supportsRefFields)
+            {
+                Assert.Equal("System.String System.Runtime.CompilerServices.RuntimeFeature.ByRefFields", runtimeFeature.ToTestDisplayString());
+            }
+
+            var method = comp.GetMember<MethodSymbol>("Program.F1");
+            VerifyParameterSymbol(method.Parameters[0], "out T t", RefKind.Out, expectedUseUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+
+            Assert.Equal(expectedUseUpdatedEscapeRules, method.UseUpdatedEscapeRules);
+            Assert.Equal(expectedUseUpdatedEscapeRules, method.ContainingModule.UseUpdatedEscapeRules);
+        }
+
         [WorkItem(63691, "https://github.com/dotnet/roslyn/issues/63691")]
         [Theory]
         [CombinatorialData]
