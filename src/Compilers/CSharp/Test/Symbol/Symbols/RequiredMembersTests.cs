@@ -1380,18 +1380,18 @@ class C
     public void RefFields()
     {
         var source = """
-                #pragma warning disable 649
-                internal ref struct R1<T>
-                {
-                    internal required ref T F1;
-                    public R1() { }
-                }
-                public ref struct R2<U>
-                {
-                    public required ref readonly U F2;
-                    public R2() { }
-                }
-                """;
+            #pragma warning disable 649
+            internal ref struct R1<T>
+            {
+                internal required ref T F1;
+                public R1() { }
+            }
+            public ref struct R2<U>
+            {
+                public required ref readonly U F2;
+                public R2() { }
+            }
+            """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
         var expectedRequiredMembers = new[] { "R1.F1", "R2.F2" };
         var expectedAttributeLayout = """
