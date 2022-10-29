@@ -2192,6 +2192,75 @@ class Program
             Assert.True(comp.Assembly.RuntimeSupportsByRefFields);
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void RefAssembly(bool includePrivateMembers)
+        {
+            var sourceA =
+@"public ref struct R1<T, U>
+{
+    private ref T _f1;
+    private ref readonly U _f2;
+    public R1(ref T t, ref U u)
+    {
+        _f1 = ref t;
+        _f2 = ref u;
+    }
+    public override string ToString() => (_f1, _f2).ToString();
+}
+public ref struct R2<T, U>
+{
+    public ref T F1;
+    public ref readonly U F2;
+    public R2(ref T t, ref U u)
+    {
+        F1 = ref t;
+        F2 = ref u;
+    }
+    public override string ToString() => (F1, F2).ToString();
+}";
+            var compA = CreateCompilation(sourceA, targetFramework: TargetFramework.Net70);
+            var emitOptions = Microsoft.CodeAnalysis.Emit.EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(includePrivateMembers);
+            var refA = compA.EmitToImageReference(emitOptions);
+
+            var sourceB =
+@"using System;
+public class B
+{
+    public static void M()
+    {
+        int i = 1;
+        double d = 2.0;
+        var r1 = new R1<int, double>(ref i, ref d);
+        var r2 = new R2<double, int>(ref d, ref i);
+        i = 3;
+        d = 4.0;
+        Console.WriteLine((r1.ToString(), r2.ToString()));
+    }
+}";
+            var compB = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            var refB = compB.EmitToImageReference();
+            verifyFields(compB.GetMember<NamedTypeSymbol>("R1"), new[] { "ref T R1<T, U>._f1", "ref readonly U R1<T, U>._f2" });
+            verifyFields(compB.GetMember<NamedTypeSymbol>("R2"), new[] { "ref T R2<T, U>.F1", "ref readonly U R2<T, U>.F2" });
+
+            var sourceC =
+@"class Program
+{
+    static void Main()
+    {
+        B.M();
+    }
+}";
+            // Requires full assembly for A at runtime.
+            CompileAndVerify(sourceC, references: new[] { refB, compA.EmitToImageReference() }, targetFramework: TargetFramework.Net70, expectedOutput: @"((3, 4), (4, 3))");
+
+            static void verifyFields(NamedTypeSymbol type, string[] expectedFields)
+            {
+                var actualFields = type.GetMembers().OfType<FieldSymbol>().Select(f => f.ToTestDisplayString()).ToList();
+                AssertEx.Equal(actualFields, expectedFields);
+            }
+        }
+
         /// <summary>
         /// Ref fields of ref struct type are not supported.
         /// </summary>
