@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                                                            Where(Function(p) Not existingNamedParameters.Contains(p.Name))
 
                 Dim rightToken = syntaxTree.FindTokenOnRightOfPosition(position, cancellationToken)
-                Dim textSuffix = If(Not rightToken.IsKind(SyntaxKind.ColonEqualsToken), s_colonEquals, Nothing)
+                Dim textSuffix = If(rightToken.IsKind(SyntaxKind.ColonEqualsToken), Nothing, s_colonEquals)
 
                 For Each parameter In unspecifiedParameters
                     context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
