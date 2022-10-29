@@ -2261,6 +2261,147 @@ public class B
             }
         }
 
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        [InlineData(LanguageVersion.Latest)]
+        public void RequiredField_01(LanguageVersion languageVersion)
+        {
+            var source = """
+                #pragma warning disable 169
+                #pragma warning disable 649
+                ref struct R<T, U>
+                {
+                    public required ref T F1;
+                    public required ref readonly U F2;
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.Net70);
+            if (languageVersion == LanguageVersion.CSharp10)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (5,21): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     public required ref T F1;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(5, 21),
+                    // (5,27): error CS8936: Feature 'required members' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     public required ref T F1;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "F1").WithArguments("required members", "11.0").WithLocation(5, 27),
+                    // (6,21): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     public required ref readonly U F2;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref readonly U").WithArguments("ref fields", "11.0").WithLocation(6, 21),
+                    // (6,36): error CS8936: Feature 'required members' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     public required ref readonly U F2;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "F2").WithArguments("required members", "11.0").WithLocation(6, 36));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void RequiredField_02(bool useCompilationReference)
+        {
+            var sourceA = """
+                public ref struct R<T, U>
+                {
+                    private static U _u;
+                    public required ref T F1;
+                    public required ref readonly U F2;
+                    public R()
+                    {
+                        F2 = ref _u;
+                    }
+                    public R(ref T t)
+                    {
+                        F1 = ref t;
+                    }
+                    public R(ref T t, ref U u)
+                    {
+                        F1 = ref t;
+                        F2 = ref u;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int i = 1;
+                        double d = 2.0;
+                        scoped R<int, double> r;
+                        r = default;
+                        r = new(); // 1
+                        r = new() { }; // 2
+                        r = new() { F1 = ref i }; // 3
+                        r = new() { F2 = ref d }; // 4
+                        r = new() { F1 = ref i, F2 = ref d };
+                        r = new R<int, double>(); // 5
+                        r = new R<int, double> { }; // 6
+                        r = new(ref i); // 7
+                        r = new(ref i, ref d);
+                        r = new(ref i) { F1 = ref i }; // 8
+                        r = new(ref i) { F2 = ref d }; // 9
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (9,13): error CS9035: Required member 'R<int, double>.F2' must be set in the object initializer or attribute constructor.
+                //         r = new(); // 1
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("R<int, double>.F2").WithLocation(9, 13),
+                // (9,13): error CS9035: Required member 'R<int, double>.F1' must be set in the object initializer or attribute constructor.
+                //         r = new(); // 1
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("R<int, double>.F1").WithLocation(9, 13),
+                // (10,13): error CS9035: Required member 'R<int, double>.F2' must be set in the object initializer or attribute constructor.
+                //         r = new() { }; // 2
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("R<int, double>.F2").WithLocation(10, 13),
+                // (10,13): error CS9035: Required member 'R<int, double>.F1' must be set in the object initializer or attribute constructor.
+                //         r = new() { }; // 2
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("R<int, double>.F1").WithLocation(10, 13),
+                // (11,13): error CS9035: Required member 'R<int, double>.F2' must be set in the object initializer or attribute constructor.
+                //         r = new() { F1 = ref i };
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("R<int, double>.F2").WithLocation(11, 13),
+                // (12,13): error CS9035: Required member 'R<int, double>.F1' must be set in the object initializer or attribute constructor.
+                //         r = new() { F2 = ref d }; // 3
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("R<int, double>.F1").WithLocation(12, 13),
+                // (14,17): error CS9035: Required member 'R<int, double>.F2' must be set in the object initializer or attribute constructor.
+                //         r = new R<int, double>(); // 4
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "R<int, double>").WithArguments("R<int, double>.F2").WithLocation(14, 17),
+                // (14,17): error CS9035: Required member 'R<int, double>.F1' must be set in the object initializer or attribute constructor.
+                //         r = new R<int, double>(); // 4
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "R<int, double>").WithArguments("R<int, double>.F1").WithLocation(14, 17),
+                // (15,17): error CS9035: Required member 'R<int, double>.F2' must be set in the object initializer or attribute constructor.
+                //         r = new R<int, double> { } // 5
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "R<int, double>").WithArguments("R<int, double>.F2").WithLocation(15, 17),
+                // (15,17): error CS9035: Required member 'R<int, double>.F1' must be set in the object initializer or attribute constructor.
+                //         r = new R<int, double> { } // 5
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "R<int, double>").WithArguments("R<int, double>.F1").WithLocation(15, 17),
+                // (16,13): error CS9035: Required member 'R<int, double>.F2' must be set in the object initializer or attribute constructor.
+                //         r = new(ref i); // 6
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("R<int, double>.F2").WithLocation(16, 13),
+                // (16,13): error CS9035: Required member 'R<int, double>.F1' must be set in the object initializer or attribute constructor.
+                //         r = new(ref i); // 6
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("R<int, double>.F1").WithLocation(16, 13),
+                // (17,13): error CS9035: Required member 'R<int, double>.F2' must be set in the object initializer or attribute constructor.
+                //         r = new(ref i, ref d);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("R<int, double>.F2").WithLocation(17, 13),
+                // (17,13): error CS9035: Required member 'R<int, double>.F1' must be set in the object initializer or attribute constructor.
+                //         r = new(ref i, ref d);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("R<int, double>.F1").WithLocation(17, 13),
+                // (18,13): error CS9035: Required member 'R<int, double>.F2' must be set in the object initializer or attribute constructor.
+                //         r = new(ref i) { F1 = ref i }; // 7
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("R<int, double>.F2").WithLocation(18, 13),
+                // (19,13): error CS9035: Required member 'R<int, double>.F1' must be set in the object initializer or attribute constructor.
+                //         r = new(ref i) { F2 = ref d };
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("R<int, double>.F1").WithLocation(19, 13));
+        }
+
         /// <summary>
         /// Ref fields of ref struct type are not supported.
         /// </summary>
