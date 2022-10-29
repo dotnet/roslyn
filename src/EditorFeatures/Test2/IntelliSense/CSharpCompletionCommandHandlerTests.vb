@@ -5985,7 +5985,7 @@ class C
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("z")
-                Await state.AssertCompletionItemsContain(displayText:="identifier", displayTextSuffix:=Nothing)
+                Await state.AssertCompletionItemsContain(displayText:="identifier", displayTextSuffix:="")
                 state.AssertSuggestedItemSelected(displayText:="z")
 
                 state.SendBackspace()
@@ -10476,7 +10476,7 @@ class Goo
                 </Document>)
 
                 state.SendTypeChars("Tex")
-                Await state.AssertSelectedCompletionItem("Text", displayTextSuffix:=Nothing)
+                Await state.AssertSelectedCompletionItem("Text", displayTextSuffix:="")
 
                 state.SendTab()
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -10500,7 +10500,7 @@ class Goo
                 </Document>)
 
                 state.SendTypeChars("argum")
-                Await state.AssertSelectedCompletionItem("argument", displayTextSuffix:=Nothing)
+                Await state.AssertSelectedCompletionItem("argument", displayTextSuffix:="")
 
                 state.SendTab()
                 Await state.WaitForAsynchronousOperationsAsync()
