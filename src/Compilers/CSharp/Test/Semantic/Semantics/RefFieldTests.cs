@@ -1702,8 +1702,7 @@ ref struct R
 }");
         }
 
-        // Test skipped because we don't allow faking runtime feature flags when using specific TargetFramework
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61463"), WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
+        [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
         public void InitRefField_UnsafeNullRef()
         {
             var source = """
@@ -1724,7 +1723,7 @@ ref struct R
     }
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
             verifier.VerifyIL("R..ctor()", @"
