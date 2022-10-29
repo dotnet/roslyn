@@ -10458,7 +10458,7 @@ namespace NS
                 Await state.AssertCompletionItemsContain(displayText:="System", displayTextSuffix:="")
             End Using
         End Function
-        
+
         <WpfFact, WorkItem(64531, "https://github.com/dotnet/roslyn/issues/64531")>
         Public Async Function AttributeCompletionNoColonsIfAlreadyPresent() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
