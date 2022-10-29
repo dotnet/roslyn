@@ -921,7 +921,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string displayTextSuffix, string displayTextPrefix, string inlineDescription = null,
             bool? isComplexTextEdit = null, List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null, CompletionOptions options = null, bool skipSpeculation = false)
         {
-            code = code.Substring(0, position) + insertText + code.Substring(position);
+            code = code[..position] + insertText + code[position..];
             position += insertText.Length;
 
             await BaseVerifyWorkerAsync(code, position,
@@ -961,7 +961,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 return;
             }
 
-            code = code.Substring(startIndex: 0, length: position) + insertText;
+            code = code[..position] + insertText;
             position += insertText.Length;
 
             await BaseVerifyWorkerAsync(
