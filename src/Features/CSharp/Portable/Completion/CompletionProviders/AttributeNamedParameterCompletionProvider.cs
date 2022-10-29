@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var unspecifiedNamedParameters = attributeNamedParameters.Where(p => !existingNamedParameters.Contains(p.Name));
 
             var rightToken = semanticModel.SyntaxTree.FindTokenOnRightOfPosition(context.Position, context.CancellationToken);
-            var displayTextSuffix = !rightToken.IsKind(SyntaxKind.EqualsToken) ? SpaceEqualsString : null;
+            var displayTextSuffix = rightToken.IsKind(SyntaxKind.EqualsToken) ? null : SpaceEqualsString;
 
             var q = from p in attributeNamedParameters
                     where !existingNamedParameters.Contains(p.Name)
