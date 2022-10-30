@@ -2192,7 +2192,7 @@ class Program
             Assert.True(comp.Assembly.RuntimeSupportsByRefFields);
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(CoreClrOnly))]
         [CombinatorialData]
         public void RefAssembly(bool includePrivateMembers)
         {
@@ -2252,7 +2252,12 @@ public class B
     }
 }";
             // Requires full assembly for A at runtime.
-            CompileAndVerify(sourceC, references: new[] { refB, compA.EmitToImageReference() }, targetFramework: TargetFramework.Net70, expectedOutput: @"((3, 4), (4, 3))");
+            CompileAndVerify(
+                sourceC,
+                references: new[] { refB, compA.EmitToImageReference() },
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.Skipped,
+                expectedOutput: @"((3, 4), (4, 3))");
 
             static void verifyFields(NamedTypeSymbol type, string[] expectedFields)
             {
