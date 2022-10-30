@@ -649,6 +649,20 @@ namespace Roslyn.Test.Utilities
                 return ExecuteRequestAsync<LSP.DidCloseTextDocumentParams, object>(LSP.Methods.TextDocumentDidCloseName, didCloseParams, CancellationToken.None);
             }
 
+            public async Task ShutdownTestServerAsync()
+            {
+                await _clientRpc.InvokeAsync(LSP.Methods.ShutdownName).ConfigureAwait(false);
+            }
+
+            public async Task ExitTestServerAsync()
+            {
+                // Since exit is a notification that disposes of the json rpc stream we cannot wait on the result
+                // of the request itself since it will throw a ConnectionLostException.
+                // Instead we wait for the server's exit task to be completed.
+                await _clientRpc.NotifyAsync(LSP.Methods.ExitName).ConfigureAwait(false);
+                await LanguageServer.WaitForExitAsync().ConfigureAwait(false);
+            }
+
             public IList<LSP.Location> GetLocations(string locationName) => _locations[locationName];
 
             public Solution GetCurrentSolution() => TestWorkspace.CurrentSolution;
@@ -681,13 +695,16 @@ namespace Roslyn.Test.Utilities
                 var solutionCrawlerRegistrationService = (SolutionCrawlerRegistrationService)TestWorkspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
                 solutionCrawlerRegistrationService.Unregister(TestWorkspace);
 
-                // Some tests manually call shutdown, so avoid calling shutdown twice if already called.
-                if (!LanguageServer.HasShutdownStarted)
+                // Some tests will manually call shutdown and exit, so attempting to call this during dispose
+                // will fail as the server's jsonrpc instance will be disposed of.
+                if (!LanguageServer.GetTestAccessor().HasShutdownStarted())
                 {
-                    await LanguageServer.GetTestAccessor().ShutdownServerAsync("Disposing of test lsp server");
+                    await ShutdownTestServerAsync();
+                    await ExitTestServerAsync();
                 }
 
-                await LanguageServer.GetTestAccessor().ExitServerAsync();
+                // Wait for all the exit notifications to run to completion.
+                await LanguageServer.WaitForExitAsync();
 
                 TestWorkspace.Dispose();
                 _clientRpc.Dispose();

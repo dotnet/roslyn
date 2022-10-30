@@ -54,11 +54,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _root = root;
             _memberSymbol = memberSymbol;
-
-            this.RootBinder = rootBinder.WithAdditionalFlags(GetSemanticModelBinderFlags());
             _containingPublicSemanticModel = containingPublicSemanticModel;
             _parentRemappedSymbolsOpt = parentRemappedSymbolsOpt;
 
+            this.RootBinder = rootBinder.WithAdditionalFlags(GetSemanticModelBinderFlags());
             _operationFactory = new Lazy<CSharpOperationFactory>(() => new CSharpOperationFactory(this));
 
             // If we're speculating and we're in a non-indexer property symbol, then we must have a speculative field keyword binder.
@@ -121,6 +120,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public sealed override bool IgnoresAccessibility
+        {
+            get
+            {
+                return _containingPublicSemanticModel.IgnoresAccessibility;
+            }
+        }
+
         public sealed override int OriginalPositionForSpeculation
         {
             get
@@ -141,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal sealed override SemanticModel ContainingModelOrSelf
+        internal sealed override SemanticModel ContainingPublicModelOrSelf
         {
             get
             {

@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
         {
             var propertyDeclaration = (PropertyDeclarationSyntax)caretTarget;
-            return propertyDeclaration.AccessorList!.OpenBraceToken.Span.End;
+            return propertyDeclaration.AccessorList!.CloseBraceToken.Span.End;
         }
 
         protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)

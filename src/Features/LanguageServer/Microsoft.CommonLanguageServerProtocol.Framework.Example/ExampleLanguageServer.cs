@@ -21,29 +21,33 @@ public class ExampleLanguageServer : AbstractLanguageServer<ExampleRequestContex
     {
         var serviceCollection = new ServiceCollection();
 
-        _ = AddHandlers(serviceCollection)
+        var _ = AddHandlers(serviceCollection)
             .AddSingleton<ILspLogger>(_logger)
             .AddSingleton<IRequestContextFactory<ExampleRequestContext>, ExampleRequestContextFactory>()
             .AddSingleton<IInitializeManager<InitializeParams, InitializeResult>, CapabilitiesManager>()
-            .AddSingleton<ILifeCycleManager>(GetLifeCycleManager())
             .AddSingleton(this);
+
+        var lifeCycleManager = GetLifeCycleManager();
+        if (lifeCycleManager != null)
+        {
+            serviceCollection.AddSingleton(lifeCycleManager);
+        }
 
         var lspServices = new ExampleLspServices(serviceCollection);
 
         return lspServices;
     }
 
-    protected virtual ILifeCycleManager GetLifeCycleManager()
+    protected virtual ILifeCycleManager? GetLifeCycleManager()
     {
-        return this;
+        return null;
     }
 
     private static IServiceCollection AddHandlers(IServiceCollection serviceCollection)
     {
         _ = serviceCollection
             .AddSingleton<IMethodHandler, InitializeHandler<InitializeParams, InitializeResult, ExampleRequestContext>>()
-            .AddSingleton<IMethodHandler, InitializedHandler<InitializedParams, ExampleRequestContext>>()
-            .AddSingleton<IMethodHandler, ShutdownHandler<ExampleRequestContext>>();
+            .AddSingleton<IMethodHandler, InitializedHandler<InitializedParams, ExampleRequestContext>>();
         return serviceCollection;
     }
 }

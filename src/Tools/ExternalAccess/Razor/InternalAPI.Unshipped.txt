@@ -63,6 +63,7 @@ Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfo.FilePath.get ->
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfo.RazorDynamicFileInfo(string! filePath, Microsoft.CodeAnalysis.SourceCodeKind sourceCodeKind, Microsoft.CodeAnalysis.TextLoader! textLoader, Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDocumentServiceProvider! documentServiceProvider) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfo.SourceCodeKind.get -> Microsoft.CodeAnalysis.SourceCodeKind
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfo.TextLoader.get -> Microsoft.CodeAnalysis.TextLoader!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfo.ToUpdatedDocumentInfo(Microsoft.CodeAnalysis.DocumentInfo! existingDocumentInfo) -> Microsoft.CodeAnalysis.DocumentInfo!
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfoProviderWrapper
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfoProviderWrapper.GetDynamicFileInfoAsync(Microsoft.CodeAnalysis.ProjectId! projectId, string! projectFilePath, string! filePath, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Host.DynamicFileInfo?>!
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfoProviderWrapper.RazorDynamicFileInfoProviderWrapper(System.Lazy<Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDynamicFileInfoProvider!>! innerDynamicFileInfoProvider) -> void

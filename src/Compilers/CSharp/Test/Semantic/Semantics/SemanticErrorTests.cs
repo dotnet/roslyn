@@ -8042,10 +8042,10 @@ public class Derived : Base2
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (14,15): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (14,15): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         M(ref P); // CS0206
                 Diagnostic(ErrorCode.ERR_RefProperty, "P").WithLocation(14, 15),
-                // (15,15): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (15,15): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         M(out this.Q); // CS0206
                 Diagnostic(ErrorCode.ERR_RefProperty, "this.Q").WithLocation(15, 15));
         }
@@ -8072,10 +8072,10 @@ public class Derived : Base2
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (13,15): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (13,15): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         R(ref this[0]); // CS0206
                 Diagnostic(ErrorCode.ERR_RefProperty, "this[0]").WithLocation(13, 15),
-                // (14,15): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (14,15): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         O(out this[0]); // CS0206
                 Diagnostic(ErrorCode.ERR_RefProperty, "this[0]").WithLocation(14, 15));
         }
@@ -22856,13 +22856,13 @@ public class Program
                 // (17,47): error CS1510: A ref or out argument must be an assignable variable
                 //         var z5 = new Func<string, string>(ref Goo<string>(x => x));
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Goo<string>(x => x)").WithLocation(17, 47),
-                // (18,43): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (18,43): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         var z6 = new Func<string, string>(ref BarP); 
                 Diagnostic(ErrorCode.ERR_RefProperty, "ref BarP").WithLocation(18, 43),
                 // (19,47): error CS1510: A ref or out argument must be an assignable variable
                 //         var z7 = new Func<string, string>(ref new Func<string, string>(x => x));
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new Func<string, string>(x => x)").WithLocation(19, 47),
-                // (20,43): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (20,43): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         var z8 = new Func<string, string>(ref Program.BarP); 
                 Diagnostic(ErrorCode.ERR_RefProperty, "ref Program.BarP").WithLocation(20, 43),
                 // (21,47): error CS1510: A ref or out argument must be an assignable variable
@@ -22889,13 +22889,13 @@ public class Program
                 // (17,47): error CS1510: A ref or out argument must be an assignable variable
                 //         var z5 = new Func<string, string>(ref Goo<string>(x => x));
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Goo<string>(x => x)").WithLocation(17, 47),
-                // (18,47): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (18,47): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         var z6 = new Func<string, string>(ref BarP); 
                 Diagnostic(ErrorCode.ERR_RefProperty, "BarP").WithLocation(18, 47),
                 // (19,47): error CS1510: A ref or out argument must be an assignable variable
                 //         var z7 = new Func<string, string>(ref new Func<string, string>(x => x));
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new Func<string, string>(x => x)").WithLocation(19, 47),
-                // (20,47): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (20,47): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         var z8 = new Func<string, string>(ref Program.BarP); 
                 Diagnostic(ErrorCode.ERR_RefProperty, "Program.BarP").WithLocation(20, 47),
                 // (21,47): error CS1510: A ref or out argument must be an assignable variable
@@ -23007,7 +23007,7 @@ public class Program
                 // (10,46): error CS0149: Method name expected
                 //         var c = new Func<string, string>(ref Baz, ref Baz.Invoke);
                 Diagnostic(ErrorCode.ERR_MethodNameExpected, "Baz, ref Baz.Invoke").WithLocation(10, 46),
-                // (11,42): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (11,42): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         var d = new Func<string, string>(ref BarP, BarP.Invoke);
                 Diagnostic(ErrorCode.ERR_RefProperty, "ref BarP").WithLocation(11, 42),
                 // (11,46): error CS0149: Method name expected
@@ -23016,7 +23016,7 @@ public class Program
                 // (12,42): error CS0149: Method name expected
                 //         var e = new Func<string, string>(BarP, ref BarP.Invoke);
                 Diagnostic(ErrorCode.ERR_MethodNameExpected, "BarP, ref BarP.Invoke").WithLocation(12, 42),
-                // (13,42): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (13,42): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         var f = new Func<string, string>(ref BarP, ref BarP.Invoke);
                 Diagnostic(ErrorCode.ERR_RefProperty, "ref BarP").WithLocation(13, 42),
                 // (13,46): error CS0149: Method name expected

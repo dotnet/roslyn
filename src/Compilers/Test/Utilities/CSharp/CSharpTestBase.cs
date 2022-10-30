@@ -2454,7 +2454,7 @@ namespace System
         {
             if (ExecutionConditionUtil.IsCoreClr)
             {
-                return CreateCompilation(text, targetFramework: TargetFramework.NetCoreApp, references: new[] { Basic.Reference.Assemblies.Net50.SystemMemory }, options: options, parseOptions: parseOptions);
+                return CreateCompilation(text, targetFramework: TargetFramework.Net50, options: options, parseOptions: parseOptions);
             }
             else
             {

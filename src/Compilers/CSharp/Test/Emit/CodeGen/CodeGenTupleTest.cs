@@ -29041,5 +29041,67 @@ unsafe struct Z
                                tupleField.CorrespondingTupleField.ToTestDisplayString(includeNonNullable: true));
             }
         }
+
+        [Fact]
+        [WorkItem(64777, "https://github.com/dotnet/roslyn/issues/64777")]
+        public void NameMismatchInUserDefinedConversion()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        System.Console.WriteLine(""---"");
+        System.Console.WriteLine(Test1().Property is null);
+        System.Console.WriteLine(Test2().Property is null);
+        System.Console.WriteLine(""---"");
+    }
+
+    static ImplicitConversionTargetType<(int, bool)?> Test1() => ((int, bool)?) null;
+    static ImplicitConversionTargetType<(int SomeInt, bool SomeBool)?> Test2()=> ((int, bool)?) null;
+}
+
+public class ImplicitConversionTargetType<T>
+{
+	public T Property { get; }
+
+	public ImplicitConversionTargetType(T property) { Property = property; }
+
+	public static implicit operator ImplicitConversionTargetType<T>(T operand) => new(operand);
+}
+";
+
+            var verifier = CompileAndVerify(source + trivial2uple, expectedOutput:
+@"
+---
+True
+True
+---
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Test1", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (System.ValueTuple<int, bool>? V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""System.ValueTuple<int, bool>?""
+  IL_0008:  ldloc.0
+  IL_0009:  call       ""ImplicitConversionTargetType<System.ValueTuple<int, bool>?> ImplicitConversionTargetType<System.ValueTuple<int, bool>?>.op_Implicit(System.ValueTuple<int, bool>?)""
+  IL_000e:  ret
+}");
+
+            verifier.VerifyIL("C.Test2", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (System.ValueTuple<int, bool>? V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""System.ValueTuple<int, bool>?""
+  IL_0008:  ldloc.0
+  IL_0009:  call       ""ImplicitConversionTargetType<System.ValueTuple<int, bool>?> ImplicitConversionTargetType<System.ValueTuple<int, bool>?>.op_Implicit(System.ValueTuple<int, bool>?)""
+  IL_000e:  ret
+}");
+        }
     }
 }
