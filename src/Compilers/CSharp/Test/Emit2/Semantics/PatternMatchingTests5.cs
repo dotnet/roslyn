@@ -2614,7 +2614,7 @@ _ = x is { Length.Error: > 0 };
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [Fact, WorkItem(64399, "https://github.com/dotnet/roslyn/issues/64399")]
         public void ShortestPathToDefaultNodeYieldsNoRemainingValues()
         {
             var source = """
@@ -2651,7 +2651,7 @@ class N
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(64399, "https://github.com/dotnet/roslyn/issues/64399")]
         public void ShortestPathToDefaultNodeYieldsNoRemainingValues_RequiringFalseWhenClause()
         {
             var source = """
@@ -2689,7 +2689,7 @@ class N
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(64399, "https://github.com/dotnet/roslyn/issues/64399")]
         public void ShortestPathToDefaultNodeYieldsNoRemainingValues_Nullability()
         {
             var source = """
@@ -2725,7 +2725,7 @@ class N
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [Fact, WorkItem(64399, "https://github.com/dotnet/roslyn/issues/64399")]
         public void ShortestPathToDefaultNodeYieldsNoRemainingValues_Nullability_NullableString()
         {
             var source = """
@@ -2852,7 +2852,7 @@ class N
                 );
         }
 
-        [Theory, CombinatorialData]
+        [Theory, CombinatorialData, WorkItem(64399, "https://github.com/dotnet/roslyn/issues/64399")]
         public void ShortestPathToDefaultNodeYieldsNoRemainingValues_Nullability_Deconstruction(bool nullableEnable)
         {
             var source = """
@@ -3045,7 +3045,7 @@ class N
             }
         }
 
-        [Theory, CombinatorialData]
+        [Theory, CombinatorialData, WorkItem(64399, "https://github.com/dotnet/roslyn/issues/64399")]
         public void ShortestPathToDefaultNodeYieldsNoRemainingValues_Nullability_NullableBool(bool nullableEnable)
         {
             var source = """

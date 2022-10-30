@@ -110,8 +110,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void VisitPathsToNode(BoundDecisionDagNode rootNode, BoundDecisionDagNode targetNode, bool nullPaths,
             Func<ImmutableArray<BoundDecisionDagNode>, bool, bool> handler)
         {
-            var pathBuilder = new ArrayBuilder<BoundDecisionDagNode>();
+            var pathBuilder = ArrayBuilder<BoundDecisionDagNode>.GetInstance();
             exploreToNode(rootNode, currentRequiresFalseWhenClause: false);
+            pathBuilder.Free();
             return;
 
             // Recursive exploration helper
@@ -184,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool unnamedEnumValue)
         {
 #if DEBUG
-            // Excercise enumeration of all paths to node
+            // Exercise enumeration of all paths to node
             VisitPathsToNode(nodes[0], targetNode, nullPaths: true, handler: (currentPathToNode, currentRequiresFalseWhenClause) => true);
             VisitPathsToNode(nodes[0], targetNode, nullPaths: false, handler: (currentPathToNode, currentRequiresFalseWhenClause) => true);
 #endif
