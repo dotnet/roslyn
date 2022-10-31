@@ -20071,7 +20071,7 @@ ref struct R<T>
     public ref T F;
 }
 ";
-            var references = TargetFrameworkUtil.GetReferences(TargetFramework.NetCoreAppAndCSharp, additionalReferences: null);
+            var references = TargetFrameworkUtil.GetReferences(TargetFramework.NetCoreApp, additionalReferences: null);
             var comp = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net70);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("4242"));
             verifier.VerifyIL("C.Main", """

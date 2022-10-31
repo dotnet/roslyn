@@ -29,6 +29,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     [Export(typeof(SuggestedActionsSourceProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
+    // ContentType("text") requires DeferCreationAttribute(...).
+    // See https://github.com/dotnet/roslyn/issues/62877#issuecomment-1271493105 for more details.
+    // TODO: Uncomment the below attribute, tracked with https://github.com/dotnet/roslyn/issues/64567
+    // [ContentType("text")]
+    [DeferCreation(OptionName = EditorOption.OptionName)]
     [Name("Roslyn Code Fix")]
     [Order]
     [SuggestedActionPriority(DefaultOrderings.Highest)]
