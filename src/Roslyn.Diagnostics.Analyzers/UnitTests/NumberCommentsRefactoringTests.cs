@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
-using VerifyCS = Test.Utilities.CSharpCodeRefactoringVerifier<Roslyn.Diagnostics.Analyzers.NumberCommentslRefactoring>;
+using VerifyCS = Test.Utilities.CSharpCodeRefactoringVerifier<Roslyn.Diagnostics.Analyzers.NumberCommentsRefactoring>;
 
 namespace Roslyn.Diagnostics.Analyzers.UnitTests
 {
@@ -26,6 +27,74 @@ class D { } // 1
 "";
 }";
             await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
+        }
+
+        [Fact]
+        public async Task TestAsync_RawStringLiteral()
+        {
+            const string source = """"
+public class C
+{
+    string s = """
+[||]class D { } //
+""";
+}
+"""";
+            const string fixedSource = """"
+public class C
+{
+    string s = """
+class D { } // 1
+""";
+}
+"""";
+            await VerifyCSharp11Async(source, fixedSource);
+        }
+
+        [Fact]
+        public async Task TestAsync_RawStringLiteral_Indented()
+        {
+            const string source = """"
+public class C
+{
+    string s = """
+        [||]class D { } //
+        """;
+}
+"""";
+            const string fixedSource = """"
+public class C
+{
+    string s = """
+        class D { } // 1
+        """;
+}
+"""";
+            await VerifyCSharp11Async(source, fixedSource);
+        }
+
+        [Fact]
+        public async Task TestAsync_RawStringLiteral_Indented_Multiple()
+        {
+            const string source = """"
+public class C
+{
+    string s = """
+        [||]class D { } //
+        class E { } //,
+        """;
+}
+"""";
+            const string fixedSource = """"
+public class C
+{
+    string s = """
+        class D { } // 1
+        class E { } // 2, 3
+        """;
+}
+"""";
+            await VerifyCSharp11Async(source, fixedSource);
         }
 
         [Fact]
@@ -219,5 +288,20 @@ class C // 1
 
             await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
         }
+
+        #region Utilities
+        private async Task VerifyCSharp11Async(string source, string fixedSource)
+        {
+            var test = new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp11,
+            };
+
+            test.ExpectedDiagnostics.AddRange(DiagnosticResult.EmptyDiagnosticResults);
+            await test.RunAsync();
+        }
+        #endregion
     }
 }
