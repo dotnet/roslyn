@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
                 displayTextSuffix: displayTextSuffix,
                 glyph: glyph,
                 description: description,
-                // Adding a space after the identifier string that way it will always be sorted after the original snippet.
+                // Adding a space after the identifier string that way it will always be sorted after a keyword.
                 sortText: snippetIdentifier + " ",
                 filterText: snippetIdentifier,
                 properties: props,
