@@ -2721,9 +2721,9 @@ class N
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (12,25): warning CS8846: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One)' is not covered. However, a pattern with a 'when' clause might successfully match this value.
-                //         return (e1, e2) switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen, "switch").WithArguments("(Enum.One, Enum.One)").WithLocation(12, 25)
+                // (12,28): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(Enum.One, (Enum)-1, _)' is not covered.
+                //         return (e1, e2, o) switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(Enum.One, (Enum)-1, _)").WithLocation(12, 28)
                 );
         }
 
