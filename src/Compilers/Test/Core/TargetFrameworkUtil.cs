@@ -9,11 +9,15 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Basic.Reference.Assemblies;
 using static TestReferences;
 using static Roslyn.Test.Utilities.TestMetadata;
+using Microsoft.CodeAnalysis.CodeGen;
+using System.Reflection;
+using System.Collections.Concurrent;
 
 namespace Roslyn.Test.Utilities
 {
@@ -117,6 +121,8 @@ namespace Roslyn.Test.Utilities
 
     public static class TargetFrameworkUtil
     {
+        private static readonly ConcurrentDictionary<string, ImmutableArray<PortableExecutableReference>> s_dynamicReferenceMap = new ConcurrentDictionary<string, ImmutableArray<PortableExecutableReference>>(StringComparer.Ordinal);
+
         public static ImmutableArray<MetadataReference> StandardLatestReferences => RuntimeUtilities.IsCoreClrRuntime ? NetCoreApp.References : NetFramework.StandardReferences;
         public static ImmutableArray<MetadataReference> StandardReferences => RuntimeUtilities.IsCoreClrRuntime ? NetStandard20References : NetFramework.StandardReferences;
         public static MetadataReference StandardCSharpReference => RuntimeUtilities.IsCoreClrRuntime ? MicrosoftCSharp.Netstandard13Lib : NetFramework.MicrosoftCSharp;
@@ -164,7 +170,7 @@ namespace Roslyn.Test.Utilities
             // Note: NetCoreApp should behave like latest Core TFM
             TargetFramework.Empty => ImmutableArray<MetadataReference>.Empty,
             TargetFramework.NetStandard20 => NetStandard20References,
-            TargetFramework.Net50 => ImmutableArray.CreateRange<MetadataReference>(Net50.All),
+            TargetFramework.Net50 => ImmutableArray.CreateRange<MetadataReference>(LoadDynamicReferences("Net50")),
             TargetFramework.Net60 => ImmutableArray.CreateRange<MetadataReference>(Net60.All),
             TargetFramework.NetCoreApp or TargetFramework.Net70 => ImmutableArray.CreateRange<MetadataReference>(Net70.All),
             TargetFramework.NetFramework => NetFramework.StandardReferences,
@@ -261,5 +267,41 @@ namespace Roslyn.Test.Utilities
         public static IEnumerable<MetadataReference> GetReferencesWithout(TargetFramework targetFramework, params string[] excludeReferenceNames) =>
             GetReferences(targetFramework)
             .Where(x => !(x is PortableExecutableReference pe && excludeReferenceNames.Contains(pe.FilePath)));
+
+        /// <summary>
+        /// Many of our reference assemblies are only used by a subset of compiler unit tests. Having a PackageReference
+        /// to the assemblies here would cause them to be deployed to every unit test we write though. These are non-trivial 
+        /// in size (4+ MB) and we have ~50 test projects so this adds up fast. To keep size down we just add 
+        /// PackageReference on the few projects that and dynamically load here.
+        /// </summary>
+        private static ImmutableArray<PortableExecutableReference> LoadDynamicReferences(string targetFrameworkName)
+        {
+            var assemblyName = $"Basic.Reference.Assemblies.{targetFrameworkName}";
+            if (s_dynamicReferenceMap.TryGetValue(assemblyName, out var references))
+            {
+                return references;
+            }
+
+            try
+            {
+                var name = new AssemblyName(assemblyName);
+                var assembly = Assembly.Load(name);
+
+                var type = assembly.GetType(assemblyName, throwOnError: true);
+                var prop = type.GetProperty("All", BindingFlags.Public | BindingFlags.Static);
+                var obj = prop.GetGetMethod()!.Invoke(obj: null, parameters: null);
+                references = ((IEnumerable<PortableExecutableReference>)obj).ToImmutableArray();
+
+                // This method can de called in parallel. Who wins this TryAdd isn't important, it's the same 
+                // values. 
+                _ = s_dynamicReferenceMap.TryAdd(assemblyName, references);
+                return references;
+            }
+            catch (Exception ex)
+            {
+                var message = $"Error loading {assemblyName}. Make sure the test project has a <PackageReference> for this assembly";
+                throw new Exception(message, ex);
+            }
+        }
     }
 }
