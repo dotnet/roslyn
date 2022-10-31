@@ -8994,13 +8994,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // This method was adapted from LoweredDynamicOperationFactory.GetDelegateType().
-        internal NamedTypeSymbol? GetMethodGroupOrLambdaDelegateType(SyntaxNode syntax, MethodSymbol methodSymbol)
+        internal NamedTypeSymbol? GetMethodGroupOrLambdaDelegateType(
+            SyntaxNode syntax,
+            MethodSymbol methodSymbol,
+            RefKind? returnRefKindOverride = null,
+            TypeWithAnnotations? returnTypeOverride = null)
         {
             var parameters = methodSymbol.Parameters;
             var parameterRefKinds = methodSymbol.ParameterRefKinds;
             var parameterTypes = methodSymbol.ParameterTypesWithAnnotations;
-            var returnType = methodSymbol.ReturnTypeWithAnnotations;
-            var returnRefKind = methodSymbol.RefKind;
+            var returnType = returnTypeOverride ?? methodSymbol.ReturnTypeWithAnnotations;
+            var returnRefKind = returnRefKindOverride ?? methodSymbol.RefKind;
             var parameterScopes = parameters.Any(p => p.EffectiveScope != DeclarationScope.Unscoped) ?
                 parameters.SelectAsArray(p => p.EffectiveScope) :
                 default;
