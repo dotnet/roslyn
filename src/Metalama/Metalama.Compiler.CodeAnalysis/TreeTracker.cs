@@ -570,19 +570,16 @@ namespace Metalama.Compiler
             {
                 return (location, null);
             }
+            
+            var syntaxRoot = tree.GetRoot();
+            Debug.Assert(syntaxRoot.FullSpan.Contains(location.SourceSpan));
 
             // If there are no annotations in the whole tree, then there is nothing to do
-            var syntaxRoot = tree.GetRoot();
             if (!syntaxRoot.TryGetAnnotationFast(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind, out _))
             {
                 return (location, null);
             }
-            
-            if ( !syntaxRoot.FullSpan.Contains(location.SourceSpan) )
-            {
-                // This happens in case of bug upstream, but we don't want to crash in this case.
-                return (location, null);
-            }
+
             
 
             // From the given location, try to find the corresponding node, token or token pair and then proceed as usual
