@@ -7899,5 +7899,18 @@ namespace ConsoleApp1
 }
 """ + ValueTaskDeclaration);
         }
+
+        [Fact]
+        public async Task TestOnThis1()
+        {
+            await TestMissingAsync(
+@"
+sealed class C {
+    readonly string s;
+    public C(string s) {
+        [||]this.s = s;
+    }
+}");
+        }
     }
 }
