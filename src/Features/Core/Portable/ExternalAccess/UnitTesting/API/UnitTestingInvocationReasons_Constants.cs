@@ -6,7 +6,7 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
     internal readonly partial struct UnitTestingInvocationReasons
     {
