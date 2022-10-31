@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -90,6 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private readonly VisualStudioProject _project;
 
         public bool SupportsRename { get { return _hostType == HostType.Razor; } }
+        public bool SupportsSemanticSnippets { get { return false; } }
 
         public DocumentId Id { get; }
         public ITextBuffer SubjectBuffer { get; }
@@ -177,7 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public SourceTextContainer GetOpenTextContainer()
@@ -586,7 +587,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
 
             // if it got hit, then it means there is a missing case
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private IHierarchicalDifferenceCollection DiffStrings(string leftTextWithReplacement, string rightTextWithReplacement)

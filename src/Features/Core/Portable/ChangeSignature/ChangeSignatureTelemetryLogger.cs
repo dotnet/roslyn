@@ -186,31 +186,20 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             {
                 foreach (var kv in s_countLogAggregator)
                 {
-                    var info = kv.Key.ToString("f");
-                    m[info] = kv.Value.GetCount();
+                    m[kv.Key.ToString()] = kv.Value.GetCount();
                 }
 
                 foreach (var kv in s_statisticLogAggregator)
                 {
-                    var info = kv.Key.ToString("f");
                     var statistics = kv.Value.GetStatisticResult();
-
-                    m[CreateProperty(info, Maximum)] = statistics.Maximum;
-                    m[CreateProperty(info, Minimum)] = statistics.Minimum;
-                    m[CreateProperty(info, Mean)] = statistics.Mean;
+                    statistics.WriteTelemetryPropertiesTo(m, prefix: kv.Key.ToString());
                 }
 
                 foreach (var kv in s_histogramLogAggregator)
                 {
-                    var info = kv.Key.ToString("f");
-                    m[$"{info}.BucketSize"] = kv.Value.BucketSize;
-                    m[$"{info}.MaxBucketValue"] = kv.Value.MaxBucketValue;
-                    m[$"{info}.Buckets"] = kv.Value.GetBucketsAsString();
+                    kv.Value.WriteTelemetryPropertiesTo(m, prefix: kv.Key.ToString());
                 }
             }));
         }
-
-        private static string CreateProperty(string parent, string child)
-            => parent + "." + child;
     }
 }

@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options
                 _lineFormattingOptionsProvider = lineFormattingOptionsProvider;
             }
 
-            public override ValueTask<CleanCodeGenerationOptions> GetCleanCodeGenerationOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+            public override ValueTask<CleanCodeGenerationOptions> GetCleanCodeGenerationOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             {
                 var lineFormattingOptions = _lineFormattingOptionsProvider.GetLineFormattingOptions();
                 var codeGenerationOptions = CleanCodeGenerationOptions.GetDefault(languageServices) with

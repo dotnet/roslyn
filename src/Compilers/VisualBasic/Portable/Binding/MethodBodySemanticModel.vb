@@ -11,48 +11,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class MethodBodySemanticModel
         Inherits MemberSemanticModel
 
-        Private Sub New(root As SyntaxNode,
+        Friend Sub New(root As SyntaxNode,
                         binder As Binder,
-                        Optional containingSemanticModelOpt As SyntaxTreeSemanticModel = Nothing,
-                        Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing,
-                        Optional speculatedPosition As Integer = 0,
-                        Optional ignoreAccessibility As Boolean = False)
-            MyBase.New(root, binder, containingSemanticModelOpt, parentSemanticModelOpt, speculatedPosition, ignoreAccessibility)
+                        containingPublicSemanticModel As PublicSemanticModel)
+            MyBase.New(root, binder, containingPublicSemanticModel)
         End Sub
 
         ''' <summary>
         ''' Creates a MethodBodySemanticModel that allows asking semantic questions about an attribute node.
         ''' </summary>
-        Friend Shared Function Create(containingSemanticModel As SyntaxTreeSemanticModel, binder As SubOrFunctionBodyBinder, Optional ignoreAccessibility As Boolean = False) As MethodBodySemanticModel
+        Friend Shared Function Create(containingSemanticModel As SyntaxTreeSemanticModel, binder As SubOrFunctionBodyBinder) As MethodBodySemanticModel
             Debug.Assert(containingSemanticModel IsNot Nothing)
-            Return New MethodBodySemanticModel(binder.Root, binder, containingSemanticModel, ignoreAccessibility:=ignoreAccessibility)
+            Return New MethodBodySemanticModel(binder.Root, binder, containingSemanticModel)
         End Function
 
         ''' <summary>
-        ''' Creates a speculative MethodBodySemanticModel that allows asking semantic questions about an attribute node that did not appear in the original source code.
+        ''' Creates a speculative semantic model that allows asking semantic questions about an attribute node that did not appear in the original source code.
         ''' </summary>
-        Friend Shared Function CreateSpeculative(parentSemanticModel As SyntaxTreeSemanticModel, root As VisualBasicSyntaxNode, binder As Binder, position As Integer) As MethodBodySemanticModel
-            Debug.Assert(parentSemanticModel IsNot Nothing)
-            Debug.Assert(root IsNot Nothing)
-            Debug.Assert(binder IsNot Nothing)
-            Debug.Assert(binder.IsSemanticModelBinder)
-
-            Return New MethodBodySemanticModel(root, binder, parentSemanticModelOpt:=parentSemanticModel, speculatedPosition:=position)
+        Friend Shared Function CreateSpeculative(parentSemanticModel As SyntaxTreeSemanticModel, root As VisualBasicSyntaxNode, binder As Binder, position As Integer) As SpeculativeSemanticModelWithMemberModel
+            Return New SpeculativeSemanticModelWithMemberModel(parentSemanticModel, position, root, binder)
         End Function
 
-        Friend Overrides Function TryGetSpeculativeSemanticModelForMethodBodyCore(parentModel As SyntaxTreeSemanticModel, position As Integer, method As MethodBlockBaseSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend Overrides Function TryGetSpeculativeSemanticModelForMethodBodyCore(parentModel As SyntaxTreeSemanticModel, position As Integer, method As MethodBlockBaseSyntax, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
             ' CONSIDER: Do we want to ensure that speculated method and the original method have identical signatures?
 
             ' Create a speculative binder for the method body.
-            Dim methodSymbol = DirectCast(Me.MemberSymbol, methodSymbol)
+            Dim methodSymbol = DirectCast(Me.MemberSymbol, MethodSymbol)
 
-            Dim containingBinder As binder = Me.RootBinder
+            Dim containingBinder As Binder = Me.RootBinder
 
             ' Get up to the NamedTypeBinder
-            Dim namedTypeBinder As namedTypeBinder
+            Dim namedTypeBinder As NamedTypeBinder
 
             Do
-                namedTypeBinder = TryCast(containingBinder, namedTypeBinder)
+                namedTypeBinder = TryCast(containingBinder, NamedTypeBinder)
 
                 If namedTypeBinder IsNot Nothing Then
                     Exit Do
@@ -71,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
-        Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, statement As ExecutableStatementSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, statement As ExecutableStatementSyntax, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
             Dim binder = Me.GetEnclosingBinder(position)
             If binder Is Nothing Then
                 speculativeModel = Nothing
@@ -89,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
-        Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, initializer As EqualsValueSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, initializer As EqualsValueSyntax, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
             speculativeModel = Nothing
             Return False
         End Function

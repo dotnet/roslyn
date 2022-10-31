@@ -64,3 +64,10 @@ Roslyn does not support implementing completion for arbitrary languages.
 ### `Microsoft.CodeAnalysis.CodeStyle.NotificationOption` is now immutable
 
 All property setters now throw an exception.
+
+# Version 4.4.0
+
+`Workspace.OnWorkspaceFailed` is no longer called when an error occurs while reading source file content from disk.
+
+The `Workspace` and `DocumentId` parameters of `TextLoader.LoadTextAndVersionAsync(Workspace, DocumentId, CancellationToken)` are deprecated.
+The method now receives `null` `Workspace` and `DocumentId`.

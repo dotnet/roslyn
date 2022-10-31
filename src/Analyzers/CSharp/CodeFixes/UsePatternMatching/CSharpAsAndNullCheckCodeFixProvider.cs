@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -19,7 +16,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
@@ -56,9 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (declaratorLocations.Add(diagnostic.AdditionalLocations[0]))
-                {
                     AddEdits(editor, diagnostic, languageVersion, RemoveStatement, cancellationToken);
-                }
             }
 
             foreach (var parentScope in statementParentScopes)
@@ -76,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             void RemoveStatement(StatementSyntax statement)
             {
-                editor.RemoveNode(statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+                editor.RemoveNode(statement, SyntaxRemoveOptions.KeepNoTrivia);
                 if (statement.Parent is BlockSyntax or SwitchSectionSyntax)
                 {
                     statementParentScopes.Add(statement.Parent);
@@ -119,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 // use the callback form as the next statement may be the place where we're
                 // inlining the declaration, and thus need to see the effects of that change.
                 editor.ReplaceNode(
-                    localDeclaration.GetNextStatement(),
+                    localDeclaration.GetNextStatement()!,
                     (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclaration));
 
                 removeStatement(localDeclaration);
@@ -141,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var isPatternExpression = SyntaxFactory.IsPatternExpression(asExpression.Left, declarationPattern);
 
             // We should negate the is-expression if we have something like "x == null" or "x is null"
-            if (!comparison.IsKind(SyntaxKind.EqualsExpression, SyntaxKind.IsPatternExpression))
+            if (comparison.Kind() is not (SyntaxKind.EqualsExpression or SyntaxKind.IsPatternExpression))
                 return isPatternExpression;
 
             if (languageVersion >= LanguageVersion.CSharp9)

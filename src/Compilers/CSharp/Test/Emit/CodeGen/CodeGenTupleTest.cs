@@ -14341,15 +14341,15 @@ interface ITest2<T> : ValueTuple<int, int, int, int, int, int, int, T> where T :
                                                       options: TestOptions.ReleaseExe.WithAllowUnsafe(true));
 
             comp.VerifyDiagnostics(
-                // (31,18): error CS0509: 'Test1<T>': cannot derive from sealed type 'ValueTuple<int, int, int, int, int, int, int, T>'
-                // class Test1<T> : ValueTuple<int, int, int, int, int, int, int, T> where T : struct
-                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "ValueTuple<int, int, int, int, int, int, int, T>").WithArguments("Test1<T>", "System.ValueTuple<int, int, int, int, int, int, int, T>").WithLocation(31, 18),
                 // (35,23): error CS0527: Type 'ValueTuple<int, int, int, int, int, int, int, T>' in interface list is not an interface
                 // interface ITest2<T> : ValueTuple<int, int, int, int, int, int, int, T> where T : struct
                 Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "ValueTuple<int, int, int, int, int, int, int, T>").WithArguments("System.ValueTuple<int, int, int, int, int, int, int, T>").WithLocation(35, 23),
-                // (25,69): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('ValueTuple<int, int, int, int, int, int, int, T>')
+                // (31,18): error CS0509: 'Test1<T>': cannot derive from sealed type 'ValueTuple<int, int, int, int, int, int, int, T>'
+                // class Test1<T> : ValueTuple<int, int, int, int, int, int, int, T> where T : struct
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "ValueTuple<int, int, int, int, int, int, int, T>").WithArguments("Test1<T>", "System.ValueTuple<int, int, int, int, int, int, int, T>").WithLocation(31, 18),
+                // (25,69): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('ValueTuple<int, int, int, int, int, int, int, T>')
                 //     public static ValueTuple<int, int, int, int, int, int, int, T>* M5()
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "M5").WithArguments("System.ValueTuple<int, int, int, int, int, int, int, T>").WithLocation(25, 69),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "M5").WithArguments("System.ValueTuple<int, int, int, int, int, int, int, T>").WithLocation(25, 69),
                 // (23,74): error CS0066: 'Test<T>.E1': event must be of a delegate type
                 //     public static event ValueTuple<int, int, int, int, int, int, int, T> E1;
                 Diagnostic(ErrorCode.ERR_EventNotDelegate, "E1").WithArguments("Test<T>.E1").WithLocation(23, 74),
@@ -25290,15 +25290,16 @@ namespace System
         public ValueTuple(T1 item1, T2 item2) => (Item1, Item2) = (item1, item2);
     }
 }";
-            var corlibWithoutVT = CreateEmptyCompilation(new[] { Parse(String.Format(versionTemplate, "1") + corlib_cs) }, assemblyName: "corlib");
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var corlibWithoutVT = CreateEmptyCompilation(new[] { Parse(String.Format(versionTemplate, "1") + corlib_cs, options: parseOptions) }, assemblyName: "corlib");
             corlibWithoutVT.VerifyDiagnostics();
             var corlibWithoutVTRef = corlibWithoutVT.EmitToImageReference();
 
-            var corlibWithVT = CreateEmptyCompilation(new[] { Parse(String.Format(versionTemplate, "2") + corlib_cs + valuetuple_cs) }, assemblyName: "corlib");
+            var corlibWithVT = CreateEmptyCompilation(new[] { Parse(String.Format(versionTemplate, "2") + corlib_cs + valuetuple_cs, options: parseOptions) }, assemblyName: "corlib");
             corlibWithVT.VerifyDiagnostics();
             var corlibWithVTRef = corlibWithVT.EmitToImageReference();
 
-            var libWithVT = CreateEmptyCompilation(valuetuple_cs, references: new[] { corlibWithoutVTRef }, options: TestOptions.DebugDll);
+            var libWithVT = CreateEmptyCompilation(valuetuple_cs, references: new[] { corlibWithoutVTRef }, parseOptions: parseOptions, options: TestOptions.DebugDll);
             libWithVT.VerifyDiagnostics();
             var libWithVTRef = libWithVT.EmitToImageReference();
 
@@ -25318,8 +25319,8 @@ namespace System
             Assert.False(tuple3.IsErrorType());
             Assert.Equal(libWithVTRef.Display, tuple3.ContainingAssembly.MetadataName.ToString());
 
-            var libWithVTRef2 = CreateEmptyCompilation(valuetuple_cs, references: new[] { corlibWithoutVTRef }).EmitToImageReference();
-            var comp4 = CreateEmptyCompilation("", references: new[] { libWithVTRef, libWithVTRef2, corlibWithoutVTRef });
+            var libWithVTRef2 = CreateEmptyCompilation(valuetuple_cs, references: new[] { corlibWithoutVTRef }, parseOptions: parseOptions).EmitToImageReference();
+            var comp4 = CreateEmptyCompilation("", references: new[] { libWithVTRef, libWithVTRef2, corlibWithoutVTRef }, parseOptions: parseOptions);
             var tuple4 = comp4.GetWellKnownType(WellKnownType.System_ValueTuple_T2);
             Assert.True(tuple4.IsErrorType());
         }
@@ -27999,7 +28000,7 @@ namespace System
         ValueTuple(T1 item1, T2 item2) => throw null;
     }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib40, assemblyName: "emptyValueTuple");
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib40, assemblyName: "emptyValueTuple", parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, symbolValidator: verifyModule, sourceSymbolValidator: verifyModule);
             verifier.VerifyTypeIL("ValueTuple`2", @"
@@ -29039,6 +29040,68 @@ unsafe struct Z
                 AssertEx.Equal($"System.Object{nullabilityString} System.ValueTuple<System.Object!, System.Object?, System.Object!, System.Object?, System.Object!, System.Object?, System.Object!, (System.Object?, System.Object!)>.Item{i + 1}",
                                tupleField.CorrespondingTupleField.ToTestDisplayString(includeNonNullable: true));
             }
+        }
+
+        [Fact]
+        [WorkItem(64777, "https://github.com/dotnet/roslyn/issues/64777")]
+        public void NameMismatchInUserDefinedConversion()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        System.Console.WriteLine(""---"");
+        System.Console.WriteLine(Test1().Property is null);
+        System.Console.WriteLine(Test2().Property is null);
+        System.Console.WriteLine(""---"");
+    }
+
+    static ImplicitConversionTargetType<(int, bool)?> Test1() => ((int, bool)?) null;
+    static ImplicitConversionTargetType<(int SomeInt, bool SomeBool)?> Test2()=> ((int, bool)?) null;
+}
+
+public class ImplicitConversionTargetType<T>
+{
+	public T Property { get; }
+
+	public ImplicitConversionTargetType(T property) { Property = property; }
+
+	public static implicit operator ImplicitConversionTargetType<T>(T operand) => new(operand);
+}
+";
+
+            var verifier = CompileAndVerify(source + trivial2uple, expectedOutput:
+@"
+---
+True
+True
+---
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Test1", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (System.ValueTuple<int, bool>? V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""System.ValueTuple<int, bool>?""
+  IL_0008:  ldloc.0
+  IL_0009:  call       ""ImplicitConversionTargetType<System.ValueTuple<int, bool>?> ImplicitConversionTargetType<System.ValueTuple<int, bool>?>.op_Implicit(System.ValueTuple<int, bool>?)""
+  IL_000e:  ret
+}");
+
+            verifier.VerifyIL("C.Test2", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (System.ValueTuple<int, bool>? V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""System.ValueTuple<int, bool>?""
+  IL_0008:  ldloc.0
+  IL_0009:  call       ""ImplicitConversionTargetType<System.ValueTuple<int, bool>?> ImplicitConversionTargetType<System.ValueTuple<int, bool>?>.op_Implicit(System.ValueTuple<int, bool>?)""
+  IL_000e:  ret
+}");
         }
     }
 }

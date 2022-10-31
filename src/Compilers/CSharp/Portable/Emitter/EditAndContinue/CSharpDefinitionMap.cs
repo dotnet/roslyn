@@ -157,6 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                         case GeneratedNameKind.HoistedLocalField:
                         case GeneratedNameKind.HoistedSynthesizedLocalField:
+                        case GeneratedNameKind.DisplayClassLocalOrField:
                             if (GeneratedNameParser.TryParseSlotIndex(name, out slotIndex))
                             {
                                 var field = (FieldSymbol)member;

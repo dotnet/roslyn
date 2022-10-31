@@ -11,11 +11,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTypeTests
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
     public partial class GenerateTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         #region SameProject
         #region SameProject_SameFile 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateTypeDefaultValues()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -42,7 +43,7 @@ class Goo
 isNewFile: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateTypeInsideNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -76,7 +77,7 @@ namespace A
 isNewFile: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateTypeInsideFileScopedNamespace1()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -110,7 +111,7 @@ class Goo
 isNewFile: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateTypeInsideFileScopedNamespace2()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -144,7 +145,7 @@ class Goo
 isNewFile: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateTypeInsideQualifiedNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -176,7 +177,7 @@ namespace A.B
 isNewFile: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateTypeWithinQualifiedNestedNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -214,7 +215,7 @@ namespace A.B
 isNewFile: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateTypeWithinNestedQualifiedNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -252,7 +253,7 @@ namespace A
 isNewFile: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateTypeWithConstructorMembers()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -287,7 +288,7 @@ class Goo
 isNewFile: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateTypeWithBaseTypes()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -316,7 +317,7 @@ class Goo : List<int>
 isNewFile: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateTypeWithPublicInterface()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -356,7 +357,7 @@ typeKind: TypeKind.Interface,
 isNewFile: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateTypeWithInternalStruct()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -396,7 +397,7 @@ typeKind: TypeKind.Struct,
 isNewFile: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateTypeWithDefaultEnum()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -436,8 +437,7 @@ typeKind: TypeKind.Enum,
 isNewFile: false);
         }
 
-        [WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeWithDefaultEnum_DefaultNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -472,8 +472,7 @@ typeKind: TypeKind.Enum,
 isNewFile: false);
         }
 
-        [WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeWithDefaultEnum_DefaultNamespace_NotSimpleName()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -517,7 +516,7 @@ isNewFile: false);
 
         // Working is very similar to the adding to the same file
         #region SameProject_ExistingFile
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateTypeInExistingEmptyFile()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -554,8 +553,7 @@ isNewFile: false,
 existingFilename: "Test2.cs");
         }
 
-        [WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeInExistingEmptyFile_Usings_Folders()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -599,8 +597,7 @@ isNewFile: false,
 existingFilename: "Test2.cs");
         }
 
-        [WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeInExistingEmptyFile_Usings_DefaultNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -645,8 +642,7 @@ isNewFile: false,
 existingFilename: "Test2.cs");
         }
 
-        [WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeInExistingEmptyFile_Usings_Folders_DefaultNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -691,8 +687,7 @@ isNewFile: false,
 existingFilename: "Test2.cs");
         }
 
-        [WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeInExistingEmptyFile_NoUsings_Folders_NotSimpleName()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -732,7 +727,7 @@ existingFilename: "Test2.cs");
         #endregion
 
         #region SameProject_NewFile
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task GenerateTypeInNewFile()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -768,7 +763,7 @@ newFileName: "Test2.cs");
         }
 
         [WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task GenerateType_UsingsNotNeeded_InNewFile_InFolder()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -808,7 +803,7 @@ newFileName: "Test2.cs");
         }
 
         [WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task GenerateType_UsingsNeeded_InNewFile_InFolder()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -851,7 +846,7 @@ newFileName: "Test2.cs");
         }
 
         [WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task GenerateType_UsingsNotNeeded_InNewFile_InFolder_NotSimpleName()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -888,7 +883,7 @@ newFileName: "Test2.cs");
         }
 
         [WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task GenerateType_UsingsNeeded_InNewFile_InFolder_DefaultNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -932,7 +927,7 @@ newFileName: "Test2.cs");
         }
 
         [WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task GenerateType_UsingsNotNeeded_InNewFile_InFolder_DefaultNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -980,7 +975,7 @@ newFileName: "Test2.cs");
         }
 
         [WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task GenerateType_UsingsNotNeeded_InNewFile_InFolder_DefaultNamespace_NotSimpleName()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1030,7 +1025,7 @@ newFileName: "Test2.cs");
         }
 
         [WorkItem(898452, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898452")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task GenerateType_InValidFolderNameNotMadeNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1091,7 +1086,7 @@ newFileName: "Test2.cs");
         #endregion
         #region SameLanguageDifferentProject
         #region SameLanguageDifferentProject_ExistingFile
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateTypeIntoSameLanguageDifferentProjectEmptyFile()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1130,8 +1125,7 @@ existingFilename: "Test2.cs",
 projectName: "Assembly2");
         }
 
-        [WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeIntoSameLanguageDifferentProjectExistingFile()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1180,8 +1174,7 @@ existingFilename: "Test2.cs",
 projectName: "Assembly2");
         }
 
-        [WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeIntoSameLanguageDifferentProjectExistingFile_Usings_Folders()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1242,7 +1235,7 @@ projectName: "Assembly2");
 
         #endregion
         #region SameLanguageDifferentProject_NewFile
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1281,7 +1274,7 @@ projectName: "Assembly2");
         }
 
         [WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_Usings()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1327,7 +1320,7 @@ projectName: "Assembly2");
         }
 
         [WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_NoUsings_NotSimpleName()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1367,7 +1360,7 @@ projectName: "Assembly2");
         }
 
         [WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_Usings_DefaultNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1414,7 +1407,7 @@ projectName: "Assembly2");
         }
 
         [WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_NoUsings_NotSimpleName_DefaultNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1456,7 +1449,7 @@ projectName: "Assembly2");
         #endregion
         #endregion
         #region DifferentLanguage
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task GenerateTypeIntoDifferentLanguageNewFile()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1494,7 +1487,7 @@ projectName: "Assembly2");
         }
 
         [WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_Usings()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1539,7 +1532,7 @@ projectName: "Assembly2");
         }
 
         [WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_NoUsings_NotSimpleName()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1578,7 +1571,7 @@ projectName: "Assembly2");
         }
 
         [WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_Usings_RootNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1624,7 +1617,7 @@ projectName: "Assembly2");
         }
 
         [WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_NoUsings_NotSimpleName_RootNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1664,7 +1657,7 @@ projectName: "Assembly2");
         }
 
         [WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_NoUsings_NotSimpleName_RootNamespace_ProjectReference()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1710,7 +1703,7 @@ projectName: "Assembly2");
         }
 
         [WorkItem(858826, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858826")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task GenerateTypeIntoDifferentLanguageNewFileAdjustFileExtension()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1747,8 +1740,7 @@ newFileFolderContainers: ImmutableArray<string>.Empty,
 projectName: "Assembly2");
         }
 
-        [WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeIntoDifferentLanguageExistingEmptyFile()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1787,8 +1779,7 @@ existingFilename: "Test2.vb",
 projectName: "Assembly2");
         }
 
-        [WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeIntoDifferentLanguageExistingEmptyFile_Usings_Folder()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1833,7 +1824,7 @@ existingFilename: "Test2.vb",
 projectName: "Assembly2");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateTypeIntoDifferentLanguageExistingNonEmptyFile()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1877,7 +1868,7 @@ existingFilename: "Test2.vb",
 projectName: "Assembly2");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateTypeIntoDifferentLanguageExistingNonEmptyTargetFile()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1930,7 +1921,7 @@ projectName: "Assembly2");
 
         [WorkItem(861362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")]
         [WorkItem(869593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869593")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task GenerateModuleFromCSharpToVisualBasicInTypeContext()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1970,9 +1961,8 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
 
         #endregion
         #region Bugfix 
+        [Fact, WorkItem(873066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/873066")]
         [WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")]
-        [WorkItem(873066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/873066")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeWithProperAccessibilityAndTypeKind_1()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1995,8 +1985,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.BaseList, false));
         }
 
-        [WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")]
         public async Task GenerateTypeWithProperAccessibilityAndTypeKind_2()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2018,8 +2007,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.Interface, false));
         }
 
-        [WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")]
         public async Task GenerateTypeWithProperAccessibilityAndTypeKind_3()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2041,8 +2029,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.Interface, false));
         }
 
-        [WorkItem(861362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(861362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")]
         public async Task GenerateTypeInMemberAccessExpression()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2072,8 +2059,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.MemberAccessWithNamespace));
         }
 
-        [WorkItem(861362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(861362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")]
         public async Task GenerateTypeInMemberAccessExpressionInNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2110,8 +2096,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.MemberAccessWithNamespace));
         }
 
-        [WorkItem(861600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(861600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
         public async Task GenerateTypeWithoutEnumForGenericsInMemberAccess()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2149,8 +2134,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure));
         }
 
-        [WorkItem(861600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(861600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
         public async Task GenerateTypeWithoutEnumForGenericsInNameContext()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2188,8 +2172,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Interface | TypeKindOptions.Delegate));
         }
 
-        [WorkItem(861600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(861600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
         public async Task GenerateTypeInMemberAccessWithNSForModule()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2226,8 +2209,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.MemberAccessWithNamespace));
         }
 
-        [WorkItem(861600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(861600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
         public async Task GenerateTypeInMemberAccessWithGlobalNSForModule()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2257,8 +2239,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.MemberAccessWithNamespace));
         }
 
-        [WorkItem(861600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(861600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
         public async Task GenerateTypeInMemberAccessWithoutNS()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2278,9 +2259,8 @@ typeName: "Bar",
 isMissing: true);
         }
 
+        [Fact, WorkItem(883531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883531")]
         [WorkItem(876202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876202")]
-        [WorkItem(883531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883531")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateType_NoParameterLessConstructorForStruct()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2311,7 +2291,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         }
         #endregion
         #region Delegates
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateDelegateType_ObjectCreationExpression_MethodGroup()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2346,7 +2326,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateDelegateType_ObjectCreationExpression_MethodGroup_Generics()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2381,7 +2361,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateDelegateType_ObjectCreationExpression_Delegate()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2414,7 +2394,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateDelegateType_ObjectCreationExpression_Action()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2447,7 +2427,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateDelegateType_ObjectCreationExpression_Func()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2480,7 +2460,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateDelegateType_ObjectCreationExpression_ParenLambda()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2509,7 +2489,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateDelegateType_ObjectCreationExpression_SimpleLambda()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2538,8 +2518,8 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
         }
 
+        [Fact(Skip = "872935")]
         [WorkItem(872935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/872935")]
-        [Fact(Skip = "872935"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateDelegateType_ObjectCreationExpression_SimpleLambdaEmpty()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2568,7 +2548,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateDelegateType_VarDecl_MethodGroup()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2603,7 +2583,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateDelegateType_VarDecl_Delegate()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2638,7 +2618,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateDelegateType_VarDecl_Action()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2671,7 +2651,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateDelegateType_VarDecl_Func()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2704,7 +2684,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateDelegateType_VarDecl_ParenLambda()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2734,7 +2714,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateDelegateType_VarDecl_SimpleLambda()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2763,7 +2743,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateDelegateType_Cast_MethodGroup()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2798,7 +2778,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateDelegateType_Cast_Delegate()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2833,7 +2813,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateDelegateType_Cast_Action()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2866,7 +2846,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateDelegateType_Cast_Func()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2899,7 +2879,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateDelegateType_Cast_ParenLambda()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2929,7 +2909,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateDelegateType_Cast_SimpleLambda()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2958,7 +2938,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task GenerateDelegateTypeIntoDifferentLanguageNewFile()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2994,8 +2974,7 @@ newFileFolderContainers: ImmutableArray<string>.Empty,
 projectName: "Assembly2");
         }
 
-        [WorkItem(860210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860210")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(860210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860210")]
         public async Task GenerateDelegateType_NoInfo()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3024,7 +3003,7 @@ isNewFile: false);
         }
         #endregion 
         #region Dev12Filtering
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateDelegateType_NoEnum_InvocationExpression_0()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3054,7 +3033,7 @@ isNewFile: false,
 assertTypeKindAbsent: new[] { TypeKindOptions.Enum });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateDelegateType_NoEnum_InvocationExpression_1()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3091,7 +3070,7 @@ isNewFile: false,
 assertTypeKindAbsent: new[] { TypeKindOptions.Enum });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateType_TypeConstraint_1()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3128,7 +3107,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.BaseList));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateType_TypeConstraint_2()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3171,7 +3150,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.BaseList));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateType_TypeConstraint_3()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3220,7 +3199,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.BaseList));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateTypeWithProperAccessibilityWithNesting_1()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3249,7 +3228,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.BaseList, false));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateTypeWithProperAccessibilityWithNesting_2()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3278,7 +3257,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.BaseList, false));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateTypeWithProperAccessibilityWithNesting_3()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3313,7 +3292,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.BaseList, false));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateType_Event_1()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3346,7 +3325,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Delegate));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateType_Event_2()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3371,7 +3350,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Delegate));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateType_Event_3()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3406,7 +3385,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Delegate));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateType_Event_4()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3433,7 +3412,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Delegate));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateType_Event_5()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3474,7 +3453,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Module));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateType_Event_6()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3507,7 +3486,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Module));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateType_Event_7()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3540,7 +3519,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.Delegate));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateType_Event_8()
         {
             await TestWithMockedGenerateTypeDialog(

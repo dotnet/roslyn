@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
             }
 
-            _recentItemsManager.MakeMostRecentItem(roslynItem.FilterText);
+            _recentItemsManager.MakeMostRecentItem(roslynItem);
 
             if (provider is INotifyCommittingItemCompletionProvider notifyProvider)
             {

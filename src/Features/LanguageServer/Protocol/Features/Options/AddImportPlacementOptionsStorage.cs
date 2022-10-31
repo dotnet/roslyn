@@ -19,6 +19,6 @@ internal static class AddImportPlacementOptionsStorage
     public static ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
         => document.GetAddImportPlacementOptionsAsync(globalOptions.GetAddImportPlacementOptions(document.Project.Services), cancellationToken);
 
-    public static AddImportPlacementOptions GetAddImportPlacementOptions(this IGlobalOptionService globalOptions, HostProjectServices languageServices)
+    public static AddImportPlacementOptions GetAddImportPlacementOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
         => languageServices.GetRequiredService<IAddImportPlacementOptionsStorage>().GetOptions(globalOptions);
 }

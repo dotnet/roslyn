@@ -196,8 +196,7 @@ internal class C
             });
         }
 
-        [Fact]
-        [WorkItem(55703, "https://github.com/dotnet/roslyn/issues/55703")]
+        [Fact, WorkItem(55703, "https://github.com/dotnet/roslyn/issues/55703")]
         public async Task TestAccessibilityModifiers_IgnoresPartial()
         {
             await TestAsync(

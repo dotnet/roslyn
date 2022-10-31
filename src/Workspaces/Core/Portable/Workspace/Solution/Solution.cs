@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
-            : this(new SolutionState(workspace.PrimaryBranchId, workspace.Kind, workspace.Services, solutionAttributes, options, analyzerReferences))
+            : this(new SolutionState(workspace.Kind, workspace.PartialSemanticsEnabled, workspace.Services, solutionAttributes, options, analyzerReferences))
         {
         }
 
@@ -47,20 +47,29 @@ namespace Microsoft.CodeAnalysis
 
         internal int WorkspaceVersion => _state.WorkspaceVersion;
 
-        // TODO(cyrusn): Make public.  Tracked through https://github.com/dotnet/roslyn/issues/62914
-        // Obsolete (or ban) Solution.Workspace as it can be used to acquire the Workspace from a project.
-        internal HostSolutionServices Services => _state.Services.SolutionServices;
+        internal bool PartialSemanticsEnabled => _state.PartialSemanticsEnabled;
+
+        /// <summary>
+        /// Per solution services provided by the host environment.  Use this instead of <see
+        /// cref="Workspace.Services"/> when possible.
+        /// </summary>
+        public SolutionServices Services => _state.Services.SolutionServices;
 
         internal string? WorkspaceKind => _state.WorkspaceKind;
-
-        internal BranchId BranchId => _state.BranchId;
 
         internal ProjectState? GetProjectState(ProjectId projectId) => _state.GetProjectState(projectId);
 
         /// <summary>
         /// The Workspace this solution is associated with.
         /// </summary>
-        public Workspace Workspace => _state.Workspace;
+        public Workspace Workspace
+        {
+            get
+            {
+                Contract.ThrowIfTrue(this.WorkspaceKind == CodeAnalysis.WorkspaceKind.RemoteWorkspace, "Access .Workspace off of a RemoteWorkspace Solution is not supported.");
+                return _state.Workspace;
+            }
+        }
 
         /// <summary>
         /// The Id of the solution. Multiple solution instances may share the same Id.
@@ -416,6 +425,22 @@ namespace Microsoft.CodeAnalysis
             CheckContainsProject(projectId);
 
             var newState = _state.WithProjectDefaultNamespace(projectId, defaultNamespace);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the project specified updated to have the specified attributes.
+        /// </summary>
+        internal Solution WithProjectChecksumAlgorithm(ProjectId projectId, SourceHashAlgorithm checksumAlgorithm)
+        {
+            CheckContainsProject(projectId);
+
+            var newState = _state.WithProjectChecksumAlgorithm(projectId, checksumAlgorithm);
             if (newState == _state)
             {
                 return this;
@@ -967,7 +992,18 @@ namespace Microsoft.CodeAnalysis
         /// document instance defined by its name and text.
         /// </summary>
         public Solution AddDocument(DocumentId documentId, string name, string text, IEnumerable<string>? folders = null, string? filePath = null)
-            => this.AddDocument(documentId, name, SourceText.From(text), folders, filePath);
+        {
+            if (documentId == null)
+                throw new ArgumentNullException(nameof(documentId));
+
+            if (name == null)
+                throw new ArgumentNullException(nameof(name));
+
+            var project = GetRequiredProjectState(documentId.ProjectId);
+            var sourceText = SourceText.From(text, encoding: null, checksumAlgorithm: project.ChecksumAlgorithm);
+
+            return AddDocumentImpl(project, documentId, name, sourceText, PublicContract.ToBoxedImmutableArrayWithNonNullItems(folders, nameof(folders)), filePath, isGenerated: false);
+        }
 
         /// <summary>
         /// Creates a new solution instance with the corresponding project updated to include a new
@@ -976,40 +1012,16 @@ namespace Microsoft.CodeAnalysis
         public Solution AddDocument(DocumentId documentId, string name, SourceText text, IEnumerable<string>? folders = null, string? filePath = null, bool isGenerated = false)
         {
             if (documentId == null)
-            {
                 throw new ArgumentNullException(nameof(documentId));
-            }
 
             if (name == null)
-            {
                 throw new ArgumentNullException(nameof(name));
-            }
 
             if (text == null)
-            {
                 throw new ArgumentNullException(nameof(text));
-            }
 
-            var project = _state.GetProjectState(documentId.ProjectId);
-
-            if (project == null)
-            {
-                throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, documentId.ProjectId));
-            }
-
-            var version = VersionStamp.Create();
-            var loader = TextLoader.From(TextAndVersion.Create(text, version, name));
-
-            var info = DocumentInfo.Create(
-                documentId,
-                name: name,
-                folders: folders,
-                sourceCodeKind: GetSourceCodeKind(project),
-                loader: loader,
-                filePath: filePath,
-                isGenerated: isGenerated);
-
-            return this.AddDocument(info);
+            var project = GetRequiredProjectState(documentId.ProjectId);
+            return AddDocumentImpl(project, documentId, name, text, PublicContract.ToBoxedImmutableArrayWithNonNullItems(folders, nameof(folders)), filePath, isGenerated);
         }
 
         /// <summary>
@@ -1017,7 +1029,32 @@ namespace Microsoft.CodeAnalysis
         /// document instance defined by its name and root <see cref="SyntaxNode"/>.
         /// </summary>
         public Solution AddDocument(DocumentId documentId, string name, SyntaxNode syntaxRoot, IEnumerable<string>? folders = null, string? filePath = null, bool isGenerated = false, PreservationMode preservationMode = PreservationMode.PreserveValue)
-            => this.AddDocument(documentId, name, SourceText.From(string.Empty), folders, filePath, isGenerated).WithDocumentSyntaxRoot(documentId, syntaxRoot, preservationMode);
+        {
+            if (documentId == null)
+                throw new ArgumentNullException(nameof(documentId));
+
+            if (name == null)
+                throw new ArgumentNullException(nameof(name));
+
+            if (syntaxRoot == null)
+                throw new ArgumentNullException(nameof(syntaxRoot));
+
+            var project = GetRequiredProjectState(documentId.ProjectId);
+            var sourceText = SourceText.From(string.Empty, encoding: null, project.ChecksumAlgorithm);
+
+            return AddDocumentImpl(project, documentId, name, sourceText, PublicContract.ToBoxedImmutableArrayWithNonNullItems(folders, nameof(folders)), filePath, isGenerated).
+                WithDocumentSyntaxRoot(documentId, syntaxRoot, preservationMode);
+        }
+
+        private Solution AddDocumentImpl(ProjectState project, DocumentId documentId, string name, SourceText text, IReadOnlyList<string>? folders, string? filePath, bool isGenerated)
+            => AddDocument(DocumentInfo.Create(
+                documentId,
+                name: name,
+                folders: folders,
+                sourceCodeKind: GetSourceCodeKind(project),
+                loader: TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create(), name)),
+                filePath: filePath,
+                isGenerated: isGenerated));
 
         /// <summary>
         /// Creates a new solution instance with the project updated to include a new document with
@@ -1026,35 +1063,22 @@ namespace Microsoft.CodeAnalysis
         public Solution AddDocument(DocumentId documentId, string name, TextLoader loader, IEnumerable<string>? folders = null)
         {
             if (documentId == null)
-            {
                 throw new ArgumentNullException(nameof(documentId));
-            }
 
             if (name == null)
-            {
                 throw new ArgumentNullException(nameof(name));
-            }
 
             if (loader == null)
-            {
                 throw new ArgumentNullException(nameof(loader));
-            }
 
-            var project = _state.GetProjectState(documentId.ProjectId);
+            var project = GetRequiredProjectState(documentId.ProjectId);
 
-            if (project == null)
-            {
-                throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, documentId.ProjectId));
-            }
-
-            var info = DocumentInfo.Create(
+            return AddDocument(DocumentInfo.Create(
                 documentId,
-                name: name,
-                folders: folders,
-                sourceCodeKind: GetSourceCodeKind(project),
-                loader: loader);
-
-            return this.AddDocument(info);
+                name,
+                folders,
+                GetSourceCodeKind(project),
+                loader));
         }
 
         /// <summary>
@@ -1156,13 +1180,7 @@ namespace Microsoft.CodeAnalysis
 
         private DocumentInfo CreateDocumentInfo(DocumentId documentId, string name, SourceText text, IEnumerable<string>? folders, string? filePath)
         {
-            var project = _state.GetProjectState(documentId.ProjectId);
-
-            if (project is null)
-            {
-                throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, documentId.ProjectId));
-            }
-
+            var project = GetRequiredProjectState(documentId.ProjectId);
             var version = VersionStamp.Create();
             var loader = TextLoader.From(TextAndVersion.Create(text, version, name));
 
@@ -1174,6 +1192,9 @@ namespace Microsoft.CodeAnalysis
                 loader: loader,
                 filePath: filePath);
         }
+
+        private ProjectState GetRequiredProjectState(ProjectId projectId)
+            => _state.GetProjectState(projectId) ?? throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, projectId));
 
         /// <summary>
         /// Creates a new Solution instance that contains a new compiler configuration document like a .editorconfig file.
@@ -1576,12 +1597,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            return UpdateDocumentTextLoader(documentId, loader, text: null, mode: mode);
-        }
-
-        internal Solution UpdateDocumentTextLoader(DocumentId documentId, TextLoader loader, SourceText? text, PreservationMode mode)
-        {
-            var newState = _state.UpdateDocumentTextLoader(documentId, loader, text, mode);
+            var newState = _state.UpdateDocumentTextLoader(documentId, loader, mode);
 
             // Note: state is currently not reused.
             // If UpdateDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.

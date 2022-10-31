@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 var newStatement = GetNewStatement(statement, objectCreation, matches.Value)
                     .WithAdditionalAnnotations(Formatter.Annotation);
 
-                var subEditor = document.GetSyntaxEditor(currentRoot);
+                var subEditor = new SyntaxEditor(currentRoot, document.Project.Solution.Services);
 
                 subEditor.ReplaceNode(statement, newStatement);
                 foreach (var match in matches)

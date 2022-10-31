@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     baseSnapshot,
                     baseTree,
                     dirtyRegion,
-                    document.GetSyntaxTreeSynchronously(cancellationToken),
+                    tree,
                     cancellationToken)
 
                 Dim codeCleanups = CodeCleaner.GetDefaultProviders(document).
@@ -126,7 +126,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     End If
                 End If
 
-                finalDocument.Project.Solution.Workspace.ApplyDocumentChanges(finalDocument, cancellationToken)
+                Dim changes = finalDocument.GetTextChangesAsync(document, cancellationToken).WaitAndGetResult(cancellationToken)
+                buffer.ApplyChanges(changes)
             End Using
         End Sub
 
@@ -144,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
         Private Shared Function GetCommitFormattingCleanupProvider(
             documentId As DocumentId,
-            languageServices As HostProjectServices,
+            languageServices As CodeAnalysis.Host.LanguageServices,
             options As SyntaxFormattingOptions,
             spanToFormat As SnapshotSpan,
             oldSnapshot As ITextSnapshot,
@@ -163,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
         Private Shared Function GetFormattingRules(
             documentId As DocumentId,
-            languageServices As HostProjectServices,
+            languageServices As CodeAnalysis.Host.LanguageServices,
             options As SyntaxFormattingOptions,
             spanToFormat As SnapshotSpan,
             oldDirtySpan As SnapshotSpan,
@@ -225,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Function
 
         Private Shared Function GetNumberOfIndentOperations(
-            languageServices As HostProjectServices,
+            languageServices As CodeAnalysis.Host.LanguageServices,
             options As SyntaxFormattingOptions,
             syntaxTree As SyntaxTree,
             span As SnapshotSpan,

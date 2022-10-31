@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -53,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var document = solution.GetRequiredDocument(documentId);
 
                 using var _ = ArrayBuilder<IFieldSymbol>.GetInstance(out var fields);
-                var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                 foreach (var key in fieldSymbolKeys)
                 {
@@ -64,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     fields.Add(resolved);
                 }
 
-                var service = document.GetLanguageService<AbstractEncapsulateFieldService>();
+                var service = document.GetRequiredLanguageService<AbstractEncapsulateFieldService>();
                 var fallbackOptions = GetClientOptionsProvider(callbackId);
 
                 var newSolution = await service.EncapsulateFieldsAsync(

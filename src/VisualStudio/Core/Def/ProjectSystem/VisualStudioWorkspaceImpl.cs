@@ -247,7 +247,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Switch to a background thread to avoid loading option providers on UI thread (telemetry is reading options).
             await TaskScheduler.Default;
 
-            var logDelta = _globalOptions.GetOption(DiagnosticOptions.LogTelemetryForBackgroundAnalyzerExecution);
+            var logDelta = _globalOptions.GetOption(DiagnosticOptionsStorage.LogTelemetryForBackgroundAnalyzerExecution);
             var telemetryService = (VisualStudioWorkspaceTelemetryService)Services.GetRequiredService<IWorkspaceTelemetryService>();
             telemetryService.InitializeTelemetrySession(telemetrySession, logDelta);
 
@@ -461,7 +461,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return true;
         }
 
-        protected override bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, CodeAnalysis.Project project)
+        public override bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, CodeAnalysis.Project project)
             => project.Services.GetRequiredService<ICompilationOptionsChangingService>().CanApplyChange(oldOptions, newOptions);
 
         public override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, CodeAnalysis.Project project)
@@ -1627,28 +1627,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
-            var oldSolution = this.CurrentSolution;
-
             if (!solutionChanges.HasChange)
-            {
                 return;
-            }
 
-            foreach (var documentId in solutionChanges.DocumentIdsRemoved)
-            {
-                this.ClearDocumentData(documentId);
-            }
-
-            SetCurrentSolution(solutionChanges.Solution);
-
-            // This method returns the task that could be used to wait for the workspace changed event; we don't want
-            // to do that.
-            _ = RaiseWorkspaceChangedEventAsync(
+            this.SetCurrentSolution(
+                _ => solutionChanges.Solution,
                 solutionChanges.WorkspaceChangeKind,
-                oldSolution,
-                solutionChanges.Solution,
                 solutionChanges.WorkspaceChangeProjectId,
-                solutionChanges.WorkspaceChangeDocumentId);
+                solutionChanges.WorkspaceChangeDocumentId,
+                onBeforeUpdate: (_, _) =>
+                {
+                    // Clear out mutable state not associated with the solution snapshot (for example, which documents are
+                    // currently open).
+                    foreach (var documentId in solutionChanges.DocumentIdsRemoved)
+                        this.ClearDocumentData(documentId);
+                });
         }
 
         private readonly Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new();
@@ -1732,6 +1725,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Create a new empty solution and set this; we will reuse the same SolutionId and path since components still may have persistence information they still need
             // to look up by that location; we also keep the existing analyzer references around since those are host-level analyzers that were loaded asynchronously.
+            ClearOpenDocuments();
+
             SetCurrentSolution(
                 solution => CreateSolution(
                     SolutionInfo.Create(

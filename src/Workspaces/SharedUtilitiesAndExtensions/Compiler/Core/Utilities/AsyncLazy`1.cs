@@ -129,7 +129,7 @@ namespace Roslyn.Utilities
             return new WaitThatValidatesInvariants(this);
         }
 
-        private struct WaitThatValidatesInvariants : IDisposable
+        private readonly struct WaitThatValidatesInvariants : IDisposable
         {
             private readonly AsyncLazy<T> _asyncLazy;
 
@@ -366,7 +366,7 @@ namespace Roslyn.Utilities
             return new AsynchronousComputationToStart(_asynchronousComputeFunction, _asynchronousComputationCancellationSource);
         }
 
-        private struct AsynchronousComputationToStart
+        private readonly struct AsynchronousComputationToStart
         {
             public readonly Func<CancellationToken, Task<T>> AsynchronousComputeFunction;
             public readonly CancellationTokenSource CancellationTokenSource;
@@ -429,11 +429,11 @@ namespace Roslyn.Utilities
                 // We can only be here if the computation was cancelled, which means all requests for the value
                 // must have been cancelled. Therefore, the ThrowIfCancellationRequested above must have thrown
                 // because that token from the requester was cancelled.
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

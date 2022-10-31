@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             private void GlobalOptionChanged(object sender, OptionChangedEventArgs e)
             {
                 if (e.Language != _languageService.RoslynLanguageName ||
-                    e.Option != NavigationBarViewOptions.ShowNavigationBar)
+                    e.Option != NavigationBarViewOptionsStorage.ShowNavigationBar)
                 {
                     return;
                 }
@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     return;
                 }
 
-                var enabled = _globalOptions.GetOption(NavigationBarViewOptions.ShowNavigationBar, _languageService.RoslynLanguageName);
+                var enabled = _globalOptions.GetOption(NavigationBarViewOptionsStorage.ShowNavigationBar, _languageService.RoslynLanguageName);
                 if (enabled)
                 {
                     if (IsOurDropdownBar(dropdownManager, out var existingDropdownBar))
@@ -260,7 +260,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 phwnd = _documentOutlineViewHost.Handle;
                 ppCmdTarget = null;
 
-                Logger.Log(FunctionId.DocumentOutline_WindowOpen);
+                Logger.Log(FunctionId.DocumentOutline_WindowOpen, logLevel: LogLevel.Information);
 
                 return VSConstants.S_OK;
             }

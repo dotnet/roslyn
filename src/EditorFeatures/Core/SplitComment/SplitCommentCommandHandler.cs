@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -151,12 +151,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             ITextBuffer textBuffer,
             SnapshotSpan selectionSpan)
         {
-            var syntaxKinds = document.ProjectServices.GetRequiredService<ISyntaxKindsService>();
+            var syntaxKinds = document.LanguageServices.GetRequiredService<ISyntaxKindsService>();
             var trivia = document.Root.FindTrivia(selectionSpan.Start);
             if (syntaxKinds.SingleLineCommentTrivia != trivia.RawKind)
                 return null;
 
-            var splitCommentService = document.ProjectServices.GetRequiredService<ISplitCommentService>();
+            var splitCommentService = document.LanguageServices.GetRequiredService<ISplitCommentService>();
 
             // if the user hits enter at `/$$/` we don't want to consider this a comment continuation.
             if (selectionSpan.Start < (trivia.SpanStart + splitCommentService.CommentStart.Length))

@@ -4,12 +4,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Pipelines;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Host;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -46,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public static Task<RemoteHostClient?> TryGetClientAsync(Workspace workspace, CancellationToken cancellationToken)
             => TryGetClientAsync(workspace.Services.SolutionServices, cancellationToken);
 
-        public static Task<RemoteHostClient?> TryGetClientAsync(HostSolutionServices services, CancellationToken cancellationToken)
+        public static Task<RemoteHostClient?> TryGetClientAsync(SolutionServices services, CancellationToken cancellationToken)
         {
             var service = services.GetService<IRemoteHostClientProvider>();
             if (service == null)
@@ -78,6 +77,16 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             using var connection = CreateConnection<TService>(callbackTarget: null);
             return await connection.TryInvokeAsync(invocation, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async IAsyncEnumerable<TResult> TryInvokeStreamAsync<TService, TResult>(
+            Func<TService, CancellationToken, IAsyncEnumerable<TResult>> invocation,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+            where TService : class
+        {
+            using var connection = CreateConnection<TService>(callbackTarget: null);
+            await foreach (var result in connection.TryInvokeStreamAsync(invocation, cancellationToken).ConfigureAwait(false))
+                yield return result;
         }
 
         // no solution, callback:
@@ -124,6 +133,17 @@ namespace Microsoft.CodeAnalysis.Remote
             return await connection.TryInvokeAsync(solution, invocation, cancellationToken).ConfigureAwait(false);
         }
 
+        public async IAsyncEnumerable<TResult> TryInvokeStreamAsync<TService, TResult>(
+            Solution solution,
+            Func<TService, Checksum, CancellationToken, IAsyncEnumerable<TResult>> invocation,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+            where TService : class
+        {
+            using var connection = CreateConnection<TService>(callbackTarget: null);
+            await foreach (var value in connection.TryInvokeStreamAsync(solution, invocation, cancellationToken))
+                yield return value;
+        }
+
         // project, no callback.
 
         /// <summary>
@@ -156,6 +176,17 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             using var connection = CreateConnection<TService>(callbackTarget: null);
             return await connection.TryInvokeAsync(project, invocation, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async IAsyncEnumerable<TResult> TryInvokeStreamAsync<TService, TResult>(
+            Project project,
+            Func<TService, Checksum, CancellationToken, IAsyncEnumerable<TResult>> invocation,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+            where TService : class
+        {
+            using var connection = CreateConnection<TService>(callbackTarget: null);
+            await foreach (var item in connection.TryInvokeStreamAsync(project, invocation, cancellationToken).ConfigureAwait(false))
+                yield return item;
         }
 
         // solution, callback:
@@ -216,6 +247,19 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             using var connection = CreateConnection<TService>(callbackTarget);
             return await connection.TryInvokeAsync(project, invocation, cancellationToken).ConfigureAwait(false);
+        }
+
+        // multiple solution, no callback:
+
+        public async ValueTask<bool> TryInvokeAsync<TService>(
+            Solution solution1,
+            Solution solution2,
+            Func<TService, Checksum, Checksum, CancellationToken, ValueTask> invocation,
+            CancellationToken cancellationToken)
+            where TService : class
+        {
+            using var connection = CreateConnection<TService>(callbackTarget: null);
+            return await connection.TryInvokeAsync(solution1, solution2, invocation, cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -388,8 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<KeyValuePair<WellKnownMember, TypedConstant>> namedArguments = default,
             bool isOptionalUse = false)
         {
-            UseSiteInfo<AssemblySymbol> info;
-            var ctorSymbol = (MethodSymbol)Binder.GetWellKnownTypeMember(this, constructor, out info, isOptional: true);
+            var ctorSymbol = (MethodSymbol)Binder.GetWellKnownTypeMember(this, constructor, useSiteInfo: out _, isOptional: true);
 
             if ((object)ctorSymbol == null)
             {
@@ -413,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var builder = new ArrayBuilder<KeyValuePair<string, TypedConstant>>(namedArguments.Length);
                 foreach (var arg in namedArguments)
                 {
-                    var wellKnownMember = Binder.GetWellKnownTypeMember(this, arg.Key, out info, isOptional: true);
+                    var wellKnownMember = Binder.GetWellKnownTypeMember(this, arg.Key, useSiteInfo: out _, isOptional: true);
                     if (wellKnownMember == null || wellKnownMember is ErrorTypeSymbol)
                     {
                         // if this assert fails, UseSiteErrors for "member" have not been checked before emitting ...
@@ -544,9 +543,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.NativeIntegerAttribute, diagnostics, location, modifyCompilation);
         }
 
-        internal void EnsureLifetimeAnnotationAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
+        internal void EnsureScopedRefAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
         {
-            EnsureEmbeddableAttributeExists(EmbeddableAttributes.LifetimeAnnotationAttribute, diagnostics, location, modifyCompilation);
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.ScopedRefAttribute, diagnostics, location, modifyCompilation);
         }
 
         internal bool CheckIfAttributeShouldBeEmbedded(EmbeddableAttributes attribute, BindingDiagnosticBag? diagnosticsOpt, Location locationOpt)
@@ -607,12 +606,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
                         WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags);
 
-                case EmbeddableAttributes.LifetimeAnnotationAttribute:
+                case EmbeddableAttributes.ScopedRefAttribute:
                     return CheckIfAttributeShouldBeEmbedded(
                         diagnosticsOpt,
                         locationOpt,
-                        WellKnownType.System_Runtime_CompilerServices_LifetimeAnnotationAttribute,
-                        WellKnownMember.System_Runtime_CompilerServices_LifetimeAnnotationAttribute__ctor);
+                        WellKnownType.System_Runtime_CompilerServices_ScopedRefAttribute,
+                        WellKnownMember.System_Runtime_CompilerServices_ScopedRefAttribute__ctor);
+
+                case EmbeddableAttributes.RefSafetyRulesAttribute:
+                    return CheckIfAttributeShouldBeEmbedded(
+                        diagnosticsOpt,
+                        locationOpt,
+                        WellKnownType.System_Runtime_CompilerServices_RefSafetyRulesAttribute,
+                        WellKnownMember.System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(attribute);

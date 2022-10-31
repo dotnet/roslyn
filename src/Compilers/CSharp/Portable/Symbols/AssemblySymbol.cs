@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="corType"></param>
         internal virtual void RegisterDeclaredSpecialType(NamedTypeSymbol corType)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         /// <summary>
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal virtual NamedTypeSymbol GetNativeIntegerType(NamedTypeSymbol underlyingType)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         /// <summary>
@@ -442,19 +442,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Whether the target runtime supports numeric IntPtr types.
-        /// This test hook should be removed once TargetFramework.Net70 is added.
-        /// Tracked by https://github.com/dotnet/roslyn/issues/61235
         /// </summary>
-        internal virtual bool RuntimeSupportsNumericIntPtr
+        internal bool RuntimeSupportsNumericIntPtr
         {
             get
             {
                 // CorLibrary should never be null, but that invariant is broken in some cases for MissingAssemblySymbol.
                 // Tracked by https://github.com/dotnet/roslyn/issues/61262
-                return CorLibrary?.RuntimeSupportsNumericIntPtr == true;
+                return CorLibrary is not null &&
+                    RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr);
             }
-
-            set => CorLibrary.RuntimeSupportsNumericIntPtr = value;
         }
 
         protected bool RuntimeSupportsFeature(SpecialMember feature)

@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -62,7 +62,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
 
                             currentState = newState;
                         }
-                        else if (directive.DirectiveNameToken.IsKind(SyntaxKind.IfKeyword, SyntaxKind.ElifKeyword, SyntaxKind.ElseKeyword, SyntaxKind.EndIfKeyword))
+                        else if (directive.DirectiveNameToken.Kind() is
+                            SyntaxKind.IfKeyword or
+                            SyntaxKind.ElifKeyword or
+                            SyntaxKind.ElseKeyword or
+                            SyntaxKind.EndIfKeyword)
                         {
                             // Reset the known nullable state when crossing a conditional compilation boundary
                             currentState = null;

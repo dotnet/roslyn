@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
@@ -107,9 +107,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
                             return await GetGenerateInNewFileOperationsAsync(
                                 namedType,
                                 documentName,
-                                null,
-                                true,
-                                null,
+                                folders: null,
+                                areFoldersValidIdentifiers: true,
+                                fullFilePath: null,
                                 _semanticDocument.Project,
                                 _semanticDocument.Project,
                                 isDialog: false).ConfigureAwait(false);
@@ -353,11 +353,12 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // TODO(cyrusn): make sure documentId is unique.
                 var documentId = DocumentId.CreateNewId(projectToBeUpdated.Id, documentName);
 
-                var updatedSolution = projectToBeUpdated.Solution.AddDocument(DocumentInfo.Create(
-                    documentId,
-                    documentName,
-                    containers,
-                    sourceCodeKind));
+                var updatedSolution = projectToBeUpdated.Solution.AddDocument(
+                    DocumentInfo.Create(
+                        documentId,
+                        documentName,
+                        containers,
+                        sourceCodeKind));
 
                 updatedSolution = updatedSolution.WithDocumentSyntaxRoot(documentId, root, PreservationMode.PreserveIdentity);
 

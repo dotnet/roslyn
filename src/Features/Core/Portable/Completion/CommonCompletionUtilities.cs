@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         public static Func<CancellationToken, Task<CompletionDescription>> CreateDescriptionFactory(
-            HostSolutionServices workspaceServices,
+            SolutionServices workspaceServices,
             SemanticModel semanticModel,
             int position,
             ISymbol symbol,
@@ -95,19 +95,19 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         public static Func<CancellationToken, Task<CompletionDescription>> CreateDescriptionFactory(
-            HostSolutionServices workspaceServices, SemanticModel semanticModel, int position, SymbolDescriptionOptions options, IReadOnlyList<ISymbol> symbols)
+            SolutionServices workspaceServices, SemanticModel semanticModel, int position, SymbolDescriptionOptions options, IReadOnlyList<ISymbol> symbols)
         {
             return c => CreateDescriptionAsync(workspaceServices, semanticModel, position, symbols, options, supportedPlatforms: null, cancellationToken: c);
         }
 
         public static Func<CancellationToken, Task<CompletionDescription>> CreateDescriptionFactory(
-            HostSolutionServices workspaceServices, SemanticModel semanticModel, int position, IReadOnlyList<ISymbol> symbols, SymbolDescriptionOptions options, SupportedPlatformData supportedPlatforms)
+            SolutionServices workspaceServices, SemanticModel semanticModel, int position, IReadOnlyList<ISymbol> symbols, SymbolDescriptionOptions options, SupportedPlatformData supportedPlatforms)
         {
             return c => CreateDescriptionAsync(workspaceServices, semanticModel, position, symbols, options, supportedPlatforms: supportedPlatforms, cancellationToken: c);
         }
 
         public static async Task<CompletionDescription> CreateDescriptionAsync(
-            HostSolutionServices workspaceServices, SemanticModel semanticModel, int position, ISymbol symbol, int overloadCount, SymbolDescriptionOptions options, SupportedPlatformData? supportedPlatforms, CancellationToken cancellationToken)
+            SolutionServices workspaceServices, SemanticModel semanticModel, int position, ISymbol symbol, int overloadCount, SymbolDescriptionOptions options, SupportedPlatformData? supportedPlatforms, CancellationToken cancellationToken)
         {
             var symbolDisplayService = workspaceServices.GetRequiredLanguageService<ISymbolDisplayService>(semanticModel.Language);
             var formatter = workspaceServices.GetRequiredLanguageService<IDocumentationCommentFormattingService>(semanticModel.Language);
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         public static Task<CompletionDescription> CreateDescriptionAsync(
-            HostSolutionServices workspaceServices, SemanticModel semanticModel, int position, IReadOnlyList<ISymbol> symbols, SymbolDescriptionOptions options, SupportedPlatformData? supportedPlatforms, CancellationToken cancellationToken)
+            SolutionServices workspaceServices, SemanticModel semanticModel, int position, IReadOnlyList<ISymbol> symbols, SymbolDescriptionOptions options, SupportedPlatformData? supportedPlatforms, CancellationToken cancellationToken)
         {
             // Lets try to find the first non-obsolete symbol (overload) and fall-back
             // to the first symbol if all are obsolete.

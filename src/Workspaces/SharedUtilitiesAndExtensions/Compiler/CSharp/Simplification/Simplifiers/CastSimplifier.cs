@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             CancellationToken cancellationToken)
         {
             var leftOrRightChild = castExpression.WalkUpParentheses();
-            if (leftOrRightChild.Parent is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.EqualsExpression or (int)SyntaxKind.NotEqualsExpression } binary)
+            if (leftOrRightChild.Parent is BinaryExpressionSyntax(SyntaxKind.EqualsExpression or SyntaxKind.NotEqualsExpression) binary)
             {
                 var enumType = semanticModel.GetTypeInfo(castExpression.Expression, cancellationToken).Type as INamedTypeSymbol;
                 var castedType = semanticModel.GetTypeInfo(castExpression.Type, cancellationToken).Type;
@@ -335,10 +335,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // The final converted type may be the same even after removing the cast.  However, the cast may 
             // have been necessary to convert the type and/or value in a way that could be observable.  For example:
             //
-            // object o1 = (long)expr; // or (long)0
+            // object o1 = (long)expr;  // or (long)0
+            // object o1 = (long?)expr; // or (long?)0
             //
-            // We need to keep the cast so that the stored value stays a 'long'.
-            if (originalConversion.IsConstantExpression || originalConversion.IsNumeric || originalConversion.IsEnumeration)
+            // We need to keep the cast so that the stored value stays the right type.
+            if (originalConversion.IsConstantExpression ||
+                originalConversion.IsNumeric ||
+                originalConversion.IsEnumeration ||
+                originalConversion.IsNullable)
             {
                 if (rewrittenConversion.IsBoxing)
                     return false;
@@ -866,7 +870,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 if (IsFieldOrArrayElement(semanticModel, assignmentExpression.Left, cancellationToken))
                     return false;
             }
-            else if (castNode.Parent.IsKind(SyntaxKind.ArrayInitializerExpression, out InitializerExpressionSyntax? arrayInitializer))
+            else if (castNode.Parent is InitializerExpressionSyntax(SyntaxKind.ArrayInitializerExpression) arrayInitializer)
             {
                 // Identity fp conversion is safe if this is in an array initializer.
                 var typeInfo = semanticModel.GetTypeInfo(arrayInitializer, cancellationToken);

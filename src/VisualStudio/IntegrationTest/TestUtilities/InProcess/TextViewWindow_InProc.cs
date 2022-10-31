@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
+using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -420,7 +421,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     }
 
                     var actionSetsForAction = await action.GetActionSetsAsync(CancellationToken.None);
-                    var fixAllAction = await GetFixAllSuggestedActionAsync(JoinableTaskFactory, actionSetsForAction, fixAllScope.Value);
+                    var fixAllAction = await GetFixAllSuggestedActionAsync(JoinableTaskFactory, actionSetsForAction!, fixAllScope.Value);
                     if (fixAllAction == null)
                     {
                         throw new InvalidOperationException($"Unable to find FixAll in {fixAllScope.ToString()} code fix for suggested action '{action.DisplayText}'.");
@@ -485,9 +486,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                         foreach (var action in actionSet.Actions)
                         {
                             actions.Add(action);
-                            var nestedActionSets = await action.GetActionSetsAsync(CancellationToken.None);
-                            var nestedActions = await SelectActionsAsync(nestedActionSets);
-                            actions.AddRange(nestedActions);
+                            if (action.HasActionSets)
+                            {
+                                var nestedActionSets = await action.GetActionSetsAsync(CancellationToken.None);
+                                var nestedActions = await SelectActionsAsync(nestedActionSets!);
+                                actions.AddRange(nestedActions);
+                            }
                         }
                     }
                 }
@@ -516,7 +520,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     if (action.HasActionSets)
                     {
                         var nestedActionSets = await action.GetActionSetsAsync(CancellationToken.None);
-                        var fixAllCodeAction = await GetFixAllSuggestedActionAsync(joinableTaskFactory, nestedActionSets, fixAllScope);
+                        var fixAllCodeAction = await GetFixAllSuggestedActionAsync(joinableTaskFactory, nestedActionSets!, fixAllScope);
                         if (fixAllCodeAction != null)
                         {
                             return fixAllCodeAction;

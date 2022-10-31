@@ -21,9 +21,10 @@ internal static class ExtractMethodOptionsStorage
             DontPutOutOrRefOnStruct = globalOptions.GetOption(DontPutOutOrRefOnStruct, language)
         };
 
-    public static ExtractMethodGenerationOptions GetExtractMethodGenerationOptions(this IGlobalOptionService globalOptions, HostProjectServices languageServices)
-        => new(globalOptions.GetCodeGenerationOptions(languageServices))
+    public static ExtractMethodGenerationOptions GetExtractMethodGenerationOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
+        => new()
         {
+            CodeGenerationOptions = globalOptions.GetCodeGenerationOptions(languageServices),
             ExtractOptions = globalOptions.GetExtractMethodOptions(languageServices.Language),
             AddImportOptions = globalOptions.GetAddImportPlacementOptions(languageServices),
             LineFormattingOptions = globalOptions.GetLineFormattingOptions(languageServices.Language)

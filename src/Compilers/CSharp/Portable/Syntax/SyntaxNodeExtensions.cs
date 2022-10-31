@@ -243,6 +243,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             return syntax;
         }
 
+        internal static TypeSyntax SkipScoped(this TypeSyntax syntax, out bool isScoped)
+        {
+            if (syntax is ScopedTypeSyntax scopedType)
+            {
+                isScoped = true;
+                return scopedType.Type;
+            }
+
+            isScoped = false;
+            return syntax;
+        }
+
+        internal static SyntaxNode ModifyingScopedOrRefTypeOrSelf(this SyntaxNode syntax)
+        {
+            SyntaxNode? parentNode = syntax.Parent;
+
+            if (parentNode is RefTypeSyntax refType && refType.Type == syntax)
+            {
+                syntax = refType;
+                parentNode = parentNode.Parent;
+            }
+
+            if (parentNode is ScopedTypeSyntax scopedType && scopedType.Type == syntax)
+            {
+                return scopedType;
+            }
+
+            return syntax;
+        }
+
         internal static ExpressionSyntax? CheckAndUnwrapRefExpression(
             this ExpressionSyntax? syntax,
             BindingDiagnosticBag diagnostics,

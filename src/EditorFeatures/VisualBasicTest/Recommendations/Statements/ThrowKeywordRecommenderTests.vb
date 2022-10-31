@@ -3,17 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class ThrowKeywordRecommenderTests
         Inherits RecommenderTests
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ThrowInMethodBodyTest()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Throw")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ThrowInMultiLineLambdaTest()
             VerifyRecommendationsContain(<ClassDeclaration>
 Private _member = Sub()
@@ -24,7 +23,6 @@ End Sub
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ThrowInSingleLineLambdaTest()
             VerifyRecommendationsContain(<ClassDeclaration>
 Private _member = Sub() |
@@ -32,7 +30,6 @@ Private _member = Sub() |
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ThrowInSingleLineFunctionLambdaTest()
             VerifyRecommendationsMissing(<ClassDeclaration>
 Private _member = Function() |
