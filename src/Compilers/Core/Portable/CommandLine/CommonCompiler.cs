@@ -2088,15 +2088,13 @@ namespace Microsoft.CodeAnalysis
             SyntaxTree reportedSyntaxTree = diagnostic.Location.SourceTree;
             SyntaxTree? finalTree = SyntaxTreeHistory.GetLast(reportedSyntaxTree);
 
-
-
             // Find the node in the tree where the diagnostic was reported.
             var reportedSyntaxNode =
                  reportedSyntaxTree.GetRoot().FindNode(diagnostic.Location.SourceSpan);
 
-            // Find the token where the diagnostic was reported, if this was a single token.
+            // Find the start and end token where the diagnostic was reported.
             var reportedSyntaxStartToken = reportedSyntaxNode.FindToken(diagnostic.Location.SourceSpan.Start);
-            var reportedSyntaxEndToken = reportedSyntaxNode.FindToken(diagnostic.Location.SourceSpan.End - 1);
+            var reportedSyntaxEndToken = reportedSyntaxNode.FindToken( Math.Max(diagnostic.Location.SourceSpan.Start, diagnostic.Location.SourceSpan.End - 1 ));
           
 
             // Find the node in the source syntax tree.
