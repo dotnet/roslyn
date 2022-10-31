@@ -2095,11 +2095,9 @@ namespace Microsoft.CodeAnalysis
                  reportedSyntaxTree.GetRoot().FindNode(diagnostic.Location.SourceSpan);
 
             // Find the token where the diagnostic was reported, if this was a single token.
-            var reportedSyntaxToken = reportedSyntaxNode.FindToken(diagnostic.Location.SourceSpan.Start);
-            if (!reportedSyntaxToken.FullSpan.Contains(diagnostic.Location.SourceSpan))
-            {
-                reportedSyntaxToken = default;
-            }
+            var reportedSyntaxStartToken = reportedSyntaxNode.FindToken(diagnostic.Location.SourceSpan.Start);
+            var reportedSyntaxEndToken = reportedSyntaxNode.FindToken(diagnostic.Location.SourceSpan.End - 1);
+          
 
             // Find the node in the source syntax tree.
             var sourceSyntaxNode = TreeTracker.GetSourceSyntaxNode(reportedSyntaxNode);
@@ -2174,7 +2172,7 @@ namespace Microsoft.CodeAnalysis
 
 
             // Find the node in the final tree corresponding to the node in the original tree.
-            if (!TryFindSourceNodeInFinalSyntaxTree(sourceSyntaxNode, finalTree, out _))
+            if (!TryFindSourceNodeInFinalSyntaxTree(sourceSyntaxNode, finalTree, out var finalNode))
             {
                 // The diagnostic was reported on a node that has been removed by some transformation,
                 // or we have a defect in the mapping logic. We cannot report it in the final syntax
@@ -2185,11 +2183,19 @@ namespace Microsoft.CodeAnalysis
                 return (diagnostic.WithLocation(Location.Create(diagnostic.Location.SourceTree!.FilePath,
                     diagnostic.Location.SourceSpan, diagnostic.Location.GetLineSpan().Span)), false, false);
             }
+            else if (!TryFindSourceTokenInFinalSyntaxNode(reportedSyntaxStartToken, finalNode,
+                         out var finalStartToken) ||
+                     !TryFindSourceTokenInFinalSyntaxNode(reportedSyntaxEndToken, finalNode, out var finalEndToken))
+            {
+                // The token was reported in a node that is still a part of the final code, but the tokens themselves have been removed.
+                // Report the diagnostic on the whole node instead.
+                return (diagnostic.WithLocation(finalNode.Location), false, false);
+            }
             else
             {
-                // The where the diagnostic was reported is still a part of the final syntax tree, so we report it there.
+                // The tokens where the diagnostic was reported are still a part of the final syntax tree, so we report it there.
 
-                var finalLocation = Location.Create(finalTree, diagnostic.Location.SourceSpan);
+                var finalLocation = Location.Create(finalTree, TextSpan.FromBounds(finalStartToken.Span.Start, finalEndToken.Span.End));
 
                 return (diagnostic.WithLocation(finalLocation), false, false);
             }
@@ -2264,6 +2270,27 @@ namespace Microsoft.CodeAnalysis
 
                 }
             }
+        }
+
+        private static bool TryFindSourceTokenInFinalSyntaxNode(SyntaxToken sourceToken, SyntaxNode finalNode,
+            out SyntaxToken finalToken)
+        {
+            foreach (var child in finalNode.ChildNodesAndTokens())
+            {
+                if (!child.IsToken)
+                {
+                    continue;
+                }
+
+                if (child.AsToken().Text == sourceToken.Text)
+                {
+                    finalToken = child.AsToken();
+                    return true;
+                }
+            }
+
+            finalToken = default;
+            return false;
         }
 
         // virtual for testing

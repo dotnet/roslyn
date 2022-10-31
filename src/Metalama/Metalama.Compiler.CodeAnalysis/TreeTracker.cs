@@ -571,15 +571,23 @@ namespace Metalama.Compiler
                 return (location, null);
             }
 
-            // if there are no annotations in the whole tree, then there is nothing to do
-            if (!tree.GetRoot().TryGetAnnotationFast(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind, out _))
+            // If there are no annotations in the whole tree, then there is nothing to do
+            var syntaxRoot = tree.GetRoot();
+            if (!syntaxRoot.TryGetAnnotationFast(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind, out _))
             {
                 return (location, null);
             }
+            
+            if ( !syntaxRoot.FullSpan.Contains(location.SourceSpan) )
+            {
+                // This happens in case of bug upstream, but we don't want to crash in this case.
+                return (location, null);
+            }
+            
 
             // From the given location, try to find the corresponding node, token or token pair and then proceed as usual
-            var foundNode = tree.GetRoot()
-                .FindNode(location.SourceSpan, true, true);
+            var foundNode = syntaxRoot.FindNode(location.SourceSpan, true, true);
+            
             if (foundNode.Span == location.SourceSpan)
             {
                 // The location corresponds to a node in the transformed tree. Find the corresponding tree in the source tree.
