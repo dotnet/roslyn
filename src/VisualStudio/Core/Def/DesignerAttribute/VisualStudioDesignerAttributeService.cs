@@ -251,15 +251,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             var latestSolution = AddChangedData(dataList, changedData);
 
-            // Now, group all the notifications by project and update all the projects in parallel.
+            // Now, group all the notifications by project and update each project one at a time. Avoid being parallel
+            // here to not overload the UI thread if we need to acquire that.
             foreach (var group in changedData.GroupBy(a => a.DocumentId.ProjectId))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                tasks.Add(NotifyProjectSystemAsync(group.Key, group, cancellationToken));
+                await NotifyProjectSystemAsync(group.Key, group, cancellationToken).ConfigureAwait(false);
             }
-
-            // Wait until all project updates have happened before processing the next batch.
-            await Task.WhenAll(tasks).ConfigureAwait(false);
 
             // now that we've reported this data, record that we've done so so that we don't report the same data again in the future.
             foreach (var data in changedData)
@@ -303,9 +301,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             foreach (var data in latestData)
             {
-                // only issue a change notification for files we haven't issued a notification for, or for files that
-                // changed their category.
-                if (!_documentToLastReportedCategory.TryGetValue(data.DocumentId, out var existingCategory) ||
+                // only issue a change for files that changed their category.
+                if (_documentToLastReportedCategory.TryGetValue(data.DocumentId, out var existingCategory) &&
                     existingCategory != data.Category)
                 {
                     changedData.Add(data);
