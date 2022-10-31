@@ -1702,8 +1702,7 @@ ref struct R
 }");
         }
 
-        // Test skipped because we don't allow faking runtime feature flags when using specific TargetFramework
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61463"), WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
+        [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
         public void InitRefField_UnsafeNullRef()
         {
             var source = """
@@ -1724,7 +1723,7 @@ ref struct R
     }
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
             verifier.VerifyIL("R..ctor()", @"
@@ -2191,6 +2190,221 @@ class Program
             comp = CreateEmptyCompilation(source, references: new[] { refAB });
             comp.VerifyDiagnostics();
             Assert.True(comp.Assembly.RuntimeSupportsByRefFields);
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [CombinatorialData]
+        public void RefAssembly(bool includePrivateMembers)
+        {
+            var sourceA =
+@"public ref struct R1<T, U>
+{
+    private ref T _f1;
+    private ref readonly U _f2;
+    public R1(ref T t, ref U u)
+    {
+        _f1 = ref t;
+        _f2 = ref u;
+    }
+    public override string ToString() => (_f1, _f2).ToString();
+}
+public ref struct R2<T, U>
+{
+    public ref T F1;
+    public ref readonly U F2;
+    public R2(ref T t, ref U u)
+    {
+        F1 = ref t;
+        F2 = ref u;
+    }
+    public override string ToString() => (F1, F2).ToString();
+}";
+            var compA = CreateCompilation(sourceA, targetFramework: TargetFramework.Net70);
+            var emitOptions = Microsoft.CodeAnalysis.Emit.EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(includePrivateMembers);
+            var refA = compA.EmitToImageReference(emitOptions);
+
+            var sourceB =
+@"using System;
+public class B
+{
+    public static void M()
+    {
+        int i = 1;
+        double d = 2.0;
+        var r1 = new R1<int, double>(ref i, ref d);
+        var r2 = new R2<double, int>(ref d, ref i);
+        i = 3;
+        d = 4.0;
+        Console.WriteLine((r1.ToString(), r2.ToString()));
+    }
+}";
+            var compB = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            var refB = compB.EmitToImageReference();
+            verifyFields(compB.GetMember<NamedTypeSymbol>("R1"), new[] { "ref T R1<T, U>._f1", "ref readonly U R1<T, U>._f2" });
+            verifyFields(compB.GetMember<NamedTypeSymbol>("R2"), new[] { "ref T R2<T, U>.F1", "ref readonly U R2<T, U>.F2" });
+
+            var sourceC =
+@"class Program
+{
+    static void Main()
+    {
+        B.M();
+    }
+}";
+            // Requires full assembly for A at runtime.
+            CompileAndVerify(
+                sourceC,
+                references: new[] { refB, compA.EmitToImageReference() },
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.Skipped,
+                expectedOutput: @"((3, 4), (4, 3))");
+
+            static void verifyFields(NamedTypeSymbol type, string[] expectedFields)
+            {
+                var actualFields = type.GetMembers().OfType<FieldSymbol>().Select(f => f.ToTestDisplayString()).ToList();
+                AssertEx.Equal(actualFields, expectedFields);
+            }
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        [InlineData(LanguageVersion.Latest)]
+        public void RequiredField_01(LanguageVersion languageVersion)
+        {
+            var source = """
+                #pragma warning disable 169
+                #pragma warning disable 649
+                ref struct R<T, U>
+                {
+                    public required ref T F1;
+                    public required ref readonly U F2;
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.Net70);
+            if (languageVersion == LanguageVersion.CSharp10)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (5,21): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     public required ref T F1;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(5, 21),
+                    // (5,27): error CS8936: Feature 'required members' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     public required ref T F1;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "F1").WithArguments("required members", "11.0").WithLocation(5, 27),
+                    // (6,21): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     public required ref readonly U F2;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref readonly U").WithArguments("ref fields", "11.0").WithLocation(6, 21),
+                    // (6,36): error CS8936: Feature 'required members' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     public required ref readonly U F2;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "F2").WithArguments("required members", "11.0").WithLocation(6, 36));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void RequiredField_02(bool useCompilationReference)
+        {
+            var sourceA = """
+                public ref struct R<T, U>
+                {
+                    private static U _u;
+                    public required ref T F1;
+                    public required ref readonly U F2;
+                    public R()
+                    {
+                        F2 = ref _u;
+                    }
+                    public R(ref T t)
+                    {
+                        F1 = ref t;
+                    }
+                    public R(ref T t, ref U u)
+                    {
+                        F1 = ref t;
+                        F2 = ref u;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int i = 1;
+                        double d = 2.0;
+                        scoped R<int, double> r;
+                        r = default;
+                        r = new(); // 1
+                        r = new() { }; // 2
+                        r = new() { F1 = ref i }; // 3
+                        r = new() { F2 = ref d }; // 4
+                        r = new() { F1 = ref i, F2 = ref d };
+                        r = new R<int, double>(); // 5
+                        r = new R<int, double> { }; // 6
+                        r = new(ref i); // 7
+                        r = new(ref i, ref d);
+                        r = new(ref i) { F1 = ref i }; // 8
+                        r = new(ref i) { F2 = ref d }; // 9
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (9,13): error CS9035: Required member 'R<int, double>.F2' must be set in the object initializer or attribute constructor.
+                //         r = new(); // 1
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("R<int, double>.F2").WithLocation(9, 13),
+                // (9,13): error CS9035: Required member 'R<int, double>.F1' must be set in the object initializer or attribute constructor.
+                //         r = new(); // 1
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("R<int, double>.F1").WithLocation(9, 13),
+                // (10,13): error CS9035: Required member 'R<int, double>.F2' must be set in the object initializer or attribute constructor.
+                //         r = new() { }; // 2
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("R<int, double>.F2").WithLocation(10, 13),
+                // (10,13): error CS9035: Required member 'R<int, double>.F1' must be set in the object initializer or attribute constructor.
+                //         r = new() { }; // 2
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("R<int, double>.F1").WithLocation(10, 13),
+                // (11,13): error CS9035: Required member 'R<int, double>.F2' must be set in the object initializer or attribute constructor.
+                //         r = new() { F1 = ref i };
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("R<int, double>.F2").WithLocation(11, 13),
+                // (12,13): error CS9035: Required member 'R<int, double>.F1' must be set in the object initializer or attribute constructor.
+                //         r = new() { F2 = ref d }; // 3
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("R<int, double>.F1").WithLocation(12, 13),
+                // (14,17): error CS9035: Required member 'R<int, double>.F2' must be set in the object initializer or attribute constructor.
+                //         r = new R<int, double>(); // 4
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "R<int, double>").WithArguments("R<int, double>.F2").WithLocation(14, 17),
+                // (14,17): error CS9035: Required member 'R<int, double>.F1' must be set in the object initializer or attribute constructor.
+                //         r = new R<int, double>(); // 4
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "R<int, double>").WithArguments("R<int, double>.F1").WithLocation(14, 17),
+                // (15,17): error CS9035: Required member 'R<int, double>.F2' must be set in the object initializer or attribute constructor.
+                //         r = new R<int, double> { } // 5
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "R<int, double>").WithArguments("R<int, double>.F2").WithLocation(15, 17),
+                // (15,17): error CS9035: Required member 'R<int, double>.F1' must be set in the object initializer or attribute constructor.
+                //         r = new R<int, double> { } // 5
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "R<int, double>").WithArguments("R<int, double>.F1").WithLocation(15, 17),
+                // (16,13): error CS9035: Required member 'R<int, double>.F2' must be set in the object initializer or attribute constructor.
+                //         r = new(ref i); // 6
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("R<int, double>.F2").WithLocation(16, 13),
+                // (16,13): error CS9035: Required member 'R<int, double>.F1' must be set in the object initializer or attribute constructor.
+                //         r = new(ref i); // 6
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("R<int, double>.F1").WithLocation(16, 13),
+                // (17,13): error CS9035: Required member 'R<int, double>.F2' must be set in the object initializer or attribute constructor.
+                //         r = new(ref i, ref d);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("R<int, double>.F2").WithLocation(17, 13),
+                // (17,13): error CS9035: Required member 'R<int, double>.F1' must be set in the object initializer or attribute constructor.
+                //         r = new(ref i, ref d);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("R<int, double>.F1").WithLocation(17, 13),
+                // (18,13): error CS9035: Required member 'R<int, double>.F2' must be set in the object initializer or attribute constructor.
+                //         r = new(ref i) { F1 = ref i }; // 7
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("R<int, double>.F2").WithLocation(18, 13),
+                // (19,13): error CS9035: Required member 'R<int, double>.F1' must be set in the object initializer or attribute constructor.
+                //         r = new(ref i) { F2 = ref d };
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("R<int, double>.F1").WithLocation(19, 13));
         }
 
         /// <summary>
@@ -23483,6 +23697,57 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
             VerifyParameterSymbol(method.Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.RefScoped);
 
             Assert.True(method.ContainingModule.UseUpdatedEscapeRules);
+        }
+
+        /// <summary>
+        /// Use updated escape rules with either -langversion:11 or higher, or
+        /// with System.Runtime.CompilerServices.RuntimeFeature.ByRefFields.
+        /// </summary>
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10, TargetFramework.Net60, false, false)]
+        [InlineData(LanguageVersion.CSharp11, TargetFramework.Net60, false, true)]
+        [InlineData(LanguageVersion.Latest, TargetFramework.Net60, false, true)]
+        [InlineData(LanguageVersion.CSharp10, TargetFramework.Net70, true, true)]
+        [InlineData(LanguageVersion.CSharp11, TargetFramework.Net70, true, true)]
+        [InlineData(LanguageVersion.Latest, TargetFramework.Net70, true, true)]
+        public void UseUpdatedEscapeRules(LanguageVersion languageVersion, TargetFramework targetFramework, bool supportsRefFields, bool expectedUseUpdatedEscapeRules)
+        {
+            var source =
+@"class Program
+{
+    static ref T F1<T>(out T t) => throw null;
+    static ref T F2<T>() => ref F1(out T t);
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: targetFramework);
+            if (expectedUseUpdatedEscapeRules)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,33): error CS8347: Cannot use a result of 'Program.F1<T>(out T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                    //     static ref T F2<T>() => ref F1(out T t);
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "F1(out T t)").WithArguments("Program.F1<T>(out T)", "t").WithLocation(4, 33),
+                    // (4,40): error CS8168: Cannot return local 't' by reference because it is not a ref local
+                    //     static ref T F2<T>() => ref F1(out T t);
+                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "T t").WithArguments("t").WithLocation(4, 40));
+            }
+
+            Assert.Equal(supportsRefFields, comp.SourceAssembly.RuntimeSupportsByRefFields);
+
+            var runtimeFeature = (FieldSymbol)comp.GetMember<NamedTypeSymbol>("System.Runtime.CompilerServices.RuntimeFeature").GetMembers("ByRefFields").SingleOrDefault();
+            Assert.Equal(supportsRefFields, runtimeFeature is { });
+            if (supportsRefFields)
+            {
+                Assert.Equal("System.String System.Runtime.CompilerServices.RuntimeFeature.ByRefFields", runtimeFeature.ToTestDisplayString());
+            }
+
+            var method = comp.GetMember<MethodSymbol>("Program.F1");
+            VerifyParameterSymbol(method.Parameters[0], "out T t", RefKind.Out, expectedUseUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+
+            Assert.Equal(expectedUseUpdatedEscapeRules, method.UseUpdatedEscapeRules);
+            Assert.Equal(expectedUseUpdatedEscapeRules, method.ContainingModule.UseUpdatedEscapeRules);
         }
 
         [WorkItem(63691, "https://github.com/dotnet/roslyn/issues/63691")]
