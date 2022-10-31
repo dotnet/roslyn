@@ -226,7 +226,8 @@ class C
 @"{ int [||]x = 3;
 
 x.ToString(); }",
-                       @"{ 3.ToString(); }");
+                       @"{ 
+3.ToString(); }");
         }
 
         [Fact]
@@ -628,7 +629,7 @@ class Program
     static void Main()
     {
         int x = 2;
-        Bar(x < x, x > 1 + 2);
+        Bar(x < x, x > 1+2);
     }
 
     static void Bar(object a, object b)
@@ -2372,7 +2373,7 @@ class Program
 {
     static void Main()
     {
-        object y = (global::E)-1;
+        object y = (global::E) -1;
     }
 }",
             parseOptions: null);
@@ -5318,6 +5319,39 @@ class MyClass
 ";
 
             await TestInRegularAndScriptAsync(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
+
+        [Fact, WorkItem(34143, "https://github.com/dotnet/roslyn/issues/34143")]
+        public async Task TestPreserveDestinationTrivia1()
+        {
+            var code = @"
+class MyClass
+{
+    void Goo(bool b)
+    {
+        var [||]s = """";
+        SomeMethod(
+            s);
+    }
+
+    void SomeMethod(string _) { }
+}
+";
+
+            var expected = @"
+class MyClass
+{
+    void Goo(bool b)
+    {
+        SomeMethod(
+            """");
+    }
+
+    void SomeMethod(string _) { }
+}
+";
+
+            await TestInRegularAndScriptAsync(code, expected);
         }
     }
 }

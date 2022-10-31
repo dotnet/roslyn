@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public Task<(ImmutableArray<DiagnosticData> diagnostics, bool upToDate)> TryGetDiagnosticsForSpanAsync(
-            Document document,
+            TextDocument document,
             TextSpan range,
             Func<string, bool>? shouldIncludeDiagnostic,
             bool includeSuppressedDiagnostics = false,
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
-            Document document,
+            TextDocument document,
             TextSpan? range,
             Func<string, bool>? shouldIncludeDiagnostic,
             bool includeCompilerDiagnostics,

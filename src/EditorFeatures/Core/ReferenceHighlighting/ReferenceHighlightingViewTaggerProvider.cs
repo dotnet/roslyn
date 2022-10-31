@@ -225,5 +225,9 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             return contentType.IsOfType(ContentTypeNames.RoslynContentType) ||
                    contentType.IsOfType(ContentTypeNames.XamlContentType);
         }
+
+        // Safe to directly reference compare as all the NavigableHighlightTag subclasses are singletons.
+        protected override bool TagEquals(NavigableHighlightTag tag1, NavigableHighlightTag tag2)
+            => tag1 == tag2;
     }
 }

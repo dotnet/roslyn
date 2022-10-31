@@ -35,4 +35,6 @@ internal static class BuildPropertyNames
         TargetPath,
         AssemblyName,
         CommandLineArgsForDesignTimeEvaluation);
+
+    public static readonly ImmutableArray<string> InitialEvaluationItemNames = ImmutableArray<string>.Empty;
 }

@@ -975,6 +975,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Inline refaktoring metody {0} se zachováním deklarace</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_temporary_variable">
+        <source>Inline temporary variable</source>
+        <target state="new">Inline temporary variable</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
         <source>Insufficient hexadecimal digits</source>
         <target state="translated">Nedostatek šestnáctkových číslic</target>
@@ -4940,6 +4945,11 @@ The offset is always displayed with a leading sign. A plus sign (+) indicates ho
 U hodnot DateTimeOffset tento specifikátor formátu představuje posun hodnoty DateTimeOffset od času UTC v hodinách.
 
 Posun se vždy zobrazuje se znaménkem na začátku. Znaménko plus (+) označuje hodiny před UTC a znaménko minus (-) pak hodiny za UTC. Posun s jednou číslicí se formátuje s nulou na začátku.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="while_loop">
+        <source>while loop</source>
+        <target state="new">while loop</target>
         <note />
       </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">

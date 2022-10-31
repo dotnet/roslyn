@@ -975,6 +975,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Сделать "{0}" встроенным и сохранить его</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_temporary_variable">
+        <source>Inline temporary variable</source>
+        <target state="new">Inline temporary variable</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
         <source>Insufficient hexadecimal digits</source>
         <target state="translated">Недостаточно шестнадцатеричных цифр</target>
@@ -4940,6 +4945,11 @@ The offset is always displayed with a leading sign. A plus sign (+) indicates ho
 При использовании значений DateTimeOffset этот описатель формата представляет смещение значения DateTimeOffset от UTC в часах.
 
 Смещение всегда отображается с предшествующим знаком. Знак "плюс" (+) обозначает часы опережения UTC, а знак "минус" (-) — часы отставания от UTC. Смещение из одной цифры форматируется с начальным нулем.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="while_loop">
+        <source>while loop</source>
+        <target state="new">while loop</target>
         <note />
       </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">
