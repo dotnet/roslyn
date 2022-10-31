@@ -94,9 +94,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                         File.AppendAllText(_logFilePath, _buffer.ToString());
                         _buffer.Clear();
                     }
-                    catch (IOException)
+                    catch (Exception)
                     {
-                        // Ignore IOException, we will log the buffer contents in next Log call.
+                        // Ignore all possible exceptions that can be thrown by File IO operations, such as IOException,
+                        // UnauthorizedAccessException, SecurityException, etc.
+                        // We will log the buffer contents in next Log call.
                     }
                 }
             }, CancellationToken.None);
