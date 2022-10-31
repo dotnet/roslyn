@@ -7036,6 +7036,55 @@ public class DisplayAttribute : System.Attribute
                 );
         }
 
+        [Fact]
+        public void DelegateConversions_ImplicitlyTypedParameter_RefParameter()
+        {
+            var source = """
+                struct R { }
+
+                delegate R D1(ref R r);
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        D1 d1 = r1 => r1; // 1
+                        M(r2 => r2); // 2
+                    }
+
+                    static void M(D1 d1) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (9,17): error CS1676: Parameter 1 must be declared with the 'ref' keyword
+                //         D1 d1 = r1 => r1; // 1
+                Diagnostic(ErrorCode.ERR_BadParamRef, "r1").WithArguments("1", "ref").WithLocation(9, 17),
+                // (10,11): error CS1676: Parameter 1 must be declared with the 'ref' keyword
+                //         M(r2 => r2); // 2
+                Diagnostic(ErrorCode.ERR_BadParamRef, "r2").WithArguments("1", "ref").WithLocation(10, 11)
+                );
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambdas = root.DescendantNodes().OfType<LambdaExpressionSyntax>().ToArray();
+
+            Assert.Equal("r1 => r1", lambdas[0].ToString());
+            var lambdaParameter1 = model.GetSymbolInfo(lambdas[0]).Symbol.GetParameters()[0];
+            Assert.Equal("? r1", lambdaParameter1.ToTestDisplayString());
+            Assert.Equal(RefKind.None, lambdaParameter1.RefKind);
+
+            // Implicitly-typed lambda parameters can get a type, but they cannot get a different ref-kind (or scoped-ness) during anonymous function conversion
+            // Tracked by https://github.com/dotnet/roslyn/issues/64985
+            Assert.Equal("r2 => r2", lambdas[1].ToString());
+            var lambdaParameter2 = model.GetSymbolInfo(lambdas[1]).Symbol.GetParameters()[0];
+            Assert.Equal("ref R r2", lambdaParameter2.ToTestDisplayString());
+            Assert.Equal(RefKind.Ref, lambdaParameter2.RefKind);
+        }
+
         // PROTOTYPE: Add separate test cases for lang version 11 vs. lang version 11 preview
         [Fact]
         public void LambdaWithExplicitDefaultParam()

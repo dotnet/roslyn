@@ -1689,25 +1689,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (parameter is SourceComplexParameterSymbolBase { ContainingSymbol: LocalFunctionSymbol or LambdaSymbol } sourceComplexParam)
             {
                 // Mark attribute arguments as used.
-                if (sourceComplexParam.BindParameterAttributes() is { IsDefaultOrEmpty: false } boundAttributes)
-                {
-                    foreach (var boundAttribute in boundAttributes)
-                    {
-                        foreach (var attributeArgument in boundAttribute.ConstructorArguments)
-                        {
-                            VisitRvalue(attributeArgument);
-                        }
-                        foreach (var attributeNamedArgumentAssignment in boundAttribute.NamedArguments)
-                        {
-                            VisitRvalue(attributeNamedArgumentAssignment.Right);
-                        }
-                    }
-                }
+                VisitAttributes(sourceComplexParam.BindParameterAttributes());
 
                 // Mark default parameter values as used.
                 if (sourceComplexParam.BindParameterEqualsValue() is { } boundValue)
                 {
                     VisitRvalue(boundValue.Value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Marks attribute arguments as used.
+        /// </summary>
+        private void VisitAttributes(ImmutableArray<(CSharpAttributeData, BoundAttribute)> boundAttributes)
+        {
+            if (boundAttributes.IsDefaultOrEmpty)
+            {
+                return;
+            }
+
+            foreach (var (attributeData, boundAttribute) in boundAttributes)
+            {
+                // Skip invalid attributes (e.g., with a non-constant argument) to avoid superfluous diagnostics.
+                if (attributeData.HasErrors)
+                {
+                    continue;
+                }
+
+                foreach (var attributeArgument in boundAttribute.ConstructorArguments)
+                {
+                    VisitRvalue(attributeArgument);
+                }
+                foreach (var attributeNamedArgumentAssignment in boundAttribute.NamedArguments)
+                {
+                    VisitRvalue(attributeNamedArgumentAssignment.Right);
                 }
             }
         }
@@ -1908,8 +1924,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // First phase
                 foreach (var stmt in block.Statements)
                 {
-                    if (stmt.Kind == BoundKind.LocalFunctionStatement)
+                    if (stmt is BoundLocalFunctionStatement localFunctionStatement)
                     {
+                        // Mark attribute arguments as used.
+                        VisitAttributes(localFunctionStatement.Symbol.BindMethodAttributes());
+
                         VisitAlways(stmt);
                     }
                 }
@@ -2133,6 +2152,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var oldSymbol = this.CurrentSymbol;
             this.CurrentSymbol = node.Symbol;
+
+            // Mark attribute arguments as used.
+            VisitAttributes(node.Symbol.BindMethodAttributes());
 
             var oldPending = SavePending(); // we do not support branches into a lambda
 

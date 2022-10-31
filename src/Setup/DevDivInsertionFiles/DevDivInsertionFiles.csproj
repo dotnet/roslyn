@@ -54,6 +54,7 @@
     <ExpectedDependency Include="System.Memory"/>
     <!-- We do not have a training scenario that covers lib/netstandard2.0/System.Text.Encoding.CodePages.dll  -->
     <ExpectedDependency Include="System.Text.Encoding.CodePages" />
+    <ExpectedDependency Include="System.Threading.Channels" />
     <ExpectedDependency Include="System.Numerics.Vectors"/>
   </ItemGroup>
 
