@@ -2,21 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.NamingStyles;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -2815,6 +2810,29 @@ class C
 }
 ";
             await VerifyItemIsAbsentAsync(markup, "consoleColor");
+        }
+
+        [Fact, WorkItem(29487, "https://github.com/dotnet/roslyn/issues/29487")]
+        public async Task TestForOutParam1()
+        {
+            var markup = @"
+using System.Threading;
+
+class C
+{
+    void Main()
+    {
+        Goo(out var $$)
+    }
+
+    void Goo(out CancellationToken interestingName)
+    {
+
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "interestingName");
+            await VerifyItemExistsAsync(markup, "cancellationToken");
         }
 
         private static NamingStylePreferences MultipleCamelCaseLocalRules()
