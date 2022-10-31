@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 options = options with { ShowNameSuggestions = ShowNameSuggestions.Value };
 
             if (ShowNewSnippetExperience.HasValue)
-                options = options with { ShowNewSnippetExperience = ShowNewSnippetExperience.Value };
+                options = options with { ShowNewSnippetExperienceUserOption = ShowNewSnippetExperience.Value };
 
             return options;
         }

@@ -31,7 +31,11 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
                 ? CodeActionPriority.Low
                 : CodeActionPriority.Medium;
 
-            RegisterCodeFix(context, AnalyzersResources.Add_accessibility_modifiers, nameof(AnalyzersResources.Add_accessibility_modifiers), priority);
+            var (title, key) = diagnostic.Properties.ContainsKey(AddAccessibilityModifiersConstants.ModifiersAdded)
+                ? (AnalyzersResources.Add_accessibility_modifiers, nameof(AnalyzersResources.Add_accessibility_modifiers))
+                : (AnalyzersResources.Remove_accessibility_modifiers, nameof(AnalyzersResources.Remove_accessibility_modifiers));
+
+            RegisterCodeFix(context, title, key, priority);
 
             return Task.CompletedTask;
         }

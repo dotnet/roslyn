@@ -975,6 +975,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">'{0}' öğesini satır içine al ve koru</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_temporary_variable">
+        <source>Inline temporary variable</source>
+        <target state="new">Inline temporary variable</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
         <source>Insufficient hexadecimal digits</source>
         <target state="translated">Yetersiz onaltılık basamak</target>
@@ -4940,6 +4945,11 @@ The offset is always displayed with a leading sign. A plus sign (+) indicates ho
 DateTimeOffset değerlerinde, bu biçim belirticisi, DateTimeOffset değerinin saat cinsinden UTC'den uzaklığını temsil eder.
 
 Uzaklık her zaman başında bir işaretle görüntülenir. Artı işareti (+) UTC'den önceki, eksi işareti (-) ise UTC'den sonraki saatleri gösterir. Tek haneli bir uzaklık, başına bir sıfır eklenerek biçimlendirilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="while_loop">
+        <source>while loop</source>
+        <target state="new">while loop</target>
         <note />
       </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">

@@ -53,7 +53,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\SuppressMessageAttributeState.TargetScope.cs" Link="RemoveUnnecessarySuppressions\SuppressMessageAttributeState.TargetScope.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\SuppressMessageAttributeState.TargetSymbolResolver.cs" Link="RemoveUnnecessarySuppressions\SuppressMessageAttributeState.TargetSymbolResolver.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\MakeFieldReadonlyDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\AbstractMakeFieldReadonlyDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyle\NamingStyleDiagnosticAnalyzerBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\AbstractOrderModifiersDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\OrderModifiersHelpers.cs" />

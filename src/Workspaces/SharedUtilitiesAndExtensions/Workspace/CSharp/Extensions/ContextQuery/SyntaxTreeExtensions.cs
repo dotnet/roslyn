@@ -1760,6 +1760,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //  await using (var
             //  from var
             //  join var
+            //  using var
+            //  await using var
 
             var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
 
@@ -1803,13 +1805,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
+            // for ( |
+            // foreach ( |
+            // await foreach ( |
+            // using ( |
+            // await using ( |
             if (token.IsKind(SyntaxKind.OpenParenToken))
             {
-                // for ( |
-                // foreach ( |
-                // await foreach ( |
-                // using ( |
-                // await using ( |
                 var previous = token.GetPreviousToken(includeSkipped: true);
                 if (previous.IsKind(SyntaxKind.ForKeyword) ||
                     previous.IsKind(SyntaxKind.ForEachKeyword) ||
@@ -1817,6 +1819,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 {
                     return true;
                 }
+            }
+
+            // using |
+            // await using |
+            if (token.IsKind(SyntaxKind.UsingKeyword) &&
+                token.Parent is LocalDeclarationStatementSyntax)
+            {
+                return true;
             }
 
             // from |

@@ -26,6 +26,7 @@
     <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="$(MicrosoftBclAsyncInterfacesVersion)" />
     <PackageReference Include="System.IO.Pipelines" Version="$(SystemIOPipelinesVersion)" />
+    <PackageReference Include="System.Threading.Channels" Version="$(SystemThreadingChannelsVersion)" />
   </ItemGroup>
   <ItemGroup Label="Linked Files">
     <Compile Remove="Storage\SQLite\**\*.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
