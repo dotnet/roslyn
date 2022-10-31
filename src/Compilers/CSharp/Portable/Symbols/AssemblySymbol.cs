@@ -644,22 +644,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 for (int i = 1; i < parts.Length; i++)
                 {
                     mdName = MetadataTypeName.FromTypeName(parts[i]);
-                    NamedTypeSymbol? temp = type.LookupMetadataType(ref mdName);
+                    type = type.LookupMetadataType(ref mdName);
 
-                    if (temp is null)
+                    if (type is null)
                     {
                         return null;
                     }
 
-                    Debug.Assert(!temp.IsErrorType());
-                    Debug.Assert((object)type == temp.ContainingSymbol);
+                    Debug.Assert(!type.IsErrorType());
 
-                    if (isWellKnownType && !IsValidWellKnownType(temp))
+                    if (isWellKnownType && !IsValidWellKnownType(type))
                     {
                         return null;
                     }
-
-                    type = temp;
                 }
             }
             else
