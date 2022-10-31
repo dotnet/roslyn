@@ -170,7 +170,7 @@ namespace Roslyn.Test.Utilities
             // Note: NetCoreApp should behave like latest Core TFM
             TargetFramework.Empty => ImmutableArray<MetadataReference>.Empty,
             TargetFramework.NetStandard20 => NetStandard20References,
-            TargetFramework.Net50 => ImmutableArray.CreateRange<MetadataReference>(LoadDynamicReferences("Basic.Reference.Assemblies.Net50", "Net50")),
+            TargetFramework.Net50 => ImmutableArray.CreateRange<MetadataReference>(LoadDynamicReferences("Net50")),
             TargetFramework.Net60 => ImmutableArray.CreateRange<MetadataReference>(Net60.All),
             TargetFramework.NetCoreApp or TargetFramework.Net70 => ImmutableArray.CreateRange<MetadataReference>(Net70.All),
             TargetFramework.NetFramework => NetFramework.StandardReferences,
@@ -197,7 +197,6 @@ namespace Roslyn.Test.Utilities
             TargetFramework.MinimalAsync => MinimalAsyncReferences,
             TargetFramework.StandardLatest => StandardLatestReferences,
             _ => throw new InvalidOperationException($"Unexpected target framework {targetFramework}"),
-
         };
 
         public static ImmutableArray<MetadataReference> GetReferences(TargetFramework tf, IEnumerable<MetadataReference> additionalReferences)
@@ -275,8 +274,9 @@ namespace Roslyn.Test.Utilities
         /// in size (4+ MB) and we have ~50 test projects so this adds up fast. To keep size down we just add 
         /// PackageReference on the few projects that and dynamically load here.
         /// </summary>
-        private static ImmutableArray<PortableExecutableReference> LoadDynamicReferences(string assemblyName, string targetFrameworkName)
+        private static ImmutableArray<PortableExecutableReference> LoadDynamicReferences(string targetFrameworkName)
         {
+            var assemblyName = $"Basic.Reference.Assemblies.{targetFrameworkName}";
             if (s_dynamicReferenceMap.TryGetValue(assemblyName, out var references))
             {
                 return references;
@@ -287,10 +287,13 @@ namespace Roslyn.Test.Utilities
                 var name = new AssemblyName(assemblyName);
                 var assembly = Assembly.Load(name);
 
-                var type = assembly.GetType($"Basic.Reference.Assemblies.{targetFrameworkName}", throwOnError: true);
+                var type = assembly.GetType(assemblyName, throwOnError: true);
                 var prop = type.GetProperty("All", BindingFlags.Public | BindingFlags.Static);
-                var obj = prop.GetGetMethod()!.Invoke(null, null);
+                var obj = prop.GetGetMethod()!.Invoke(obj: null, parameters: null);
                 references = ((IEnumerable<PortableExecutableReference>)obj).ToImmutableArray();
+
+                // This method can de called in parallel. Who wins this TryAdd isn't important, it's the same 
+                // values. 
                 _ = s_dynamicReferenceMap.TryAdd(assemblyName, references);
                 return references;
             }
