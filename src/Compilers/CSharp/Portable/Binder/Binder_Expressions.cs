@@ -8997,6 +8997,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal NamedTypeSymbol? GetMethodGroupOrLambdaDelegateType(
             SyntaxNode syntax,
             MethodSymbol methodSymbol,
+            ImmutableArray<DeclarationScope>? parameterScopesOverride = null,
             RefKind? returnRefKindOverride = null,
             TypeWithAnnotations? returnTypeOverride = null)
         {
@@ -9005,9 +9006,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameterTypes = methodSymbol.ParameterTypesWithAnnotations;
             var returnType = returnTypeOverride ?? methodSymbol.ReturnTypeWithAnnotations;
             var returnRefKind = returnRefKindOverride ?? methodSymbol.RefKind;
-            var parameterScopes = parameters.Any(p => p.EffectiveScope != DeclarationScope.Unscoped) ?
+            var parameterScopes = parameterScopesOverride ??
+                (parameters.Any(p => p.EffectiveScope != DeclarationScope.Unscoped) ?
                 parameters.SelectAsArray(p => p.EffectiveScope) :
-                default;
+                default);
             var parameterDefaultValues = parameters.Any(p => p.HasExplicitDefaultValue) ?
                 parameters.SelectAsArray(p => p.ExplicitDefaultConstantValue) :
                 default;

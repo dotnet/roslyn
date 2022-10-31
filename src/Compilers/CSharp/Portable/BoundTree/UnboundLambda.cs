@@ -706,8 +706,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var parameterScopes = parameterScopesBuilder.ToImmutableAndFree();
-
             if (!returnType.HasType)
             {
                 // Binder.GetMethodGroupOrLambdaDelegateType() expects a non-null return type.
@@ -717,6 +715,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Binder.GetMethodGroupOrLambdaDelegateType(
                 _unboundLambda.Syntax,
                 lambdaSymbol,
+                parameterScopesBuilder.ToImmutableAndFree(),
                 returnRefKind,
                 returnType);
         }
