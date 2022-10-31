@@ -9007,7 +9007,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameterDefaultValues = parameters.Any(p => p.HasExplicitDefaultValue) ?
                 parameters.SelectAsArray(p => p.ExplicitDefaultConstantValue) :
                 default;
-            var hasParamsArray = !parameters.IsEmpty && parameters[^1].IsParams;
+            var hasParamsArray = parameters is [.., { IsParams: true }];
 
             Debug.Assert(ContainingMemberOrLambda is { });
             Debug.Assert(parameterRefKinds.IsDefault || parameterRefKinds.Length == parameterTypes.Length);
