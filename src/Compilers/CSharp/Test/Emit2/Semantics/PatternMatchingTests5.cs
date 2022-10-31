@@ -2690,6 +2690,44 @@ class N
         }
 
         [Fact, WorkItem(64399, "https://github.com/dotnet/roslyn/issues/64399")]
+        public void ShortestPathToDefaultNodeYieldsNoRemainingValues_NullBranch()
+        {
+            var source = """
+public enum Enum
+{
+    Zero = 0,
+    One = 1,
+    Two = 2,
+}
+
+class N
+{
+    private static int M(Enum e1, Enum e2, object o)
+    {
+        return (e1, e2, o) switch
+        {
+            (Enum.One, Enum.One, _) => 0,
+            (Enum.Two, _, _) => 0,
+            (_, Enum.Two, _) => 0,
+            (Enum.Zero, Enum.Zero, _) => 0,
+            (Enum.Zero, Enum.One, _) => 0,
+            (Enum.One, Enum.Zero, _) => 0,
+            ( < 0 or > Enum.Two, _, _) => 0,
+            (_, < 0 or > Enum.Two, string s) => 0,
+        };
+    }
+}
+""";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,25): warning CS8846: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One)' is not covered. However, a pattern with a 'when' clause might successfully match this value.
+                //         return (e1, e2) switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen, "switch").WithArguments("(Enum.One, Enum.One)").WithLocation(12, 25)
+                );
+        }
+
+        [Fact, WorkItem(64399, "https://github.com/dotnet/roslyn/issues/64399")]
         public void ShortestPathToDefaultNodeYieldsNoRemainingValues_Nullability()
         {
             var source = """
