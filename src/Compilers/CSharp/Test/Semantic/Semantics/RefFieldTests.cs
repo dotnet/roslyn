@@ -26099,5 +26099,114 @@ Block[B2] - Exit
 ",
                 controlFlowGraph, symbol);
         }
+
+        [Fact, WorkItem(64045, "https://github.com/dotnet/roslyn/issues/64045")]
+        public void ConstructorInvocationValEscape_01()
+        {
+            var source = """
+                class Program
+                {
+                    static RS M1(scoped ref int i1) => new(ref i1);
+                    static RS M2(scoped ref int i2)
+                    {
+                        return new(ref i2);
+                    }
+
+                    static RS M3(scoped ref int i3) => new RS(ref i3);
+                    static RS M4(scoped ref int i4)
+                    {
+                        return new RS(ref i4);
+                    }
+                }
+
+                ref struct RS
+                {
+                    public RS(ref int i0) => throw null!;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,40): error CS8347: Cannot use a result of 'RS.RS(ref int)' in this context because it may expose variables referenced by parameter 'i0' outside of their declaration scope
+                //     static RS M1(scoped ref int i1) => new(ref i1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new(ref i1)").WithArguments("RS.RS(ref int)", "i0").WithLocation(3, 40),
+                // (3,48): error CS9075: Cannot return a parameter by reference 'i1' because it is scoped to the current method
+                //     static RS M1(scoped ref int i1) => new(ref i1);
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "i1").WithArguments("i1").WithLocation(3, 48),
+                // (6,16): error CS8347: Cannot use a result of 'RS.RS(ref int)' in this context because it may expose variables referenced by parameter 'i0' outside of their declaration scope
+                //         return new(ref i2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new(ref i2)").WithArguments("RS.RS(ref int)", "i0").WithLocation(6, 16),
+                // (6,24): error CS9075: Cannot return a parameter by reference 'i2' because it is scoped to the current method
+                //         return new(ref i2);
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "i2").WithArguments("i2").WithLocation(6, 24),
+                // (9,40): error CS8347: Cannot use a result of 'RS.RS(ref int)' in this context because it may expose variables referenced by parameter 'i0' outside of their declaration scope
+                //     static RS M3(scoped ref int i3) => new RS(ref i3);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new RS(ref i3)").WithArguments("RS.RS(ref int)", "i0").WithLocation(9, 40),
+                // (9,51): error CS9075: Cannot return a parameter by reference 'i3' because it is scoped to the current method
+                //     static RS M3(scoped ref int i3) => new RS(ref i3);
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "i3").WithArguments("i3").WithLocation(9, 51),
+                // (12,16): error CS8347: Cannot use a result of 'RS.RS(ref int)' in this context because it may expose variables referenced by parameter 'i0' outside of their declaration scope
+                //         return new RS(ref i4);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new RS(ref i4)").WithArguments("RS.RS(ref int)", "i0").WithLocation(12, 16),
+                // (12,27): error CS9075: Cannot return a parameter by reference 'i4' because it is scoped to the current method
+                //         return new RS(ref i4);
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "i4").WithArguments("i4").WithLocation(12, 27));
+        }
+
+        [Fact, WorkItem(64045, "https://github.com/dotnet/roslyn/issues/64045")]
+        public void ConstructorInvocationValEscape_02()
+        {
+            var source = """
+                class Program
+                {
+                    static void M()
+                    {
+                        Del lam1 = (scoped ref int i1) => new(ref i1); // 1
+                        Del lam2 = (scoped ref int i2) =>
+                        {
+                            return new(ref i2); // 2
+                        };
+
+                        Del lam3 = (scoped ref int i3) => new RS(ref i3); // 3
+                        Del lam4 = (scoped ref int i4) =>
+                        {
+                            return new RS(ref i4); // 4
+                        };
+                    }
+                }
+
+                ref struct RS
+                {
+                    public RS(ref int i0) => throw null!;
+                }
+
+                delegate RS Del(scoped ref int i);
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,43): error CS8347: Cannot use a result of 'RS.RS(ref int)' in this context because it may expose variables referenced by parameter 'i0' outside of their declaration scope
+                //         Del lam1 = (scoped ref int i1) => new(ref i1); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new(ref i1)").WithArguments("RS.RS(ref int)", "i0").WithLocation(5, 43),
+                // (5,51): error CS9075: Cannot return a parameter by reference 'i1' because it is scoped to the current method
+                //         Del lam1 = (scoped ref int i1) => new(ref i1); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "i1").WithArguments("i1").WithLocation(5, 51),
+                // (8,20): error CS8347: Cannot use a result of 'RS.RS(ref int)' in this context because it may expose variables referenced by parameter 'i0' outside of their declaration scope
+                //             return new(ref i2); // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new(ref i2)").WithArguments("RS.RS(ref int)", "i0").WithLocation(8, 20),
+                // (8,28): error CS9075: Cannot return a parameter by reference 'i2' because it is scoped to the current method
+                //             return new(ref i2); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "i2").WithArguments("i2").WithLocation(8, 28),
+                // (11,43): error CS8347: Cannot use a result of 'RS.RS(ref int)' in this context because it may expose variables referenced by parameter 'i0' outside of their declaration scope
+                //         Del lam3 = (scoped ref int i3) => new RS(ref i3); // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new RS(ref i3)").WithArguments("RS.RS(ref int)", "i0").WithLocation(11, 43),
+                // (11,54): error CS9075: Cannot return a parameter by reference 'i3' because it is scoped to the current method
+                //         Del lam3 = (scoped ref int i3) => new RS(ref i3); // 3
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "i3").WithArguments("i3").WithLocation(11, 54),
+                // (14,20): error CS8347: Cannot use a result of 'RS.RS(ref int)' in this context because it may expose variables referenced by parameter 'i0' outside of their declaration scope
+                //             return new RS(ref i4); // 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new RS(ref i4)").WithArguments("RS.RS(ref int)", "i0").WithLocation(14, 20),
+                // (14,31): error CS9075: Cannot return a parameter by reference 'i4' because it is scoped to the current method
+                //             return new RS(ref i4); // 4
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "i4").WithArguments("i4").WithLocation(14, 31));
+        }
     }
 }
