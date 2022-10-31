@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             var position = checkId.IndexOf(':');
             var errorCode = position == -1
                 ? checkId
-                : checkId.Substring(0, position);
+                : checkId[..position];
             errorCode = errorCode.Trim();
             return errorCode;
         }
