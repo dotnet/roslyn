@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             private readonly ITextBuffer _subjectBuffer;
             private readonly IEnumerable<Document> _baseDocuments;
             private readonly ITextBufferFactoryService _textBufferFactoryService;
-            private readonly ITextBufferCloneService _cloneService;
+            private readonly ITextBufferCloneService _textBufferCloneService;
 
             /// <summary>
             /// The list of active tracking spans that are updated with the session's replacement text.
@@ -55,17 +55,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             private TextSpan? _activeSpan;
 
             public OpenTextBufferManager(
-                Workspace workspace,
                 InlineRenameSession session,
-                ITextBuffer subjectBuffer,
+                Workspace workspace,
                 ITextBufferFactoryService textBufferFactoryService,
-                ITextBufferCloneService cloneService)
+                ITextBufferCloneService textBufferCloneService,
+                ITextBuffer subjectBuffer)
             {
                 _session = session;
                 _subjectBuffer = subjectBuffer;
                 _baseDocuments = subjectBuffer.GetRelatedDocuments();
                 _textBufferFactoryService = textBufferFactoryService;
-                _cloneService = cloneService;
+                _textBufferCloneService = textBufferCloneService;
                 _subjectBuffer.ChangedLowPriority += OnTextBufferChanged;
 
                 foreach (var view in session._textBufferAssociatedViewService.GetAssociatedTextViews(_subjectBuffer))
@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 var preMergeDocumentText = preMergeDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
                 var snapshot = preMergeDocumentText.FindCorrespondingEditorTextSnapshot();
-                if (snapshot != null && _cloneService != null)
+                if (snapshot != null && _textBufferCloneService != null)
                 {
                     snapshotSpanToClone = snapshot.GetFullSpan();
                 }
@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 foreach (var replacement in relevantReplacements)
                 {
-                    var buffer = snapshotSpanToClone.HasValue ? _cloneService.CloneWithUnknownContentType(snapshotSpanToClone.Value) : _textBufferFactoryService.CreateTextBuffer(preMergeDocumentTextString, contentType);
+                    var buffer = snapshotSpanToClone.HasValue ? _textBufferCloneService.CloneWithUnknownContentType(snapshotSpanToClone.Value) : _textBufferFactoryService.CreateTextBuffer(preMergeDocumentTextString, contentType);
                     var trackingSpan = buffer.CurrentSnapshot.CreateTrackingSpan(replacement.NewSpan.ToSpan(), SpanTrackingMode.EdgeExclusive, TrackingFidelityMode.Forward);
 
                     using (var edit = _subjectBuffer.CreateEdit(EditOptions.None, null, s_calculateMergedSpansEditTag))
