@@ -1135,7 +1135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var actualDiagnostics = diagsForCurrentMethod.ToReadOnly();
                 if (sourceMethod != null)
                 {
-                    Interlocked.Increment(ref _compilation._eventQueueEnqueuePendingCount);
+                    _compilation.RegisterPossibleUpcomingEventEnqueue();
 
                     try
                     {
@@ -1168,7 +1168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     finally
                     {
-                        Interlocked.Decrement(ref _compilation._eventQueueEnqueuePendingCount);
+                        _compilation.UnregisterPossibleUpcomingEventEnqueue();
                     }
                 }
 

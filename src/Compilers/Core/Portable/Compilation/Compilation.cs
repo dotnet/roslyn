@@ -632,7 +632,7 @@ namespace Microsoft.CodeAnalysis
         /// If this value is not 0, we might be about to enqueue more events into <see cref="EventQueue"/>.
         /// In this case, we need to wait for the count to go to zero before completing the queue. 
         /// </summary>
-        internal int _eventQueueEnqueuePendingCount;
+        private int _eventQueueEnqueuePendingCount;
 
         #endregion
 
@@ -1769,6 +1769,16 @@ namespace Microsoft.CodeAnalysis
                     CompleteCompilationEventQueue_NoLock();
                 }
             }
+        }
+
+        internal void RegisterPossibleUpcomingEventEnqueue()
+        {
+            Interlocked.Increment(ref _eventQueueEnqueuePendingCount);
+        }
+
+        internal void UnregisterPossibleUpcomingEventEnqueue()
+        {
+            Interlocked.Decrement(ref _eventQueueEnqueuePendingCount);
         }
 
         internal void CompleteCompilationEventQueue_NoLock()

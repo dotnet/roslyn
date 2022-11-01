@@ -1259,7 +1259,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If sourceMethod IsNot Nothing Then
                 Dim compilation = compilationState.Compilation
 
-                Interlocked.Increment(compilation._eventQueueEnqueuePendingCount)
+                compilation.RegisterPossibleUpcomingEventEnqueue()
 
                 Try
                     If sourceMethod.SetDiagnostics(diagsForCurrentMethod.DiagnosticBag.ToReadOnly()) Then
@@ -1285,7 +1285,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                     End If
                 Finally
-                    Interlocked.Decrement(compilation._eventQueueEnqueuePendingCount)
+                    compilation.UnregisterPossibleUpcomingEventEnqueue()
                 End Try
             End If
 
