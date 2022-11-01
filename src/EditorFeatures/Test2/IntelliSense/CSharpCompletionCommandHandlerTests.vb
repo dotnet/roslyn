@@ -10678,10 +10678,10 @@ class MyClass
 
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp), True)
-                state.SendTypeChars("cw")
-                Await state.AssertSelectedCompletionItem(displayText:="cw", inlineDescription:=Nothing, isHardSelected:=True)
+                state.SendTypeChars("if")
+                Await state.AssertSelectedCompletionItem(displayText:="if", inlineDescription:=Nothing, isHardSelected:=True)
                 state.SendDownKey()
-                Await state.AssertSelectedCompletionItem(displayText:="cw", inlineDescription:="Console.WriteLine", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="if", description:="if statement" & vbCrLf & "Code snippet for 'if statement'", inlineDescription:="if statement", isHardSelected:=True)
             End Using
         End Function
 

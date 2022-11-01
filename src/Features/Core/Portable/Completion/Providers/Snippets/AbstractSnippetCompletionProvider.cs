@@ -97,8 +97,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
                     position: position,
                     snippetIdentifier: snippetData.Shortcut,
                     glyph: Glyph.Snippet,
-                    description: (snippetData.Title + Environment.NewLine + snippetData.Description).ToSymbolDisplayParts(),
-                    inlineDescription: snippetData.Title,
+                    description: (snippetData.Description + Environment.NewLine + string.Format(FeaturesResources.Code_snippet_for_0, snippetData.Description)).ToSymbolDisplayParts(),
+                    inlineDescription: snippetData.Description,
                     additionalFilterTexts: snippetData.AdditionalFilterTexts);
                 context.AddItem(completionItem);
             }

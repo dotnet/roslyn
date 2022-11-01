@@ -16,16 +16,14 @@ namespace Microsoft.CodeAnalysis.Snippets
     /// </summary>
     internal readonly struct SnippetData
     {
-        public readonly string Title;
-        public readonly string Shortcut;
         public readonly string Description;
+        public readonly string Identifier;
         public readonly ImmutableArray<string> AdditionalFilterTexts;
 
-        public SnippetData(string title, string shortcut, string description, ImmutableArray<string> additionalFilterTexts)
+        public SnippetData(string description, string identifier, ImmutableArray<string> additionalFilterTexts)
         {
-            Title = title;
-            Shortcut = shortcut;
             Description = description;
+            Identifier = identifier;
             AdditionalFilterTexts = additionalFilterTexts;
         }
     }
