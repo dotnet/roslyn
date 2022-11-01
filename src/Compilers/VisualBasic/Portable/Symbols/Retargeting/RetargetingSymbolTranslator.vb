@@ -699,7 +699,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                                                     newCtorArguments,
                                                     newNamedArguments,
                                                     oldAttribute.IsConditionallyOmitted,
-                                                    oldAttribute.HasErrors)
+                                                    oldAttribute.HasErrors OrElse newAttributeCtor Is Nothing)
             End Function
 
             Private Function RetargetAttributeConstructorArguments(constructorArguments As ImmutableArray(Of TypedConstant)) As ImmutableArray(Of TypedConstant)
