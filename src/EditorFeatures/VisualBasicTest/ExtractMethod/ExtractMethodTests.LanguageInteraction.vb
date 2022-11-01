@@ -3394,6 +3394,18 @@ End Namespace"
                     Assert.True(state.IsUnspecified)
                 End Using
             End Sub
+
+            <WpfFact>
+            Public Async Function TestExtractOnModule() As Task
+                Await ExpectExtractMethodToFailAsync(<Workspace>
+                                                         <Document Language="Visual Basic" CommonReferences="true">
+                                                             Module M
+                                                                Public [|Sub T()|]
+                                                                End Sub
+                                                            End Module
+                                                         </Document>
+                                                     </Workspace>)
+            End Function
         End Class
     End Class
 End Namespace

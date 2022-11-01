@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,6 +48,12 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         internal abstract string GetContainingNamespaceDisplay(INamedTypeSymbol typeSymbol, CompilationOptions compilationOptions);
 
         internal abstract bool ShouldIncludeAccessibilityModifier(SyntaxNode typeNode);
+
+        internal virtual bool TryGetLanguageSpecificErrorMessage(ISymbol containingType, [NotNullWhen(returnValue: true)] out string? errorMessage)
+        {
+            errorMessage = null;
+            return false;
+        }
 
         public async Task<ImmutableArray<ExtractInterfaceCodeAction>> GetExtractInterfaceCodeActionAsync(Document document, TextSpan span, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
@@ -100,6 +107,11 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             {
                 var errorMessage = FeaturesResources.Could_not_extract_interface_colon_The_selection_is_not_inside_a_class_interface_struct;
                 return new ExtractInterfaceTypeAnalysisResult(errorMessage);
+            }
+
+            if (TryGetLanguageSpecificErrorMessage(type, out var message))
+            {
+                return new ExtractInterfaceTypeAnalysisResult(message);
             }
 
             var typeToExtractFrom = type as INamedTypeSymbol;

@@ -1224,4 +1224,8 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Project_level_Imports" xml:space="preserve">
     <value>Project level 'Imports'</value>
   </data>
+  <data name="Could_not_extract_interface_colon_Cannot_extract_interface_for_modules" xml:space="preserve">
+    <value>Could not extract interface: Cannot extract interface for modules</value>
+    <comment>{Locked="modules"} "Module" is a VB keyword</comment>
+  </data>
 </root>

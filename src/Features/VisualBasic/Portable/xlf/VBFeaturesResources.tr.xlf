@@ -42,6 +42,11 @@
         <target state="translated">'TryCast' olarak değiştir</target>
         <note />
       </trans-unit>
+      <trans-unit id="Could_not_extract_interface_colon_Cannot_extract_interface_for_modules">
+        <source>Could not extract interface: Cannot extract interface for modules</source>
+        <target state="new">Could not extract interface: Cannot extract interface for modules</target>
+        <note>{Locked="modules"} "Module" is a VB keyword</note>
+      </trans-unit>
       <trans-unit id="Insert_0">
         <source>Insert '{0}'.</source>
         <target state="translated">'{0}' öğesini ekleyin.</target>

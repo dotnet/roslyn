@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.ExtractInterface
 Imports Microsoft.CodeAnalysis.Formatting
@@ -157,6 +158,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
             Next
 
             Return CreateFinalSolution(unformattedSolution, documentIds, docToRootMap)
+        End Function
+
+        Friend Overrides Function TryGetLanguageSpecificErrorMessage(containingType As ISymbol, <NotNullWhen(True)> ByRef errorMessage As String) As Boolean
+
+            If TryCast(containingType, IModuleSymbol) Is Nothing Then
+                errorMessage = VBFeaturesResources.Could_not_extract_interface_colon_Cannot_extract_interface_for_modules
+                Return True
+            End If
+
+            Return MyBase.TryGetLanguageSpecificErrorMessage(containingType, errorMessage)
         End Function
     End Class
 End Namespace
