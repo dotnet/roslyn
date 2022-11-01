@@ -2835,7 +2835,7 @@ class C
             await VerifyItemExistsAsync(markup, "cancellationToken");
         }
 
-        [Fact, WorkItem(29487, "https://github.com/dotnet/roslyn/issues/29487")]
+        [Fact, WorkItem(43602, "https://github.com/dotnet/roslyn/issues/43602")]
         public async Task TestForOutParam2()
         {
             var markup = @"
