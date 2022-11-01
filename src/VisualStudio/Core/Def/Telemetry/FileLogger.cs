@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 {
@@ -84,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                 {
                     _buffer.AppendLine($"{DateTime.Now} ({functionId}) : {message}");
 
-                    try
+                    IOUtilities.PerformIO(() =>
                     {
                         if (!File.Exists(_logFilePath))
                         {
@@ -93,13 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
                         File.AppendAllText(_logFilePath, _buffer.ToString());
                         _buffer.Clear();
-                    }
-                    catch (Exception)
-                    {
-                        // Ignore all possible exceptions that can be thrown by File IO operations, such as IOException,
-                        // UnauthorizedAccessException, SecurityException, etc.
-                        // We will log the buffer contents in next Log call.
-                    }
+                    });
                 }
             }, CancellationToken.None);
         }
