@@ -213,6 +213,9 @@
   <data name="FeatureName_StackTraceExplorer" xml:space="preserve">
     <value>Stack Trace Explorer</value>
   </data>
+  <data name="FeatureName_LegacySolutionEventsAggregation" xml:space="preserve">
+    <value>Solution Events</value>
+  </data>
   <data name="FeatureName_UnitTestingSearch" xml:space="preserve">
     <value>Unit testing search</value>
   </data>

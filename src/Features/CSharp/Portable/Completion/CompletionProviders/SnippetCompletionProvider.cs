@@ -31,12 +31,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [Shared]
     internal sealed class SnippetCompletionProvider : LSPCompletionProvider
     {
-        private static readonly HashSet<string> s_builtInSnippets = new()
+        private static readonly HashSet<string> s_builtInSnippetsWithoutReplacement = new()
         {
-            "#if", "#region", "Attribute", "checked", "class", "ctor", "cw", "do", "else", "enum", "equals", "Exception",
-            "for", "foreach", "forr", "if", "indexer", "interface", "invoke", "iterindex", "iterator", "lock", "mbox",
-            "namespace", "prop", "propa", "propdp", "propfull", "propg", "sim", "struct", "svm", "switch", "testc", "testm",
-            "try", "tryf", "unchecked", "unsafe", "using", "while", "~"
+            "#if", "#region", "Attribute", "checked", "ctor", "do", "else", "enum", "equals", "Exception",
+            "for", "forr", "indexer", "invoke", "iterindex", "iterator", "lock", "mbox",
+            "namespace", "propa", "propdp", "propfull", "propg", "sim", "svm", "switch", "testc", "testm",
+            "try", "tryf", "unchecked", "unsafe", "using", "~"
         };
 
         internal override bool IsSnippetProvider => true;
@@ -157,9 +157,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return ImmutableArray<CompletionItem>.Empty;
 
             var snippets = service.GetSnippetsIfAvailable();
-            if (context.CompletionOptions.ShouldShowNewSnippetExperience())
+            if (context.CompletionOptions.ShouldShowNewSnippetExperience(context.Document))
             {
-                snippets = snippets.Where(snippet => !s_builtInSnippets.Contains(snippet.Shortcut));
+                snippets = snippets.Where(snippet => s_builtInSnippetsWithoutReplacement.Contains(snippet.Shortcut));
             }
 
             if (isPreProcessorContext)

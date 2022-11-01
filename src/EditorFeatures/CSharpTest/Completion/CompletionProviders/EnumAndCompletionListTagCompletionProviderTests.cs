@@ -632,9 +632,9 @@ class Program
          SomeType c = $$
      }
  }";
-            await VerifyItemExistsAsync(markup, "TypeContainer", glyph: (int)Glyph.ClassPublic);
-            await VerifyItemExistsAsync(markup, "TypeContainer.Foo1", glyph: (int)Glyph.FieldPublic);
-            await VerifyItemExistsAsync(markup, "TypeContainer.Foo2", glyph: (int)Glyph.FieldPublic);
+            await VerifyItemExistsAsync(markup, "TypeContainer");
+            await VerifyItemExistsAsync(markup, "TypeContainer.Foo1");
+            await VerifyItemExistsAsync(markup, "TypeContainer.Foo2");
         }
 
         [Theory, WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]

@@ -975,6 +975,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Imposta come inline e mantieni '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_temporary_variable">
+        <source>Inline temporary variable</source>
+        <target state="new">Inline temporary variable</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
         <source>Insufficient hexadecimal digits</source>
         <target state="translated">Cifre esadecimali insufficienti</target>
@@ -4940,6 +4945,11 @@ The offset is always displayed with a leading sign. A plus sign (+) indicates ho
 Con valori DateTimeOffset, questo identificatore di formato rappresenta la differenza dall'ora UTC del valore DateTimeOffset in ore.
 
 La differenza viene sempre visualizzata con un segno iniziale. Un segno più (+) indica le ore in più e un segno meno (-) le ore in meno rispetto all'ora UTC. Un valore di differenza a una sola cifra viene formattato con uno zero iniziale.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="while_loop">
+        <source>while loop</source>
+        <target state="new">while loop</target>
         <note />
       </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">

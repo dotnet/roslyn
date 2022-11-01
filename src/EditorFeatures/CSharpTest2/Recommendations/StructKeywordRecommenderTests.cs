@@ -421,5 +421,17 @@ $$");
       where T : IList<$$
       where U : T");
         }
+
+        [Fact, WorkItem(64465, "https://github.com/dotnet/roslyn/issues/64465")]
+        public async Task TestNotAfterRecord_AbstractModifier()
+        {
+            await VerifyAbsenceAsync("abstract record $$");
+        }
+
+        [Fact, WorkItem(64465, "https://github.com/dotnet/roslyn/issues/64465")]
+        public async Task TestNotAfterRecord_SealedModifier()
+        {
+            await VerifyAbsenceAsync("sealed record $$");
+        }
     }
 }

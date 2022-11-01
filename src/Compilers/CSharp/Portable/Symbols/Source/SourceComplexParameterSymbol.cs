@@ -572,6 +572,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyCustomAttributesBag;
         }
 
+        /// <summary>
+        /// Binds attributes applied to this parameter.
+        /// </summary>
+        public ImmutableArray<(CSharpAttributeData, BoundAttribute)> BindParameterAttributes()
+        {
+            return BindAttributes(GetAttributeDeclarations(), WithTypeParametersBinderOpt);
+        }
+
         internal override void EarlyDecodeWellKnownAttributeType(NamedTypeSymbol attributeType, AttributeSyntax attributeSyntax)
         {
             Debug.Assert(!attributeType.IsErrorType());
@@ -1271,7 +1279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             var parameterWellKnownAttributeData = arguments.GetOrCreateData<ParameterWellKnownAttributeData>();

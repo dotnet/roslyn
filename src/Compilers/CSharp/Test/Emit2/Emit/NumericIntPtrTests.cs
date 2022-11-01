@@ -22,12 +22,13 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class NumericIntPtrTests : CSharpTestBase
     {
+        private static string IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
+
         internal static readonly ConversionKind[] Identity = new[] { ConversionKind.Identity };
         internal static readonly ConversionKind[] NoConversion = new[] { ConversionKind.NoConversion };
         internal static readonly ConversionKind[] Boxing = new[] { ConversionKind.Boxing };
@@ -929,19 +930,18 @@ class A4 : IA
     void IA.F1(System.IntPtr x, nuint y) { }
 }";
 
-            var mscorlibRefWithoutSharing = MscorlibRefWithoutSharingCachedSymbols;
-            var comp = CreateNumericIntPtrCompilation(new[] { sourceA, sourceB }, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
 
-            comp = CreateEmptyCompilation(sourceA, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
+            comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
-            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
+            comp = CreateCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
 
-            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
+            comp = CreateCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
         }
 
@@ -992,19 +992,18 @@ class B4 : A
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "F2").WithArguments("B3.F2(nint)").WithLocation(14, 21)
             };
 
-            var mscorlibRefWithoutSharing = MscorlibRefWithoutSharingCachedSymbols;
-            var comp = CreateNumericIntPtrCompilation(new[] { sourceA, sourceB }, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(diagnostics);
 
-            comp = CreateEmptyCompilation(sourceA, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
+            comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
-            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
+            comp = CreateCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(diagnostics);
 
-            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
+            comp = CreateCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(diagnostics);
         }
 
@@ -1019,10 +1018,10 @@ class B4 : A
     static partial void F1(nint x) { }
     static partial void F2(nuint x);
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseDll.WithWarningLevel(5), parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5), parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
 
-            comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseDll.WithWarningLevel(6), parseOptions: TestOptions.Regular9);
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6), parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
         }
 
@@ -1037,7 +1036,7 @@ class C
     UIntPtr M(UIntPtr i, int j) => i + j;
 }
 ";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
                 // (6,36): error CS0034: Operator '+' is ambiguous on operands of type 'nuint' and 'int'
                 //     UIntPtr M(UIntPtr i, int j) => i + j;
@@ -1067,7 +1066,7 @@ class C
 {
     nuint M(nuint i, int j) => i + j;
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
                 // (4,32): error CS0034: Operator '+' is ambiguous on operands of type 'nuint' and 'int'
                 //     nuint M(nuint i, int j) => i + j;
@@ -1092,9 +1091,9 @@ class C
 {
     IntPtr M(IntPtr i, int j) => i + j;
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp);
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
             verifier.VerifyIL("C.M", @"
 {
   // Code size        5 (0x5)
@@ -1130,9 +1129,9 @@ class C
 {
     nint M(nint i, int j) => i + j;
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp);
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
             verifier.VerifyIL("C.M", @"
 {
   // Code size        5 (0x5)
@@ -1186,19 +1185,18 @@ public class B4 : A<System.UIntPtr> { }
     }
 }";
 
-            var mscorlibRefWithoutSharing = MscorlibRefWithoutSharingCachedSymbols;
-            var comp = CreateNumericIntPtrCompilation(new[] { sourceA, sourceB }, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
 
-            comp = CreateEmptyCompilation(sourceA, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
+            comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
-            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
+            comp = CreateCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
 
-            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
+            comp = CreateCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
         }
 
@@ -1230,10 +1228,10 @@ class AAttribute : System.Attribute
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuint").WithLocation(2, 5)
             };
 
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(expectedDiagnostics);
 
-            comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -1252,7 +1250,7 @@ class Program
 }";
 
 
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
                 // (6,34): error CS0103: The name 'nint' does not exist in the current context
                 //         Console.WriteLine(nameof(nint));
@@ -1275,10 +1273,10 @@ class Program
     }
 }";
 
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
 
-            comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
         }
 
@@ -1296,7 +1294,7 @@ class Program
         _ = sizeof(nuint);
     }
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
             comp.VerifyDiagnostics(
                 // (5,13): error CS0233: 'nint' does not have a predefined size, therefore sizeof can only be used in an unsafe context
@@ -1328,9 +1326,9 @@ class Program
         Console.Write(sizeof(nuint));
     }
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             int size = IntPtr.Size;
-            var verifier = CompileAndVerify(comp, expectedOutput: $"{size}{size}{size}{size}");
+            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput($"{size}{size}{size}{size}"), verify: Verification.FailsPEVerify);
             verifier.VerifyIL("Program.Main",
 @"{
   // Code size       45 (0x2d)
@@ -1362,7 +1360,7 @@ unsafe class Program
         yield return sizeof(System.UIntPtr);
     }
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
                 // (6,22): error CS1629: Unsafe code may not appear in iterators
                 //         yield return sizeof(nint);
@@ -1398,13 +1396,13 @@ class Program
         WriteLine((object)t2 == t4);
     }
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            CompileAndVerify(comp, expectedOutput:
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(
 @"System.IntPtr
 System.UIntPtr
 False
 True
-True");
+True"));
         }
 
         [Fact]
@@ -1422,8 +1420,8 @@ class Program
         System.Console.WriteLine(F());
     }
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: @"1");
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
+            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput(@"1"), verify: Verification.FailsPEVerify);
             verifier.VerifyIL("Program.F",
 @"{
   // Code size       16 (0x10)
@@ -1457,10 +1455,10 @@ class Program
         System.Console.WriteLine(F2(42));
     }
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            var verifier = CompileAndVerify(comp, expectedOutput:
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(
 @"-42
-42");
+42"));
             verifier.VerifyIL("Program.F1",
 @"{
   // Code size        8 (0x8)
@@ -1486,7 +1484,7 @@ class Program
         [Fact]
         public void BuiltInOperators()
         {
-            var comp = CreateNumericIntPtrCompilation("", new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation("", parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
             comp.VerifyDiagnostics();
             verifyOperators(comp);
@@ -1591,8 +1589,7 @@ public class A
     public static {{nuintType}}? F4;
 }
 """;
-            var mscorlibRefWithoutSharing = MscorlibRefWithoutSharingCachedSymbols;
-            var comp = CreateNumericIntPtrCompilation(sourceA, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
 
             var sourceB =
@@ -1613,9 +1610,9 @@ public class A
         F4 = w;
     }
 }";
-            comp = CreateEmptyCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference), mscorlibRefWithoutSharing }, parseOptions: useLatest ? TestOptions.Regular9 : TestOptions.Regular8);
+            comp = CreateCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference) }, parseOptions: useLatest ? TestOptions.Regular9 : TestOptions.Regular8, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp);
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
             verifier.VerifyIL("B.M1",
 @"{
   // Code size       59 (0x3b)
@@ -1629,18 +1626,18 @@ public class A
   IL_000c:  ldsfld     ""nint? A.F3""
   IL_0011:  stloc.0
   IL_0012:  ldloca.s   V_0
-  IL_0014:  call       ""bool nint?.HasValue.get""
+  IL_0014:  call       ""readonly bool nint?.HasValue.get""
   IL_0019:  brfalse.s  IL_0023
   IL_001b:  ldloca.s   V_0
-  IL_001d:  call       ""nint nint?.GetValueOrDefault()""
+  IL_001d:  call       ""readonly nint nint?.GetValueOrDefault()""
   IL_0022:  pop
   IL_0023:  ldsfld     ""nuint? A.F4""
   IL_0028:  stloc.1
   IL_0029:  ldloca.s   V_1
-  IL_002b:  call       ""bool nuint?.HasValue.get""
+  IL_002b:  call       ""readonly bool nuint?.HasValue.get""
   IL_0030:  brfalse.s  IL_003a
   IL_0032:  ldloca.s   V_1
-  IL_0034:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0034:  call       ""readonly nuint nuint?.GetValueOrDefault()""
   IL_0039:  pop
   IL_003a:  ret
 }");
@@ -1661,28 +1658,28 @@ public class A
   IL_000e:  ldarg.2
   IL_000f:  stloc.0
   IL_0010:  ldloca.s   V_0
-  IL_0012:  call       ""bool int?.HasValue.get""
+  IL_0012:  call       ""readonly bool int?.HasValue.get""
   IL_0017:  brtrue.s   IL_0024
   IL_0019:  ldloca.s   V_1
   IL_001b:  initobj    ""nint?""
   IL_0021:  ldloc.1
   IL_0022:  br.s       IL_0031
   IL_0024:  ldloca.s   V_0
-  IL_0026:  call       ""int int?.GetValueOrDefault()""
+  IL_0026:  call       ""readonly int int?.GetValueOrDefault()""
   IL_002b:  conv.i
   IL_002c:  newobj     ""nint?..ctor(nint)""
   IL_0031:  stsfld     ""nint? A.F3""
   IL_0036:  ldarg.3
   IL_0037:  stloc.2
   IL_0038:  ldloca.s   V_2
-  IL_003a:  call       ""bool uint?.HasValue.get""
+  IL_003a:  call       ""readonly bool uint?.HasValue.get""
   IL_003f:  brtrue.s   IL_004c
   IL_0041:  ldloca.s   V_3
   IL_0043:  initobj    ""nuint?""
   IL_0049:  ldloc.3
   IL_004a:  br.s       IL_0059
   IL_004c:  ldloca.s   V_2
-  IL_004e:  call       ""uint uint?.GetValueOrDefault()""
+  IL_004e:  call       ""readonly uint uint?.GetValueOrDefault()""
   IL_0053:  conv.u
   IL_0054:  newobj     ""nuint?..ctor(nuint)""
   IL_0059:  stsfld     ""nuint? A.F4""
@@ -1705,8 +1702,7 @@ public class A
     public static {{nuintType}}? F4;
 }
 """;
-            var mscorlibRefWithoutSharing = MscorlibRefWithoutSharingCachedSymbols;
-            var comp = CreateNumericIntPtrCompilation(sourceA, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
@@ -1725,9 +1721,9 @@ public class A
         F4 = F4 / F2;
     }
 }";
-            comp = CreateEmptyCompilation(sourceB, references: new[] { refA, mscorlibRefWithoutSharing }, parseOptions: useCSharp9 ? TestOptions.Regular9 : TestOptions.Regular8);
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: useCSharp9 ? TestOptions.Regular9 : TestOptions.Regular8, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp);
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
             verifier.VerifyIL("B.Main",
 @"{
   // Code size      247 (0xf7)
@@ -1746,28 +1742,28 @@ public class A
   IL_0015:  ldsfld     ""nint? A.F3""
   IL_001a:  stloc.0
   IL_001b:  ldloca.s   V_0
-  IL_001d:  call       ""bool nint?.HasValue.get""
+  IL_001d:  call       ""readonly bool nint?.HasValue.get""
   IL_0022:  brtrue.s   IL_002f
   IL_0024:  ldloca.s   V_1
   IL_0026:  initobj    ""nint?""
   IL_002c:  ldloc.1
   IL_002d:  br.s       IL_003c
   IL_002f:  ldloca.s   V_0
-  IL_0031:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0031:  call       ""readonly nint nint?.GetValueOrDefault()""
   IL_0036:  neg
   IL_0037:  newobj     ""nint?..ctor(nint)""
   IL_003c:  stsfld     ""nint? A.F3""
   IL_0041:  ldsfld     ""nuint? A.F4""
   IL_0046:  stloc.2
   IL_0047:  ldloca.s   V_2
-  IL_0049:  call       ""bool nuint?.HasValue.get""
+  IL_0049:  call       ""readonly bool nuint?.HasValue.get""
   IL_004e:  brtrue.s   IL_005b
   IL_0050:  ldloca.s   V_3
   IL_0052:  initobj    ""nuint?""
   IL_0058:  ldloc.3
   IL_0059:  br.s       IL_0067
   IL_005b:  ldloca.s   V_2
-  IL_005d:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_005d:  call       ""readonly nuint nuint?.GetValueOrDefault()""
   IL_0062:  newobj     ""nuint?..ctor(nuint)""
   IL_0067:  stsfld     ""nuint? A.F4""
   IL_006c:  ldsfld     ""nint A.F1""
@@ -1783,14 +1779,14 @@ public class A
   IL_0092:  ldsfld     ""nint A.F1""
   IL_0097:  stloc.s    V_4
   IL_0099:  ldloca.s   V_0
-  IL_009b:  call       ""bool nint?.HasValue.get""
+  IL_009b:  call       ""readonly bool nint?.HasValue.get""
   IL_00a0:  brtrue.s   IL_00ad
   IL_00a2:  ldloca.s   V_1
   IL_00a4:  initobj    ""nint?""
   IL_00aa:  ldloc.1
   IL_00ab:  br.s       IL_00bc
   IL_00ad:  ldloca.s   V_0
-  IL_00af:  call       ""nint nint?.GetValueOrDefault()""
+  IL_00af:  call       ""readonly nint nint?.GetValueOrDefault()""
   IL_00b4:  ldloc.s    V_4
   IL_00b6:  mul
   IL_00b7:  newobj     ""nint?..ctor(nint)""
@@ -1800,14 +1796,14 @@ public class A
   IL_00c7:  ldsfld     ""nuint A.F2""
   IL_00cc:  stloc.s    V_5
   IL_00ce:  ldloca.s   V_2
-  IL_00d0:  call       ""bool nuint?.HasValue.get""
+  IL_00d0:  call       ""readonly bool nuint?.HasValue.get""
   IL_00d5:  brtrue.s   IL_00e2
   IL_00d7:  ldloca.s   V_3
   IL_00d9:  initobj    ""nuint?""
   IL_00df:  ldloc.3
   IL_00e0:  br.s       IL_00f1
   IL_00e2:  ldloca.s   V_2
-  IL_00e4:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_00e4:  call       ""readonly nuint nuint?.GetValueOrDefault()""
   IL_00e9:  ldloc.s    V_5
   IL_00eb:  div.un
   IL_00ec:  newobj     ""nuint?..ctor(nuint)""
@@ -1833,10 +1829,10 @@ class C
     }
 }
 """;
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular7_3);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
 
-            comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
         }
 
@@ -1881,7 +1877,7 @@ $@"class Program
         _ = ~y;
     }}
 }}";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics();
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -1933,7 +1929,7 @@ $@"class Program
         _ = x >> 1;
     }}
 }}";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics();
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -2016,7 +2012,7 @@ class Program
     }}
 }}";
 
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
             comp.VerifyDiagnostics(
                 // (15,17): error CS0266: Cannot implicitly convert type 'uint' to 'nint'. An explicit conversion exists (are you missing a cast?)
@@ -2118,7 +2114,7 @@ class Program
     }}
 }}";
 
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
             comp.VerifyDiagnostics(
                 // (9,24): error CS0266: Cannot implicitly convert type 'nint' to 'sbyte'. An explicit conversion exists (are you missing a cast?)
@@ -2191,7 +2187,7 @@ class Program
         Console.WriteLine(y);
     }
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
             comp.VerifyDiagnostics(
                 // (7,26): error CS0133: The expression being assigned to 'y' must be constant
@@ -2219,12 +2215,12 @@ class Program
         }
     }
 }";
-            comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
                 // (9,30): warning CS8778: Constant value '1152921504606846975' may overflow 'nint' at runtime (use 'unchecked' syntax to override)
                 //             nint y = checked((nint)x);
                 Diagnostic(ErrorCode.WRN_ConstOutOfRangeChecked, "(nint)x").WithArguments("1152921504606846975", "nint").WithLocation(9, 30));
-            CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "System.OverflowException" : "1152921504606846975");
+            CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput(IntPtr.Size == 4 ? "System.OverflowException" : "1152921504606846975"), verify: Verification.FailsPEVerify);
         }
 
         [WorkItem(45531, "https://github.com/dotnet/roslyn/issues/45531")]
@@ -2242,7 +2238,7 @@ class Program
         Console.WriteLine(y);
     }
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
             comp.VerifyDiagnostics(
                 // (7,26): error CS0133: The expression being assigned to 'y' must be constant
@@ -2260,9 +2256,9 @@ class Program
         Console.WriteLine(y);
     }
 }";
-            comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "-1" : "1152921504606846975");
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(IntPtr.Size == 4 ? "-1" : "1152921504606846975"));
         }
 
         [Fact]
@@ -2375,12 +2371,12 @@ class Program
         Console.Write(y);
     }}
 }}";
-                var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+                var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
                 comp.VerifyDiagnostics(expectedError is null ? Array.Empty<DiagnosticDescription>() : new[] { expectedError });
                 if (expectedError == null || ErrorFacts.IsWarning((ErrorCode)expectedError.Code))
                 {
-                    CompileAndVerify(comp, expectedOutput: expectedOutput);
+                    CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(expectedOutput));
                 }
             }
         }
@@ -2425,7 +2421,7 @@ $@"class Program
         System.Console.WriteLine(n);
     }}
 }}";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             string expectedOutput =
 @"0
 -2147483648
@@ -2451,7 +2447,7 @@ $@"class Program
 65535
 65536
 2147483647";
-            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
+            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput(expectedOutput), verify: Verification.FailsPEVerify);
             string expectedIL =
 @"{
   // Code size      209 (0xd1)
@@ -2566,7 +2562,7 @@ $@"class Program
         System.Console.WriteLine(n);
     }}
 }}";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             string expectedOutput =
 @"0
 0
@@ -2585,7 +2581,7 @@ $@"class Program
 2147483647
 2147483648
 4294967295";
-            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
+            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput(expectedOutput), verify: Verification.FailsPEVerify);
             string expectedIL =
 @"{
   // Code size      141 (0x8d)
@@ -2679,7 +2675,7 @@ $@"class Program
     {
     }
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
                 // (5,19): error CS1503: Argument 1: cannot convert from 'sbyte' to 'ushort'
                 //         F<ushort>(sbyte.MaxValue); // 1
@@ -2744,7 +2740,7 @@ class Program
         const nuint d = default;
     }
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
         }
 
@@ -2764,10 +2760,10 @@ class Program
         System.Console.Write($""{A}, {B}, {C}, {D}"");
     }
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
 
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "0, 0, 0, 0");
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput("0, 0, 0, 0"));
         }
 
         [Fact]
@@ -2779,8 +2775,7 @@ class Program
     public const nint C1 = -42;
     public const nuint C2 = 42;
 }";
-            var mscorlibRefWithoutSharing = MscorlibRefWithoutSharingCachedSymbols;
-            var comp = CreateNumericIntPtrCompilation(source0, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source0, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             var ref0 = comp.EmitToImageReference();
             var source1 =
 @"using System;
@@ -2792,10 +2787,10 @@ class B
         Console.WriteLine(A.C2);
     }
 }";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput:
+            comp = CreateCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(
 @"-42
-42");
+42"));
         }
 
         [Fact]
@@ -2809,8 +2804,7 @@ class B
     public static System.UIntPtr F3(System.UIntPtr u = 42) => u;
     public static nuint F4(nuint u = 42) => u;
 }";
-            var mscorlibRefWithoutSharing = MscorlibRefWithoutSharingCachedSymbols;
-            var comp = CreateNumericIntPtrCompilation(source0, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source0, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
             var ref0 = comp.EmitToImageReference();
             var source1 =
@@ -2825,13 +2819,13 @@ class B
         Console.WriteLine(A.F4());
     }
 }";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
+            comp = CreateCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
 
-            CompileAndVerify(comp, expectedOutput:
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(
 @"-42
 -42
 42
-42");
+42"));
         }
 
         [Fact]
@@ -2847,7 +2841,7 @@ class Program
     const UIntPtr D = 0;
     const UIntPtr E = uint.MaxValue;
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
             comp.VerifyDiagnostics();
             verify((FieldSymbol)comp.GetMember("Program.A"), int.MinValue, signed: true, negative: true);
@@ -2889,7 +2883,7 @@ class A : System.Attribute
 class B
 {
 }";
-            var comp = CreateNumericIntPtrCompilation(source0, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source0, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
             comp.VerifyDiagnostics(
                 // (8,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
@@ -2922,7 +2916,7 @@ class A : System.Attribute
 class B
 {
 }";
-            var comp = CreateNumericIntPtrCompilation(source0, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source0, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
             comp.VerifyDiagnostics(
                 // (8,2): error CS0181: Attribute constructor parameter 'value' has type 'nint', which is not a valid attribute parameter type
@@ -3022,25 +3016,24 @@ null
 -3
 4";
 
-            var mscorlibRefWithoutSharing = MscorlibRefWithoutSharingCachedSymbols;
-            var comp = CreateNumericIntPtrCompilation(new[] { sourceA, sourceB }, references: new[] { mscorlibRefWithoutSharing }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
+            CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput(expectedOutput), verify: Verification.FailsPEVerify);
 
-            comp = CreateEmptyCompilation(sourceA, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
+            comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
-            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1, mscorlibRefWithoutSharing }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            comp = CreateCompilation(sourceB, references: new[] { ref1 }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
+            CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput(expectedOutput), verify: Verification.FailsPEVerify);
 
-            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2, mscorlibRefWithoutSharing }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            comp = CreateCompilation(sourceB, references: new[] { ref2 }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
+            CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput(expectedOutput), verify: Verification.FailsPEVerify);
 
-            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1, mscorlibRefWithoutSharing }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular8);
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            comp = CreateCompilation(sourceB, references: new[] { ref1 }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular8, targetFramework: TargetFramework.Net70);
+            CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput(expectedOutput), verify: Verification.FailsPEVerify);
 
-            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2, mscorlibRefWithoutSharing }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular8);
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            comp = CreateCompilation(sourceB, references: new[] { ref2 }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular8, targetFramework: TargetFramework.Net70);
+            CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput(expectedOutput), verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -3096,16 +3089,16 @@ class Program
         Console.WriteLine(M(6));
     }
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
-            var verifier = CompileAndVerify(comp, expectedOutput:
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(
 @"case 6: 5
 case 2: 4
 case 0xff: 3
 case 0: 2
 case 9999: 1
 default: 0
-0");
+0"));
             verifier.VerifyIL("Program.M", @"
     {
       // Code size      201 (0xc9)
@@ -3264,16 +3257,16 @@ class Program
         Console.WriteLine(M(6));
     }
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
-            var verifier = CompileAndVerify(comp, expectedOutput:
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(
 @"case 6: 5
 case 2: 4
 case 0xff: 3
 case 0: 2
 case 9999: 1
 default: 0
-0");
+0"));
             verifier.VerifyIL("Program.M", @"
     {
       // Code size      184 (0xb8)
@@ -3405,7 +3398,7 @@ $@"{{
   // Code size        9 (0x9)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""{sourceType} {sourceType}?.Value.get""
+  IL_0002:  call       ""readonly {sourceType} {sourceType}?.Value.get""
   IL_0007:  {conversion}
   IL_0008:  ret
 }}";
@@ -3414,7 +3407,7 @@ $@"{{
   // Code size       10 (0xa)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""{sourceType} {sourceType}?.Value.get""
+  IL_0002:  call       ""readonly {sourceType} {sourceType}?.Value.get""
   IL_0007:  conv.r.un
   IL_0008:  {conversion}
   IL_0009:  ret
@@ -3447,14 +3440,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool {sourceType}?.HasValue.get""
+  IL_0004:  call       ""readonly bool {sourceType}?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""{destType}?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""{sourceType} {sourceType}?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly {sourceType} {sourceType}?.GetValueOrDefault()""
   IL_001c:  {conversion}
   IL_001d:  newobj     ""{destType}?..ctor({destType})""
   IL_0022:  ret
@@ -3468,14 +3461,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool {sourceType}?.HasValue.get""
+  IL_0004:  call       ""readonly bool {sourceType}?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""{destType}?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""{sourceType} {sourceType}?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly {sourceType} {sourceType}?.GetValueOrDefault()""
   IL_001c:  conv.r.un
   IL_001d:  {conversion}
   IL_001e:  newobj     ""{destType}?..ctor({destType})""
@@ -3489,13 +3482,13 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool {sourceType}?.HasValue.get""
+  IL_0004:  call       ""readonly bool {sourceType}?.HasValue.get""
   IL_0009:  brtrue.s   IL_000e
   IL_000b:  ldc.i4.0
   IL_000c:  conv.u
   IL_000d:  ret
   IL_000e:  ldloca.s   V_0
-  IL_0010:  call       ""{sourceType} {sourceType}?.GetValueOrDefault()""
+  IL_0010:  call       ""readonly {sourceType} {sourceType}?.GetValueOrDefault()""
   IL_0015:  call       ""{method}""
   IL_001a:  ret
 }}";
@@ -3605,7 +3598,7 @@ $@"{{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nint nint?.Value.get""
+  IL_0002:  call       ""readonly nint nint?.Value.get""
   IL_0007:  ret
 }");
             conversions(sourceType: "nuint?", destType: "nint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
@@ -3614,7 +3607,7 @@ $@"{{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nuint nuint?.Value.get""
+  IL_0002:  call       ""readonly nuint nuint?.Value.get""
   IL_0007:  ret
 }
 ",
@@ -3626,7 +3619,7 @@ $@"{{
   // Code size       14 (0xe)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""decimal decimal?.Value.get""
+  IL_0002:  call       ""readonly decimal decimal?.Value.get""
   IL_0007:  call       ""long decimal.op_Explicit(decimal)""
   IL_000c:  conv.i
   IL_000d:  ret
@@ -3635,7 +3628,7 @@ $@"{{
   // Code size       14 (0xe)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""decimal decimal?.Value.get""
+  IL_0002:  call       ""readonly decimal decimal?.Value.get""
   IL_0007:  call       ""long decimal.op_Explicit(decimal)""
   IL_000c:  conv.ovf.i
   IL_000d:  ret
@@ -3645,7 +3638,7 @@ $@"{{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nint nint?.Value.get""
+  IL_0002:  call       ""readonly nint nint?.Value.get""
   IL_0007:  ret
 }");
             conversions(sourceType: "System.UIntPtr?", destType: "nint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
@@ -3654,7 +3647,7 @@ $@"{{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nuint nuint?.Value.get""
+  IL_0002:  call       ""readonly nuint nuint?.Value.get""
   IL_0007:  ret
 }
 ",
@@ -3810,14 +3803,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nuint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nint?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly nuint nuint?.GetValueOrDefault()""
   IL_001c:  newobj     ""nint?..ctor(nint)""
   IL_0021:  ret
 }
@@ -3834,14 +3827,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool decimal?.HasValue.get""
+  IL_0004:  call       ""readonly bool decimal?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nint?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""decimal decimal?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly decimal decimal?.GetValueOrDefault()""
   IL_001c:  call       ""long decimal.op_Explicit(decimal)""
   IL_0021:  conv.i
   IL_0022:  newobj     ""nint?..ctor(nint)""
@@ -3855,14 +3848,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool decimal?.HasValue.get""
+  IL_0004:  call       ""readonly bool decimal?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nint?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""decimal decimal?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly decimal decimal?.GetValueOrDefault()""
   IL_001c:  call       ""long decimal.op_Explicit(decimal)""
   IL_0021:  conv.ovf.i
   IL_0022:  newobj     ""nint?..ctor(nint)""
@@ -3879,14 +3872,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nuint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nint?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly nuint nuint?.GetValueOrDefault()""
   IL_001c:  newobj     ""nint?..ctor(nint)""
   IL_0021:  ret
 }
@@ -4042,7 +4035,7 @@ $@"{{
   // Code size       14 (0xe)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nint nint?.Value.get""
+  IL_0002:  call       ""readonly nint nint?.Value.get""
   IL_0007:  conv.i8
   IL_0008:  call       ""decimal decimal.op_Implicit(long)""
   IL_000d:  ret
@@ -4052,7 +4045,7 @@ $@"{{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nint nint?.Value.get""
+  IL_0002:  call       ""readonly nint nint?.Value.get""
   IL_0007:  ret
 }");
             conversions(sourceType: "nint?", destType: "System.UIntPtr", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
@@ -4061,7 +4054,7 @@ $@"{{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nint nint?.Value.get""
+  IL_0002:  call       ""readonly nint nint?.Value.get""
   IL_0007:  ret
 }
 ",
@@ -4090,14 +4083,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""decimal?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly nint nint?.GetValueOrDefault()""
   IL_001c:  conv.i8
   IL_001d:  call       ""decimal decimal.op_Implicit(long)""
   IL_0022:  newobj     ""decimal?..ctor(decimal)""
@@ -4111,14 +4104,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""decimal?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly nint nint?.GetValueOrDefault()""
   IL_001c:  conv.i8
   IL_001d:  call       ""decimal decimal.op_Implicit(long)""
   IL_0022:  newobj     ""decimal?..ctor(decimal)""
@@ -4135,14 +4128,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nuint?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly nint nint?.GetValueOrDefault()""
   IL_001c:  newobj     ""nuint?..ctor(nuint)""
   IL_0021:  ret
 }
@@ -4214,7 +4207,7 @@ $@"{{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nint nint?.Value.get""
+  IL_0002:  call       ""readonly nint nint?.Value.get""
   IL_0007:  ret
 }
 ",
@@ -4224,7 +4217,7 @@ $@"{{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nuint nuint?.Value.get""
+  IL_0002:  call       ""readonly nuint nuint?.Value.get""
   IL_0007:  ret
 }");
             conversions(sourceType: "float?", destType: "nuint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "float"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "float"));
@@ -4234,7 +4227,7 @@ $@"{{
   // Code size       14 (0xe)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""decimal decimal?.Value.get""
+  IL_0002:  call       ""readonly decimal decimal?.Value.get""
   IL_0007:  call       ""ulong decimal.op_Explicit(decimal)""
   IL_000c:  conv.u
   IL_000d:  ret
@@ -4243,7 +4236,7 @@ $@"{{
   // Code size       14 (0xe)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""decimal decimal?.Value.get""
+  IL_0002:  call       ""readonly decimal decimal?.Value.get""
   IL_0007:  call       ""ulong decimal.op_Explicit(decimal)""
   IL_000c:  conv.ovf.u.un
   IL_000d:  ret
@@ -4253,7 +4246,7 @@ $@"{{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nint nint?.Value.get""
+  IL_0002:  call       ""readonly nint nint?.Value.get""
   IL_0007:  ret
 }",
                 expectedCheckedIL: convFromNullableT("conv.ovf.u", "nint"));
@@ -4262,7 +4255,7 @@ $@"{{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nuint nuint?.Value.get""
+  IL_0002:  call       ""readonly nuint nuint?.Value.get""
   IL_0007:  ret
 }");
 
@@ -4399,14 +4392,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nuint?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly nint nint?.GetValueOrDefault()""
   IL_001c:  newobj     ""nuint?..ctor(nuint)""
   IL_0021:  ret
 }
@@ -4424,14 +4417,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool decimal?.HasValue.get""
+  IL_0004:  call       ""readonly bool decimal?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nuint?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""decimal decimal?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly decimal decimal?.GetValueOrDefault()""
   IL_001c:  call       ""ulong decimal.op_Explicit(decimal)""
   IL_0021:  conv.u
   IL_0022:  newobj     ""nuint?..ctor(nuint)""
@@ -4445,14 +4438,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool decimal?.HasValue.get""
+  IL_0004:  call       ""readonly bool decimal?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nuint?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""decimal decimal?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly decimal decimal?.GetValueOrDefault()""
   IL_001c:  call       ""ulong decimal.op_Explicit(decimal)""
   IL_0021:  conv.ovf.u.un
   IL_0022:  newobj     ""nuint?..ctor(nuint)""
@@ -4468,14 +4461,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nuint?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly nint nint?.GetValueOrDefault()""
   IL_001c:  newobj     ""nuint?..ctor(nuint)""
   IL_0021:  ret
 }
@@ -4632,7 +4625,7 @@ $@"{{
   // Code size       14 (0xe)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nuint nuint?.Value.get""
+  IL_0002:  call       ""readonly nuint nuint?.Value.get""
   IL_0007:  conv.u8
   IL_0008:  call       ""decimal decimal.op_Implicit(ulong)""
   IL_000d:  ret
@@ -4643,7 +4636,7 @@ $@"{{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nuint nuint?.Value.get""
+  IL_0002:  call       ""readonly nuint nuint?.Value.get""
   IL_0007:  ret
 }
 ",
@@ -4653,7 +4646,7 @@ $@"{{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nuint nuint?.Value.get""
+  IL_0002:  call       ""readonly nuint nuint?.Value.get""
   IL_0007:  ret
 }");
 
@@ -4680,14 +4673,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nuint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""decimal?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly nuint nuint?.GetValueOrDefault()""
   IL_001c:  conv.u8
   IL_001d:  call       ""decimal decimal.op_Implicit(ulong)""
   IL_0022:  newobj     ""decimal?..ctor(decimal)""
@@ -4701,14 +4694,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nuint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""decimal?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly nuint nuint?.GetValueOrDefault()""
   IL_001c:  conv.u8
   IL_001d:  call       ""decimal decimal.op_Implicit(ulong)""
   IL_0022:  newobj     ""decimal?..ctor(decimal)""
@@ -4724,14 +4717,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nuint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nint?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly nuint nuint?.GetValueOrDefault()""
   IL_001c:  newobj     ""nint?..ctor(nint)""
   IL_0021:  ret
 }
@@ -4891,7 +4884,7 @@ $@"{{
   // Code size       14 (0xe)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nint nint?.Value.get""
+  IL_0002:  call       ""readonly nint nint?.Value.get""
   IL_0007:  conv.i8
   IL_0008:  call       ""decimal decimal.op_Implicit(long)""
   IL_000d:  ret
@@ -4901,7 +4894,7 @@ $@"{{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nint nint?.Value.get""
+  IL_0002:  call       ""readonly nint nint?.Value.get""
   IL_0007:  ret
 }");
             conversions(sourceType: "System.IntPtr?", destType: "System.UIntPtr", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
@@ -4910,7 +4903,7 @@ $@"{{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nint nint?.Value.get""
+  IL_0002:  call       ""readonly nint nint?.Value.get""
   IL_0007:  ret
 }
 ",
@@ -4939,14 +4932,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""decimal?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly nint nint?.GetValueOrDefault()""
   IL_001c:  conv.i8
   IL_001d:  call       ""decimal decimal.op_Implicit(long)""
   IL_0022:  newobj     ""decimal?..ctor(decimal)""
@@ -4960,14 +4953,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""decimal?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly nint nint?.GetValueOrDefault()""
   IL_001c:  conv.i8
   IL_001d:  call       ""decimal decimal.op_Implicit(long)""
   IL_0022:  newobj     ""decimal?..ctor(decimal)""
@@ -4984,14 +4977,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nuint?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly nint nint?.GetValueOrDefault()""
   IL_001c:  newobj     ""nuint?..ctor(nuint)""
   IL_0021:  ret
 }
@@ -5188,7 +5181,7 @@ $@"{{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nint nint?.Value.get""
+  IL_0002:  call       ""readonly nint nint?.Value.get""
   IL_0007:  ret
 }");
             conversions(sourceType: "nuint?", destType: "System.IntPtr", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
@@ -5197,7 +5190,7 @@ $@"{{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nuint nuint?.Value.get""
+  IL_0002:  call       ""readonly nuint nuint?.Value.get""
   IL_0007:  ret
 }
 ",
@@ -5209,7 +5202,7 @@ $@"{{
   // Code size       14 (0xe)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""decimal decimal?.Value.get""
+  IL_0002:  call       ""readonly decimal decimal?.Value.get""
   IL_0007:  call       ""long decimal.op_Explicit(decimal)""
   IL_000c:  conv.i
   IL_000d:  ret
@@ -5218,7 +5211,7 @@ $@"{{
   // Code size       14 (0xe)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""decimal decimal?.Value.get""
+  IL_0002:  call       ""readonly decimal decimal?.Value.get""
   IL_0007:  call       ""long decimal.op_Explicit(decimal)""
   IL_000c:  conv.ovf.i
   IL_000d:  ret
@@ -5228,7 +5221,7 @@ $@"{{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nint nint?.Value.get""
+  IL_0002:  call       ""readonly nint nint?.Value.get""
   IL_0007:  ret
 }");
             conversions(sourceType: "System.UIntPtr?", destType: "System.IntPtr", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
@@ -5237,7 +5230,7 @@ $@"{{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nuint nuint?.Value.get""
+  IL_0002:  call       ""readonly nuint nuint?.Value.get""
   IL_0007:  ret
 }
 ",
@@ -5266,14 +5259,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nuint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nint?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly nuint nuint?.GetValueOrDefault()""
   IL_001c:  newobj     ""nint?..ctor(nint)""
   IL_0021:  ret
 }
@@ -5290,14 +5283,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool decimal?.HasValue.get""
+  IL_0004:  call       ""readonly bool decimal?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nint?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""decimal decimal?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly decimal decimal?.GetValueOrDefault()""
   IL_001c:  call       ""long decimal.op_Explicit(decimal)""
   IL_0021:  conv.i
   IL_0022:  newobj     ""nint?..ctor(nint)""
@@ -5311,14 +5304,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool decimal?.HasValue.get""
+  IL_0004:  call       ""readonly bool decimal?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nint?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""decimal decimal?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly decimal decimal?.GetValueOrDefault()""
   IL_001c:  call       ""long decimal.op_Explicit(decimal)""
   IL_0021:  conv.ovf.i
   IL_0022:  newobj     ""nint?..ctor(nint)""
@@ -5335,14 +5328,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nuint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nint?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly nuint nuint?.GetValueOrDefault()""
   IL_001c:  newobj     ""nint?..ctor(nint)""
   IL_0021:  ret
 }
@@ -5498,7 +5491,7 @@ $@"{{
   // Code size       14 (0xe)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nuint nuint?.Value.get""
+  IL_0002:  call       ""readonly nuint nuint?.Value.get""
   IL_0007:  conv.u8
   IL_0008:  call       ""decimal decimal.op_Implicit(ulong)""
   IL_000d:  ret
@@ -5509,7 +5502,7 @@ $@"{{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nuint nuint?.Value.get""
+  IL_0002:  call       ""readonly nuint nuint?.Value.get""
   IL_0007:  ret
 }
 ",
@@ -5519,7 +5512,7 @@ $@"{{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nuint nuint?.Value.get""
+  IL_0002:  call       ""readonly nuint nuint?.Value.get""
   IL_0007:  ret
 }");
 
@@ -5546,14 +5539,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nuint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""decimal?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly nuint nuint?.GetValueOrDefault()""
   IL_001c:  conv.u8
   IL_001d:  call       ""decimal decimal.op_Implicit(ulong)""
   IL_0022:  newobj     ""decimal?..ctor(decimal)""
@@ -5567,14 +5560,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nuint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""decimal?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly nuint nuint?.GetValueOrDefault()""
   IL_001c:  conv.u8
   IL_001d:  call       ""decimal decimal.op_Implicit(ulong)""
   IL_0022:  newobj     ""decimal?..ctor(decimal)""
@@ -5590,14 +5583,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nuint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nint?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly nuint nuint?.GetValueOrDefault()""
   IL_001c:  newobj     ""nint?..ctor(nint)""
   IL_0021:  ret
 }
@@ -5781,7 +5774,7 @@ $@"{{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nint nint?.Value.get""
+  IL_0002:  call       ""readonly nint nint?.Value.get""
   IL_0007:  ret
 }
 ",
@@ -5791,7 +5784,7 @@ $@"{{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nuint nuint?.Value.get""
+  IL_0002:  call       ""readonly nuint nuint?.Value.get""
   IL_0007:  ret
 }");
             conversions(sourceType: "float?", destType: "System.UIntPtr", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "float"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "float"));
@@ -5801,7 +5794,7 @@ $@"{{
   // Code size       14 (0xe)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""decimal decimal?.Value.get""
+  IL_0002:  call       ""readonly decimal decimal?.Value.get""
   IL_0007:  call       ""ulong decimal.op_Explicit(decimal)""
   IL_000c:  conv.u
   IL_000d:  ret
@@ -5810,7 +5803,7 @@ $@"{{
   // Code size       14 (0xe)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""decimal decimal?.Value.get""
+  IL_0002:  call       ""readonly decimal decimal?.Value.get""
   IL_0007:  call       ""ulong decimal.op_Explicit(decimal)""
   IL_000c:  conv.ovf.u.un
   IL_000d:  ret
@@ -5821,7 +5814,7 @@ $@"{{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nint nint?.Value.get""
+  IL_0002:  call       ""readonly nint nint?.Value.get""
   IL_0007:  ret
 }
 ",
@@ -5831,7 +5824,7 @@ $@"{{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nuint nuint?.Value.get""
+  IL_0002:  call       ""readonly nuint nuint?.Value.get""
   IL_0007:  ret
 }");
 
@@ -5857,14 +5850,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nuint?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly nint nint?.GetValueOrDefault()""
   IL_001c:  newobj     ""nuint?..ctor(nuint)""
   IL_0021:  ret
 }
@@ -5882,14 +5875,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool decimal?.HasValue.get""
+  IL_0004:  call       ""readonly bool decimal?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nuint?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""decimal decimal?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly decimal decimal?.GetValueOrDefault()""
   IL_001c:  call       ""ulong decimal.op_Explicit(decimal)""
   IL_0021:  conv.u
   IL_0022:  newobj     ""nuint?..ctor(nuint)""
@@ -5903,14 +5896,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool decimal?.HasValue.get""
+  IL_0004:  call       ""readonly bool decimal?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nuint?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""decimal decimal?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly decimal decimal?.GetValueOrDefault()""
   IL_001c:  call       ""ulong decimal.op_Explicit(decimal)""
   IL_0021:  conv.ovf.u.un
   IL_0022:  newobj     ""nuint?..ctor(nuint)""
@@ -5926,14 +5919,14 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nuint?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly nint nint?.GetValueOrDefault()""
   IL_001c:  newobj     ""nuint?..ctor(nuint)""
   IL_0021:  ret
 }
@@ -5974,7 +5967,7 @@ $@"class Program
 }}
 enum E {{ }}
 ";
-                var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseDll.WithAllowUnsafe(useUnsafeContext), parseOptions: TestOptions.Regular9);
+                var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(useUnsafeContext), parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
@@ -5993,7 +5986,7 @@ enum E {{ }}
 
                 if (expectedIL != null)
                 {
-                    var verifier = CompileAndVerify(comp, verify: useUnsafeContext ? Verification.Skipped : Verification.Passes);
+                    var verifier = CompileAndVerify(comp, verify: useUnsafeContext ? Verification.Skipped : Verification.FailsPEVerify);
                     verifier.VerifyIL("Program.Convert", expectedIL);
                 }
 
@@ -6089,14 +6082,14 @@ enum E {{ }}
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nint?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly nint nint?.GetValueOrDefault()""
   IL_001c:  newobj     ""nint?..ctor(nint)""
   IL_0021:  ret
 }");
@@ -6109,14 +6102,14 @@ enum E {{ }}
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nuint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nuint?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly nuint nuint?.GetValueOrDefault()""
   IL_001c:  newobj     ""nuint?..ctor(nuint)""
   IL_0021:  ret
 }");
@@ -6131,14 +6124,14 @@ enum E {{ }}
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nint?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly nint nint?.GetValueOrDefault()""
   IL_001c:  neg
   IL_001d:  newobj     ""nint?..ctor(nint)""
   IL_0022:  ret
@@ -6163,14 +6156,14 @@ enum E {{ }}
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nint?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly nint nint?.GetValueOrDefault()""
   IL_001c:  not
   IL_001d:  newobj     ""nint?..ctor(nint)""
   IL_0022:  ret
@@ -6184,14 +6177,14 @@ enum E {{ }}
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nuint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nuint?""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0017:  call       ""readonly nuint nuint?.GetValueOrDefault()""
   IL_001c:  not
   IL_001d:  newobj     ""nuint?..ctor(nuint)""
   IL_0022:  ret
@@ -6211,7 +6204,7 @@ $@"class Program
         System.Console.WriteLine(Evaluate({operand}));
     }}
 }}";
-                var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+                var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
                 var tree = comp.SyntaxTrees[0];
@@ -6222,7 +6215,7 @@ $@"class Program
 
                 if (expectedDiagnostics.Length == 0)
                 {
-                    var verifier = CompileAndVerify(comp, expectedOutput: expectedResult);
+                    var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(expectedResult));
                     verifier.VerifyIL("Program.Evaluate", expectedIL);
                 }
             }
@@ -6277,14 +6270,14 @@ $@"class Program
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0016
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nint?""
   IL_0013:  ldloc.1
   IL_0014:  br.s       IL_0024
   IL_0016:  ldloca.s   V_0
-  IL_0018:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0018:  call       ""readonly nint nint?.GetValueOrDefault()""
   IL_001d:  ldc.i4.1
   IL_001e:  add
   IL_001f:  newobj     ""nint?..ctor(nint)""
@@ -6313,14 +6306,14 @@ $@"class Program
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nuint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0016
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nuint?""
   IL_0013:  ldloc.1
   IL_0014:  br.s       IL_0024
   IL_0016:  ldloca.s   V_0
-  IL_0018:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0018:  call       ""readonly nuint nuint?.GetValueOrDefault()""
   IL_001d:  ldc.i4.1
   IL_001e:  add
   IL_001f:  newobj     ""nuint?..ctor(nuint)""
@@ -6349,14 +6342,14 @@ $@"class Program
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0016
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nint?""
   IL_0013:  ldloc.1
   IL_0014:  br.s       IL_0024
   IL_0016:  ldloca.s   V_0
-  IL_0018:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0018:  call       ""readonly nint nint?.GetValueOrDefault()""
   IL_001d:  ldc.i4.1
   IL_001e:  sub
   IL_001f:  newobj     ""nint?..ctor(nint)""
@@ -6385,14 +6378,14 @@ $@"class Program
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nuint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0016
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nuint?""
   IL_0013:  ldloc.1
   IL_0014:  br.s       IL_0024
   IL_0016:  ldloca.s   V_0
-  IL_0018:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0018:  call       ""readonly nuint nuint?.GetValueOrDefault()""
   IL_001d:  ldc.i4.1
   IL_001e:  sub
   IL_001f:  newobj     ""nuint?..ctor(nuint)""
@@ -6422,14 +6415,14 @@ $@"class Program
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0016
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nint?""
   IL_0013:  ldloc.1
   IL_0014:  br.s       IL_0024
   IL_0016:  ldloca.s   V_0
-  IL_0018:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0018:  call       ""readonly nint nint?.GetValueOrDefault()""
   IL_001d:  ldc.i4.1
   IL_001e:  add.ovf
   IL_001f:  newobj     ""nint?..ctor(nint)""
@@ -6458,14 +6451,14 @@ $@"class Program
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nuint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0016
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nuint?""
   IL_0013:  ldloc.1
   IL_0014:  br.s       IL_0024
   IL_0016:  ldloca.s   V_0
-  IL_0018:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0018:  call       ""readonly nuint nuint?.GetValueOrDefault()""
   IL_001d:  ldc.i4.1
   IL_001e:  add.ovf.un
   IL_001f:  newobj     ""nuint?..ctor(nuint)""
@@ -6494,14 +6487,14 @@ $@"class Program
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0016
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nint?""
   IL_0013:  ldloc.1
   IL_0014:  br.s       IL_0024
   IL_0016:  ldloca.s   V_0
-  IL_0018:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0018:  call       ""readonly nint nint?.GetValueOrDefault()""
   IL_001d:  ldc.i4.1
   IL_001e:  sub.ovf
   IL_001f:  newobj     ""nint?..ctor(nint)""
@@ -6530,14 +6523,14 @@ $@"class Program
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0004:  call       ""readonly bool nuint?.HasValue.get""
   IL_0009:  brtrue.s   IL_0016
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""nuint?""
   IL_0013:  ldloc.1
   IL_0014:  br.s       IL_0024
   IL_0016:  ldloca.s   V_0
-  IL_0018:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0018:  call       ""readonly nuint nuint?.GetValueOrDefault()""
   IL_001d:  ldc.i4.1
   IL_001e:  sub.ovf.un
   IL_001f:  newobj     ""nuint?..ctor(nuint)""
@@ -6584,7 +6577,7 @@ class Program
         }}
     }}
 }}";
-                var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+                var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
                 var tree = comp.SyntaxTrees[0];
@@ -6598,7 +6591,7 @@ class Program
 
                 if (expectedDiagnostics.Length == 0)
                 {
-                    var verifier = CompileAndVerify(comp, expectedOutput: expectedResult);
+                    var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(expectedResult));
                     verifier.VerifyIL("Program.Evaluate", expectedIL);
                 }
             }
@@ -6654,14 +6647,14 @@ class Program
   IL_0002:  ldobj      ""nint?""
   IL_0007:  stloc.0
   IL_0008:  ldloca.s   V_0
-  IL_000a:  call       ""bool nint?.HasValue.get""
+  IL_000a:  call       ""readonly bool nint?.HasValue.get""
   IL_000f:  brtrue.s   IL_001c
   IL_0011:  ldloca.s   V_1
   IL_0013:  initobj    ""nint?""
   IL_0019:  ldloc.1
   IL_001a:  br.s       IL_002a
   IL_001c:  ldloca.s   V_0
-  IL_001e:  call       ""nint nint?.GetValueOrDefault()""
+  IL_001e:  call       ""readonly nint nint?.GetValueOrDefault()""
   IL_0023:  ldc.i4.1
   IL_0024:  add
   IL_0025:  newobj     ""nint?..ctor(nint)""
@@ -6692,14 +6685,14 @@ class Program
   IL_0002:  ldobj      ""nuint?""
   IL_0007:  stloc.0
   IL_0008:  ldloca.s   V_0
-  IL_000a:  call       ""bool nuint?.HasValue.get""
+  IL_000a:  call       ""readonly bool nuint?.HasValue.get""
   IL_000f:  brtrue.s   IL_001c
   IL_0011:  ldloca.s   V_1
   IL_0013:  initobj    ""nuint?""
   IL_0019:  ldloc.1
   IL_001a:  br.s       IL_002a
   IL_001c:  ldloca.s   V_0
-  IL_001e:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_001e:  call       ""readonly nuint nuint?.GetValueOrDefault()""
   IL_0023:  ldc.i4.1
   IL_0024:  add
   IL_0025:  newobj     ""nuint?..ctor(nuint)""
@@ -6730,14 +6723,14 @@ class Program
   IL_0002:  ldobj      ""nint?""
   IL_0007:  stloc.0
   IL_0008:  ldloca.s   V_0
-  IL_000a:  call       ""bool nint?.HasValue.get""
+  IL_000a:  call       ""readonly bool nint?.HasValue.get""
   IL_000f:  brtrue.s   IL_001c
   IL_0011:  ldloca.s   V_1
   IL_0013:  initobj    ""nint?""
   IL_0019:  ldloc.1
   IL_001a:  br.s       IL_002a
   IL_001c:  ldloca.s   V_0
-  IL_001e:  call       ""nint nint?.GetValueOrDefault()""
+  IL_001e:  call       ""readonly nint nint?.GetValueOrDefault()""
   IL_0023:  ldc.i4.1
   IL_0024:  sub
   IL_0025:  newobj     ""nint?..ctor(nint)""
@@ -6768,14 +6761,14 @@ class Program
   IL_0002:  ldobj      ""nuint?""
   IL_0007:  stloc.0
   IL_0008:  ldloca.s   V_0
-  IL_000a:  call       ""bool nuint?.HasValue.get""
+  IL_000a:  call       ""readonly bool nuint?.HasValue.get""
   IL_000f:  brtrue.s   IL_001c
   IL_0011:  ldloca.s   V_1
   IL_0013:  initobj    ""nuint?""
   IL_0019:  ldloc.1
   IL_001a:  br.s       IL_002a
   IL_001c:  ldloca.s   V_0
-  IL_001e:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_001e:  call       ""readonly nuint nuint?.GetValueOrDefault()""
   IL_0023:  ldc.i4.1
   IL_0024:  sub
   IL_0025:  newobj     ""nuint?..ctor(nuint)""
@@ -6818,7 +6811,7 @@ class Program
         }}
     }}
 }}";
-                var comp = CreateNumericIntPtrCompilation(source, new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+                var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
                 var tree = comp.SyntaxTrees[0];
@@ -6830,7 +6823,7 @@ class Program
 
                 if (expectedDiagnostics.Length == 0)
                 {
-                    var verifier = CompileAndVerify(comp, expectedOutput: expectedResult);
+                    var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(expectedResult));
                     verifier.VerifyIL("Program.Evaluate", expectedIL);
                 }
             }
@@ -6991,7 +6984,7 @@ $@"class MyInt
         _ = x << 1;
     }
 }";
-                var comp = CreateNumericIntPtrCompilation(new[] { sourceA, sourceB }, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+                var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
                 comp.VerifyDiagnostics(expected);
             }
         }
@@ -7009,7 +7002,7 @@ $@"class MyInt
                     "nint?" => "System.IntPtr?",
                     "nuint" => "System.UIntPtr",
                     "nuint?" => "System.UIntPtr?",
-                    _ => throw ExceptionUtilities.Unreachable
+                    _ => throw ExceptionUtilities.Unreachable()
                 };
                 binaryOps(op, fullLeftType, rightType, expectedSymbol1, expectedSymbol2, diagnostics1, diagnostics2);
             }
@@ -8092,7 +8085,7 @@ $@"class Program
         return x {op} y;
     }}
 }}";
-                var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseDll.WithAllowUnsafe(useUnsafeContext), parseOptions: TestOptions.Regular9);
+                var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(useUnsafeContext), parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
                 var tree = comp.SyntaxTrees[0];
@@ -8103,7 +8096,7 @@ $@"class Program
 
                 if (expectedDiagnostics.Length == 0)
                 {
-                    CompileAndVerify(comp);
+                    CompileAndVerify(comp, verify: Verification.FailsPEVerify);
                 }
 
                 static bool useUnsafe(string type) => type == "void*";
@@ -8153,9 +8146,9 @@ class Program
         Console.WriteLine(ShiftRight(35, 4));
     }
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
-            var verifier = CompileAndVerify(comp, expectedOutput:
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(
 @"7
 -1
 12
@@ -8171,7 +8164,7 @@ False
 7
 6
 560
-2");
+2"));
             verifier.VerifyIL("Program.Add",
 @"{
   // Code size        4 (0x4)
@@ -8379,9 +8372,9 @@ class Program
         Console.WriteLine(ShiftRight(35, 4));
     }
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
-            var verifier = CompileAndVerify(comp, expectedOutput:
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(
 @"7
 1
 12
@@ -8397,7 +8390,7 @@ False
 7
 6
 560
-2");
+2"));
             verifier.VerifyIL("Program.Add",
 @"{
   // Code size        4 (0x4)
@@ -8583,14 +8576,14 @@ class Program
         Console.WriteLine(Mod(5, 2));
     }
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
-            var verifier = CompileAndVerify(comp, expectedOutput:
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(
 @"7
 -1
 12
 2
-1");
+1"));
             verifier.VerifyIL("Program.Add",
 @"{
   // Code size        4 (0x4)
@@ -8659,14 +8652,14 @@ class Program
         Console.WriteLine(Mod(5, 2));
     }
 }";
-            var comp = CreateNumericIntPtrCompilation(source, new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
-            var verifier = CompileAndVerify(comp, expectedOutput:
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(
 @"7
 1
 12
 2
-1");
+1"));
             verifier.VerifyIL("Program.Add",
 @"{
   // Code size        4 (0x4)
@@ -8984,8 +8977,7 @@ $@"public class Library
     {declarations}
     public const {opType} F = {expr};
 }}";
-                var mscorlibRefWithoutSharing = MscorlibRefWithoutSharingCachedSymbols;
-                var comp = CreateNumericIntPtrCompilation(sourceA, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
+                var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
@@ -9004,9 +8996,10 @@ $@"public class Library
     }
 }";
                 var refA = comp.EmitToImageReference();
-                comp = CreateEmptyCompilation(sourceB, references: new[] { refA, mscorlibRefWithoutSharing }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+                comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
-                CompileAndVerify(comp, expectedOutput: expectedResult);
+                // Investigating flaky IL verification issue. Tracked by https://github.com/dotnet/roslyn/issues/63782
+                CompileAndVerify(comp, verify: Verification.PassesOrFailFast | Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(expectedResult));
                 Assert.NotNull(expectedResult);
             }
 
@@ -9031,7 +9024,7 @@ class Program
         Console.WriteLine(result);
     }}
 }}";
-                var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+                var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
                 if (expectedDiagnostics.Any(d => ErrorFacts.GetSeverity((ErrorCode)d.Code) == DiagnosticSeverity.Error))
                 {
@@ -9040,7 +9033,8 @@ class Program
                     return;
                 }
 
-                CompileAndVerify(comp, expectedOutput: expectedResult).VerifyDiagnostics(expectedDiagnostics);
+                // Investigating flaky IL verification issue. Tracked by https://github.com/dotnet/roslyn/issues/63782
+                CompileAndVerify(comp, verify: Verification.FailsPEVerify | Verification.PassesOrFailFast, expectedOutput: IncludeExpectedOutput(expectedResult)).VerifyDiagnostics(expectedDiagnostics);
                 Assert.NotNull(expectedResult);
             }
         }
@@ -9059,7 +9053,7 @@ class Program
         const UIntPtr y = checked(uint.MaxValue + (UIntPtr)42);
     }
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
 
             comp.VerifyDiagnostics(
                 // (8,27): error CS0133: The expression being assigned to 'x' must be constant
@@ -9091,8 +9085,8 @@ class Program
         }
     }
 }";
-            comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "System.OverflowException" : "4294967337").VerifyDiagnostics(
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(IntPtr.Size == 4 ? "System.OverflowException" : "4294967337")).VerifyDiagnostics(
                 // (10,29): warning CS8973: The operation may overflow 'nuint' at runtime (use 'unchecked' syntax to override)
                 //             var y = checked(uint.MaxValue + (UIntPtr)42);
                 Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, "uint.MaxValue + (UIntPtr)42").WithArguments("nuint").WithLocation(10, 29)
@@ -9109,8 +9103,8 @@ class Program
         System.Console.WriteLine(y);
     }
 }";
-            comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "41" : "4294967337").VerifyDiagnostics();
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(IntPtr.Size == 4 ? "41" : "4294967337")).VerifyDiagnostics();
         }
 
         [Fact]
@@ -9127,7 +9121,7 @@ class Program
         const IntPtr y = checked(-(IntPtr)int.MinValue);
     }
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
                 // (8,26): error CS0133: The expression being assigned to 'x' must be constant
                 //         const IntPtr x = unchecked(-(IntPtr)int.MinValue);
@@ -9158,8 +9152,8 @@ class Program
         }
     }
 }";
-            comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "System.OverflowException" : "2147483648").VerifyDiagnostics(
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(IntPtr.Size == 4 ? "System.OverflowException" : "2147483648")).VerifyDiagnostics(
                 // (10,29): warning CS8973: The operation may overflow 'nint' at runtime (use 'unchecked' syntax to override)
                 //             var y = checked(-(IntPtr)int.MinValue);
                 Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, "-(IntPtr)int.MinValue").WithArguments("nint").WithLocation(10, 29)
@@ -9176,8 +9170,8 @@ class Program
         System.Console.WriteLine(y);
     }
 }";
-            comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "-2147483648" : "2147483648").VerifyDiagnostics();
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(IntPtr.Size == 4 ? "-2147483648" : "2147483648")).VerifyDiagnostics();
         }
 
         // OverflowException behavior is consistent with unchecked int division.
@@ -9215,9 +9209,9 @@ class Program
     static nint NativeIntDivision(IntPtr x, IntPtr y) => unchecked(x / y);
     static nint NativeIntRemainder(IntPtr x, IntPtr y) => unchecked(x % y);
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
-            CompileAndVerify(comp, expectedOutput:
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(
 $@"2147483647
 System.OverflowException
 0
@@ -9225,7 +9219,7 @@ System.OverflowException
 2147483647
 {(IntPtr.Size == 4 ? "System.OverflowException" : "2147483648")}
 0
-{(IntPtr.Size == 4 ? "System.OverflowException" : "0")}");
+{(IntPtr.Size == 4 ? "System.OverflowException" : "0")}"));
         }
 
         [Fact]
@@ -9244,12 +9238,12 @@ class Program
     static nint LeftShift(nint x, int y) => unchecked(x << y);
     static void Report(long l) => Console.WriteLine(""{0:x}"", l);
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
             var expectedValue = IntPtr.Size == 4 ? "fffffffffffffffe" : "fffffffe";
-            CompileAndVerify(comp, expectedOutput:
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(
 $@"{expectedValue}
-{expectedValue}");
+{expectedValue}"));
         }
 
         [Fact]
@@ -9268,12 +9262,12 @@ class Program
     static nuint LeftShift(nuint x, int y) => unchecked(x << y);
     static void Report(ulong u) => Console.WriteLine(""{0:x}"", u);
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
             var expectedValue = IntPtr.Size == 4 ? "fffffffe" : "1fffffffe";
-            CompileAndVerify(comp, expectedOutput:
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(
 $@"{expectedValue}
-{expectedValue}");
+{expectedValue}"));
         }
 
         [Fact]
@@ -9297,7 +9291,7 @@ class C : I
     S<nint> I.F3() => default;
     S<System.IntPtr> I.F4() => default;
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
             comp.VerifyEmitDiagnostics();
 
@@ -9332,7 +9326,7 @@ class B : A
     public override nint[] F3() => null;
     public override System.IntPtr[] F4() => null;
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics();
 
             var type = comp.GetTypeByMetadataName("A");
@@ -9397,11 +9391,11 @@ class Program
         Console.WriteLine(Execute(() => ConvertChecked(value)));
     }}
 }}";
-                var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular9);
+                var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
-                var verifier = CompileAndVerify(comp, expectedOutput:
+                var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(
 $@"{toValueUnchecked}
-{toValueChecked}");
+{toValueChecked}"));
 
                 verifier.VerifyIL("Program.Convert", toConvUnchecked is null ?
 @"
@@ -9478,7 +9472,7 @@ unsafe class Program
         Console.WriteLine(Execute(() => (ulong)ToPointer4(uint.MaxValue)));
     }}
 }}";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             string expectedOutput =
 $@"-42
 -42
@@ -9504,7 +9498,7 @@ System.OverflowException
 42
 System.OverflowException
 4294967295";
-            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: expectedOutput);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(expectedOutput));
             verifier.VerifyIL("Program.ToPointer1",
 @"{
   // Code size        2 (0x2)
@@ -9616,7 +9610,7 @@ class Program
         u = E.B;
     }
 }";
-            var comp = CreateNumericIntPtrCompilation(new[] { sourceA, sourceB }, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
                 // (10,13): error CS0266: Cannot implicitly convert type 'nint' to 'E'. An explicit conversion exists (are you missing a cast?)
                 //         e = i1;
@@ -9672,12 +9666,12 @@ class Program
         WriteLine(F4(E.B));
     }
 }";
-            var comp = CreateNumericIntPtrCompilation(new[] { sourceA, sourceB }, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput:
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(
 @"A
 B
 -1
-1");
+1"));
         }
 
         [Fact]
@@ -9802,11 +9796,11 @@ class Program
         Console.WriteLine(Execute(() => ConvertChecked(value)));
     }}
 }}";
-                var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
+                var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
 
-                var verifier = CompileAndVerify(comp, expectedOutput:
+                var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(
 $@"{toValueUnchecked}
-{toValueChecked}");
+{toValueChecked}"));
 
                 verifier.VerifyIL("Program.Convert",
 $@"{{
@@ -9874,7 +9868,7 @@ unsafe class Program
             ToPointer();
     }}
 }}";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
         }
 
@@ -9887,7 +9881,7 @@ class C1<T, U> where U : I<nint>, I<nint> { }
 class C2<T, U> where U : I<nint>, I<System.IntPtr> { }
 class C3<T, U> where U : I<System.UIntPtr>, I<System.IntPtr>, I<nuint> { }
 ";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
                 // (2,35): error CS0405: Duplicate constraint 'I<nint>' for type parameter 'U'
                 // class C1<T, U> where U : I<nint>, I<nint> { }
@@ -9909,7 +9903,7 @@ class C1 : I<nint>, I<nint> { }
 class C2 : I<nint>, I<System.IntPtr> { }
 class C3 : I<System.UIntPtr>, I<System.IntPtr>, I<nuint> { }
 ";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
                 // (2,21): error CS0528: 'I<nint>' is already listed in interface list
                 // class C1 : I<nint>, I<nint> { }
@@ -9941,7 +9935,7 @@ $@"static class NativeInts
     static {type} Checked4(long x) => checked(x); // 9
     static {type} Checked5(nint x) => checked(x); // 10
 }}";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
                 // (3,40): error CS0266: Cannot implicitly convert type 'sbyte' to 'nuint'. An explicit conversion exists (are you missing a cast?)
                 //     static nuint Implicit1(sbyte x) => x; // 1
@@ -9994,8 +9988,8 @@ $@"static class NativeInts
     static {type} Checked4(long x) => checked(({type})x);
     static {type} Checked5(nint x) => checked(({type})x);
 }}";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
-            var verifier = CompileAndVerify(comp);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
             string expectedExplicitILNop =
 @"{
   // Code size        2 (0x2)
@@ -10244,7 +10238,7 @@ unsafe class FinalType
 }
 enum E { }
 """;
-                var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.UnsafeDebugDll);
+                var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net70);
 
                 if (noConversion)
                 {
@@ -10471,7 +10465,7 @@ class Indexers2
     System.UIntPtr Property4 => throw null;
 }
 ";
-            var comp = CreateNumericIntPtrCompilation(new[] { source }, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            var comp = CreateCompilation(new[] { source }, targetFramework: TargetFramework.Net70);
 
             comp.VerifyDiagnostics();
             VerifyNoNativeIntegerAttributeEmitted(comp);
@@ -10547,7 +10541,7 @@ class C2 { }
 
 class D<T> { }
 ";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
         }
 
@@ -10558,7 +10552,7 @@ class D<T> { }
 class C<T> where T : unmanaged { }
 class D : C<System.IntPtr> { }
 ";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
 
             comp.VerifyDiagnostics();
         }
@@ -10680,9 +10674,9 @@ System.UIntPtr x4 = 3;
 
 System.Console.Write($""{array[x1]}, {array[x2]}, {array[x3]}, {array[x4]}"");
 ";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
 
-            CompileAndVerify(comp, expectedOutput: "1, 2, 3, 4");
+            CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("1, 2, 3, 4"), verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -10693,12 +10687,12 @@ public class C
 {
     public nint M() { throw null; }
 }";
-            var comp = CreateEmptyCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             var image = comp.EmitToImageReference();
 
-            var comp2 = CreateNumericIntPtrCompilation(source, references: new[] { image, MscorlibRefWithoutSharingCachedSymbols });
+            var comp2 = CreateCompilation(source, references: new[] { image }, targetFramework: TargetFramework.Net70);
 
-            CompileAndVerify(comp2, sourceSymbolValidator: verify, symbolValidator: verify);
+            CompileAndVerify(comp2, sourceSymbolValidator: verify, symbolValidator: verify, verify: Verification.FailsPEVerify);
 
             static void verify(ModuleSymbol module)
             {
@@ -10730,7 +10724,7 @@ _ = y switch // 3
 };
 
 ";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
                 // (3,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '> (nint)int.MaxValue' is not covered.
                 // _ = x switch // 1
@@ -10798,13 +10792,13 @@ public class C
     public static void M9(byte{{s2Nullable}} x) { Write("M9(byte)"); }
 }
 """;
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
 
             // Note: conversions ushort->nint, ushort?->nint?, ushort->nint? are implicit (so rule 1 kicks in), but ushort?->nint is explicit (so rule 3 kicks in)
             var expected = (nullable1, nullable2) is (false, true)
                 ? "M1 M2 M3 M4 M5(nint) M6 M7 M8 M9(nint)"
                 : "M1 M2 M3 M4 M5(ushort) M6 M7 M8 M9(byte)";
-            CompileAndVerify(comp, expectedOutput: expected);
+            CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput(expected), verify: Verification.FailsPEVerify);
         }
 
         [Theory, CombinatorialData]
@@ -10866,13 +10860,13 @@ public class C
     public static void M10(byte{{s2Nullable}} x) { Write("M10(byte)"); }
 }
 """;
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
 
             // Note: conversions ushort->nint, ushort?->nint?, ushort->nint? are implicit (so rule 1 kicks in), but ushort?->nint is explicit (so rule 3 kicks in)
             var expected = (nullable1, nullable2) is (false, true)
                 ? "M1 M2 M3 M4 M5 M6(IntPtr) M7 M8 M9 M10(IntPtr)"
                 : "M1 M2 M3 M4 M5 M6(ushort) M7 M8 M9 M10(byte)";
-            CompileAndVerify(comp, expectedOutput: expected);
+            CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput(expected), verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -10893,17 +10887,8 @@ public class Derived : Base
     public override nint M() => 0;
 }
 """;
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { libComp.ToMetadataReference(), MscorlibRefWithoutSharingCachedSymbols });
-            comp.VerifyDiagnostics(
-                // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'lib' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
-                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "lib", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "mscorlib").WithLocation(1, 1),
-                // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'lib' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
-                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "lib", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "mscorlib").WithLocation(1, 1),
-                // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'lib' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
-                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "lib", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "mscorlib").WithLocation(1, 1),
-                // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'lib' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
-                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "lib", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "mscorlib").WithLocation(1, 1)
-                );
+            var comp = CreateCompilation(source, references: new[] { libComp.ToMetadataReference() }, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
 
             var baseM = (RetargetingMethodSymbol)comp.GlobalNamespace.GetMember("Base.M");
             var baseNint = (PENamedTypeSymbol)baseM.ReturnType;
@@ -10924,7 +10909,7 @@ public class Base
     public virtual nint M() => 0;
 }
 """;
-            var libComp = CreateNumericIntPtrCompilation(lib_cs, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, assemblyName: "lib");
+            var libComp = CreateCompilation(lib_cs, assemblyName: "lib", targetFramework: TargetFramework.Net70);
             libComp.VerifyDiagnostics();
 
             string source = """
@@ -10934,7 +10919,11 @@ public class Derived : Base
 }
 """;
             var comp = CreateEmptyCompilation(source, references: new[] { libComp.ToMetadataReference(), MscorlibRef_v46 });
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (1,24): error CS0012: The type 'Object' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=7.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+                // public class Derived : Base
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "Base").WithArguments("System.Object", "System.Runtime, Version=7.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(1, 24)
+                );
 
             var baseM = (RetargetingMethodSymbol)comp.GlobalNamespace.GetMember("Base.M");
             var baseNint = (PENamedTypeSymbol)baseM.ReturnType;
@@ -10962,9 +10951,9 @@ public class C
     System.UIntPtr M6(System.UIntPtr x, int count) => x >>> count;
 }
 """;
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp);
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
             verifier.VerifyIL("C.M1", shiftRight("nint"));
             verifier.VerifyIL("C.M2", shiftRight("nuint"));
             verifier.VerifyIL("C.M3", shiftRight("nint"));
@@ -11024,13 +11013,13 @@ class C
     }
 }
 """;
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.UnsafeReleaseExe);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "OVERFLOW RAN", verify: Verification.Skipped);
+            CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("OVERFLOW RAN"), verify: Verification.Skipped);
 
             comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "RAN", verify: Verification.Skipped);
+            CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("RAN"), verify: Verification.Skipped);
         }
 
         [Fact]
@@ -11145,7 +11134,7 @@ public class C
 /// <summary>Summary <see cref="{{type}}"/>.</summary>
 class C { }
 """;
-            var comp = CreateNumericIntPtrCompilation(src, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.RegularWithDocumentationComments);
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -11168,7 +11157,7 @@ using @nint = System.String;
 class C { }
 """;
 
-            var comp = CreateNumericIntPtrCompilation(src, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.RegularWithDocumentationComments);
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -11196,7 +11185,7 @@ public class C
 }
 """;
 
-            var comp = CreateNumericIntPtrCompilation(src, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.RegularWithDocumentationComments);
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -11221,7 +11210,7 @@ public class C
 }
 """;
 
-            var comp = CreateNumericIntPtrCompilation(src, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.RegularWithDocumentationComments);
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -11246,7 +11235,7 @@ public class C
 }
 """;
 
-            var comp = CreateNumericIntPtrCompilation(src, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.RegularWithDocumentationComments);
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
                 // (1,33): warning CS1574: XML comment has cref attribute 'type' that could not be resolved
                 // /// <summary>Summary <see cref="type"/>.</summary>
@@ -11266,7 +11255,7 @@ public class C
 }
 """;
 
-            var comp = CreateNumericIntPtrCompilation(src, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.RegularWithDocumentationComments);
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -11385,7 +11374,7 @@ class C
   IL_0002:  ldarg.2
   IL_0003:  stloc.1
   IL_0004:  ldloca.s   V_1
-  IL_0006:  call       ""bool int?.HasValue.get""
+  IL_0006:  call       ""readonly bool int?.HasValue.get""
   IL_000b:  brtrue.s   IL_0017
   IL_000d:  ldloca.s   V_2
   IL_000f:  initobj    ""nint?""
@@ -11393,7 +11382,7 @@ class C
   IL_0016:  ret
   IL_0017:  ldloc.0
   IL_0018:  ldloca.s   V_1
-  IL_001a:  call       ""int int?.GetValueOrDefault()""
+  IL_001a:  call       ""readonly int int?.GetValueOrDefault()""
   IL_001f:  sizeof     ""nint""
   IL_0025:  ldc.i4.8
   IL_0026:  mul
@@ -11425,9 +11414,9 @@ class C
   IL_0002:  ldarg.2
   IL_0003:  stloc.1
   IL_0004:  ldloca.s   V_0
-  IL_0006:  call       ""bool nint?.HasValue.get""
+  IL_0006:  call       ""readonly bool nint?.HasValue.get""
   IL_000b:  ldloca.s   V_1
-  IL_000d:  call       ""bool int?.HasValue.get""
+  IL_000d:  call       ""readonly bool int?.HasValue.get""
   IL_0012:  and
   IL_0013:  brtrue.s   IL_001f
   IL_0015:  ldloca.s   V_2
@@ -11435,9 +11424,9 @@ class C
   IL_001d:  ldloc.2
   IL_001e:  ret
   IL_001f:  ldloca.s   V_0
-  IL_0021:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0021:  call       ""readonly nint nint?.GetValueOrDefault()""
   IL_0026:  ldloca.s   V_1
-  IL_0028:  call       ""int int?.GetValueOrDefault()""
+  IL_0028:  call       ""readonly int int?.GetValueOrDefault()""
   IL_002d:  sizeof     ""nint""
   IL_0033:  ldc.i4.8
   IL_0034:  mul
@@ -11531,14 +11520,14 @@ class C
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool {type}.HasValue.get""
+  IL_0004:  call       ""readonly bool {type}.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""{type}""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""{strippedType} {type}.GetValueOrDefault()""
+  IL_0017:  call       ""readonly {strippedType} {type}.GetValueOrDefault()""
   IL_001c:  newobj     ""{type}..ctor({strippedType})""
   IL_0021:  ret
 }}";
@@ -11555,14 +11544,14 @@ class C
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool {type}.HasValue.get""
+  IL_0004:  call       ""readonly bool {type}.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""{type}""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""{strippedType} {type}.GetValueOrDefault()""
+  IL_0017:  call       ""readonly {strippedType} {type}.GetValueOrDefault()""
   IL_001c:  ldc.i4.1
   IL_001d:  {op}
   IL_001e:  newobj     ""{type}..ctor({strippedType})""
@@ -11582,14 +11571,14 @@ class C
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool {type}.HasValue.get""
+  IL_0004:  call       ""readonly bool {type}.HasValue.get""
   IL_0009:  brtrue.s   IL_0015
   IL_000b:  ldloca.s   V_1
   IL_000d:  initobj    ""{type}""
   IL_0013:  ldloc.1
   IL_0014:  ret
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""{strippedType} {type}.GetValueOrDefault()""
+  IL_0017:  call       ""readonly {strippedType} {type}.GetValueOrDefault()""
   IL_001c:  ldc.i4.s   {count}
   IL_001e:  sizeof     ""{strippedType}""
   IL_0024:  ldc.i4.8
@@ -11606,8 +11595,8 @@ class C
 
             CompilationVerifier compileAndVerify(CSharpTestSource source)
             {
-                var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
-                return CompileAndVerify(comp);
+                var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+                return CompileAndVerify(comp, verify: Verification.FailsPEVerify);
             }
 
             void validate(string type, string value, string binaryOp, string result32Bits, string result64Bits, string expectedIL)
@@ -11664,8 +11653,8 @@ class C
     }
 }
 """;
-                var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.UnsafeReleaseExe);
-                var verifier = CompileAndVerify(comp, expectedOutput: "RAN");
+                var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.Net70);
+                var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput("RAN"));
                 verifier.VerifyIL("C.M", expectedIL);
             }
         }
@@ -11681,9 +11670,9 @@ static class C
     public static nint ShiftRight(nint x) => x >> (-62);
 }
 """;
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.UnsafeReleaseExe);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "63");
+            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("63"), verify: Verification.FailsPEVerify);
             verifier.VerifyIL("C.ShiftRight", @"
 {
   // Code size       16 (0x10)
@@ -11725,13 +11714,13 @@ class Program
             var comp = CreateCompilation(new[] { SpanSource, source }, options: TestOptions.UnsafeReleaseExe);
             verify(comp);
 
-            comp = CreateNumericIntPtrCompilation(new[] { SpanSource, source }, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.UnsafeReleaseExe);
+            comp = CreateCompilation(new[] { source }, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.Net70);
             verify(comp);
 
             void verify(CSharpCompilation comp)
             {
                 comp.VerifyEmitDiagnostics();
-                var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: "00");
+                var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("00"));
                 verifier.VerifyIL("Program.F", """
 {
   // Code size       48 (0x30)
@@ -11781,18 +11770,6 @@ class Program
                 emitOptions: new EmitOptions(runtimeMetadataVersion: "v5.1", debugInformationFormat: DebugInformationFormat.PortablePdb),
                 symbolValidator: module => Assert.Equal("", NativeIntegerAttributesVisitor.GetString((PEModuleSymbol)module)),
                 verify: Verification.Skipped);
-        }
-
-        private static MetadataReference MscorlibRefWithoutSharingCachedSymbols
-        {
-            get
-            {
-                // Avoid sharing mscorlib symbols with other tests since we are about to change
-                // RuntimeSupportsNumericIntPtr property for it.
-
-                return ((AssemblyMetadata)((MetadataImageReference)MscorlibRef).GetMetadata()).CopyWithoutSharingCachedSymbols().
-                    GetReference(display: "mscorlib.v4_0_30319.dll");
-            }
         }
 
         const string RuntimeFeature_NumericIntPtr = @"

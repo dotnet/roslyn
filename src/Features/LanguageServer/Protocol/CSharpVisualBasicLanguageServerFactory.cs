@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
@@ -29,6 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public AbstractLanguageServer<RequestContext> Create(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
+            WellKnownLspServerKinds serverKind,
             ILspServiceLogger logger)
         {
             var server = new RoslynLanguageServer(
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 capabilitiesProvider,
                 logger,
                 ProtocolConstants.RoslynLspLanguages,
-                WellKnownLspServerKinds.CSharpVisualBasicLspServer);
+                serverKind);
 
             return server;
         }
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public AbstractLanguageServer<RequestContext> Create(Stream input, Stream output, ICapabilitiesProvider capabilitiesProvider, ILspServiceLogger logger)
         {
             var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(output, input));
-            return Create(jsonRpc, capabilitiesProvider, logger);
+            return Create(jsonRpc, capabilitiesProvider, WellKnownLspServerKinds.CSharpVisualBasicLspServer, logger);
         }
     }
 }

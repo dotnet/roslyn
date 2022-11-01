@@ -181,7 +181,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, ErrorSeverity.Diagnostic))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }
