@@ -2835,6 +2835,22 @@ class C
             await VerifyItemExistsAsync(markup, "cancellationToken");
         }
 
+        [Fact, WorkItem(29487, "https://github.com/dotnet/roslyn/issues/29487")]
+        public async Task TestForOutParam2()
+        {
+            var markup = @"
+class C
+{
+    void Main()
+    {
+        int.TryParse("""", out var $$)
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "result");
+            await VerifyItemExistsAsync(markup, "styles");
+        }
+
         private static NamingStylePreferences MultipleCamelCaseLocalRules()
         {
             var styles = new[]
