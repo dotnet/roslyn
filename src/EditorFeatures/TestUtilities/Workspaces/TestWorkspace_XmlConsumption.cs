@@ -1098,7 +1098,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 ((bool?)netcore30).HasValue &&
                 ((bool?)netcore30).Value)
             {
-                references = NetCoreApp.StandardReferences.ToList();
+                references = NetCoreApp.References.ToList();
             }
 
             var netstandard20 = element.Attribute(CommonReferencesNetStandard20Name);

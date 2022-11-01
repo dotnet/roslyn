@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 private readonly UnitTestingRegistration _registration;
                 private readonly IAsynchronousOperationListener _listener;
                 private readonly IUnitTestingDocumentTrackingService _documentTracker;
-                private readonly IProjectCacheService? _cacheService;
 
 #if false // Not used in unit testing crawling
                 private readonly UnitTestingHighPriorityProcessor _highPriorityProcessor;
@@ -66,7 +65,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 {
                     _listener = listener;
                     _registration = registration;
-                    _cacheService = registration.Services.GetService<IProjectCacheService>();
 
 #if false // Not used in unit testing crawling
                     _lazyDiagnosticAnalyzerService = new Lazy<IDiagnosticAnalyzerService?>(() => GetDiagnosticAnalyzerService(analyzerProviders));
@@ -177,9 +175,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             _lowPriorityProcessor.AsyncProcessorTask);
                     }
                 }
-
-                private IDisposable EnableCaching(ProjectId projectId)
-                    => _cacheService?.EnableCaching(projectId) ?? UnitTestingNullDisposable.Instance;
 
 #if false // Not used in unit testing crawling
                 private IEnumerable<DocumentId> GetOpenDocumentIds()
@@ -458,13 +453,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         _incrementalAnalyzerProcessor._normalPriorityProcessor.GetTestAccessor().WaitUntilCompletion();
                         _incrementalAnalyzerProcessor._lowPriorityProcessor.GetTestAccessor().WaitUntilCompletion();
                     }
-                }
-
-                private class UnitTestingNullDisposable : IDisposable
-                {
-                    public static readonly IDisposable Instance = new UnitTestingNullDisposable();
-
-                    public void Dispose() { }
                 }
 
                 private class UnitTestingAnalyzersGetter

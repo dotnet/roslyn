@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod;
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
         {
         }
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new GenerateMethodCodeFixProvider());
 
         [Fact]
@@ -9087,8 +9085,7 @@ class Class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-        [WorkItem(63883, "https://github.com/dotnet/roslyn/issues/63883")]
+        [Fact, WorkItem(63883, "https://github.com/dotnet/roslyn/issues/63883")]
         public async Task TestNullableCoalesce()
         {
             await TestInRegularAndScriptAsync(
@@ -9114,6 +9111,41 @@ class Example
     }
 
     int? C() => null;
+}");
+        }
+
+        [Fact, WorkItem(28996, "https://github.com/dotnet/roslyn/issues/28996")]
+        public async Task TestPreferOverloadWithMatchingParameterCount()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+abstract class Barry
+{
+    public void Method()
+    {
+        Goo([|Baz|], null);
+    }
+
+    protected abstract void Goo(Action action);
+    protected abstract void Goo(Action<object> action, object arg);
+}",
+@"using System;
+
+abstract class Barry
+{
+    public void Method()
+    {
+        Goo([|Baz|], null);
+    }
+
+    private void Baz(object obj)
+    {
+        throw new NotImplementedException();
+    }
+
+    protected abstract void Goo(Action action);
+    protected abstract void Goo(Action<object> action, object arg);
 }");
         }
     }
