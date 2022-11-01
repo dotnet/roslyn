@@ -339,10 +339,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         binder = rootBinder.GetBinder(current);
                     }
                 }
-                else if (current is RecordDeclarationSyntax { ParameterList: not null })
-                {
-                    binder = rootBinder.GetBinder(current);
-                }
                 else
                 {
                     // If this ever breaks, make sure that all callers of
