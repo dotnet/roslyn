@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             // there is a curly brace between the using and the label.
             // 
             // We conservatively implement this by disallowing the change if there are gotos/labels 
-            // in the containing block, oqr inside the using body.  
+            // in the containing block, or inside the using body.  
 
             // Note: we only have to check up to the `using`, since the checks below in
             // UsingValueDoesNotLeakToFollowingStatements ensure that there would be no labels/gotos *after* the using
