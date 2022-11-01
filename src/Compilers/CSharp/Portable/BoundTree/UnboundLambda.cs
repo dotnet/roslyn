@@ -654,26 +654,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var (parameterRefKinds, parameterScopesBuilder, parameterTypes, getEffectiveScopeFromSymbol) = CollectParameterProperties();
-            var lambdaSymbol = createLambdaSymbol();
 
-            ArrayBuilder<ConstantValue?>? parameterDefaultValueBuilder = null;
-            for (int i = 0; i < lambdaSymbol.Parameters.Length; i++)
-            {
-                var param = lambdaSymbol.Parameters[i];
-                var constVal = param.ExplicitDefaultConstantValue;
-                if (constVal != null && parameterDefaultValueBuilder == null)
-                {
-                    parameterDefaultValueBuilder = ArrayBuilder<ConstantValue?>.GetInstance(ParameterCount);
-                    parameterDefaultValueBuilder.AddMany(null, i);
-                }
-
-                if (parameterDefaultValueBuilder != null)
-                {
-                    parameterDefaultValueBuilder.Add(constVal);
-                }
-            }
-
-            var parameterDefaultValues = parameterDefaultValueBuilder?.ToImmutableAndFree() ?? default;
+            var lambdaSymbol = new LambdaSymbol(
+                Binder,
+                Binder.Compilation,
+                Binder.ContainingMemberOrLambda,
+                _unboundLambda,
+                parameterTypes,
+                parameterRefKinds,
+                refKind: default,
+                returnType: default);
 
             if (!HasExplicitReturnType(out var returnRefKind, out var returnType))
             {
@@ -716,8 +706,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var parameterScopes = parameterScopesBuilder.ToImmutableAndFree();
-
             if (!returnType.HasType)
             {
                 // Binder.GetMethodGroupOrLambdaDelegateType() expects a non-null return type.
@@ -726,26 +714,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return Binder.GetMethodGroupOrLambdaDelegateType(
                 _unboundLambda.Syntax,
+                lambdaSymbol,
+                parameterScopesBuilder.ToImmutableAndFree(),
                 returnRefKind,
-                returnType,
-                parameterRefKinds,
-                parameterScopes,
-                parameterTypes,
-                parameterDefaultValues,
-                _unboundLambda.HasParamsArray);
-
-            LambdaSymbol createLambdaSymbol()
-            {
-                return new LambdaSymbol(
-                                    Binder,
-                                    Binder.Compilation,
-                                    Binder.ContainingMemberOrLambda,
-                                    _unboundLambda,
-                                    parameterTypes,
-                                    parameterRefKinds,
-                                    refKind: default,
-                                    returnType: default);
-            }
+                returnType);
         }
 
         private BoundLambda ReallyBind(NamedTypeSymbol delegateType, bool inExpressionTree)
