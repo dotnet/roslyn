@@ -632,4 +632,8 @@
   <data name="Apply_readonly_struct_preferences" xml:space="preserve">
     <value>Apply 'readonly struct' preferences</value>
   </data>
+  <data name="Convert_to_record" xml:space="preserve">
+    <value>Convert to record</value>
+    <comment>{Locked="record"} "record" is a C# keyword and should not be localized.</comment>
+  </data>
 </root>

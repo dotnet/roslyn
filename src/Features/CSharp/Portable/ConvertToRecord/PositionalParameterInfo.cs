@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
     /// <summary>
     /// Represents a property that should be added as a positional parameter
     /// </summary>
-    /// <param name="Declaration">Original declaration, null iff IsInherited is true
+    /// <param name="Declaration">Original declaration,
     /// Null iff <see cref="IsInherited"/> is true</param>
     /// <param name="Symbol">Symbol of the property</param>
     /// <param name="KeepAsOverride">Whether we should keep the original declaration present</param>

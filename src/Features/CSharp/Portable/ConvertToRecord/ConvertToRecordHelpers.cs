@@ -8,11 +8,13 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
@@ -387,9 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                     }
                 }
 
-                var expressions = GetAssignmentExpressionsFromValuesMap(positionalParams, dictionaryBuilder.ToImmutable());
-
-                return expressions;
+                return GetAssignmentExpressionsFromValuesMap(positionalParams, dictionaryBuilder.ToImmutable());
             }
 
             // no initializer or uses explicit constructor, no need to make a change
@@ -407,10 +407,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             }
             else
             {
-                return SyntaxFactory.LiteralExpression(
-                    property.Type.NullableAnnotation == NullableAnnotation.Annotated
-                        ? SyntaxKind.NullLiteralExpression
-                        : SyntaxKind.DefaultLiteralExpression);
+                if (property.Type.NullableAnnotation == NullableAnnotation.Annotated)
+                {
+                    return SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
+                }
+                else
+                {
+                    // use type syntax in case of signature conflict
+                    return SyntaxFactory.DefaultExpression(property.Type.GenerateTypeSyntax(allowVar: false))
+                        .WithAdditionalAnnotations(Simplifier.Annotation);
+                }
             }
         });
 

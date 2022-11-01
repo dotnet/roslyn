@@ -41,8 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                 {
                     // if type is an interface we don't want to refactor
                     TypeKind: TypeKind.Class or TypeKind.Struct,
-                    // no need to convert if it's already a record
-                    IsRecord: false,
                     // records can't be static and so if the class is static we probably shouldn't convert it
                     IsStatic: false,
                 } type)
@@ -63,18 +61,41 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             }
 
             var positionalTitle = CSharpFeaturesResources.Convert_to_positional_record;
+            var nonPositionalTitle = CSharpFeaturesResources.Convert_to_record;
 
             var positional = CodeAction.Create(
                 positionalTitle,
                 cancellationToken => ConvertToPositionalRecordAsync(
-                    document,
-                    type,
-                    positionalParameterInfos,
-                    typeDeclaration,
-                    cancellationToken),
+                    document, type, positionalParameterInfos, typeDeclaration, cancellationToken),
                 nameof(CSharpFeaturesResources.Convert_to_positional_record));
-            // note: when adding nested actions, use string.Format(CSharpFeaturesResources.Convert_0_to_record, type.Name) as title string
-            return positional;
+
+            var nonPositional = CodeAction.Create(
+                nonPositionalTitle,
+                cancellationToken => ConvertToNonPositionalRecordAsync(
+                    document, type, positionalParameterInfos, typeDeclaration, cancellationToken),
+                nameof(CSharpFeaturesResources.Convert_to_record));
+
+            var offeredActions = ImmutableArray<CodeAction>.Empty;
+            var constructors = typeDeclaration.Members.OfType<ConstructorDeclarationSyntax>();
+            // If the current class has no explicit constructors and base class is a positional parameter record,
+            // we can't offer a non-positional record because we don't know how to fill in the base constructor
+            if (constructors.Any() || positionalParameterInfos.All(info => !info.IsInherited))
+            {
+                offeredActions = offeredActions.Add(nonPositional);
+            }
+
+            // make sure a primary constructor wouldn't break style rules the user may have about constructor param
+            // length. 8 or under is fine, and if the user already has constructors that go over it's also fine.
+            if (positionalParameterInfos.Length <= 8 ||
+                constructors
+                .Any(constructor => constructor.ParameterList.Parameters.Count >= positionalParameterInfos.Length))
+            {
+                offeredActions = offeredActions.Add(positional);
+            }
+
+            return CodeAction.CodeActionWithNestedActions.Create(
+                string.Format(CSharpFeaturesResources.Convert_0_to_record, type.Name),
+                offeredActions, isInlinable: true);
         }
 
         private static async Task<Solution> ConvertToPositionalRecordAsync(
@@ -115,8 +136,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             var solutionEditor = new SolutionEditor(document.Project.Solution);
             // we must refactor usages first because usages can appear within the class definition and
             // individual members, and changing a parent first invalidates the tracking done on the child
-            await RefactorInitializersAsync(type, solutionEditor, propertiesToAssign, cancellationToken)
-                .ConfigureAwait(false);
+            await RefactorInitializersAsync(
+                type, solutionEditor, propertiesToAssign, cancellationToken).ConfigureAwait(false);
 
             var documentEditor = await solutionEditor
                 .GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
@@ -129,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             var expectedFields = type
                 .GetMembers()
                 .OfType<IFieldSymbol>()
-                .Where(field => !field.IsConst && !field.IsStatic)
+                .Where(field => !field.IsStatic)
                 .AsImmutable();
 
             // remove properties we're bringing up to positional params
@@ -190,6 +211,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                         {
                             documentEditor.RemoveNode(constructor);
                         }
+                        // there is a base record
+                        else if (type.BaseType != null && type.BaseType.IsRecord &&
+                            // there is already a base initializer with one argument
+                            // corresponding to the single parameter
+                            !(constructor.Initializer is
+                            {
+                                RawKind: (int)SyntaxKind.BaseConstructorInitializer,
+                                ArgumentList.Arguments: [ArgumentSyntax { Expression: IdentifierNameSyntax name }],
+                            } && name.Identifier.Text.Equals(constructor.ParameterList.Parameters[0].Identifier.Text)))
+                        {
+                            // need to call copy constructor of base as initializer.
+                            // Just use the parameter name passed in
+                            documentEditor.ReplaceNode(constructor, constructor.WithInitializer(
+                                SyntaxFactory.ConstructorInitializer(
+                                    SyntaxKind.BaseConstructorInitializer,
+                                    SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(ImmutableArray.Create(
+                                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName(
+                                            constructor.ParameterList.Parameters.Single().Identifier))))))));
+                        }
                     }
                     // ignore any constructor that has the same signature as the primary constructor.
                     // If it wasn't already processed as the primary, it's too complex, and will
@@ -221,48 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                 }
             }
 
-            // get equality operators and potentially remove them
-            var equalsOp = (OperatorDeclarationSyntax?)typeDeclaration.Members.FirstOrDefault(member
-                => member is OperatorDeclarationSyntax { OperatorToken.RawKind: (int)SyntaxKind.EqualsEqualsToken });
-            var notEqualsOp = (OperatorDeclarationSyntax?)typeDeclaration.Members.FirstOrDefault(member
-                => member is OperatorDeclarationSyntax { OperatorToken.RawKind: (int)SyntaxKind.ExclamationEqualsToken });
-            if (equalsOp != null && notEqualsOp != null)
-            {
-                var equalsBodyOperation = (IMethodBodyOperation)semanticModel
-                    .GetRequiredOperation(equalsOp, cancellationToken);
-                var notEqualsBodyOperation = (IMethodBodyOperation)semanticModel
-                    .GetRequiredOperation(notEqualsOp, cancellationToken);
-                if (ConvertToRecordHelpers.IsDefaultEqualsOperator(equalsBodyOperation) &&
-                    ConvertToRecordHelpers.IsDefaultNotEqualsOperator(notEqualsBodyOperation))
-                {
-                    // they both evaluate to what would be the generated implementation
-                    documentEditor.RemoveNode(equalsOp);
-                    documentEditor.RemoveNode(notEqualsOp);
-                }
-            }
-
-            foreach (var method in typeDeclaration.Members.OfType<MethodDeclarationSyntax>())
-            {
-                var methodSymbol = (IMethodSymbol)semanticModel.GetRequiredDeclaredSymbol(method, cancellationToken);
-                var operation = (IMethodBodyOperation)semanticModel.GetRequiredOperation(method, cancellationToken);
-
-                if (methodSymbol.Name == "Clone")
-                {
-                    // remove clone method as clone is a reserved method name in records
-                    documentEditor.RemoveNode(method);
-                }
-                else if (ConvertToRecordHelpers.IsSimpleHashCodeMethod(
-                    semanticModel.Compilation, methodSymbol, operation, expectedFields))
-                {
-                    documentEditor.RemoveNode(method);
-                }
-                else if (ConvertToRecordHelpers.IsSimpleEqualsMethod(
-                    semanticModel.Compilation, methodSymbol, operation, expectedFields))
-                {
-                    // the Equals method implementation is fundamentally equivalent to the generated one
-                    documentEditor.RemoveNode(method);
-                }
-            }
+            RemoveSynthesizedMethods(semanticModel, typeDeclaration, documentEditor, expectedFields, cancellationToken);
 
             var lineFormattingOptions = await document
                 .GetLineFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
@@ -287,21 +286,248 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                     @default: @default);
             });
 
+            var recordKeyword = GetRecordKeywordWithTrivia(type, typeDeclaration);
+
+            // use the trailing trivia of the last item before the constructor parameter list as the param list trivia
+            var constructorTrivia = typeDeclaration.TypeParameterList?.GetTrailingTrivia() ??
+                typeDeclaration.Identifier.TrailingTrivia;
+
+            var baseList = GetModifiedBaseList(
+                semanticModel, type, typeDeclaration, positionalParameterInfos, cancellationToken);
+
+            if (positionalParameterInfos.Any(info => info.IsInherited) && baseList != null)
+            {
+                // if we have an inherited param, then we know we're inheriting from
+                // a record with a primary constructor.
+                // something like: public class C : B {...}
+                // where B is: public record B(int Foo, bool Bar);
+                // We created a parameter list with all the properties that shadow the inherited ones.
+                // Now we need to associate the parameters declared in the class
+                // with the ones the base record uses.
+                // Example: public record C(int Foo, int Bar, int OtherProp) : B(Foo, Bar) {...}
+                // Move trailing trivia to end of arg list
+                var typeList = baseList.Types;
+                var baseRecord = typeList.First();
+                var baseTrailingTrivia = baseRecord.Type.GetTrailingTrivia();
+                // get the positional parameters in the order they are declared from the base record
+                var inheritedPositionalParams = PositionalParameterInfo
+                    .GetInheritedPositionalParams(type, cancellationToken)
+                    .SelectAsArray(prop =>
+                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName(prop.Name)));
+
+                typeList = typeList.Replace(baseRecord,
+                    SyntaxFactory.PrimaryConstructorBaseType(baseRecord.Type.WithoutTrailingTrivia(),
+                        SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(inheritedPositionalParams))
+                        .WithTrailingTrivia(baseTrailingTrivia)));
+                baseList = baseList.WithTypes(typeList);
+            }
+
+            documentEditor.ReplaceNode(typeDeclaration, (node, _) => CreateRecordDeclaration(
+                type, (TypeDeclarationSyntax)node, modifiedClassTrivia, propertiesToAddAsParams,
+                recordKeyword, constructorTrivia, baseList));
+
+            return solutionEditor.GetChangedSolution();
+        }
+
+        private static async Task<Solution> ConvertToNonPositionalRecordAsync(
+            Document document,
+            INamedTypeSymbol type,
+            ImmutableArray<PositionalParameterInfo> positionalParameterInfos,
+            TypeDeclarationSyntax typeDeclaration,
+            CancellationToken cancellationToken)
+        {
+            var documentEditor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            var semanticModel = documentEditor.SemanticModel;
+
+            foreach (var info in positionalParameterInfos.Where(info => !info.KeepAsOverride && !info.IsInherited))
+            {
+                // the keepAsOverride flag as false corresponds to moving the members into a positional parameter
+                // and deleting the original declaration. So we want these non-positional parameters to have
+                // the default definition that a positional parameter would have (get; set; for struct records,
+                // get; init; for class and readonly struct records)
+                AccessorDeclarationSyntax setOrInit;
+                if (type.IsStructType() && !type.IsReadOnly)
+                {
+                    setOrInit = GetAccessorDeclarationWithSemicolon(SyntaxKind.SetAccessorDeclaration);
+                }
+                else
+                {
+                    setOrInit = GetAccessorDeclarationWithSemicolon(SyntaxKind.InitAccessorDeclaration);
+                }
+
+                var syntax = info.Declaration!;
+                documentEditor.ReplaceNode(syntax, syntax
+                    .WithAccessorList(SyntaxFactory.AccessorList(SyntaxFactory.List(ImmutableArray.Create(
+                        GetAccessorDeclarationWithSemicolon(SyntaxKind.GetAccessorDeclaration), setOrInit)))));
+            }
+
+            // generated hashcode and equals methods compare all instance fields
+            // including underlying fields accessed from properties.
+            // copy constructor generation also uses all fields when copying.
+            // so we track all the fields to make sure the methods we consider deleting
+            // would actually perform the same action as an autogenerated one
+            var expectedFields = type
+                .GetMembers()
+                .OfType<IFieldSymbol>()
+                .Where(field => !field.IsConst && !field.IsStatic)
+                .AsImmutable();
+
+            RemoveSynthesizedMethods(semanticModel, typeDeclaration, documentEditor, expectedFields, cancellationToken);
+
+            var baseList = GetModifiedBaseList(
+                semanticModel, type, typeDeclaration, positionalParameterInfos, cancellationToken);
+
+            // symbols that correspond to the base initializer if there is one
+            var baseInitializerSymbols = positionalParameterInfos.SelectAsArray(
+                info => info.IsInherited,
+                info => info.Symbol);
+            foreach (var constructor in typeDeclaration.Members.OfType<ConstructorDeclarationSyntax>())
+            {
+                var constructorSymbol = (IMethodSymbol)
+                    semanticModel.GetRequiredDeclaredSymbol(constructor, cancellationToken);
+                var constructorOperation = (IConstructorBodyOperation)
+                    semanticModel.GetRequiredOperation(constructor, cancellationToken);
+                if (constructorSymbol.Parameters.Length == 1 &&
+                    constructorSymbol.Parameters[0].Type.Equals(type))
+                {
+                    if (ConvertToRecordHelpers.IsSimpleCopyConstructor(
+                        constructorOperation, expectedFields, constructorSymbol.Parameters[0]))
+                    {
+                        documentEditor.RemoveNode(constructor);
+                    }
+                    else if (type.BaseType != null && type.BaseType.IsRecord)
+                    {
+                        // need to call copy constructor of base as initializer
+                        // regardless of what user currently has. Just use the parameter name passed in
+                        documentEditor.ReplaceNode(constructor, constructor.WithInitializer(
+                            SyntaxFactory.ConstructorInitializer(SyntaxKind.BaseConstructorInitializer,
+                                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(ImmutableArray.Create(
+                                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName(
+                                        constructor.ParameterList.Parameters.Single().Identifier))))))));
+                    }
+                }
+                // The base class uses positional parameters but this one doesn't.
+                // We should add a base initializer for all declared constructors
+                // so that the base initializer calls the primary constructor.
+                else if (constructor.Initializer == null && baseInitializerSymbols.Any())
+                {
+                    // We should only do this move if there was no base initializer to begin with,
+                    // because if the user already invoked some constructor, then their initializer is valid
+                    // as long as that other constructor has an initializer
+                    var expressions = ConvertToRecordHelpers
+                        .GetAssignmentValuesForNonPrimaryConstructor(constructorOperation, baseInitializerSymbols);
+                    var removalNodes = expressions
+                        .SelectAsArray(expression => (expression.Parent as AssignmentExpressionSyntax)
+                            ?.Parent as ExpressionStatementSyntax)
+                        .WhereNotNull();
+
+                    var modifiedConstructor = (ConstructorDeclarationSyntax)constructor
+                        .RemoveNodes(removalNodes, RemovalOptions)!;
+                    modifiedConstructor = modifiedConstructor.WithInitializer(SyntaxFactory.ConstructorInitializer(
+                        SyntaxKind.BaseConstructorInitializer,
+                        SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
+                            expressions.Select(SyntaxFactory.Argument)))));
+
+                    documentEditor.ReplaceNode(constructor, modifiedConstructor);
+                }
+            }
+
+            // TODO: Move properties down and re-make primary constructor with proper attributes
+            // TODO: Fix base by removing arg list
+            // TODO: Modify class trivia by taking off param doc comments from each property
+            var modifiedClassTrivia = typeDeclaration.GetLeadingTrivia();
+            var recordKeyword = GetRecordKeywordWithTrivia(type, typeDeclaration);
+
+            documentEditor.ReplaceNode(typeDeclaration, (declaration, _) =>
+                CreateRecordDeclaration(type, (TypeDeclarationSyntax)declaration, modifiedClassTrivia,
+                    propertiesToAddAsParams: null, recordKeyword, constructorTrivia: null, baseList));
+
+            return documentEditor.GetChangedDocument().Project.Solution;
+        }
+
+        private static SyntaxToken GetRecordKeywordWithTrivia(INamedTypeSymbol type, TypeDeclarationSyntax typeDeclaration)
+        {
+            if (typeDeclaration is RecordDeclarationSyntax recordDeclaration)
+            {
+                return recordDeclaration.Keyword;
+            }
             // if we have a class, move trivia from class keyword to record keyword
             // if struct, split trivia and leading goes to record keyword, trailing goes to struct keyword
             var recordKeyword = SyntaxFactory.Token(SyntaxKind.RecordKeyword);
             recordKeyword = type.TypeKind == TypeKind.Class
                 ? recordKeyword.WithTriviaFrom(typeDeclaration.Keyword)
                 : recordKeyword.WithLeadingTrivia(typeDeclaration.Keyword.LeadingTrivia);
+            return recordKeyword;
+        }
 
-            // use the trailing trivia of the last item before the constructor parameter list as the param list trivia
-            var constructorTrivia = typeDeclaration.TypeParameterList?.GetTrailingTrivia() ??
-                typeDeclaration.Identifier.TrailingTrivia;
+        private static void RemoveSynthesizedMethods(
+            SemanticModel semanticModel,
+            TypeDeclarationSyntax typeDeclaration,
+            DocumentEditor documentEditor,
+            ImmutableArray<IFieldSymbol> expectedFields,
+            CancellationToken cancellationToken)
+        {
+            // get equality operators and potentially remove them
+            var equalsOp = (OperatorDeclarationSyntax?)typeDeclaration.Members.FirstOrDefault(member
+                => member is OperatorDeclarationSyntax { OperatorToken.RawKind: (int)SyntaxKind.EqualsEqualsToken });
+            var notEqualsOp = (OperatorDeclarationSyntax?)typeDeclaration.Members.FirstOrDefault(member
+                => member is OperatorDeclarationSyntax { OperatorToken.RawKind: (int)SyntaxKind.ExclamationEqualsToken });
+            if (equalsOp != null && notEqualsOp != null)
+            {
+                var equalsBodyOperation = (IMethodBodyOperation)semanticModel
+                    .GetRequiredOperation(equalsOp, cancellationToken);
+                var notEqualsBodyOperation = (IMethodBodyOperation)semanticModel
+                    .GetRequiredOperation(notEqualsOp, cancellationToken);
+                if (ConvertToRecordHelpers.IsDefaultEqualsOperator(equalsBodyOperation) &&
+                    ConvertToRecordHelpers.IsDefaultNotEqualsOperator(notEqualsBodyOperation))
+                {
+                    // they both evaluate to what would be the generated implementation
+                    documentEditor.RemoveNode(equalsOp);
+                    documentEditor.RemoveNode(notEqualsOp);
+                }
+            }
 
+            var methods = typeDeclaration.Members.OfType<MethodDeclarationSyntax>().AsImmutable();
+
+            foreach (var method in methods)
+            {
+                var methodSymbol = (IMethodSymbol)semanticModel.GetRequiredDeclaredSymbol(method, cancellationToken);
+                var operation = (IMethodBodyOperation)semanticModel.GetRequiredOperation(method, cancellationToken);
+
+                if (methodSymbol.Name == "Clone")
+                {
+                    // remove clone method as clone is a reserved method name in records
+                    documentEditor.RemoveNode(method);
+                }
+                else if (ConvertToRecordHelpers.IsSimpleHashCodeMethod(
+                    semanticModel.Compilation, methodSymbol, operation, expectedFields))
+                {
+                    documentEditor.RemoveNode(method);
+                }
+                else if (ConvertToRecordHelpers.IsSimpleEqualsMethod(
+                    semanticModel.Compilation, methodSymbol, operation, expectedFields))
+                {
+                    // the Equals method implementation is fundamentally equivalent to the generated one
+                    documentEditor.RemoveNode(method);
+                }
+            }
+        }
+
+        private static BaseListSyntax? GetModifiedBaseList(
+            SemanticModel semanticModel,
+            INamedTypeSymbol type,
+            TypeDeclarationSyntax typeDeclaration,
+            ImmutableArray<PositionalParameterInfo> positionalParameterInfos,
+            CancellationToken cancellationToken)
+        {
             // delete IEquatable if it's explicit because it is implicit on records
             var iEquatable = ConvertToRecordHelpers.GetIEquatableType(semanticModel.Compilation, type);
             var baseList = typeDeclaration.BaseList;
-            if (baseList != null)
+            if (baseList == null)
+            {
+                return null;
+            }
+            else
             {
                 var typeList = baseList.Types;
 
@@ -317,52 +543,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
 
                 if (typeList.IsEmpty())
                 {
-                    baseList = null;
+                    return null;
                 }
-                else
-                {
-                    if (positionalParameterInfos.Any(info => info.IsInherited))
-                    {
-                        // if we have an inherited param, then we know we're inheriting from
-                        // a record with a primary constructor.
-                        // something like: public class C : B {...}
-                        // where B is: public record B(int Foo, bool Bar);
-                        // We created a parameter list with all the properties that shadow the inherited ones.
-                        // Now we need to associate the parameters declared in the class
-                        // with the ones the base record uses.
-                        // Example: public record C(int Foo, int Bar, int OtherProp) : B(Foo, Bar) {...}
-                        var baseRecord = typeList.First();
-                        var baseTrailingTrivia = baseRecord.Type.GetTrailingTrivia();
-                        // get the positional parameters in the order they are declared from the base record
-                        var inheritedPositionalParams = PositionalParameterInfo
-                            .GetInheritedPositionalParams(type, cancellationToken)
-                            .SelectAsArray(prop =>
-                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName(prop.Name)));
 
-                        typeList = typeList.Replace(baseRecord,
-                            SyntaxFactory.PrimaryConstructorBaseType(baseRecord.Type.WithoutTrailingTrivia(),
-                                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(inheritedPositionalParams))
-                                .WithTrailingTrivia(baseTrailingTrivia)));
-                    }
-
-                    baseList = baseList.WithTypes(typeList);
-                }
+                return baseList.WithTypes(SyntaxFactory.SeparatedList(typeList));
             }
-
-            documentEditor.ReplaceNode(typeDeclaration, (declaration, _) =>
-                CreateRecordDeclaration(type, (TypeDeclarationSyntax)declaration, modifiedClassTrivia,
-                    propertiesToAddAsParams, recordKeyword, constructorTrivia, baseList));
-
-            return solutionEditor.GetChangedSolution();
         }
 
         private static RecordDeclarationSyntax CreateRecordDeclaration(
             INamedTypeSymbol type,
             TypeDeclarationSyntax typeDeclaration,
-            SyntaxTriviaList modifiedClassTrivia,
-            IEnumerable<ParameterSyntax> propertiesToAddAsParams,
+            SyntaxTriviaList? modifiedClassTrivia,
+            IEnumerable<ParameterSyntax>? propertiesToAddAsParams,
             SyntaxToken recordKeyword,
-            SyntaxTriviaList constructorTrivia,
+            SyntaxTriviaList? constructorTrivia,
             BaseListSyntax? baseList)
         {
             // if we have no members, use semicolon instead of braces
@@ -393,32 +587,51 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                     typeDeclaration.Members[0], typeDeclaration.Members[0].GetNodeWithoutLeadingBlankLines());
             }
 
+            // need to rearrange trivia if we're introducing a parameter list
+            ParameterListSyntax? parameterList = null;
+            var identifier = typeDeclaration.Identifier;
+            var typeParameterList = typeDeclaration.TypeParameterList;
+            if (propertiesToAddAsParams != null)
+            {
+                // if we have a parameter list then we also have constructor trivia for afterwards
+                parameterList = SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(propertiesToAddAsParams))
+                    .WithAppendedTrailingTrivia(constructorTrivia!);
+                // remove trailing trivia from places where we insert the parameter list before a line break
+                identifier = identifier.WithTrailingTrivia(SyntaxFactory.ElasticMarker);
+                typeParameterList = typeParameterList?.WithTrailingTrivia(SyntaxFactory.ElasticMarker);
+            }
+
             return SyntaxFactory.RecordDeclaration(
                 type.TypeKind == TypeKind.Class
                     ? SyntaxKind.RecordDeclaration
                     : SyntaxKind.RecordStructDeclaration,
-                typeDeclaration.AttributeLists,
-                typeDeclaration.Modifiers,
-                recordKeyword,
+                typeDeclaration.AttributeLists, typeDeclaration.Modifiers, recordKeyword,
                 type.TypeKind == TypeKind.Class
                     ? default
-                    : typeDeclaration.Keyword.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
-                // remove trailing trivia from places where we would want to insert the parameter list before a line break
-                typeDeclaration.Identifier.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
-                typeDeclaration.TypeParameterList?.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
-                SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(propertiesToAddAsParams))
-                    .WithAppendedTrailingTrivia(constructorTrivia),
-                baseList,
-                typeDeclaration.ConstraintClauses,
-                openBrace,
-                typeDeclaration.Members,
-                closeBrace,
-                semicolon)
+                    : typeDeclaration.Keyword,
+                identifier, typeParameterList, parameterList, baseList, typeDeclaration.ConstraintClauses,
+                openBrace, typeDeclaration.Members, closeBrace, semicolon)
                 .WithLeadingTrivia(modifiedClassTrivia)
                 .WithAdditionalAnnotations(Formatter.Annotation);
         }
 
-        private static SyntaxList<AttributeListSyntax> GetModifiedAttributeListsForProperty(PositionalParameterInfo result)
+        private static AccessorDeclarationSyntax GetAccessorDeclarationWithSemicolon(SyntaxKind accessorKind)
+        {
+            var keywordKind = accessorKind switch
+            {
+                SyntaxKind.GetAccessorDeclaration => SyntaxKind.GetKeyword,
+                SyntaxKind.SetAccessorDeclaration => SyntaxKind.SetKeyword,
+                SyntaxKind.InitAccessorDeclaration => SyntaxKind.InitKeyword,
+                _ => throw ExceptionUtilities.UnexpectedValue(accessorKind),
+            };
+
+            return SyntaxFactory.AccessorDeclaration(accessorKind, attributeLists: default, modifiers: default,
+                SyntaxFactory.Token(keywordKind), body: null, expressionBody: null,
+                SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+        }
+
+        private static SyntaxList<AttributeListSyntax> GetModifiedAttributeListsForProperty(
+            PositionalParameterInfo result)
         {
             if (result.IsInherited || result.KeepAsOverride)
             {
@@ -441,7 +654,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                 {
                     // convert attributes attached to the property with no target into "property :" targeted attributes
                     return attributeList
-                        .WithTarget(SyntaxFactory.AttributeTargetSpecifier(SyntaxFactory.Token(SyntaxKind.PropertyKeyword)))
+                        .WithTarget(SyntaxFactory.AttributeTargetSpecifier(SyntaxFactory.Token(
+                            SyntaxKind.PropertyKeyword)))
                         .WithoutTrivia();
                 }
                 else
