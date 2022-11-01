@@ -3,13 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -42,15 +40,17 @@ namespace Microsoft.CodeAnalysis.Remote
             DocumentId? priorityDocument,
             CancellationToken cancellationToken)
         {
-            var stream = StreamWithSolutionAsync(
-                solutionChecksum,
-                (solution, cancellationToken) =>
-                {
-                    var project = solution.GetRequiredProject(projectId);
-                    var service = solution.Services.GetRequiredService<IDesignerAttributeDiscoveryService>();
-                    return service.ProcessProjectAsync(project, priorityDocument, cancellationToken);
-                }, cancellationToken);
-            return stream.WithJsonRpcSettings(new JsonRpcEnumerableSettings { MaxReadAhead = MaxReadAhead });
+            return StreamWithSolutionAsync(solutionChecksum, DiscoverDesignerAttributesWorkerAsync, cancellationToken)
+                .WithJsonRpcSettings(new JsonRpcEnumerableSettings { MaxReadAhead = MaxReadAhead });
+
+            async IAsyncEnumerable<DesignerAttributeData> DiscoverDesignerAttributesWorkerAsync(
+                Solution solution, [EnumeratorCancellation] CancellationToken cancellationToken)
+            {
+                var project = solution.GetRequiredProject(projectId);
+                var service = solution.Services.GetRequiredService<IDesignerAttributeDiscoveryService>();
+                await foreach (var data in service.ProcessProjectAsync(project, priorityDocument, cancellationToken).ConfigureAwait(false))
+                    yield return data;
+            }
         }
     }
 }
