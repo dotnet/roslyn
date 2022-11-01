@@ -247,18 +247,19 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 {
                     foreach (var unimplementedInterfaceMember in unimplementedInterfaceMembers)
                     {
-                        var member = GenerateMember(
+                        var members = GenerateMembers(
                             compilation, options,
                             unimplementedInterfaceMember, implementedVisibleMembers,
                             propertyGenerationBehavior);
-                        if (member != null)
+                        foreach (var member in members)
                         {
+                            if (member is null)
+                                continue;
+
                             implementedMembers.Add(member);
 
                             if (!(member.ExplicitInterfaceImplementations().Any() && Service.HasHiddenExplicitImplementation))
-                            {
                                 implementedVisibleMembers.Add(member);
-                            }
                         }
                     }
                 }
@@ -289,7 +290,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return member.Name;
             }
 
-            private ISymbol GenerateMember(
+            private IEnumerable<ISymbol?> GenerateMembers(
                 Compilation compilation,
                 ParseOptions options,
                 ISymbol member,
@@ -330,7 +331,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var syntaxFacts = Document.GetLanguageService<ISyntaxFactsService>();
                 var addUnsafe = member.RequiresUnsafeModifier() && !syntaxFacts.IsUnsafeContext(State.Location);
 
-                return GenerateMember(
+                return GenerateMembers(
                     compilation, member, memberName, generateInvisibleMember, generateAbstractly,
                     addNew, addUnsafe, propertyGenerationBehavior);
             }
@@ -390,7 +391,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return condition1 || condition2 || condition3;
             }
 
-            private ISymbol GenerateMember(
+            private IEnumerable<ISymbol?> GenerateMembers(
                 Compilation compilation,
                 ISymbol member,
                 string memberName,
@@ -408,13 +409,19 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     ? Accessibility.Public
                     : Accessibility.Private;
 
-                return member switch
+                if (member is IMethodSymbol method)
                 {
-                    IMethodSymbol method => GenerateMethod(compilation, method, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName),
-                    IPropertySymbol property => GenerateProperty(compilation, property, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName, propertyGenerationBehavior),
-                    IEventSymbol @event => GenerateEvent(compilation, memberName, generateInvisibly, factory, modifiers, useExplicitInterfaceSymbol, accessibility, @event),
-                    _ => null,
-                };
+                    yield return GenerateMethod(compilation, method, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName);
+                }
+                else if (member is IPropertySymbol property)
+                {
+                    foreach (var generated in GeneratePropertyMembers(compilation, property, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName, propertyGenerationBehavior))
+                        yield return generated;
+                }
+                else if (member is IEventSymbol @event)
+                {
+                    yield return GenerateEvent(compilation, memberName, generateInvisibly, factory, modifiers, useExplicitInterfaceSymbol, accessibility, @event);
+                }
             }
 
             private ISymbol GenerateEvent(Compilation compilation, string memberName, bool generateInvisibly, SyntaxGenerator factory, DeclarationModifiers modifiers, bool useExplicitInterfaceSymbol, Accessibility accessibility, IEventSymbol @event)
