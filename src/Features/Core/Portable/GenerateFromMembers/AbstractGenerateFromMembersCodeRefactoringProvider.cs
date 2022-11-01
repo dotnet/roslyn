@@ -55,7 +55,10 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
             => !symbol.IsStatic && IsReadableFieldOrProperty(symbol);
 
         protected static bool IsWritableInstanceFieldOrProperty(ISymbol symbol)
-            => !symbol.IsStatic && IsWritableFieldOrProperty(symbol);
+            => IsWritableInstanceFieldOrProperty(symbol, within: null);
+
+        protected static bool IsWritableInstanceFieldOrProperty(ISymbol symbol, ISymbol? within)
+            => !symbol.IsStatic && IsWritableFieldOrProperty(symbol, within);
 
         private static bool IsReadableFieldOrProperty(ISymbol symbol)
             => symbol switch
@@ -65,12 +68,12 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
                 _ => false,
             };
 
-        private static bool IsWritableFieldOrProperty(ISymbol symbol)
+        private static bool IsWritableFieldOrProperty(ISymbol symbol, ISymbol? within = null)
             => symbol switch
             {
                 // Can use non const fields and properties with setters in them.
-                IFieldSymbol field => IsViableField(field) && !field.IsConst,
-                IPropertySymbol property => IsViableProperty(property) && property.IsWritableInConstructor(),
+                IFieldSymbol field => IsViableField(field) && !field.IsConst && (within == null || field.IsAccessibleWithin(within)),
+                IPropertySymbol property => IsViableProperty(property) && property.IsWritableInConstructor(within),
                 _ => false,
             };
 
