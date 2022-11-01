@@ -23,10 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         #endregion
 
-        #region CSharpSyntaxVisitor<TArgument>
+        #region CSharpSyntaxVisitor<TResult>
 
         [Fact]
-        public void VisitDoesNotThrowOnNullNode_TArgument()
+        public void VisitDoesNotThrowOnNullNode_TResult()
         {
             var visitor = new DefaultVisitor<object?>();
             visitor.Visit(null);
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         }
 
-        private class DefaultVisitor<TArgument> : CSharpSyntaxVisitor<TArgument>
+        private class DefaultVisitor<TResult> : CSharpSyntaxVisitor<TResult>
         {
 
         }
