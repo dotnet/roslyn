@@ -1971,5 +1971,46 @@ class C
 
             await TestExtractMethodAsync(code, expected);
         }
+
+        [Fact, WorkItem(61555, "https://github.com/dotnet/roslyn/issues/61555")]
+        public async Task Nullable_FlowAnalysisNotNull()
+        {
+            var code = """
+                class C
+                {
+                    public void M(C? c)
+                    {
+                        if (c == null)
+                        {
+                            return;
+                        }
+
+                        [|c.ToString();|]
+                    }
+                }
+                """;
+
+            var expected = """
+                class C
+                {
+                    public void M(C? c)
+                    {
+                        if (c == null)
+                        {
+                            return;
+                        }
+
+                        NewMethod(c);
+                    }
+
+                    private static void NewMethod(C c)
+                    {
+                        c.ToString();
+                    }
+                }
+                """;
+
+            await TestExtractMethodAsync(code, expected);
+        }
     }
 }
