@@ -308,9 +308,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 //
                 // In this case we only want to generate 'Goo' once.
                 if (HasMatchingMember(implementedVisibleMembers, member))
-                {
                     return null;
-                }
 
                 var memberName = DetermineMemberName(member, implementedVisibleMembers);
 
@@ -343,30 +341,22 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 {
                     // User asked for an explicit (i.e. invisible) member.
                     if (Explicitly)
-                    {
                         return true;
-                    }
 
                     // Have to create an invisible member if we have constraints we can't express
                     // with a visible member.
                     if (HasUnexpressibleConstraint(options, member))
-                    {
                         return true;
-                    }
 
                     // If we had a conflict with a member of the same name, then we have to generate
                     // as an invisible member.
                     if (member.Name != memberName)
-                    {
                         return true;
-                    }
 
                     // If the member is less accessible than type, for which we are implementing it,
                     // then only explicit implementation is valid.
                     if (AccessibilityHelper.IsLessAccessibleThan(member, State.ClassOrStructType))
-                    {
                         return true;
-                    }
                 }
 
                 // Can't generate an invisible member if the language doesn't support it.
@@ -538,9 +528,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             private bool MembersMatch(ISymbol member1, ISymbol member2)
             {
                 if (member1.Kind != member2.Kind)
-                {
                     return false;
-                }
 
                 if (member1.DeclaredAccessibility != member2.DeclaredAccessibility ||
                     member1.IsStatic != member2.IsStatic)
@@ -549,9 +537,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 }
 
                 if (member1.ExplicitInterfaceImplementations().Any() || member2.ExplicitInterfaceImplementations().Any())
-                {
                     return false;
-                }
 
                 return SignatureComparer.Instance.HaveSameSignatureAndConstraintsAndReturnTypeAndAccessors(
                     member1, member2, IsCaseSensitive);

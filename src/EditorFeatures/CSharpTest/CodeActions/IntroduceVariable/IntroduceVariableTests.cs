@@ -7899,5 +7899,18 @@ namespace ConsoleApp1
 }
 """ + ValueTaskDeclaration);
         }
+
+        [Fact, WorkItem(28730, "https://github.com/dotnet/roslyn/issues/28730")]
+        public async Task TestOnThis1()
+        {
+            await TestMissingAsync(
+@"
+sealed class C {
+    readonly string s;
+    public C(string s) {
+        [||]this.s = s;
+    }
+}");
+        }
     }
 }

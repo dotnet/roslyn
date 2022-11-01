@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ''' <summary>
         ''' Ref field in ref struct.
         ''' </summary>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/61463")>
+        <Fact>
         Public Sub RefField_01()
             Dim sourceA =
 "public ref struct S<T>
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     public ref T F;
     public S(ref T t) { F = ref t; }
 }"
-            Dim compA = CreateCSharpCompilation(GetUniqueName(), sourceA, parseOptions:=New CSharp.CSharpParseOptions(languageVersion:=CSharp.LanguageVersion.Preview))
+            Dim compA = CreateCSharpCompilation(GetUniqueName(), sourceA, referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.Net70))
             compA.VerifyDiagnostics()
             Dim refA = compA.EmitToImageReference()
 
@@ -40,6 +40,9 @@ End Module"
             Dim compB = CreateCompilation(sourceB, references:={refA})
             compB.AssertTheseDiagnostics(<expected>
 BC30668: 'S(Of Integer)' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'.
+        Dim s = New S(Of Integer)()
+                    ~~~~~~~~~~~~~
+BC37319: 'S(Of T)' requires compiler feature 'RefStructs', which is not supported by this version of the Visual Basic compiler.
         Dim s = New S(Of Integer)()
                     ~~~~~~~~~~~~~
 BC30656: Field 'F' is of an unsupported type.
@@ -95,7 +98,7 @@ BC30656: Field 'F' is of an unsupported type.
             Assert.Equal(expectedDisplayString, field.ToTestDisplayString())
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/61463")>
+        <Fact>
         Public Sub MemberRefMetadataDecoder_FindFieldBySignature()
             Dim sourceA =
 ".class public sealed R<T> extends [mscorlib]System.ValueType
@@ -117,7 +120,7 @@ BC30656: Field 'F' is of an unsupported type.
     static object F2() => new R<object>().F2;
     static int F3() => new R<object>().F3;
 }"
-            Dim compB = CreateCSharpCompilation(GetUniqueName(), sourceB, parseOptions:=New CSharp.CSharpParseOptions(languageVersion:=CSharp.LanguageVersion.Preview), referencedAssemblies:={MscorlibRef, refA})
+            Dim compB = CreateCSharpCompilation(GetUniqueName(), sourceB, referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.Net70, {refA}))
             compB.VerifyDiagnostics()
             Dim refB = compB.EmitToImageReference()
 

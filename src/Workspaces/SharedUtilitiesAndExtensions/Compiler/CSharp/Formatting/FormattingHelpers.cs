@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (lastNewLinePos != -1)
             {
                 var start = lastNewLinePos + NewLine.Length;
-                indent = indent.Substring(start, indent.Length - start);
+                indent = indent[start..];
             }
 
             return indent;
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return string.Empty;
             }
 
-            return leading.Substring(0, lastNewLinePos);
+            return leading[..lastNewLinePos];
         }
 
         public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBracePair(this SyntaxNode? node)

@@ -43,11 +43,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
                     AddNamesFromExistingOverloads(context, partialSemanticModel, nameInfo, result, cancellationToken);
             }
 
-            var baseNames = GetBaseNames(context.SemanticModel, nameInfo);
-            if (baseNames != default)
+            var names = GetBaseNames(context.SemanticModel, nameInfo).NullToEmpty();
+
+            // If we have a direct symbol this binds to, offer its name as a potential name here.
+            if (nameInfo.Symbol != null)
+                names = names.Insert(0, ImmutableArray.Create(nameInfo.Symbol.Name));
+
+            if (!names.IsDefaultOrEmpty)
             {
                 var namingStyleOptions = await document.GetNamingStylePreferencesAsync(completionContext.CompletionOptions.NamingStyleFallbackOptions, cancellationToken).ConfigureAwait(false);
-                GetRecommendedNames(baseNames, nameInfo, context, result, namingStyleOptions, cancellationToken);
+                GetRecommendedNames(names, nameInfo, context, result, namingStyleOptions, cancellationToken);
             }
 
             return result.ToImmutable();
@@ -56,14 +61,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
         private ImmutableArray<ImmutableArray<string>> GetBaseNames(SemanticModel semanticModel, NameDeclarationInfo nameInfo)
         {
             if (nameInfo.Alias != null)
-            {
                 return NameGenerator.GetBaseNames(nameInfo.Alias);
-            }
 
             if (!IsValidType(nameInfo.Type))
-            {
                 return default;
-            }
 
             var (type, plural) = UnwrapType(nameInfo.Type, semanticModel.Compilation, wasPlural: false, seenTypes: new HashSet<ITypeSymbol>());
 
