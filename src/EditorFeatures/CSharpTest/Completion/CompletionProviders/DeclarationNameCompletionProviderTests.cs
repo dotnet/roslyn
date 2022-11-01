@@ -2848,7 +2848,6 @@ class C
 }
 ";
             await VerifyItemExistsAsync(markup, "result");
-            await VerifyItemExistsAsync(markup, "styles");
         }
 
         private static NamingStylePreferences MultipleCamelCaseLocalRules()
