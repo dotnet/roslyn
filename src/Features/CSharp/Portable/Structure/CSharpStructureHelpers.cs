@@ -184,15 +184,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 autoCollapse: true);
         }
 
-        // For testing purposes
-        internal static ImmutableArray<BlockSpan> CreateCommentBlockSpan(
-            SyntaxTriviaList triviaList)
-        {
-            using var result = TemporaryArray<BlockSpan>.Empty;
-            CollectCommentBlockSpans(triviaList, ref result.AsRef());
-            return result.ToImmutableAndClear();
-        }
-
         public static void CollectCommentBlockSpans(
             SyntaxTriviaList triviaList, ref TemporaryArray<BlockSpan> spans)
         {
