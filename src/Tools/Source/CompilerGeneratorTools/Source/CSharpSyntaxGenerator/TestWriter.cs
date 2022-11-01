@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -52,6 +53,10 @@ namespace CSharpSyntaxGenerator
             WriteRewriterTests();
             WriteLine("#endregion Green Rewriters");
 
+            WriteLine("#region Green Visitors");
+            WriteVisitorTests(isGreen: true);
+            WriteLine("#endregion Green Visitors");
+
             CloseBlock();
 
             WriteLine();
@@ -71,6 +76,10 @@ namespace CSharpSyntaxGenerator
             WriteLine("#region Red Rewriters");
             WriteRewriterTests();
             WriteLine("#endregion Red Rewriters");
+
+            WriteLine("#region Red Visitors");
+            WriteVisitorTests(isGreen: false);
+            WriteLine("#endregion Red Visitors");
 
             CloseBlock();
 
@@ -403,6 +412,174 @@ namespace CSharpSyntaxGenerator
             WriteLine();
 
             WriteLine("Assert.Same(oldNode, newNode);");
+
+            CloseBlock();
+        }
+
+        private void WriteVisitorTests(bool isGreen)
+        {
+            WriteVisitorTests(withArgument: true, withResult: true, isGreen);
+            WriteLine();
+            WriteVisitorTests(withArgument: false, withResult: true, isGreen);
+            WriteLine();
+            WriteVisitorTests(withArgument: false, withResult: false, isGreen);
+        }
+
+        private void WriteVisitorTests(bool withArgument, bool withResult, bool isGreen)
+        {
+            WriteAssertOnVisitVisitor(withArgument, withResult, isGreen);
+
+            var nodes = Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode);
+            bool first = true;
+            foreach (var node in nodes)
+            {
+                if (!first)
+                {
+                    WriteLine();
+                }
+                first = false;
+                WriteNodeVisitGetsCalledVisitorTest((Node)node, withArgument, withResult, isGreen);
+                WriteLine();
+                WriteDefaultVisitGetsCalledVisitorTest((Node)node, withArgument, withResult, isGreen);
+            }
+        }
+
+        private void WriteAssertOnVisitVisitor(bool withArgument, bool withResult, bool isGreen)
+        {
+            var csharpNamespace = isGreen ? "Syntax.InternalSyntax." : "";
+
+            var genericArguments = (withArgument, withResult) switch
+            {
+                (false, false) => string.Empty,
+                (false, true) => "<TResult>",
+                (true, false) => throw new InvalidOperationException("Visitors can only have an argument type if they also have a result type."),
+                (true, true) => "<TArgument, TResult>",
+            };
+
+            WriteLine($"internal class AssertOnVisitVisitor{genericArguments} : {csharpNamespace}CSharpSyntaxVisitor{genericArguments}");
+            OpenBlock();
+
+            var nodes = Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode);
+            bool first = true;
+            foreach (var node in nodes)
+            {
+                if (!first)
+                {
+                    WriteLine();
+                }
+                first = false;
+
+                WriteLine($"public override {(withResult ? "TResult" : "void")} Visit{StripPost(node.Name, "Syntax")}({csharpNamespace}{node.Name} node{(withArgument ? ", TArgument argument" : "")})");
+                OpenBlock();
+
+                WriteLine($"Assert.True(false, \"Visit{StripPost(node.Name, "Syntax")} should not have been called.\");");
+
+                if (withResult)
+                {
+                    WriteLine($"return default;");
+                }
+
+                CloseBlock();
+
+            }
+
+            CloseBlock();
+        }
+
+        private void WriteNodeVisitGetsCalledVisitorTest(Node node, bool withArgument, bool withResult, bool isGreen)
+        {
+            var strippedName = StripPost(node.Name, "Syntax");
+
+            var csharpNamespace = isGreen ? "Syntax.InternalSyntax." : "";
+
+            var (testNameSuffix, genericArguments) = (withArgument, withResult) switch
+            {
+                (false, false) => (string.Empty, string.Empty),
+                (false, true) => ("WithResult", "<int>"),
+                (true, false) => throw new InvalidOperationException("Visitors can only have an argument type if they also have a result type."),
+                (true, true) => ("WithArgumentAndResult", "<int, int>"),
+            };
+
+            var nonDefaultCallValue = "int.MinValue";
+            var nonDefaultReturnValue = "int.MaxValue";
+
+            WriteLine($"internal class AssertOnEverythingBut{strippedName}VisitVisitor{testNameSuffix} : AssertOnVisitVisitor{genericArguments}");
+            OpenBlock();
+
+            WriteLine($"public override {(withResult ? "int" : "void")} Visit{strippedName}({csharpNamespace}{node.Name} node{(withArgument ? ", int argument" : "")})");
+            OpenBlock();
+
+            if (withArgument)
+            {
+                WriteLine($"Assert.Equal({nonDefaultCallValue}, argument);");
+            }
+
+            if (withResult)
+            {
+                WriteLine($"return {nonDefaultReturnValue};");
+            }
+
+            CloseBlock();
+
+            CloseBlock();
+            WriteLine();
+
+            WriteLine("[Fact]");
+            WriteLine($"public void Test{strippedName}NodeVisitOnVisitor{testNameSuffix}()");
+            OpenBlock();
+
+            WriteLine($"var node = Generate{strippedName}();");
+            WriteLine($"var visitor = new AssertOnEverythingBut{strippedName}VisitVisitor{testNameSuffix}();");
+
+            if (withResult)
+            {
+                WriteLine($"var result = visitor.Visit(node{(withArgument ? $", {nonDefaultCallValue}" : "")});");
+                WriteLine($"Assert.Equal({nonDefaultReturnValue}, result);");
+            }
+            else
+            {
+                WriteLine($"visitor.Visit(node{(withArgument ? nonDefaultCallValue : "")});");
+            }
+
+            CloseBlock();
+        }
+
+        private void WriteDefaultVisitGetsCalledVisitorTest(Node node, bool withArgument, bool withResult, bool isGreen)
+        {
+            var strippedName = StripPost(node.Name, "Syntax");
+
+            var (testNameSuffix, genericArguments) = (withArgument, withResult) switch
+            {
+                (false, false) => (string.Empty, string.Empty),
+                (false, true) => ("WithResult", "<int>"),
+                (true, false) => throw new InvalidOperationException("Visitors can only have an argument type if they also have a result type."),
+                (true, true) => ("WithArgumentAndResult", "<int, int>"),
+            };
+
+            var visitorName = $"{(isGreen ? "GreenVisitorTests.DefaultVisitor" : $"RedVisitorTests.DefaultVisitor")}{genericArguments}";
+
+            var nonDefaultCallValue = "int.MinValue";
+            var nonDefaultReturnValue = "int.MaxValue";
+
+            WriteLine("[Fact]");
+            WriteLine($"public void Test{strippedName}NodeVisitCallsDefaultVisitOnVisitor{testNameSuffix}()");
+            OpenBlock();
+
+            WriteLine($"var node = Generate{strippedName}();");
+
+            if (withResult)
+            {
+                WriteLine($"var visitor = new {visitorName}({nonDefaultReturnValue});");
+                WriteLine($"var result = visitor.Visit(node{(withArgument ? $", {nonDefaultCallValue}" : "")});");
+                WriteLine($"Assert.Equal({nonDefaultReturnValue}, result);");
+            }
+            else
+            {
+                WriteLine($"var visitor = new {visitorName}();");
+                WriteLine($"visitor.Visit(node{(withArgument ? nonDefaultCallValue : "")});");
+            }
+
+            WriteLine($"Assert.True(visitor.DefaultVisitWasCalled);");
 
             CloseBlock();
         }

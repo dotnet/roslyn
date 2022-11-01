@@ -320,19 +320,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         #region Misc
 
-        private class DefaultVisitor : CSharpSyntaxVisitor
+        internal class DefaultVisitor : CSharpSyntaxVisitor
         {
+            public bool DefaultVisitWasCalled { get; private set; }
 
+            public override void DefaultVisit(SyntaxNode node)
+            {
+                DefaultVisitWasCalled = true;
+            }
         }
 
-        private class DefaultVisitor<TResult> : CSharpSyntaxVisitor<TResult>
+        internal class DefaultVisitor<TResult> : CSharpSyntaxVisitor<TResult>
         {
+            public bool DefaultVisitWasCalled { get; private set; }
 
+            private readonly TResult _returnValue;
+
+            public DefaultVisitor(TResult returnValue = default)
+            {
+                _returnValue = returnValue;
+            }
+
+            public override TResult DefaultVisit(SyntaxNode node)
+            {
+                DefaultVisitWasCalled = true;
+                return _returnValue;
+            }
         }
 
-        private class DefaultVisitor<TArgument, TResult> : CSharpSyntaxVisitor<TArgument, TResult>
+        internal class DefaultVisitor<TArgument, TResult> : CSharpSyntaxVisitor<TArgument, TResult>
         {
+            public bool DefaultVisitWasCalled { get; private set; }
 
+            private readonly TResult _returnValue;
+
+            public DefaultVisitor(TResult returnValue = default)
+            {
+                _returnValue = returnValue;
+            }
+
+            public override TResult DefaultVisit(SyntaxNode node, TArgument argument)
+            {
+                DefaultVisitWasCalled = true;
+                return _returnValue;
+            }
         }
 
         /// <summary>

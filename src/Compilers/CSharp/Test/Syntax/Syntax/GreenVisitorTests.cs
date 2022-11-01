@@ -44,19 +44,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         #region Misc
 
-        private class DefaultVisitor : InternalSyntax.CSharpSyntaxVisitor
+        internal class DefaultVisitor : InternalSyntax.CSharpSyntaxVisitor
         {
+            public bool DefaultVisitWasCalled { get; private set; }
 
+            public override void DefaultVisit(InternalSyntax.CSharpSyntaxNode node)
+            {
+                DefaultVisitWasCalled = true;
+            }
         }
 
-        private class DefaultVisitor<TResult> : InternalSyntax.CSharpSyntaxVisitor<TResult>
+        internal class DefaultVisitor<TResult> : InternalSyntax.CSharpSyntaxVisitor<TResult>
         {
+            public bool DefaultVisitWasCalled { get; private set; }
 
+            private readonly TResult _returnValue;
+
+            public DefaultVisitor(TResult returnValue = default)
+            {
+                _returnValue = returnValue;
+            }
+
+            protected override TResult DefaultVisit(InternalSyntax.CSharpSyntaxNode node)
+            {
+                DefaultVisitWasCalled = true;
+                return _returnValue;
+            }
         }
 
-        private class DefaultVisitor<TArgument, TResult> : InternalSyntax.CSharpSyntaxVisitor<TArgument, TResult>
+        internal class DefaultVisitor<TArgument, TResult> : InternalSyntax.CSharpSyntaxVisitor<TArgument, TResult>
         {
+            public bool DefaultVisitWasCalled { get; private set; }
 
+            private readonly TResult _returnValue;
+
+            public DefaultVisitor(TResult returnValue = default)
+            {
+                _returnValue = returnValue;
+            }
+
+            protected override TResult DefaultVisit(InternalSyntax.CSharpSyntaxNode node, TArgument argument)
+            {
+                DefaultVisitWasCalled = true;
+                return _returnValue;
+            }
         }
 
         #endregion
