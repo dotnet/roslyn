@@ -2,28 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using System.Diagnostics.Contracts;
 using System.Reflection;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class ExportProviderBuilder
 {
-    /// <summary>
-    /// These assemblies won't necessarily be loaded when we want to run MEF discovery.
-    /// We'll need to add them to the catalog manually.
-    /// </summary>
-    private static readonly ImmutableHashSet<string> AssembliesToDiscover = ImmutableHashSet.Create(
-        "Microsoft.CodeAnalysis.LanguageServer.Protocol.dll",
-        "Microsoft.CodeAnalysis.Features.dll",
-        "Microsoft.CodeAnalysis.Workspaces.dll");
-
     public static async Task<ExportProvider> CreateExportProviderAsync()
     {
         var baseDirectory = AppContext.BaseDirectory;
-        var assembliesWithFullPath = AssembliesToDiscover.Select(a => Path.Combine(baseDirectory, a));
+
+        // Load any Roslyn assemblies from the extension directory
+        var assembliesToDiscover = Directory.EnumerateFiles(baseDirectory, "Microsoft.CodeAnalysis.*.dll");
 
         var discovery = PartDiscovery.Combine(
             new AttributedPartDiscovery(Resolver.DefaultInstance, isNonPublicSupported: true), // "NuGet MEF" attributes (Microsoft.Composition)
@@ -32,12 +26,14 @@ internal sealed class ExportProviderBuilder
         // TODO - we should likely cache the catalog so we don't have to rebuild it every time.
         var catalog = ComposableCatalog.Create(Resolver.DefaultInstance)
             .AddParts(await discovery.CreatePartsAsync(Assembly.GetExecutingAssembly()))
-            .AddParts(await discovery.CreatePartsAsync(assembliesWithFullPath))
+            .AddParts(await discovery.CreatePartsAsync(assembliesToDiscover))
             .WithCompositionService(); // Makes an ICompositionService export available to MEF parts to import
 
         // Assemble the parts into a valid graph.
         var config = CompositionConfiguration.Create(catalog);
-        _ = config.ThrowOnErrors();
+
+        // Verify we only have expected errors.
+        ThrowOnUnexpectedErrors(config);
 
         // Prepare an ExportProvider factory based on this graph.
         var exportProviderFactory = config.CreateExportProviderFactory();
@@ -48,5 +44,29 @@ internal sealed class ExportProviderBuilder
 
         // Obtain our first exported value
         return exportProvider;
+    }
+
+    private static void ThrowOnUnexpectedErrors(CompositionConfiguration configuration)
+    {
+        // Verify that we have exactly the MEF errors that we expect.  If we have less or more this needs to be updated to assert the expected behavior.
+        // Currently we are expecting the following:
+        //     "----- CompositionError level 1 ------
+        //     Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddMissingImports.CSharpAddMissingImportsRefactoringProvider.ctor(pasteTrackingService): expected exactly 1 export matching constraints:
+        //         Contract name: Microsoft.CodeAnalysis.PasteTracking.IPasteTrackingService
+        //         TypeIdentityName: Microsoft.CodeAnalysis.PasteTracking.IPasteTrackingService
+        //     but found 0.
+        //         part definition Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddMissingImports.CSharpAddMissingImportsRefactoringProvider
+
+        //     Microsoft.CodeAnalysis.ExternalAccess.Pythia.PythiaSignatureHelpProvider.ctor(implementation): expected exactly 1 export matching constraints:
+        //         Contract name: Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api.IPythiaSignatureHelpProviderImplementation
+        //         TypeIdentityName: Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api.IPythiaSignatureHelpProviderImplementation
+        //     but found 0.
+        //         part definition Microsoft.CodeAnalysis.ExternalAccess.Pythia.PythiaSignatureHelpProvider
+        var erroredParts = configuration.CompositionErrors.FirstOrDefault()?.SelectMany(error => error.Parts).Select(part => part.Definition.Type.Name) ?? Enumerable.Empty<string>();
+        var expectedErroredParts = new string[] { "CSharpAddMissingImportsRefactoringProvider", "PythiaSignatureHelpProvider" };
+        if (erroredParts.Count() != expectedErroredParts.Length || !erroredParts.All(part => expectedErroredParts.Contains(part)))
+        {
+            configuration.ThrowOnErrors();
+        }
     }
 }

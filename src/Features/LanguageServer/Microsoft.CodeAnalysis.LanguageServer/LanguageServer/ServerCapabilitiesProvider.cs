@@ -8,8 +8,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 
 internal sealed class ServerCapabilitiesProvider : ICapabilitiesProvider
 {
+    private readonly ExperimentalCapabilitiesProvider _roslynCapabilities;
+
+    public ServerCapabilitiesProvider(ExperimentalCapabilitiesProvider roslynCapabilities)
+    {
+        _roslynCapabilities = roslynCapabilities;
+    }
+
     public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
     {
+        var roslynCapabilities = _roslynCapabilities.GetCapabilities(clientCapabilities);
         return new()
         {
             TextDocumentSync = new TextDocumentSyncOptions
@@ -17,7 +25,10 @@ internal sealed class ServerCapabilitiesProvider : ICapabilitiesProvider
                 Change = TextDocumentSyncKind.Incremental,
                 OpenClose = true,
             },
-            DefinitionProvider = true,
+            DefinitionProvider = roslynCapabilities.DefinitionProvider,
+            FoldingRangeProvider = roslynCapabilities.FoldingRangeProvider,
+            DocumentHighlightProvider = roslynCapabilities.DocumentHighlightProvider,
+            SignatureHelpProvider = roslynCapabilities.SignatureHelpProvider,
         };
     }
 }

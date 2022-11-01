@@ -30,7 +30,7 @@ internal sealed class LanguageServerHost
         };
 
         var roslynLspFactory = exportProvider.GetExportedValue<ILanguageServerFactory>();
-        var capabilitiesProvider = new ServerCapabilitiesProvider();
+        var capabilitiesProvider = new ServerCapabilitiesProvider(exportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>());
         var lspLogger = new HostLspLogger(logger);
         _roslynLanguageServer = roslynLspFactory.Create(_jsonRpc, capabilitiesProvider, WellKnownLspServerKinds.CSharpVisualBasicLspServer, lspLogger);
     }

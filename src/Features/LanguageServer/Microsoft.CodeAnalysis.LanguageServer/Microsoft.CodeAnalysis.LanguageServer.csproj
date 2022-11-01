@@ -8,7 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.LanguageServer.Protocol" Version="$(MicrosoftCodeAnalysisLanguageServerProtocolVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Desktop" Version="$(MicrosoftCodeAnalysisWorkspacesDesktopVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="$(MicrosoftCodeAnalysisWorkspacesMSBuildVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsLoggingVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftExtensionsLoggingAbstractionsVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsLoggingConsoleVersion)" />
@@ -20,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-      <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.UnitTests" Key="$(MicrosoftCodeAnalysisLanguageServerKey)"/>
+      <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.UnitTests" Key="$(MicrosoftCodeAnalysisLanguageServerKey)" />
   </ItemGroup>
 
 </Project>
