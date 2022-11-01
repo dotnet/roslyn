@@ -7103,7 +7103,7 @@ public class DisplayAttribute : System.Attribute
                 //         var lam1 = (int x = 7) => x;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "=").WithArguments("lambda optional parameters").WithLocation(5, 27));
 
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
 
         [Fact]
@@ -7935,7 +7935,7 @@ class Program
                 // var lam = (params int[] xs) => xs.Length;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "params").WithArguments("lambda params array").WithLocation(1, 12));
 
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
 
         [Fact]
