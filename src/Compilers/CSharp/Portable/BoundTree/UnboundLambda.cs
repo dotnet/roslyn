@@ -655,15 +655,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var (parameterRefKinds, parameterScopesBuilder, parameterTypes, getEffectiveScopeFromSymbol) = CollectParameterProperties();
 
-            var lambdaSymbol = new LambdaSymbol(
-                Binder,
-                Binder.Compilation,
+            var lambdaSymbol = CreateLambdaSymbol(
                 Binder.ContainingMemberOrLambda,
-                _unboundLambda,
+                returnType: default,
                 parameterTypes,
                 parameterRefKinds,
-                refKind: default,
-                returnType: default);
+                refKind: default);
 
             if (!HasExplicitReturnType(out var returnRefKind, out var returnType))
             {
@@ -872,15 +869,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var (parameterRefKinds, parameterScopesBuilder, parameterTypes, _) = CollectParameterProperties();
                     parameterScopesBuilder.Free();
-                    var lambdaSymbol = new LambdaSymbol(
-                        Binder,
-                        Binder.Compilation,
+                    var lambdaSymbol = CreateLambdaSymbol(
                         Binder.ContainingMemberOrLambda,
-                        _unboundLambda,
+                        returnType: default,
                         parameterTypes,
                         parameterRefKinds,
-                        refKind: default,
-                        returnType: default);
+                        refKind: default);
 
                     return lambdaSymbol;
                 }
