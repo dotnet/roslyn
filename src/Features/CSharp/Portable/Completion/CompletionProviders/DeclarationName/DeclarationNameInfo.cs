@@ -52,6 +52,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
 
         public static async Task<NameDeclarationInfo> GetDeclarationInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
+            var info = await GetDeclarationInfoWorkerAsync(document, position, cancellationToken).ConfigureAwait(false);
+
+            // if we bound to some error type, and that error type itself didn't start with an uppercase letter, then
+            // it's almost certainly just an error case where the user was referencing something that was not a type.
+            // for example:
+            //
+            //  goo $$
+            //  goo = ...
+            //
+            // This syntactically looks like a type, but really isn't.  We don't want to offer anything here as it's far
+            // more likely to be an error rather than a true new declaration.
+            if (info.Type is IErrorTypeSymbol { Name.Length: > 0 } &&
+                !char.IsUpper(info.Type.Name[0]))
+            {
+                return default;
+            }
+
+            return info;
+        }
+
+        private static async Task<NameDeclarationInfo> GetDeclarationInfoWorkerAsync(Document document, int position, CancellationToken cancellationToken)
+        {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken).GetPreviousTokenIfTouchingWord(position);
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(token.SpanStart, cancellationToken).ConfigureAwait(false);
