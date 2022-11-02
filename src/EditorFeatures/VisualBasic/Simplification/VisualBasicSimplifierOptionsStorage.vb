@@ -4,7 +4,6 @@
 
 Imports System.Composition
 Imports System.Runtime.CompilerServices
-Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
