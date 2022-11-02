@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports System.Runtime.CompilerServices
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Friend Module VisualBasicSyntaxFormattingOptionsStorage

@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
+Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
     Friend Module VisualBasicSimplifierOptionsStorage

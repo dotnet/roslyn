@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     Friend Module VisualBasicCodeGenerationOptionsStorage

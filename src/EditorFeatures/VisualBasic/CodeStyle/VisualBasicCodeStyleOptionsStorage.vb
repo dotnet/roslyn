@@ -8,6 +8,7 @@ Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
     Friend Module VisualBasicCodeStyleOptionsStorage
