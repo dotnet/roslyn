@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         /// </summary>
         private const int MaximumConversionOptions = 3;
 
+        protected abstract TExpressionSyntax Cast(TExpressionSyntax expression, ITypeSymbol type);
+
         /// <summary>
         /// Output the current type information of the target node and the conversion type(s) that the target node is
         /// going to be cast by. Implicit downcast can appear on Variable Declaration, Return Statement, Function
@@ -101,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                 context.Diagnostics);
         }
 
-        private static SyntaxNode ApplyFix(
+        private SyntaxNode ApplyFix(
             Document document,
             SemanticModel semanticModel,
             SyntaxNode currentRoot,
@@ -111,7 +113,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
-            var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
             // if the node we're about to cast already has a cast, replace that cast if both are reference-identity downcasts.
             if (targetNode is TCastExpressionSyntax castExpression)
@@ -129,14 +130,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                     {
                         return currentRoot.ReplaceNode(
                             targetNode,
-                            generator.CastExpression(conversionType, castedExpression).WithAdditionalAnnotations(Simplifier.Annotation));
+                            this.Cast((TExpressionSyntax)castedExpression, conversionType).WithAdditionalAnnotations(Simplifier.Annotation));
                     }
                 }
             }
 
             return currentRoot.ReplaceNode(
                 targetNode,
-                generator.CastExpression(conversionType, targetNode).WithAdditionalAnnotations(Simplifier.Annotation));
+                this.Cast(targetNode, conversionType).WithAdditionalAnnotations(Simplifier.Annotation));
         }
 
         private static string GetSubItemName(SemanticModel semanticModel, int position, ITypeSymbol conversionType)

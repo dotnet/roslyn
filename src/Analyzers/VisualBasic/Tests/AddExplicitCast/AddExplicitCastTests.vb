@@ -2217,7 +2217,7 @@ Class Program
 End Class")
         End Function
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/41500")>
+        <Fact>
         Public Async Function RedundantCast1() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -2250,7 +2250,7 @@ Class Program
 End Class")
         End Function
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/41500")>
+        <Fact>
         Public Async Function RedundantCast2() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -2291,7 +2291,7 @@ Class Program
 End Class")
         End Function
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/41500")>
+        <Fact>
         Public Async Function RedundantCast3() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -2330,7 +2330,7 @@ Class Program
 End Class")
         End Function
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/41500")>
+        <Fact>
         Public Async Function RedundantCast4() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On

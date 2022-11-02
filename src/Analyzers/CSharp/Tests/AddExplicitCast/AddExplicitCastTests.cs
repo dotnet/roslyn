@@ -1454,7 +1454,7 @@ class Program
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41500")]
+        [Fact]
         public async Task RedundantCast1()
         {
             await TestInRegularAndScriptAsync(
@@ -1480,7 +1480,7 @@ class Program
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41500")]
+        [Fact]
         public async Task RedundantCast2()
         {
             await TestInRegularAndScriptAsync(
@@ -1508,7 +1508,7 @@ class Program
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41500")]
+        [Fact]
         public async Task RedundantCast3()
         {
             await TestInRegularAndScriptAsync(
@@ -1536,7 +1536,7 @@ class Program
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41500")]
+        [Fact]
         public async Task RedundantCast4()
         {
             await TestInRegularAndScriptAsync(
@@ -3079,7 +3079,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(41500, "https://github.com/dotnet/roslyn/issues/41500")]
+        [Fact]
         public async Task RemoveExistingCast1()
         {
             await TestInRegularAndScriptAsync(
