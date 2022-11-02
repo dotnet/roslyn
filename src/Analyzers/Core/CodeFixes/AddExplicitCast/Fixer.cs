@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
 {
-    internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressionSyntax, TCastExpressionSyntax>
+    internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressionSyntax>
     {
         protected abstract class Fixer<TArgumentSyntax, TArgumentListSyntax, TInvocationSyntax>
             where TArgumentSyntax : SyntaxNode

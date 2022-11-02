@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
 
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddExplicitCast), [Shared]>
     Partial Friend NotInheritable Class VisualBasicAddExplicitCastCodeFixProvider
-        Inherits AbstractAddExplicitCastCodeFixProvider(Of ExpressionSyntax, DirectCastExpressionSyntax)
+        Inherits AbstractAddExplicitCastCodeFixProvider(Of ExpressionSyntax)
 
         Friend Const BC30512 As String = "BC30512" ' Option Strict On disallows implicit conversions from '{0}' to '{1}'.
         Friend Const BC42016 As String = "BC42016" ' Implicit conversions from '{0}' to '{1}'.
@@ -33,6 +33,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
         End Sub
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30512, BC42016, BC30518, BC30519)
+
+        Protected Overrides Sub GetPartsOfCastOrConversionExpression(expression As ExpressionSyntax, ByRef type As SyntaxNode, ByRef castedExpression As SyntaxNode)
+            Dim directCastExpression = TryCast(expression, DirectCastExpressionSyntax)
+            If directCastExpression IsNot Nothing Then
+                type = directCastExpression.Type
+                castedExpression = directCastExpression.Expression
+                Return
+            End If
+
+            Dim conversionExpression = DirectCast(expression, CTypeExpressionSyntax)
+            type = conversionExpression.Type
+            castedExpression = conversionExpression.Expression
+        End Sub
 
         Protected Overrides Function Cast(expression As ExpressionSyntax, type As ITypeSymbol) As ExpressionSyntax
             Return expression.Cast(type, isResultPredefinedCast:=Nothing)

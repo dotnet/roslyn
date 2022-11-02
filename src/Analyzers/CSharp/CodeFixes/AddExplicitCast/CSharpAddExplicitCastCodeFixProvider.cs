@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddExplicitCast), Shared]
     internal sealed partial class CSharpAddExplicitCastCodeFixProvider
-        : AbstractAddExplicitCastCodeFixProvider<ExpressionSyntax, CastExpressionSyntax>
+        : AbstractAddExplicitCastCodeFixProvider<ExpressionSyntax>
     {
         /// <summary>
         /// CS0266: Cannot implicitly convert from type 'x' to 'y'. An explicit conversion exists (are you missing a cast?)
@@ -42,6 +42,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0266, CS1503);
+
+        protected override void GetPartsOfCastOrConversionExpression(ExpressionSyntax expression, out SyntaxNode type, out SyntaxNode castedExpression)
+        {
+            var castExpression = (CastExpressionSyntax)expression;
+            type = castExpression.Type;
+            castedExpression = castExpression.Expression;
+        }
 
         protected override ExpressionSyntax Cast(ExpressionSyntax expression, ITypeSymbol type)
             => expression.Cast(type);

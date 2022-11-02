@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -20,11 +19,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
 {
-    internal abstract partial class AbstractAddExplicitCastCodeFixProvider<
-        TExpressionSyntax,
-        TCastExpressionSyntax> : SyntaxEditorBasedCodeFixProvider
+    internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressionSyntax> : SyntaxEditorBasedCodeFixProvider
         where TExpressionSyntax : SyntaxNode
-        where TCastExpressionSyntax : TExpressionSyntax
     {
         /// <summary>
         /// Give a set of least specific types with a limit, and the part exceeding the limit doesn't show any code fix,
@@ -33,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         private const int MaximumConversionOptions = 3;
 
         protected abstract TExpressionSyntax Cast(TExpressionSyntax expression, ITypeSymbol type);
+        protected abstract void GetPartsOfCastOrConversionExpression(TExpressionSyntax expression, out SyntaxNode type, out SyntaxNode castedExpression);
 
         /// <summary>
         /// Output the current type information of the target node and the conversion type(s) that the target node is
@@ -115,9 +112,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
 
             // if the node we're about to cast already has a cast, replace that cast if both are reference-identity downcasts.
-            if (targetNode is TCastExpressionSyntax castExpression)
+            if (syntaxFacts.IsCastExpression(targetNode) || syntaxFacts.IsConversionExpression(targetNode))
             {
-                syntaxFacts.GetPartsOfCastExpression(castExpression, out var castTypeNode, out var castedExpression);
+                GetPartsOfCastOrConversionExpression(targetNode, out var castTypeNode, out var castedExpression);
 
                 var castType = semanticModel.GetTypeInfo(castTypeNode, cancellationToken).Type;
                 if (castType != null)
@@ -125,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                     var firstConversion = semanticFacts.ClassifyConversion(semanticModel, castedExpression, castType);
                     var secondConversion = semanticModel.Compilation.ClassifyCommonConversion(castType, conversionType);
 
-                    if (firstConversion is { IsImplicit: false, IsReference: true } &&
+                    if (firstConversion is { IsImplicit: false, IsReference: true } or { IsIdentity: true } &&
                         secondConversion is { IsImplicit: false, IsReference: true })
                     {
                         return currentRoot.ReplaceNode(
