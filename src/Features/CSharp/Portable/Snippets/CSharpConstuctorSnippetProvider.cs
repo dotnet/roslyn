@@ -37,28 +37,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         {
         }
 
-        private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
-            {
-                SyntaxKind.NewKeyword,
-                SyntaxKind.PublicKeyword,
-                SyntaxKind.ProtectedKeyword,
-                SyntaxKind.InternalKeyword,
-                SyntaxKind.PrivateKeyword,
-                SyntaxKind.AbstractKeyword,
-                SyntaxKind.SealedKeyword,
-                SyntaxKind.StaticKeyword,
-                SyntaxKind.UnsafeKeyword
-            };
-
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
             var syntaxContext = (CSharpSyntaxContext)document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
 
             return
-                syntaxContext.IsGlobalStatementContext ||
-                syntaxContext.IsTypeDeclarationContext(
-                    validModifiers: s_validModifiers,
+                syntaxContext.IsMemberDeclarationContext(
                     validTypeDeclarations: SyntaxKindSet.ClassStructRecordTypeDeclarations,
                     canBePartial: true,
                     cancellationToken: cancellationToken);

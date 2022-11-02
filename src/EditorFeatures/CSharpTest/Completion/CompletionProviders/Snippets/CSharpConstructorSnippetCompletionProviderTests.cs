@@ -72,6 +72,26 @@ $$";
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertConstructorSnippetInAbstractClassTest()
+        {
+            var markupBeforeCommit =
+@"abstract class MyClass
+{
+    $$
+}";
+
+            var expectedCodeAfterCommit =
+@"abstract class MyClass
+{
+    public MyClass()
+    {
+        $$
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InsertConstructorSnippetInStructTest()
         {
             var markupBeforeCommit =
