@@ -28,10 +28,22 @@ namespace Roslyn.Test.Utilities
         /// </summary>
         Empty,
 
-        // These are the preferred values that we should be targeting 
         NetStandard20,
+
+        /// <summary>
+        /// The latest .NET Core target framework
+        /// </summary>
         NetCoreApp,
+
+        /// <summary>
+        /// The latest .NET Framework
+        /// </summary>
         NetFramework,
+
+        /// <summary>
+        /// This will be <see cref="NetCoreApp" /> when running on .NET Core and <see cref="NetFramework"/>
+        /// when running on .NET Framework.
+        /// </summary>
         NetLatest,
 
         // Eventually these will be deleted and replaced with NetStandard20. Short term this creates the "standard"
@@ -178,7 +190,9 @@ namespace Roslyn.Test.Utilities
 
         static TargetFrameworkUtil()
         {
+            // Asserts to ensure these two values keep in sync
             Debug.Assert(GetReferences(TargetFramework.NetCoreApp).SequenceEqual(NetCoreApp.References));
+            Debug.Assert(GetReferences(TargetFramework.NetFramework).SequenceEqual(NetFramework.References));
         }
 
 #endif
