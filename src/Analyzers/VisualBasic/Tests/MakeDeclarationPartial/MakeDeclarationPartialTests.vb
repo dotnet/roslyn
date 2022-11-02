@@ -14,39 +14,54 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeDeclarationPar
     Public Class MakeDeclarationPartialTests
         <Fact>
         Public Async Function OutsideNamespace() As Task
-            Dim document1 = "
+            Dim document = "
+Partial Class Declaration
+End Class
+
+Class {|BC40046:Declaration|}
+End Class
+
+Class {|BC40046:Declaration|}
+End Class"
+
+            Dim fixedDocument = "
+Partial Class Declaration
+End Class
+
 Partial Class Declaration
 End Class
 
 Class {|BC40046:Declaration|}
 End Class"
 
-            Dim document2 = "
-Class {|BC40046:Declaration|}
-End Class"
-
-            Dim fixedDocument1 = "
-Partial Class Declaration
-End Class
-
-Partial Class Declaration
-End Class"
-
-            Dim test = New VerifyVB.Test()
-
-            test.TestState.Sources.Add(document1)
-            test.TestState.Sources.Add(document2)
-
-            test.FixedState.Sources.Add(fixedDocument1)
-            test.FixedState.Sources.Add(document2)
+            Dim test = New VerifyVB.Test With {
+                .TestCode = document,
+                .FixedCode = fixedDocument,
+                .CodeFixTestBehaviors = CodeFixTestBehaviors.SkipFixAllCheck
+            }
 
             Await test.RunAsync()
         End Function
 
         <Fact>
         Public Async Function InsideOneNamespace() As Task
-            Dim document1 = "
+            Dim document = "
 Namespace TestNamespace
+    Partial Class Declaration
+    End Class
+
+    Class {|BC40046:Declaration|}
+    End Class
+
+    Class {|BC40046:Declaration|}
+    End Class
+End Namespace"
+
+            Dim fixedDocument = "
+Namespace TestNamespace
+    Partial Class Declaration
+    End Class
+
     Partial Class Declaration
     End Class
 
@@ -54,35 +69,39 @@ Namespace TestNamespace
     End Class
 End Namespace"
 
-            Dim document2 = "
-Namespace TestNamespace
-    Class {|BC40046:Declaration|}
-    End Class
-End Namespace"
-
-            Dim fixedDocument1 = "
-Namespace TestNamespace
-    Partial Class Declaration
-    End Class
-
-    Partial Class Declaration
-    End Class
-End Namespace"
-
-            Dim test = New VerifyVB.Test()
-
-            test.TestState.Sources.Add(document1)
-            test.TestState.Sources.Add(document2)
-
-            test.FixedState.Sources.Add(fixedDocument1)
-            test.FixedState.Sources.Add(document2)
+            Dim test = New VerifyVB.Test With {
+                .TestCode = document,
+                .FixedCode = fixedDocument,
+                .CodeFixTestBehaviors = CodeFixTestBehaviors.SkipFixAllCheck
+            }
 
             Await test.RunAsync()
         End Function
 
         <Fact>
-        Public Async Function InsideTwoEqualNamespaces() As Task
-            Dim document1 = "
+        Public Async Function InsideSeveralEqualNamespaces() As Task
+            Dim document = "
+Namespace TestNamespace
+    Partial Class Declaration
+    End Class
+End Namespace
+
+Namespace TestNamespace
+    Class {|BC40046:Declaration|}
+    End Class
+End Namespace
+
+Namespace TestNamespace
+    Class {|BC40046:Declaration|}
+    End Class
+End Namespace"
+
+            Dim fixedDocument = "
+Namespace TestNamespace
+    Partial Class Declaration
+    End Class
+End Namespace
+
 Namespace TestNamespace
     Partial Class Declaration
     End Class
@@ -93,61 +112,42 @@ Namespace TestNamespace
     End Class
 End Namespace"
 
-            Dim document2 = "
-Namespace TestNamespace
-    Class {|BC40046:Declaration|}
-    End Class
-End Namespace"
-
-            Dim fixedDocument1 = "
-Namespace TestNamespace
-    Partial Class Declaration
-    End Class
-End Namespace
-
-Namespace TestNamespace
-    Partial Class Declaration
-    End Class
-End Namespace"
-
-            Dim test = New VerifyVB.Test()
-
-            test.TestState.Sources.Add(document1)
-            test.TestState.Sources.Add(document2)
-
-            test.FixedState.Sources.Add(fixedDocument1)
-            test.FixedState.Sources.Add(document2)
+            Dim test = New VerifyVB.Test With {
+                .TestCode = document,
+                .FixedCode = fixedDocument,
+                .CodeFixTestBehaviors = CodeFixTestBehaviors.SkipFixAllCheck
+            }
 
             Await test.RunAsync()
         End Function
 
         <Fact>
         Public Async Function WithOtherModifiers() As Task
-            Dim document1 = "
+            Dim document = "
+Partial Public Class Declaration
+End Class
+
+Public Class {|BC40046:Declaration|}
+End Class
+
+Public Class {|BC40046:Declaration|}
+End Class"
+
+            Dim fixedDocument = "
+Partial Public Class Declaration
+End Class
+
 Partial Public Class Declaration
 End Class
 
 Public Class {|BC40046:Declaration|}
 End Class"
 
-            Dim document2 = "
-Public Class {|BC40046:Declaration|}
-End Class"
-
-            Dim fixedDocument1 = "
-Partial Public Class Declaration
-End Class
-
-Partial Public Class Declaration
-End Class"
-
-            Dim test = New VerifyVB.Test()
-
-            test.TestState.Sources.Add(document1)
-            test.TestState.Sources.Add(document2)
-
-            test.FixedState.Sources.Add(fixedDocument1)
-            test.FixedState.Sources.Add(document2)
+            Dim test = New VerifyVB.Test With {
+                .TestCode = document,
+                .FixedCode = fixedDocument,
+                .CodeFixTestBehaviors = CodeFixTestBehaviors.SkipFixAllCheck
+            }
 
             Await test.RunAsync()
         End Function
