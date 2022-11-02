@@ -5236,7 +5236,7 @@ public class Class
         }
 
         [Fact]
-        public async Task TestExtracLocalFunction_MissingInBase()
+        public async Task TestExtractLocalFunction_MissingInBase()
         {
             var code = """
                 class Base
