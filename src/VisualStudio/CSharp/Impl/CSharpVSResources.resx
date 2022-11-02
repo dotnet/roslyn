@@ -244,13 +244,13 @@
   <data name="Insert_space_within_empty_argument_list_parentheses" xml:space="preserve">
     <value>Insert space within empty argument list parentheses</value>
   </data>
-  <data name="Insert_space_between_method_name_and_its_opening_parenthesis1" xml:space="preserve">
-    <value>Insert space between method name and its opening parenthesis</value>
+  <data name="Insert_space_between_called_method_name_and_its_opening_parenthesis" xml:space="preserve">
+    <value>Insert space between called method name and its opening parenthesis</value>
   </data>
   <data name="Insert_space_within_empty_parameter_list_parentheses" xml:space="preserve">
     <value>Insert space within empty parameter list parentheses</value>
   </data>
-  <data name="Insert_space_between_method_name_and_its_opening_parenthesis2" xml:space="preserve">
+  <data name="Insert_space_between_method_name_and_its_opening_parenthesis" xml:space="preserve">
     <value>Insert space between method name and its opening parenthesis</value>
   </data>
   <data name="Insert_space_within_parameter_list_parentheses" xml:space="preserve">

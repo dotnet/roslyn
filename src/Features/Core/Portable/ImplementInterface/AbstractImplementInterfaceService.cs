@@ -32,11 +32,13 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
         protected abstract bool CanImplementImplicitly { get; }
         protected abstract bool HasHiddenExplicitImplementation { get; }
         protected abstract bool TryInitializeState(Document document, SemanticModel model, SyntaxNode interfaceNode, CancellationToken cancellationToken, out SyntaxNode classOrStructDecl, out INamedTypeSymbol classOrStructType, out IEnumerable<INamedTypeSymbol> interfaceTypes);
+        protected abstract bool AllowDelegateAndEnumConstraints(ParseOptions options);
 
         protected abstract SyntaxNode AddCommentInsideIfStatement(SyntaxNode ifDisposingStatement, SyntaxTriviaList trivia);
         protected abstract SyntaxNode CreateFinalizer(SyntaxGenerator generator, INamedTypeSymbol classType, string disposeMethodDisplayString);
 
-        public async Task<Document> ImplementInterfaceAsync(Document document, ImplementTypeGenerationOptions options, SyntaxNode node, CancellationToken cancellationToken)
+        public async Task<Document> ImplementInterfaceAsync(
+            Document document, ImplementTypeGenerationOptions options, SyntaxNode node, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_ImplementInterface, cancellationToken))
             {

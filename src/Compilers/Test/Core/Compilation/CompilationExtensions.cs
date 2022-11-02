@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// up <see cref="CompilationReference"/> which contains all of the well known types that were used from that
         /// reference by the compiler.
         /// </summary>
-        public static PortableExecutableReference CreateWindowsRuntimeMetadataReference()
+        public static PortableExecutableReference CreateWindowsRuntimeMetadataReference(TargetFramework targetFramework = TargetFramework.NetCoreApp)
         {
             var source = @"
 namespace System.Runtime.InteropServices.WindowsRuntime
@@ -434,7 +434,7 @@ namespace System.Runtime.InteropServices.WindowsRuntime
             var compilation = CSharpCompilation.Create(
                 "System.Runtime.InteropServices.WindowsRuntime",
                 new[] { CSharpSyntaxTree.ParseText(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default)) },
-                references: TargetFrameworkUtil.GetReferences(TargetFramework.Net50),
+                references: TargetFrameworkUtil.GetReferences(targetFramework),
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             compilation.VerifyEmitDiagnostics();
             return compilation.EmitToPortableExecutableReference();

@@ -237,11 +237,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression argument = (node.Expression == null)
                 ? BadExpression(node).MakeCompilerGenerated()
                 : BindValue(node.Expression, diagnostics, BindValueKind.RValue);
-            argument = ValidateEscape(argument, ReturnOnlyScope, isByRef: false, diagnostics: diagnostics);
 
             if (!argument.HasAnyErrors)
             {
                 argument = GenerateConversionForAssignment(elementType, argument, diagnostics);
+                argument = ValidateEscape(argument, ReturnOnlyScope, isByRef: false, diagnostics: diagnostics);
             }
             else
             {
@@ -3418,9 +3418,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    expression = returnType.IsErrorType()
-                        ? BindToTypeForErrorRecovery(expression)
-                        : CreateReturnConversion(syntax, diagnostics, expression, refKind, returnType);
+                    if (returnType.IsErrorType())
+                    {
+                        expression = BindToTypeForErrorRecovery(expression);
+                    }
+                    else
+                    {
+                        expression = CreateReturnConversion(syntax, diagnostics, expression, refKind, returnType);
+                        expression = ValidateEscape(expression, Binder.ReturnOnlyScope, isByRef: refKind != RefKind.None, diagnostics);
+                    }
                     statement = new BoundReturnStatement(syntax, returnRefKind, expression, @checked: CheckOverflowAtRuntime) { WasCompilerGenerated = true };
                 }
             }
@@ -3467,8 +3473,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ExpressionSyntax expressionSyntax = expressionBody.Expression.CheckAndUnwrapRefExpression(diagnostics, out refKind);
                 BindValueKind requiredValueKind = bodyBinder.GetRequiredReturnValueKind(refKind);
                 BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, requiredValueKind);
-                expression = bodyBinder.ValidateEscape(expression, Binder.ReturnOnlyScope, refKind != RefKind.None, diagnostics);
-
                 return bodyBinder.CreateBlockFromExpression(expressionBody, bodyBinder.GetDeclaredLocalsForScope(expressionBody), refKind, expression, expressionSyntax, diagnostics);
             }
         }
@@ -3485,8 +3489,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expressionSyntax = body.CheckAndUnwrapRefExpression(diagnostics, out refKind);
             BindValueKind requiredValueKind = GetRequiredReturnValueKind(refKind);
             BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, requiredValueKind);
-            expression = ValidateEscape(expression, Binder.ReturnOnlyScope, refKind != RefKind.None, diagnostics);
-
             return bodyBinder.CreateBlockFromExpression(body, bodyBinder.GetDeclaredLocalsForScope(body), refKind, expression, expressionSyntax, diagnostics);
         }
 

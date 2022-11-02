@@ -1998,5 +1998,76 @@ Block[B6] - Exit
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
+
+        [Fact, WorkItem(64774, "https://github.com/dotnet/roslyn/issues/64774")]
+        public void ExplicitCastOnTuple_01()
+        {
+            var code = """
+                using System;
+
+                (int i, Action invoke) = /*<bind>*/((int, Action))(1, M)/*</bind>*/;
+
+                void M() {}
+                """;
+
+            var expectedOperationTree = """
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32, System.Action)) (Syntax: '((int, Action))(1, M)')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand:
+    ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Action M)) (Syntax: '(1, M)')
+      NaturalType: null
+      Elements(2):
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+            Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand:
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsImplicit) (Syntax: 'M')
+            Target:
+              IMethodReferenceOperation: void M() (OperationKind.MethodReference, Type: null) (Syntax: 'M')
+                Instance Receiver:
+                  IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M')
+""";
+            VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(code, expectedOperationTree, DiagnosticDescription.None);
+        }
+
+        [Fact, WorkItem(64774, "https://github.com/dotnet/roslyn/issues/64774")]
+        public void ExplicitCastOnTuple_02()
+        {
+            var code = """
+                unsafe
+                {
+                    (int i, delegate*<void> invoke) = /*<bind>*/((int, delegate*<void>))(1, &M)/*</bind>*/;
+                }
+
+                static void M() {}
+                """;
+
+            var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics(
+                // (3,56): error CS0306: The type 'delegate*<void>' may not be used as a type argument
+                //     (int i, delegate*<void> invoke) = /*<bind>*/((int, delegate*<void>))(1, &M)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<void>").WithArguments("delegate*<void>").WithLocation(3, 56)
+            );
+
+            var expectedOperationTree = """
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32, delegate*<System.Void>), IsInvalid) (Syntax: '((int, dele ... d>))(1, &M)')
+  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand:
+    ITupleOperation (OperationKind.Tuple, Type: (System.Int32, delegate*<System.Void>)) (Syntax: '(1, &M)')
+      NaturalType: null
+      Elements(2):
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+            Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand:
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          IAddressOfOperation (OperationKind.AddressOf, Type: delegate*<System.Void>) (Syntax: '&M')
+            Reference:
+              IMethodReferenceOperation: void M() (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'M')
+                Instance Receiver:
+                  null
+""";
+
+            VerifyOperationTreeForTest<CastExpressionSyntax>(comp, expectedOperationTree);
+        }
     }
 }

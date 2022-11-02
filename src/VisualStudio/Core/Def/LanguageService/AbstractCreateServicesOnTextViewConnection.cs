@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             // Preload completion providers on a background thread since assembly loads can be slow
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1242321
-            _ = languageServices.GetService<CompletionService>()?.GetLazyImportedProviders().SelectAsArray(p => p.Value);
+            languageServices.GetService<CompletionService>()?.LoadImportedProviders();
         }
     }
 }

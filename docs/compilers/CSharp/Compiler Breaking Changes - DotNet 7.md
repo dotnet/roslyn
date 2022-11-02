@@ -1,5 +1,49 @@
 # This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
+## For the purpose of definite assignment analysis, invocations of async local functions are no longer treated as being awaited
+
+***Introduced in Visual Studio 2022 version 17.5***
+
+For the purpose of definite assignment analysis, invocations of an async local function is
+no longer treated as being awaited and, therefore, the local function is not considered to
+be fully executed. See https://github.com/dotnet/roslyn/issues/43697 for the rationale.
+
+The code below is now going to report a definite assignment error:
+```csharp
+    public async Task M()
+    {
+        bool a;
+        await M1();
+        Console.WriteLine(a); // error CS0165: Use of unassigned local variable 'a'  
+
+        async Task M1()
+        {
+            if ("" == String.Empty)
+            {
+                throw new Exception();
+            }
+            else
+            {
+                a = true;
+            }
+        }
+    }
+```
+
+## `INoneOperation` nodes for attributes are now `IAttributeOperation` nodes.
+
+***Introduced in Visual Studio 2022 version 17.5, .NET SDK version 7.0.200***
+
+In previous versions of the compiler, the `IOperation` tree for an attribute was rooted with an `INoneOperation` node.
+We have added native support for attributes, which means that the root of the tree is now an `IAttributeOperation`. Some
+analyzers, including older versions of the .NET SDK analyzers, are not expecting this tree shape, and will incorrectly
+warn (or potentially fail to warn) when encountering it. The workarounds for this are:
+
+* Update your analyzer version, if possible. If using the .NET SDK or older versions of Microsoft.CodeAnalysis.FxCopAnalyzers,
+update to Microsoft.CodeAnalysis.NetAnalyzers 7.0.0-preview1.22464.1 or newer.
+* Suppress any false-positives from the analyzers until they can be updated with a version that takes this change into
+account.
+
 ## Type tests for `ref` structs are not supported.
 
 ***Introduced in Visual Studio 2022 version 17.4***
