@@ -655,15 +655,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var (parameterRefKinds, parameterScopesBuilder, parameterTypes, getEffectiveScopeFromSymbol) = CollectParameterProperties();
 
-            var lambdaSymbol = new LambdaSymbol(
-                Binder,
-                Binder.Compilation,
+            var lambdaSymbol = CreateLambdaSymbol(
                 Binder.ContainingMemberOrLambda,
-                _unboundLambda,
+                returnType: default,
                 parameterTypes,
                 parameterRefKinds,
-                refKind: default,
-                returnType: default);
+                refKind: default);
 
             if (!HasExplicitReturnType(out var returnRefKind, out var returnType))
             {
@@ -842,9 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 refKind,
                 returnType);
 
-        // PROTOTYPE: If possible, re-use the default values from this temporary field if they are already bound
         private LambdaSymbol? _lambdaForParameterDefaultValues = null;
-
 
         // On certain code paths(such as target type conversion), we need to instantiate a temporary lambda symbol
         // for binding default parameter values, and this may cause diagnostics to be produced if there is an error
@@ -874,15 +869,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var (parameterRefKinds, parameterScopesBuilder, parameterTypes, _) = CollectParameterProperties();
                     parameterScopesBuilder.Free();
-                    var lambdaSymbol = new LambdaSymbol(
-                        Binder,
-                        Binder.Compilation,
+                    var lambdaSymbol = CreateLambdaSymbol(
                         Binder.ContainingMemberOrLambda,
-                        _unboundLambda,
+                        returnType: default,
                         parameterTypes,
                         parameterRefKinds,
-                        refKind: default,
-                        returnType: default);
+                        refKind: default);
 
                     return lambdaSymbol;
                 }
