@@ -1220,7 +1220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     newAttributeCtorArguments,
                     oldAttribute.ConstructorArgumentsSourceIndices,
                     newAttributeNamedArguments,
-                    oldAttribute.HasErrors || newAttributeCtor is null,
+                    hasErrors: oldAttribute.HasErrors || newAttributeCtor is null,
                     oldAttribute.IsConditionallyOmitted);
             }
 
