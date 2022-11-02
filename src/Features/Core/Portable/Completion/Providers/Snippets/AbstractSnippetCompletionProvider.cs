@@ -3,12 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ConvertToInterpolatedString;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -33,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             var snippetProvider = service.GetSnippetProvider(snippetIdentifier);
 
             // Logging for telemetry.
-            Logger.Log(FunctionId.Completion_SemanticSnippets, $"Name: {snippetIdentifier}");
+            Logger.Log(FunctionId.Completion_SemanticSnippets, $"Name: {snippetIdentifier}", LogLevel.Information);
 
             // This retrieves the generated Snippet
             var snippet = await snippetProvider.GetSnippetAsync(strippedDocument, position, cancellationToken).ConfigureAwait(false);
@@ -92,10 +89,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             foreach (var snippetData in snippets)
             {
                 var completionItem = SnippetCompletionItem.Create(
-                    displayText: snippetData.Shortcut,
+                    displayText: snippetData.Identifier,
                     displayTextSuffix: "",
                     position: position,
-                    snippetIdentifier: snippetData.Shortcut,
+                    snippetIdentifier: snippetData.Identifier,
                     glyph: Glyph.Snippet,
                     description: (snippetData.Description + Environment.NewLine + string.Format(FeaturesResources.Code_snippet_for_0, snippetData.Description)).ToSymbolDisplayParts(),
                     inlineDescription: snippetData.Description,
