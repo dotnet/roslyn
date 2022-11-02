@@ -495,6 +495,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">變更 {0} 的可見度需要重新啟動應用程式。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_snippet_for_0">
+        <source>Code snippet for '{0}'</source>
+        <target state="new">Code snippet for '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Comments_not_allowed">
         <source>Comments not allowed</source>
         <target state="translated">不允許的註解</target>

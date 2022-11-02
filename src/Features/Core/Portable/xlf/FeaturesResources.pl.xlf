@@ -495,6 +495,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Zmiana widoczności elementu {0} wymaga ponownego uruchomienia aplikacji.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_snippet_for_0">
+        <source>Code snippet for '{0}'</source>
+        <target state="new">Code snippet for '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Comments_not_allowed">
         <source>Comments not allowed</source>
         <target state="translated">Komentarze są niedozwolone</target>

@@ -3098,8 +3098,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (IsEffectivelyGenericTaskReturningAsyncMethod()
                             && TypeSymbol.Equals(argument.Type, this.GetCurrentReturnType(out unusedRefKind), TypeCompareKind.ConsiderEverything2))
                         {
-                            // Since this is an async method, the return expression must be of type '{0}' rather than 'Task<{0}>'
-                            Error(diagnostics, ErrorCode.ERR_BadAsyncReturnExpression, argument.Syntax, returnType);
+                            // Since this is an async method, the return expression must be of type '{0}' rather than '{1}'
+                            Error(diagnostics, ErrorCode.ERR_BadAsyncReturnExpression, argument.Syntax, returnType, argument.Type);
                         }
                         else
                         {
@@ -3573,21 +3573,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(recordDecl.ParameterList is object);
             Debug.Assert(recordDecl.IsKind(SyntaxKind.RecordDeclaration));
 
-            Binder bodyBinder = this.GetBinder(recordDecl);
-            Debug.Assert(bodyBinder != null);
-
             BoundExpressionStatement initializer;
+            ImmutableArray<LocalSymbol> constructorLocals;
             if (recordDecl.PrimaryConstructorBaseTypeIfClass is PrimaryConstructorBaseTypeSyntax baseWithArguments)
             {
-                initializer = bodyBinder.BindConstructorInitializer(baseWithArguments, diagnostics);
+                Binder initializerBinder = GetBinder(baseWithArguments);
+                Debug.Assert(initializerBinder != null);
+                initializer = initializerBinder.BindConstructorInitializer(baseWithArguments, diagnostics);
+                constructorLocals = initializerBinder.GetDeclaredLocalsForScope(baseWithArguments);
             }
             else
             {
-                initializer = bodyBinder.BindImplicitConstructorInitializer(recordDecl, diagnostics);
+                initializer = BindImplicitConstructorInitializer(recordDecl, diagnostics);
+                constructorLocals = ImmutableArray<LocalSymbol>.Empty;
             }
 
             return new BoundConstructorMethodBody(recordDecl,
-                                                  bodyBinder.GetDeclaredLocalsForScope(recordDecl),
+                                                  constructorLocals,
                                                   initializer,
                                                   blockBody: new BoundBlock(recordDecl, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty).MakeCompilerGenerated(),
                                                   expressionBody: null);

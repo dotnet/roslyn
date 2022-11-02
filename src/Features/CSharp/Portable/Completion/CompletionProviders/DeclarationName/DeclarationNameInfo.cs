@@ -23,13 +23,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
         private static readonly ImmutableArray<SymbolKindOrTypeKind> s_propertySyntaxKind =
             ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Property));
 
-        public readonly ImmutableArray<SymbolKindOrTypeKind> PossibleSymbolKinds;
+        private readonly ImmutableArray<SymbolKindOrTypeKind> _possibleSymbolKinds;
+
         public readonly DeclarationModifiers Modifiers;
         public readonly Accessibility? DeclaredAccessibility;
 
         public readonly ITypeSymbol? Type;
         public readonly IAliasSymbol? Alias;
         public readonly ISymbol? Symbol;
+
+        public ImmutableArray<SymbolKindOrTypeKind> PossibleSymbolKinds => _possibleSymbolKinds.NullToEmpty();
 
         public NameDeclarationInfo(
             ImmutableArray<SymbolKindOrTypeKind> possibleSymbolKinds,
@@ -39,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
             IAliasSymbol? alias = null,
             ISymbol? symbol = null)
         {
-            PossibleSymbolKinds = possibleSymbolKinds;
+            _possibleSymbolKinds = possibleSymbolKinds;
             DeclaredAccessibility = accessibility;
             Modifiers = declarationModifiers;
             Type = type;
@@ -47,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
             Symbol = symbol;
         }
 
-        internal static async Task<NameDeclarationInfo> GetDeclarationInfoAsync(Document document, int position, CancellationToken cancellationToken)
+        public static async Task<NameDeclarationInfo> GetDeclarationInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken).GetPreviousTokenIfTouchingWord(position);
@@ -131,7 +134,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
                     var type = typeInferenceService.InferType(semanticModel, argument.SpanStart, objectAsDefault: false, cancellationToken: cancellationToken);
                     if (type != null)
                     {
-                        var parameter = CSharpSemanticFacts.Instance.FindParameterForArgument(semanticModel, argument, cancellationToken);
+                        var parameter = CSharpSemanticFacts.Instance.FindParameterForArgument(
+                            semanticModel, argument, allowUncertainCandidates: true, allowParams: false, cancellationToken);
 
                         result = new NameDeclarationInfo(
                             ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Local)),
