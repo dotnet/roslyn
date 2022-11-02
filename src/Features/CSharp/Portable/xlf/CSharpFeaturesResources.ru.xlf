@@ -202,11 +202,6 @@
         <target state="translated">Глобальные директивы using</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">Встроить временную переменную</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Conflict_s_detected">
         <source>Conflict(s) detected.</source>
         <target state="translated">Обнаружены конфликты.</target>

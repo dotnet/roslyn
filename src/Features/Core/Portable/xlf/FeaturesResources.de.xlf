@@ -975,6 +975,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">"{0}" inline einbinden und beibehalten</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_temporary_variable">
+        <source>Inline temporary variable</source>
+        <target state="new">Inline temporary variable</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
         <source>Insufficient hexadecimal digits</source>
         <target state="translated">Nicht genügend Hexadezimalziffern.</target>
@@ -4940,6 +4945,11 @@ The offset is always displayed with a leading sign. A plus sign (+) indicates ho
 Bei DateTimeOffset-Werten stellt dieser Formatbezeichner die Abweichung des DateTimeOffset-Wertes von UTC in Stunden dar.
 
 Die Abweichung wird immer mit einem Vorzeichen angezeigt. Ein Pluszeichen (+) steht für Stunden vor UTC, ein Minuszeichen (-) für Stunden nach UTC. Eine einstellige Abweichung wird mit einer führenden Null formatiert.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="while_loop">
+        <source>while loop</source>
+        <target state="new">while loop</target>
         <note />
       </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">

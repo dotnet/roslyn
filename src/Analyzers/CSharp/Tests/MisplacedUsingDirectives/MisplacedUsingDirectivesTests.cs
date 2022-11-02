@@ -13,14 +13,15 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirectives
 {
-    public class MisplacedUsingDirectivesInCompilationUnitCodeFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        public MisplacedUsingDirectivesInCompilationUnitCodeFixProviderTests(ITestOutputHelper logger)
+        public MisplacedUsingDirectivesTests(ITestOutputHelper logger)
           : base(logger)
         {
         }
@@ -29,16 +30,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirective
             => (new MisplacedUsingDirectivesDiagnosticAnalyzer(), new MisplacedUsingDirectivesCodeFixProvider());
 
         internal static readonly CodeStyleOption2<AddImportPlacement> OutsidePreferPreservationOption =
-           new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.OutsideNamespace, NotificationOption2.None);
+           new(AddImportPlacement.OutsideNamespace, NotificationOption2.None);
 
         internal static readonly CodeStyleOption2<AddImportPlacement> InsidePreferPreservationOption =
-            new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.None);
+            new(AddImportPlacement.InsideNamespace, NotificationOption2.None);
 
         internal static readonly CodeStyleOption2<AddImportPlacement> InsideNamespaceOption =
-            new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.Error);
+            new(AddImportPlacement.InsideNamespace, NotificationOption2.Error);
 
         internal static readonly CodeStyleOption2<AddImportPlacement> OutsideNamespaceOption =
-            new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.OutsideNamespace, NotificationOption2.Error);
+            new(AddImportPlacement.OutsideNamespace, NotificationOption2.Error);
 
         protected const string ClassDefinition = @"public class TestClass
 {
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirective
         protected const string DelegateDefinition = @"public delegate void TestDelegate();";
 
         private TestParameters GetTestParameters(CodeStyleOption2<AddImportPlacement> preferredPlacementOption)
-            => new TestParameters(options: new OptionsCollection(GetLanguage()) { { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredPlacementOption } });
+            => new(options: new OptionsCollection(GetLanguage()) { { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredPlacementOption } });
 
         private protected Task TestDiagnosticMissingAsync(string initialMarkup, CodeStyleOption2<AddImportPlacement> preferredPlacementOption)
             => TestDiagnosticMissingAsync(initialMarkup, GetTestParameters(preferredPlacementOption));
@@ -650,6 +651,26 @@ namespace B
             return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
         }
 
+        [Fact, WorkItem(61773, "https://github.com/dotnet/roslyn/issues/61773")]
+        public Task WhenOutsidePreferred_MoveGlobalUsing1()
+        {
+            var testCode = @"
+namespace N1
+{
+    [|global using System;|]
+}
+";
+            var fixedTestCode =
+@"{|Warning:global using System;|}
+
+namespace N1
+{
+}
+";
+
+            return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
+        }
+
         #endregion
 
         #region Test InsideNamespace
@@ -1020,6 +1041,44 @@ namespace TestNamespace
 ";
 
             return TestInRegularAndScriptAsync(testCode, fixedTestCode, InsideNamespaceOption, placeSystemNamespaceFirst: true);
+        }
+
+        [Fact, WorkItem(61773, "https://github.com/dotnet/roslyn/issues/61773")]
+        public Task WhenInsidePreferred_DoNotMoveGlobalUsings1()
+        {
+            var testCode = @"
+[|global using System;|]
+
+namespace TestNamespace
+{
+}
+";
+
+            return TestMissingAsync(testCode, InsideNamespaceOption);
+        }
+
+        [Fact, WorkItem(61773, "https://github.com/dotnet/roslyn/issues/61773")]
+        public Task WhenInsidePreferred_DoNotMoveGlobalUsings2()
+        {
+            var testCode = @"
+[|global using System;
+using System.Threading;|]
+
+namespace TestNamespace
+{
+}
+";
+
+            var fixedCode = @"
+global using System;
+
+namespace TestNamespace
+{
+    {|Warning:using System.Threading;|}
+}
+";
+
+            return TestInRegularAndScriptAsync(testCode, fixedCode, InsideNamespaceOption, placeSystemNamespaceFirst: true);
         }
 
         #endregion

@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
                     ' that an edge can only be written after all the vertices it writes to already exist.
                     Dim outVertex = GetElementById(edge.OutVertex)
 
-                    For Each inVertexId In edge.InVertices
+                    For Each inVertexId In edge.GetInVerticies()
                         ' We are ignoring the return, but this call implicitly validates the element
                         ' exists and is of the correct type.
                         GetElementById(inVertexId)
@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
 
                 Dim edges As List(Of Edge) = Nothing
                 If _edgesByOutVertex.TryGetValue(vertex, edges) Then
-                    Dim inVerticesId = edges.Where(predicate).SelectMany(Function(e) e.InVertices)
+                    Dim inVerticesId = edges.Where(predicate).SelectMany(Function(e) e.GetInVerticies())
 
                     For Each inVertexId In inVerticesId
                         ' This is an unsafe "cast" if you will converting the ID to the expected type;

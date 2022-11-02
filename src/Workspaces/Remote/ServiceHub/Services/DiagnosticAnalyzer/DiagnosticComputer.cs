@@ -81,8 +81,6 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 compilationWithAnalyzers = compilationWithAnalyzers.Compilation.WithAnalyzers(analyzers, compilationWithAnalyzers.AnalysisOptions);
             }
 
-            var cacheService = _project.Solution.Services.GetRequiredService<IProjectCacheService>();
-            using var cache = cacheService.EnableCaching(_project.Id);
             var skippedAnalyzersInfo = _project.GetSkippedAnalyzersInfo(_analyzerInfoCache);
 
             try

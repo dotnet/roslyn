@@ -12538,11 +12538,6 @@ class Program
             CompileAndVerify(source, expectedOutput: "0.3333333333333333333333333333");
         }
 
-
-        // PROTOTYPE: Do we want to allow [Caller{MemberName, LineNumber, FilePath, ArgumentExpression}] attributes for lambdas since
-        // we now have default parameters? The current behavior is to ignore these attributes so that the provided
-        // default would always be used in these cases.
-
         [Fact]
         public void CallerAttributesOnLambdaWithDefaultParam()
         {
@@ -12559,9 +12554,36 @@ class Program
     }
 }
 """;
-            CompileAndVerify(source, expectedOutput: "file::member:0");
+            var verifier = CompileAndVerify(source, expectedOutput: "file::member:0");
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", $$"""
+                .class private auto ansi sealed '<>f__AnonymousDelegate0'
+                	extends [{{s_libPrefix}}]System.MulticastDelegate
+                {
+                	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Methods
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor (
+                			object 'object',
+                			native int 'method'
+                		) runtime managed 
+                	{
+                	} // end of method '<>f__AnonymousDelegate0'::.ctor
+                	.method public hidebysig newslot virtual 
+                		instance void Invoke (
+                			[opt] string arg1,
+                			[opt] string arg2,
+                			[opt] int32 arg3
+                		) runtime managed 
+                	{
+                		.param [1] = "member"
+                		.param [2] = "file"
+                		.param [3] = int32(0)
+                	} // end of method '<>f__AnonymousDelegate0'::Invoke
+                } // end of class <>f__AnonymousDelegate0
+                """);
         }
-
 
         [Fact]
         public void CallerArgumentExpressionAttributeOnLambdaWithDefaultParam()
@@ -12579,9 +12601,57 @@ class Program
     }
 }
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net60,
-                                     verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Skipped,
-                                     expectedOutput: ExecutionConditionUtil.IsCoreClr ? "callerArgExpression" : null);
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net60,
+                verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Skipped,
+                expectedOutput: ExecutionConditionUtil.IsCoreClr ? "callerArgExpression" : null);
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", """
+                .class private auto ansi sealed '<>f__AnonymousDelegate0'
+                	extends [System.Runtime]System.MulticastDelegate
+                {
+                	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Methods
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor (
+                			object 'object',
+                			native int 'method'
+                		) runtime managed 
+                	{
+                	} // end of method '<>f__AnonymousDelegate0'::.ctor
+                	.method public hidebysig newslot virtual 
+                		instance void Invoke (
+                			int32 arg1,
+                			[opt] string arg2
+                		) runtime managed 
+                	{
+                		.param [2] = "callerArgExpression"
+                	} // end of method '<>f__AnonymousDelegate0'::Invoke
+                } // end of class <>f__AnonymousDelegate0
+                """);
+        }
+
+        [Fact]
+        public void CallerInfoAttributes_Lambda_NoDefaultValue()
+        {
+            var source = """
+                using System.Runtime.CompilerServices;
+                var lam1 = ([CallerMemberName] string member, [CallerFilePath] string filePath, [CallerLineNumber] int lineNumber) => { };
+                var lam2 = (int arg, [CallerArgumentExpression("arg")] string argExpression) => { };
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net60).VerifyDiagnostics(
+                // (2,14): error CS4022: The CallerMemberNameAttribute may only be applied to parameters with default values
+                // var lam1 = ([CallerMemberName] string member, [CallerFilePath] string filePath, [CallerLineNumber] int lineNumber) => { };
+                Diagnostic(ErrorCode.ERR_BadCallerMemberNameParamWithoutDefaultValue, "CallerMemberName").WithLocation(2, 14),
+                // (2,48): error CS4021: The CallerFilePathAttribute may only be applied to parameters with default values
+                // var lam1 = ([CallerMemberName] string member, [CallerFilePath] string filePath, [CallerLineNumber] int lineNumber) => { };
+                Diagnostic(ErrorCode.ERR_BadCallerFilePathParamWithoutDefaultValue, "CallerFilePath").WithLocation(2, 48),
+                // (2,82): error CS4020: The CallerLineNumberAttribute may only be applied to parameters with default values
+                // var lam1 = ([CallerMemberName] string member, [CallerFilePath] string filePath, [CallerLineNumber] int lineNumber) => { };
+                Diagnostic(ErrorCode.ERR_BadCallerLineNumberParamWithoutDefaultValue, "CallerLineNumber").WithLocation(2, 82),
+                // (3,23): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+                // var lam2 = (int arg, [CallerArgumentExpression("arg")] string argExpression) => { };
+                Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(3, 23));
         }
 
         [Fact]
@@ -13443,15 +13513,78 @@ class Program
     static void Report(object obj) => Console.WriteLine(obj.GetType());
     public static void Main()
     {
-        var lam = ([DefaultParameterValue(3)] int x) => x;
+        var lam = ([Optional, DefaultParameterValue(3)] int x) => x;
+        int Method([Optional, DefaultParameterValue(3)] int x) => x;
+        var inferred = Method;
         Console.WriteLine(lam());
+        Console.WriteLine(Method());
+        Console.WriteLine(inferred());
         Report(lam);
+        Report(inferred);
     }
 }
 """;
-            CompileAndVerify(source, expectedOutput:
+            var verifier = CompileAndVerify(source, expectedOutput:
 @"3
+3
+3
+<>f__AnonymousDelegate0
 <>f__AnonymousDelegate0").VerifyDiagnostics();
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", $$"""
+                .class private auto ansi sealed '<>f__AnonymousDelegate0'
+                	extends [{{s_libPrefix}}]System.MulticastDelegate
+                {
+                	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Methods
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor (
+                			object 'object',
+                			native int 'method'
+                		) runtime managed 
+                	{
+                	} // end of method '<>f__AnonymousDelegate0'::.ctor
+                	.method public hidebysig newslot virtual 
+                		instance int32 Invoke (
+                			[opt] int32 arg
+                		) runtime managed 
+                	{
+                		.param [1] = int32(3)
+                	} // end of method '<>f__AnonymousDelegate0'::Invoke
+                } // end of class <>f__AnonymousDelegate0
+                """);
+        }
+
+        [Fact]
+        public void LambdaWithParameterDefaultValueAttribute_NoOptional()
+        {
+            var source = """
+                using System;
+                using System.Runtime.InteropServices;
+
+                var lam = ([DefaultParameterValue(3)] int x) => x;
+                int Method([DefaultParameterValue(3)] int x) => x;
+                var inferred = Method;
+                AcceptFunc(lam);
+                AcceptFunc(Method);
+                AcceptFunc(inferred);
+                lam();
+                Method();
+                inferred();
+
+                void AcceptFunc(Func<int, int> f) { }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (10,1): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of 'Func<int, int>'
+                // lam();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam").WithArguments("arg", "System.Func<int, int>").WithLocation(10, 1),
+                // (11,1): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'Method(int)'
+                // Method();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Method").WithArguments("x", "Method(int)").WithLocation(11, 1),
+                // (12,1): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of 'Func<int, int>'
+                // inferred();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "inferred").WithArguments("arg", "System.Func<int, int>").WithLocation(12, 1));
         }
 
         [Fact]

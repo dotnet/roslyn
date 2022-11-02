@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (indexers.Any())
                     {
                         return indexers.SelectMany(i =>
-                            InferTypeInArgument(index, SpecializedCollections.SingletonEnumerable(i.Parameters), argumentOpt));
+                            InferTypeInArgument(index, ImmutableArray.Create(i.Parameters), argumentOpt));
                     }
                 }
 
@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methods = filteredMethods.Any() ? filteredMethods : instantiatedMethods;
                 }
 
-                return InferTypeInArgument(index, methods.Select(m => m.Parameters), argumentOpt);
+                return InferTypeInArgument(index, methods.SelectAsArray(m => m.Parameters), argumentOpt);
             }
 
             private IMethodSymbol Instantiate(IMethodSymbol method, IList<ITypeSymbol> invocationTypes)
@@ -731,12 +731,37 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private static IEnumerable<TypeInferenceInfo> InferTypeInArgument(
                 int index,
-                IEnumerable<ImmutableArray<IParameterSymbol>> parameterizedSymbols,
+                ImmutableArray<ImmutableArray<IParameterSymbol>> parameterizedSymbols,
                 ArgumentSyntax argumentOpt)
             {
+                // Prefer parameter lists that match the original number of arguments passed.
+                using var _1 = ArrayBuilder<ImmutableArray<IParameterSymbol>>.GetInstance(out var parameterListsWithMatchingCount);
+                using var _2 = ArrayBuilder<ImmutableArray<IParameterSymbol>>.GetInstance(out var parameterListsWithoutMatchingCount);
+
+                var argumentCount = argumentOpt?.Parent is BaseArgumentListSyntax baseArgumentList ? baseArgumentList.Arguments.Count : -1;
+                foreach (var parameterList in parameterizedSymbols)
+                {
+                    if (argumentCount == -1)
+                    {
+                        // don't have a known argument count.  Just add this all to one of the lists.
+                        parameterListsWithMatchingCount.Add(parameterList);
+                    }
+                    else
+                    {
+                        var minParameterCount = parameterList.Count(p => !p.IsParams && !p.IsOptional);
+                        var maxParameterCount = parameterList.Any(p => p.IsParams) ? int.MaxValue : parameterList.Length;
+                        var list = argumentCount >= minParameterCount && argumentCount <= maxParameterCount
+                            ? parameterListsWithMatchingCount
+                            : parameterListsWithoutMatchingCount;
+
+                        list.Add(parameterList);
+                    }
+                }
+
                 var name = argumentOpt != null && argumentOpt.NameColon != null ? argumentOpt.NameColon.Name.Identifier.ValueText : null;
                 var refKind = argumentOpt.GetRefKind();
-                return InferTypeInArgument(index, parameterizedSymbols, name, refKind);
+                return InferTypeInArgument(index, parameterListsWithMatchingCount.ToImmutable(), name, refKind).Concat(
+                    InferTypeInArgument(index, parameterListsWithoutMatchingCount.ToImmutable(), name, refKind));
             }
 
             private static IEnumerable<TypeInferenceInfo> InferTypeInArgument(
