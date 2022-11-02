@@ -358,16 +358,35 @@ class C
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (11,42): error CS4016: Since this is an async method, the return expression must be of type 'int' rather than 'Task<int>'
                 //         Func<Task<int>> f1 = async () => await Task.Factory.StartNew(() => new Task<int>(null));
-                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "await Task.Factory.StartNew(() => new Task<int>(null))").WithArguments("int"),
+                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "await Task.Factory.StartNew(() => new Task<int>(null))").WithArguments("int", "System.Threading.Tasks.Task<int>").WithLocation(11, 42),
                 // (12,51): error CS4016: Since this is an async method, the return expression must be of type 'int' rather than 'Task<int>'
                 //         Func<Task<int>> f2 = async () => { return await Task.Factory.StartNew(() => new Task<int>(null)); };
-                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "await Task.Factory.StartNew(() => new Task<int>(null))").WithArguments("int"),
+                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "await Task.Factory.StartNew(() => new Task<int>(null))").WithArguments("int", "System.Threading.Tasks.Task<int>").WithLocation(12, 51),
                 // (14,33): error CS4016: Since this is an async method, the return expression must be of type 'int' rather than 'Task<int>'
                 //         InferTask_T(async () => await Task.Factory.StartNew(() => new Task<int>(() => 1)));
-                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "await Task.Factory.StartNew(() => new Task<int>(() => 1))").WithArguments("int"),
+                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "await Task.Factory.StartNew(() => new Task<int>(() => 1))").WithArguments("int", "System.Threading.Tasks.Task<int>").WithLocation(14, 33),
                 // (15,42): error CS4016: Since this is an async method, the return expression must be of type 'int' rather than 'Task<int>'
                 //         InferTask_T(async () => { return await Task.Factory.StartNew(() => new Task<int>(() => 1)); });
-                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "await Task.Factory.StartNew(() => new Task<int>(() => 1))").WithArguments("int"));
+                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "await Task.Factory.StartNew(() => new Task<int>(() => 1))").WithArguments("int", "System.Threading.Tasks.Task<int>").WithLocation(15, 42));
+        }
+
+        [Fact]
+        public void BadAsyncReturnExpression_ValueTask()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+static async ValueTask<int> M() {
+    await Task.Yield();
+    return new ValueTask<int>();
+}
+await M();
+";
+            CreateCompilationWithTasksExtensions(source).VerifyDiagnostics(
+                // (6,12): error CS4016: Since this is an async method, the return expression must be of type 'int' rather than 'ValueTask<int>'
+                //     return new ValueTask<int>();
+                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "new ValueTask<int>()").WithArguments("int", "System.Threading.Tasks.ValueTask<int>").WithLocation(6, 12)
+            );
         }
 
         [Fact]
