@@ -405,14 +405,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override void VisitPrimaryConstructorBaseType(PrimaryConstructorBaseTypeSyntax node)
-        {
-            SyntaxNode previousNodeToBind = _nodeToBind;
-            _nodeToBind = node;
-            Visit(node.ArgumentList);
-            _nodeToBind = previousNodeToBind;
-        }
-
         private void CollectVariablesFromDeconstruction(
             ExpressionSyntax possibleTupleDeclaration,
             AssignmentExpressionSyntax deconstruction)
