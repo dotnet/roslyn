@@ -672,7 +672,7 @@ public class Test
 }");
         }
 
-        [Fact, WorkItem(24287, "https://github.com/dotnet/roslyn/issues/24287")]
+        [Fact, WorkItem(42462, "https://github.com/dotnet/roslyn/issues/42462")]
         public async Task TestWithLocalInsideTryBlock()
         {
             await TestInRegularAndScript1Async(
