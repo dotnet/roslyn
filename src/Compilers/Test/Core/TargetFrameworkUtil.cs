@@ -171,9 +171,11 @@ namespace Roslyn.Test.Utilities
             TargetFramework.Empty => ImmutableArray<MetadataReference>.Empty,
             TargetFramework.NetStandard20 => NetStandard20References,
             TargetFramework.Net50 => ImmutableArray.CreateRange<MetadataReference>(LoadDynamicReferences("Net50")),
-            TargetFramework.Net60 => ImmutableArray.CreateRange<MetadataReference>(Net60.All),
+            TargetFramework.Net60 => ImmutableArray.CreateRange<MetadataReference>(LoadDynamicReferences("Net60")),
             TargetFramework.NetCoreApp or TargetFramework.Net70 => ImmutableArray.CreateRange<MetadataReference>(Net70.All),
             TargetFramework.NetFramework => NetFramework.StandardReferences,
+            TargetFramework.Standard => StandardReferences,
+            TargetFramework.StandardLatest => StandardLatestReferences,
 
             // Legacy we should be phasing out
             TargetFramework.Mscorlib40 => Mscorlib40References,
@@ -189,13 +191,11 @@ namespace Roslyn.Test.Utilities
             TargetFramework.Mscorlib461 => Mscorlib46References,
             TargetFramework.Mscorlib461Extended => Mscorlib461ExtendedReferences,
             TargetFramework.WinRT => WinRTReferences,
-            TargetFramework.Standard => StandardReferences,
             TargetFramework.StandardAndCSharp => StandardAndCSharpReferences,
             TargetFramework.StandardAndVBRuntime => StandardAndVBRuntimeReferences,
             TargetFramework.DefaultVb => DefaultVbReferences,
             TargetFramework.Minimal => MinimalReferences,
             TargetFramework.MinimalAsync => MinimalAsyncReferences,
-            TargetFramework.StandardLatest => StandardLatestReferences,
             _ => throw new InvalidOperationException($"Unexpected target framework {targetFramework}"),
         };
 
