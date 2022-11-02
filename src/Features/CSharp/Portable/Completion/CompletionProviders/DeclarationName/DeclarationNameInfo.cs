@@ -134,7 +134,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
                     var type = typeInferenceService.InferType(semanticModel, argument.SpanStart, objectAsDefault: false, cancellationToken: cancellationToken);
                     if (type != null)
                     {
-                        var parameter = CSharpSemanticFacts.Instance.FindParameterForArgument(semanticModel, argument, cancellationToken);
+                        var parameter = CSharpSemanticFacts.Instance.FindParameterForArgument(
+                            semanticModel, argument, allowUncertainCandidates: true, allowParams: false, cancellationToken);
 
                         result = new NameDeclarationInfo(
                             ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Local)),
