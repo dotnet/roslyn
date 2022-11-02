@@ -78,8 +78,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
 
                 if (monikerVertex != null)
                 {
-                    _lsifJsonWriter.Write(monikerVertex);
-                    _lsifJsonWriter.Write(Edge.Create("moniker", trackedResultSet.Id, monikerVertex.GetId(), _idFactory));
+                    // Attach the moniker vertex for this result set
+                    _ = GetResultIdForSymbol(symbol, "moniker", () => monikerVertex);
                 }
             }
 
@@ -156,15 +156,15 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
                 Id = id;
             }
 
-            public Id<T> GetResultId<T>(string edgeKind, Func<T> vertexCreator, ILsifJsonWriter lsifJsonWriter, IdFactory idFactory) where T : Vertex
+            public Id<T> GetResultId<T>(string edgeLabel, Func<T> vertexCreator, ILsifJsonWriter lsifJsonWriter, IdFactory idFactory) where T : Vertex
             {
                 lock (_edgeKindToVertexId)
                 {
-                    if (_edgeKindToVertexId.TryGetValue(edgeKind, out var existingId))
+                    if (_edgeKindToVertexId.TryGetValue(edgeLabel, out var existingId))
                     {
                         if (!existingId.HasValue)
                         {
-                            throw new Exception($"This ResultSet already has an edge of {edgeKind} as {nameof(ResultSetNeedsInformationalEdgeAdded)} was called with this edge kind.");
+                            throw new Exception($"This ResultSet already has an edge of {edgeLabel} as {nameof(ResultSetNeedsInformationalEdgeAdded)} was called with this edge label.");
                         }
 
                         // TODO: this is a violation of the type system here, really: we're assuming that all calls to this function with the same edge kind
@@ -173,10 +173,10 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
                     }
 
                     var vertex = vertexCreator();
-                    _edgeKindToVertexId.Add(edgeKind, vertex.GetId().As<T, Vertex>());
+                    _edgeKindToVertexId.Add(edgeLabel, vertex.GetId().As<T, Vertex>());
 
                     lsifJsonWriter.Write(vertex);
-                    lsifJsonWriter.Write(Edge.Create(edgeKind, Id, vertex.GetId(), idFactory));
+                    lsifJsonWriter.Write(Edge.Create(edgeLabel, Id, vertex.GetId(), idFactory));
 
                     return vertex.GetId();
                 }

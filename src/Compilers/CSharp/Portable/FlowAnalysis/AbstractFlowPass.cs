@@ -1320,7 +1320,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isCall)
             {
                 Join(ref State, ref localFunctionState.StateFromBottom);
-                Meet(ref State, ref localFunctionState.StateFromTop);
+
+                if (!symbol.IsAsync)
+                {
+                    Meet(ref State, ref localFunctionState.StateFromTop);
+                }
             }
             localFunctionState.Visited = true;
         }

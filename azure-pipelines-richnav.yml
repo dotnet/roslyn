@@ -52,7 +52,7 @@ jobs:
       displayName: Build
       inputs:
         filePath: eng/build.ps1
-        arguments: -ci -restore -build -binaryLog -configuration Debug -prepareMachine
+        arguments: -ci -restore -build -configuration Debug -prepareMachine
 
     - task: RichCodeNavIndexer@0
       displayName: RichCodeNav Upload

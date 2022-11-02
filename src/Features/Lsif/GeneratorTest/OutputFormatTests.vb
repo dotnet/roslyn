@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
 {""kind"":""begin"",""scope"":""document"",""data"":4,""id"":5,""type"":""vertex"",""label"":""$event""}
 {""outV"":4,""inVs"":[],""id"":6,""type"":""edge"",""label"":""contains""}
 {""result"":[],""id"":7,""type"":""vertex"",""label"":""foldingRangeResult""}
-{""outV"":4,""inVs"":[7],""id"":8,""type"":""edge"",""label"":""textDocument/foldingRange""}
+{""outV"":4,""inV"":7,""id"":8,""type"":""edge"",""label"":""textDocument/foldingRange""}
 {""kind"":""end"",""scope"":""document"",""data"":4,""id"":9,""type"":""vertex"",""label"":""$event""}
 {""outV"":2,""inVs"":[4],""id"":10,""type"":""edge"",""label"":""contains""}
 {""kind"":""end"",""scope"":""project"",""data"":2,""id"":11,""type"":""vertex"",""label"":""$event""}
@@ -114,9 +114,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
   },
   {
     ""outV"": 4,
-    ""inVs"": [
-      7
-    ],
+    ""inV"": 7,
     ""id"": 8,
     ""type"": ""edge"",
     ""label"": ""textDocument/foldingRange""

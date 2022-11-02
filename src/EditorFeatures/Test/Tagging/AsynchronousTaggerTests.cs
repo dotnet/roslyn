@@ -183,6 +183,9 @@ class Program
 
                 return Task.CompletedTask;
             }
+
+            protected override bool TagEquals(TestTag tag1, TestTag tag2)
+                => tag1 == tag2;
         }
 
         private sealed class TestTaggerEventSource : AbstractTaggerEventSource

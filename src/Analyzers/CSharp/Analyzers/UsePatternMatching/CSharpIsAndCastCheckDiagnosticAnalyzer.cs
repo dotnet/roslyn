@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
@@ -210,10 +211,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             SyntaxNode scope, VariableDeclaratorSyntax variable)
         {
             var variableName = variable.Identifier.ValueText;
-            return scope.DescendantNodes()
-                        .OfType<VariableDeclaratorSyntax>()
-                        .Where(d => d != variable)
-                        .Any(d => d.Identifier.ValueText.Equals(variableName));
+
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
+            stack.Push(scope);
+
+            while (stack.Count > 0)
+            {
+                var current = stack.Pop();
+
+                if (current == variable)
+                    continue;
+
+                if (current is VariableDeclaratorSyntax declarator &&
+                    declarator.Identifier.ValueText.Equals(variableName))
+                {
+                    return true;
+                }
+                else if (current is SingleVariableDesignationSyntax designation &&
+                    designation.Identifier.ValueText.Equals(variableName))
+                {
+                    return true;
+                }
+
+                foreach (var child in current.ChildNodesAndTokens())
+                {
+                    if (child.IsNode)
+                        stack.Push(child.AsNode()!);
+                }
+            }
+
+            return false;
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()

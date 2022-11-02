@@ -495,6 +495,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Zmiana widoczności elementu {0} wymaga ponownego uruchomienia aplikacji.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_snippet_for_0">
+        <source>Code snippet for '{0}'</source>
+        <target state="new">Code snippet for '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Comments_not_allowed">
         <source>Comments not allowed</source>
         <target state="translated">Komentarze są niedozwolone</target>
@@ -973,6 +978,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="Inline_and_keep_0">
         <source>Inline and keep '{0}'</source>
         <target state="translated">Wstaw środwierszowo i zachowaj metodę „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_temporary_variable">
+        <source>Inline temporary variable</source>
+        <target state="new">Inline temporary variable</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -4940,6 +4950,11 @@ The offset is always displayed with a leading sign. A plus sign (+) indicates ho
 W przypadku wartości DateTimeOffset ten specyfikator formatu reprezentuje przesunięcie wartości DateTimeOffset względem czasu UTC w godzinach.
 
 Przesunięcie jest zawsze wyświetlane ze znakiem wiodącym. Znak plus (+) wskazuje godzinę po czasie UTC, a znak minus (-) wskazuje godzinę przed czasem UTC. Jednocyfrowa wartość przesunięcia jest formatowana przy użyciu wiodącego zera.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="while_loop">
+        <source>while loop</source>
+        <target state="new">while loop</target>
         <note />
       </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">
