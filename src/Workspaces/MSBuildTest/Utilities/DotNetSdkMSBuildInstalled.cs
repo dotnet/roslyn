@@ -7,6 +7,8 @@ using Microsoft.Build.Locator;
 using Roslyn.Test.Utilities;
 using System.IO;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using Microsoft.VisualStudio.RpcContracts.RemoteUI;
 #if NETCOREAPP
 using System.Text.Json.Nodes;
 #endif
@@ -22,18 +24,27 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
         static DotNetSdkMSBuildInstalled()
         {
-            if (!TryGetSDKVersion(out var version, out var rootPath))
+            if (TryGetSDKVersion(out var version, out var rootPath))
             {
-                return;
+                VersionString = version;
+
+                if (TryGetSdkPath(rootPath, version, out var sdkPath, out var msbuildPath))
+                {
+                    MSBuildLocator.RegisterMSBuildPath(msbuildPath);
+                    SdkPath = sdkPath;
+                }
+            }
+            else
+            {
+                // We don't have a global.json at all, but if we can find exactly one SDK version, we'll use that. This supports running in Helix.
+                var instance = MSBuildLocator.QueryVisualStudioInstances(new VisualStudioInstanceQueryOptions { DiscoveryTypes = DiscoveryType.DotNetSdk }).SingleOrDefault();
+
+                if (instance != null)
+                {
+                    MSBuildLocator.RegisterInstance(instance);
+                }
             }
 
-            if (TryGetSdkPath(rootPath, version, out var sdkPath, out var msbuildPath))
-            {
-                MSBuildLocator.RegisterMSBuildPath(msbuildPath);
-                SdkPath = sdkPath;
-            }
-
-            VersionString = version;
             return;
 
             static bool TryGetSDKVersion(
