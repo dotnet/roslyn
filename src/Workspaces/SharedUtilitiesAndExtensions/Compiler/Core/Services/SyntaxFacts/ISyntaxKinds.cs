@@ -195,6 +195,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         #region clauses
 
+        int ElseClause { get; }
         int EqualsValueClause { get; }
 
         #endregion
