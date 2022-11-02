@@ -10,10 +10,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             => SyntaxFacts = syntaxFacts;
 
         protected ISyntaxFacts SyntaxFacts { get; }
-        protected abstract SyntaxNode ApplyFix(SyntaxNode currentRoot, TExpressionSyntax targetNode, ITypeSymbol conversionType);
+        protected abstract SyntaxNode ApplyFix(SemanticModel semanticModel, SyntaxNode currentRoot, TExpressionSyntax targetNode, ITypeSymbol conversionType, CancellationToken cancellationToken);
         protected abstract CommonConversion ClassifyConversion(SemanticModel semanticModel, TExpressionSyntax expression, ITypeSymbol type);
 
         /// <summary>
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                 return;
             }
 
-            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
+            using var actions = TemporaryArray<CodeAction>.Empty;
 
             // MaximumConversionOptions: we show at most [MaximumConversionOptions] options for this code fixer
             for (var i = 0; i < Math.Min(MaximumConversionOptions, potentialConversionTypes.Length); i++)
@@ -92,11 +92,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                 var conversionType = potentialConversionTypes[i].type;
                 var title = GetSubItemName(semanticModel, targetNode.SpanStart, conversionType);
 
-                actions.Add(CodeAction.Create(title, _ => Task.FromResult(document.WithSyntaxRoot(ApplyFix(root, targetNode, conversionType))), title));
+                actions.Add(CodeAction.Create(
+                    title,
+                    cancellationToken => Task.FromResult(document.WithSyntaxRoot(
+                        ApplyFix(semanticModel, root, targetNode, conversionType, cancellationToken))),
+                    title));
             }
 
             context.RegisterCodeFix(
-                CodeAction.Create(CodeFixesResources.Add_explicit_cast, actions.ToImmutable(), isInlinable: false),
+                CodeAction.Create(CodeFixesResources.Add_explicit_cast, actions.ToImmutableAndClear(), isInlinable: false),
                 context.Diagnostics);
         }
 
@@ -159,17 +163,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             await editor.ApplyExpressionLevelSemanticEditsAsync(
                 document, spanNodes,
                 (semanticModel, spanNode) => true,
-                (semanticModel, currentRoot, spanNode) =>
+                (semanticModel, root, spanNode) =>
                 {
                     // All diagnostics have the same error code
-                    if (TryGetTargetTypeInfo(document, semanticModel, currentRoot, diagnostics[0].Id, spanNode,
-                            cancellationToken, out var potentialConversionTypes)
-                        && potentialConversionTypes.Length == 1)
+                    if (TryGetTargetTypeInfo(document, semanticModel, root, diagnostics[0].Id, spanNode, cancellationToken, out var potentialConversionTypes) &&
+                        potentialConversionTypes.Length == 1)
                     {
-                        return ApplyFix(currentRoot, potentialConversionTypes[0].node, potentialConversionTypes[0].type);
+                        return ApplyFix(semanticModel, root, potentialConversionTypes[0].node, potentialConversionTypes[0].type, cancellationToken);
                     }
 
-                    return currentRoot;
+                    return root;
                 },
                 cancellationToken).ConfigureAwait(false);
         }

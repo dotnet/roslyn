@@ -38,8 +38,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30512, BC42016, BC30518, BC30519)
 
-        Protected Overrides Function ApplyFix(currentRoot As SyntaxNode, targetNode As ExpressionSyntax,
-                conversionType As ITypeSymbol) As SyntaxNode
+        Protected Overrides Function ApplyFix(
+                semanticModel As SemanticModel,
+                currentRoot As SyntaxNode,
+                targetNode As ExpressionSyntax,
+                conversionType As ITypeSymbol,
+                cancellationToken As CancellationToken) As SyntaxNode
             ' TODO:
             ' the Simplifier doesn't remove the redundant cast from the expression
             ' Issue link: https : //github.com/dotnet/roslyn/issues/41500

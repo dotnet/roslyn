@@ -48,14 +48,35 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0266, CS1503);
 
-        protected override SyntaxNode ApplyFix(SyntaxNode currentRoot, ExpressionSyntax targetNode, ITypeSymbol conversionType)
+        protected override SyntaxNode ApplyFix(
+            SemanticModel semanticModel,
+            SyntaxNode currentRoot,
+            ExpressionSyntax targetNode,
+            ITypeSymbol conversionType,
+            CancellationToken cancellationToken)
         {
-            // TODO:
-            // the Simplifier doesn't remove the redundant cast from the expression
-            // Issue link: https://github.com/dotnet/roslyn/issues/41500
-            var castExpression = targetNode.Cast(conversionType).WithAdditionalAnnotations(Simplifier.Annotation);
-            var newRoot = currentRoot.ReplaceNode(targetNode, castExpression);
-            return newRoot;
+            // if the node we're about to cast already has a cast, replace that cast if both are reference-identity downcasts.
+            if (targetNode is CastExpressionSyntax castExpression)
+            {
+                var castType = semanticModel.GetTypeInfo(castExpression.Type, cancellationToken).Type;
+                if (castType != null)
+                {
+                    var firstConversion = semanticModel.ClassifyConversion(castExpression.Expression, castType, isExplicitInSource: true);
+                    var secondConversion = semanticModel.Compilation.ClassifyConversion(castType, conversionType);
+
+                    if (firstConversion is { IsExplicit: true, IsReference: true } &&
+                        secondConversion is { IsExplicit: true, IsReference: true })
+                    {
+                        return currentRoot.ReplaceNode(
+                            targetNode,
+                            castExpression.Expression.Cast(conversionType).WithAdditionalAnnotations(Simplifier.Annotation));
+                    }
+                }
+            }
+
+            return currentRoot.ReplaceNode(
+                targetNode,
+                targetNode.Cast(conversionType).WithAdditionalAnnotations(Simplifier.Annotation));
         }
 
         protected override bool TryGetTargetTypeInfo(Document document, SemanticModel semanticModel, SyntaxNode root,
