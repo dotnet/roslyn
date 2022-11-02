@@ -97,7 +97,11 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 // Do not re-use cached CompilationWithAnalyzers instance in presence of an exception, as the underlying analysis state might be corrupt.
                 lock (s_gate)
                 {
-                    s_compilationWithAnalyzersCache.SetTarget(null);
+                    if (s_compilationWithAnalyzersCache.TryGetTarget(out var target) &&
+                        target?.Project == _project)
+                    {
+                        s_compilationWithAnalyzersCache.SetTarget(null);
+                    }
                 }
 
                 throw;
