@@ -3078,7 +3078,7 @@ class C
     }
 }");
         }
-        
+
         [Fact]
         public async Task RemoveExistingCast1()
         {
