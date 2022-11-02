@@ -671,5 +671,52 @@ public class Test
     }
 }");
         }
+
+        [Fact, WorkItem(24287, "https://github.com/dotnet/roslyn/issues/24287")]
+        public async Task TestWithLocalInsideTryBlock()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        object value = null;
+
+        if (value is string)
+        {
+            try
+            {
+                [|var|] stringValue = (string)value;
+            }
+            finally
+            {
+
+            }
+        }
+    }
+}
+",
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        object value = null;
+
+        if (value is string stringValue)
+        {
+            try
+            {
+            }
+            finally
+            {
+
+            }
+        }
+    }
+}
+");
+        }
     }
 }
