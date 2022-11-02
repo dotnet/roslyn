@@ -65,11 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
         protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
             var identifier = ((ConstructorDeclarationSyntax)node).Identifier;
-            arrayBuilder.Add(new SnippetPlaceholder(identifier.ToString(), ImmutableArray.Create(identifier.SpanStart)));
-
-            return arrayBuilder.ToImmutableArray();
+            return ImmutableArray.Create(new SnippetPlaceholder(identifier.ToString(), ImmutableArray.Create(identifier.SpanStart)));
         }
 
         private static string GetIndentation(Document document, SyntaxNode node, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
@@ -100,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             var constructorDeclaration = (ConstructorDeclarationSyntax)snippet;
             var blockStatement = constructorDeclaration.Body;
             blockStatement = blockStatement!.WithCloseBraceToken(blockStatement.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
-            var newConstructorDeclaration = constructorDeclaration.ReplaceNode(constructorDeclaration.Body, blockStatement);
+            var newConstructorDeclaration = constructorDeclaration.ReplaceNode(constructorDeclaration.Body!, blockStatement);
 
             var newRoot = root.ReplaceNode(constructorDeclaration, newConstructorDeclaration);
             return document.WithSyntaxRoot(newRoot);

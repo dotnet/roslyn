@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
         public override string Description => FeaturesResources.constructor;
         public override ImmutableArray<string> AdditionalFilterTexts { get; } = ImmutableArray.Create("constructor");
 
+        protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts) => syntaxFacts.IsConstructorDeclaration;
+
         protected override async Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
@@ -35,11 +37,6 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
                 containingTypeName: syntaxFacts.GetIdentifierOfTypeDeclaration(containingType).ToString(),
                 accessibility: Accessibility.Public);
             return ImmutableArray.Create(new TextChange(TextSpan.FromBounds(position, position), constructorDeclaration.NormalizeWhitespace().ToFullString()));
-        }
-
-        protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
-        {
-            return syntaxFacts.IsConstructorDeclaration;
         }
     }
 }
