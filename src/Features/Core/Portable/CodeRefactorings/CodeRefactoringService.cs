@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, cancellationToken, logLevel: LogLevel.Information))
             {
                 var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
                 using var _ = ArrayBuilder<Task<CodeRefactoring?>>.GetInstance(out var tasks);
@@ -139,6 +140,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                             RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
 
                             using (addOperationScope(providerName))
+                            using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m, provider)), cancellationToken))
                             using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
                             {
                                 return GetRefactoringFromProviderAsync(document, state, provider, providerMetadata,
@@ -216,6 +218,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
 
             return null;
+        }
+
+        private static void CreateLogProperties(Dictionary<string, object?> map, object refactoringProvider)
+        {
+            var type = refactoringProvider.GetType();
+            var telemetryId = type.GetTelemetryId();
+            map["TelemetryId"] = telemetryId.ToString();
         }
 
         private class ProjectCodeRefactoringProvider

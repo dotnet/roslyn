@@ -141,39 +141,52 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            IEnumerable<CodeActionOperation> operations = null;
+            // Todo: do we want to measure the amount of time it takes get the options from the user?
+            object options = null;
             if (CodeAction is CodeActionWithOptions actionWithOptions)
             {
-                var options = actionWithOptions.GetOptions(cancellationToken);
-                if (options != null)
-                    operations = await GetOperationsAsync(actionWithOptions, options, cancellationToken).ConfigureAwait(true);
-            }
-            else
-            {
-                operations = await GetOperationsAsync(progressTracker, cancellationToken).ConfigureAwait(true);
+                options = actionWithOptions.GetOptions(cancellationToken);
             }
 
-            AssertIsForeground();
-
-            if (operations != null)
+            using (Logger.LogBlock(
+                   FunctionId.CodeFixes_GetAndApplyChanges, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
             {
-                // Clear the progress we showed while computing the action.
-                // We'll now show progress as we apply the action.
-                progressTracker.Clear();
-
+                IEnumerable<CodeActionOperation> operations = null;
                 using (Logger.LogBlock(
-                    FunctionId.CodeFixes_ApplyChanges, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
+                       FunctionId.CodeFixes_GetChanges, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
                 {
-                    var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    if (options != null && CodeAction is CodeActionWithOptions codeActionWithOptions)
+                    {
+                        operations = await GetOperationsAsync(codeActionWithOptions, options, cancellationToken).ConfigureAwait(true);
+                    }
+                    else
+                    {
+                        operations = await GetOperationsAsync(progressTracker, cancellationToken).ConfigureAwait(true);
+                    }
+                }
 
-                    await EditHandler.ApplyAsync(
-                        Workspace,
-                        OriginalSolution,
-                        document,
-                        operations.ToImmutableArray(),
-                        CodeAction.Title,
-                        progressTracker,
-                        cancellationToken).ConfigureAwait(false);
+                AssertIsForeground();
+
+                if (operations != null)
+                {
+                    // Clear the progress we showed while computing the action.
+                    // We'll now show progress as we apply the action.
+                    progressTracker.Clear();
+
+                    using (Logger.LogBlock(
+                        FunctionId.CodeFixes_ApplyChanges, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
+                    {
+                        var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+
+                        await EditHandler.ApplyAsync(
+                            Workspace,
+                            OriginalSolution,
+                            document,
+                            operations.ToImmutableArray(),
+                            CodeAction.Title,
+                            progressTracker,
+                            cancellationToken).ConfigureAwait(false);
+                    }
                 }
             }
         }

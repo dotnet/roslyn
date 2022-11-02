@@ -489,6 +489,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                 var fixerMetadata = TryGetMetadata(fixer);
 
                                 using (addOperationScope(fixerName))
+                                using (Logger.LogBlock(FunctionId.CodeFixes_GetCodeFixesAsync, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m, fixer)), cancellationToken))
                                 using (RoslynEventSource.LogInformationalBlock(FunctionId.CodeFixes_GetCodeFixesAsync, fixerName, cancellationToken))
                                 {
                                     if (fixAllForInSpan)
@@ -664,6 +665,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // append CodeFixCollection for each CodeFixProvider
             foreach (var provider in lazyConfigurationProviders.Value)
             {
+                using (Logger.LogBlock(FunctionId.CodeFixes_GetCodeFixesAsync, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m, provider)), cancellationToken))
                 using (RoslynEventSource.LogInformationalBlock(FunctionId.CodeFixes_GetCodeFixesAsync, provider, cancellationToken))
                 {
                     var codeFixCollection = await TryGetFixesOrConfigurationsAsync(
@@ -938,6 +940,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             return builder.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutableAndFree());
+        }
+
+        private static void CreateLogProperties(Dictionary<string, object?> map, object fixer)
+        {
+            var type = fixer.GetType();
+            var telemetryId = type.GetTelemetryId();
+            map["TelemetryId"] = telemetryId.ToString();
         }
 
         private static ProjectCodeFixProvider.ExtensionInfo GetExtensionInfo(ExportCodeFixProviderAttribute attribute)
