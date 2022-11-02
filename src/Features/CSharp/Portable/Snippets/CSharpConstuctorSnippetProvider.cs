@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
     [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
     internal sealed class CSharpConstructorSnippetProvider : AbstractConstructorSnippetProvider
     {
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpConstructorSnippetProvider()
@@ -58,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             var constructorDeclaration = (ConstructorDeclarationSyntax)caretTarget;
             var blockStatement = constructorDeclaration.Body;
 
-            var triviaSpan = blockStatement.CloseBraceToken.LeadingTrivia.Span;
+            var triviaSpan = blockStatement!.CloseBraceToken.LeadingTrivia.Span;
             var line = sourceText.Lines.GetLineFromPosition(triviaSpan.Start);
             // Getting the location at the end of the line before the newline.
             return line.Span.End;
@@ -77,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         {
             var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
             var constructorDeclaration = (ConstructorDeclarationSyntax)node;
-            var openBraceLine = parsedDocument.Text.Lines.GetLineFromPosition(constructorDeclaration.Body.SpanStart).LineNumber;
+            var openBraceLine = parsedDocument.Text.Lines.GetLineFromPosition(constructorDeclaration.Body!.SpanStart).LineNumber;
 
             var indentationOptions = new IndentationOptions(syntaxFormattingOptions);
             var newLine = indentationOptions.FormattingOptions.NewLine;
@@ -100,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
             var constructorDeclaration = (ConstructorDeclarationSyntax)snippet;
             var blockStatement = constructorDeclaration.Body;
-            blockStatement = blockStatement.WithCloseBraceToken(blockStatement.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
+            blockStatement = blockStatement!.WithCloseBraceToken(blockStatement.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
             var newConstructorDeclaration = constructorDeclaration.ReplaceNode(constructorDeclaration.Body, blockStatement);
 
             var newRoot = root.ReplaceNode(constructorDeclaration, newConstructorDeclaration);

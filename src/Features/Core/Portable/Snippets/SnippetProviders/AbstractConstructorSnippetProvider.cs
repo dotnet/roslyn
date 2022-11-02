@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
 {
     internal abstract class AbstractConstructorSnippetProvider : AbstractSnippetProvider
     {
-        public override string SnippetIdentifier => "ctor";
+        public override string Identifier => "ctor";
 
-        public override string SnippetDescription => FeaturesResources.constructor;
+        public override string Description => FeaturesResources.constructor;
         public override ImmutableArray<string> AdditionalFilterTexts { get; } = ImmutableArray.Create("constructor");
 
         protected override async Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
@@ -31,10 +31,10 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
             var nodeAtPosition = root.FindNode(TextSpan.FromBounds(position, position));
             var containingType = nodeAtPosition.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration);
             Contract.ThrowIfNull(containingType);
-            var constuctorDeclaration = generator.ConstructorDeclaration(
+            var constructorDeclaration = generator.ConstructorDeclaration(
                 containingTypeName: syntaxFacts.GetIdentifierOfTypeDeclaration(containingType).ToString(),
                 accessibility: Accessibility.Public);
-            return ImmutableArray.Create(new TextChange(TextSpan.FromBounds(position, position), constuctorDeclaration.NormalizeWhitespace().ToFullString()));
+            return ImmutableArray.Create(new TextChange(TextSpan.FromBounds(position, position), constructorDeclaration.NormalizeWhitespace().ToFullString()));
         }
 
         protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)

@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         private static string GetIndentation(Document document, SyntaxNode node, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
         {
             var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-            var typeDelcaration = (TypeDeclarationSyntax)node;
-            var openBraceLine = parsedDocument.Text.Lines.GetLineFromPosition(typeDelcaration.OpenBraceToken.SpanStart).LineNumber;
+            var typeDeclaration = (TypeDeclarationSyntax)node;
+            var openBraceLine = parsedDocument.Text.Lines.GetLineFromPosition(typeDeclaration.OpenBraceToken.SpanStart).LineNumber;
 
             var indentationOptions = new IndentationOptions(syntaxFormattingOptions);
             var newLine = indentationOptions.FormattingOptions.NewLine;
