@@ -13896,15 +13896,12 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 noParams = (params int[] xs) => xs.Length; // 1
                 noParams = (int[] xs) => xs.Length;
                 withParams = (params int[] xs) => xs.Length;
-                withParams = (int[] xs) => xs.Length; // 2
+                withParams = (int[] xs) => xs.Length;
                 """;
             CreateCompilation(source).VerifyDiagnostics(
                 // (5,26): error CS9503: Parameter 1 has params modifier in lambda and not in target delegate type.
                 // noParams = (params int[] xs) => xs.Length; // 1
-                Diagnostic(ErrorCode.ERR_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(5, 26),
-                // (8,21): error CS9504: Parameter 1 has params modifier in target delegate type and not in lambda.
-                // withParams = (int[] xs) => xs.Length; // 2
-                Diagnostic(ErrorCode.ERR_ParamsArrayInDelegateOnly, "xs").WithArguments("1").WithLocation(8, 21));
+                Diagnostic(ErrorCode.ERR_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(5, 26));
         }
 
         [Fact]
@@ -13936,7 +13933,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 dNoParams = MethodNoParams;
                 dNoParams = MethodWithParams;
                 dWithParams = (params int[] xs) => xs.Length;
-                dWithParams = (int[] xs) => xs.Length; // 2
+                dWithParams = (int[] xs) => xs.Length;
                 dWithParams = MethodNoParams;
                 dWithParams = MethodWithParams;
                 delegate int DelegateNoParams(int[] xs);
@@ -13945,10 +13942,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
             CreateCompilation(source).VerifyDiagnostics(
                 // (5,27): error CS9503: Parameter 1 has params modifier in lambda and not in target delegate type.
                 // dNoParams = (params int[] xs) => xs.Length; // 1
-                Diagnostic(ErrorCode.ERR_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(5, 27),
-                // (10,22): error CS9504: Parameter 1 has params modifier in target delegate type and not in lambda.
-                // dWithParams = (int[] xs) => xs.Length; // 2
-                Diagnostic(ErrorCode.ERR_ParamsArrayInDelegateOnly, "xs").WithArguments("1").WithLocation(10, 22));
+                Diagnostic(ErrorCode.ERR_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(5, 27));
         }
 
         [Fact]
