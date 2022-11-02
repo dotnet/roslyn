@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
         ''' <returns>
         ''' Return the first argument that need to be cast, could be null if such argument doesn't exist
         ''' </returns>
-        Private Function GetTargetArgument(
+        Private Shared Function GetTargetArgument(
                 document As Document,
                 SemanticModel As SemanticModel,
                 parameters As ImmutableArray(Of IParameterSymbol),
@@ -126,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
                 Dim parameterIndex = Math.Min(i, parameters.Length - 1)
 
                 ' If the argument has a name, get the corresponding parameter index
-                Dim argumentName = SyntaxFacts.GetNameForArgument(arguments(i))
+                Dim argumentName = syntaxFacts.GetNameForArgument(arguments(i))
                 If argumentName IsNot String.Empty AndAlso Not FindCorrespondingParameterByName(argumentName, parameters,
                         parameterIndex) Then
                     Return Nothing
@@ -141,14 +141,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
 
                 If parameters(parameterIndex).IsParams Then
                     Dim paramsType = TryCast(parameterType, IArrayTypeSymbol)
-                    Dim conversion = SemanticModel.ClassifyConversion(argumentExpression, paramsType.ElementType)
-                    If conversion.Exists AndAlso Not conversion.IsIdentity Then
-                        Return arguments(i)
+                    If paramsType IsNot Nothing Then
+                        Dim conversion = SemanticModel.ClassifyConversion(argumentExpression, paramsType.ElementType)
+                        If conversion.Exists AndAlso Not conversion.IsIdentity Then
+                            Return arguments(i)
+                        End If
                     End If
                 End If
 
-                Dim converison = SemanticModel.ClassifyConversion(argumentExpression, parameterType)
-                If converison.Exists AndAlso Not converison.IsIdentity Then
+                Dim argumentConversion = SemanticModel.ClassifyConversion(argumentExpression, parameterType)
+                If argumentConversion.Exists AndAlso Not argumentConversion.IsIdentity Then
                     Return arguments(i)
                 End If
             Next
