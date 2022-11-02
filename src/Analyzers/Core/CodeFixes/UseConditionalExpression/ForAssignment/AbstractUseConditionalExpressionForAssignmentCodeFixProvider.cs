@@ -45,7 +45,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            RegisterCodeFix(context, AnalyzersResources.Convert_to_conditional_expression, nameof(AnalyzersResources.Convert_to_conditional_expression));
+            var (title, key) = context.Diagnostics.First().Properties.ContainsKey(UseConditionalExpressionHelpers.CanSimplifyName)
+                ? (AnalyzersResources.Simplify_check, nameof(AnalyzersResources.Simplify_check))
+                : (AnalyzersResources.Convert_to_conditional_expression, nameof(AnalyzersResources.Convert_to_conditional_expression));
+
+            RegisterCodeFix(context, title, key);
             return Task.CompletedTask;
         }
 
@@ -64,7 +68,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var ifOperation = (IConditionalOperation)semanticModel.GetOperation(ifStatement, cancellationToken)!;
 
             if (!UseConditionalExpressionForAssignmentHelpers.TryMatchPattern(
-                    syntaxFacts, ifOperation,
+                    syntaxFacts, ifOperation, out var isRef,
                     out var trueStatement, out var falseStatement,
                     out var trueAssignment, out var falseAssignment))
             {
@@ -76,7 +80,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 trueStatement, falseStatement,
                 trueAssignment?.Value ?? trueStatement,
                 falseAssignment?.Value ?? falseStatement,
-                trueAssignment?.IsRef == true,
+                isRef,
                 fallbackOptions,
                 cancellationToken).ConfigureAwait(false);
 

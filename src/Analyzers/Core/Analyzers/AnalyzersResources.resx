@@ -376,4 +376,7 @@
   <data name="Remove_accessibility_modifiers" xml:space="preserve">
     <value>Remove accessibility modifiers</value>
   </data>
+  <data name="Simplify_check" xml:space="preserve">
+    <value>Simplify check</value>
+  </data>
 </root>
