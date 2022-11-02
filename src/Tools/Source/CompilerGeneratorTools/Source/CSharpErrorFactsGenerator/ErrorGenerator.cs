@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Internal.CSharpErrorFactsGenerator
     {
         private readonly struct Model : IEquatable<Model>
         {
-            public ImmutableArray<string> ErrorNames { get; }
+            public readonly ImmutableArray<string> ErrorNames;
 
             public Model(ImmutableArray<string> errorNames)
             {
@@ -32,20 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Internal.CSharpErrorFactsGenerator
 
             public bool Equals(Model other)
             {
-                if (ErrorNames.Length != other.ErrorNames.Length)
-                {
-                    return false;
-                }
-
-                for (int i = 0; i < ErrorNames.Length; i++)
-                {
-                    if (!ErrorNames[i].Equals(other.ErrorNames[i], StringComparison.Ordinal))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
+                return ErrorNames.SequenceEqual(other.ErrorNames);
             }
 
             public override int GetHashCode()
@@ -68,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Internal.CSharpErrorFactsGenerator
         {
             var provider = context.SyntaxProvider.CreateSyntaxProvider(
                 predicate: (n, _) => n is EnumDeclarationSyntax enumDeclaration && enumDeclaration.Identifier.ValueText.Equals("ErrorCode", StringComparison.Ordinal),
-                transform: (context, cancellationToken) => new Model(((INamedTypeSymbol)context.SemanticModel.GetDeclaredSymbol(context.Node, cancellationToken)).GetMembers().Select(m => m.Name).ToImmutableArray()));
+                transform: (context, cancellationToken) => new Model(((INamedTypeSymbol)context.SemanticModel.GetDeclaredSymbol(context.Node, cancellationToken)).GetMembers().OfType<IFieldSymbol>().Select(m => m.Name).ToImmutableArray()));
 
             context.RegisterSourceOutput(provider, (context, model) => context.AddSource("ErrorFacts.Generated.cs", GetOutputText(model.ErrorNames)));
         }

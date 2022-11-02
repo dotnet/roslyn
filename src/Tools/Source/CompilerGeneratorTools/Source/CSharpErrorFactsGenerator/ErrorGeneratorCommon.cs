@@ -4,13 +4,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Internal.CSharpErrorFactsGenerator
 {
     public sealed partial class ErrorGenerator
     {
-        public static string GetOutputText(IEnumerable<string> errorNames)
+        public static string GetOutputText(ImmutableArray<string> errorNames)
         {
             var outputText = new StringBuilder();
             outputText.AppendLine("namespace Microsoft.CodeAnalysis.CSharp");

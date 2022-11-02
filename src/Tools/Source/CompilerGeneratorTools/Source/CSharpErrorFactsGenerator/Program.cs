@@ -9,6 +9,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Internal.CSharpErrorFactsGenerator
             string inputPath = args[0];
             string outputPath = args[1];
 
-            var errorNames = File.ReadAllLines(inputPath).Select(l => l.Trim().Substring(0, Math.Max(l.IndexOf(' '), 0)));
+            var errorNames = File.ReadAllLines(inputPath).Select(l => l.Trim().Substring(0, Math.Max(l.IndexOf(' '), 0))).ToImmutableArray();
             var outputText = ErrorGenerator.GetOutputText(errorNames);
             File.WriteAllText(outputPath, outputText, Encoding.UTF8);
 
