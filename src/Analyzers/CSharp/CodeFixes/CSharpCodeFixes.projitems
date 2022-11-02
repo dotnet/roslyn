@@ -16,7 +16,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\CSharpAddAccessibilityModifiersCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\CSharpAddAccessibilityModifiersService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\CSharpAddBracesCodeFixProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\AddExplicitCastCodeFixProvider.cs" />
+    <Compile Include="..\..\..\Analyzers\CSharp\CodeFixes\AddExplicitCast\CSharpAddExplicitCastCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\ArgumentFixer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\AttributeArgumentFixer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddInheritdoc\AddInheritdocCodeFixProvider.cs" />

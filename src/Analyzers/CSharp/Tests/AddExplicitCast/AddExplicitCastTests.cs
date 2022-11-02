@@ -3078,5 +3078,33 @@ class C
     }
 }");
         }
+
+        [Fact, WorkItem(41500, "https://github.com/dotnet/roslyn/issues/41500")]
+        public async Task RemoveExistingCast1()
+        {
+            await TestInRegularAndScriptAsync(
+                @"
+class Program
+{
+    class Base { }
+    class Derived1 : Base { }
+    class Derived2 : Derived1 { }
+    void Foo() {
+        Base b;
+        Derived2 d = [||](Derived1)b;
+    }
+}",
+                @"
+class Program
+{
+    class Base { }
+    class Derived1 : Base { }
+    class Derived2 : Derived1 { }
+    void Foo() {
+        Base b;
+        Derived2 d = (Derived2)b;
+    }
+}");
+        }
     }
 }
