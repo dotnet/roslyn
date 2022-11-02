@@ -145,7 +145,7 @@ class Program
             var expectedToolTip = new ContainerElement(
                 ContainerElementStyle.Wrapped,
                 new ClassifiedTextElement(
-                    new ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0005", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(new Uri("https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005", UriKind.Absolute)), "https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005"),
+                    new ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0005", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(new Uri("https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005", UriKind.Absolute)), "https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005"),
                     new ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
                     new ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                     new ClassifiedTextRun(ClassificationTypeNames.Text, CSharpAnalyzersResources.Using_directive_is_unnecessary)));
@@ -158,7 +158,7 @@ class Program
             expectedToolTip = new ContainerElement(
                 ContainerElementStyle.Wrapped,
                 new ClassifiedTextElement(
-                    new ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0005", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(new Uri("https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005", UriKind.Absolute)), "https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005"),
+                    new ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0005", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(new Uri("https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005", UriKind.Absolute)), "https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005"),
                     new ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
                     new ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                     new ClassifiedTextRun(ClassificationTypeNames.Text, CSharpAnalyzersResources.Using_directive_is_unnecessary)));
@@ -184,7 +184,7 @@ class Program
             expectedToolTip = new ContainerElement(
                 ContainerElementStyle.Wrapped,
                 new ClassifiedTextElement(
-                    new ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0049", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(new Uri("https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0049", UriKind.Absolute)), "https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0049"),
+                    new ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0049", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(new Uri("https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0049", UriKind.Absolute)), "https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0049"),
                     new ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
                     new ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                     new ClassifiedTextRun(ClassificationTypeNames.Text, AnalyzersResources.Name_can_be_simplified)));

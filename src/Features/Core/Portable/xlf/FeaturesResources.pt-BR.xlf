@@ -975,6 +975,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Embutir e manter '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_temporary_variable">
+        <source>Inline temporary variable</source>
+        <target state="new">Inline temporary variable</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
         <source>Insufficient hexadecimal digits</source>
         <target state="translated">Dígitos hexadecimais insuficientes</target>
@@ -4940,6 +4945,11 @@ The offset is always displayed with a leading sign. A plus sign (+) indicates ho
 Com os valores de DateTimeOffset, este especificador de formato representa o deslocamento do valor de DateTimeOffset do UTC em horas.
 
 O deslocamento é sempre exibido com um sinal à esquerda. Um sinal de adição (+) indica horas à frente do UTC e um sinal de subtração (-) indica horas atrás do UTC. Um deslocamento de dígito único é formatado com um zero à esquerda.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="while_loop">
+        <source>while loop</source>
+        <target state="new">while loop</target>
         <note />
       </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">

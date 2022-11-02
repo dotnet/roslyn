@@ -52,13 +52,21 @@ internal abstract class CodeGenerationOptions
 }
 
 [DataContract]
-internal readonly record struct CodeAndImportGenerationOptions(
-    [property: DataMember(Order = 0)] CodeGenerationOptions GenerationOptions,
-    [property: DataMember(Order = 1)] AddImportPlacementOptions AddImportOptions)
+internal readonly record struct CodeAndImportGenerationOptions
 {
+    [DataMember]
+    public required CodeGenerationOptions GenerationOptions { get; init; }
+
+    [DataMember]
+    public required AddImportPlacementOptions AddImportOptions { get; init; }
+
 #if !CODE_STYLE
     internal static CodeAndImportGenerationOptions GetDefault(LanguageServices languageServices)
-        => new(CodeGenerationOptions.GetDefault(languageServices), AddImportPlacementOptions.Default);
+        => new()
+        {
+            GenerationOptions = CodeGenerationOptions.GetDefault(languageServices),
+            AddImportOptions = AddImportPlacementOptions.Default
+        };
 
     internal CodeAndImportGenerationOptionsProvider CreateProvider()
         => new Provider(this);
@@ -115,13 +123,13 @@ internal static class CodeGenerationOptionsProviders
     }
 
 #if !CODE_STYLE
-    public static CodeGenerationOptions GetCodeGenerationOptions(this AnalyzerConfigOptions options, CodeGenerationOptions? fallbackOptions, HostLanguageServices languageServices)
+    public static CodeGenerationOptions GetCodeGenerationOptions(this AnalyzerConfigOptions options, CodeGenerationOptions? fallbackOptions, LanguageServices languageServices)
         => languageServices.GetRequiredService<ICodeGenerationService>().GetCodeGenerationOptions(options, fallbackOptions);
 
     public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CodeGenerationOptions? fallbackOptions, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetCodeGenerationOptions(fallbackOptions, document.Project.LanguageServices);
+        return configOptions.GetCodeGenerationOptions(fallbackOptions, document.Project.Services);
     }
 
     public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CodeGenerationOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)

@@ -192,6 +192,8 @@ namespace Roslyn.Test.Utilities
             public static byte[] SystemCore => ResourceLoader.GetOrCreateResource(ref _SystemCore, "net461.System.Core.dll");
             private static byte[] _SystemRuntime;
             public static byte[] SystemRuntime => ResourceLoader.GetOrCreateResource(ref _SystemRuntime, "net461.System.Runtime.dll");
+            private static byte[] _SystemRuntimeInteropServices;
+            public static byte[] SystemRuntimeInteropServices => ResourceLoader.GetOrCreateResource(ref _SystemRuntimeInteropServices, "net461.System.Runtime.InteropServices.dll");
             private static byte[] _SystemThreadingTasks;
             public static byte[] SystemThreadingTasks => ResourceLoader.GetOrCreateResource(ref _SystemThreadingTasks, "net461.System.Threading.Tasks.dll");
             private static byte[] _MicrosoftCSharp;
@@ -204,6 +206,7 @@ namespace Roslyn.Test.Utilities
                 new ReferenceInfo("System.dll", System),
                 new ReferenceInfo("System.Core.dll", SystemCore),
                 new ReferenceInfo("System.Runtime.dll", SystemRuntime),
+                new ReferenceInfo("System.Runtime.InteropServices.dll", SystemRuntimeInteropServices),
                 new ReferenceInfo("System.Threading.Tasks.dll", SystemThreadingTasks),
                 new ReferenceInfo("Microsoft.CSharp.dll", MicrosoftCSharp),
                 new ReferenceInfo("Microsoft.VisualBasic.dll", MicrosoftVisualBasic),
@@ -215,6 +218,7 @@ namespace Roslyn.Test.Utilities
             public static PortableExecutableReference System { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet461.System).GetReference(display: "System.dll (net461)", filePath: "System.dll");
             public static PortableExecutableReference SystemCore { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet461.SystemCore).GetReference(display: "System.Core.dll (net461)", filePath: "System.Core.dll");
             public static PortableExecutableReference SystemRuntime { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet461.SystemRuntime).GetReference(display: "System.Runtime.dll (net461)", filePath: "System.Runtime.dll");
+            public static PortableExecutableReference SystemRuntimeInteropServices { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet461.SystemRuntimeInteropServices).GetReference(display: "System.Runtime.InteropServices.dll (net461)", filePath: "System.Runtime.InteropServices.dll");
             public static PortableExecutableReference SystemThreadingTasks { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet461.SystemThreadingTasks).GetReference(display: "System.Threading.Tasks.dll (net461)", filePath: "System.Threading.Tasks.dll");
             public static PortableExecutableReference MicrosoftCSharp { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet461.MicrosoftCSharp).GetReference(display: "Microsoft.CSharp.dll (net461)", filePath: "Microsoft.CSharp.dll");
             public static PortableExecutableReference MicrosoftVisualBasic { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet461.MicrosoftVisualBasic).GetReference(display: "Microsoft.VisualBasic.dll (net461)", filePath: "Microsoft.VisualBasic.dll");

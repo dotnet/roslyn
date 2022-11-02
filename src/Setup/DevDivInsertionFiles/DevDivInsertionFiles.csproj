@@ -54,6 +54,7 @@
     <ExpectedDependency Include="System.Memory"/>
     <!-- We do not have a training scenario that covers lib/netstandard2.0/System.Text.Encoding.CodePages.dll  -->
     <ExpectedDependency Include="System.Text.Encoding.CodePages" />
+    <ExpectedDependency Include="System.Threading.Channels" />
     <ExpectedDependency Include="System.Numerics.Vectors"/>
   </ItemGroup>
 
@@ -115,8 +116,6 @@
       <_Dependency Remove="Microsoft.Build"/>
       <_Dependency Remove="Microsoft.Build.Framework"/>
       <_Dependency Remove="Microsoft.Diagnostics.Tracing.EventSource.Redist"/>
-      <_Dependency Remove="Microsoft.Extensions.DependencyInjection" />
-      <_Dependency Remove="Microsoft.Extensions.DependencyInjection.Abstractions" />
       <_Dependency Remove="Microsoft.MSXML"/>
       <_Dependency Remove="Microsoft.Internal.Performance.CodeMarkers.DesignTime"/>
       <_Dependency Remove="Microsoft.Win32.Registry"/>

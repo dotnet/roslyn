@@ -362,6 +362,11 @@
         <target state="translated">O nome '{0}' não corresponde ao parâmetro 'Deconstruct' '{1}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DeconstructVariableCannotBeByRef">
+        <source>A deconstruction variable cannot be declared as a ref local</source>
+        <target state="new">A deconstruction variable cannot be declared as a ref local</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DefaultConstraintOverrideOnly">
         <source>The 'default' constraint is valid on override and explicit interface implementation methods only.</source>
         <target state="translated">A restrição 'default' é válida somente nos métodos de substituição e de implementação explícita da interface.</target>
@@ -1292,6 +1297,11 @@
         <target state="translated">Não é possível atribuir '{1}' a '{0}' porque '{1}' só pode escapar do método atual por meio de uma instrução return.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefAssignValEscapeWider">
+        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <target state="new">Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
         <source>A ref field cannot refer to a ref struct.</source>
         <target state="translated">Um campo ref não pode se referir a um struct ref.</target>
@@ -1410,6 +1420,11 @@
       <trans-unit id="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv">
         <source>The target runtime doesn't support extensible or runtime-environment default calling conventions.</source>
         <target state="translated">O runtime de destino não dá suporte a convenções de chamada padrão extensíveis ou de ambiente de runtime.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedDiscard">
+        <source>The 'scoped' modifier cannot be used with discard.</source>
+        <target state="new">The 'scoped' modifier cannot be used with discard.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfOverrideOrImplementation">
@@ -2155,6 +2170,16 @@
       <trans-unit id="WRN_RefAssignReturnOnly_Title">
         <source>This ref-assigns a value that can only escape the current method through a return statement.</source>
         <target state="translated">Essa referência atribui um valor que só pode escapar o método atual por meio de uma instrução return.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignValEscapeWider">
+        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <target state="new">This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignValEscapeWider_Title">
+        <source>This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</source>
+        <target state="new">This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnLocal">
@@ -5237,8 +5262,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefProperty">
-        <source>A property or indexer may not be passed as an out or ref parameter</source>
-        <target state="translated">Talvez uma propriedade ou um indexador não possa ser passado como um parâmetro out ou ref</target>
+        <source>A non ref-returning property or indexer may not be used as an out or ref value</source>
+        <target state="needs-review-translation">Talvez uma propriedade ou um indexador não possa ser passado como um parâmetro out ou ref</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ManagedAddr">

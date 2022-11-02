@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Tags
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -110,7 +111,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 rules:=CompletionItemRules.Default.WithMatchPriority(MatchPriority.Preselect),
                 contextPosition:=context.Position,
                 sortText:=displayText,
-                supportedPlatforms:=supportedPlatformData).WithAdditionalFilterTexts(additionalFilterTexts)
+                supportedPlatforms:=supportedPlatformData,
+                tags:=WellKnownTagArrays.TargetTypeMatch).WithAdditionalFilterTexts(additionalFilterTexts)
         End Function
     End Class
 End Namespace

@@ -212,6 +212,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterRemoteBrokeredService(new RemoteInheritanceMarginService.Factory());
                 RegisterRemoteBrokeredService(new RemoteUnusedReferenceAnalysisService.Factory());
                 RegisterRemoteBrokeredService(new RemoteCompilationAvailableService.Factory());
+                RegisterRemoteBrokeredService(new RemoteLegacySolutionEventsAggregationService.Factory());
                 RegisterRemoteBrokeredService(new RemoteStackTraceExplorerService.Factory());
                 RegisterRemoteBrokeredService(new RemoteUnitTestingSearchService.Factory());
             }

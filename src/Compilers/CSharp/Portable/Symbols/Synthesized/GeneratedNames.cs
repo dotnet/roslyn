@@ -496,6 +496,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<p" + StringExtensions.GetNumeral(ordinal) + ">";
         }
 
+        internal static string AnonymousDelegateParameterName(int index, int parameterCount)
+        {
+            // SPEC: parameter names arg1, ..., argn or arg if a single parameter
+            if (parameterCount == 1)
+            {
+                return "arg";
+            }
+            return "arg" + StringExtensions.GetNumeral(index + 1);
+        }
+
         internal static string MakeFileTypeMetadataNamePrefix(string filePath, ImmutableArray<byte> checksumOpt)
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();

@@ -22,6 +22,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
@@ -30,19 +31,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
     public abstract class AbstractPullDiagnosticTestsBase : AbstractLanguageServerProtocolTests
     {
-        private protected override TestAnalyzerReferenceByLanguage TestAnalyzerReferences
+        protected AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {
-            get
-            {
-                var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<DiagnosticAnalyzer>>();
-                builder.Add(LanguageNames.CSharp, ImmutableArray.Create(
-                    DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp),
-                    new CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer(),
-                    new CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer()));
-                builder.Add(LanguageNames.VisualBasic, ImmutableArray.Create(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.VisualBasic)));
-                builder.Add(InternalLanguageNames.TypeScript, ImmutableArray.Create<DiagnosticAnalyzer>(new MockTypescriptDiagnosticAnalyzer()));
-                return new(builder.ToImmutableDictionary());
-            }
+        }
+
+        private protected override TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()
+        {
+            var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<DiagnosticAnalyzer>>();
+            builder.Add(LanguageNames.CSharp, ImmutableArray.Create(
+                DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp),
+                new CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer(),
+                new CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer()));
+            builder.Add(LanguageNames.VisualBasic, ImmutableArray.Create(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.VisualBasic)));
+            builder.Add(InternalLanguageNames.TypeScript, ImmutableArray.Create<DiagnosticAnalyzer>(new MockTypescriptDiagnosticAnalyzer()));
+            return new(builder.ToImmutableDictionary());
         }
 
         protected override TestComposition Composition => base.Composition.AddParts(typeof(MockTypescriptDiagnosticAnalyzer));
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             bool useProgress = false,
             bool includeTaskListItems = false)
         {
-            var optionService = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+            var optionService = testLspServer.TestWorkspace.GetService<IGlobalOptionService>();
             optionService.SetGlobalOption(new OptionKey(TaskListOptionsStorage.ComputeTaskListItemsForClosedFiles), includeTaskListItems);
             await testLspServer.WaitForDiagnosticsAsync();
 

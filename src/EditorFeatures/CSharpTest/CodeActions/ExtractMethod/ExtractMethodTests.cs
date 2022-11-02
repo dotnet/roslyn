@@ -3375,6 +3375,47 @@ class C
     }
 }");
 
+        [Fact, WorkItem(38127, "https://github.com/dotnet/roslyn/issues/38127")]
+        public Task TestNestedNullability_Async()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    private Task<string> DoSomethingAsync() => Task.FromResult("""");
+
+    public Task<string?> async M()
+    {
+        [|string? x = await DoSomethingAsync();|]
+        x = null;
+        return x;
+    }
+}",
+@"#nullable enable
+
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    private Task<string> DoSomethingAsync() => Task.FromResult("""");
+
+    public Task<string?> async M()
+    {
+        string? x = await {|Rename:NewMethod|}();
+        x = null;
+        return x;
+    }
+
+    private async Task<string> NewMethod()
+    {
+        return await DoSomethingAsync();
+    }
+}");
+
         [Fact]
         public async Task EnsureStaticLocalFunctionOptionHasNoEffect()
         {

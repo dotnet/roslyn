@@ -163,6 +163,7 @@ Add-TargetFramework "Net461" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_ne
   'System.dll',
   'System.Core.dll',
   'Facades\System.Runtime.dll',
+  'Facades\System.Runtime.InteropServices.dll',
   'Facades\System.Threading.Tasks.dll',
   'Microsoft.CSharp.dll',
   'Microsoft.VisualBasic.dll'
