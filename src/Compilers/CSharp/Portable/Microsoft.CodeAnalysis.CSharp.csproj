@@ -29,6 +29,14 @@
            we want to grab the generator.-->
       <SetTargetFramework>TargetFramework=netstandard2.0</SetTargetFramework>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\Tools\Source\CompilerGeneratorTools\Source\CSharpErrorFactsGenerator\CSharpErrorFactsGenerator.csproj">
+      <OutputItemType>Analyzer</OutputItemType>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <!-- The generator project currently builds as both a console app and a source generator,
+           depending upon which TFM is built. No matter what the this project builds as,
+           we want to grab the generator.-->
+      <SetTargetFramework>TargetFramework=netstandard2.0</SetTargetFramework>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="BoundTree\BoundNodes.xml" />
