@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                 conversionType.ToMinimalDisplayString(semanticModel, position));
         }
 
-        protected ImmutableArray<(TExpressionSyntax, ITypeSymbol)> FilterValidPotentialConversionTypes(
+        protected static ImmutableArray<(TExpressionSyntax, ITypeSymbol)> FilterValidPotentialConversionTypes(
             Document document,
             SemanticModel semanticModel,
             ArrayBuilder<(TExpressionSyntax node, ITypeSymbol type)> mutablePotentialConversionTypes)
