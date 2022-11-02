@@ -10,29 +10,32 @@ using System.IO.Pipes;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Channels;
 
 using Xunit;
 using Xunit.Abstractions;
 
-if (args.Length <= 0)
+int ExitFailure = 1;
+int ExitSuccess = 0;
+
+if (args.Length != 1)
 {
-    return;
+    return ExitFailure;
 }
 
 using var pipeClient = new AnonymousPipeClientStream(PipeDirection.In, args[0]);
 using var sr = new StreamReader(pipeClient);
-// Display the read text to the console
 string? output;
 
 // Wait for 'sync message' from the server.
 do
 {
-    output = sr.ReadLine();
+    output = await sr.ReadLineAsync().ConfigureAwait(false);
 }
-while (!(output?.StartsWith("ASSEMBLY") == true));
+while (!(output?.StartsWith("ASSEMBLY", StringComparison.OrdinalIgnoreCase) == true));
 
-if ((output = sr.ReadLine()) is not null)
+if ((output = await sr.ReadLineAsync().ConfigureAwait(false)) is not null)
 {
     var assemblyFileName = output;
 
@@ -41,7 +44,7 @@ if ((output = sr.ReadLine()) is not null)
     System.Runtime.Loader.AssemblyLoadContext.Default.Resolving += (context, assemblyName) =>
     {
         var assemblyPath = resolver.ResolveAssemblyToPath(assemblyName);
-        if (assemblyPath != null)
+        if (assemblyPath is not null)
         {
             return context.LoadFromAssemblyPath(assemblyPath);
         }
@@ -52,29 +55,40 @@ if ((output = sr.ReadLine()) is not null)
     using var xunit = new XunitFrontController(AppDomainSupport.IfAvailable, assemblyFileName, shadowCopy: false);
     var configuration = ConfigReader.Load(assemblyFileName);
     var sink = new Sink();
-    xunit.Find(includeSourceInformation: false, messageSink: sink,
-                discoveryOptions: TestFrameworkOptions.ForDiscovery(configuration));
+    xunit.Find(includeSourceInformation: false,
+               messageSink: sink,
+               discoveryOptions: TestFrameworkOptions.ForDiscovery(configuration));
 
-    var builder = ImmutableArray.CreateBuilder<string>();
+    var testsToWrite = new HashSet<string>();
     await foreach (var fullyQualifiedName in sink.GetTestCaseNamesAsync())
     {
-        builder.Add(fullyQualifiedName);
+        testsToWrite.Add(fullyQualifiedName);
     }
 
-    var testsToWrite = builder.Distinct().ToArray();
+    if (sink.AnyWriteFailures)
+    {
+        await Console.Error.WriteLineAsync($"Channel failed to write for '{assemblyFileName}'").ConfigureAwait(false);
+        return ExitFailure;
+    }
+
 #if NET6_0_OR_GREATER
-    Console.WriteLine($"Discovered {testsToWrite.Length} tests in {Path.GetFileName(assemblyFileName)} (.NET Core)");
+    await Console.Out.WriteLineAsync($"Discovered {testsToWrite.Count} tests in {Path.GetFileName(assemblyFileName)} (.NET Core)").ConfigureAwait(false);
 #else
-    Console.WriteLine($"Discovered {testsToWrite.Length} tests in {Path.GetFileName(assemblyFileName)} (.NET Framework)");
+    await Console.Out.WriteLineAsync($"Discovered {testsToWrite.Count} tests in {Path.GetFileName(assemblyFileName)} (.NET Framework)").ConfigureAwait(false);
 #endif
 
     var directory = Path.GetDirectoryName(assemblyFileName);
     using var fileStream = File.Create(Path.Combine(directory!, "testlist.json"));
-    JsonSerializer.Serialize(fileStream, testsToWrite);
+    await JsonSerializer.SerializeAsync(fileStream, testsToWrite).ConfigureAwait(false);
+    return ExitSuccess;
 }
+
+return ExitFailure;
 
 internal sealed class Sink : IMessageSink
 {
+    public bool AnyWriteFailures { get; private set; }
+
     public Sink()
     {
         _channel = Channel.CreateUnbounded<string>();
@@ -84,7 +98,7 @@ internal sealed class Sink : IMessageSink
 
     public async IAsyncEnumerable<string> GetTestCaseNamesAsync()
     {
-        while (await _channel.Reader.WaitToReadAsync(default).ConfigureAwait(false))
+        while (await _channel.Reader.WaitToReadAsync(CancellationToken.None).ConfigureAwait(false))
         {
             while (_channel.Reader.TryRead(out var item))
             {
@@ -111,6 +125,10 @@ internal sealed class Sink : IMessageSink
     private void OnTestDiscovered(ITestCaseDiscoveryMessage testCaseDiscovered)
     {
         var fullName = $"{testCaseDiscovered.TestCase.TestMethod.TestClass.Class.Name}.{testCaseDiscovered.TestCase.TestMethod.Method.Name}";
-        _ = _channel.Writer.TryWrite(fullName);
+        // this shouldn't happen as our channel is unbounded but we are Paranoid Coding™️
+        if (!_channel.Writer.TryWrite(fullName))
+        {
+            AnyWriteFailures = true;
+        }
     }
 }

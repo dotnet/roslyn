@@ -9,11 +9,12 @@ using System.IO;
 using System.Linq;
 using System.IO.Pipes;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace PrepareTests;
 internal class TestDiscovery
 {
-    public static void RunDiscovery(string repoRootDirectory, string dotnetPath, bool isUnix)
+    public static bool RunDiscovery(string repoRootDirectory, string dotnetPath, bool isUnix)
     {
         var binDirectory = Path.Combine(repoRootDirectory, "artifacts", "bin");
         var assemblies = GetAssemblies(binDirectory, isUnix);
@@ -22,6 +23,7 @@ internal class TestDiscovery
 
         Console.WriteLine($"Found {assemblies.Count} test assemblies");
 
+        var success = true;
         var stopwatch = new Stopwatch();
         stopwatch.Start();
         Parallel.ForEach(assemblies, assembly =>
@@ -30,11 +32,12 @@ internal class TestDiscovery
                 ? dotnetFrameworkWorker
                 : dotnetCoreWorker;
 
-            RunWorker(dotnetPath, workerPath, assembly);
+            success &= RunWorker(dotnetPath, workerPath, assembly);
         });
         stopwatch.Stop();
 
         Console.WriteLine($"Discovered tests in {stopwatch.Elapsed}");
+        return success;
     }
 
     static (string dotnetCoreWorker, string dotnetFrameworkWorker) GetWorkers(string binDirectory)
@@ -45,8 +48,9 @@ internal class TestDiscovery
                 Path.Combine(testDiscoveryWorkerFolder, configuration, "net472", "TestDiscoveryWorker.exe"));
     }
 
-    static void RunWorker(string dotnetPath, string pathToWorker, string pathToAssembly)
+    static bool RunWorker(string dotnetPath, string pathToWorker, string pathToAssembly)
     {
+        var success = true;
         var pipeClient = new Process();
         var arguments = new List<string>();
         if (pathToWorker.EndsWith("dll"))
@@ -81,14 +85,17 @@ internal class TestDiscovery
             }
             // Catch the IOException that is raised if the pipe is broken
             // or disconnected.
-            catch (IOException e)
+            catch (Exception e)
             {
-                Console.WriteLine("Error: {0}", e.Message);
+                Console.Error.WriteLine($"Error: {e.Message}");
+                success = false;
             }
         }
 
         pipeClient.WaitForExit();
+        success &= pipeClient.ExitCode == 0;
         pipeClient.Close();
+        return success;
     }
 
     private static List<string> GetAssemblies(string binDirectory, bool isUnix)
