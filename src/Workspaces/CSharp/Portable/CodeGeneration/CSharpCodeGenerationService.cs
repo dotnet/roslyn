@@ -481,9 +481,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 return AddStatementsToBaseMethodDeclaration(destinationMember, statements, methodDeclaration);
             }
-            else if (destinationMember is LocalFunctionStatementSyntax localFunctionDeclaration)
+            else if (destinationMember is MemberDeclarationSyntax)
             {
-                return (localFunctionDeclaration.Body == null) ? destinationMember : Cast<TDeclarationNode>(localFunctionDeclaration.AddBodyStatements(StatementGenerator.GenerateStatements(statements).ToArray()));
+                // not currently supported
+                return destinationMember;
+            }
+            else if (destinationMember is LocalFunctionStatementSyntax localFunctionStatement)
+            {
+                return AddStatementsToLocalFunctionStatement(destinationMember, statements, localFunctionStatement);
             }
             else if (destinationMember is AccessorDeclarationSyntax accessorDeclaration)
             {
@@ -568,6 +573,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return destinationMember;
 
             var finalMember = baseMethodDeclaration
+                .WithExpressionBody(null)
+                .WithSemicolonToken(default)
+                .WithBody(body.WithStatements(body.Statements.AddRange(StatementGenerator.GenerateStatements(statements))));
+
+            return Cast<TDeclarationNode>(finalMember);
+        }
+
+        private static TDeclarationNode AddStatementsToLocalFunctionStatement<TDeclarationNode>(
+            TDeclarationNode destinationMember, IEnumerable<SyntaxNode> statements, LocalFunctionStatementSyntax localFunctionStatement) where TDeclarationNode : SyntaxNode
+        {
+            var body = localFunctionStatement.Body;
+
+            // If the member has an expression body, convert to a block first.
+            // TODO: property determine if the expr should become a return statement or not.
+            localFunctionStatement.ExpressionBody?.TryConvertToBlock(
+                localFunctionStatement.SemicolonToken, createReturnStatementForExpression: false, out body);
+
+            if (body is null)
+                return destinationMember;
+
+            var finalMember = localFunctionStatement
                 .WithExpressionBody(null)
                 .WithSemicolonToken(default)
                 .WithBody(body.WithStatements(body.Statements.AddRange(StatementGenerator.GenerateStatements(statements))));
