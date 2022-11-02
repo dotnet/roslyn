@@ -7108,7 +7108,7 @@ public class DisplayAttribute : System.Attribute
 
         [Theory]
         [InlineData(LanguageVersion.CSharp11)]
-        [InlineData(LanguageVersion.Preview)]
+        [InlineData(LanguageVersionExtensions.CSharpNext)]
         public void AnonymousMethodWithExplicitDefaultParam(LanguageVersion languageVersion)
         {
             var source = """
@@ -7942,7 +7942,7 @@ class Program
 
         [Theory]
         [InlineData(LanguageVersion.CSharp11)]
-        [InlineData(LanguageVersion.Preview)]
+        [InlineData(LanguageVersionExtensions.CSharpNext)]
         public void ParamsArray_Langversion_DelegateSyntax(LanguageVersion languageVersion)
         {
             var source = """
