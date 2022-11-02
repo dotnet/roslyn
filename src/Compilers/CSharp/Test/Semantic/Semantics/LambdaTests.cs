@@ -7106,8 +7106,10 @@ public class DisplayAttribute : System.Attribute
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
 
-        [Fact]
-        public void AnonymousMethodWithExplicitDefaultParam()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp11)]
+        [InlineData(LanguageVersion.Preview)]
+        public void AnonymousMethodWithExplicitDefaultParam(LanguageVersion languageVersion)
         {
             var source = """
 class Program
@@ -7120,7 +7122,7 @@ class Program
 }
 
 """;
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyDiagnostics(
                 // (5,34): error CS1065: Default values are not valid in this context.
                 //         var lam = delegate(int x = 7) { return x; };
@@ -7936,6 +7938,21 @@ class Program
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "params").WithArguments("lambda params array").WithLocation(1, 12));
 
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp11)]
+        [InlineData(LanguageVersion.Preview)]
+        public void ParamsArray_Langversion_DelegateSyntax(LanguageVersion languageVersion)
+        {
+            var source = """
+                var lam = delegate (params int[] xs) { return xs.Length; };
+                """;
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                // (1,21): error CS1670: params is not valid in this context
+                // var lam = delegate (params int[] xs) { return xs.Length };
+                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(1, 21));
         }
 
         [Fact]
