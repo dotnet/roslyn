@@ -28,7 +28,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
     [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal class CSharpConstructorSnippetProvider : AbstractConstructorSnippetProvider
+    internal sealed class CSharpConstructorSnippetProvider : AbstractConstructorSnippetProvider
     {
 
         [ImportingConstructor]
