@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private static SelectionInfo ApplySpecialCases(SelectionInfo selectionInfo, SourceText text, ParseOptions options, bool localFunction)
+        private SelectionInfo ApplySpecialCases(SelectionInfo selectionInfo, SourceText text, ParseOptions options, bool localFunction)
         {
             if (selectionInfo.Status.FailedWithNoBestEffortSuggestion())
             {
@@ -115,6 +115,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 {
                     return selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.Selection_cannot_include_top_level_statements));
                 }
+            }
+
+            if (_localFunction && selectionInfo.CommonRootFromOriginalSpan.AncestorsAndSelf().Any(c => c.IsKind(SyntaxKind.BaseConstructorInitializer)))
+            {
+                return selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.Selection_cannot_be_in_base_constructor_initialize));
             }
 
             if (!selectionInfo.SelectionInExpression)

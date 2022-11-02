@@ -5234,5 +5234,30 @@ public class Class
 }";
             await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
         }
+
+        [Fact]
+        public async Task TestExtracLocalFunction_MissingInBase()
+        {
+            var code = """
+                class Base
+                {
+                    private readonly int _x;
+                    public Base(int x)
+                    {
+                        _x = x;
+                    }
+                }
+
+                class C : Base
+                {
+                    public C(int y)
+                        : base([|y + 1|])
+                    {
+                    }
+                }
+                """;
+
+            await TestMissingAsync(code, codeActionIndex: CodeActionIndex);
+        }
     }
 }

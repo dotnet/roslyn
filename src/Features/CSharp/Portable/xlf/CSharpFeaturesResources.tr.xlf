@@ -232,6 +232,11 @@
         <target state="translated">'for' ifadesini tersine çevir</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Selection_cannot_be_in_base_constructor_initialize">
+        <source>Selection cannot be in base constructor initializer</source>
+        <target state="new">Selection cannot be in base constructor initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Selection_cannot_include_global_statements">
         <source>Selection cannot include global statements</source>
         <target state="translated">Seçim genel deyimleri içeremez</target>
