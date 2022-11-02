@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Internal.CSharpErrorFactsGenerator
 
             public override int GetHashCode()
             {
-                return -787298253 + ErrorNames.GetHashCode();
+                throw new NotImplementedException();
             }
 
             public static bool operator ==(Model left, Model right)
