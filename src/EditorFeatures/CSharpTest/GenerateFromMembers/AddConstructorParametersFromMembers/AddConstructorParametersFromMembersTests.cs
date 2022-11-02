@@ -2514,7 +2514,8 @@ class C
 }
 ",
                 FixedCode =
-@"using System.Collections.Generic;
+@"
+using System.Collections.Generic;
 
 class C
 {
