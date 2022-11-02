@@ -33611,6 +33611,9 @@ class C
                     // (8,58): error CS0103: The name 'z1' does not exist in the current context
                     //                                                 int s2 = z1) 
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(8, 58),
+                    // (9,55): error CS0103: The name 'z1' does not exist in the current context
+                    //                                             { var t = z1; };
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(9, 55),
                     // (11,56): error CS1065: Default values are not valid in this context.
                     //                                                 bool b = M(M(out var z2), z2), 
                     Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(11, 56),
@@ -33623,6 +33626,9 @@ class C
                     // (12,58): error CS0103: The name 'z2' does not exist in the current context
                     //                                                 int s2 = z2)  
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(12, 58),
+                    // (13,55): error CS0103: The name 'z2' does not exist in the current context
+                    //                                             { var t = z2; };
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(13, 55),
                     // (15,17): error CS0103: The name 'z1' does not exist in the current context
                     //         int x = z1 + z2;
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(15, 17),

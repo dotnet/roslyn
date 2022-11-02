@@ -2202,49 +2202,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (reason == LambdaConversionResult.MismatchedParameterDefaultValue)
-            {
-                Debug.Assert(anonymousFunction.ParameterCount == delegateParameters.Length);
-
-                var lambdaSymbol = anonymousFunction.LambdaForParameterDefaultValues;
-                Debug.Assert(lambdaSymbol is not null);
-
-                // The lambda symbol may have diagnostics from
-                // binding default parameters, so copy these to the current diagnostic bag
-                lambdaSymbol.GetDeclarationDiagnostics(diagnostics);
-
-                for (int i = 0; i < anonymousFunction.ParameterCount; i++)
-                {
-                    CheckDefaultParameterMatch(ErrorCode.ERR_OptionalParamValueMismatch, lambdaSymbol.Parameters[i], delegateParameters[i], anonymousFunction.ParameterLocation(i), diagnostics);
-                }
-                return;
-            }
-
-            if (reason == LambdaConversionResult.MismatchedParamsArray)
-            {
-                var lambdaSymbol = anonymousFunction.LambdaForParameterDefaultValues;
-                Debug.Assert(lambdaSymbol is not null);
-
-                if (!lambdaSymbol.SyntaxNode.IsKind(SyntaxKind.AnonymousMethodExpression))
-                {
-                    for (int i = 0; i < anonymousFunction.ParameterCount; i++)
-                    {
-                        if (lambdaSymbol.Parameters[i].IsParams != delegateParameters[i].IsParams)
-                        {
-                            var lambdaParameterLocation = anonymousFunction.ParameterLocation(i);
-
-                            var errorCode = lambdaSymbol.Parameters[i].IsParams
-                                // Parameter {0} has params modifier in lambda and not in target delegate type.
-                                ? ErrorCode.ERR_ParamsArrayInLambdaOnly
-                                // Parameter {0} has params modifier in target delegate type and not in lambda.
-                                : ErrorCode.ERR_ParamsArrayInDelegateOnly;
-                            Error(diagnostics, errorCode, lambdaParameterLocation, i + 1);
-                        }
-                    }
-                }
-                return;
-            }
-
             if (reason == LambdaConversionResult.BindingFailed)
             {
                 var bindingResult = anonymousFunction.Bind(delegateType, isExpressionTree: false);

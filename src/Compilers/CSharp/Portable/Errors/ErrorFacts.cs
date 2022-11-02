@@ -207,6 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (code)
             {
                 case ErrorCode.WRN_OptionalParamValueMismatch:
+                case ErrorCode.WRN_ParamsArrayInLambdaOnly:
                     // Warning level 8 is exclusively for warnings introduced in the compiler
                     // shipped with dotnet 8 (C# 12) and that can be reported for pre-existing code.
                     return 8;
@@ -2241,7 +2242,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_ImplicitlyTypedDefaultParameter:
                 case ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget:
                 case ErrorCode.ERR_RuntimeDoesNotSupportRefFields:
-                case ErrorCode.ERR_OptionalParamValueMismatch:
                 case ErrorCode.ERR_ExplicitScopedRef:
                 case ErrorCode.ERR_UnscopedScoped:
                 case ErrorCode.WRN_DuplicateAnalyzerReference:
@@ -2275,8 +2275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_RefAssignValEscapeWider:
                 case ErrorCode.WRN_RefAssignValEscapeWider:
                 case ErrorCode.WRN_OptionalParamValueMismatch:
-                case ErrorCode.ERR_ParamsArrayInLambdaOnly:
-                case ErrorCode.ERR_ParamsArrayInDelegateOnly:
+                case ErrorCode.WRN_ParamsArrayInLambdaOnly:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

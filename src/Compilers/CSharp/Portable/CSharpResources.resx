@@ -7343,11 +7343,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ImplicitlyTypedDefaultParameter" xml:space="preserve">
     <value>Implicitly typed lambda parameter '{0}' cannot have a default value.</value>
   </data>
-  <data name="ERR_OptionalParamValueMismatch" xml:space="preserve">
-    <value>Parameter {0} has default value '{1:10}' in lambda and '{2:10}' in the target delegate type.</value>
-  </data>
   <data name="WRN_OptionalParamValueMismatch" xml:space="preserve">
-    <value>Parameter {0} has default value '{1:10}' in method group and '{2:10}' in the target delegate type.</value>
+    <value>Parameter {0} has default value '{1:10}' in lambda and '{2:10}' in the target delegate type.</value>
   </data>
   <data name="WRN_OptionalParamValueMismatch_Title" xml:space="preserve">
     <value>The default parameter value does not match in the target delegate type.</value>
@@ -7397,10 +7394,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DeconstructVariableCannotBeByRef" xml:space="preserve">
     <value>A deconstruction variable cannot be declared as a ref local</value>
   </data>
-  <data name="ERR_ParamsArrayInDelegateOnly" xml:space="preserve">
-    <value>Parameter {0} has params modifier in target delegate type and not in lambda.</value>
-  </data>
-  <data name="ERR_ParamsArrayInLambdaOnly" xml:space="preserve">
+  <data name="WRN_ParamsArrayInLambdaOnly" xml:space="preserve">
     <value>Parameter {0} has params modifier in lambda and not in target delegate type.</value>
+  </data>
+  <data name="WRN_ParamsArrayInLambdaOnly_Title" xml:space="preserve">
+    <value>The params modifier is present in lambda and not in target delegate type.</value>
   </data>
 </root>

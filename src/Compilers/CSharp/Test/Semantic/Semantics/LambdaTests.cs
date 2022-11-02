@@ -229,12 +229,12 @@ class C
                 // (66,39): error CS1670: params is not valid in this context
                 //         Action<int[]> q16 = delegate (params int[] p) { };
                 Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(66, 39),
-                // (67,49): error CS9503: Parameter 1 has params modifier in lambda and not in target delegate type.
+                // (67,49): warning CS9502: Parameter 1 has params modifier in lambda and not in target delegate type.
                 //         Action<string[]> q17 = (params string[] s)=>{};
-                Diagnostic(ErrorCode.ERR_ParamsArrayInLambdaOnly, "s").WithArguments("1").WithLocation(67, 49),
-                // (68,61): error CS9503: Parameter 2 has params modifier in lambda and not in target delegate type.
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "s").WithArguments("1").WithLocation(67, 49),
+                // (68,61): warning CS9502: Parameter 2 has params modifier in lambda and not in target delegate type.
                 //         Action<int, double[]> q18 = (int x, params double[] s)=>{};
-                Diagnostic(ErrorCode.ERR_ParamsArrayInLambdaOnly, "s").WithArguments("2").WithLocation(68, 61),
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "s").WithArguments("2").WithLocation(68, 61),
                 // (70,34): error CS1593: Delegate 'Action' does not take 1 arguments
                 //         object q19 = new Action( (int x)=>{} );
                 Diagnostic(ErrorCode.ERR_BadDelArgCount, "(int x)=>{}").WithArguments("System.Action", "1").WithLocation(70, 34),
@@ -4847,9 +4847,9 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                    // (7,68): error CS9501: Parameter 1 has default value '2' in lambda and '<missing>' in the target delegate type.
+                    // (7,68): warning CS9501: Parameter 1 has default value '2' in lambda and '<missing>' in the target delegate type.
                     //         Action<int> a1 = ([Optional, DefaultParameterValue(2)] int i) => { };
-                    Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "i").WithArguments("1", "2", "<missing>").WithLocation(7, 68));
+                    Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "i").WithArguments("1", "2", "<missing>").WithLocation(7, 68));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -7867,9 +7867,9 @@ class Program
 ";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (7,27): error CS9501: Parameter 1 has default value '"0123456..."' in lambda and '"abc"' in the target delegate type.
+                // (7,27): warning CS9501: Parameter 1 has default value '"0123456..."' in lambda and '"abc"' in the target delegate type.
                 //         Del del = (string s = "0123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899") => { };
-                Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "s").WithArguments("1", @"""0123456...""", @"""abc""").WithLocation(7, 27));
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "s").WithArguments("1", @"""0123456...""", @"""abc""").WithLocation(7, 27));
         }
 
         [Fact]

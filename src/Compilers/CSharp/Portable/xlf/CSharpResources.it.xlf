@@ -1147,11 +1147,6 @@
         <target state="translated">Impossibile dichiarare controllato l'operatore '{0}' definito dall'utente</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_OptionalParamValueMismatch">
-        <source>Parameter {0} has default value '{1:10}' in lambda and '{2:10}' in the target delegate type.</source>
-        <target state="new">Parameter {0} has default value '{1:10}' in lambda and '{2:10}' in the target delegate type.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="translated">Non è possibile dichiarare una variabile out come variabile locale ref</target>
@@ -1180,16 +1175,6 @@
       <trans-unit id="ERR_ParameterNullCheckingNotSupported">
         <source>The 'parameter null-checking' feature is not supported.</source>
         <target state="translated">La funzionalità 'parameter null-checking' non è supportata.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ParamsArrayInDelegateOnly">
-        <source>Parameter {0} has params modifier in target delegate type and not in lambda.</source>
-        <target state="new">Parameter {0} has params modifier in target delegate type and not in lambda.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ParamsArrayInLambdaOnly">
-        <source>Parameter {0} has params modifier in lambda and not in target delegate type.</source>
-        <target state="new">Parameter {0} has params modifier in lambda and not in target delegate type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
@@ -2123,8 +2108,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_OptionalParamValueMismatch">
-        <source>Parameter {0} has default value '{1:10}' in method group and '{2:10}' in the target delegate type.</source>
-        <target state="new">Parameter {0} has default value '{1:10}' in method group and '{2:10}' in the target delegate type.</target>
+        <source>Parameter {0} has default value '{1:10}' in lambda and '{2:10}' in the target delegate type.</source>
+        <target state="new">Parameter {0} has default value '{1:10}' in lambda and '{2:10}' in the target delegate type.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_OptionalParamValueMismatch_Title">
@@ -2150,6 +2135,16 @@
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">
         <source>Parameter to interpolated string handler conversion occurs after handler parameter</source>
         <target state="translated">Il parametro per la conversione del gestore di stringhe interpolate si trova dopo il parametro del gestore</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParamsArrayInLambdaOnly">
+        <source>Parameter {0} has params modifier in lambda and not in target delegate type.</source>
+        <target state="new">Parameter {0} has params modifier in lambda and not in target delegate type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParamsArrayInLambdaOnly_Title">
+        <source>The params modifier is present in lambda and not in target delegate type.</source>
+        <target state="new">The params modifier is present in lambda and not in target delegate type.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">

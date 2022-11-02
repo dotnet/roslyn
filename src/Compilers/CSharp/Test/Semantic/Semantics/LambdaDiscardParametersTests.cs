@@ -344,9 +344,6 @@ public class C
                 // (6,51): error CS7014: Attributes are not valid in this context.
                 //         System.Func<int, int, long> f1 = delegate([System.Obsolete]int _, int _ = 0) { return 3L; };
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[System.Obsolete]").WithLocation(6, 51),
-                // (6,79): error CS9501: Parameter 2 has default value 'default(int)' in lambda and '<missing>' in the target delegate type.
-                //         System.Func<int, int, long> f1 = delegate([System.Obsolete]int _, int _ = 0) { return 3L; };
-                Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "_").WithArguments("2", "default(int)", "<missing>").WithLocation(6, 79),
                 // (6,81): error CS1065: Default values are not valid in this context.
                 //         System.Func<int, int, long> f1 = delegate([System.Obsolete]int _, int _ = 0) { return 3L; };
                 Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(6, 81));
