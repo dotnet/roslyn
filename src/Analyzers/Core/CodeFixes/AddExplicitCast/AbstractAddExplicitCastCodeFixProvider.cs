@@ -127,7 +127,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                     {
                         return currentRoot.ReplaceNode(
                             targetNode,
-                            this.Cast((TExpressionSyntax)castedExpression, conversionType).WithAdditionalAnnotations(Simplifier.Annotation));
+                            this.Cast((TExpressionSyntax)castedExpression, conversionType)
+                                .WithTriviaFrom(targetNode)
+                                .WithAdditionalAnnotations(Simplifier.Annotation));
                     }
                 }
             }

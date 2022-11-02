@@ -2332,7 +2332,8 @@ End Class")
 
         <Fact>
         Public Async Function RedundantCast4() As Task
-            Await TestInRegularAndScriptAsync(
+            ' Currently not offered, but could be allowed in the future.
+            Await TestMissingAsync(
 "Option Strict On
 Class Program
     Class Base
@@ -2352,27 +2353,6 @@ Class Program
     Private Sub Goo()
         Dim b As Base
         M([||]CType(b, Derived1))
-    End Sub
-End Class",
-"Option Strict On
-Class Program
-    Class Base
-    End Class
-
-    Class Derived1
-        Inherits Base
-    End Class
-
-    Class Derived2
-        Inherits Base
-    End Class
-
-    Private Sub M(ByRef d As Derived2)
-    End Sub
-
-    Private Sub Goo()
-        Dim b As Base
-        M(CType(b, Derived2))
     End Sub
 End Class")
         End Function
