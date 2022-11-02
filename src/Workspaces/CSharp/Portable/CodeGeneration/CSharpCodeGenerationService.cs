@@ -477,9 +477,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CSharpCodeGenerationContextInfo info,
             CancellationToken cancellationToken)
         {
-            if (destinationMember is MemberDeclarationSyntax memberDeclaration)
+            if (destinationMember is BaseMethodDeclarationSyntax methodDeclaration)
             {
-                return AddStatementsToMemberDeclaration<TDeclarationNode>(destinationMember, statements, memberDeclaration);
+                return AddStatementsToBaseMethodDeclaration(destinationMember, statements, methodDeclaration);
             }
             else if (destinationMember is LocalFunctionStatementSyntax localFunctionDeclaration)
             {
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 // Insert the new global statement(s) at the end of any current global statements.
                 // This code relies on 'LastIndexOf' returning -1 when no matching element is found.
                 var insertionIndex = compilationUnit.Members.LastIndexOf(memberDeclaration => memberDeclaration.IsKind(SyntaxKind.GlobalStatement)) + 1;
-                var wrappedStatements = StatementGenerator.GenerateStatements(statements).Select(generated => SyntaxFactory.GlobalStatement(generated)).ToArray();
+                var wrappedStatements = StatementGenerator.GenerateStatements(statements).Select(SyntaxFactory.GlobalStatement).ToArray();
                 return Cast<TDeclarationNode>(compilationUnit.WithMembers(compilationUnit.Members.InsertRange(insertionIndex, wrappedStatements)));
             }
             else if (destinationMember is StatementSyntax statement && statement.IsParentKind(SyntaxKind.GlobalStatement))
@@ -554,19 +554,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             throw new ArgumentException(CSharpWorkspaceResources.No_available_location_found_to_add_statements_to);
         }
 
-        private static TDeclarationNode AddStatementsToMemberDeclaration<TDeclarationNode>(TDeclarationNode destinationMember, IEnumerable<SyntaxNode> statements, MemberDeclarationSyntax memberDeclaration) where TDeclarationNode : SyntaxNode
+        private static TDeclarationNode AddStatementsToBaseMethodDeclaration<TDeclarationNode>(
+            TDeclarationNode destinationMember, IEnumerable<SyntaxNode> statements, BaseMethodDeclarationSyntax baseMethodDeclaration) where TDeclarationNode : SyntaxNode
         {
-            var body = memberDeclaration.GetBody();
-            if (body == null)
-            {
+            var body = baseMethodDeclaration.Body;
+
+            // If the member has an expression body, convert to a block first.
+            // TODO: property determine if the expr should become a return statement or not.
+            baseMethodDeclaration.ExpressionBody?.TryConvertToBlock(
+                baseMethodDeclaration.SemicolonToken, createReturnStatementForExpression: false, out body);
+
+            if (body is null)
                 return destinationMember;
-            }
 
-            var statementNodes = body.Statements.ToList();
-            statementNodes.AddRange(StatementGenerator.GenerateStatements(statements));
-
-            var finalBody = body.WithStatements(SyntaxFactory.List<StatementSyntax>(statementNodes));
-            var finalMember = memberDeclaration.WithBody(finalBody);
+            var finalMember = baseMethodDeclaration
+                .WithExpressionBody(null)
+                .WithSemicolonToken(default)
+                .WithBody(body.WithStatements(body.Statements.AddRange(StatementGenerator.GenerateStatements(statements))));
 
             return Cast<TDeclarationNode>(finalMember);
         }
