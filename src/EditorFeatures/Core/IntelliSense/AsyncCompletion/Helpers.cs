@@ -3,16 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 using EditorAsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
-using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
@@ -136,10 +133,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         // Tab, Enter and Null (call invoke commit) are always commit characters. 
         public static bool IsStandardCommitCharacter(char c)
             => c is '\t' or '\n' or '\0';
-
-        // This is a temporarily method to support preference of IntelliCode items comparing to non-IntelliCode items.
-        // We expect that Editor will introduce this support and we will get rid of relying on the "★" then.
-        public static bool IsPreferredItem(this VSCompletionItem completionItem)
-            => completionItem.DisplayText.StartsWith("★");
     }
 }

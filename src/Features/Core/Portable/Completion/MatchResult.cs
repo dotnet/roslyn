@@ -58,10 +58,19 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private class Comparer : IComparer<MatchResult>
         {
-            // This comparison is used for sorting items in the completion list for the original sorting.
-
             public int Compare(MatchResult x, MatchResult y)
             {
+                // We want to keep IntelliCode at the top regardless of pattern match result.
+                switch ((x.CompletionItem.IsPreferredItem(), y.CompletionItem.IsPreferredItem()))
+                {
+                    case (true, true):
+                        return x.IndexInOriginalSortedOrder - y.IndexInOriginalSortedOrder;
+                    case (true, false):
+                        return -1;
+                    case (false, true):
+                        return 1;
+                }
+
                 var matchX = x.PatternMatch;
                 var matchY = y.PatternMatch;
 

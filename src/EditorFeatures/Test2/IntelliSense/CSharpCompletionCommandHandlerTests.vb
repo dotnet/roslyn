@@ -6751,6 +6751,34 @@ class C
         End Function
 
         <WpfFact>
+        Public Sub TestIntelliCodeItemsAlwayAtTop()
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+class C
+{
+    void Method()
+    {
+        var s = "";
+        s.First$$
+    }
+}
+                              </Document>,
+                              extraExportedTypes:={GetType(IntelliCodeMockProvider)}.ToList())
+
+                Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
+                Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockProvider)().Single()
+
+                state.SendInvokeCompletionList()
+                Dim topThreeItems = state.GetCompletionItems().Take(3).Select(Of String)(Function(item)
+                                                                                             Return item.DisplayText
+                                                                                         End Function)
+
+                Assert.True(topThreeItems.SequenceEqual({"★ Length", "★ Normalize", "First"}))
+                Dim items = state.AssertSelectedCompletionItem("First")
+            End Using
+        End Sub
+
+        <WpfFact>
         Public Async Function WarmUpTypeImportCompletionCache() As Task
 
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
