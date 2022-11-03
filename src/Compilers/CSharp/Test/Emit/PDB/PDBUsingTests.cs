@@ -572,7 +572,8 @@ class A { void M() {  } }
 ");
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "https://github.com/dotnet/roslyn/issues/60045")]
+        [Fact]
+        [WorkItem(60045, "https://github.com/dotnet/roslyn/issues/60045")]
         public void ExternAliases4()
         {
             var src1 = @"
