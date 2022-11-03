@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // In order to provide better completion experience we need to know a type we are inheriting from.
                 // For instance, normally class cannot inherit from itself, so we need to filter it out from the list.
                 var inheritingFrom = (INamedTypeSymbol)context.SemanticModel.GetDeclaredSymbol(context.ContainingTypeDeclaration, cancellationToken)!;
-                return recommendedSymbols.NamedSymbols.SelectAsArray(s => IsValidForInheritanceContext(s, inheritingFrom, context), s => (s, preselect: false));
+                return recommendedSymbols.NamedSymbols.SelectAsArray(s => IsValidForInheritanceContext(s, inheritingFrom, context), s => new SymbolAndSelectionInfo(Symbol: s, Preselect: false));
             }
             else
             {
@@ -85,6 +85,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (symbol is IAliasSymbol alias)
                 symbol = alias.Target;
 
+            // Technically there is a possibility that a namespace contains no valid elements.
+            // But the profit of removing it from the completion list is pretty low while the cost of a possibly large graph walk can be quite significant,
+            // so we just allow any namespace to be present
             if (symbol.IsNamespace())
                 return true;
 
@@ -113,6 +116,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (symbol is IAliasSymbol alias)
                 symbol = alias.Target;
 
+            // Technically there is a possibility that a namespace contains no valid elements.
+            // But the profit of removing it from the completion list is pretty low while the cost of a possibly large graph walk can be quite significant,
+            // so we just allow any namespace to be present
             if (symbol.IsNamespace())
                 return true;
 
@@ -139,6 +145,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (symbol is IAliasSymbol alias)
                 symbol = alias.Target;
 
+            // Technically there is a possibility that a namespace contains no valid elements.
+            // But the profit of removing it from the completion list is pretty low while the cost of a possibly large graph walk can be quite significant,
+            // so we just allow any namespace to be present
             if (symbol.IsNamespace())
                 return true;
 
@@ -152,10 +161,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (namedType.IsStructType() || namedType.IsModuleType())
                 return namedType.GetTypeMembers().Any(m => IsValidForInheritanceContext(m, inheritingFrom, context));
 
+            // Case when checking a class/record in a valid class/record context
+            // Not applicatable when inheriting from struct, because structs cannot be inherited from class/record
             if ((context.IsBaseClassContext || context.IsBaseRecordContext) &&
                 namedType.TypeKind is TypeKind.Class &&
                 inheritingFrom.TypeKind is not TypeKind.Struct)
             {
+                // Static and sealed types are not valid for inheritance context,
+                // but they can have valid nested members (e.g. public class nested in a static class),
+                // so we need to check that
                 if (namedType.IsStatic || namedType.IsSealed)
                     return namedType.GetTypeMembers().Any(m => IsValidForInheritanceContext(m, inheritingFrom, context));
 
@@ -180,6 +194,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                        namedType.GetTypeMembers().Any(m => IsValidForInheritanceContext(m, inheritingFrom, context));
             }
 
+            // Case when checking interface in a valid interface context
             if (context.IsBaseInterfaceContext)
             {
                 if (!namedType.IsInterfaceType())

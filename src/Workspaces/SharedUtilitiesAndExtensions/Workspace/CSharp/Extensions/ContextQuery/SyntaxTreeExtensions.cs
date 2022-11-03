@@ -3069,7 +3069,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             // The first part of condition checks for non-written base type, e.g. "class C : $$" or "class C : Base, $$"
             // The second one checks quilified name cases, e.g. "class C : System.$$" or "class C : global::$$"
-            return (targetToken.IsKind(SyntaxKind.ColonToken, SyntaxKind.CommaToken) && targetToken.Parent is BaseListSyntax { Parent: not EnumDeclarationSyntax }) ||
+            return (targetToken.Kind() is (SyntaxKind.ColonToken or SyntaxKind.CommaToken) && targetToken.Parent is BaseListSyntax { Parent: not EnumDeclarationSyntax }) ||
                     targetToken.Parent is QualifiedNameSyntax { Parent: BaseTypeSyntax or QualifiedNameSyntax { Parent: BaseTypeSyntax } }
                                        or AliasQualifiedNameSyntax { Parent: BaseTypeSyntax or QualifiedNameSyntax { Parent: BaseTypeSyntax } };
         }
