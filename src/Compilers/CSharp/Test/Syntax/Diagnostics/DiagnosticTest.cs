@@ -408,6 +408,7 @@ class X
                             Assert.Equal(7, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_OptionalParamValueMismatch:
+                        case ErrorCode.WRN_ParamsArrayInLambdaOnly:
                             // These are the warnings introduced with the warning "wave" shipped with dotnet 8 and C# 12.
                             Assert.Equal(8, ErrorFacts.GetWarningLevel(errorCode));
                             break;
