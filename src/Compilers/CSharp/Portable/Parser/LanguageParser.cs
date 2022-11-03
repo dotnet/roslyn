@@ -2800,8 +2800,8 @@ parse_member_name:;
 
             // `{` or `=>` definitely start a property.  Also allow
             // `; {` and `; =>` as error recovery fo ra misplaced semicolon.
-            if (isStartOfPropertyBody(this.CurrentToken.Kind) ||
-                (this.CurrentToken.Kind is SyntaxKind.SemicolonToken && isStartOfPropertyBody(this.PeekToken(1).Kind)))
+            if (IsStartOfPropertyBody(this.CurrentToken.Kind) ||
+                (this.CurrentToken.Kind is SyntaxKind.SemicolonToken && IsStartOfPropertyBody(this.PeekToken(1).Kind)))
             {
                 result = this.ParsePropertyDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
                 return true;
@@ -2809,10 +2809,10 @@ parse_member_name:;
 
             result = null;
             return false;
-
-            bool isStartOfPropertyBody(SyntaxKind kind)
-                => kind is SyntaxKind.OpenBraceToken or SyntaxKind.EqualsGreaterThanToken;
         }
+
+        private static bool IsStartOfPropertyBody(SyntaxKind kind)
+            => kind is SyntaxKind.OpenBraceToken or SyntaxKind.EqualsGreaterThanToken;
 
         // Returns null if we can't parse anything (even partially).
         internal MemberDeclarationSyntax ParseMemberDeclaration(SyntaxKind parentKind)
@@ -3038,7 +3038,7 @@ parse_member_name:;
             // e.g. `public int MyProperty; { get; set; }` should still be parsed as a property with a skipped token.
             if (!isGlobalScriptLevel &&
                 kind == SyntaxKind.SemicolonToken &&
-                    this.PeekToken(2).Kind is SyntaxKind.OpenBraceToken or SyntaxKind.EqualsGreaterThanToken)
+                IsStartOfPropertyBody(this.PeekToken(2).Kind))
             {
                 return false;
             }
