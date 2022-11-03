@@ -1877,17 +1877,29 @@ namespace MyNameSpace.Segment
         }
 
         [Fact]
+        public async Task BaseList_InTheMiddleOfLongQualifiedName()
+        {
+            await VerifyItemIsAbsentAsync(@"
+namespace MyNameSpace;
+
+class C : MyNameSpace.$$.Whatever.Whatever", "C");
+        }
+
+        [Fact]
         public async Task BaseList_AliasQuilifiedName()
         {
             await VerifyItemIsAbsentAsync(@"
 class C : global::$$", "C");
         }
 
-        [Fact]
-        public async Task BaseList_AliasQuilifiedName_InTheMiddleOfQualifiedName()
+        [Theory]
+        [InlineData("System")]
+        [InlineData("System.Collections")]
+        [InlineData("System.Collections.Generic")]
+        public async Task BaseList_AliasQuilifiedName_InTheMiddleOfQualifiedName(string qualification)
         {
-            await VerifyItemIsAbsentAsync(@"
-class C : global::$$.System", "C");
+            await VerifyItemIsAbsentAsync($@"
+class C : global::$$.{qualification}", "C");
         }
 
         [Theory]
@@ -1961,17 +1973,29 @@ namespace MyNameSpace.Segment
         }
 
         [Fact]
+        public async Task BaseListStruct_InTheMiddleOfLongQualifiedName()
+        {
+            await VerifyItemIsAbsentAsync(@"
+namespace MyNameSpace;
+
+struct S : MyNameSpace.$$.Whatever.Whatever", "S");
+        }
+
+        [Fact]
         public async Task BaseListStruct_AliasQuilifiedName()
         {
             await VerifyItemIsAbsentAsync(@"
 struct S : global::$$", "S");
         }
 
-        [Fact]
-        public async Task BaseListStruct_AliasQuilifiedName_InTheMiddleOfQualifiedName()
+        [Theory]
+        [InlineData("System")]
+        [InlineData("System.Collections")]
+        [InlineData("System.Collections.Generic")]
+        public async Task BaseListStruct_AliasQuilifiedName_InTheMiddleOfQualifiedName(string qualification)
         {
-            await VerifyItemIsAbsentAsync(@"
-struct S : global::$$.System", "S");
+            await VerifyItemIsAbsentAsync($@"
+struct S : global::$$.{qualification}", "S");
         }
 
         [Theory]
@@ -2073,17 +2097,29 @@ namespace MyNameSpace.Segment
         }
 
         [Fact]
+        public async Task BaseListInterface_InTheMiddleOfLongQualifiedName()
+        {
+            await VerifyItemIsAbsentAsync(@"
+namespace MyNameSpace;
+
+interface I : MyNameSpace.$$.Whatever.Whatever", "I");
+        }
+
+        [Fact]
         public async Task BaseListInterface_AliasQuilifiedName()
         {
             await VerifyItemIsAbsentAsync(@"
 interface I : global::$$", "I");
         }
 
-        [Fact]
-        public async Task BaseListInterface_AliasQuilifiedName_InTheMiddleOfQualifiedName()
+        [Theory]
+        [InlineData("System")]
+        [InlineData("System.Collections")]
+        [InlineData("System.Collections.Generic")]
+        public async Task BaseListInterface_AliasQuilifiedName_InTheMiddleOfQualifiedName(string qualification)
         {
-            await VerifyItemIsAbsentAsync(@"
-interface I : global::$$.System", "I");
+            await VerifyItemIsAbsentAsync($@"
+interface I : global::$$.{qualification}", "I");
         }
 
         [Theory]
@@ -2387,17 +2423,29 @@ namespace MyNameSpace.Segment
         }
 
         [Fact]
+        public async Task BaseListRecord_InTheMiddleOfLongQualifiedName()
+        {
+            await VerifyItemIsAbsentAsync(@"
+namespace MyNameSpace;
+
+record R : MyNameSpace.$$.Whatever.Whatever", "R");
+        }
+
+        [Fact]
         public async Task BaseListRecord_AliasQuilifiedName()
         {
             await VerifyItemIsAbsentAsync(@"
 record R : global::$$", "R");
         }
 
-        [Fact]
-        public async Task BaseListRecord_AliasQuilifiedName_InTheMiddleOfQualifiedName()
+        [Theory]
+        [InlineData("System")]
+        [InlineData("System.Collections")]
+        [InlineData("System.Collections.Generic")]
+        public async Task BaseListRecord_AliasQuilifiedName_InTheMiddleOfQualifiedName(string qualification)
         {
-            await VerifyItemIsAbsentAsync(@"
-record R : global::$$.System", "R");
+            await VerifyItemIsAbsentAsync($@"
+record R : global::$$.{qualification}", "R");
         }
 
         [Theory]
