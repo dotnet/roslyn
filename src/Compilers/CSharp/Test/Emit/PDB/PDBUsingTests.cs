@@ -606,6 +606,7 @@ namespace M
                 });
 
             compilation.VerifyDiagnostics();
+            compilation.GetEmitDiagnostics();
             compilation.VerifyEmitDiagnostics();
         }
 
