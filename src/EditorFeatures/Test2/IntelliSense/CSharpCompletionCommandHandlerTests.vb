@@ -5985,7 +5985,7 @@ class C
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("z")
-                Await state.AssertCompletionItemsContain(displayText:="identifier", displayTextSuffix:=Nothing)
+                Await state.AssertCompletionItemsContain(displayText:="identifier", displayTextSuffix:="")
                 state.AssertSuggestedItemSelected(displayText:="z")
 
                 state.SendBackspace()
@@ -10192,7 +10192,7 @@ class Class
             End Sub
 
             Public Overrides Async Function ProvideCompletionsAsync(context As CompletionContext) As Task
-                Await checkpoint.Task.ConfigureAwait(False)
+                Await Checkpoint.Task.ConfigureAwait(False)
                 Dim item = ImportCompletionItem.Create("TestUnimportedItem", 0, "Test.Name.Spaces", Glyph.ClassPublic, "", CompletionItemFlags.CachedAndExpanded, Nothing)
                 context.AddItem(item)
             End Function
@@ -10359,10 +10359,10 @@ class MyClass
 
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp), True)
-                state.SendTypeChars("cw")
-                Await state.AssertSelectedCompletionItem(displayText:="cw", inlineDescription:=Nothing, isHardSelected:=True)
+                state.SendTypeChars("if")
+                Await state.AssertSelectedCompletionItem(displayText:="if", inlineDescription:=Nothing, isHardSelected:=True)
                 state.SendDownKey()
-                Await state.AssertSelectedCompletionItem(displayText:="cw", inlineDescription:="Console.WriteLine", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="if", description:="if statement" & vbCrLf & "Code snippet for 'if statement'", inlineDescription:="if statement", isHardSelected:=True)
             End Using
         End Function
 
@@ -10416,6 +10416,7 @@ namespace NS
 
             End Using
         End Function
+
         <WpfFact, WorkItem(40393, "https://github.com/dotnet/roslyn/issues/40393")>
         Public Async Function TestAfterUsingStatement1() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -10455,6 +10456,55 @@ namespace NS
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain(displayText:="System", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem(64531, "https://github.com/dotnet/roslyn/issues/64531")>
+        Public Async Function AttributeCompletionNoColonsIfAlreadyPresent() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System;
+class TestAttribute : Attribute
+{
+    public string Text { get; set; }
+}
+ 
+[Test($$ = )]
+class Goo
+{
+}
+                </Document>)
+
+                state.SendTypeChars("Tex")
+                Await state.AssertSelectedCompletionItem("Text", displayTextSuffix:="")
+
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(7, "[Test(Text = )]")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem(64531, "https://github.com/dotnet/roslyn/issues/64531")>
+        Public Async Function AttributeCompletionNoEqualsIfAlreadyPresent() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System;
+class TestAttribute : Attribute
+{
+    public TestAttribute(int argument = 42)
+    { }
+}
+[Test($$:)]
+class Goo
+{ }
+                </Document>)
+
+                state.SendTypeChars("argum")
+                Await state.AssertSelectedCompletionItem("argument", displayTextSuffix:="")
+
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(7, "[Test(argument:)]")
             End Using
         End Function
     End Class

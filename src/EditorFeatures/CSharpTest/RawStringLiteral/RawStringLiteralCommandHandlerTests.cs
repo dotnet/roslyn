@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RawStringLiteral
                 var virtualSpaces = spans.SingleOrDefault(kvp => kvp.Key.StartsWith("VirtualSpaces#"));
                 if (virtualSpaces.Key != null)
                 {
-                    var virtualOffset = int.Parse(virtualSpaces.Key.Substring("VirtualSpaces-".Length));
+                    var virtualOffset = int.Parse(virtualSpaces.Key["VirtualSpaces-".Length..]);
                     Assert.True(TextView.Caret.InVirtualSpace);
                     Assert.Equal(virtualOffset, TextView.Caret.Position.VirtualBufferPosition.VirtualSpaces);
                 }

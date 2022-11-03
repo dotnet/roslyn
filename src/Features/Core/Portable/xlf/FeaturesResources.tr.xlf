@@ -495,6 +495,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">{0} öğesinin görünürlüğünün değiştirilmesi, uygulamanın yeniden başlatılmasını gerektirir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_snippet_for_0">
+        <source>Code snippet for '{0}'</source>
+        <target state="new">Code snippet for '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Comments_not_allowed">
         <source>Comments not allowed</source>
         <target state="translated">Açıklamalara izin verilmiyor</target>

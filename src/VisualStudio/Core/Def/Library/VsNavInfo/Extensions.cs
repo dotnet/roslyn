@@ -27,14 +27,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
 
                 while (separatorPos >= 0)
                 {
-                    builder.Add(name.Substring(start, separatorPos - start), type);
+                    builder.Add(name[start..separatorPos], type);
                     start = separatorPos + 1;
                     separatorPos = name.IndexOf(separator, start);
                 }
 
                 if (start < name.Length)
                 {
-                    builder.Add(name.Substring(start), type);
+                    builder.Add(name[start..], type);
                 }
             }
             else

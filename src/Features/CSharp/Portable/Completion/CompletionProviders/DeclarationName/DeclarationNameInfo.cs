@@ -23,27 +23,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
         private static readonly ImmutableArray<SymbolKindOrTypeKind> s_propertySyntaxKind =
             ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Property));
 
+        private readonly ImmutableArray<SymbolKindOrTypeKind> _possibleSymbolKinds;
+
+        public readonly DeclarationModifiers Modifiers;
+        public readonly Accessibility? DeclaredAccessibility;
+
+        public readonly ITypeSymbol? Type;
+        public readonly IAliasSymbol? Alias;
+        public readonly ISymbol? Symbol;
+
+        public ImmutableArray<SymbolKindOrTypeKind> PossibleSymbolKinds => _possibleSymbolKinds.NullToEmpty();
+
         public NameDeclarationInfo(
             ImmutableArray<SymbolKindOrTypeKind> possibleSymbolKinds,
             Accessibility? accessibility,
-            DeclarationModifiers declarationModifiers,
-            ITypeSymbol? type,
-            IAliasSymbol? alias)
+            DeclarationModifiers declarationModifiers = default,
+            ITypeSymbol? type = null,
+            IAliasSymbol? alias = null,
+            ISymbol? symbol = null)
         {
-            PossibleSymbolKinds = possibleSymbolKinds;
+            _possibleSymbolKinds = possibleSymbolKinds;
             DeclaredAccessibility = accessibility;
             Modifiers = declarationModifiers;
             Type = type;
             Alias = alias;
+            Symbol = symbol;
         }
 
-        public ImmutableArray<SymbolKindOrTypeKind> PossibleSymbolKinds { get; }
-        public DeclarationModifiers Modifiers { get; }
-        public ITypeSymbol? Type { get; }
-        public IAliasSymbol? Alias { get; }
-        public Accessibility? DeclaredAccessibility { get; }
-
-        internal static async Task<NameDeclarationInfo> GetDeclarationInfoAsync(Document document, int position, CancellationToken cancellationToken)
+        public static async Task<NameDeclarationInfo> GetDeclarationInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken).GetPreviousTokenIfTouchingWord(position);
@@ -70,12 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
                 return result;
             }
 
-            return new NameDeclarationInfo(
-                possibleSymbolKinds: ImmutableArray<SymbolKindOrTypeKind>.Empty,
-                accessibility: null,
-                declarationModifiers: default,
-                type: null,
-                alias: null);
+            return default;
         }
 
         private static bool IsTupleTypeElement(
@@ -120,32 +122,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
         private static bool IsPossibleOutVariableDeclaration(SyntaxToken token, SemanticModel semanticModel,
             ITypeInferenceService typeInferenceService, CancellationToken cancellationToken, out NameDeclarationInfo result)
         {
-            if (!token.IsKind(SyntaxKind.IdentifierToken) || !token.Parent.IsKind(SyntaxKind.IdentifierName))
+            if (token.IsKind(SyntaxKind.IdentifierToken) &&
+                token.Parent.IsKind(SyntaxKind.IdentifierName))
             {
-                result = default;
-                return false;
-            }
+                var argument = token.Parent.Parent as ArgumentSyntax  // var is child of ArgumentSyntax, eg. Goo(out var $$
+                    ?? token.Parent.Parent?.Parent as ArgumentSyntax; // var is child of DeclarationExpression 
 
-            var argument = token.Parent.Parent as ArgumentSyntax  // var is child of ArgumentSyntax, eg. Goo(out var $$
-                ?? token.Parent.Parent!.Parent as ArgumentSyntax; // var is child of DeclarationExpression 
-                                                                  // under ArgumentSyntax, eg. Goo(out var a$$
+                // under ArgumentSyntax, eg. Goo(out var a$$
+                if (argument is { RefOrOutKeyword: SyntaxToken(SyntaxKind.OutKeyword) })
+                {
+                    var type = typeInferenceService.InferType(semanticModel, argument.SpanStart, objectAsDefault: false, cancellationToken: cancellationToken);
+                    if (type != null)
+                    {
+                        var parameter = CSharpSemanticFacts.Instance.FindParameterForArgument(
+                            semanticModel, argument, allowUncertainCandidates: true, allowParams: false, cancellationToken);
 
-            if (argument == null || !argument.RefOrOutKeyword.IsKind(SyntaxKind.OutKeyword))
-            {
-                result = default;
-                return false;
-            }
-
-            var type = typeInferenceService.InferType(semanticModel, argument.SpanStart, objectAsDefault: false, cancellationToken: cancellationToken);
-            if (type != null)
-            {
-                result = new NameDeclarationInfo(
-                    ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Local)),
-                    Accessibility.NotApplicable,
-                    new DeclarationModifiers(),
-                    type,
-                    alias: null);
-                return true;
+                        result = new NameDeclarationInfo(
+                            ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Local)),
+                            Accessibility.NotApplicable,
+                            type: type,
+                            symbol: parameter);
+                        return true;
+                    }
+                }
             }
 
             result = default;
@@ -365,9 +364,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
                     result = new NameDeclarationInfo(
                         possibleDeclarationComputer(default),
                         accessibility: null,
-                        declarationModifiers: default,
-                        type,
-                        alias);
+                        type: type,
+                        alias: alias);
                     return true;
                 }
             }
@@ -411,10 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
             {
                 result = new NameDeclarationInfo(
                     ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.TypeParameter)),
-                    Accessibility.NotApplicable,
-                    new DeclarationModifiers(),
-                    type: null,
-                    alias: null);
+                    Accessibility.NotApplicable);
 
                 return true;
             }
