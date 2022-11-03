@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
@@ -613,6 +614,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
                     // We also assume that this name could be resolved to a type.
                     return argumentSyntax.Expression;
             }
+        }
+
+        public static Glyph GetGlyph(SymbolKind kind, Accessibility? declaredAccessibility)
+        {
+            var publicIcon = kind switch
+            {
+                SymbolKind.Field => Glyph.FieldPublic,
+                SymbolKind.Local => Glyph.Local,
+                SymbolKind.Method => Glyph.MethodPublic,
+                SymbolKind.Parameter => Glyph.Parameter,
+                SymbolKind.Property => Glyph.PropertyPublic,
+                SymbolKind.RangeVariable => Glyph.RangeVariable,
+                SymbolKind.TypeParameter => Glyph.TypeParameter,
+                _ => throw ExceptionUtilities.UnexpectedValue(kind),
+            };
+
+            switch (declaredAccessibility)
+            {
+                case Accessibility.Private:
+                    publicIcon += Glyph.ClassPrivate - Glyph.ClassPublic;
+                    break;
+
+                case Accessibility.Protected:
+                case Accessibility.ProtectedAndInternal:
+                case Accessibility.ProtectedOrInternal:
+                    publicIcon += Glyph.ClassProtected - Glyph.ClassPublic;
+                    break;
+
+                case Accessibility.Internal:
+                    publicIcon += Glyph.ClassInternal - Glyph.ClassPublic;
+                    break;
+            }
+
+            return publicIcon;
+        }
+
+        public static SymbolKind GetSymbolKind(SymbolKindOrTypeKind symbolKindOrTypeKind)
+        {
+            // There's no special glyph for local functions.
+            // We don't need to differentiate them at this point.
+            return symbolKindOrTypeKind.SymbolKind.HasValue ? symbolKindOrTypeKind.SymbolKind.Value :
+                symbolKindOrTypeKind.MethodKind.HasValue ? SymbolKind.Method :
+                throw ExceptionUtilities.Unreachable();
         }
     }
 }
