@@ -5912,7 +5912,33 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        Public Async Function AfterIdentifierInCaseLabel(showCompletionInArgumentLists As Boolean) As Task
+        Public Async Function AfterIdentifierInCaseLabel1(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case Identifier $$
+        }
+    }
+}
+                              </Document>,
+                  showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("w")
+                Await state.AssertSelectedCompletionItem(displayText:="when", isHardSelected:=False)
+
+                state.SendBackspace()
+                state.SendTypeChars("i")
+                Await state.AssertSelectedCompletionItem(displayText:="identifier", isHardSelected:=False)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function AfterIdentifierInCaseLabel2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class C
@@ -5928,13 +5954,7 @@ class C
                               </Document>,
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
-                state.SendTypeChars("w")
-                Await state.AssertSelectedCompletionItem(displayText:="when", isHardSelected:=False)
-
-                state.SendBackspace()
-                state.SendTypeChars("i")
-                Await state.AssertSelectedCompletionItem(displayText:="identifier", isHardSelected:=False)
-
+                Await state.AssertNoCompletionSession()
             End Using
         End Function
 
@@ -5963,7 +5983,6 @@ class C
                 state.SendBackspace()
                 state.SendTypeChars("i")
                 Await state.AssertSelectedCompletionItem(displayText:="identifier", isHardSelected:=False)
-
             End Using
         End Function
 
@@ -5992,7 +6011,6 @@ class C
                 state.SendBackspace()
                 state.SendTypeChars("i")
                 Await state.AssertSelectedCompletionItem(displayText:="identifier", isHardSelected:=False)
-
             End Using
         End Function
 
@@ -6020,7 +6038,6 @@ class C
                 state.SendBackspace()
                 state.SendTypeChars("w")
                 Await state.AssertSelectedCompletionItem(displayText:="when", isHardSelected:=False)
-
             End Using
         End Function
 
@@ -6043,7 +6060,6 @@ class C
 
                 state.SendTypeChars("w")
                 Await state.AssertSelectedCompletionItem(displayText:="when", isHardSelected:=True)
-
             End Using
         End Function
 
