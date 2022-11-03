@@ -5,7 +5,6 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
