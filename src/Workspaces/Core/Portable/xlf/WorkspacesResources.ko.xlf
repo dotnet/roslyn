@@ -237,6 +237,11 @@
         <target state="translated">지정된 참조가 이미 솔루션에 포함되어 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unexpected_value_0_in_DocumentKinds_array">
+        <source>Unexpected value '{0}' in DocumentKinds array.</source>
+        <target state="new">Unexpected value '{0}' in DocumentKinds array.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unknown">
         <source>Unknown</source>
         <target state="translated">알 수 없음</target>
