@@ -120,9 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             // Collapse all text changes down to a single change (for clients that only care about that), but also keep
             // all the individual changes around for clients that prefer the fine-grained information.
-            return CompletionChange.Create(
-                CodeAnalysis.Completion.Utilities.Collapse(newText, allChanges),
-                allChanges);
+            return CompletionChange.Create(CommonCompletionUtilities.Collapse(newText, allChanges), allChanges);
         }
 
         private static async Task<CompletionDescription?> GetConversionDescriptionAsync(Document document, CompletionItem item, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)

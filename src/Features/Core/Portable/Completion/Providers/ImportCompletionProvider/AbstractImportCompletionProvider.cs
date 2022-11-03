@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var newText = text.WithChanges(builder);
 
             var changes = builder.ToImmutable();
-            var change = Utilities.Collapse(newText, changes);
+            var change = CommonCompletionUtilities.Collapse(newText, changes);
             return CompletionChange.Create(change, changes);
 
             async Task<bool> ShouldCompleteWithFullyQualifyTypeName()

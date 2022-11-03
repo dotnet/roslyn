@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             var allChangesDocument = document.WithText(allChangesText);
             var allTextChanges = await allChangesDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var change = Utilities.Collapse(allChangesText, allTextChanges.AsImmutable());
+            var change = CommonCompletionUtilities.Collapse(allChangesText, allTextChanges.AsImmutable());
 
             // Converts the snippet to an LSP formatted snippet string.
             var lspSnippet = await RoslynLSPSnippetConverter.GenerateLSPSnippetAsync(allChangesDocument, snippet.CursorPosition, snippet.Placeholders, change, item.Span.Start, cancellationToken).ConfigureAwait(false);

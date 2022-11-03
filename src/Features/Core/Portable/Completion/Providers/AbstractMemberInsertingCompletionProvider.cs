@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var changes = await newDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
             var changesArray = changes.ToImmutableArray();
-            var change = Utilities.Collapse(newText, changesArray);
+            var change = CommonCompletionUtilities.Collapse(newText, changesArray);
 
             return CompletionChange.Create(change, changesArray, newPosition, includesCommitCharacter: true);
         }

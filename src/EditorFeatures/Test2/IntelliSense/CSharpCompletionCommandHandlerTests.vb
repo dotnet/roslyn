@@ -8144,11 +8144,11 @@ class C
             End Sub
 
             Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
-                Dim intelliCodeItem = CompletionItem.Create(displayText:="★ Length", filterText:="Length")
+                Dim intelliCodeItem = CompletionItem.Create(displayText:="★ Length", filterText:="Length").MarkPreferredItem()
                 intelliCodeItem.AutomationText = AutomationTextString
                 context.AddItem(intelliCodeItem)
 
-                context.AddItem(CompletionItem.Create(displayText:="★ Normalize", filterText:="Normalize", displayTextSuffix:="()"))
+                context.AddItem(CompletionItem.Create(displayText:="★ Normalize", filterText:="Normalize", displayTextSuffix:="()").MarkPreferredItem())
                 context.AddItem(CompletionItem.Create(displayText:="Normalize", filterText:="Normalize"))
                 context.AddItem(CompletionItem.Create(displayText:="Length", filterText:="Length"))
                 context.AddItem(CompletionItem.Create(displayText:="ToString", filterText:="ToString", displayTextSuffix:="()"))
@@ -9522,7 +9522,7 @@ class C
 
             Public Overrides Async Function ProvideCompletionsAsync(context As CompletionContext) As Task
                 Await MyBase.ProvideCompletionsAsync(context).ConfigureAwait(False)
-                context.AddItem(CompletionItem.Create(displayText:="★ Length2", filterText:="Length"))
+                context.AddItem(CompletionItem.Create(displayText:="★ Length2", filterText:="Length").MarkPreferredItem())
             End Function
         End Class
 
@@ -9847,7 +9847,7 @@ class C
 
             Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
                 Dim rules = CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection).WithMatchPriority(MatchPriority.Preselect)
-                context.AddItem(CompletionItem.Create(displayText:="★ length", filterText:="length", rules:=rules))
+                context.AddItem(CompletionItem.Create(displayText:="★ length", filterText:="length", rules:=rules).MarkPreferredItem())
                 Return Task.CompletedTask
             End Function
 

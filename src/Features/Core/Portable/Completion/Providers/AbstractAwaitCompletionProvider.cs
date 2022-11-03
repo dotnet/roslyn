@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -216,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // Collapse all text changes down to a single change (for clients that only care about that), but also keep
             // all the individual changes around for clients that prefer the fine-grained information.
-            return CompletionChange.Create(Utilities.Collapse(newText, allChanges), allChanges);
+            return CompletionChange.Create(CommonCompletionUtilities.Collapse(newText, allChanges), allChanges);
         }
 
         /// <summary>
