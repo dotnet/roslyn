@@ -143,12 +143,12 @@ namespace BuildBoss
 
         private IEnumerable<string> GetAllowedPackageReferenceVersions(PackageReference packageReference)
         {
-            // If this is a generator project, if it has a reference to Microsoft.CodeAnalysis.Common, that means it's
+            // If this is a generator project, if it has a reference to Microsoft.CodeAnalysis.[Common|CSharp], that means it's
             // a source generator. In that case, we require the version of the API being built against to match the toolset
             // version, so that way the source generator can actually be loaded by the toolset. We don't apply this rule to
             // any other project, as any other project having a reason to reference a version of Roslyn via a PackageReference
             // probably doesn't fall under this rule.
-            if (ProjectFilePath.Contains("CompilerGeneratorTools") && packageReference.Name == "Microsoft.CodeAnalysis.Common")
+            if (ProjectFilePath.Contains("CompilerGeneratorTools") && packageReference.Name is "Microsoft.CodeAnalysis.Common" or "Microsoft.CodeAnalysis.CSharp")
             {
                 yield return "$(SourceGeneratorMicrosoftCodeAnalysisVersion)";
             }
