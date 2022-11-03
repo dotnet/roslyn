@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 {
                     if (ancestor.IsKind(SyntaxKind.BaseConstructorInitializer) || ancestor.IsKind(SyntaxKind.ThisConstructorInitializer))
                     {
-                        return selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.Selection_cannot_be_in_base_constructor_initializer));
+                        return selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.Selection_cannot_be_in_constructor_initializer));
                     }
 
                     if (ancestor.Kind() is SyntaxKind.AnonymousMethodExpression or SyntaxKind.ParenthesizedLambdaExpression or SyntaxKind.SimpleLambdaExpression)
