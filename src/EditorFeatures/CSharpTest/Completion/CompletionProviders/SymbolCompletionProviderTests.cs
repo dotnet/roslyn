@@ -1629,8 +1629,7 @@ class B : {qualification1}Base$$, {qualification2}I
 ", "BaseClass");
         }
 
-        [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
-        [Theory]
+        [Theory, WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
         [InlineData("")]
         [InlineData("MyNameSpace.")]
         public async Task BaseList_NotSelf(string qualification)
@@ -1642,8 +1641,7 @@ class B : {qualification}$$
 ", "B");
         }
 
-        [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
-        [Theory]
+        [Theory, WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
         [InlineData("")]
         [InlineData("MyNameSpace.")]
         public async Task BaseList_NotSelf_NestedClass(string qualification)
@@ -1657,8 +1655,7 @@ class B : {qualification}$$
 }}", "B");
         }
 
-        [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
-        [Theory]
+        [Theory, WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
         [InlineData("")]
         [InlineData("MyNameSpace.")]
         public async Task BaseList_Self_NestedInterface(string qualification)
@@ -1672,8 +1669,7 @@ class B : {qualification}$$
 }}", "B");
         }
 
-        [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
-        [Theory]
+        [Theory, WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
         [CombinatorialData]
         public async Task NotDirectlyBaseList_Self(
             [CombinatorialValues("", "System.Collections.Generic.")] string qualification1,
@@ -2043,8 +2039,7 @@ interface I : {qualification}$$
 ", "N");
         }
 
-        [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
-        [Theory]
+        [Theory, WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
         [InlineData("")]
         [InlineData("MyNameSpace.")]
         public async Task BaseListInterface_NotSelf(string qualification)
@@ -2056,8 +2051,7 @@ interface I : {qualification}$$
 ", "I");
         }
 
-        [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
-        [Theory]
+        [Theory, WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
         [InlineData("")]
         [InlineData("MyNameSpace.")]
         public async Task BaseListInterface_NotSelf_NestedInterface(string qualification)
@@ -2320,8 +2314,7 @@ record struct B : {qualification}$$
 ", "R");
         }
 
-        [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
-        [Theory]
+        [Theory, WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
         [CombinatorialData]
         public async Task BaseListAnyRecord_NotSelf(
             [CombinatorialValues("record", "record class", "record struct")] string recordType,
@@ -2334,8 +2327,7 @@ namespace MyNameSpace;
 ", "B");
         }
 
-        [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
-        [Theory]
+        [Theory, WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
         [CombinatorialData]
         public async Task BaseListAnyRecord_NotSelf_NestedRecord(
             [CombinatorialValues("record", "record class", "record struct")] string recordType1,
@@ -2351,8 +2343,7 @@ namespace MyNameSpace;
 }}", "B");
         }
 
-        [WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
-        [Theory]
+        [Theory, WorkItem(60935, "https://github.com/dotnet/roslyn/issues/60935")]
         [CombinatorialData]
         public async Task BaseListAnyRecord_Self_NestedInterface(
             [CombinatorialValues("record", "record class", "record struct")] string recordType,
@@ -2540,13 +2531,11 @@ enum MyEnum : {quialification}$$");
             => await VerifyItemExistsAsync(@"class c { void M(string args) { $$", "args");
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/55969")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(55969, "https://github.com/dotnet/roslyn/issues/55969")]
         public async Task Parameters_TopLevelStatement_1()
             => await VerifyItemExistsAsync(@"$$", "args", sourceCodeKind: SourceCodeKind.Regular);
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/55969")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(55969, "https://github.com/dotnet/roslyn/issues/55969")]
         public async Task Parameters_TopLevelStatement_2()
             => await VerifyItemExistsAsync(
@@ -2555,7 +2544,6 @@ Console.WriteLine();
 $$", "args", sourceCodeKind: SourceCodeKind.Regular);
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/55969")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(55969, "https://github.com/dotnet/roslyn/issues/55969")]
         public async Task Parameters_TopLevelStatement_3()
             => await VerifyItemExistsAsync(
@@ -3921,7 +3909,6 @@ class C { }";
         }
 
         [Fact, WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterNamespace()
         {
             var markup = @"
@@ -3936,7 +3923,6 @@ namespace Test
         }
 
         [Fact, WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterNamespace2()
         {
             var markup = @"
@@ -3954,7 +3940,6 @@ namespace Test
         }
 
         [Fact, WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameWhenSuffixlessFormIsKeyword()
         {
             var markup = @"
@@ -3970,7 +3955,6 @@ namespace Test
         }
 
         [Fact, WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterNamespaceWhenSuffixlessFormIsKeyword()
         {
             var markup = @"
@@ -3986,7 +3970,6 @@ namespace Test
         }
 
         [Fact, WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task KeywordsUsedAsLocals()
         {
             var markup = @"
@@ -4015,7 +3998,6 @@ class C
         }
 
         [Fact, WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task QueryContextualKeywords1()
         {
             var markup = @"
@@ -4033,7 +4015,6 @@ class C
         }
 
         [Fact, WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task QueryContextualKeywords2()
         {
             var markup = @"
@@ -4055,7 +4036,6 @@ class C
         }
 
         [Fact, WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task QueryContextualKeywords3()
         {
             var markup = @"
@@ -4077,7 +4057,6 @@ class C
         }
 
         [Fact, WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterGlobalAlias()
         {
             var markup = @"
@@ -4089,7 +4068,6 @@ class Program { }";
         }
 
         [Fact, WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterGlobalAliasWhenSuffixlessFormIsKeyword()
         {
             var markup = @"
@@ -10742,7 +10720,6 @@ class C
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
         public async Task NoCompletionInLocalFuncGenericParamList()
@@ -10758,7 +10735,6 @@ class C
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
         public async Task CompletionForAwaitWithoutAsync()
@@ -10852,7 +10828,6 @@ class C
         }
 
         [Fact, WorkItem(14163, "https://github.com/dotnet/roslyn/issues/14163")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionDescription()
         {
@@ -10869,7 +10844,6 @@ class C
         }
 
         [Fact, WorkItem(14163, "https://github.com/dotnet/roslyn/issues/14163")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionDescription2()
         {
@@ -11854,7 +11828,6 @@ public class C
         }
 
         [Fact, WorkItem(38074, "https://github.com/dotnet/roslyn/issues/38074")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionInStaticMethod()
         {
