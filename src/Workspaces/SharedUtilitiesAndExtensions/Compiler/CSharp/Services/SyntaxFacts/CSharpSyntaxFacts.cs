@@ -1309,9 +1309,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public bool IsAnyAssignmentStatement([NotNullWhen(true)] SyntaxNode? node)
             => false;
 
-        public SyntaxToken GetIdentifierOfConstructorDeclaration(SyntaxNode node)
-            => ((ConstructorDeclarationSyntax)node).Identifier;
-
         public SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node)
             => ((SimpleNameSyntax)node).Identifier;
 
