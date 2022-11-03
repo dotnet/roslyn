@@ -251,6 +251,7 @@
     <SystemSecurityPrincipalVersion>4.3.0</SystemSecurityPrincipalVersion>
     <SystemTextEncodingCodePagesVersion>6.0.0</SystemTextEncodingCodePagesVersion>
     <SystemTextEncodingExtensionsVersion>4.3.0</SystemTextEncodingExtensionsVersion>
+    <SystemThreadingChannelsVersion>6.0.0</SystemThreadingChannelsVersion>
     <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild. -->
     <SystemTextJsonVersion>6.0.0</SystemTextJsonVersion>
     <SystemThreadingChannelsVersion>6.0.0</SystemThreadingChannelsVersion>
@@ -275,6 +276,9 @@
     <xunitrunnerconsoleVersion>2.4.5</xunitrunnerconsoleVersion>
     <xunitrunnerwpfVersion>1.0.51</xunitrunnerwpfVersion>
     <xunitrunnervisualstudioVersion>2.4.5</xunitrunnervisualstudioVersion>
+    <xunitrunnerutilityVersion>$(xunitVersion)</xunitrunnerutilityVersion>
+    <xunitextensibilityexecutionVersion>$(xunitVersion)</xunitextensibilityexecutionVersion>
+    <xunitabstractionsVersion>2.0.3</xunitabstractionsVersion>
     <xunitextensibilityexecutionVersion>$(xunitVersion)</xunitextensibilityexecutionVersion>
     <runtimeWinX64MicrosoftNETCoreILAsmPackageVersion>$(ILAsmPackageVersion)</runtimeWinX64MicrosoftNETCoreILAsmPackageVersion>
     <runtimeLinuxX64MicrosoftNETCoreILAsmPackageVersion>$(ILAsmPackageVersion)</runtimeLinuxX64MicrosoftNETCoreILAsmPackageVersion>

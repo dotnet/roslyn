@@ -9,6 +9,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.CSharp
+Imports Microsoft.CodeAnalysis.CSharp.ExternalAccess.Pythia.Api
 Imports Microsoft.CodeAnalysis.CSharp.Formatting
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
@@ -5911,7 +5912,33 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        Public Async Function AfterIdentifierInCaseLabel(showCompletionInArgumentLists As Boolean) As Task
+        Public Async Function AfterIdentifierInCaseLabel1(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case Identifier $$
+        }
+    }
+}
+                              </Document>,
+                  showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("w")
+                Await state.AssertSelectedCompletionItem(displayText:="when", isHardSelected:=False)
+
+                state.SendBackspace()
+                state.SendTypeChars("i")
+                Await state.AssertSelectedCompletionItem(displayText:="identifier", isHardSelected:=False)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function AfterIdentifierInCaseLabel2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class C
@@ -5927,13 +5954,7 @@ class C
                               </Document>,
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
-                state.SendTypeChars("w")
-                Await state.AssertSelectedCompletionItem(displayText:="when", isHardSelected:=False)
-
-                state.SendBackspace()
-                state.SendTypeChars("i")
-                Await state.AssertSelectedCompletionItem(displayText:="identifier", isHardSelected:=False)
-
+                Await state.AssertNoCompletionSession()
             End Using
         End Function
 
@@ -5962,7 +5983,6 @@ class C
                 state.SendBackspace()
                 state.SendTypeChars("i")
                 Await state.AssertSelectedCompletionItem(displayText:="identifier", isHardSelected:=False)
-
             End Using
         End Function
 
@@ -5991,7 +6011,6 @@ class C
                 state.SendBackspace()
                 state.SendTypeChars("i")
                 Await state.AssertSelectedCompletionItem(displayText:="identifier", isHardSelected:=False)
-
             End Using
         End Function
 
@@ -6019,7 +6038,6 @@ class C
                 state.SendBackspace()
                 state.SendTypeChars("w")
                 Await state.AssertSelectedCompletionItem(displayText:="when", isHardSelected:=False)
-
             End Using
         End Function
 
@@ -6042,7 +6060,6 @@ class C
 
                 state.SendTypeChars("w")
                 Await state.AssertSelectedCompletionItem(displayText:="when", isHardSelected:=True)
-
             End Using
         End Function
 
@@ -10416,6 +10433,76 @@ namespace NS
 
             End Using
         End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestDeclarationNameSuggestionDoNotCrash() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+using System;
+class MyClass
+{
+    public void MyMethod()
+    {
+        ArgumentException $$
+    }
+}
+                              </Document>)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp), False)
+                state.SendInvokeCompletionList()
+                ' We should still work normally w/o pythia recommender
+                Await state.AssertCompletionItemsContainAll("argumentException", "exception")
+            End Using
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestDeclarationNameSuggestionWithPythiaRecommender() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+using System;
+class MyClass
+{
+    public void MyMethod()
+    {
+        ArgumentException $$
+    }
+}
+                              </Document>,
+                              extraExportedTypes:={GetType(TestPythiaDeclarationNameRecommenderImplmentation)}.ToList())
+
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp), False)
+
+                state.SendInvokeCompletionList()
+                Dim computedItems = (Await state.GetCompletionSession()).GetComputedItems(CancellationToken.None)
+
+                Assert.NotNull(computedItems.SuggestionItem)
+
+                Dim firstItem = computedItems.Items.First()
+                Assert.Equal("PythiaRecommendName", firstItem.DisplayText)
+                Assert.True({"PythiaRecommendName", "argumentException", "exception"}.All(Function(v) computedItems.Items.Any(Function(i) i.DisplayText = v)))
+            End Using
+        End Function
+
+        <Export(GetType(IPythiaDeclarationNameRecommenderImplmentation))>
+        <[Shared]>
+        <PartNotDiscoverable>
+        Private Class TestPythiaDeclarationNameRecommenderImplmentation
+            Implements IPythiaDeclarationNameRecommenderImplmentation
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+            End Sub
+
+            Public Function ProvideRecommendationsAsync(context As PythiaDeclarationNameContext, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of String)) Implements IPythiaDeclarationNameRecommenderImplmentation.ProvideRecommendationsAsync
+                Dim result = ImmutableArray.Create("PythiaRecommendName")
+                Return Task.FromResult(result)
+            End Function
+        End Class
 
         <WpfFact, WorkItem(40393, "https://github.com/dotnet/roslyn/issues/40393")>
         Public Async Function TestAfterUsingStatement1() As Task

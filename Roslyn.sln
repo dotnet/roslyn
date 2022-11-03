@@ -521,6 +521,8 @@ Project("{9a19103f-16f7-4668-be54-9a1e7a4f7556}") = "Microsoft.CodeAnalysis.CSha
 EndProject
 Project("{778dae3c-4631-46ea-aa77-85c1314464d9}") = "Microsoft.CodeAnalysis.VisualBasic.LanguageServer.Protocol", "src\Features\LanguageServer\Microsoft.CodeAnalysis.VisualBasic.LanguageServer.Protocol\Microsoft.CodeAnalysis.VisualBasic.LanguageServer.Protocol.vbproj", "{F836BDB1-4EC7-4F4C-B2E9-BCD721C9E650}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestDiscoveryWorker", "src\Tools\TestDiscoveryWorker\TestDiscoveryWorker.csproj", "{8BC50AFF-1EBF-4E9A-AEBB-04F387AA800F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1271,6 +1273,10 @@ Global
 		{F836BDB1-4EC7-4F4C-B2E9-BCD721C9E650}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F836BDB1-4EC7-4F4C-B2E9-BCD721C9E650}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F836BDB1-4EC7-4F4C-B2E9-BCD721C9E650}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8BC50AFF-1EBF-4E9A-AEBB-04F387AA800F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BC50AFF-1EBF-4E9A-AEBB-04F387AA800F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BC50AFF-1EBF-4E9A-AEBB-04F387AA800F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BC50AFF-1EBF-4E9A-AEBB-04F387AA800F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1508,6 +1514,7 @@ Global
 		{8A29449D-411E-49E4-B99E-E8428076BB21} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
 		{4C1B26EE-465B-4B30-9E50-0285EF7AB035} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
 		{F836BDB1-4EC7-4F4C-B2E9-BCD721C9E650} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
+		{8BC50AFF-1EBF-4E9A-AEBB-04F387AA800F} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
