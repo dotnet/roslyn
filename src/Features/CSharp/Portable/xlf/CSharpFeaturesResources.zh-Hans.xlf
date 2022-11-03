@@ -232,9 +232,9 @@
         <target state="translated">反向“for”语句</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Selection_cannot_be_in_base_constructor_initialize">
-        <source>Selection cannot be in base constructor initializer</source>
-        <target state="new">Selection cannot be in base constructor initializer</target>
+      <trans-unit id="Selection_cannot_be_in_constructor_initializer">
+        <source>Selection cannot be in constructor initializer</source>
+        <target state="new">Selection cannot be in constructor initializer</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_cannot_include_global_statements">

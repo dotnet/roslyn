@@ -632,7 +632,7 @@
   <data name="Apply_readonly_struct_preferences" xml:space="preserve">
     <value>Apply 'readonly struct' preferences</value>
   </data>
-  <data name="Selection_cannot_be_in_base_constructor_initializer" xml:space="preserve">
-    <value>Selection cannot be in base constructor initializer</value>
+  <data name="Selection_cannot_be_in_constructor_initializer" xml:space="preserve">
+    <value>Selection cannot be in constructor initializer</value>
   </data>
 </root>

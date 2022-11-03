@@ -14,8 +14,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -117,9 +115,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
             }
 
-            if (_localFunction && selectionInfo.CommonRootFromOriginalSpan.AncestorsAndSelf().Any(c => c.IsKind(SyntaxKind.BaseConstructorInitializer)))
+            if (_localFunction)
             {
-                return selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.Selection_cannot_be_in_base_constructor_initialize));
+                foreach (var ancestor in selectionInfo.CommonRootFromOriginalSpan.AncestorsAndSelf())
+                {
+                    if (ancestor.IsKind(SyntaxKind.BaseConstructorInitializer) || ancestor.IsKind(SyntaxKind.ThisConstructorInitializer))
+                    {
+                        return selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.Selection_cannot_be_in_base_constructor_initializer));
+                    }
+
+                    if (ancestor.Kind() is SyntaxKind.AnonymousMethodExpression or SyntaxKind.ParenthesizedLambdaExpression or SyntaxKind.SimpleLambdaExpression)
+                    {
+                        break;
+                    }
+                }
             }
 
             if (!selectionInfo.SelectionInExpression)
