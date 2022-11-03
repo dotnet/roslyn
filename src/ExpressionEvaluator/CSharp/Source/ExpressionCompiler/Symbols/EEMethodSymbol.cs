@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
-            get { throw ExceptionUtilities.Unreachable(); }
+            get { return ImmutableArray.Create(CSharpSyntaxTree.Dummy.GetRoot().GetReference()); }
         }
 
         public override Accessibility DeclaredAccessibility
