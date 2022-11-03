@@ -18,40 +18,40 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 {
     public class PerformanceTrackerServiceTests
     {
-        [Fact]
-        public void TestTooFewSamples()
+        [Theory, CombinatorialData]
+        public void TestTooFewSamples(bool forSpanAnalysis)
         {
             // minimum sample is 100
-            var badAnalyzers = GetBadAnalyzers(@"TestFiles\analyzer_input.csv", to: 80);
+            var badAnalyzers = GetBadAnalyzers(@"TestFiles\analyzer_input.csv", to: 80, forSpanAnalysis);
 
             Assert.Empty(badAnalyzers);
         }
 
-        [Fact]
-        public void TestTracking()
+        [Theory, CombinatorialData]
+        public void TestTracking(bool forSpanAnalysis)
         {
-            var badAnalyzers = GetBadAnalyzers(@"TestFiles\analyzer_input.csv", to: 200);
+            var badAnalyzers = GetBadAnalyzers(@"TestFiles\analyzer_input.csv", to: 200, forSpanAnalysis);
 
             VerifyBadAnalyzer(badAnalyzers[0], "CSharpRemoveUnnecessaryCastDiagnosticAnalyzer", 101.244432561581, 54.48, 21.8163001442628);
             VerifyBadAnalyzer(badAnalyzers[1], "CSharpInlineDeclarationDiagnosticAnalyzer", 49.9389715502954, 26.6686092715232, 9.2987133054884);
             VerifyBadAnalyzer(badAnalyzers[2], "VisualBasicRemoveUnnecessaryCastDiagnosticAnalyzer", 42.0967360557792, 23.277619047619, 7.25464266261805);
         }
 
-        [Fact]
-        public void TestTrackingMaxSample()
+        [Theory, CombinatorialData]
+        public void TestTrackingMaxSample(bool forSpanAnalysis)
         {
-            var badAnalyzers = GetBadAnalyzers(@"TestFiles\analyzer_input.csv", to: 300);
+            var badAnalyzers = GetBadAnalyzers(@"TestFiles\analyzer_input.csv", to: 300, forSpanAnalysis);
 
             VerifyBadAnalyzer(badAnalyzers[0], "CSharpRemoveUnnecessaryCastDiagnosticAnalyzer", 85.6039521236341, 58.4542358078603, 18.4245217226717);
             VerifyBadAnalyzer(badAnalyzers[1], "VisualBasic.UseAutoProperty.UseAutoPropertyAnalyzer", 45.0918385052674, 29.0622535211268, 9.13728667060397);
             VerifyBadAnalyzer(badAnalyzers[2], "CSharpInlineDeclarationDiagnosticAnalyzer", 42.2014208750466, 28.7935371179039, 7.99261581900397);
         }
 
-        [Fact]
-        public void TestTrackingRolling()
+        [Theory, CombinatorialData]
+        public void TestTrackingRolling(bool forSpanAnalysis)
         {
             // data starting to rolling at 300 data points
-            var badAnalyzers = GetBadAnalyzers(@"TestFiles\analyzer_input.csv", to: 400);
+            var badAnalyzers = GetBadAnalyzers(@"TestFiles\analyzer_input.csv", to: 400, forSpanAnalysis);
 
             VerifyBadAnalyzer(badAnalyzers[0], "CSharpRemoveUnnecessaryCastDiagnosticAnalyzer", 76.2748443491852, 51.1698695652174, 17.3819563479479);
             VerifyBadAnalyzer(badAnalyzers[1], "VisualBasic.UseAutoProperty.UseAutoPropertyAnalyzer", 43.5700167914005, 29.2597857142857, 9.21213873850298);
@@ -78,7 +78,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             Assert.Equal(stddev, analyzer.AdjustedStandardDeviation, precision: 4);
         }
 
-        private static List<ExpensiveAnalyzerInfo> GetBadAnalyzers(string testFileName, int to)
+        private static List<ExpensiveAnalyzerInfo> GetBadAnalyzers(string testFileName, int to, bool forSpanAnalysis)
         {
             var testFile = ReadTestFile(testFileName);
 
@@ -90,11 +90,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
             for (var i = 0; i < to; i++)
             {
-                service.AddSnapshot(CreateSnapshots(matrix, i), unitCount: 100);
+                service.AddSnapshot(CreateSnapshots(matrix, i), unitCount: 100, forSpanAnalysis);
             }
 
             var badAnalyzerInfo = new List<ExpensiveAnalyzerInfo>();
-            service.GenerateReport(badAnalyzerInfo);
+            service.GenerateReport(badAnalyzerInfo, forSpanAnalysis);
 
             return badAnalyzerInfo;
         }

@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 {
     internal interface IPerformanceTrackerService : IWorkspaceService
     {
-        void AddSnapshot(IEnumerable<AnalyzerPerformanceInfo> snapshot, int unitCount);
-        void GenerateReport(List<ExpensiveAnalyzerInfo> badAnalyzers);
+        void AddSnapshot(IEnumerable<AnalyzerPerformanceInfo> snapshot, int unitCount, bool forSpanAnalysis);
+        void GenerateReport(List<ExpensiveAnalyzerInfo> badAnalyzers, bool forSpanAnalysis);
 
         event EventHandler SnapshotAdded;
     }

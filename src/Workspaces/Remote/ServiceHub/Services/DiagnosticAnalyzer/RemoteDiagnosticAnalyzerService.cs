@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public ValueTask ReportAnalyzerPerformanceAsync(ImmutableArray<AnalyzerPerformanceInfo> snapshot, int unitCount, CancellationToken cancellationToken)
+        public ValueTask ReportAnalyzerPerformanceAsync(ImmutableArray<AnalyzerPerformanceInfo> snapshot, int unitCount, bool forSpanAnalysis, CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         return default;
                     }
 
-                    service.AddSnapshot(snapshot, unitCount);
+                    service.AddSnapshot(snapshot, unitCount, forSpanAnalysis);
                 }
 
                 return default;

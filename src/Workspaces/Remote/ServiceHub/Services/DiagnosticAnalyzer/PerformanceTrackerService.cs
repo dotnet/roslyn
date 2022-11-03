@@ -23,13 +23,12 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
     [ExportWorkspaceService(typeof(IPerformanceTrackerService), WorkspaceKind.Host), Shared]
     internal class PerformanceTrackerService : IPerformanceTrackerService
     {
-        private static readonly Func<IEnumerable<AnalyzerPerformanceInfo>, int, string> s_snapshotLogger = SnapshotLogger;
+        private static readonly Func<IEnumerable<AnalyzerPerformanceInfo>, int, bool, string> s_snapshotLogger = SnapshotLogger;
 
         private const double DefaultMinLOFValue = 20;
         private const double DefaultAverageThreshold = 100;
         private const double DefaultStddevThreshold = 100;
 
-        private const int SampleSize = 300;
         private const double K_Value_Ratio = 2D / 3D;
 
         private readonly double _minLOFValue;
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         private readonly double _stddevThreshold;
 
         private readonly object _gate;
-        private readonly PerformanceQueue _queue;
+        private readonly PerformanceQueue _queueForDocumentAnalysis, _queueForSpanAnalysis;
         private readonly ConcurrentDictionary<string, bool> _builtInMap = new ConcurrentDictionary<string, bool>(concurrencyLevel: 2, capacity: 10);
 
         public event EventHandler SnapshotAdded;
@@ -58,24 +57,32 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             _stddevThreshold = stddevThreshold;
 
             _gate = new object();
-            _queue = new PerformanceQueue(SampleSize);
+
+            // We require at least 100 samples for background document analysis result to be stable
+            _queueForDocumentAnalysis = new PerformanceQueue(maxSampleSize: 300, minSampleSize: 100);
+
+            // We require at least 10 samples for span/lightbulb analysis result to be stable
+            _queueForSpanAnalysis = new PerformanceQueue(maxSampleSize: 30, minSampleSize: 10);
         }
 
-        public void AddSnapshot(IEnumerable<AnalyzerPerformanceInfo> snapshot, int unitCount)
+        private PerformanceQueue GetQueue(bool forSpanAnalysis)
+            => forSpanAnalysis ? _queueForSpanAnalysis : _queueForDocumentAnalysis;
+
+        public void AddSnapshot(IEnumerable<AnalyzerPerformanceInfo> snapshot, int unitCount, bool forSpanAnalysis)
         {
-            Logger.Log(FunctionId.PerformanceTrackerService_AddSnapshot, s_snapshotLogger, snapshot, unitCount);
+            Logger.Log(FunctionId.PerformanceTrackerService_AddSnapshot, s_snapshotLogger, snapshot, unitCount, forSpanAnalysis);
 
             RecordBuiltInAnalyzers(snapshot);
 
             lock (_gate)
             {
-                _queue.Add(snapshot.Select(entry => (entry.AnalyzerId, entry.TimeSpan)), unitCount);
+                GetQueue(forSpanAnalysis).Add(snapshot.Select(entry => (entry.AnalyzerId, entry.TimeSpan)), unitCount);
             }
 
             OnSnapshotAdded();
         }
 
-        public void GenerateReport(List<ExpensiveAnalyzerInfo> badAnalyzers)
+        public void GenerateReport(List<ExpensiveAnalyzerInfo> badAnalyzers, bool forSpanAnalysis)
         {
             using var pooledRaw = SharedPools.Default<Dictionary<string, (double average, double stddev)>>().GetPooledObject();
 
@@ -84,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             lock (_gate)
             {
                 // first get raw aggregated peformance data from the queue
-                _queue.GetPerformanceData(rawPerformanceData);
+                GetQueue(forSpanAnalysis).GetPerformanceData(rawPerformanceData);
             }
 
             // make sure there are some data
@@ -118,24 +125,28 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         private void OnSnapshotAdded()
             => SnapshotAdded?.Invoke(this, EventArgs.Empty);
 
-        private static string SnapshotLogger(IEnumerable<AnalyzerPerformanceInfo> snapshots, int unitCount)
+        private static string SnapshotLogger(IEnumerable<AnalyzerPerformanceInfo> snapshots, int unitCount, bool forSpan)
         {
             using var pooledObject = SharedPools.Default<StringBuilder>().GetPooledObject();
             var sb = pooledObject.Object;
 
             sb.Append(unitCount);
 
+            sb.Append('(');
+            sb.Append(forSpan ? "SpanAnalysis" : "DocumentAnalysis");
+            sb.Append(')');
+
             foreach (var snapshot in snapshots)
             {
-                sb.Append("|");
+                sb.Append('|');
                 sb.Append(snapshot.AnalyzerId);
-                sb.Append(":");
+                sb.Append(':');
                 sb.Append(snapshot.BuiltIn);
-                sb.Append(":");
+                sb.Append(':');
                 sb.Append(snapshot.TimeSpan.TotalMilliseconds);
             }
 
-            sb.Append("*");
+            sb.Append('*');
 
             return sb.ToString();
         }

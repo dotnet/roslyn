@@ -19,17 +19,15 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
     /// <threadsafety static="false" instance="false"/>
     internal class PerformanceQueue
     {
-        // we need at least 100 samples for result to be stable
-        private const int MinSampleSize = 100;
-
-        private readonly int _maxSampleSize;
+        private readonly int _maxSampleSize, _minSampleSize;
         private readonly LinkedList<Snapshot> _snapshots;
 
-        public PerformanceQueue(int maxSampleSize)
+        public PerformanceQueue(int maxSampleSize, int minSampleSize)
         {
-            Contract.ThrowIfFalse(maxSampleSize > MinSampleSize);
+            Contract.ThrowIfFalse(maxSampleSize > minSampleSize);
 
             _maxSampleSize = maxSampleSize;
+            _minSampleSize = minSampleSize;
             _snapshots = new LinkedList<Snapshot>();
         }
 
@@ -55,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         public void GetPerformanceData(Dictionary<string, (double average, double stddev)> aggregatedPerformanceDataPerAnalyzer)
         {
-            if (_snapshots.Count < MinSampleSize)
+            if (_snapshots.Count < _minSampleSize)
             {
                 // we don't have enough data to report this
                 return;
@@ -95,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
                 // data is only stable once we have more than certain set
                 // of samples
-                if (list.Count < MinSampleSize)
+                if (list.Count < _minSampleSize)
                 {
                     continue;
                 }
