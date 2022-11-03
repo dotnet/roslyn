@@ -95,13 +95,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private class TestGeneratorReferenceWithFilePathEquality : TestGeneratorReference, IEquatable<AnalyzerReference>
         {
-            public TestGeneratorReferenceWithFilePathEquality(ISourceGenerator generator, string analyzerFilePath) : base(generator)
+            public TestGeneratorReferenceWithFilePathEquality(ISourceGenerator generator, string analyzerFilePath)
+                : base(generator, analyzerFilePath)
             {
-                FullPath = analyzerFilePath;
             }
 
             public override bool Equals(object? obj) => Equals(obj as AnalyzerReference);
-            public override string FullPath { get; }
+            public override string FullPath => base.FullPath!; // This derived class always has this non-null
             public override int GetHashCode() => this.FullPath.GetHashCode();
 
             public bool Equals(AnalyzerReference? other)

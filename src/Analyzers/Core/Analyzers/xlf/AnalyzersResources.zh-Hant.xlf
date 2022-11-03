@@ -327,6 +327,11 @@
         <target state="translated">簡化名稱</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_check">
+        <source>Simplify check</source>
+        <target state="new">Simplify check</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_collection_initialization">
         <source>Simplify collection initialization</source>
         <target state="translated">簡化集合初始化</target>
