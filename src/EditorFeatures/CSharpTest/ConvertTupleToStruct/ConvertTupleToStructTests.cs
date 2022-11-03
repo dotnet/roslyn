@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
     public class ConvertTupleToStructTests
     {
         private static OptionsCollection PreferImplicitTypeWithInfo()
-            => new OptionsCollection(LanguageNames.CSharp)
+            => new(LanguageNames.CSharp)
             {
                 { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption2.Suggestion },
                 { CSharpCodeStyleOptions.VarWhenTypeIsApparent, true, NotificationOption2.Suggestion },

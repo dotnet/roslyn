@@ -11,9 +11,11 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
@@ -102,6 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 projectErrors.Add(GetDiagnosticData(
                     documentId: null,
                     _projectId,
+                    _workspace,
                     GetErrorId(error),
                     error.bstrText,
                     GetDiagnosticSeverity(error),
@@ -177,6 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             return GetDiagnosticData(
                 documentId,
                 _projectId,
+                _workspace,
                 GetErrorId(error),
                 error.bstrText,
                 GetDiagnosticSeverity(error),
@@ -232,6 +236,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             var diagnostic = GetDiagnosticData(
                 documentId,
                 _projectId,
+                _workspace,
                 bstrErrorId,
                 bstrErrorMessage,
                 severity,
@@ -261,6 +266,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private static DiagnosticData GetDiagnosticData(
             DocumentId documentId,
             ProjectId projectId,
+            Workspace workspace,
             string errorId,
             string message,
             DiagnosticSeverity severity,
@@ -294,7 +300,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 helpLink = null;
             }
 
-            return new DiagnosticData(
+            var diagnostic = new DiagnosticData(
                 id: errorId,
                 category: category,
                 message: message,
@@ -313,16 +319,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     mappedFileSpan: null),
                 language: language,
                 helpLink: helpLink);
+
+            if (workspace.CurrentSolution.GetDocument(documentId) is Document document &&
+                document.SupportsSyntaxTree)
+            {
+                var tree = document.GetSyntaxTreeSynchronously(CancellationToken.None);
+                var text = tree.GetText();
+                var span = diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text);
+                var location = diagnostic.DataLocation.WithSpan(span, tree);
+                return diagnostic.WithLocations(location, additionalLocations: default);
+            }
+
+            return diagnostic;
         }
 
         private static bool IsCompilerDiagnostic(string errorId)
         {
             if (!string.IsNullOrEmpty(errorId) && errorId.Length > 2)
             {
-                var prefix = errorId.Substring(0, 2);
+                var prefix = errorId[..2];
                 if (prefix.Equals("CS", StringComparison.OrdinalIgnoreCase) || prefix.Equals("BC", StringComparison.OrdinalIgnoreCase))
                 {
-                    var suffix = errorId.Substring(2);
+                    var suffix = errorId[2..];
                     return int.TryParse(suffix, out _);
                 }
             }

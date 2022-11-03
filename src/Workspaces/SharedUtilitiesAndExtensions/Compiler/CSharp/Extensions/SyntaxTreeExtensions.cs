@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.RefKeyword:
                     case SyntaxKind.OutKeyword:
                     case SyntaxKind.InKeyword:
+                    case SyntaxKind.RequiredKeyword:
                         result.Add(token.Kind());
                         positionBeforeModifiers = token.FullSpan.Start;
                         token = token.GetPreviousToken(includeSkipped: true);

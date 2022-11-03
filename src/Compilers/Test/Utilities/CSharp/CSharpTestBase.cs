@@ -16,6 +16,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -994,25 +995,7 @@ namespace System.Diagnostics.CodeAnalysis
         #region SyntaxTree Factories
 
         public static SyntaxTree Parse(string text, string filename = "", CSharpParseOptions options = null, Encoding encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
-        {
-            if ((object)options == null)
-            {
-                options = TestOptions.RegularPreview;
-            }
-
-            var stringText = StringText.From(text, encoding ?? Encoding.UTF8, checksumAlgorithm);
-            return CheckSerializable(SyntaxFactory.ParseSyntaxTree(stringText, options, filename));
-        }
-
-        private static SyntaxTree CheckSerializable(SyntaxTree tree)
-        {
-            var stream = new MemoryStream();
-            var root = tree.GetRoot();
-            root.SerializeTo(stream);
-            stream.Position = 0;
-            var deserializedRoot = CSharpSyntaxNode.DeserializeFrom(stream);
-            return tree;
-        }
+            => CSharpTestSource.Parse(text, filename, options, encoding, checksumAlgorithm);
 
         public static SyntaxTree[] Parse(IEnumerable<string> sources, CSharpParseOptions options = null)
         {
@@ -1207,15 +1190,6 @@ namespace System.Diagnostics.CodeAnalysis
             bool skipUsesIsNullable = false)
         {
             return CreateEmptyCompilation(source, TargetFrameworkUtil.GetReferences(targetFramework, references), options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable);
-        }
-
-        public static MetadataReference GetMscorlibRefWithoutSharingCachedSymbols()
-        {
-            // Avoid sharing mscorlib symbols with other tests since we are about to change
-            // RuntimeSupportsByRefFields property for it.
-
-            return ((AssemblyMetadata)((MetadataImageReference)MscorlibRef).GetMetadata()).CopyWithoutSharingCachedSymbols().
-                GetReference(display: "mscorlib.v4_0_30319.dll");
         }
 
         public static CSharpCompilation CreateEmptyCompilation(
@@ -2477,11 +2451,11 @@ namespace System
                 parseOptions: parseOptions);
         }
 
-        protected static CSharpCompilation CreateCompilationWithSpanAndMemoryExtensions(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        protected static CSharpCompilation CreateCompilationWithSpanAndMemoryExtensions(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null, TargetFramework targetFramework = TargetFramework.NetCoreApp)
         {
             if (ExecutionConditionUtil.IsCoreClr)
             {
-                return CreateCompilation(text, targetFramework: TargetFramework.NetCoreApp, references: new[] { Basic.Reference.Assemblies.Net50.SystemMemory }, options: options, parseOptions: parseOptions);
+                return CreateCompilation(text, targetFramework: targetFramework, options: options, parseOptions: parseOptions);
             }
             else
             {

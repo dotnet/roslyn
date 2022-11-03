@@ -11,12 +11,17 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
 {
     public class WorkspaceSymbolsTests : AbstractLanguageServerProtocolTests
     {
+        public WorkspaceSymbolsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         private static void AssertSetEquals(LSP.SymbolInformation[] expected, LSP.SymbolInformation[]? results)
             => Assert.True(expected.ToHashSet().SetEquals(results));
 

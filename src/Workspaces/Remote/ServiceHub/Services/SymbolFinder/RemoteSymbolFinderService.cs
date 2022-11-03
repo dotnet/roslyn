@@ -172,50 +172,6 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public ValueTask AnalyzeDocumentAsync(
-            Checksum solutionChecksum,
-            DocumentId documentId,
-            bool isMethodBodyEdit,
-            CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(
-                solutionChecksum,
-                async solution =>
-                {
-                    var cacheService = solution.Services.GetRequiredService<SymbolTreeInfoCacheService>();
-                    var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-                    await cacheService.AnalyzeDocumentAsync(document, isMethodBodyEdit, cancellationToken).ConfigureAwait(false);
-                },
-                cancellationToken);
-        }
-
-        public ValueTask AnalyzeProjectAsync(
-            Checksum solutionChecksum,
-            ProjectId projectId,
-            CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(
-                solutionChecksum,
-                async solution =>
-                {
-                    var cacheService = solution.Services.GetRequiredService<SymbolTreeInfoCacheService>();
-                    await cacheService.AnalyzeProjectAsync(solution.GetRequiredProject(projectId), cancellationToken).ConfigureAwait(false);
-                },
-                cancellationToken);
-        }
-
-        public ValueTask RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(
-                cancellationToken =>
-                {
-                    var cacheService = GetWorkspaceServices().GetRequiredService<SymbolTreeInfoCacheService>();
-                    cacheService.RemoveProject(projectId);
-                    return default;
-                },
-                cancellationToken);
-        }
-
         private sealed class FindLiteralReferencesProgressCallback : IStreamingFindLiteralReferencesProgress, IStreamingProgressTracker
         {
             private readonly RemoteCallback<IRemoteSymbolFinderService.ICallback> _callback;

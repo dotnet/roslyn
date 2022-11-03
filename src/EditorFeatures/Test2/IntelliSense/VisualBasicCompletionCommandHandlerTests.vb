@@ -410,7 +410,7 @@ End Class
                               extraExportedTypes:={GetType(TriggeredCompletionProvider)}.ToList())
 
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetRequiredService(Of CompletionService)()
-                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TriggeredCompletionProvider)().Single()
+                Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of TriggeredCompletionProvider)().Single()
 
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(".M")
@@ -448,7 +448,7 @@ End Class
                               extraExportedTypes:={GetType(TriggeredCompletionProvider)}.ToList())
 
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetRequiredService(Of CompletionService)()
-                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TriggeredCompletionProvider)().Single()
+                Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of TriggeredCompletionProvider)().Single()
 
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(".Ma")
@@ -482,7 +482,7 @@ End Class
                               extraExportedTypes:={GetType(TriggeredCompletionProvider)}.ToList())
 
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetRequiredService(Of CompletionService)()
-                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TriggeredCompletionProvider)().Single()
+                Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of TriggeredCompletionProvider)().Single()
 
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(".Ma")
@@ -3605,6 +3605,31 @@ End Class
                 Await state.WaitForUIRenderedAsync()
                 Await state.AssertCompletionItemsContainAll("Colors.Red", "Colors.Green")
                 Await state.AssertCompletionItemsDoNotContainAny("Colors")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem(64531, "https://github.com/dotnet/roslyn/issues/64531")>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeCompletionNoColonsIfAlreadyPresent() As Task
+            Dim documentContent = "
+Imports System
+Class Test
+    Inherits Attribute
+    Public Property Text As String
+End Class
+
+<Test($$:=)>
+Class Goo
+End Class"
+
+            Using state = TestStateFactory.CreateVisualBasicTestState(<Document><%= documentContent %></Document>)
+
+                state.SendTypeChars("Tex")
+                Await state.AssertSelectedCompletionItem("Text", displayTextSuffix:=Nothing)
+
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(14, "<Test(Text:=)>")
             End Using
         End Function
     End Class

@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         public CSharpStructSnippetProvider()
         {
         }
-        public override string SnippetIdentifier => "struct";
+        public override string Identifier => "struct";
 
-        public override string SnippetDescription => FeaturesResources.struct_;
+        public override string Description => FeaturesResources.struct_;
 
         protected override async Task<SyntaxNode> GenerateTypeDeclarationAsync(Document document, int position, bool useAccessibility, CancellationToken cancellationToken)
         {

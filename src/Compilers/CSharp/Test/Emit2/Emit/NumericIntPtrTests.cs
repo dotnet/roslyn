@@ -22,18 +22,12 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class NumericIntPtrTests : CSharpTestBase
     {
-        private static string IncludeExpectedOutput(string expectedOutput) =>
-#if NET7_0_OR_GREATER
-            expectedOutput ;
-#else
-            null;
-#endif
+        private static string IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
 
         internal static readonly ConversionKind[] Identity = new[] { ConversionKind.Identity };
         internal static readonly ConversionKind[] NoConversion = new[] { ConversionKind.NoConversion };

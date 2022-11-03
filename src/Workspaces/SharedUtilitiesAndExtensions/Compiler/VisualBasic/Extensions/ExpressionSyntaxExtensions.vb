@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -97,16 +98,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 expression.IsKind(SyntaxKind.TrueLiteralExpression)
         End Function
 
-        <Extension()>
-        Public Function DetermineType(expression As ExpressionSyntax,
-                                      semanticModel As SemanticModel,
-                                      cancellationToken As CancellationToken) As ITypeSymbol
+        <Extension>
+        Public Function DetermineType(
+                expression As ExpressionSyntax,
+                semanticModel As SemanticModel,
+                cancellationToken As CancellationToken) As ITypeSymbol
+
             ' If a parameter appears to have a void return type, then just use 'object' instead.
             If expression IsNot Nothing Then
                 Dim typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken)
                 Dim symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken)
                 If typeInfo.Type IsNot Nothing AndAlso typeInfo.Type.SpecialType = SpecialType.System_Void Then
                     Return semanticModel.Compilation.ObjectType
+                End If
+
+                Dim returnType As ITypeSymbol = Nothing
+                If IsImplicitlyCallable(expression, semanticModel, cancellationToken, returnType) Then
+                    Return returnType
                 End If
 
                 Dim symbol = If(typeInfo.Type, symbolInfo.GetAnySymbol())
@@ -118,9 +126,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Dim collectionInitializer = DirectCast(expression, CollectionInitializerSyntax)
                     Return DetermineType(collectionInitializer, semanticModel, cancellationToken)
                 End If
+
+                Dim unary = TryCast(expression, UnaryExpressionSyntax)
+                If unary IsNot Nothing AndAlso unary.Kind() = SyntaxKind.AddressOfExpression Then
+                    Return DetermineType(unary.Operand, semanticModel, cancellationToken)
+                End If
             End If
 
             Return semanticModel.Compilation.ObjectType
+        End Function
+
+        <Extension>
+        Public Function IsImplicitlyCallable(
+                expression As ExpressionSyntax,
+                semanticModel As SemanticModel,
+                cancellationToken As CancellationToken,
+                <Out> ByRef returnType As ITypeSymbol) As Boolean
+
+            ' in VB if you have an expression that binds to a method, and that method has no required
+            ' parameters, then it's allowable to implicitly call that method just by referring to the name.
+            ' e.g. `WriteLine(SomeMethod)` is equivalent to `WriteLine(SomeMethod())`.  So infer the return
+            ' type of 'SomeMethod' here, not a delegate type for it.
+            '
+            ' Note: this does not apply if teh user wrote `WriteLine(AddressOf SomeMethod)` of course.
+            If expression IsNot Nothing Then
+                Dim symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken)
+                Dim methodSymbol = TryCast(symbolInfo.GetAnySymbol(), IMethodSymbol)
+
+                Dim unaryParent = TryCast(expression.WalkUpParentheses().Parent, UnaryExpressionSyntax)
+                If unaryParent IsNot Nothing AndAlso
+                   unaryParent.Kind() <> SyntaxKind.AddressOfExpression AndAlso
+                   methodSymbol?.MethodKind = MethodKind.Ordinary AndAlso
+                   Not methodSymbol.ReturnsByRef AndAlso
+                   methodSymbol.Parameters.All(Function(p) p.IsOptional OrElse p.IsParams) Then
+                    returnType = methodSymbol.ReturnType
+                    Return True
+                End If
+            End If
+
+            returnType = Nothing
+            Return False
         End Function
 
         <Extension()>

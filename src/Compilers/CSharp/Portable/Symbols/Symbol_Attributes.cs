@@ -389,17 +389,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(!earlyDecodingOnly);
 
-            this.PostDecodeWellKnownAttributes(boundAttributes, attributesToBind, diagnostics, symbolPart, wellKnownAttributeData);
-
-            removeObsoleteDiagnosticsForForwardedTypes(boundAttributes, attributesToBind, ref diagnostics);
-            Debug.Assert(diagnostics.DiagnosticBag is not null);
-
             // Store attributes into the bag.
             bool lazyAttributesStoredOnThisThread = false;
             if (lazyCustomAttributesBag.SetAttributes(boundAttributes))
             {
                 if (attributeMatchesOpt is null)
                 {
+                    this.PostDecodeWellKnownAttributes(boundAttributes, attributesToBind, diagnostics, symbolPart, wellKnownAttributeData);
+
+                    removeObsoleteDiagnosticsForForwardedTypes(boundAttributes, attributesToBind, ref diagnostics);
+                    Debug.Assert(diagnostics.DiagnosticBag is not null);
+
                     this.RecordPresenceOfBadAttributes(boundAttributes);
 
                     if (totalAttributesCount != 0)
@@ -517,6 +517,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return d.HasLazyInfo ? d.LazyInfo is LazyObsoleteDiagnosticInfo : d.Info.IsObsoleteDiagnostic();
             }
         }
+
+        /// <summary>
+        /// Binds attributes applied to this symbol.
+        /// </summary>
+        protected ImmutableArray<(CSharpAttributeData, BoundAttribute)> BindAttributes(OneOrMany<SyntaxList<AttributeListSyntax>> attributeDeclarations, Binder? rootBinder)
+        {
+            var boundAttributeArrayBuilder = ArrayBuilder<(CSharpAttributeData, BoundAttribute)>.GetInstance();
+            foreach (var attributeListSyntaxList in attributeDeclarations)
+            {
+                var binder = GetAttributeBinder(attributeListSyntaxList, DeclaringCompilation, rootBinder);
+                foreach (var attributeListSyntax in attributeListSyntaxList)
+                {
+                    foreach (var attributeSyntax in attributeListSyntax.Attributes)
+                    {
+                        var boundType = binder.BindType(attributeSyntax.Name, BindingDiagnosticBag.Discarded);
+                        var boundTypeSymbol = (NamedTypeSymbol)boundType.Type;
+                        var boundAttribute = binder.GetAttribute(attributeSyntax, boundTypeSymbol,
+                            beforeAttributePartBound: null, afterAttributePartBound: null, BindingDiagnosticBag.Discarded);
+                        boundAttributeArrayBuilder.Add(boundAttribute);
+                    }
+                }
+            }
+            return boundAttributeArrayBuilder.ToImmutableAndFree();
+        }
 #nullable disable
 
         private void RecordPresenceOfBadAttributes(ImmutableArray<CSharpAttributeData> boundAttributes)
@@ -595,14 +619,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (attributesToBindCount != prevCount)
                     {
-                        Debug.Assert(attributeDeclarationSyntaxList.Node != null);
                         Debug.Assert(bindersBuilder != null);
 
-                        var syntaxTree = attributeDeclarationSyntaxList.Node.SyntaxTree;
-                        var binder = rootBinderOpt ?? compilation.GetBinderFactory(syntaxTree).GetBinder(attributeDeclarationSyntaxList.Node);
-
-                        binder = new ContextualAttributeBinder(binder, this);
-                        Debug.Assert(!binder.InAttributeArgument || this is MethodSymbol { MethodKind: MethodKind.LambdaMethod }, "Possible cycle in attribute binding");
+                        var binder = GetAttributeBinder(attributeDeclarationSyntaxList, compilation, rootBinderOpt);
 
                         for (int i = 0; i < attributesToBindCount - prevCount; i++)
                         {
@@ -623,6 +642,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ImmutableArray<AttributeSyntax>.Empty;
             }
         }
+
+#nullable enable
+        private Binder GetAttributeBinder(SyntaxList<AttributeListSyntax> attributeDeclarationSyntaxList, CSharpCompilation compilation, Binder? rootBinder = null)
+        {
+            var binder = rootBinder ?? compilation.GetBinderFactory(attributeDeclarationSyntaxList.Node!.SyntaxTree).GetBinder(attributeDeclarationSyntaxList.Node);
+            binder = new ContextualAttributeBinder(binder, this);
+            Debug.Assert(!binder.InAttributeArgument || this is MethodSymbol { MethodKind: MethodKind.LambdaMethod or MethodKind.LocalFunction }, "Possible cycle in attribute binding");
+            return binder;
+        }
+#nullable disable
 
         private static bool MatchAttributeTarget(IAttributeTargetSymbol attributeTarget, AttributeLocation symbolPart, AttributeTargetSpecifierSyntax targetOpt, BindingDiagnosticBag diagnostics)
         {

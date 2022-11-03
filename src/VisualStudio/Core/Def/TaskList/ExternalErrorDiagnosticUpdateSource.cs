@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -40,6 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
     {
         private readonly Workspace _workspace;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
+        private readonly IBuildOnlyDiagnosticsService _buildOnlyDiagnosticsService;
         private readonly IGlobalOperationNotificationService _notificationService;
         private readonly CancellationToken _disposalToken;
 
@@ -101,6 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
             _diagnosticService = diagnosticService;
+            _buildOnlyDiagnosticsService = _workspace.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
 
             _notificationService = _workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
         }
@@ -231,7 +234,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
         }
 
-        private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+        // internal for testing purposes only.
+        internal void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
             // Clear relevant build-only errors on workspace events such as solution added/removed/reloaded,
             // project added/removed/reloaded, etc.
@@ -254,22 +258,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                 case WorkspaceChangeKind.DocumentRemoved:
                 case WorkspaceChangeKind.DocumentReloaded:
+                case WorkspaceChangeKind.AdditionalDocumentRemoved:
+                case WorkspaceChangeKind.AdditionalDocumentReloaded:
+                case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
+                case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
                     _taskQueue.ScheduleTask("OnDocumentRemoved", () => ClearBuildOnlyDocumentErrors(e.OldSolution, e.ProjectId, e.DocumentId), _disposalToken);
+                    break;
+
+                case WorkspaceChangeKind.DocumentChanged:
+                case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
+                case WorkspaceChangeKind.AdditionalDocumentChanged:
+                    // We clear build-only errors for the document on document edits.
+                    // This is done to address multiple customer reports of stale build-only diagnostics
+                    // after they fix/remove the code flagged from build-only diagnostics, but the diagnostics
+                    // do not get automatically removed/refreshed while typing.
+                    // See https://github.com/dotnet/docs/issues/26708 and https://github.com/dotnet/roslyn/issues/64659
+                    // for additional details.
+                    _taskQueue.ScheduleTask("OnDocumentChanged", () => ClearBuildOnlyDocumentErrors(e.OldSolution, e.ProjectId, e.DocumentId), _disposalToken);
                     break;
 
                 case WorkspaceChangeKind.ProjectAdded:
                 case WorkspaceChangeKind.DocumentAdded:
-                case WorkspaceChangeKind.DocumentChanged:
                 case WorkspaceChangeKind.ProjectChanged:
                 case WorkspaceChangeKind.SolutionChanged:
                 case WorkspaceChangeKind.AdditionalDocumentAdded:
-                case WorkspaceChangeKind.AdditionalDocumentRemoved:
-                case WorkspaceChangeKind.AdditionalDocumentReloaded:
-                case WorkspaceChangeKind.AdditionalDocumentChanged:
                 case WorkspaceChangeKind.AnalyzerConfigDocumentAdded:
-                case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
-                case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
-                case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
                     break;
 
                 default:
@@ -518,12 +531,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private void RaiseDiagnosticsCreated(object? id, Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableArray<DiagnosticData> items)
         {
+            _buildOnlyDiagnosticsService.AddBuildOnlyDiagnostics(solution, projectId, documentId, items);
             DiagnosticsUpdated?.Invoke(this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
                    CreateArgumentKey(id), _workspace, solution, projectId, documentId, items));
         }
 
         private void RaiseDiagnosticsRemoved(object? id, Solution solution, ProjectId? projectId, DocumentId? documentId)
         {
+            _buildOnlyDiagnosticsService.ClearBuildOnlyDiagnostics(solution, projectId, documentId);
             DiagnosticsUpdated?.Invoke(this, DiagnosticsUpdatedArgs.DiagnosticsRemoved(
                    CreateArgumentKey(id), _workspace, solution, projectId, documentId));
         }
