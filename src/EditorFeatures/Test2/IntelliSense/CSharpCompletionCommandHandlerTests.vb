@@ -10487,18 +10487,18 @@ class MyClass
             End Using
         End Function
 
-        <Export(GetType(IPythiaDeclarationNameRecommenderImplmentation))>
+        <Export(GetType(IPythiaDeclarationNameRecommenderImplementation))>
         <[Shared]>
         <PartNotDiscoverable>
         Private Class TestPythiaDeclarationNameRecommenderImplmentation
-            Implements IPythiaDeclarationNameRecommenderImplmentation
+            Implements IPythiaDeclarationNameRecommenderImplementation
 
             <ImportingConstructor>
             <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New()
             End Sub
 
-            Public Function ProvideRecommendationsAsync(context As PythiaDeclarationNameContext, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of String)) Implements IPythiaDeclarationNameRecommenderImplmentation.ProvideRecommendationsAsync
+            Public Function ProvideRecommendationsAsync(context As PythiaDeclarationNameContext, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of String)) Implements IPythiaDeclarationNameRecommenderImplementation.ProvideRecommendationsAsync
                 Dim result = ImmutableArray.Create("PythiaRecommendName")
                 Return Task.FromResult(result)
             End Function
