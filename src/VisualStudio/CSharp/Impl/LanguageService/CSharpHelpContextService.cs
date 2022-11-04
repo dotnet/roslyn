@@ -453,12 +453,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
             if (token.IsKind(SyntaxKind.DefaultKeyword))
             {
-                if (token.Parent is DefaultSwitchLabelSyntax)
-                {
-                    text = Keyword("defaultcase");
-                    return true;
-                }
-
                 if (token.Parent is DefaultConstraintSyntax)
                 {
                     text = Keyword("defaultconstraint");
