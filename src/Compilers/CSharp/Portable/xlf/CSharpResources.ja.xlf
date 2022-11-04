@@ -9633,8 +9633,8 @@ C# では out と ref を区別しますが、CLR では同じと認識します
         <note />
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequired">
-        <source>Since '{0}' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task&lt;T&gt;'?</source>
-        <target state="translated">'{0}' は 'Task' を返す非同期メソッドであるため、キーワード return の後にオブジェクト式を指定することはできません。'Task&lt;T&gt;' を返すメソッドを指定したつもりでしたか?</target>
+        <source>Since '{0}' is an async method that returns void task-like type, a return keyword must not be followed by an object expression</source>
+        <target state="needs-review-translation">'{0}' は 'Task' を返す非同期メソッドであるため、キーワード return の後にオブジェクト式を指定することはできません。'Task&lt;T&gt;' を返すメソッドを指定したつもりでしたか?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
@@ -11063,8 +11063,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequiredLambda">
-        <source>Async lambda expression converted to a 'Task' returning delegate cannot return a value. Did you intend to return 'Task&lt;T&gt;'?</source>
-        <target state="translated">Task' に変換されてデリゲートを返す非同期のラムダ式は、値を返すことができません。'Task&lt;T&gt;' を返すメソッドを指定したつもりでしたか?</target>
+        <source>Async lambda expression converted to a void task-like type returning delegate cannot return a value</source>
+        <target state="needs-review-translation">Task' に変換されてデリゲートを返す非同期のラムダ式は、値を返すことができません。'Task&lt;T&gt;' を返すメソッドを指定したつもりでしたか?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerCannotBeCreated">

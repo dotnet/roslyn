@@ -9633,8 +9633,8 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
         <note />
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequired">
-        <source>Since '{0}' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task&lt;T&gt;'?</source>
-        <target state="translated">Protože metoda {0} je asynchronní a její návratový typ je Task, za klíčovým slovem return nesmí následovat objektový výraz. Měli jste v úmyslu vrátit hodnotu typu Task&lt;T&gt;?</target>
+        <source>Since '{0}' is an async method that returns void task-like type, a return keyword must not be followed by an object expression</source>
+        <target state="needs-review-translation">Protože metoda {0} je asynchronní a její návratový typ je Task, za klíčovým slovem return nesmí následovat objektový výraz. Měli jste v úmyslu vrátit hodnotu typu Task&lt;T&gt;?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
@@ -11063,8 +11063,8 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequiredLambda">
-        <source>Async lambda expression converted to a 'Task' returning delegate cannot return a value. Did you intend to return 'Task&lt;T&gt;'?</source>
-        <target state="translated">Asynchronní lambda výraz převedený na Task a vracející delegáta nemůže vrátit hodnotu. Měli jste v úmyslu vrátit Task&lt;T&gt;?</target>
+        <source>Async lambda expression converted to a void task-like type returning delegate cannot return a value</source>
+        <target state="needs-review-translation">Asynchronní lambda výraz převedený na Task a vracející delegáta nemůže vrátit hodnotu. Měli jste v úmyslu vrátit Task&lt;T&gt;?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerCannotBeCreated">
