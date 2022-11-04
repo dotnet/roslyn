@@ -348,8 +348,8 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext>
                     // If so, confirm that the type we're on derives from or implements that interface.  Note that we do
                     // this looking at the uninstantiated forms as there's no way to tell if the instantiations match as
                     // the signature may not have enough information provided to answer that question.
-                    var originalMember = (IMethodSymbol)member.GetOriginalUnreducedDefinition();
-                    if (originalMember.Parameters is [{ Type: ITypeParameterSymbol parameterType }, ..])
+                    var originalMember = member.GetOriginalUnreducedDefinition();
+                    if (originalMember is IMethodSymbol { Parameters: [{ Type: ITypeParameterSymbol parameterType }, ..] })
                     {
                         if (!MatchesConstraints(containerType.OriginalDefinition, parameterType.ConstraintTypes))
                             continue;

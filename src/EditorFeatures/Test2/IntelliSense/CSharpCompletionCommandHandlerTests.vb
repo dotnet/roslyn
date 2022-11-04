@@ -10679,7 +10679,7 @@ public static class Extensions
 }
 public class Bar&lt;T&gt; : ISomeInterface&lt;T&gt;
 {
-    void M(Bar s)
+    void M(Bar&lt;T&gt; s)
     {
         s.$$
     }
@@ -10776,6 +10776,38 @@ public static class Extensions
 public class Bar&lt;T&gt;
 {
     void M(string[] s)
+    {
+        s.$$
+    }
+}
+                </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("SomeExtMethod", displayTextSuffix:="<>")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem(39689, "https://github.com/dotnet/roslyn/issues/39689")>
+        Public Async Function TestFilteringOfExtensionMethodsWithConstraints7() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System;
+
+public interface ISomeInterface&lt;T&gt;
+{
+}
+
+public static class Extensions
+{       
+    public static bool SomeExtMethod&lt;T1, T2&gt;(this T1 builder, T2 x)
+        where T1 : ISomeInterface&lt;T2&gt;
+    {
+        return true;
+    }
+}
+public class Bar&lt;T&gt; : ISomeInterface&lt;T&gt;
+{
+    void M(Bar&lt;int&gt; s)
     {
         s.$$
     }
