@@ -4,6 +4,7 @@
 
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -58,5 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
         protected override SyntaxNode GetBody(SyntaxNode functionDeclaration)
             => InitializeParameterHelpers.GetBody(functionDeclaration);
+
+        protected override SyntaxNode GetAccessorBody(IMethodSymbol accessor, CancellationToken cancellationToken)
+        {
+            var declaratio = 
+        }
     }
 }

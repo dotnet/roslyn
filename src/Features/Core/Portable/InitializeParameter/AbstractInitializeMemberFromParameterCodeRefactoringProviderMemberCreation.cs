@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -41,9 +42,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         where TStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
     {
-        protected abstract SyntaxNode? TryGetLastStatement(IBlockOperation? blockStatementOpt);
+        protected abstract SyntaxNode? TryGetLastStatement(IBlockOperation? blockStatement);
         protected abstract Accessibility DetermineDefaultFieldAccessibility(INamedTypeSymbol containingType);
         protected abstract Accessibility DetermineDefaultPropertyAccessibility();
+        protected abstract SyntaxNode GetAccessorBody(IMethodSymbol accessor);
 
         protected override bool SupportsRecords(ParseOptions options)
             => false;
@@ -706,22 +708,34 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return false;
             }
 
-            static bool IsThrowNotImplementedProperty(IPropertySymbol property)
+            bool IsThrowNotImplementedProperty(IPropertySymbol property)
             {
-                if (property.GetMethod != null && !IsThrowNotImplementedMethod(property.GetMethod))
+                using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var accessors);
+
+                if (property.GetMethod != null)
+                    accessors.Add(GetAccessorBody(property.GetMethod));
+
+                if (property.SetMethod != null)
+                    accessors.Add(GetAccessorBody(property.SetMethod));
+
+                if (accessors.Count == 0)
                     return false;
 
-                if (property.SetMethod != null && !IsThrowNotImplementedMethod(property.SetMethod))
-                    return false;
+                foreach (var group in accessors.GroupBy(node => node.SyntaxTree))
+                {
+                    var semanticModel = compilation.GetSemanticModel(group.Key);
+                    foreach (var accessorBody in accessors)
+                    {
+                        var operation = semanticModel.GetOperation(accessorBody, cancellationToken);
+                        if (operation is null)
+                            return false;
 
-                return property.GetMethod != null || property.SetMethod != null;
-            }
+                        if (!operation.IsSingleThrowNotImplementedOperation())
+                            return false;
+                    }
+                }
 
-            static bool IsThrowNotImplementedMethod(IMethodSymbol? method)
-            {
-                // if we dont' have the accessor, just ignore 
-                if (method is null)
-                    return true;
+                return true;
             }
         }
     }

@@ -387,8 +387,11 @@ namespace Microsoft.CodeAnalysis
             return operation;
         }
 
-        public static bool IsSingleThrowNotImplementedOperation(this IOperation firstBlock)
+        public static bool IsSingleThrowNotImplementedOperation([NotNullWhen(true)] this IOperation? firstBlock)
         {
+            if (firstBlock is null)
+                return false;
+
             var compilation = firstBlock.SemanticModel!.Compilation;
             var notImplementedExceptionType = compilation.NotImplementedExceptionType();
             if (notImplementedExceptionType == null)
