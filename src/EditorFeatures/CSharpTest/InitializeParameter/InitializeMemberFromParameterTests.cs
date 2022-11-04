@@ -1878,9 +1878,9 @@ class C
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"">
         <Document>
-public class Foo
+public class Goo
 {
-    public Foo(int prop1)
+    public Goo(int prop1)
     {
         Prop1 = prop1;
     }
@@ -1888,7 +1888,7 @@ public class Foo
     public int Prop1 { get; }
 }
 
-public class Bar : Foo
+public class Bar : Goo
 {
     public Bar(int prop1, int [||]prop2) : base(prop1) { }
 }
@@ -1897,7 +1897,7 @@ public class Bar : Foo
 </Workspace>");
         }
 
-        [Fact]
+        [Fact, WorkItem(36998, "https://github.com/dotnet/roslyn/issues/36998")]
         public async Task TestInitializeThrowingProperty1()
         {
             await TestInRegularAndScript1Async(
@@ -1926,7 +1926,7 @@ class C
 }");
         }
 
-        [Fact]
+        [Fact, WorkItem(36998, "https://github.com/dotnet/roslyn/issues/36998")]
         public async Task TestInitializeThrowingProperty2()
         {
             await TestInRegularAndScript1Async(
@@ -1961,7 +1961,7 @@ class C
 }");
         }
 
-        [Fact]
+        [Fact, WorkItem(36998, "https://github.com/dotnet/roslyn/issues/36998")]
         public async Task TestInitializeThrowingProperty3()
         {
             await TestInRegularAndScript1Async(
@@ -1996,7 +1996,7 @@ class C
 }");
         }
 
-        [Fact]
+        [Fact, WorkItem(36998, "https://github.com/dotnet/roslyn/issues/36998")]
         public async Task TestInitializeThrowingProperty4()
         {
             await TestInRegularAndScript1Async(
@@ -2033,7 +2033,7 @@ class C
 }");
         }
 
-        [Fact]
+        [Fact, WorkItem(36998, "https://github.com/dotnet/roslyn/issues/36998")]
         public async Task TestInitializeThrowingProperty5()
         {
             await TestInRegularAndScript1Async(
@@ -2070,7 +2070,7 @@ class C
 }");
         }
 
-        [Fact]
+        [Fact, WorkItem(36998, "https://github.com/dotnet/roslyn/issues/36998")]
         public async Task TestInitializeThrowingProperty6()
         {
             await TestInRegularAndScript1Async(
@@ -2099,6 +2099,53 @@ class C
         S1 = s;
     }
 }");
+        }
+
+        [Fact, WorkItem(36998, "https://github.com/dotnet/roslyn/issues/36998")]
+        public async Task TestInitializeThrowingProperty_DifferentFile1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+public partial class Goo
+{
+    public Goo(string [||]name)
+    {
+    }
+}
+        </Document>
+        <Document>
+using System;
+public partial class Goo
+{
+    public string Name => throw new NotImplementedException();
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+public partial class Goo
+{
+    public Goo(string name)
+    {
+        Name = name;
+    }
+}
+        </Document>
+        <Document>
+using System;
+public partial class Goo
+{
+    public string Name { get; }
+}
+        </Document>
+    </Project>
+</Workspace>");
         }
     }
 }
