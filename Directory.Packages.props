@@ -11,9 +11,11 @@
   <ItemGroup>
     <GlobalPackageReference Include="CSharpIsNullAnalyzer" Version="0.1.329" />
     <GlobalPackageReference Include="DotNetAnalyzers.DocumentationAnalyzers" Version="1.0.0-beta.59" />
-    <GlobalPackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
     <GlobalPackageReference Include="Nerdbank.GitVersioning" Version="3.5.119" />
     <GlobalPackageReference Include="Nullable" Version="1.3.1" />
     <GlobalPackageReference Include="StyleCop.Analyzers.Unstable" Version="1.2.0.435" />
+  </ItemGroup>
+  <ItemGroup>
+    <GlobalPackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
   </ItemGroup>
 </Project>
