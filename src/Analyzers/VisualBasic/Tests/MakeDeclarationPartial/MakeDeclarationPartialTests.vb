@@ -36,8 +36,7 @@ End Class"
 
             Dim test = New VerifyVB.Test With {
                 .TestCode = document,
-                .FixedCode = fixedDocument,
-                .CodeFixTestBehaviors = CodeFixTestBehaviors.SkipFixAllCheck
+                .FixedCode = fixedDocument
             }
 
             Await test.RunAsync()
@@ -71,8 +70,7 @@ End Namespace"
 
             Dim test = New VerifyVB.Test With {
                 .TestCode = document,
-                .FixedCode = fixedDocument,
-                .CodeFixTestBehaviors = CodeFixTestBehaviors.SkipFixAllCheck
+                .FixedCode = fixedDocument
             }
 
             Await test.RunAsync()
@@ -114,8 +112,7 @@ End Namespace"
 
             Dim test = New VerifyVB.Test With {
                 .TestCode = document,
-                .FixedCode = fixedDocument,
-                .CodeFixTestBehaviors = CodeFixTestBehaviors.SkipFixAllCheck
+                .FixedCode = fixedDocument
             }
 
             Await test.RunAsync()
@@ -145,8 +142,7 @@ End Class"
 
             Dim test = New VerifyVB.Test With {
                 .TestCode = document,
-                .FixedCode = fixedDocument,
-                .CodeFixTestBehaviors = CodeFixTestBehaviors.SkipFixAllCheck
+                .FixedCode = fixedDocument
             }
 
             Await test.RunAsync()

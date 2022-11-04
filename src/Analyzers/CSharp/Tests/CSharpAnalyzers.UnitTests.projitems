@@ -24,7 +24,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)HideBase\HideBaseTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\AddYieldTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\ChangeToIEnumerableTests.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)MakeDeclarationPartial\MakeDeclarationPartialFixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeDeclarationPartial\MakeDeclarationPartialTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeMemberStatic\MakeMemberStaticTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeStatementAsynchronous\CSharpMakeStatementAsynchronousCodeFixTests.cs" />

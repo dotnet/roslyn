@@ -229,6 +229,83 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharp.UnitTests.MakeDeclarationPartial
 
         [Theory]
         [MemberData(nameof(AllValidDeclarationTypes))]
+        public async Task NestedType1(string declarationType)
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = $$"""
+                class Test
+                {
+                    public partial {{declarationType}} Declaration
+                    {
+                    }
+                
+                    public {{declarationType}} {|CS0260:Declaration|}
+                    {
+                    }
+                }
+                """,
+                FixedCode = $$"""
+                class Test
+                {
+                    public partial {{declarationType}} Declaration
+                    {
+                    }
+                
+                    public partial {{declarationType}} Declaration
+                    {
+                    }
+                }
+                """,
+                LanguageVersion = LanguageVersion.CSharp10
+            }.RunAsync();
+        }
+
+        [Theory]
+        [MemberData(nameof(AllValidDeclarationTypes))]
+        public async Task NestedType2(string declarationType)
+        {
+            // Note: fixes here will be executed sequentially, this is not the same as fix-all
+            await new VerifyCS.Test
+            {
+                TestCode = $$"""
+                partial {{declarationType}} Test
+                {
+                }
+
+                {{declarationType}} {|CS0260:Test|}
+                {
+                    public partial {{declarationType}} Declaration
+                    {
+                    }
+                
+                    public {{declarationType}} {|CS0260:Declaration|}
+                    {
+                    }
+                }
+                """,
+                FixedCode = $$"""
+                partial {{declarationType}} Test
+                {
+                }
+
+                partial {{declarationType}} Test
+                {
+                    public partial {{declarationType}} Declaration
+                    {
+                    }
+                
+                    public partial {{declarationType}} Declaration
+                    {
+                    }
+                }
+                """,
+                LanguageVersion = LanguageVersion.CSharp10
+            }.RunAsync();
+        }
+
+        [Theory]
+        [MemberData(nameof(AllValidDeclarationTypes))]
         public async Task NotInDifferentNamespaces(string declarationType)
         {
             var markup = $$"""
