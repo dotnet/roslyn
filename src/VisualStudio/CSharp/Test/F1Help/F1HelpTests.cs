@@ -1754,5 +1754,53 @@ class C
                 }
                 """, expectedText: "defaultconstraint");
         }
+
+        [Fact]
+        public async Task TestDefaultCase()
+        {
+            await Test_KeywordAsync("""
+                public class C
+                {
+                    void M(object o)
+                    {
+                        switch (o)
+                        {
+                            case 1:
+                                goto def[||]ault;
+                            default:
+                                return;
+                        }
+                    }
+                }
+                """, expectedText: "defaultcase");
+        }
+
+        [Fact]
+        public async Task TestGotoDefault()
+        {
+            await Test_KeywordAsync("""
+                public class C
+                {
+                    void M(object o)
+                    {
+                        switch (o)
+                        {
+                            case 1:
+                                goto default;
+                            def[||]ault:
+                                return;
+                        }
+                    }
+                }
+                """, expectedText: "defaultcase");
+        }
+
+        [Fact]
+        public async Task TestLineDefault()
+        {
+            await Test_KeywordAsync("""
+                #line def[||]ault
+                """, expectedText: "defaultline");
+        }
     }
 }

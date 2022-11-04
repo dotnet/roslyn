@@ -464,6 +464,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                     text = Keyword("defaultconstraint");
                     return true;
                 }
+
+                if (token.Parent is DefaultSwitchLabelSyntax or GotoStatementSyntax)
+                {
+                    text = Keyword("defaultcase");
+                    return true;
+                }
+
+                if (token.Parent is LineDirectiveTriviaSyntax)
+                {
+                    text = Keyword("defaultline");
+                    return true;
+                }
             }
 
             if (token.IsKind(SyntaxKind.ClassKeyword) && token.Parent is ClassOrStructConstraintSyntax)
