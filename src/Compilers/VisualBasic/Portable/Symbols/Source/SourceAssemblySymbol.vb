@@ -1753,7 +1753,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 emittedName = MetadataTypeName.FromFullName(matchedName, emittedName.UseCLSCompliantNameArityEncoding, emittedName.ForcedArity)
                             End If
 
-                            Return forwardedToAssemblies.FirstSymbol.LookupTopLevelMetadataTypeWithCycleDetection(emittedName, visitedAssemblies, digThroughForwardedTypes:=True)
+                            Return forwardedToAssemblies.FirstSymbol.LookupDeclaredOrForwardedTopLevelMetadataType(emittedName, visitedAssemblies)
                         End If
                     End If
                 Next
