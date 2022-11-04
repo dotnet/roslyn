@@ -126,9 +126,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     checkAttributes(syntax, p.AttributeLists, diagnostics);
 
                     var isAnonymousMethod = syntax.IsKind(SyntaxKind.AnonymousMethodExpression);
-                    if (p.Default != null && isAnonymousMethod)
+                    if (p.Default != null)
                     {
-                        Error(diagnostics, ErrorCode.ERR_DefaultValueNotAllowed, p.Default.EqualsToken);
+                        if (isAnonymousMethod)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_DefaultValueNotAllowed, p.Default.EqualsToken);
+                        }
+                        else
+                        {
+                            MessageID.IDS_FeatureLambdaOptionalParameters.CheckFeatureAvailability(diagnostics, syntax, p.Default.EqualsToken.GetLocation());
+                        }
                     }
 
                     if (p.IsArgList)
