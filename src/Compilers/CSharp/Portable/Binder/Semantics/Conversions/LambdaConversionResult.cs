@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         MismatchedReturnType,
         MismatchedParameterType,
         MismatchedParameterDefaultValue,
-        MismatchedParamsArray,
         RefInImplicitlyTypedLambda,
         StaticTypeInImplicitlyTypedLambda,
         ExpressionTreeMustHaveDelegateTypeArgument,
