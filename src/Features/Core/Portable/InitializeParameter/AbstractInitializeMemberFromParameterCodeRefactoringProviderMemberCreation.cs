@@ -514,10 +514,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             InsertStatement(editor, constructorDeclaration, returnsVoid: true, statementToAddAfter, initializationStatement);
 
+            // If the user had a property that has 'throw NotImplementedException' in it, then remove those throws.
             var currentSolution = document.Project.Solution;
             if (isThrowNotImplementedProperty)
             {
-                // Update the property to not throw anymore.
                 var declarationService = document.GetRequiredLanguageService<ISymbolDeclarationService>();
                 var propertySyntax = await declarationService.GetDeclarations(fieldOrProperty)[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
                 var withoutThrowNotImplemented = RemoveThrowNotImplemented(propertySyntax);
