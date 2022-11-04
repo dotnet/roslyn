@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         private struct DestinationData
         {
             public AssemblySymbol To;
-            private ConcurrentDictionary<NamedTypeSymbol, NamedTypeSymbol> _symbolMap;
+            private ConcurrentDictionary<NamedTypeSymbol, NamedTypeSymbol>? _symbolMap;
 
             public ConcurrentDictionary<NamedTypeSymbol, NamedTypeSymbol> SymbolMap => LazyInitializer.EnsureInitialized(ref _symbolMap);
         }
