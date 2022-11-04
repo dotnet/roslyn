@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                 // 100 inner loops producing variants of the file.
                 for (var j = 0; j < 100; j++)
                 {
-                    tasks.Add(Task.Run(async () => await PerformSearchesAsync(client, assetStorage, document, name: "Goo" + i)));
+                    tasks.Add(Task.Run(async () => await PerformSearchesAsync(client, assetStorage, document, name: "Goo" + i, i + j)));
                 }
             }
 
@@ -123,10 +123,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             Assert.Equal(0, assetStorage.GetTestAccessor().PinnedScopesCount);
         }
 
-        private static async Task PerformSearchesAsync(RemoteHostClient client, SolutionAssetStorage storage, Document document, string name)
+        private static async Task PerformSearchesAsync(RemoteHostClient client, SolutionAssetStorage storage, Document document, string name, int spaces)
         {
             // Fork the document, with 100 variants of methods called 'name' in it.
-            var forked = document.Project.Solution.WithDocumentText(document.Id, SourceText.From(CreateText(name)));
+            var text = SourceText.From(CreateText(name, spaces));
+            var forked = document.Project.Solution.WithDocumentText(document.Id, text);
 
             Checksum checksum = null!;
 
@@ -143,17 +144,21 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var count = 0;
             await foreach (var result in stream)
             {
+                Assert.True(text.ToString(result.DeclaredSymbolInfo.Span).StartsWith(name));
                 Assert.Equal(document.Id, result.DocumentId);
                 Assert.True(storage.GetTestAccessor().IsPinned(checksum));
                 count++;
             }
 
-            Assert.True(count >= 100);
+            Assert.True(count == 100);
         }
 
-        private static string CreateText(string name)
+        private static string CreateText(string name, int spaces)
         {
             using var _ = PooledStringBuilder.GetInstance(out var builder);
+
+            builder.Append(new string(' ', spaces));
+            builder.AppendLine();
 
             builder.AppendLine("class C");
             builder.AppendLine("{");
