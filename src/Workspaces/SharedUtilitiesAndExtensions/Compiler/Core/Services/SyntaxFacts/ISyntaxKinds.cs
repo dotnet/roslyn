@@ -177,6 +177,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         int Attribute { get; }
         int ClassDeclaration { get; }
+        int ConstructorDeclaration { get; }
         int InterfaceDeclaration { get; }
         int? RecordDeclaration { get; }
         int? RecordStructDeclaration { get; }

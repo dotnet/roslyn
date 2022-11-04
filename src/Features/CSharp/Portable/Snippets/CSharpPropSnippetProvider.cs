@@ -28,7 +28,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
     [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal class CSharpPropSnippetProvider : AbstractPropSnippetProvider
+    internal sealed class CSharpPropSnippetProvider : AbstractPropSnippetProvider
     {
 
         [ImportingConstructor]
