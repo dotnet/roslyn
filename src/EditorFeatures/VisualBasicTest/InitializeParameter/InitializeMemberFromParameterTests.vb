@@ -986,7 +986,7 @@ class C
             throw new InvalidOperationException
         end get
     end property
- 
+
     Public ReadOnly Property S1 As String
 
     public sub new(s As String)
