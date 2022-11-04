@@ -60,9 +60,16 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         protected override SyntaxNode GetBody(SyntaxNode functionDeclaration)
             => InitializeParameterHelpers.GetBody(functionDeclaration);
 
-        protected override SyntaxNode GetAccessorBody(IMethodSymbol accessor, CancellationToken cancellationToken)
+        protected override SyntaxNode? GetAccessorBody(IMethodSymbol accessor, CancellationToken cancellationToken)
         {
-            var declaratio = 
+            var node = accessor.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+            if (node is AccessorDeclarationSyntax accessorDeclaration)
+                return accessorDeclaration.ExpressionBody ?? (SyntaxNode?)accessorDeclaration.Body;
+
+            if (node is PropertyDeclarationSyntax propertyDeclaration)
+                return propertyDeclaration.ExpressionBody;
+
+            return null;
         }
     }
 }

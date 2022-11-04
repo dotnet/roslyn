@@ -4,6 +4,7 @@
 
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.InitializeParameter
@@ -62,6 +63,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
 
         Protected Overrides Function GetBody(functionDeclaration As SyntaxNode) As SyntaxNode
             Return InitializeParameterHelpers.GetBody(functionDeclaration)
+        End Function
+
+        Protected Overrides Function GetAccessorBody(accessor As IMethodSymbol, cancellationToken As CancellationToken) As SyntaxNode
+            Dim reference = accessor.DeclaringSyntaxReferences(0).GetSyntax(cancellationToken)
+            Return TryCast(reference, AccessorBlockSyntax)
         End Function
     End Class
 End Namespace
