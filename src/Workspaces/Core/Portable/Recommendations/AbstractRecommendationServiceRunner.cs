@@ -344,10 +344,11 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext>
             {
                 if (member.IsReducedExtension())
                 {
-                    // Get the original extension method and see if it has any base-type or base-interface constraint.
-                    // If so, confirm that the type we're on derives from or implements that interface.  Note that we do
-                    // this looking at the uninstantiated forms as there's no way to tell if the instantiations match as
-                    // the signature may not have enough information provided to answer that question.
+                    // Get the original extension method and see if it extends a type parameter that itself has any
+                    // base-type or base-interface constraints. If so, confirm that the type we're on derives from or
+                    // implements that constraint types.  Note that we do this looking at the uninstantiated forms as
+                    // there's no way to tell if the instantiations match as the signature may not have enough
+                    // information provided to answer that question accurately.
                     var originalMember = member.GetOriginalUnreducedDefinition();
                     if (originalMember is IMethodSymbol { Parameters: [{ Type: ITypeParameterSymbol parameterType }, ..] })
                     {
