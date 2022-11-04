@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                 }
 
-                public new bool Equals([AllowNull] object x, [AllowNull] object y)
+                public new bool Equals(object? x, object? y)
                 {
                     if (TryGetType(x, out var type1) && TryGetType(y, out var type2))
                     {
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return type is not null;
                 }
 
-                public int GetHashCode([DisallowNull] object obj)
+                public int GetHashCode(object obj)
                 {
                     if (TryGetType(obj, out var type))
                     {
