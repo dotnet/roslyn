@@ -271,6 +271,8 @@ class X
                         case ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName:
                         case ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential:
                         case ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired:
+                        case ErrorCode.WRN_OptionalParamValueMismatch:
+                        case ErrorCode.WRN_ParamsArrayInLambdaOnly:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -406,11 +408,6 @@ class X
                         case ErrorCode.WRN_LowerCaseTypeName:
                             // These are the warnings introduced with the warning "wave" shipped with dotnet 7 and C# 11.
                             Assert.Equal(7, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
-                        case ErrorCode.WRN_OptionalParamValueMismatch:
-                        case ErrorCode.WRN_ParamsArrayInLambdaOnly:
-                            // These are the warnings introduced with the warning "wave" shipped with dotnet 8 and C# 12.
-                            Assert.Equal(8, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         default:
                             // If a new warning is added, this test will fail
