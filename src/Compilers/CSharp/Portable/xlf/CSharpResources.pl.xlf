@@ -2118,8 +2118,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_OptionalParamValueMismatch">
-        <source>Parameter {0} has default value '{1:10}' in lambda and '{2:10}' in the target delegate type.</source>
-        <target state="new">Parameter {0} has default value '{1:10}' in lambda and '{2:10}' in the target delegate type.</target>
+        <source>Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</source>
+        <target state="new">Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_OptionalParamValueMismatch_Title">
@@ -2148,13 +2148,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParamsArrayInLambdaOnly">
-        <source>Parameter {0} has params modifier in lambda and not in target delegate type.</source>
-        <target state="new">Parameter {0} has params modifier in lambda and not in target delegate type.</target>
+        <source>Parameter {0} has params modifier in lambda but not in target delegate type.</source>
+        <target state="new">Parameter {0} has params modifier in lambda but not in target delegate type.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParamsArrayInLambdaOnly_Title">
-        <source>The params modifier is present in lambda and not in target delegate type.</source>
-        <target state="new">The params modifier is present in lambda and not in target delegate type.</target>
+        <source>The params modifier is present in lambda but not in target delegate type.</source>
+        <target state="new">The params modifier is present in lambda but not in target delegate type.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">

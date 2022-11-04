@@ -795,14 +795,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var delegateParamDefault = delegateParameter.HasExplicitDefaultValue ? delegateParameter.ExplicitDefaultConstantValue : null;
                         if (delegateParamDefault?.IsBad != true && lambdaParamDefault != delegateParamDefault)
                         {
-                            // Parameter {0} has default value '{1}' in lambda and '{2}' in target delegate type.
+                            // Parameter {0} has default value '{1}' in lambda but '{2}' in target delegate type.
                             Error(diagnostics, ErrorCode.WRN_OptionalParamValueMismatch, lambdaParameter.Locations[0], p + 1, lambdaParamDefault, delegateParamDefault ?? ((object)MessageID.IDS_Missing.Localize()));
                         }
                     }
 
                     if (lambdaParameter.IsParams && !delegateParameter.IsParams)
                     {
-                        // Parameter {0} has params modifier in lambda and not in target delegate type.
+                        // Parameter {0} has params modifier in lambda but not in target delegate type.
                         Error(diagnostics, ErrorCode.WRN_ParamsArrayInLambdaOnly, lambdaParameter.Locations[0], p + 1);
                     }
                 }

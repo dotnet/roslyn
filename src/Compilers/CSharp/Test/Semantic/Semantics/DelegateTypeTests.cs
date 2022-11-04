@@ -4615,7 +4615,7 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (7,24): warning CS9501: Parameter 1 has default value '2' in lambda and '1' in the target delegate type.
+                // (7,24): warning CS9501: Parameter 1 has default value '2' in lambda but '1' in the target delegate type.
                 //         int y = F((int x = 2) => { });
                 Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "x").WithArguments("1", "2", "1").WithLocation(7, 24));
         }
@@ -12172,7 +12172,7 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (8,20): warning CS9501: Parameter 1 has default value '1000' in lambda and '1' in the target delegate type.
+                // (8,20): warning CS9501: Parameter 1 has default value '1000' in lambda but '1' in the target delegate type.
                 //         D d = (int x = 1000) => x + x;
                 Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "x").WithArguments("1", "1000", "1").WithLocation(8, 20));
         }
@@ -12218,7 +12218,7 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (8,20): warning CS9501: Parameter 1 has default value '1000' in lambda and '<missing>' in the target delegate type.
+                // (8,20): warning CS9501: Parameter 1 has default value '1000' in lambda but '<missing>' in the target delegate type.
                 //         D d = (int x = 1000) => x + x;
                 Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "x").WithArguments("1", "1000", "<missing>").WithLocation(8, 20));
         }
@@ -13158,7 +13158,7 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (8,27): warning CS9501: Parameter 2 has default value '3' in lambda and '<missing>' in the target delegate type.
+                // (8,27): warning CS9501: Parameter 2 has default value '3' in lambda but '<missing>' in the target delegate type.
                 //         D d = (int _, int _ = 3) => 10;
                 Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "_").WithArguments("2", "3", "<missing>").WithLocation(8, 27),
                 // (9,27): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'Program.D'
@@ -13183,7 +13183,7 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (8,27): warning CS9501: Parameter 2 has default value '3' in lambda and '7' in the target delegate type.
+                // (8,27): warning CS9501: Parameter 2 has default value '3' in lambda but '7' in the target delegate type.
                 //         D d = (int _, int _ = 3) => 10;
                 Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "_").WithArguments("2", "3", "7").WithLocation(8, 27));
         }
@@ -13234,7 +13234,7 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (9,18): warning CS9501: Parameter 1 has default value '4' in lambda and '3' in the target delegate type.
+                // (9,18): warning CS9501: Parameter 1 has default value '4' in lambda but '3' in the target delegate type.
                 //         m = (int i = 4) => i;
                 Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "i").WithArguments("1", "4", "3").WithLocation(9, 18));
         }
@@ -13257,7 +13257,7 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (9,18): warning CS9501: Parameter 1 has default value '4' in lambda and '<missing>' in the target delegate type.
+                // (9,18): warning CS9501: Parameter 1 has default value '4' in lambda but '<missing>' in the target delegate type.
                 //         m = (int i = 4) => i;
                 Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "i").WithArguments("1", "4", "<missing>").WithLocation(9, 18),
                 // (10,27): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of 'Func<int, int>'
@@ -14001,7 +14001,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 withParams = (int[] xs) => xs.Length;
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,26): warning CS9502: Parameter 1 has params modifier in lambda and not in target delegate type.
+                // (5,26): warning CS9502: Parameter 1 has params modifier in lambda but not in target delegate type.
                 // noParams = (params int[] xs) => xs.Length; // 1
                 Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(5, 26));
         }
@@ -14042,7 +14042,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 delegate int DelegateWithParams(params int[] xs);
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,27): warning CS9502: Parameter 1 has params modifier in lambda and not in target delegate type.
+                // (5,27): warning CS9502: Parameter 1 has params modifier in lambda but not in target delegate type.
                 // dNoParams = (params int[] xs) => xs.Length; // 1
                 Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(5, 27));
         }
@@ -14108,13 +14108,13 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 delegate int DelegateWithParams(params int[] xs);
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,29): warning CS9501: Parameter 1 has default value '1' in lambda and '<missing>' in the target delegate type.
+                // (6,29): warning CS9501: Parameter 1 has default value '1' in lambda but '<missing>' in the target delegate type.
                 // DelegateNoDefault d4 = (int x = 1) => x; // 1
                 Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "x").WithArguments("1", "1", "<missing>").WithLocation(6, 29),
-                // (7,31): warning CS9501: Parameter 1 has default value '2' in lambda and '1' in the target delegate type.
+                // (7,31): warning CS9501: Parameter 1 has default value '2' in lambda but '1' in the target delegate type.
                 // DelegateWithDefault d5 = (int x = 2) => x; // 2
                 Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "x").WithArguments("1", "2", "1").WithLocation(7, 31),
-                // (14,37): warning CS9502: Parameter 1 has params modifier in lambda and not in target delegate type.
+                // (14,37): warning CS9502: Parameter 1 has params modifier in lambda but not in target delegate type.
                 // DelegateNoParams d9 = (params int[] xs) => xs.Length; // 3
                 Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(14, 37));
         }
@@ -14129,10 +14129,10 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 delegate void D(int x, int y, int[] z);
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,20): warning CS9501: Parameter 2 has default value '2' in lambda and '<missing>' in the target delegate type.
+                // (1,20): warning CS9501: Parameter 2 has default value '2' in lambda but '<missing>' in the target delegate type.
                 // D d1 = (int a, int b = 2, params int[] c) => { }; // 1, 2
                 Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "b").WithArguments("2", "2", "<missing>").WithLocation(1, 20),
-                // (1,40): warning CS9502: Parameter 3 has params modifier in lambda and not in target delegate type.
+                // (1,40): warning CS9502: Parameter 3 has params modifier in lambda but not in target delegate type.
                 // D d1 = (int a, int b = 2, params int[] c) => { }; // 1, 2
                 Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "c").WithArguments("3").WithLocation(1, 40),
                 // (1,41): error CS1737: Optional parameters must appear after all required parameters
