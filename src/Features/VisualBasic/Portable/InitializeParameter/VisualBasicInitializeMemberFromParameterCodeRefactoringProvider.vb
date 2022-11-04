@@ -66,6 +66,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
         End Function
 
         Protected Overrides Function GetAccessorBody(accessor As IMethodSymbol, cancellationToken As CancellationToken) As SyntaxNode
+            If accessor.DeclaringSyntaxReferences.Length = 0 Then
+                Return Nothing
+            End If
+
             Dim reference = accessor.DeclaringSyntaxReferences(0).GetSyntax(cancellationToken)
             Return TryCast(TryCast(reference, AccessorStatementSyntax)?.Parent, AccessorBlockSyntax)
         End Function

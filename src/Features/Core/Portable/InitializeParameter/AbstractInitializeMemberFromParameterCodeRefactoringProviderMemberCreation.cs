@@ -475,19 +475,19 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 // parameters.
                 editor.ReplaceNode(
                     typeDeclaration,
-                    (typeDeclaration, _) =>
+                    (currentTypeDecl, _) =>
                     {
                         if (fieldOrProperty is IPropertySymbol property)
                         {
                             return codeGenerator.AddProperty(
-                                typeDeclaration, property,
+                                currentTypeDecl, property,
                                 options.GetInfo(GetAddContext<IPropertySymbol>(parameter, blockStatement, typeDeclaration, cancellationToken), document.Project),
                                 cancellationToken);
                         }
                         else if (fieldOrProperty is IFieldSymbol field)
                         {
                             return codeGenerator.AddField(
-                                typeDeclaration, field,
+                                currentTypeDecl, field,
                                 options.GetInfo(GetAddContext<IFieldSymbol>(parameter, blockStatement, typeDeclaration, cancellationToken), document.Project),
                                 cancellationToken);
                         }

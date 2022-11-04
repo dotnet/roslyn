@@ -1896,5 +1896,209 @@ public class Bar : Foo
     </Project>
 </Workspace>");
         }
+
+        [Fact]
+        public async Task TestInitializeThrowingProperty1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    private string S => throw new NotImplementedException();
+
+    public C([||]string s)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    private string S { get; }
+
+    public C(string s)
+    {
+        S = s;
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestInitializeThrowingProperty2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    private string S
+    {
+        get => throw new NotImplementedException();
+    }
+
+    public C([||]string s)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    private string S
+    {
+        get;
+    }
+
+    public C(string s)
+    {
+        S = s;
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestInitializeThrowingProperty3()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    private string S
+    {
+        get { throw new NotImplementedException(); }
+    }
+
+    public C([||]string s)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    private string S
+    {
+        get;
+    }
+
+    public C(string s)
+    {
+        S = s;
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestInitializeThrowingProperty4()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    private string S
+    {
+        get => throw new NotImplementedException();
+        set => throw new NotImplementedException();
+    }
+
+    public C([||]string s)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    private string S
+    {
+        get;
+        set;
+    }
+
+    public C(string s)
+    {
+        S = s;
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestInitializeThrowingProperty5()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    private string S
+    {
+        get { throw new NotImplementedException(); }
+        set { throw new NotImplementedException(); }
+    }
+
+    public C([||]string s)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    private string S
+    {
+        get;
+        set;
+    }
+
+    public C(string s)
+    {
+        S = s;
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestInitializeThrowingProperty6()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    private string S => throw new InvalidOperationException();
+
+    public C([||]string s)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    private string S => throw new InvalidOperationException();
+
+    public string S1 { get; }
+
+    public C(string s)
+    {
+        S1 = s;
+    }
+}");
+        }
     }
 }
