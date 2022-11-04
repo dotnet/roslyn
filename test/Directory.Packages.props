@@ -1,7 +1,0 @@
-<Project>
-  <Import Project="$([MSBuild]::GetPathOfFileAbove($(MSBuildThisFile), $(MSBuildThisFileDirectory)..))" />
-
-  <ItemGroup>
-    <GlobalPackageReference Include="Microsoft.VisualStudio.Internal.MicroBuild.NonShipping" Version="$(MicroBuildVersion)" />
-  </ItemGroup>
-</Project>
