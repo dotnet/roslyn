@@ -14165,6 +14165,43 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
         }
 
         [Fact]
+        public void DefaultsParamsConversion_Invocation()
+        {
+            var source = """
+                NoDefault((int x = 1) => x); // 1
+                WithDefault((int x = 1) => x);
+                WithDefault((int x = 2) => x); // 2
+                WithDefault((int x) => x);
+                NoDefault((int x) => x);
+
+                NoParams((params int[] xs) => xs.Length); // 3
+                WithParams((params int[] xs) => xs.Length);
+                WithParams((int[] xs) => xs.Length);
+                NoParams((int[] xs) => xs.Length);
+
+                static void NoDefault(DelegateNoDefault d) { }
+                static void WithDefault(DelegateWithDefault d) { }
+                static void NoParams(DelegateNoParams d) { }
+                static void WithParams(DelegateWithParams d) { }
+                
+                delegate int DelegateNoDefault(int x);
+                delegate int DelegateWithDefault(int x = 1);
+                delegate int DelegateNoParams(int[] xs);
+                delegate int DelegateWithParams(params int[] xs);
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,16): warning CS9501: Parameter 1 has default value '1' in lambda but '<missing>' in the target delegate type.
+                // NoDefault((int x = 1) => x); // 1
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "x").WithArguments("1", "1", "<missing>").WithLocation(1, 16),
+                // (3,18): warning CS9501: Parameter 1 has default value '2' in lambda but '1' in the target delegate type.
+                // WithDefault((int x = 2) => x); // 2
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "x").WithArguments("1", "2", "1").WithLocation(3, 18),
+                // (7,24): warning CS9502: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // NoParams((params int[] xs) => xs.Length); // 3
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(7, 24));
+        }
+
+        [Fact]
         public void DefaultsParamsConversion_Mix()
         {
             var source = """
