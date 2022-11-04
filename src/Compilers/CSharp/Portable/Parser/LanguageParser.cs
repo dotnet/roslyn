@@ -3873,7 +3873,7 @@ parse_member_name:;
             }
 
             // We know we are parsing a property because we have seen either an open brace or an arrow token
-            Debug.Assert(this.CurrentToken.Kind is SyntaxKind.EqualsGreaterThanToken or SyntaxKind.OpenBraceToken);
+            Debug.Assert(IsStartOfPropertyBody(this.CurrentToken.Kind));
 
             AccessorListSyntax accessorList = null;
             if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
