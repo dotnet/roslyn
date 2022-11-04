@@ -192,8 +192,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
-            // Most modifiers not allowed if we're an explicit impl.
-            if (!@event.ExplicitInterfaceImplementations.Any())
+            // Only "static" allowed if we're an explicit impl.
+            if (@event.ExplicitInterfaceImplementations.Any())
+            {
+                if (@event.IsStatic)
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+            }
+            else
             {
                 // If we're generating into an interface, then allow modifiers for static abstract members
                 if (destination is CodeGenerationDestination.InterfaceType)
@@ -204,9 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                         // We only generate the abstract keyword in interfaces for static abstract members
                         if (@event.IsAbstract)
-                        {
                             tokens.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
-                        }
                     }
                 }
                 else
@@ -214,9 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     AddAccessibilityModifiers(@event.DeclaredAccessibility, tokens, info, Accessibility.Private);
 
                     if (@event.IsStatic)
-                    {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
-                    }
 
                     // An event is readonly if its accessors are readonly.
                     // If one accessor is readonly and the other one is not,
@@ -224,26 +225,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     // See https://github.com/dotnet/roslyn/issues/34213
                     // Don't show the readonly modifier if the containing type is already readonly
                     if (@event.AddMethod?.IsReadOnly == true && !@event.ContainingType.IsReadOnly)
-                    {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
-                    }
 
                     if (@event.IsAbstract)
-                    {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
-                    }
 
                     if (@event.IsOverride)
-                    {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.OverrideKeyword));
-                    }
                 }
             }
 
             if (CodeGenerationEventInfo.GetIsUnsafe(@event))
-            {
                 tokens.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
-            }
 
             return tokens.ToSyntaxTokenListAndFree();
         }

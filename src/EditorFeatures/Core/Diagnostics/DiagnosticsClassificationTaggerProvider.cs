@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Features.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces;
@@ -45,11 +46,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DiagnosticsClassificationTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
+            IDiagnosticAnalyzerService analyzerService,
             ClassificationTypeMap typeMap,
             EditorOptionsService editorOptionsService,
             [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, diagnosticService, editorOptionsService.GlobalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Classification))
+            : base(threadingContext, diagnosticService, analyzerService, editorOptionsService.GlobalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Classification))
         {
             _typeMap = typeMap;
             _classificationTag = new ClassificationTag(_typeMap.GetClassificationType(ClassificationTypeDefinitions.UnnecessaryCode));
@@ -71,13 +73,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (!data.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
             {
-                // All unnecessary code diagnostics should have the 'Unnecessary' custom tag.
-                // Below assert ensures that we do no report unnecessary code diagnostics that
-                // want to fade out multiple locations which are encoded as
-                // additional location indices in the diagnostic's property bag
-                // without the 'Unnecessary' custom tag. 
-                Debug.Assert(!TryGetUnnecessaryLocationIndices(data, out _));
-
                 return false;
             }
 
@@ -91,50 +86,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return true;
         }
 
-        protected internal override ITagSpan<ClassificationTag> CreateTagSpan(Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data)
+        protected internal override ITagSpan<ClassificationTag> CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data)
             => new TagSpan<ClassificationTag>(span, _classificationTag);
-
-        private static bool TryGetUnnecessaryLocationIndices(
-            DiagnosticData diagnosticData, [NotNullWhen(true)] out string? unnecessaryIndices)
-        {
-            unnecessaryIndices = null;
-
-            return diagnosticData.AdditionalLocations.Length > 0
-                && diagnosticData.Properties != null
-                && diagnosticData.Properties.TryGetValue(WellKnownDiagnosticTags.Unnecessary, out unnecessaryIndices)
-                && unnecessaryIndices != null;
-        }
 
         protected internal override ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
         {
-            // If there are 'unnecessary' locations specified in the property bag, use those instead of the main diagnostic location.
-            if (TryGetUnnecessaryLocationIndices(diagnosticData, out var unnecessaryIndices))
+            if (diagnosticData.TryGetUnnecessaryDataLocations(out var locationsToTag))
             {
-                using var _ = PooledObjects.ArrayBuilder<DiagnosticDataLocation>.GetInstance(out var locationsToTag);
-
-                foreach (var index in GetLocationIndices(unnecessaryIndices))
-                    locationsToTag.Add(diagnosticData.AdditionalLocations[index]);
-
-                return locationsToTag.ToImmutable();
+                return locationsToTag.Value;
             }
 
             // Default to the base implementation for the diagnostic data
             return base.GetLocationsToTag(diagnosticData);
-
-            static IEnumerable<int> GetLocationIndices(string indicesProperty)
-            {
-                try
-                {
-                    using var stream = new MemoryStream(Encoding.UTF8.GetBytes(indicesProperty));
-                    var serializer = new DataContractJsonSerializer(typeof(IEnumerable<int>));
-                    var result = serializer.ReadObject(stream) as IEnumerable<int>;
-                    return result ?? Array.Empty<int>();
-                }
-                catch (Exception e) when (FatalError.ReportAndCatch(e))
-                {
-                    return ImmutableArray<int>.Empty;
-                }
-            }
         }
+
+        protected override bool TagEquals(ClassificationTag tag1, ClassificationTag tag2)
+            => tag1.ClassificationType.Classification == tag2.ClassificationType.Classification;
     }
 }

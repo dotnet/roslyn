@@ -17,9 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
     internal sealed class CSharpQualifyMemberAccessDiagnosticAnalyzer
         : AbstractQualifyMemberAccessDiagnosticAnalyzer<SyntaxKind, ExpressionSyntax, SimpleNameSyntax>
     {
-        protected override string GetLanguageName()
-            => LanguageNames.CSharp;
-
         protected override ISimplification Simplification
             => CSharpSimplification.Instance;
 

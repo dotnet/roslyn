@@ -6,6 +6,7 @@
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider</AssemblyName>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace></RootNamespace>
+    <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Core\Source\ResultProvider\Portable\Microsoft.CodeAnalysis.ResultProvider.csproj" />

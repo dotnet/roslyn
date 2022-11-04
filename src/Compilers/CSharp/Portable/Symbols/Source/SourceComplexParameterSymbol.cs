@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var scope = DeclaredScope;
+                var scope = CalculateEffectiveScopeIgnoringAttributes();
                 if (scope != DeclarationScope.Unscoped &&
                     HasUnscopedRefAttribute)
                 {
@@ -572,6 +572,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyCustomAttributesBag;
         }
 
+        /// <summary>
+        /// Binds attributes applied to this parameter.
+        /// </summary>
+        public ImmutableArray<(CSharpAttributeData, BoundAttribute)> BindParameterAttributes()
+        {
+            return BindAttributes(GetAttributeDeclarations(), WithTypeParametersBinderOpt);
+        }
+
         internal override void EarlyDecodeWellKnownAttributeType(NamedTypeSymbol attributeType, AttributeSyntax attributeSyntax)
         {
             Debug.Assert(!attributeType.IsErrorType());
@@ -822,21 +830,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, arguments.AttributeSyntaxOpt.Location);
                 }
+                else if (DeclaredScope != DeclarationScope.Unscoped)
+                {
+                    diagnostics.Add(ErrorCode.ERR_UnscopedScoped, arguments.AttributeSyntaxOpt.Location);
+                }
             }
         }
 
         private bool IsValidUnscopedRefAttributeTarget()
         {
-            switch (RefKind)
-            {
-                case RefKind.Out:
-                    return true;
-                case RefKind.Ref:
-                    var type = Type;
-                    return type is null || type.IsErrorTypeOrRefLikeType();
-                default:
-                    return false;
-            }
+            return ParameterHelpers.IsRefScopedByDefault(this);
         }
 
         private static bool? DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(AttributeDescription description, CSharpAttributeData attribute)
@@ -1276,7 +1279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             var parameterWellKnownAttributeData = arguments.GetOrCreateData<ParameterWellKnownAttributeData>();

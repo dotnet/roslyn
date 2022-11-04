@@ -197,15 +197,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         /// <summary>
         /// Returns true if an entry's suppression state can be modified.
         /// </summary>
-        /// <returns></returns>
         private static bool IsEntryWithConfigurableSuppressionState([NotNullWhen(true)] DiagnosticData? entry)
-        {
-            // Compiler diagnostics with severity 'Error' are not configurable.
-            // Additionally, diagnostics coming from build are from a snapshot (as opposed to live diagnostics) and cannot be configured.
-            return entry != null &&
-                !SuppressionHelpers.IsNotConfigurableDiagnostic(entry) &&
-                !entry.IsBuildDiagnostic();
-        }
+            => entry != null && !SuppressionHelpers.IsNotConfigurableDiagnostic(entry);
 
         private static AbstractTableEntriesSnapshot<DiagnosticTableItem>? GetEntriesSnapshot(ITableEntryHandle entryHandle, out int index)
         {
@@ -225,7 +218,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             Contract.ThrowIfNull(_tableControl);
 
-            var builder = ArrayBuilder<DiagnosticData>.GetInstance();
+            using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
 
             Dictionary<string, Project>? projectNameToProjectMap = null;
             Dictionary<Project, ImmutableDictionary<string, Document>>? filePathToDocumentMap = null;
@@ -251,7 +244,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                     string? filePath = null;
                     var line = -1; // FxCop only supports line, not column.
-                    DiagnosticDataLocation? location = null;
 
                     if (entryHandle.TryGetValue(StandardTableColumnDefinitions.ErrorCode, out string errorCode) && !string.IsNullOrEmpty(errorCode) &&
                         entryHandle.TryGetValue(StandardTableColumnDefinitions.ErrorCategory, out string category) && !string.IsNullOrEmpty(category) &&
@@ -275,40 +267,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         }
 
                         Document? document = null;
-                        var hasLocation = (entryHandle.TryGetValue(StandardTableColumnDefinitions.DocumentName, out filePath) && !string.IsNullOrEmpty(filePath)) &&
-                            (entryHandle.TryGetValue(StandardTableColumnDefinitions.Line, out line) && line >= 0);
-                        if (hasLocation)
+                        var hasLocation =
+                            entryHandle.TryGetValue(StandardTableColumnDefinitions.DocumentName, out filePath) && !string.IsNullOrEmpty(filePath) &&
+                            entryHandle.TryGetValue(StandardTableColumnDefinitions.Line, out line) && line >= 0;
+                        if (!hasLocation)
+                            continue;
+
+                        if (RoslynString.IsNullOrEmpty(filePath) || line < 0)
                         {
-                            if (RoslynString.IsNullOrEmpty(filePath) || line < 0)
-                            {
-                                // bail out
-                                continue;
-                            }
-
-                            filePathToDocumentMap ??= new Dictionary<Project, ImmutableDictionary<string, Document>>();
-                            if (!filePathToDocumentMap.TryGetValue(project, out var filePathMap))
-                            {
-                                filePathMap = await GetFilePathToDocumentMapAsync(project, cancellationToken).ConfigureAwait(false);
-                                filePathToDocumentMap[project] = filePathMap;
-                            }
-
-                            if (!filePathMap.TryGetValue(filePath, out document))
-                            {
-                                // bail out
-                                continue;
-                            }
-
-                            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                            var linePosition = new LinePosition(line, 0);
-                            var linePositionSpan = new LinePositionSpan(start: linePosition, end: linePosition);
-                            var textSpan = (await tree.GetTextAsync(cancellationToken).ConfigureAwait(false)).Lines.GetTextSpan(linePositionSpan);
-                            location = new DiagnosticDataLocation(document.Id, textSpan, filePath,
-                                originalStartLine: linePosition.Line, originalStartColumn: linePosition.Character,
-                                originalEndLine: linePosition.Line, originalEndColumn: linePosition.Character);
+                            // bail out
+                            continue;
                         }
 
+                        filePathToDocumentMap ??= new Dictionary<Project, ImmutableDictionary<string, Document>>();
+                        if (!filePathToDocumentMap.TryGetValue(project, out var filePathMap))
+                        {
+                            filePathMap = await GetFilePathToDocumentMapAsync(project, cancellationToken).ConfigureAwait(false);
+                            filePathToDocumentMap[project] = filePathMap;
+                        }
+
+                        if (!filePathMap.TryGetValue(filePath, out document))
+                        {
+                            // bail out
+                            continue;
+                        }
+
+                        // TODO: should we use the tree of the document (if available) to get the correct mapped span for this location?
+                        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var linePosition = new LinePosition(line, 0);
+                        var linePositionSpan = new LinePositionSpan(start: linePosition, end: linePosition);
+                        var location = new DiagnosticDataLocation(
+                            new FileLinePositionSpan(filePath, linePositionSpan), document.Id, mappedFileSpan: null);
+
                         Contract.ThrowIfNull(project);
-                        Contract.ThrowIfFalse((document != null) == (location != null));
 
                         // Create a diagnostic with correct values for fields we care about: id, category, message, isSuppressed, location
                         // and default values for the rest of the fields (not used by suppression fixer).
@@ -335,7 +326,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
             }
 
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutable();
         }
 
         private static async Task<ImmutableDictionary<string, Document>> GetFilePathToDocumentMapAsync(Project project, CancellationToken cancellationToken)

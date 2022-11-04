@@ -96,7 +96,7 @@ namespace IdeCoreBenchmarks
 
             // Force a storage instance to be created.  This makes it simple to go examine it prior to any operations we
             // perform, including seeing how big the initial string table is.
-            var storageService = _workspace.Services.GetPersistentStorageService();
+            var storageService = _workspace.Services.SolutionServices.GetPersistentStorageService();
             if (storageService == null)
                 throw new ArgumentException("Couldn't get storage service");
 
@@ -197,19 +197,15 @@ namespace IdeCoreBenchmarks
             Console.WriteLine("Time to search: " + (DateTime.Now - start));
         }
 
-        private async Task<int> SearchAsync(Project project, ImmutableArray<Document> priorityDocuments)
+        private static async Task<int> SearchAsync(Project project, ImmutableArray<Document> priorityDocuments)
         {
             var service = project.Services.GetService<INavigateToSearchService>();
             var results = new List<INavigateToSearchResult>();
-            await service.SearchProjectAsync(
-                project, priorityDocuments, "Syntax", service.KindsProvided,
-                r =>
-                {
-                    lock (results)
-                        results.Add(r);
-
-                    return Task.CompletedTask;
-                }, CancellationToken.None);
+            await foreach (var item in service.SearchProjectAsync(
+                project, priorityDocuments, "Syntax", service.KindsProvided, activeDocument: null, CancellationToken.None))
+            {
+                results.Add(item);
+            }
 
             return results.Count;
         }

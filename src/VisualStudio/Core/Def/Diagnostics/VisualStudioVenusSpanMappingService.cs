@@ -263,7 +263,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             return false;
         }
 
-        private struct MappedSpan
+        private readonly struct MappedSpan
         {
             private readonly int _originalLine;
             private readonly int _originalColumn;

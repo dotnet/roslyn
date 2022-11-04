@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundValuePlaceholder
     {
-        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable;
+        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable();
     }
 
     internal partial class BoundInterpolatedStringHandlerPlaceholder
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundTupleOperandPlaceholder
     {
-        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable;
+        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable();
     }
 
     internal partial class BoundAwaitableValuePlaceholder
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundImplicitIndexerValuePlaceholder
     {
-        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable;
+        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable();
     }
 
     internal partial class BoundListPatternReceiverPlaceholder
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundListPatternIndexPlaceholder
     {
-        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable;
+        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable();
     }
 
     internal partial class BoundSlicePatternReceiverPlaceholder
@@ -189,7 +189,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundSlicePatternRangePlaceholder
     {
-        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable;
+        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable();
+    }
+
+    internal partial class BoundCapturedReceiverPlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference
+        {
+            get
+            {
+                Debug.Assert(false); // Getting here is unexpected.
+                return false;
+            }
+        }
     }
 
     internal partial class BoundThisReference
@@ -671,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     //       BoundTypeOrValueExpression from the bound tree generator, which would otherwise generate
     //       a constructor that may spuriously set hasErrors to true if either field had errors.
     //       A BoundTypeOrValueExpression should never have errors if it is present in the tree.
-    internal struct BoundTypeOrValueData : System.IEquatable<BoundTypeOrValueData>
+    internal readonly struct BoundTypeOrValueData : System.IEquatable<BoundTypeOrValueData>
     {
         public Symbol ValueSymbol { get; }
         public BoundExpression ValueExpression { get; }

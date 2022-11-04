@@ -82,6 +82,11 @@
         <target state="translated">可以删除 Lambda 表达式</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_struct_readonly">
+        <source>Make struct 'readonly'</source>
+        <target state="translated">将结构设置为 “readonly”</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Misplaced_using_directive">
         <source>Misplaced using directive</source>
         <target state="translated">错放了 using 指令</target>
@@ -187,6 +192,11 @@
         <target state="translated">简化属性模式</target>
         <note />
       </trans-unit>
+      <trans-unit id="Struct_can_be_made_readonly">
+        <source>Struct can be made 'readonly'</source>
+        <target state="translated">可以将结构设置为 “readonly”</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
         <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable.</source>
         <target state="translated">Struct 包含对构造函数之外的 "this" 的赋值。使只读字段可写。</target>
@@ -207,49 +217,49 @@
         <target state="translated">使用 UTF-8 字符串文本</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_accessors">
-        <source>Use block body for accessors</source>
-        <target state="translated">使用访问器的程序块主体</target>
+      <trans-unit id="Use_block_body_for_accessor">
+        <source>Use block body for accessor</source>
+        <target state="new">Use block body for accessor</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_constructors">
-        <source>Use block body for constructors</source>
-        <target state="translated">使用构造函数的程序块主体</target>
+      <trans-unit id="Use_block_body_for_constructor">
+        <source>Use block body for constructor</source>
+        <target state="new">Use block body for constructor</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_conversion_operators">
-        <source>Use block body for conversion operators</source>
-        <target state="translated">将块正文用于转换运算符</target>
+      <trans-unit id="Use_block_body_for_conversion_operator">
+        <source>Use block body for conversion operator</source>
+        <target state="new">Use block body for conversion operator</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_indexers">
-        <source>Use block body for indexers</source>
-        <target state="translated">使用索引器的程序块主体</target>
+      <trans-unit id="Use_block_body_for_indexer">
+        <source>Use block body for indexer</source>
+        <target state="new">Use block body for indexer</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_lambda_expressions">
-        <source>Use block body for lambda expressions</source>
-        <target state="new">Use block body for lambda expressions</target>
+      <trans-unit id="Use_block_body_for_lambda_expression">
+        <source>Use block body for lambda expression</source>
+        <target state="new">Use block body for lambda expression</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_local_functions">
-        <source>Use block body for local functions</source>
-        <target state="translated">对本地函数使用块主体</target>
+      <trans-unit id="Use_block_body_for_local_function">
+        <source>Use block body for local function</source>
+        <target state="new">Use block body for local function</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_methods">
-        <source>Use block body for methods</source>
-        <target state="translated">使用方法的程序块主体</target>
+      <trans-unit id="Use_block_body_for_method">
+        <source>Use block body for method</source>
+        <target state="new">Use block body for method</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_operators">
-        <source>Use block body for operators</source>
-        <target state="translated">使用运算符的程序块主体</target>
+      <trans-unit id="Use_block_body_for_operator">
+        <source>Use block body for operator</source>
+        <target state="new">Use block body for operator</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_properties">
-        <source>Use block body for properties</source>
-        <target state="translated">使用属性的程序块主体</target>
+      <trans-unit id="Use_block_body_for_property">
+        <source>Use block body for property</source>
+        <target state="new">Use block body for property</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_explicit_type">
@@ -262,49 +272,49 @@
         <target state="translated">用显式类型代替 "var"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_expression_body_for_accessors">
-        <source>Use expression body for accessors</source>
-        <target state="translated">使用访问器的表达式主体</target>
+      <trans-unit id="Use_expression_body_for_accessor">
+        <source>Use expression body for accessor</source>
+        <target state="new">Use expression body for accessor</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_expression_body_for_constructors">
-        <source>Use expression body for constructors</source>
-        <target state="translated">使用构造函数的表达式主体</target>
+      <trans-unit id="Use_expression_body_for_constructor">
+        <source>Use expression body for constructor</source>
+        <target state="new">Use expression body for constructor</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_expression_body_for_conversion_operators">
-        <source>Use expression body for conversion operators</source>
-        <target state="translated">将表达式正文用于转换运算符</target>
+      <trans-unit id="Use_expression_body_for_conversion_operator">
+        <source>Use expression body for conversion operator</source>
+        <target state="new">Use expression body for conversion operator</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_expression_body_for_indexers">
-        <source>Use expression body for indexers</source>
-        <target state="translated">使用索引器的表达式主体</target>
+      <trans-unit id="Use_expression_body_for_indexer">
+        <source>Use expression body for indexer</source>
+        <target state="new">Use expression body for indexer</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_expression_body_for_lambda_expressions">
-        <source>Use expression body for lambda expressions</source>
-        <target state="new">Use expression body for lambda expressions</target>
+      <trans-unit id="Use_expression_body_for_lambda_expression">
+        <source>Use expression body for lambda expression</source>
+        <target state="new">Use expression body for lambda expression</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_expression_body_for_local_functions">
-        <source>Use expression body for local functions</source>
-        <target state="translated">将表达式主体用于本地函数</target>
+      <trans-unit id="Use_expression_body_for_local_function">
+        <source>Use expression body for local function</source>
+        <target state="new">Use expression body for local function</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_expression_body_for_methods">
-        <source>Use expression body for methods</source>
-        <target state="translated">使用方法的表达式主体</target>
+      <trans-unit id="Use_expression_body_for_method">
+        <source>Use expression body for method</source>
+        <target state="new">Use expression body for method</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_expression_body_for_operators">
-        <source>Use expression body for operators</source>
-        <target state="translated">使用运算符的表达式主体</target>
+      <trans-unit id="Use_expression_body_for_operator">
+        <source>Use expression body for operator</source>
+        <target state="new">Use expression body for operator</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_expression_body_for_properties">
-        <source>Use expression body for properties</source>
-        <target state="translated">使用属性的表达式主体</target>
+      <trans-unit id="Use_expression_body_for_property">
+        <source>Use expression body for property</source>
+        <target state="new">Use expression body for property</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_implicit_type">

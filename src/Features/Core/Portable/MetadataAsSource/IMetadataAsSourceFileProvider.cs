@@ -15,33 +15,35 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         /// <summary>
         /// Generates a file from metadata. Will be called under a lock to prevent concurrent access.
         /// </summary>
-        Task<MetadataAsSourceFile?> GetGeneratedFileAsync(Workspace workspace, Project project, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, string tempPath, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Called when the file returned from <see cref="GetGeneratedFileAsync(Workspace, Project, ISymbol, bool, MetadataAsSourceOptions, string, CancellationToken)"/>
-        /// needs to be added to the workspace, to be opened. Will be called under a lock to prevent concurrent access.
-        /// </summary>
-        bool TryAddDocumentToWorkspace(Workspace workspace, string filePath, SourceTextContainer sourceTextContainer);
-
-        /// <summary>
-        /// Called when the file is being closed, and so needs to be removed from the workspace.
-        /// Will be called under a lock to prevent concurrent access.
-        /// </summary>
-        bool TryRemoveDocumentFromWorkspace(Workspace workspace, string filePath);
+        Task<MetadataAsSourceFile?> GetGeneratedFileAsync(
+            MetadataAsSourceWorkspace metadataWorkspace, Workspace sourceWorkspace, Project sourceProject, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, string tempPath, CancellationToken cancellationToken);
 
         /// <summary>
         /// Called to clean up any state. Will be called under a lock to prevent concurrent access.
         /// </summary>
-        void CleanupGeneratedFiles(Workspace? workspace);
+        void CleanupGeneratedFiles(MetadataAsSourceWorkspace workspace);
+
+        /// <summary>
+        /// Called when the file returned from <see cref="GetGeneratedFileAsync"/> needs to be added to the workspace,
+        /// to be opened.  Will be called on the main thread of the workspace host.
+        /// </summary>
+        bool TryAddDocumentToWorkspace(MetadataAsSourceWorkspace workspace, string filePath, SourceTextContainer sourceTextContainer);
+
+        /// <summary>
+        /// Called when the file is being closed, and so needs to be removed from the workspace.  Will be called on the
+        /// main thread of the workspace host.
+        /// </summary>
+        bool TryRemoveDocumentFromWorkspace(MetadataAsSourceWorkspace workspace, string filePath);
+
+        /// <summary>
+        /// Called to determine if the file should be collapsed by default when opened for the first time.  Will be
+        /// called on the main thread of the workspace host.
+        /// </summary>
+        bool ShouldCollapseOnOpen(MetadataAsSourceWorkspace workspace, string filePath, BlockStructureOptions blockStructureOptions);
 
         /// <summary>
         /// Maps from a document to its project for the purposes of symbol mapping via <see cref="ISymbolMappingService"/>
         /// </summary>
         Project? MapDocument(Document document);
-
-        /// <summary>
-        /// Called to determine if the file should be collapsed by default when opened for the first time
-        /// </summary>
-        bool ShouldCollapseOnOpen(string filePath, BlockStructureOptions blockStructureOptions);
     }
 }

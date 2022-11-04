@@ -13,11 +13,9 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
 {
     internal abstract class AbstractSemanticModelReuseLanguageService<
         TMemberDeclarationSyntax,
-        TBaseMethodDeclarationSyntax,
         TBasePropertyDeclarationSyntax,
         TAccessorDeclarationSyntax> : ISemanticModelReuseLanguageService
         where TMemberDeclarationSyntax : SyntaxNode
-        where TBaseMethodDeclarationSyntax : TMemberDeclarationSyntax
         where TBasePropertyDeclarationSyntax : TMemberDeclarationSyntax
         where TAccessorDeclarationSyntax : SyntaxNode
     {
@@ -30,7 +28,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
 
         public abstract SyntaxNode? TryGetContainingMethodBodyForSpeculation(SyntaxNode node);
 
-        protected abstract Task<SemanticModel?> TryGetSpeculativeSemanticModelWorkerAsync(SemanticModel previousSemanticModel, SyntaxNode currentBodyNode, CancellationToken cancellationToken);
+        protected abstract SemanticModel? TryGetSpeculativeSemanticModelWorker(SemanticModel previousSemanticModel, SyntaxNode previousBodyNode, SyntaxNode currentBodyNode);
         protected abstract SyntaxList<TAccessorDeclarationSyntax> GetAccessors(TBasePropertyDeclarationSyntax baseProperty);
         protected abstract TBasePropertyDeclarationSyntax GetBasePropertyDeclaration(TAccessorDeclarationSyntax accessor);
 
@@ -41,7 +39,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
 
             // This operation is only valid if top-level equivalent trees were passed in.  If they're not equivalent
             // then something very bad happened as we did that document.Project.GetDependentSemanticVersionAsync was
-            // still the same.  So somehow w don't have top-level equivalence, but we do have the same semantic version.
+            // still the same.  So somehow we don't have top-level equivalence, but we do have the same semantic version.
             //
             // log a NFW to help diagnose what the source looks like as it may help us determine what sort of edit is
             // causing this.
@@ -53,13 +51,10 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
 
                     try
                     {
-                        throw new InvalidOperationException(
-                            $@"Syntax trees should have been equivalent.
----
-{previousSyntaxTree.GetText(CancellationToken.None)}
----
-{currentSyntaxTree.GetText(CancellationToken.None)}
----");
+                        // Avoid including tree contents in exception message for privacy compliance. Instead, include
+                        // in exception type for dump analysis.
+                        throw new NonEquivalentTreeException(
+                            "Syntax trees should have been equivalent.", previousSyntaxTree, currentSyntaxTree);
 
                     }
                     catch (Exception e) when (FatalError.ReportAndCatch(e))
@@ -70,8 +65,28 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
                 return null;
             }
 
-            return await TryGetSpeculativeSemanticModelWorkerAsync(
-                previousSemanticModel, currentBodyNode, cancellationToken).ConfigureAwait(false);
+            var previousRoot = await previousSemanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            var currentRoot = await currentBodyNode.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            var previousBodyNode = GetPreviousBodyNode(previousRoot, currentRoot, currentBodyNode);
+
+            // Trivia is ignore when comparing two trees for quivalence at top level, since it has no effect to API shape
+            // and it'd be safe to drop in the new method body as long as the shape doesn't change. However, trivia changes
+            // around the method do make it tricky to decide whether a position is safe for speculation.
+
+            // class C { void M() { return; } }";
+            //                    ^ this is the position used to set OriginalPositionForSpeculation when creating the speculative model.
+            //
+            // class C {            void M() { return null; } }";
+            //                               ^ it's unsafe to use the speculative model at this position, even though it's part of the
+            //                                 method body and after OriginalPositionForSpeculation. 
+
+            // Given that the common use case for us is continuously editing/typing inside a method body, we believe we can be conservative
+            // in creating speculative model with those kind of trivia change, by requring the method body block not to shift position,
+            // w/o sacrificing performance in those common sceanrios.
+            if (previousBodyNode.SpanStart != currentBodyNode.SpanStart)
+                return null;
+
+            return TryGetSpeculativeSemanticModelWorker(previousSemanticModel, previousBodyNode, currentBodyNode);
         }
 
         protected SyntaxNode GetPreviousBodyNode(SyntaxNode previousRoot, SyntaxNode currentRoot, SyntaxNode currentBodyNode)
@@ -119,6 +134,22 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
                 }
 
                 return previousMembers[index];
+            }
+        }
+
+        private sealed class NonEquivalentTreeException : Exception
+        {
+            // Used for analyzing dumps
+#pragma warning disable IDE0052 // Remove unread private members
+            private readonly SyntaxTree _originalSyntaxTree;
+            private readonly SyntaxTree _updatedSyntaxTree;
+#pragma warning restore IDE0052 // Remove unread private members
+
+            public NonEquivalentTreeException(string message, SyntaxTree originalSyntaxTree, SyntaxTree updatedSyntaxTree)
+                : base(message)
+            {
+                _originalSyntaxTree = originalSyntaxTree;
+                _updatedSyntaxTree = updatedSyntaxTree;
             }
         }
     }

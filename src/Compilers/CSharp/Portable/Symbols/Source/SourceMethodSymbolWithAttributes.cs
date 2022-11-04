@@ -362,6 +362,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
         }
+
+        /// <summary>
+        /// Binds attributes applied to this method.
+        /// </summary>
+        public ImmutableArray<(CSharpAttributeData, BoundAttribute)> BindMethodAttributes()
+        {
+            return BindAttributes(GetAttributeDeclarations(), OuterBinder);
+        }
 #nullable disable
 
         public override bool AreLocalsZeroed
@@ -893,7 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             diagnostics.Add(arguments.AttributeSyntaxOpt, useSiteInfo);
 
-            if (!IsStatic || ParameterCount > 0 || !ReturnsVoid)
+            if (!IsStatic || ParameterCount > 0 || !ReturnsVoid || IsAbstract || IsVirtual)
             {
                 diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid, arguments.AttributeSyntaxOpt.Location, Name);
                 hasError = true;
@@ -1017,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(_lazyCustomAttributesBag != null);
                 Debug.Assert(_lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed);
 
-                if (ContainingSymbol is NamedTypeSymbol { IsComImport: true, TypeKind: TypeKind.Class })
+                if (ContainingSymbol is NamedTypeSymbol { IsComImport: true, TypeKind: TypeKind.Class or TypeKind.Interface })
                 {
                     switch (this.MethodKind)
                     {

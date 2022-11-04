@@ -1278,7 +1278,7 @@ public class C
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
-                // (8,16): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (8,16): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         M2(out Property); // 1
                 Diagnostic(ErrorCode.ERR_RefProperty, "Property").WithLocation(8, 16)
                 );
@@ -4620,6 +4620,14 @@ namespace System
     public class ValueType { }
     public struct Void { }
     public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 ";
 

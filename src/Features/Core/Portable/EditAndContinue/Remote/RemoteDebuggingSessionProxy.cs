@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     Location.None,
                     string.Format(descriptor.MessageFormat.ToString(), "", e.Message));
 
-                diagnosticData = ImmutableArray.Create(DiagnosticData.Create(diagnostic, project: null));
+                diagnosticData = ImmutableArray.Create(DiagnosticData.Create(solution, diagnostic, project: null));
                 rudeEdits = ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty;
                 moduleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, ImmutableArray<ModuleUpdate>.Empty);
                 syntaxError = null;
@@ -258,6 +258,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public async ValueTask<ImmutableArray<ActiveStatementSpan>> GetAdjustedActiveStatementSpansAsync(TextDocument document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
         {
+            // filter out documents that are not synchronized to remote process before we attempt remote invoke:
+            if (!RemoteSupportedLanguages.IsSupported(document.Project.Language))
+            {
+                return ImmutableArray<ActiveStatementSpan>.Empty;
+            }
+
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {

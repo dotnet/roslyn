@@ -1085,7 +1085,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     }
                     while (containingType is object);
 
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -1220,7 +1220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     newAttributeCtorArguments,
                     oldAttribute.ConstructorArgumentsSourceIndices,
                     newAttributeNamedArguments,
-                    oldAttribute.HasErrors,
+                    hasErrors: oldAttribute.HasErrors || newAttributeCtor is null,
                     oldAttribute.IsConditionallyOmitted);
             }
 
@@ -1385,7 +1385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             public override Symbol VisitParameter(ParameterSymbol symbol, RetargetOptions options)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public override Symbol VisitField(FieldSymbol symbol, RetargetOptions options)

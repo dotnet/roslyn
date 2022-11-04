@@ -80,6 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 => parameter.Locations.FirstOrDefault() ?? location;
         }
 
-        protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
+        protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
+
+        internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
     }
 }

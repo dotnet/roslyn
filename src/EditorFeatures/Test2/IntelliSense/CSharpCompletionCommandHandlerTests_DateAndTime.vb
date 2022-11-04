@@ -7,8 +7,9 @@ Imports Microsoft.CodeAnalysis.Test.Utilities.EmbeddedLanguages
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Completion)>
     Public Class CSharpCompletionCommandHandlerTests_DateAndTime
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CompletionListIsShownWithDefaultFormatStringAfterTypingFirstQuote(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -30,7 +31,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CompletionListIsNotShownAfterTypingEndingQuote(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -49,7 +50,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CompletionListIsShownWithDefaultFormatStringAfterTypingFormattingComponentColon(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -71,7 +72,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CompletionListIsNotShownAfterTypingColonWithinFormattingComponent(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
 <Document><![CDATA[
@@ -90,7 +91,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function ExplicitInvoke(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -112,7 +113,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         <WorkItem(59453, "https://github.com/dotnet/roslyn/issues/59453")>
         Public Async Function ExplicitInvokeNotInGuid(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -132,7 +133,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function ExplicitInvokeDateComment(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -155,7 +156,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function ExplicitInvokeTimeComment(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -178,7 +179,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function ExplicitInvokeDateTimeComment1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -201,7 +202,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function ExplicitInvokeDateTimeComment2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -224,7 +225,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function ExplicitInvokeStringSyntaxAttribute_Argument(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
@@ -252,7 +253,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function ExplicitInvokeInvalidComment(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
 <Document><![CDATA[
@@ -272,7 +273,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function ExplicitInvoke_OverwriteExisting(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -296,7 +297,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TypeChar_BeginningOfWord(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -316,7 +317,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TypeChar_MiddleOfWord(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -335,7 +336,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestExample1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
 <Document><![CDATA[
@@ -365,7 +366,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNullableDateTimeCompletion(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
 <Document><![CDATA[
@@ -395,7 +396,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function ExplicitInvoke_StringInterpolation1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -417,7 +418,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function ExplicitInvoke_StringInterpolation2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -439,7 +440,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function ExplicitInvoke_OverwriteExisting_StringInterpolation1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -463,7 +464,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function ExplicitInvoke_OverwriteExisting_StringInterpolation2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -487,7 +488,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TypeChar_BeginningOfWord_StringInterpolation1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -507,7 +508,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TypeChar_BeginningOfWord_StringInterpolation2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -527,7 +528,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestExample1_StringInterpolation1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
 <Document><![CDATA[
@@ -557,7 +558,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestExample1_StringInterpolation2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
 <Document><![CDATA[
@@ -587,7 +588,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TypeChar_MiddleOfWord_StringInterpolation1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -606,7 +607,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TypeChar_MiddleOfWord_StringInterpolation2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[

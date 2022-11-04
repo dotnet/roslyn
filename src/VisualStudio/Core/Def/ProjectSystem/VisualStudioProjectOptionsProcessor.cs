@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     internal class VisualStudioProjectOptionsProcessor : IDisposable
     {
         private readonly VisualStudioProject _project;
-        private readonly HostWorkspaceServices _workspaceServices;
+        private readonly SolutionServices _workspaceServices;
         private readonly ICommandLineParserService _commandLineParserService;
         private readonly ITemporaryStorageServiceInternal _temporaryStorageService;
 
@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public VisualStudioProjectOptionsProcessor(
             VisualStudioProject project,
-            HostWorkspaceServices workspaceServices)
+            SolutionServices workspaceServices)
         {
             _project = project ?? throw new ArgumentNullException(nameof(project));
             _workspaceServices = workspaceServices;
@@ -205,6 +205,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             _project.CompilationOutputAssemblyFilePath = fullOutputFilePath ?? _project.CompilationOutputAssemblyFilePath;
             _project.ParseOptions = parseOptions;
+            _project.ChecksumAlgorithm = _commandLineArgumentsForCommandLine.ChecksumAlgorithm;
         }
 
         private void RuleSetFile_UpdatedOnDisk(object sender, EventArgs e)

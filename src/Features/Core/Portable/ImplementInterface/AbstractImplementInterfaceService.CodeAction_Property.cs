@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
     {
         internal partial class ImplementInterfaceCodeAction
         {
-            private ISymbol GenerateProperty(
+            private IEnumerable<ISymbol?> GeneratePropertyMembers(
                 Compilation compilation,
                 IPropertySymbol property,
                 Accessibility accessibility,
@@ -39,7 +40,16 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     compilation, property, accessibility, generateAbstractly, useExplicitInterfaceSymbol,
                     propertyGenerationBehavior, attributesToRemove);
 
-                var syntaxFacts = Document.Project.Services.GetRequiredService<ISyntaxFactsService>();
+                var syntaxFacts = Document.GetRequiredLanguageService<ISyntaxFactsService>();
+                var semanticFacts = Document.GetRequiredLanguageService<ISemanticFactsService>();
+
+                if (property is { IsIndexer: false, Parameters.Length: > 0 } &&
+                    !semanticFacts.SupportsParameterizedProperties)
+                {
+                    yield return getAccessor;
+                    yield return setAccessor;
+                    yield break;
+                }
 
                 var parameterNames = NameGenerator.EnsureUniqueness(
                     property.Parameters.SelectAsArray(p => p.Name),
@@ -49,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 updatedProperty = updatedProperty.RemoveInaccessibleAttributesAndAttributesOfTypes(compilation.Assembly, attributesToRemove);
 
-                return CodeGenerationSymbolFactory.CreatePropertySymbol(
+                yield return CodeGenerationSymbolFactory.CreatePropertySymbol(
                     updatedProperty,
                     accessibility: accessibility,
                     modifiers: modifiers,

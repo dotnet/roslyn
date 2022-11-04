@@ -1713,7 +1713,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal SynthesizedAttributeData SynthesizeScopedRefAttribute(ParameterSymbol symbol, DeclarationScope scope)
         {
             Debug.Assert(scope != DeclarationScope.Unscoped);
-            Debug.Assert(symbol.RefKind != RefKind.Out || scope == DeclarationScope.ValueScoped);
+            Debug.Assert(!ParameterHelpers.IsRefScopedByDefault(symbol) || scope == DeclarationScope.ValueScoped);
             Debug.Assert(!symbol.IsThis);
 
             if ((object)Compilation.SourceModule != symbol.ContainingModule)
@@ -1730,6 +1730,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
             // https://github.com/dotnet/roslyn/issues/30062 Should not be optional.
             return Compilation.TrySynthesizeAttribute(member, isOptionalUse: true);
+        }
+
+        internal virtual SynthesizedAttributeData SynthesizeRefSafetyRulesAttribute(ImmutableArray<TypedConstant> arguments)
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            // https://github.com/dotnet/roslyn/issues/30062 Should not be optional.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor, arguments, isOptionalUse: true);
         }
 
         internal bool ShouldEmitNullablePublicOnlyAttribute()

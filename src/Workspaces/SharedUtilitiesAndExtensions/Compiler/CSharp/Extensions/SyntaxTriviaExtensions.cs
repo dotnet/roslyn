@@ -18,17 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class SyntaxTriviaExtensions
     {
-        public static bool MatchesKind(this SyntaxTrivia trivia, SyntaxKind kind)
-            => trivia.Kind() == kind;
-
-        public static bool MatchesKind(this SyntaxTrivia trivia, SyntaxKind kind1, SyntaxKind kind2)
-        {
-            var triviaKind = trivia.Kind();
-            return triviaKind == kind1 || triviaKind == kind2;
-        }
-
-        public static bool MatchesKind(this SyntaxTrivia trivia, params SyntaxKind[] kinds)
-            => kinds.Contains(trivia.Kind());
+        public static void Deconstruct(this SyntaxTrivia trivia, out SyntaxKind kind)
+            => kind = trivia.Kind();
 
         public static bool IsSingleOrMultiLineComment(this SyntaxTrivia trivia)
             => trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia);
@@ -80,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 if (commentText.StartsWith("//", StringComparison.Ordinal))
                 {
-                    commentText = commentText.Substring(2);
+                    commentText = commentText[2..];
                 }
 
                 return commentText.TrimStart(null);
@@ -91,12 +82,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 if (commentText.EndsWith("*/", StringComparison.Ordinal))
                 {
-                    commentText = commentText.Substring(0, commentText.Length - 2);
+                    commentText = commentText[..^2];
                 }
 
                 if (commentText.StartsWith("/*", StringComparison.Ordinal))
                 {
-                    commentText = commentText.Substring(2);
+                    commentText = commentText[2..];
                 }
 
                 commentText = commentText.Trim();

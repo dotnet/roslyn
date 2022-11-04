@@ -133,6 +133,9 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
                 return glyph;
             }
 
+            public InlineRenameFileRenameInfo GetFileRenameInfo()
+                => InlineRenameFileRenameInfo.NotAllowed;
+
             private class InlineRenameLocationSet : IInlineRenameLocationSet
             {
                 private readonly IXamlRenameInfo _renameInfo;

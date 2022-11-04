@@ -26,7 +26,7 @@ namespace Roslyn.Utilities
     using Resources = WorkspacesResources;
 #endif
 
-    using EncodingKind = ObjectWriter.EncodingKind;
+    using TypeCode = ObjectWriter.TypeCode;
 
     /// <summary>
     /// An <see cref="ObjectReader"/> that deserializes objects from a byte stream.
@@ -39,7 +39,7 @@ namespace Roslyn.Utilities
         /// this version, just change VersionByte2.
         /// </summary>
         internal const byte VersionByte1 = 0b10101010;
-        internal const byte VersionByte2 = 0b00001011;
+        internal const byte VersionByte2 = 0b00001100;
 
         private readonly BinaryReader _reader;
         private readonly CancellationToken _cancellationToken;
@@ -230,100 +230,90 @@ namespace Roslyn.Utilities
 
         private object ReadValueWorker()
         {
-            var kind = (EncodingKind)_reader.ReadByte();
-            switch (kind)
+            var code = (TypeCode)_reader.ReadByte();
+            switch (code)
             {
-                case EncodingKind.Null: return null;
-                case EncodingKind.Boolean_True: return true;
-                case EncodingKind.Boolean_False: return false;
-                case EncodingKind.Int8: return _reader.ReadSByte();
-                case EncodingKind.UInt8: return _reader.ReadByte();
-                case EncodingKind.Int16: return _reader.ReadInt16();
-                case EncodingKind.UInt16: return _reader.ReadUInt16();
-                case EncodingKind.Int32: return _reader.ReadInt32();
-                case EncodingKind.Int32_1Byte: return (int)_reader.ReadByte();
-                case EncodingKind.Int32_2Bytes: return (int)_reader.ReadUInt16();
-                case EncodingKind.Int32_0:
-                case EncodingKind.Int32_1:
-                case EncodingKind.Int32_2:
-                case EncodingKind.Int32_3:
-                case EncodingKind.Int32_4:
-                case EncodingKind.Int32_5:
-                case EncodingKind.Int32_6:
-                case EncodingKind.Int32_7:
-                case EncodingKind.Int32_8:
-                case EncodingKind.Int32_9:
-                case EncodingKind.Int32_10:
-                    return (int)kind - (int)EncodingKind.Int32_0;
-                case EncodingKind.UInt32: return _reader.ReadUInt32();
-                case EncodingKind.UInt32_1Byte: return (uint)_reader.ReadByte();
-                case EncodingKind.UInt32_2Bytes: return (uint)_reader.ReadUInt16();
-                case EncodingKind.UInt32_0:
-                case EncodingKind.UInt32_1:
-                case EncodingKind.UInt32_2:
-                case EncodingKind.UInt32_3:
-                case EncodingKind.UInt32_4:
-                case EncodingKind.UInt32_5:
-                case EncodingKind.UInt32_6:
-                case EncodingKind.UInt32_7:
-                case EncodingKind.UInt32_8:
-                case EncodingKind.UInt32_9:
-                case EncodingKind.UInt32_10:
-                    return (uint)((int)kind - (int)EncodingKind.UInt32_0);
-                case EncodingKind.Int64: return _reader.ReadInt64();
-                case EncodingKind.UInt64: return _reader.ReadUInt64();
-                case EncodingKind.Float4: return _reader.ReadSingle();
-                case EncodingKind.Float8: return _reader.ReadDouble();
-                case EncodingKind.Decimal: return _reader.ReadDecimal();
-                case EncodingKind.Char:
+                case TypeCode.Null: return null;
+                case TypeCode.Boolean_True: return true;
+                case TypeCode.Boolean_False: return false;
+                case TypeCode.Int8: return _reader.ReadSByte();
+                case TypeCode.UInt8: return _reader.ReadByte();
+                case TypeCode.Int16: return _reader.ReadInt16();
+                case TypeCode.UInt16: return _reader.ReadUInt16();
+                case TypeCode.Int32: return _reader.ReadInt32();
+                case TypeCode.Int32_1Byte: return (int)_reader.ReadByte();
+                case TypeCode.Int32_2Bytes: return (int)_reader.ReadUInt16();
+                case TypeCode.Int32_0:
+                case TypeCode.Int32_1:
+                case TypeCode.Int32_2:
+                case TypeCode.Int32_3:
+                case TypeCode.Int32_4:
+                case TypeCode.Int32_5:
+                case TypeCode.Int32_6:
+                case TypeCode.Int32_7:
+                case TypeCode.Int32_8:
+                case TypeCode.Int32_9:
+                case TypeCode.Int32_10:
+                    return (int)code - (int)TypeCode.Int32_0;
+                case TypeCode.UInt32: return _reader.ReadUInt32();
+                case TypeCode.UInt32_1Byte: return (uint)_reader.ReadByte();
+                case TypeCode.UInt32_2Bytes: return (uint)_reader.ReadUInt16();
+                case TypeCode.UInt32_0:
+                case TypeCode.UInt32_1:
+                case TypeCode.UInt32_2:
+                case TypeCode.UInt32_3:
+                case TypeCode.UInt32_4:
+                case TypeCode.UInt32_5:
+                case TypeCode.UInt32_6:
+                case TypeCode.UInt32_7:
+                case TypeCode.UInt32_8:
+                case TypeCode.UInt32_9:
+                case TypeCode.UInt32_10:
+                    return (uint)((int)code - (int)TypeCode.UInt32_0);
+                case TypeCode.Int64: return _reader.ReadInt64();
+                case TypeCode.UInt64: return _reader.ReadUInt64();
+                case TypeCode.Float4: return _reader.ReadSingle();
+                case TypeCode.Float8: return _reader.ReadDouble();
+                case TypeCode.Decimal: return _reader.ReadDecimal();
+                case TypeCode.Char:
                     // read as ushort because BinaryWriter fails on chars that are unicode surrogates
                     return (char)_reader.ReadUInt16();
-                case EncodingKind.StringUtf8:
-                case EncodingKind.StringUtf16:
-                case EncodingKind.StringRef_4Bytes:
-                case EncodingKind.StringRef_1Byte:
-                case EncodingKind.StringRef_2Bytes:
-                    return ReadStringValue(kind);
-                case EncodingKind.ObjectRef_4Bytes: return _objectReferenceMap.GetValue(_reader.ReadInt32());
-                case EncodingKind.ObjectRef_1Byte: return _objectReferenceMap.GetValue(_reader.ReadByte());
-                case EncodingKind.ObjectRef_2Bytes: return _objectReferenceMap.GetValue(_reader.ReadUInt16());
-                case EncodingKind.Object: return ReadObject();
-                case EncodingKind.DateTime: return DateTime.FromBinary(_reader.ReadInt64());
-                case EncodingKind.Array:
-                case EncodingKind.Array_0:
-                case EncodingKind.Array_1:
-                case EncodingKind.Array_2:
-                case EncodingKind.Array_3:
-                    return ReadArray(kind);
+                case TypeCode.StringUtf8:
+                case TypeCode.StringUtf16:
+                case TypeCode.StringRef_4Bytes:
+                case TypeCode.StringRef_1Byte:
+                case TypeCode.StringRef_2Bytes:
+                    return ReadStringValue(code);
+                case TypeCode.ObjectRef_4Bytes: return _objectReferenceMap.GetValue(_reader.ReadInt32());
+                case TypeCode.ObjectRef_1Byte: return _objectReferenceMap.GetValue(_reader.ReadByte());
+                case TypeCode.ObjectRef_2Bytes: return _objectReferenceMap.GetValue(_reader.ReadUInt16());
+                case TypeCode.Object: return ReadObject();
+                case TypeCode.DateTime: return DateTime.FromBinary(_reader.ReadInt64());
+                case TypeCode.Array:
+                case TypeCode.Array_0:
+                case TypeCode.Array_1:
+                case TypeCode.Array_2:
+                case TypeCode.Array_3:
+                    return ReadArray(code);
 
-                case EncodingKind.EncodingName: return Encoding.GetEncoding(ReadString());
-                case EncodingKind.EncodingUtf8: return s_encodingUtf8;
-                case EncodingKind.EncodingUtf8_BOM: return Encoding.UTF8;
-                case EncodingKind.EncodingUtf32_BE: return s_encodingUtf32_BE;
-                case EncodingKind.EncodingUtf32_BE_BOM: return s_encodingUtf32_BE_BOM;
-                case EncodingKind.EncodingUtf32_LE: return s_encodingUtf32_LE;
-                case EncodingKind.EncodingUtf32_LE_BOM: return Encoding.UTF32;
-                case EncodingKind.EncodingUnicode_BE: return s_encodingUnicode_BE;
-                case EncodingKind.EncodingUnicode_BE_BOM: return Encoding.BigEndianUnicode;
-                case EncodingKind.EncodingUnicode_LE: return s_encodingUnicode_LE;
-                case EncodingKind.EncodingUnicode_LE_BOM: return Encoding.Unicode;
+                case TypeCode.EncodingName:
+                    return Encoding.GetEncoding(ReadString());
+
+                case >= TypeCode.FirstWellKnownTextEncoding and <= TypeCode.LastWellKnownTextEncoding:
+                    return ObjectWriter.ToEncodingKind(code).GetEncoding();
+
+                case TypeCode.EncodingCodePage:
+                    return Encoding.GetEncoding(ReadInt32());
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(kind);
+                    throw ExceptionUtilities.UnexpectedValue(code);
             }
         }
-
-        private static readonly Encoding s_encodingUtf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
-        private static readonly Encoding s_encodingUtf32_BE = new UTF32Encoding(bigEndian: true, byteOrderMark: false);
-        private static readonly Encoding s_encodingUtf32_BE_BOM = new UTF32Encoding(bigEndian: true, byteOrderMark: true);
-        private static readonly Encoding s_encodingUtf32_LE = new UTF32Encoding(bigEndian: false, byteOrderMark: false);
-        private static readonly Encoding s_encodingUnicode_BE = new UnicodeEncoding(bigEndian: true, byteOrderMark: false);
-        private static readonly Encoding s_encodingUnicode_LE = new UnicodeEncoding(bigEndian: false, byteOrderMark: false);
 
         /// <summary>
         /// A reference-id to object map, that can share base data efficiently.
         /// </summary>
-        private struct ReaderReferenceMap<T> : IDisposable
+        private readonly struct ReaderReferenceMap<T> : IDisposable
             where T : class
         {
             private readonly SegmentedList<T> _values;
@@ -391,25 +381,25 @@ namespace Roslyn.Utilities
 
         private string ReadStringValue()
         {
-            var kind = (EncodingKind)_reader.ReadByte();
-            return kind == EncodingKind.Null ? null : ReadStringValue(kind);
+            var kind = (TypeCode)_reader.ReadByte();
+            return kind == TypeCode.Null ? null : ReadStringValue(kind);
         }
 
-        private string ReadStringValue(EncodingKind kind)
+        private string ReadStringValue(TypeCode kind)
         {
             switch (kind)
             {
-                case EncodingKind.StringRef_1Byte:
+                case TypeCode.StringRef_1Byte:
                     return _stringReferenceMap.GetValue(_reader.ReadByte());
 
-                case EncodingKind.StringRef_2Bytes:
+                case TypeCode.StringRef_2Bytes:
                     return _stringReferenceMap.GetValue(_reader.ReadUInt16());
 
-                case EncodingKind.StringRef_4Bytes:
+                case TypeCode.StringRef_4Bytes:
                     return _stringReferenceMap.GetValue(_reader.ReadInt32());
 
-                case EncodingKind.StringUtf16:
-                case EncodingKind.StringUtf8:
+                case TypeCode.StringUtf16:
+                case TypeCode.StringUtf8:
                     return ReadStringLiteral(kind);
 
                 default:
@@ -417,10 +407,10 @@ namespace Roslyn.Utilities
             }
         }
 
-        private unsafe string ReadStringLiteral(EncodingKind kind)
+        private unsafe string ReadStringLiteral(TypeCode kind)
         {
             string value;
-            if (kind == EncodingKind.StringUtf8)
+            if (kind == TypeCode.StringUtf8)
             {
                 value = _reader.ReadString();
             }
@@ -439,21 +429,21 @@ namespace Roslyn.Utilities
             return value;
         }
 
-        private Array ReadArray(EncodingKind kind)
+        private Array ReadArray(TypeCode kind)
         {
             int length;
             switch (kind)
             {
-                case EncodingKind.Array_0:
+                case TypeCode.Array_0:
                     length = 0;
                     break;
-                case EncodingKind.Array_1:
+                case TypeCode.Array_1:
                     length = 1;
                     break;
-                case EncodingKind.Array_2:
+                case TypeCode.Array_2:
                     length = 2;
                     break;
-                case EncodingKind.Array_3:
+                case TypeCode.Array_3:
                     length = 3;
                     break;
                 default:
@@ -462,7 +452,7 @@ namespace Roslyn.Utilities
             }
 
             // SUBTLE: If it was a primitive array, only the EncodingKind byte of the element type was written, instead of encoding as a type.
-            var elementKind = (EncodingKind)_reader.ReadByte();
+            var elementKind = (TypeCode)_reader.ReadByte();
 
             var elementType = ObjectWriter.s_reverseTypeMap[(int)elementKind];
             if (elementType != null)
@@ -487,7 +477,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private Array ReadPrimitiveTypeArrayElements(Type type, EncodingKind kind, int length)
+        private Array ReadPrimitiveTypeArrayElements(Type type, TypeCode kind, int length)
         {
             Debug.Assert(ObjectWriter.s_reverseTypeMap[(int)kind] == type);
 
@@ -503,16 +493,16 @@ namespace Roslyn.Utilities
             // otherwise, read elements directly from underlying binary writer
             switch (kind)
             {
-                case EncodingKind.Int8: return ReadInt8ArrayElements(CreateArray<sbyte>(length));
-                case EncodingKind.Int16: return ReadInt16ArrayElements(CreateArray<short>(length));
-                case EncodingKind.Int32: return ReadInt32ArrayElements(CreateArray<int>(length));
-                case EncodingKind.Int64: return ReadInt64ArrayElements(CreateArray<long>(length));
-                case EncodingKind.UInt16: return ReadUInt16ArrayElements(CreateArray<ushort>(length));
-                case EncodingKind.UInt32: return ReadUInt32ArrayElements(CreateArray<uint>(length));
-                case EncodingKind.UInt64: return ReadUInt64ArrayElements(CreateArray<ulong>(length));
-                case EncodingKind.Float4: return ReadFloat4ArrayElements(CreateArray<float>(length));
-                case EncodingKind.Float8: return ReadFloat8ArrayElements(CreateArray<double>(length));
-                case EncodingKind.Decimal: return ReadDecimalArrayElements(CreateArray<decimal>(length));
+                case TypeCode.Int8: return ReadInt8ArrayElements(CreateArray<sbyte>(length));
+                case TypeCode.Int16: return ReadInt16ArrayElements(CreateArray<short>(length));
+                case TypeCode.Int32: return ReadInt32ArrayElements(CreateArray<int>(length));
+                case TypeCode.Int64: return ReadInt64ArrayElements(CreateArray<long>(length));
+                case TypeCode.UInt16: return ReadUInt16ArrayElements(CreateArray<ushort>(length));
+                case TypeCode.UInt32: return ReadUInt32ArrayElements(CreateArray<uint>(length));
+                case TypeCode.UInt64: return ReadUInt64ArrayElements(CreateArray<ulong>(length));
+                case TypeCode.Float4: return ReadFloat4ArrayElements(CreateArray<float>(length));
+                case TypeCode.Float8: return ReadFloat8ArrayElements(CreateArray<double>(length));
+                case TypeCode.Decimal: return ReadDecimalArrayElements(CreateArray<decimal>(length));
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }

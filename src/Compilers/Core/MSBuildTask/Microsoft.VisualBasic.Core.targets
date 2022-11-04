@@ -19,6 +19,7 @@
                   $(ResolvedCodeAnalysisRuleSet);
                   @(AdditionalFiles);
                   @(EmbeddedFiles);
+                  @(Analyzer);
                   @(EditorConfigFiles)"
           Outputs="@(DocFileItem);
                    @(IntermediateAssembly);
@@ -153,7 +154,7 @@
        probably won't be any worse than having no options at all. -->
        
   <PropertyGroup>
-    <CommandLineArgsForDesignTimeEvaluation>-langversion:$(LangVersion)</CommandLineArgsForDesignTimeEvaluation>
+    <CommandLineArgsForDesignTimeEvaluation>-langversion:$(LangVersion) -checksumalgorithm:$(ChecksumAlgorithm)</CommandLineArgsForDesignTimeEvaluation>
     <CommandLineArgsForDesignTimeEvaluation Condition="'$(FinalDefineConstants)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -define:$(FinalDefineConstants)</CommandLineArgsForDesignTimeEvaluation>
   </PropertyGroup>
 </Project>

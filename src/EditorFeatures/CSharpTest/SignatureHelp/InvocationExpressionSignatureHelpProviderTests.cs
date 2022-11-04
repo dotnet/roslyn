@@ -471,8 +471,8 @@ public class D
             await TestAsync(markup);
         }
 
-        [WorkItem(539712, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539712")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(539712, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539712")]
         public async Task TestInvocationOnNamedType()
         {
             var markup = @"
@@ -503,8 +503,8 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(539712, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539712")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(539712, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539712")]
         public async Task TestInvocationOnInstance()
         {
             var markup = @"
@@ -535,8 +535,8 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(545118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545118")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(545118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545118")]
         public async Task TestStatic1()
         {
             var markup = @"
@@ -564,8 +564,8 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(545118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545118")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(545118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545118")]
         public async Task TestStatic2()
         {
             var markup = @"
@@ -594,8 +594,8 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(543117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543117")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(543117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543117")]
         public async Task TestInvocationOnAnonymousType()
         {
             var markup = @"
@@ -633,8 +633,8 @@ $@"void List<'a>.Add('a item)
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         public async Task TestInvocationOnBaseExpression_ProtectedAccessibility()
         {
             var markup = @"
@@ -670,8 +670,8 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         public async Task TestInvocationOnBaseExpression_AbstractBase()
         {
             var markup = @"
@@ -707,8 +707,8 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         public async Task TestInvocationOnThisExpression_ProtectedAccessibility()
         {
             var markup = @"
@@ -739,8 +739,8 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         public async Task TestInvocationOnThisExpression_ProtectedAccessibility_Overridden()
         {
             var markup = @"
@@ -776,8 +776,8 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         public async Task TestInvocationOnThisExpression_ProtectedAccessibility_AbstractBase()
         {
             var markup = @"
@@ -808,8 +808,8 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         public async Task TestInvocationOnThisExpression_ProtectedAccessibility_AbstractBase_Overridden()
         {
             var markup = @"
@@ -845,8 +845,8 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         public async Task TestInvocationOnBaseExpression_ProtectedInternalAccessibility()
         {
             var markup = @"
@@ -882,8 +882,8 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         public async Task TestInvocationOnBaseMember_ProtectedAccessibility_ThroughType()
         {
             var markup = @"
@@ -909,8 +909,8 @@ public class Derived : Base
             await TestAsync(markup, null);
         }
 
-        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         public async Task TestInvocationOnBaseExpression_PrivateAccessibility()
         {
             var markup = @"
@@ -1090,8 +1090,8 @@ class C
 
         #region "EditorBrowsable tests"
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_Method_BrowsableStateAlways()
         {
             var markup = @"
@@ -1122,8 +1122,8 @@ public class Goo
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_Method_BrowsableStateNever()
         {
             var markup = @"
@@ -1155,8 +1155,8 @@ public class Goo
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_Method_BrowsableStateAdvanced()
         {
             var markup = @"
@@ -1196,8 +1196,8 @@ public class Goo
                                                 hideAdvancedMembers: false);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_Method_Overloads_OneBrowsableAlways_OneBrowsableNever()
         {
             var markup = @"
@@ -1238,8 +1238,8 @@ public class Goo
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_Method_Overloads_BothBrowsableNever()
         {
             var markup = @"
@@ -1276,8 +1276,8 @@ public class Goo
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task OverriddenSymbolsFilteredFromSigHelp()
         {
             var markup = @"
@@ -1315,8 +1315,8 @@ public class D : B
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_BrowsableStateAlwaysMethodInBrowsableStateNeverClass()
         {
             var markup = @"
@@ -1347,8 +1347,8 @@ public class C
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_BrowsableStateAlwaysMethodInBrowsableStateNeverBaseClass()
         {
             var markup = @"
@@ -1389,8 +1389,8 @@ public class D : B
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_BrowsableStateNeverMethodsInBaseClass()
         {
             var markup = @"
@@ -1421,8 +1421,8 @@ public class B
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BothBrowsableAlways()
         {
             var markup = @"
@@ -1452,8 +1452,8 @@ public class C<T>
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BrowsableMixed1()
         {
             var markup = @"
@@ -1488,8 +1488,8 @@ public class C<T>
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BrowsableMixed2()
         {
             var markup = @"
@@ -1523,8 +1523,8 @@ public class C<T>
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BothBrowsableNever()
         {
             var markup = @"
@@ -1558,8 +1558,8 @@ public class C<T>
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_GenericType2CausingMethodSignatureEquality_BothBrowsableAlways()
         {
             var markup = @"
@@ -1590,8 +1590,8 @@ public class C<T, U>
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_GenericType2CausingMethodSignatureEquality_BrowsableMixed()
         {
             var markup = @"
@@ -1625,8 +1625,8 @@ public class C<T, U>
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_GenericType2CausingMethodSignatureEquality_BothBrowsableNever()
         {
             var markup = @"
@@ -1701,8 +1701,8 @@ class C
 
         #endregion
 
-        [WorkItem(13849, "DevDiv_Projects/Roslyn")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(13849, "DevDiv_Projects/Roslyn")]
         public async Task TestSpecificity1()
         {
             var markup = @"
@@ -1731,8 +1731,8 @@ class C<T>
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(530017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530017")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(530017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530017")]
         public async Task LongSignature()
         {
             var markup = @"
@@ -2311,8 +2311,8 @@ class C
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
-        [WorkItem(768697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(768697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
         public async Task InstanceAndStaticMethodsShown1()
         {
             var markup = @"
@@ -2341,8 +2341,8 @@ class Goo
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(768697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(768697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
         public async Task InstanceAndStaticMethodsShown2()
         {
             var markup = @"
@@ -2371,8 +2371,8 @@ class Goo
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(768697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(768697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
         public async Task InstanceAndStaticMethodsShown3()
         {
             var markup = @"
@@ -2401,8 +2401,8 @@ class Goo
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(768697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(768697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
         public async Task InstanceAndStaticMethodsShown4()
         {
             var markup = @"
@@ -2425,8 +2425,8 @@ class Goo
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(768697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(768697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
         public async Task InstanceAndStaticMethodsShown5()
         {
             var markup = @"
@@ -2449,8 +2449,8 @@ class Goo
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(33549, "https://github.com/dotnet/roslyn/issues/33549")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(33549, "https://github.com/dotnet/roslyn/issues/33549")]
         public async Task ShowOnlyStaticMethodsForBuildInTypes()
         {
             var markup = @"
@@ -2471,8 +2471,8 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(23133, "https://github.com/dotnet/roslyn/issues/23133")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(23133, "https://github.com/dotnet/roslyn/issues/23133")]
         public async Task ShowOnlyStaticMethodsForNotImportedTypes()
         {
             var markup = @"
@@ -2500,8 +2500,8 @@ namespace Test
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(1067933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(1067933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
         public async Task InvokedWithNoToken()
         {
             var markup = @"
@@ -2540,9 +2540,9 @@ class C
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         [WorkItem(699, "https://github.com/dotnet/roslyn/issues/699")]
         [WorkItem(1068424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068424")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestGenericParameters1()
         {
             var markup = @"
@@ -2567,9 +2567,9 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         [WorkItem(699, "https://github.com/dotnet/roslyn/issues/699")]
         [WorkItem(1068424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068424")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestGenericParameters2()
         {
             var markup = @"
@@ -2594,8 +2594,8 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(4144, "https://github.com/dotnet/roslyn/issues/4144")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(4144, "https://github.com/dotnet/roslyn/issues/4144")]
         public async Task TestSigHelpIsVisibleOnInaccessibleItem()
         {
             var markup = @"
@@ -2719,8 +2719,8 @@ class Program
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(38074, "https://github.com/dotnet/roslyn/issues/38074")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(38074, "https://github.com/dotnet/roslyn/issues/38074")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction()
         {
@@ -2739,8 +2739,8 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(38074, "https://github.com/dotnet/roslyn/issues/38074")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(38074, "https://github.com/dotnet/roslyn/issues/38074")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunctionInStaticMethod()
         {

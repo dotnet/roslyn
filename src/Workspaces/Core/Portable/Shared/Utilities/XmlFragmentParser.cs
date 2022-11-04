@@ -209,13 +209,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             public override int Read()
             {
                 // XmlReader does not call this API
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public override int Peek()
             {
                 // XmlReader does not call this API
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }

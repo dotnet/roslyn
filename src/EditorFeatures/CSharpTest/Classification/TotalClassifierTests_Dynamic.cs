@@ -692,8 +692,7 @@ partial void F(dynamic d)
                 Punctuation.CloseParen);
         }
 
-        [Theory]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Theory, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
         public async Task DynamicAsArrayName(bool script, TestHost testHost)
         {

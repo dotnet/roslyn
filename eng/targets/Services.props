@@ -30,8 +30,9 @@
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.CodeLensReferences" ClassName="Microsoft.CodeAnalysis.Remote.RemoteCodeLensReferencesService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.DesignerAttributeDiscovery" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDesignerAttributeDiscoveryService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.ProjectTelemetry" ClassName="Microsoft.CodeAnalysis.Remote.RemoteProjectTelemetryService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.LegacySolutionEventsAggregation" ClassName="Microsoft.CodeAnalysis.Remote.RemoteLegacySolutionEventsAggregationService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.SymbolSearchUpdate" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSymbolSearchUpdateService+Factory" />
-    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.TodoCommentsDiscovery" ClassName="Microsoft.CodeAnalysis.Remote.RemoteTodoCommentsDiscoveryService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.TaskList" ClassName="Microsoft.CodeAnalysis.Remote.RemoteTaskListService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.EditAndContinue" ClassName="Microsoft.CodeAnalysis.EditAndContinue.RemoteEditAndContinueService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.ValueTracking" ClassName="Microsoft.CodeAnalysis.Remote.RemoteValueTrackingService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.InheritanceMargin" ClassName="Microsoft.CodeAnalysis.Remote.RemoteInheritanceMarginService+Factory" />
@@ -39,6 +40,7 @@
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.ProcessTelemetry" ClassName="Microsoft.CodeAnalysis.Remote.RemoteProcessTelemetryService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.CompilationAvailable" ClassName="Microsoft.CodeAnalysis.Remote.RemoteCompilationAvailableService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.StackTraceExplorer" ClassName="Microsoft.CodeAnalysis.Remote.RemoteStackTraceExplorerService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.UnitTestingSearch" ClassName="Microsoft.CodeAnalysis.Remote.RemoteUnitTestingSearchService+Factory" />
   </ItemGroup>
 
   <!--

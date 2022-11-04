@@ -90,6 +90,7 @@ namespace Microsoft.Cci
             bool emitEncInfo = compilationOptions.EnableEditAndContinue && _metadataWriter.IsFullMetadata && !suppressNewCustomDebugInfo;
 
             byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(Context, methodBody, methodHandle, emitStateMachineInfo: emitAllDebugInfo, emitEncInfo, emitDynamicAndTupleInfo, out bool emitExternNamespaces);
+            Debug.Assert(emitAllDebugInfo || !emitExternNamespaces);
 
             if (!emitAllDebugInfo && blob.Length == 0)
             {
@@ -439,7 +440,7 @@ namespace Microsoft.Cci
             }
 
             // no alias defined in scope for given assembly -> error in compiler
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private void DefineLocalScopes(ImmutableArray<LocalScope> scopes, StandaloneSignatureHandle localSignatureHandleOpt)

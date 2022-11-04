@@ -181,6 +181,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string RemoveRedundantNullableDirectiveDiagnosticId = "IDE0240";
         public const string RemoveUnnecessaryNullableDirectiveDiagnosticId = "IDE0241";
 
+        public const string MakeStructReadOnlyDiagnosticId = "IDE0250";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";

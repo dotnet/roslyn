@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,15 +29,18 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         public bool CanFilter => true;
 
-        private static Func<RoslynNavigateToItem, Task> GetOnItemFoundCallback(
-            Solution solution, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
+        private static async IAsyncEnumerable<INavigateToSearchResult> ConvertItemsAsync(
+            Solution solution,
+            Document? activeDocument,
+            IAsyncEnumerable<RoslynNavigateToItem> items,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            return async item =>
+            await foreach (var item in items)
             {
-                var result = await item.TryCreateSearchResultAsync(solution, cancellationToken).ConfigureAwait(false);
-                if (result != null)
-                    await onResultFound(result).ConfigureAwait(false);
-            };
+                var converted = await item.TryCreateSearchResultAsync(solution, activeDocument, cancellationToken).ConfigureAwait(false);
+                if (converted != null)
+                    yield return converted;
+            }
         }
     }
 }

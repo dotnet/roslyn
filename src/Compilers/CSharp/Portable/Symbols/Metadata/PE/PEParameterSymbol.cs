@@ -295,11 +295,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (_moduleSymbol.Module.HasUnscopedRefAttribute(_handle))
                 {
+                    if (_moduleSymbol.Module.HasScopedRefAttribute(_handle))
+                    {
+                        isBad = true;
+                    }
                     scope = DeclarationScope.Unscoped;
-                }
-                else if (refKind == RefKind.Out)
-                {
-                    scope = DeclarationScope.RefScoped;
                 }
                 else if (_moduleSymbol.Module.HasScopedRefAttribute(_handle))
                 {
@@ -316,6 +316,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         isBad = true;
                     }
+                }
+                else if (ParameterHelpers.IsRefScopedByDefault(_moduleSymbol.UseUpdatedEscapeRules, refKind))
+                {
+                    scope = DeclarationScope.RefScoped;
                 }
             }
 
@@ -989,9 +993,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal sealed override DeclarationScope DeclaredScope => _packedFlags.Scope;
+        internal sealed override DeclarationScope EffectiveScope => _packedFlags.Scope;
 
-        internal sealed override DeclarationScope EffectiveScope => DeclaredScope;
+        internal sealed override bool UseUpdatedEscapeRules => _moduleSymbol.UseUpdatedEscapeRules;
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
@@ -1035,6 +1039,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         filterIsReadOnlyAttribute ? AttributeDescription.IsReadOnlyAttribute : default,
                         out _,
                         AttributeDescription.ScopedRefAttribute,
+                        out _,
+                        default,
                         out _,
                         default);
 

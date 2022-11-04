@@ -5,6 +5,7 @@
 Imports System.ComponentModel.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeCleanup.Providers
 Imports Microsoft.CodeAnalysis.Editor.Implementation.EndConstructGeneration
@@ -33,17 +34,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
 
         Private ReadOnly _editorOperationsFactoryService As IEditorOperationsFactoryService
         Private ReadOnly _undoHistoryRegistry As ITextUndoHistoryRegistry
-        Private ReadOnly _globalOptions As IGlobalOptionService
+        Private ReadOnly _editorOptionsService As EditorOptionsService
 
         <ImportingConstructor()>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New(editorOperationsFactoryService As IEditorOperationsFactoryService,
                        undoHistoryRegistry As ITextUndoHistoryRegistry,
-                       globalOptions As IGlobalOptionService)
+                       editorOptionsService As EditorOptionsService)
 
             _editorOperationsFactoryService = editorOperationsFactoryService
             _undoHistoryRegistry = undoHistoryRegistry
-            _globalOptions = globalOptions
+            _editorOptionsService = editorOptionsService
         End Sub
 
         Public ReadOnly Property DisplayName As String Implements INamed.DisplayName
@@ -67,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
         Public Sub ExecuteCommand_TypeCharCommandHandler(args As TypeCharCommandArgs, nextHandler As Action, context As CommandExecutionContext) Implements IChainedCommandHandler(Of TypeCharCommandArgs).ExecuteCommand
             nextHandler()
 
-            If Not _globalOptions.GetOption(FeatureOnOffOptions.EndConstruct, LanguageNames.VisualBasic) Then
+            If Not _editorOptionsService.GlobalOptions.GetOption(FeatureOnOffOptions.EndConstruct, LanguageNames.VisualBasic) Then
                 Return
             End If
 
@@ -98,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
         End Sub
 
         Private Sub ExecuteEndConstructOnReturn(textView As ITextView, subjectBuffer As ITextBuffer, nextHandler As Action)
-            If Not _globalOptions.GetOption(FeatureOnOffOptions.EndConstruct, LanguageNames.VisualBasic) OrElse
+            If Not _editorOptionsService.GlobalOptions.GetOption(FeatureOnOffOptions.EndConstruct, LanguageNames.VisualBasic) OrElse
                Not subjectBuffer.CanApplyChangeDocumentToWorkspace() Then
                 nextHandler()
                 Return
@@ -139,13 +140,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                                  Return p.Name = PredefinedCodeCleanupProviderNames.NormalizeModifiersOrOperators
                              End Function)
 
-            Dim options = document.GetCodeCleanupOptionsAsync(_globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken)
+            Dim options = buffer.GetCodeCleanupOptions(_editorOptionsService, document.Project.Services, explicitFormat:=False, allowImportsInHiddenRegions:=document.AllowImportsInHiddenRegions())
             Dim cleanDocument = CodeCleaner.CleanupAsync(document, GetSpanToCleanup(statement), Options, codeCleanups, cancellationToken:=cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim changes = cleanDocument.GetTextChangesAsync(document, cancellationToken).WaitAndGetResult(cancellationToken)
 
             Using transaction = New CaretPreservingEditTransaction(VBEditorResources.End_Construct, view, _undoHistoryRegistry, _editorOperationsFactoryService)
                 transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance
-
-                cleanDocument.Project.Solution.Workspace.ApplyDocumentChanges(cleanDocument, cancellationToken)
+                buffer.ApplyChanges(changes)
                 transaction.Complete()
             End Using
         End Sub
