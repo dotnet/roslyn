@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return true;
             }
 
-            if (UnwrapImplicitConversion(assignmentExpression.Value) is ICoalesceOperation coalesceExpression &&
+            if (assignmentExpression.Value.UnwrapImplicitConversion() is ICoalesceOperation coalesceExpression &&
                 IsParameterReference(coalesceExpression.Value, parameter))
             {
                 // We already have a member initialized with this parameter like:
@@ -634,7 +634,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private async Task<ISymbol?> TryFindMatchingUninitializedFieldOrPropertySymbolAsync(
-            Document document, IParameterSymbol parameter, IBlockOperation? blockStatementOpt, ImmutableArray<NamingRule> rules, ImmutableArray<string> parameterWords, CancellationToken cancellationToken)
+            Document document, IParameterSymbol parameter, IBlockOperation? blockStatement, ImmutableArray<NamingRule> rules, ImmutableArray<string> parameterWords, CancellationToken cancellationToken)
         {
             // Look for a field/property that really looks like it corresponds to this parameter.
             // Use a variety of heuristics around the name/type to see if this is a match.
@@ -660,7 +660,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     if (memberWithName is IFieldSymbol field &&
                         !field.IsConst &&
                         IsImplicitConversion(compilation, source: parameter.Type, destination: field.Type) &&
-                        !ContainsMemberAssignment(blockStatementOpt, field))
+                        !ContainsMemberAssignment(blockStatement, field))
                     {
                         return field;
                     }
@@ -669,11 +669,17 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     // not already been assigned to, then this property is a good candidate for us to
                     // hook up to.
                     if (memberWithName is IPropertySymbol property &&
-                        property.IsWritableInConstructor() &&
                         IsImplicitConversion(compilation, source: parameter.Type, destination: property.Type) &&
-                        !ContainsMemberAssignment(blockStatementOpt, property))
+                        !ContainsMemberAssignment(blockStatement, property))
                     {
-                        return property;
+                        // We also allow assigning into a property of the form `=> throw new NotImplementedException()`.
+                        // That way users can easily spit out those methods, but then convert them to be normal
+                        // properties with ease.
+                        if (property.IsWritableInConstructor() ||
+                            IsThrowNotImplementedProperty(property))
+                        {
+                            return property;
+                        }
                     }
                 }
             }
@@ -681,25 +687,42 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // Couldn't find any existing member.  Just return nothing so we can offer to
             // create a member for them.
             return null;
-        }
 
-        private static bool ContainsMemberAssignment(
-            IBlockOperation? blockStatementOpt, ISymbol member)
-        {
-            if (blockStatementOpt != null)
+            static bool ContainsMemberAssignment(IBlockOperation? blockStatement, ISymbol member)
             {
-                foreach (var statement in blockStatementOpt.Operations)
+                if (blockStatement != null)
                 {
-                    if (IsFieldOrPropertyAssignment(statement, member.ContainingType, out var assignmentExpression) &&
-                        UnwrapImplicitConversion(assignmentExpression.Target) is IMemberReferenceOperation memberReference &&
-                        member.Equals(memberReference.Member))
+                    foreach (var statement in blockStatement.Operations)
                     {
-                        return true;
+                        if (IsFieldOrPropertyAssignment(statement, member.ContainingType, out var assignmentExpression) &&
+                            assignmentExpression.Target.UnwrapImplicitConversion() is IMemberReferenceOperation memberReference &&
+                            member.Equals(memberReference.Member))
+                        {
+                            return true;
+                        }
                     }
                 }
+
+                return false;
             }
 
-            return false;
+            static bool IsThrowNotImplementedProperty(IPropertySymbol property)
+            {
+                if (property.GetMethod != null && !IsThrowNotImplementedMethod(property.GetMethod))
+                    return false;
+
+                if (property.SetMethod != null && !IsThrowNotImplementedMethod(property.SetMethod))
+                    return false;
+
+                return property.GetMethod != null || property.SetMethod != null;
+            }
+
+            static bool IsThrowNotImplementedMethod(IMethodSymbol? method)
+            {
+                // if we dont' have the accessor, just ignore 
+                if (method is null)
+                    return true;
+            }
         }
     }
 }
