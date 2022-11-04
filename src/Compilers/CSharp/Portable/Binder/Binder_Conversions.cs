@@ -774,37 +774,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Warns for defaults/`params` mismatch.
+        /// </summary>
         private static void CheckLambdaConversion(LambdaSymbol lambdaSymbol, TypeSymbol targetType, BindingDiagnosticBag diagnostics)
         {
-            // Warn for defaults/`params` mismatch.
-            if (!lambdaSymbol.SyntaxNode.IsKind(SyntaxKind.AnonymousMethodExpression))
+            if (lambdaSymbol.SyntaxNode.IsKind(SyntaxKind.AnonymousMethodExpression))
             {
-                var delegateType = targetType.GetDelegateType();
-                Debug.Assert(delegateType is not null);
-                var delegateParameters = delegateType.DelegateParameters();
+                return;
+            }
 
-                Debug.Assert(lambdaSymbol.ParameterCount == delegateParameters.Length);
-                for (int p = 0; p < lambdaSymbol.ParameterCount; p++)
+            var delegateType = targetType.GetDelegateType();
+            Debug.Assert(delegateType is not null);
+            var delegateParameters = delegateType.DelegateParameters();
+
+            Debug.Assert(lambdaSymbol.ParameterCount == delegateParameters.Length);
+            for (int p = 0; p < lambdaSymbol.ParameterCount; p++)
+            {
+                var lambdaParameter = lambdaSymbol.Parameters[p];
+                var delegateParameter = delegateParameters[p];
+
+                if (lambdaParameter.HasExplicitDefaultValue &&
+                    lambdaParameter.ExplicitDefaultConstantValue is { IsBad: false } lambdaParamDefault)
                 {
-                    var lambdaParameter = lambdaSymbol.Parameters[p];
-                    var delegateParameter = delegateParameters[p];
-
-                    if (lambdaParameter.HasExplicitDefaultValue &&
-                        lambdaParameter.ExplicitDefaultConstantValue is { IsBad: false } lambdaParamDefault)
+                    var delegateParamDefault = delegateParameter.HasExplicitDefaultValue ? delegateParameter.ExplicitDefaultConstantValue : null;
+                    if (delegateParamDefault?.IsBad != true && lambdaParamDefault != delegateParamDefault)
                     {
-                        var delegateParamDefault = delegateParameter.HasExplicitDefaultValue ? delegateParameter.ExplicitDefaultConstantValue : null;
-                        if (delegateParamDefault?.IsBad != true && lambdaParamDefault != delegateParamDefault)
-                        {
-                            // Parameter {0} has default value '{1}' in lambda but '{2}' in target delegate type.
-                            Error(diagnostics, ErrorCode.WRN_OptionalParamValueMismatch, lambdaParameter.Locations[0], p + 1, lambdaParamDefault, delegateParamDefault ?? ((object)MessageID.IDS_Missing.Localize()));
-                        }
+                        // Parameter {0} has default value '{1}' in lambda but '{2}' in target delegate type.
+                        Error(diagnostics, ErrorCode.WRN_OptionalParamValueMismatch, lambdaParameter.Locations[0], p + 1, lambdaParamDefault, delegateParamDefault ?? ((object)MessageID.IDS_Missing.Localize()));
                     }
+                }
 
-                    if (lambdaParameter.IsParams && !delegateParameter.IsParams)
-                    {
-                        // Parameter {0} has params modifier in lambda but not in target delegate type.
-                        Error(diagnostics, ErrorCode.WRN_ParamsArrayInLambdaOnly, lambdaParameter.Locations[0], p + 1);
-                    }
+                if (lambdaParameter.IsParams && !delegateParameter.IsParams)
+                {
+                    // Parameter {0} has params modifier in lambda but not in target delegate type.
+                    Error(diagnostics, ErrorCode.WRN_ParamsArrayInLambdaOnly, lambdaParameter.Locations[0], p + 1);
                 }
             }
         }
