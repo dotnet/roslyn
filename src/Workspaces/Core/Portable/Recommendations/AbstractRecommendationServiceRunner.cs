@@ -413,9 +413,9 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext>
                 }
                 else
                 {
-                    // If we somehow have a constraint that isn't a type parameter, then we really don't know what's
-                    // going on.  Just presume that this constraint would match and show the completion item.  We can
-                    // revisit this choice if this turns out to be an issue.
+                    // If we somehow have a constraint that isn't a type parameter, or class, or interface, then we
+                    // really don't know what's going on.  Just presume that this constraint would match and show the
+                    // completion item.  We can revisit this choice if this turns out to be an issue.
                     return true;
                 }
 
