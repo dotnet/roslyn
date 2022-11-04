@@ -9,6 +9,7 @@ using System.Globalization;
 using System.IO;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
@@ -23,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         internal abstract string GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(CommonCompiler cmd, string sourceFile);
         internal abstract string GetExpectedOutputForAnalyzerDiagnosticsWithAndWithoutLocation(MockCSharpCompiler cmd);
         internal abstract string GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(MockCSharpCompiler cmd, string justification);
+        internal abstract string GetExpectedOutputForSourceGenerator(CommonCompiler cmd, string sourceFile);
 
         protected void NoDiagnosticsImpl()
         {
@@ -294,6 +296,37 @@ class C
 
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
             string expectedOutput = GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(cmd, null);
+
+            Assert.Equal(expectedOutput, actualOutput);
+
+            CleanupAllGeneratedFiles(sourceFile);
+            CleanupAllGeneratedFiles(errorLogFile);
+        }
+
+        protected void SourceGeneratorImpl()
+        {
+            var source = "public class C { }";
+            var dir = Temp.CreateDirectory();
+            var sourceFile = dir.CreateFile("C.cs").WriteAllText(source).Path;
+            var generatedDir = dir.CreateDirectory("generated");
+            var errorLogFile = Path.Combine(dir.Path, "ErrorLog.txt");
+            var generator = new SingleFileTestGenerator("publiiic class D { }", "D.generated.cs");
+            string[] arguments = new[] { "/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}", "/generatedfilesout:" + generatedDir.Path };
+
+            var cmd = CreateCSharpCompiler(null, sourceFile, arguments, generators: ImmutableArray.Create<ISourceGenerator>(generator));
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+            var exitCode = cmd.Run(outWriter);
+            var actualConsoleOutput = outWriter.ToString().Trim();
+
+            Assert.Contains("CS0116", actualConsoleOutput);
+            Assert.Contains("CS5001", actualConsoleOutput);
+            Assert.NotEqual(0, exitCode);
+
+            var actualOutput = File.ReadAllText(errorLogFile).Trim();
+            var prefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
+            var expectedOutput = GetExpectedOutputForSourceGenerator(cmd, Path.Combine(generatedDir.Path, prefix, "D.generated.cs"));
 
             Assert.Equal(expectedOutput, actualOutput);
 

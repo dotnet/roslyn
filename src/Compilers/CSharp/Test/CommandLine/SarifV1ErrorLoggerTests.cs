@@ -184,6 +184,77 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        public void SourceGenerator()
+        {
+            SourceGeneratorImpl();
+        }
+
+        internal override string GetExpectedOutputForSourceGenerator(CommonCompiler cmd, string sourceFile)
+        {
+            var expectedHeader = GetExpectedErrorLogHeader(cmd);
+            var expectedIssues = string.Format(@"
+      ""results"": [
+        {{
+          ""ruleId"": ""CS0116"",
+          ""level"": ""error"",
+          ""message"": ""A namespace cannot directly contain members such as fields, methods or statements"",
+          ""locations"": [
+            {{
+              ""resultFile"": {{
+                ""uri"": ""{0}"",
+                ""region"": {{
+                  ""startLine"": 1,
+                  ""startColumn"": 1,
+                  ""endLine"": 1,
+                  ""endColumn"": 9
+                }}
+              }}
+            }}
+          ]
+        }},
+        {{
+          ""ruleId"": ""CS5001"",
+          ""level"": ""error"",
+          ""message"": ""Program does not contain a static 'Main' method suitable for an entry point""
+        }}
+      ],
+      ""rules"": {{
+        ""CS0116"": {{
+          ""id"": ""CS0116"",
+          ""defaultLevel"": ""error"",
+          ""helpUri"": ""https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0116)"",
+          ""properties"": {{
+            ""category"": ""Compiler"",
+            ""isEnabledByDefault"": true,
+            ""tags"": [
+              ""Compiler"",
+              ""Telemetry"",
+              ""NotConfigurable""
+            ]
+          }}
+        }},
+        ""CS5001"": {{
+          ""id"": ""CS5001"",
+          ""defaultLevel"": ""error"",
+          ""helpUri"": ""https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS5001)"",
+          ""properties"": {{
+            ""category"": ""Compiler"",
+            ""isEnabledByDefault"": true,
+            ""tags"": [
+              ""Compiler"",
+              ""Telemetry"",
+              ""NotConfigurable""
+            ]
+          }}
+        }}
+      }}
+    }}
+  ]
+}}", AnalyzerForErrorLogTest.GetUriForPath(sourceFile));
+            return expectedHeader + expectedIssues;
+        }
+
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void SimpleCompilerDiagnosticsSuppressed()
         {
             SimpleCompilerDiagnosticsSuppressedImpl();
