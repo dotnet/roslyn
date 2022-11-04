@@ -337,7 +337,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext>
                 return containerMembers;
 
             // Compiler will return reduced extension methods in the case it can't determine if constraints match.
-            // Attempt to filter out cases that will never succeed.
+            // Attempt to filter out cases we have strong confidence will never succeed.
             using var _ = ArrayBuilder<ISymbol>.GetInstance(containerMembers.Length, out var result);
 
             foreach (var member in containerMembers)
