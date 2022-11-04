@@ -14,14 +14,5 @@ steps:
 - powershell: .\init.ps1
   displayName: 🔽 Install prereqs and restore packages
 
-- task: VSBuild@1
-  displayName: 🛠 Build Visual Studio solution (expanded template)
-  inputs:
-    msbuildArgs: /t:build,pack /m
-    platform: Any CPU
-    configuration: $(BuildConfiguration)
-  condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
-
 - script: dotnet build
   displayName: 🛠 dotnet build (expanded template)
-  condition: and(succeeded(), ne(variables['Agent.OS'], 'Windows_NT'))
