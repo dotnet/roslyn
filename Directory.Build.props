@@ -39,15 +39,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="all" />
-    <PackageReference Include="Nerdbank.GitVersioning" PrivateAssets="all" />
-    <PackageReference Include="Nullable" PrivateAssets="all" />
-    <PackageReference Include="StyleCop.Analyzers.Unstable" PrivateAssets="all" />
-    <PackageReference Include="CSharpIsNullAnalyzer" PrivateAssets="all" />
-    <PackageReference Include="DotNetAnalyzers.DocumentationAnalyzers" PrivateAssets="all" />
-  </ItemGroup>
-
-  <ItemGroup>
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" Link="stylecop.json" />
   </ItemGroup>
 
