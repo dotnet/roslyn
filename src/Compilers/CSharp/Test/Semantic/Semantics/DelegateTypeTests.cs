@@ -13950,7 +13950,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
         }
 
         [Fact]
-        public void ParamsArray_InferredConversion()
+        public void ParamsArray_DelegateConversions_Lambdas()
         {
             var source = """
                 var noParams = (int[] xs) => xs.Length;
@@ -13968,7 +13968,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
         }
 
         [Fact]
-        public void ParamsArray_MethodGroupConversion()
+        public void ParamsArray_DelegateConversions_MethodGroups()
         {
             var source = """
                 int MethodNoParams(int[] xs) => xs.Length;
@@ -13988,7 +13988,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
         }
 
         [Fact]
-        public void ParamsArray_LambdaConversion()
+        public void ParamsArray_LambdaConversions()
         {
             var source = """
                 int MethodNoParams(int[] xs) => xs.Length;
@@ -14007,7 +14007,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
         }
 
         [Fact]
-        public void ParamsArray_MethodGroupLambdaConversion()
+        public void ParamsArray_MethodGroupConversions()
         {
             var source = """
                 int MethodNoParams(int[] xs) => xs.Length;
@@ -14023,7 +14023,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
         }
 
         [Fact]
-        public void ParamsArray_DelegateConversion()
+        public void ParamsArray_ConversionsToNamedDelegates()
         {
             var source = """
                 int MethodNoParams(int[] xs) => xs.Length;
