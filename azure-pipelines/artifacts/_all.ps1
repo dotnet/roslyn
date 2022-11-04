@@ -38,6 +38,7 @@ Get-ChildItem "$PSScriptRoot\*.ps1" -Exclude "_*" -Recurse | % {
     $ArtifactName = $_.BaseName
     if ($Force -or !(Test-ArtifactStaged($ArtifactName + $ArtifactNameSuffix))) {
         $totalFileCount = 0
+        Write-Verbose "Collecting file list for artifact $($_.BaseName)"
         $fileGroups = & $_
         if ($fileGroups) {
             $fileGroups.GetEnumerator() | % {
