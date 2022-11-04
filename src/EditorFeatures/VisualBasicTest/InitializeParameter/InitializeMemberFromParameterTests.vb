@@ -990,7 +990,6 @@ class C
     Public ReadOnly Property S1 As String
 
     public sub new(s As String)
-        Me.S = s
         S1 = s
     end sub
 end class")
