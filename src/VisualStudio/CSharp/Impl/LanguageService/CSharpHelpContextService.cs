@@ -451,10 +451,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 }
             }
 
-            if (token.IsKind(SyntaxKind.DefaultKeyword) && token.Parent is DefaultSwitchLabelSyntax)
+            if (token.IsKind(SyntaxKind.DefaultKeyword))
             {
-                text = Keyword("defaultcase");
-                return true;
+                if (token.Parent is DefaultSwitchLabelSyntax)
+                {
+                    text = Keyword("defaultcase");
+                    return true;
+                }
+
+                if (token.Parent is DefaultConstraintSyntax)
+                {
+                    text = Keyword("defaultconstraint");
+                    return true;
+                }
             }
 
             if (token.IsKind(SyntaxKind.ClassKeyword) && token.Parent is ClassOrStructConstraintSyntax)

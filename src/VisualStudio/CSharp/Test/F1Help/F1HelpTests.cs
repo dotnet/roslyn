@@ -1739,5 +1739,20 @@ class C
                 }
                 """, "required");
         }
+
+        [Fact]
+        public async Task TestDefaultConstraint()
+        {
+            await Test_KeywordAsync("""
+                public class Base
+                {
+                    virtual void M<T>(T? t) { }
+                }
+                public class C
+                {
+                    override void M<T>() where T : def[||]ault { }
+                }
+                """, expectedText: "defaultconstraint");
+        }
     }
 }
