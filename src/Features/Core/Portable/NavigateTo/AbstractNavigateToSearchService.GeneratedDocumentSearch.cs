@@ -32,8 +32,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 yield return item;
             }
 
-            yield break;
-
             IAsyncEnumerable<RoslynNavigateToItem> SearchGeneratedDocumentsWorkerAsync()
             {
                 var solution = project.Solution;

@@ -111,13 +111,13 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var index = await GetIndexAsync(storageService, documentKey, cancellationToken).ConfigureAwait(false);
-            if (index == null)
-                yield break;
-
-            await foreach (var item in ProcessIndexAsync(
-                documentKey.Id, document: null, patternName, patternContainer, kinds, index, cancellationToken).ConfigureAwait(false))
+            if (index != null)
             {
-                yield return item;
+                await foreach (var item in ProcessIndexAsync(
+                documentKey.Id, document: null, patternName, patternContainer, kinds, index, cancellationToken).ConfigureAwait(false))
+                {
+                    yield return item;
+                }
             }
         }
 

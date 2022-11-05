@@ -29,8 +29,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 yield return item;
             }
 
-            yield break;
-
             IAsyncEnumerable<RoslynNavigateToItem> SearchDocumentWorkerAsync()
             {
                 if (client != null)
@@ -79,8 +77,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 yield return item;
             }
-
-            yield break;
 
             IAsyncEnumerable<RoslynNavigateToItem> SearchProjectWorkerAsync()
             {

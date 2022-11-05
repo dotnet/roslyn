@@ -71,8 +71,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 yield return item;
             }
 
-            yield break;
-
             IAsyncEnumerable<RoslynNavigateToItem> SearchCachedDocumentsWorkerAsync()
             {
                 var solution = project.Solution;
