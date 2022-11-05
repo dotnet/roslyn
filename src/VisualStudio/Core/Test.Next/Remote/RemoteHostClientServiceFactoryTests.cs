@@ -111,11 +111,10 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             // Kick off a ton of work in parallel to try to shake out race conditions with pinning/syncing.
 
             // 100 outer loops that ensure we generate the same files with the same checksums at least 10 times.
-            var loops = 1;
-            for (var i = 0; i < loops; i++)
+            for (var i = 0; i < 30; i++)
             {
                 // 100 inner loops producing variants of the file.
-                for (var j = 0; j < loops; j++)
+                for (var j = 0; j < 30; j++)
                 {
                     tasks.Add(Task.Run(async () => await PerformSearchesAsync(client, document, name: "Goo" + i)));
                 }
