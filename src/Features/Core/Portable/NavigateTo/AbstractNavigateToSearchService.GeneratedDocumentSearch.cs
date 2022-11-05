@@ -17,22 +17,27 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 {
     internal abstract partial class AbstractNavigateToSearchService
     {
-        public IAsyncEnumerable<INavigateToSearchResult> SearchGeneratedDocumentsAsync(
+        public async IAsyncEnumerable<INavigateToSearchResult> SearchGeneratedDocumentsAsync(
             Project project,
             string searchPattern,
             IImmutableSet<string> kinds,
             Document? activeDocument,
-            CancellationToken cancellationToken)
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            var result = SearchGeneratedDocumentsWorkerAsync(cancellationToken);
-            return ConvertItemsAsync(project.Solution, activeDocument, result, cancellationToken);
+            var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
 
-            async IAsyncEnumerable<RoslynNavigateToItem> SearchGeneratedDocumentsWorkerAsync(
-                [EnumeratorCancellation] CancellationToken cancellationToken)
+            await foreach (var item in ConvertItemsAsync(
+                project.Solution, activeDocument, SearchGeneratedDocumentsWorkerAsync(), cancellationToken).ConfigureAwait(false))
+            {
+                yield return item;
+            }
+
+            yield break;
+
+            IAsyncEnumerable<RoslynNavigateToItem> SearchGeneratedDocumentsWorkerAsync()
             {
                 var solution = project.Solution;
 
-                var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
                     var channel = Channel.CreateUnbounded<RoslynNavigateToItem>();
@@ -47,16 +52,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                             new NavigateToSearchServiceCallback(channel), cancellationToken), cancellationToken)
                         .CompletesChannel(channel);
 
-                    await foreach (var item in channel.Reader.ReadAllAsync(cancellationToken))
-                        yield return item;
+                    return channel.Reader.ReadAllAsync(cancellationToken);
                 }
                 else
                 {
-                    var result = SearchGeneratedDocumentsInCurrentProcessAsync(
+                    return SearchGeneratedDocumentsInCurrentProcessAsync(
                         project, searchPattern, kinds, cancellationToken);
-
-                    await foreach (var item in result.ConfigureAwait(false))
-                        yield return item;
                 }
             }
         }

@@ -15,20 +15,24 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 {
     internal abstract partial class AbstractNavigateToSearchService
     {
-        public IAsyncEnumerable<INavigateToSearchResult> SearchDocumentAsync(
+        public async IAsyncEnumerable<INavigateToSearchResult> SearchDocumentAsync(
             Document document,
             string searchPattern,
             IImmutableSet<string> kinds,
             Document? activeDocument,
-            CancellationToken cancellationToken)
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            var result = SearchDocumentWorkerAsync(cancellationToken);
-            return ConvertItemsAsync(document.Project.Solution, activeDocument, result, cancellationToken);
-
-            async IAsyncEnumerable<RoslynNavigateToItem> SearchDocumentWorkerAsync(
-                [EnumeratorCancellation] CancellationToken cancellationToken)
+            var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            await foreach (var item in ConvertItemsAsync(
+                document.Project.Solution, activeDocument, SearchDocumentWorkerAsync(), cancellationToken).ConfigureAwait(false))
             {
-                var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+                yield return item;
+            }
+
+            yield break;
+
+            IAsyncEnumerable<RoslynNavigateToItem> SearchDocumentWorkerAsync()
+            {
                 if (client != null)
                 {
                     var channel = Channel.CreateUnbounded<RoslynNavigateToItem>();
@@ -44,15 +48,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                             new NavigateToSearchServiceCallback(channel), cancellationToken), cancellationToken)
                         .CompletesChannel(channel);
 
-                    await foreach (var item in channel.Reader.ReadAllAsync(cancellationToken))
-                        yield return item;
+                    return channel.Reader.ReadAllAsync(cancellationToken);
                 }
                 else
                 {
-                    var result = SearchDocumentInCurrentProcessAsync(document, searchPattern, kinds, cancellationToken);
-
-                    await foreach (var item in result.ConfigureAwait(false))
-                        yield return item;
+                    return SearchDocumentInCurrentProcessAsync(document, searchPattern, kinds, cancellationToken);
                 }
             }
         }
@@ -65,23 +65,27 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 searchPattern, kinds, cancellationToken);
         }
 
-        public IAsyncEnumerable<INavigateToSearchResult> SearchProjectAsync(
+        public async IAsyncEnumerable<INavigateToSearchResult> SearchProjectAsync(
             Project project,
             ImmutableArray<Document> priorityDocuments,
             string searchPattern,
             IImmutableSet<string> kinds,
             Document? activeDocument,
-            CancellationToken cancellationToken)
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            var result = SearchProjectWorkerAsync(cancellationToken);
-            return ConvertItemsAsync(project.Solution, activeDocument, result, cancellationToken);
+            var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+            await foreach (var item in ConvertItemsAsync(
+                project.Solution, activeDocument, SearchProjectWorkerAsync(), cancellationToken).ConfigureAwait(false))
+            {
+                yield return item;
+            }
 
-            async IAsyncEnumerable<RoslynNavigateToItem> SearchProjectWorkerAsync(
-                [EnumeratorCancellation] CancellationToken cancellationToken)
+            yield break;
+
+            IAsyncEnumerable<RoslynNavigateToItem> SearchProjectWorkerAsync()
             {
                 var solution = project.Solution;
 
-                var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
                     var priorityDocumentIds = priorityDocuments.SelectAsArray(d => d.Id);
@@ -99,14 +103,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                             new NavigateToSearchServiceCallback(channel), cancellationToken), cancellationToken)
                         .CompletesChannel(channel);
 
-                    await foreach (var item in channel.Reader.ReadAllAsync(cancellationToken))
-                        yield return item;
+                    return channel.Reader.ReadAllAsync(cancellationToken);
                 }
                 else
                 {
-                    var result = SearchProjectInCurrentProcessAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken);
-                    await foreach (var item in result.ConfigureAwait(false))
-                        yield return item;
+                    return SearchProjectInCurrentProcessAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken);
                 }
             }
         }

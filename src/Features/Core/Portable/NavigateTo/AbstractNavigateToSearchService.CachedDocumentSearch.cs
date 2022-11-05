@@ -55,25 +55,31 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             return cachedIndexMap != null && stringTable != null;
         }
 
-        public IAsyncEnumerable<INavigateToSearchResult> SearchCachedDocumentsAsync(
+        public async IAsyncEnumerable<INavigateToSearchResult> SearchCachedDocumentsAsync(
             Project project,
             ImmutableArray<Document> priorityDocuments,
             string searchPattern,
             IImmutableSet<string> kinds,
             Document? activeDocument,
-            CancellationToken cancellationToken)
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            var result = SearchCachedDocumentsWorkerAsync(cancellationToken);
-            return ConvertItemsAsync(project.Solution, activeDocument, result, cancellationToken);
+            var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
 
-            async IAsyncEnumerable<RoslynNavigateToItem> SearchCachedDocumentsWorkerAsync([EnumeratorCancellation] CancellationToken cancellationToken)
+            await foreach (var item in ConvertItemsAsync(
+                project.Solution, activeDocument, SearchCachedDocumentsWorkerAsync(), cancellationToken).ConfigureAwait(false))
+            {
+                yield return item;
+            }
+
+            yield break;
+
+            IAsyncEnumerable<RoslynNavigateToItem> SearchCachedDocumentsWorkerAsync()
             {
                 var solution = project.Solution;
 
                 var documentKeys = project.Documents.SelectAsArray(DocumentKey.ToDocumentKey);
                 var priorityDocumentKeys = priorityDocuments.SelectAsArray(DocumentKey.ToDocumentKey);
 
-                var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
                     var channel = Channel.CreateUnbounded<RoslynNavigateToItem>();
@@ -87,17 +93,13 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                             new NavigateToSearchServiceCallback(channel), cancellationToken), cancellationToken)
                         .CompletesChannel(channel);
 
-                    await foreach (var item in channel.Reader.ReadAllAsync(cancellationToken))
-                        yield return item;
+                    return channel.Reader.ReadAllAsync(cancellationToken);
                 }
                 else
                 {
                     var storageService = solution.Services.GetPersistentStorageService();
-                    var result = SearchCachedDocumentsInCurrentProcessAsync(
+                    return SearchCachedDocumentsInCurrentProcessAsync(
                         storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds, cancellationToken);
-
-                    await foreach (var item in result.ConfigureAwait(false))
-                        yield return item;
                 }
             }
         }
