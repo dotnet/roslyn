@@ -36,18 +36,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 if (client != null)
                 {
                     var channel = Channel.CreateUnbounded<RoslynNavigateToItem>();
-                    var callback = new NavigateToSearchServiceCallback(channel.Writer);
 
-                    _ = Task.Run(async () =>
+                    Task.Run(async () =>
                     {
                         await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                             solution,
                              (service, solutionInfo, callbackId, cancellationToken) =>
                                 service.SearchGeneratedDocumentsAsync(solutionInfo, project.Id, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
-                             callback, cancellationToken).ConfigureAwait(false);
-                    }, cancellationToken).ContinueWith(
-                        t => channel.Writer.Complete(t.Exception),
-                        CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+                             new NavigateToSearchServiceCallback(channel), cancellationToken).ConfigureAwait(false);
+                    }, cancellationToken).CompletesChannel(channel);
 
                     await foreach (var item in channel.Reader.ReadAllAsync(cancellationToken))
                         yield return item;

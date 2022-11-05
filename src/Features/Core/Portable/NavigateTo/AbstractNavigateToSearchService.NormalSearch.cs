@@ -34,19 +34,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 if (client != null)
                 {
                     var channel = Channel.CreateUnbounded<RoslynNavigateToItem>();
-                    var callback = new NavigateToSearchServiceCallback(channel.Writer);
-
-                    _ = Task.Run(async () =>
+                    Task.Run(async () =>
                     {
                         // Don't need to sync the full solution when searching a particular project.
                         await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                             document.Project,
                             (service, solutionInfo, callbackId, cancellationToken) =>
                             service.SearchDocumentAsync(solutionInfo, document.Id, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
-                            callback, cancellationToken).ConfigureAwait(false);
-                    }, cancellationToken).ContinueWith(
-                        t => channel.Writer.Complete(t.Exception),
-                        CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+                            new NavigateToSearchServiceCallback(channel), cancellationToken).ConfigureAwait(false);
+                    }, cancellationToken).CompletesChannel(channel);
 
                     await foreach (var item in channel.Reader.ReadAllAsync(cancellationToken))
                         yield return item;
@@ -91,19 +87,16 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     var priorityDocumentIds = priorityDocuments.SelectAsArray(d => d.Id);
 
                     var channel = Channel.CreateUnbounded<RoslynNavigateToItem>();
-                    var callback = new NavigateToSearchServiceCallback(channel.Writer);
 
-                    _ = Task.Run(async () =>
+                    Task.Run(async () =>
                     {
                         // Don't need to sync the full solution when searching a particular project.
                         await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                             solution,
                             (service, solutionInfo, callbackId, cancellationToken) =>
                                 service.SearchProjectAsync(solutionInfo, project.Id, priorityDocumentIds, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
-                            callback, cancellationToken).ConfigureAwait(false);
-                    }, cancellationToken).ContinueWith(
-                        t => channel.Writer.Complete(t.Exception),
-                        CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+                            new NavigateToSearchServiceCallback(channel), cancellationToken).ConfigureAwait(false);
+                    }, cancellationToken).CompletesChannel(channel);
 
                     await foreach (var item in channel.Reader.ReadAllAsync(cancellationToken))
                         yield return item;

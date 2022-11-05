@@ -60,9 +60,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             //
             // Note: passing CancellationToken.None here is intentional/correct.  We must complete all the channels to
             // allow reading to complete as well.
-            Task.WhenAll(tasks).ContinueWith(
-                t => channel.Writer.Complete(t.Exception),
-                CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+            Task.WhenAll(tasks).CompletesChannel(channel);
 
             return channel.Reader.ReadAllAsync(cancellationToken);
 
@@ -81,6 +79,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 while (reader.TryRead(out var item))
                     yield return item;
             }
+        }
+
+        /// <summary>
+        /// Runs after task completes in any fashion (success, cancellation, faulting) and ensures the channel writer is
+        /// always completed.  If the task faults then the exception from that task will be used to complete the channel
+        /// </summary>
+        public static void CompletesChannel<T>(this Task task, Channel<T> channel)
+        {
+            // Note: using `Complete(task.Exception)` is always fine.  Exception is only produced in the case of
+            // faulting. it is null otherwise.
+            task.ContinueWith(
+                static (task, channel) => ((Channel<T>)channel!).Writer.Complete(task.Exception),
+                channel, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
         }
     }
 }

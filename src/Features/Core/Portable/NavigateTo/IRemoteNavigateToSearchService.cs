@@ -49,19 +49,19 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
     internal sealed class NavigateToSearchServiceCallback
     {
-        private readonly ChannelWriter<RoslynNavigateToItem> _writer;
+        private readonly Channel<RoslynNavigateToItem> _channel;
 
         public NavigateToSearchServiceCallback(
-            ChannelWriter<RoslynNavigateToItem> writer)
+            Channel<RoslynNavigateToItem> channel)
         {
-            _writer = writer;
+            _channel = channel;
         }
 
         public async ValueTask OnResultFoundAsync(RoslynNavigateToItem result, CancellationToken cancellationToken)
         {
             try
             {
-                await _writer.WriteAsync(result, cancellationToken).ConfigureAwait(false);
+                await _channel.Writer.WriteAsync(result, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex))
             {
