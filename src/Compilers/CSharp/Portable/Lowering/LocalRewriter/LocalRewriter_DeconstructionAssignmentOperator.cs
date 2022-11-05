@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -77,6 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var temps = ArrayBuilder<LocalSymbol>.GetInstance();
             var effects = DeconstructionSideEffects.GetInstance();
             BoundExpression? returnValue = ApplyDeconstructionConversion(lhsTargets, right, conversion, temps, effects, isUsed, inInit: true);
+            reverseAssignmentsToTargetsIfApplicable();
+
             effects.Consolidate();
 
             if (!isUsed)
@@ -102,6 +105,84 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return _factory.Sequence(temps.ToImmutableAndFree(), effects.ToImmutableAndFree(), returnValue);
+            }
+
+            void reverseAssignmentsToTargetsIfApplicable()
+            {
+                // The list of deconstruction targets is usually small. Prefer a temporary array which is stack-bound for small numbers of elements.
+                var visitedSymbols = TemporaryArray<Symbol>.Empty;
+
+                if (right is BoundConvertedTupleLiteral or BoundConversion { Operand.Kind: BoundKind.TupleLiteral or BoundKind.ConvertedTupleLiteral } && canReorderTargetAssignments(lhsTargets, ref visitedSymbols))
+                {
+                    // Consider a deconstruction assignment like the following
+                    // (a, b, c) = (x, y, z);
+
+                    // (x, y, z) are evaluated into temps, then the temps are stored to the targets:
+                    // temp1 = x;
+                    // temp2 = y;
+                    // temp3 = z;
+                    // a = temp1;
+                    // b = temp2;
+                    // c = temp3;
+
+                    // In this code path, we have found a case where a, b, and c are non-side-effecting expressions which refer to unique/non-aliased variables.
+                    // As an optimization, ensure that assignments from temps to targets happen in the reverse order of effects:
+                    // temp1 = x;
+                    // temp2 = y;
+                    // temp3 = z;
+                    // c = temp3;
+                    // b = temp2;
+                    // a = temp1;
+
+                    // This makes it more likely that the stack optimizer pass will be able to eliminate the temps and replace them with stack push/pops.
+                    // Note also that no optimization can occur if the expression being converted is not a literal, e.g. `(a, b, c) = M()`. We will always need the temps in that case.
+                    effects.assignments.ReverseContents();
+                }
+
+                visitedSymbols.Dispose();
+            }
+
+            static bool canReorderTargetAssignments(ArrayBuilder<Binder.DeconstructionVariable> targets, ref TemporaryArray<Symbol> visitedSymbols)
+            {
+                // If we know all targets refer to distinct variables, then we can reorder the assignments.
+                // We avoid doing this in any cases where aliasing could occur, e.g.:
+                // var y = 1;
+                // ref var x = ref y;
+                // (x, y) = (2, 3);
+
+                foreach (var target in targets)
+                {
+                    if (target.Single is { } single)
+                    {
+                        if (single is not (BoundLocal { LocalSymbol.RefKind: RefKind.None }
+                                or BoundParameter { ParameterSymbol.RefKind: RefKind.None }
+                                or BoundDiscardExpression))
+                        {
+                            // This deconstruction assigns to a target which is not sufficiently simple.
+                            // We can't verify that the deconstruction does not use any aliases to variables.
+                            return false;
+                        }
+
+                        var expressionSymbol = single.ExpressionSymbol;
+                        Debug.Assert(expressionSymbol != null && expressionSymbol is not TypeSymbol);
+                        foreach (var visitedSymbol in visitedSymbols)
+                        {
+                            if ((object)visitedSymbol == expressionSymbol)
+                            {
+                                // This deconstruction writes to the same target multiple times.
+                                return false;
+                            }
+                        }
+                        visitedSymbols.Add(expressionSymbol);
+                    }
+
+                    if (target.NestedVariables is { } nestedVariables && !canReorderTargetAssignments(nestedVariables, ref visitedSymbols))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
             }
         }
 

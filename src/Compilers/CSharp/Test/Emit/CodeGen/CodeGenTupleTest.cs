@@ -29103,5 +29103,457 @@ True
   IL_000e:  ret
 }");
         }
+
+        [Fact]
+        public void TupleAssignment_01()
+        {
+            var source = """
+                class C
+                {
+                    void M1(int x, int y)
+                    {
+                        (x, y) = (y, x);
+                    }
+
+                    void M2(int x, int y)
+                    {
+                        int temp = y; // push 'y'
+                        y = x;
+                        x = temp; // pop 'y'
+                    }
+
+                    void M3(int x, int y)
+                    {
+                        int tempY = y; // push
+                        int tempX = x; // push
+                        y = tempX; // pop
+                        x = tempY; // pop
+                    }
+
+                    // here the writes don't happen in the opposite order of the reads.
+                    // to preserve order of writes, we have to create a local instead of just pushing and popping from the stack.
+                    void M4(int x, int y)
+                    {
+                        int tempX = x;
+                        int tempY = y;
+                        y = tempX;
+                        x = tempY;
+                    }
+                }
+                """;
+
+            var expectedIL = """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  2
+                  IL_0000:  ldarg.2
+                  IL_0001:  ldarg.1
+                  IL_0002:  starg.s    V_2
+                  IL_0004:  starg.s    V_1
+                  IL_0006:  ret
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll);
+            verifier.VerifyIL("C.M1", expectedIL);
+            verifier.VerifyIL("C.M2", expectedIL);
+            verifier.VerifyIL("C.M3", expectedIL);
+
+            verifier.VerifyIL("C.M4", """
+                {
+                  // Code size        9 (0x9)
+                  .maxstack  2
+                  .locals init (int V_0) //tempY
+                  IL_0000:  ldarg.1
+                  IL_0001:  ldarg.2
+                  IL_0002:  stloc.0
+                  IL_0003:  starg.s    V_2
+                  IL_0005:  ldloc.0
+                  IL_0006:  starg.s    V_1
+                  IL_0008:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void TupleAssignment_02()
+        {
+            var source = """
+                using System;
+
+                C.M1(1, 2);
+                C.M2(1, 2);
+
+                class C
+                {
+                    public static void M1(int x, int y)
+                    {
+                        var value = (x, y) = (y, x);
+                        Console.WriteLine(value);
+                    }
+
+                    public static void M2(int x, int y)
+                    {
+                        int tempY = y; // push
+                        int tempX = x; // push
+                        y = tempX; // pop
+                        x = tempY; // pop
+                        var value = (tempY, tempX);
+                        Console.WriteLine(value);
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: """
+                (2, 1)
+                (2, 1)
+                """);
+
+            verifier.VerifyIL("C.M1", """
+                {
+                  // Code size       26 (0x1a)
+                  .maxstack  2
+                  .locals init (int V_0)
+                  IL_0000:  ldarg.1
+                  IL_0001:  ldarg.0
+                  IL_0002:  stloc.0
+                  IL_0003:  ldloc.0
+                  IL_0004:  starg.s    V_1
+                  IL_0006:  dup
+                  IL_0007:  starg.s    V_0
+                  IL_0009:  ldloc.0
+                  IL_000a:  newobj     "System.ValueTuple<int, int>..ctor(int, int)"
+                  IL_000f:  box        "System.ValueTuple<int, int>"
+                  IL_0014:  call       "void System.Console.WriteLine(object)"
+                  IL_0019:  ret
+                }
+                """);
+
+            verifier.VerifyIL("C.M2", """
+                {
+                  // Code size       28 (0x1c)
+                  .maxstack  2
+                  .locals init (int V_0, //tempY
+                                int V_1) //tempX
+                  IL_0000:  ldarg.1
+                  IL_0001:  stloc.0
+                  IL_0002:  ldarg.0
+                  IL_0003:  stloc.1
+                  IL_0004:  ldloc.1
+                  IL_0005:  starg.s    V_1
+                  IL_0007:  ldloc.0
+                  IL_0008:  starg.s    V_0
+                  IL_000a:  ldloc.0
+                  IL_000b:  ldloc.1
+                  IL_000c:  newobj     "System.ValueTuple<int, int>..ctor(int, int)"
+                  IL_0011:  box        "System.ValueTuple<int, int>"
+                  IL_0016:  call       "void System.Console.WriteLine(object)"
+                  IL_001b:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void TupleAssignment_03()
+        {
+            var source = """
+                using System;
+
+                C.M1();
+                C.M2();
+                C.M3();
+
+                class C
+                {
+                    public static void M1()
+                    {
+                        int x = 1;
+                        int y = 2;
+                        int z = 3;
+                        (x, y)=(y, x);
+                        Console.WriteLine((x,y,z));
+                    }
+                    
+                    // equivalent to:
+                    public static void M2()
+                    {
+                        int x = 1;
+                        int y = 2;
+                        int z = 3;
+                        int temp = y;
+                        y = x;
+                        x = temp;
+                        Console.WriteLine((x,y,z));
+                    }
+                    
+                    // a common manual swap in user code, reads the locals in a different order but observably the same
+                    public static void M3()
+                    {
+                        int x = 1;
+                        int y = 2;
+                        int z = 3;
+                        int temp = x;
+                        x = y;
+                        y = temp;
+                        Console.WriteLine((x,y,z));
+                    }
+                }
+                """;
+
+            var expectedIL = """
+                {
+                  // Code size       29 (0x1d)
+                  .maxstack  3
+                  .locals init (int V_0, //x
+                                int V_1, //y
+                                int V_2) //z
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  stloc.0
+                  IL_0002:  ldc.i4.2
+                  IL_0003:  stloc.1
+                  IL_0004:  ldc.i4.3
+                  IL_0005:  stloc.2
+                  IL_0006:  ldloc.1
+                  IL_0007:  ldloc.0
+                  IL_0008:  stloc.1
+                  IL_0009:  stloc.0
+                  IL_000a:  ldloc.0
+                  IL_000b:  ldloc.1
+                  IL_000c:  ldloc.2
+                  IL_000d:  newobj     "System.ValueTuple<int, int, int>..ctor(int, int, int)"
+                  IL_0012:  box        "System.ValueTuple<int, int, int>"
+                  IL_0017:  call       "void System.Console.WriteLine(object)"
+                  IL_001c:  ret
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: """
+                (2, 1, 3)
+                (2, 1, 3)
+                (2, 1, 3)
+                """);
+            verifier.VerifyIL("C.M1", expectedIL);
+            verifier.VerifyIL("C.M2", expectedIL);
+
+            verifier.VerifyIL("C.M3", """
+                {
+                  // Code size       29 (0x1d)
+                  .maxstack  3
+                  .locals init (int V_0, //x
+                                int V_1, //y
+                                int V_2) //z
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  stloc.0
+                  IL_0002:  ldc.i4.2
+                  IL_0003:  stloc.1
+                  IL_0004:  ldc.i4.3
+                  IL_0005:  stloc.2
+                  IL_0006:  ldloc.0
+                  IL_0007:  ldloc.1
+                  IL_0008:  stloc.0
+                  IL_0009:  stloc.1
+                  IL_000a:  ldloc.0
+                  IL_000b:  ldloc.1
+                  IL_000c:  ldloc.2
+                  IL_000d:  newobj     "System.ValueTuple<int, int, int>..ctor(int, int, int)"
+                  IL_0012:  box        "System.ValueTuple<int, int, int>"
+                  IL_0017:  call       "void System.Console.WriteLine(object)"
+                  IL_001c:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void TupleAssignment_04()
+        {
+            var source = """
+                using System;
+
+                C.M1();
+                C.M2();
+                C.M3();
+
+                class C
+                {
+                    public static int Effect(int i)
+                    {
+                        Console.WriteLine("Effect: " + i);
+                        return i;
+                    }
+
+                    public static void M1()
+                    {
+                        int x, y;
+                        (x, y) = (Effect(1), Effect(2));
+                        Console.WriteLine((x, y));
+                    }
+
+                    public static void M2()
+                    {
+                        int x, y;
+                        int temp1 = Effect(1);
+                        int temp2 = Effect(2);
+                        y = temp2;
+                        x = temp1;
+                        Console.WriteLine((x, y));
+                    }
+
+                    public static void M3()
+                    {
+                        int x, y;
+                        (x, y) = ValueTuple.Create(Effect(1), Effect(2));
+                        Console.WriteLine((x, y));
+                    }
+                }
+                """;
+
+            var expectedIL = """
+                {
+                  // Code size       30 (0x1e)
+                  .maxstack  2
+                  .locals init (int V_0) //y
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  call       "int C.Effect(int)"
+                  IL_0006:  ldc.i4.2
+                  IL_0007:  call       "int C.Effect(int)"
+                  IL_000c:  stloc.0
+                  IL_000d:  ldloc.0
+                  IL_000e:  newobj     "System.ValueTuple<int, int>..ctor(int, int)"
+                  IL_0013:  box        "System.ValueTuple<int, int>"
+                  IL_0018:  call       "void System.Console.WriteLine(object)"
+                  IL_001d:  ret
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: """
+                Effect: 1
+                Effect: 2
+                (1, 2)
+                Effect: 1
+                Effect: 2
+                (1, 2)
+                Effect: 1
+                Effect: 2
+                (1, 2)
+                """);
+
+            verifier.VerifyIL("C.M1", expectedIL);
+            verifier.VerifyIL("C.M2", expectedIL);
+
+            verifier.VerifyIL("C.M3", """
+            {
+              // Code size       48 (0x30)
+              .maxstack  2
+              .locals init (int V_0, //x
+                            int V_1) //y
+              IL_0000:  ldc.i4.1
+              IL_0001:  call       "int C.Effect(int)"
+              IL_0006:  ldc.i4.2
+              IL_0007:  call       "int C.Effect(int)"
+              IL_000c:  call       "System.ValueTuple<int, int> System.ValueTuple.Create<int, int>(int, int)"
+              IL_0011:  dup
+              IL_0012:  ldfld      "int System.ValueTuple<int, int>.Item1"
+              IL_0017:  stloc.0
+              IL_0018:  ldfld      "int System.ValueTuple<int, int>.Item2"
+              IL_001d:  stloc.1
+              IL_001e:  ldloc.0
+              IL_001f:  ldloc.1
+              IL_0020:  newobj     "System.ValueTuple<int, int>..ctor(int, int)"
+              IL_0025:  box        "System.ValueTuple<int, int>"
+              IL_002a:  call       "void System.Console.WriteLine(object)"
+              IL_002f:  ret
+            }
+            """);
+        }
+
+        [Fact]
+        public void TupleAssignment_05()
+        {
+            var source = """
+                int x;
+                (x, x) = (42, 43);
+                System.Console.Write(x);
+                """;
+            CompileAndVerify(source, expectedOutput: "43");
+        }
+
+        [Fact]
+        public void TupleAssignment_06()
+        {
+            var source = """
+                int x, y, z;
+                (x, (y, z)) = (1, (2, 3));
+                System.Console.Write((x, y, z));
+                """;
+            CompileAndVerify(source, expectedOutput: "(1, 2, 3)");
+        }
+
+        [Fact]
+        public void TupleAssignment_07()
+        {
+            var source = """
+                int x, y;
+                (x, (x, y)) = (1, (2, 3));
+                System.Console.Write((x, y));
+                """;
+            CompileAndVerify(source, expectedOutput: "(2, 3)");
+        }
+
+        [Fact]
+        public void TupleAssignment_08()
+        {
+            var source = """
+                int x = 1, y = 2, z = 3;
+                (x, (y, z)) = (y, (z, x));
+                System.Console.Write((x, y, z));
+                """;
+
+
+            var expectedIL = """
+{
+  // Code size       31 (0x1f)
+  .maxstack  3
+  .locals init (int V_0, //x
+                int V_1, //y
+                int V_2) //z
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.2
+  IL_0003:  stloc.1
+  IL_0004:  ldc.i4.3
+  IL_0005:  stloc.2
+  IL_0006:  ldloc.1
+  IL_0007:  ldloc.2
+  IL_0008:  ldloc.0
+  IL_0009:  stloc.2
+  IL_000a:  stloc.1
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  ldloc.1
+  IL_000e:  ldloc.2
+  IL_000f:  newobj     "System.ValueTuple<int, int, int>..ctor(int, int, int)"
+  IL_0014:  box        "System.ValueTuple<int, int, int>"
+  IL_0019:  call       "void System.Console.Write(object)"
+  IL_001e:  ret
+}
+""";
+
+            var verifier = CompileAndVerify(source, expectedOutput: "(2, 3, 1)");
+            verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+
+            source = """
+                int x = 1, y = 2, z = 3;
+                var tempY = y;
+                var tempZ = z;
+                var tempX = x;
+                z = tempX;
+                y = tempZ;
+                x = tempY;
+                System.Console.Write((x, y, z));
+                """;
+
+            verifier = CompileAndVerify(source, expectedOutput: "(2, 3, 1)");
+            verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+        }
     }
 }

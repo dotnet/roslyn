@@ -1292,9 +1292,9 @@ class C
   // Code size       19 (0x13)
   .maxstack  2
   .locals init (string V_0) //y
-  IL_0000:  ldnull
-  IL_0001:  ldstr      ""hello""
-  IL_0006:  stloc.0
+  IL_0000:  ldstr      ""hello""
+  IL_0005:  stloc.0
+  IL_0006:  ldnull
   IL_0007:  ldloc.0
   IL_0008:  call       ""string string.Concat(string, string)""
   IL_000d:  call       ""void System.Console.WriteLine(string)""
