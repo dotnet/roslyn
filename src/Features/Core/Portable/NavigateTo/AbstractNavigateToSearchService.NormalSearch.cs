@@ -34,15 +34,17 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 if (client != null)
                 {
                     var channel = Channel.CreateUnbounded<RoslynNavigateToItem>();
-                    Task.Run(async () =>
-                    {
-                        // Don't need to sync the full solution when searching a particular project.
-                        await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
+
+                    // Kick off the work to do the search in another thread.  That work will push the results into the
+                    // channel.  When the work finishes (for any reason, including cancellation), the channel will be 
+                    // completed.
+                    Task.Run(() => client.TryInvokeAsync<IRemoteNavigateToSearchService>(
+                            // Don't need to sync the full solution when searching a particular project.
                             document.Project,
                             (service, solutionInfo, callbackId, cancellationToken) =>
-                            service.SearchDocumentAsync(solutionInfo, document.Id, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
-                            new NavigateToSearchServiceCallback(channel), cancellationToken).ConfigureAwait(false);
-                    }, cancellationToken).CompletesChannel(channel);
+                                service.SearchDocumentAsync(solutionInfo, document.Id, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
+                            new NavigateToSearchServiceCallback(channel), cancellationToken), cancellationToken)
+                        .CompletesChannel(channel);
 
                     await foreach (var item in channel.Reader.ReadAllAsync(cancellationToken))
                         yield return item;
@@ -88,15 +90,16 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
                     var channel = Channel.CreateUnbounded<RoslynNavigateToItem>();
 
-                    Task.Run(async () =>
-                    {
-                        // Don't need to sync the full solution when searching a particular project.
-                        await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
-                            solution,
+                    // Kick off the work to do the search in another thread.  That work will push the results into the
+                    // channel.  When the work finishes (for any reason, including cancellation), the channel will be 
+                    // completed.
+                    Task.Run(() => client.TryInvokeAsync<IRemoteNavigateToSearchService>(
+                            // Don't need to sync the full solution when searching a particular project.
+                            project,
                             (service, solutionInfo, callbackId, cancellationToken) =>
                                 service.SearchProjectAsync(solutionInfo, project.Id, priorityDocumentIds, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
-                            new NavigateToSearchServiceCallback(channel), cancellationToken).ConfigureAwait(false);
-                    }, cancellationToken).CompletesChannel(channel);
+                            new NavigateToSearchServiceCallback(channel), cancellationToken), cancellationToken)
+                        .CompletesChannel(channel);
 
                     await foreach (var item in channel.Reader.ReadAllAsync(cancellationToken))
                         yield return item;
