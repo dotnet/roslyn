@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Storage;
+using Microsoft.VisualBasic;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -30,12 +31,12 @@ namespace Microsoft.CodeAnalysis.Remote
             _callback = callback;
         }
 
-        private Func<RoslynNavigateToItem, Task> GetCallback(
+        private Func<RoslynNavigateToItem, ValueTask> GetCallback(
             RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
         {
-            return async i => await _callback.InvokeAsync((callback, cancellationToken) =>
+            return i => _callback.InvokeAsync((callback, cancellationToken) =>
                 callback.OnResultFoundAsync(callbackId, i, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken);
         }
 
         public ValueTask HydrateAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
@@ -60,8 +61,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 var document = solution.GetRequiredDocument(documentId);
                 var callback = GetCallback(callbackId, cancellationToken);
 
-                await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
-                    document, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
+                await foreach (var item in AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
+                    document, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false))
+                {
+                    await callback(item).ConfigureAwait(false);
+                }
             }, cancellationToken);
         }
 
@@ -81,8 +85,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var priorityDocuments = priorityDocumentIds.SelectAsArray(d => solution.GetRequiredDocument(d));
 
-                await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
-                    project, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
+                await foreach (var item in AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
+                    project, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false))
+                {
+                    await callback(item).ConfigureAwait(false);
+                }
             }, cancellationToken);
         }
 
@@ -99,8 +106,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 var project = solution.GetRequiredProject(projectId);
                 var callback = GetCallback(callbackId, cancellationToken);
 
-                await AbstractNavigateToSearchService.SearchGeneratedDocumentsInCurrentProcessAsync(
-                    project, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
+                await foreach (var item in AbstractNavigateToSearchService.SearchGeneratedDocumentsInCurrentProcessAsync(
+                    project, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false))
+                {
+                    await callback(item).ConfigureAwait(false);
+                }
             }, cancellationToken);
         }
 
@@ -113,8 +123,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 // check whatever cached data we have from the previous vs session.
                 var callback = GetCallback(callbackId, cancellationToken);
                 var storageService = GetWorkspaceServices().GetPersistentStorageService();
-                await AbstractNavigateToSearchService.SearchCachedDocumentsInCurrentProcessAsync(
-                    storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
+                await foreach (var item in AbstractNavigateToSearchService.SearchCachedDocumentsInCurrentProcessAsync(
+                    storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false))
+                {
+                    await callback(item).ConfigureAwait(false);
+                }
             }, cancellationToken);
         }
     }
