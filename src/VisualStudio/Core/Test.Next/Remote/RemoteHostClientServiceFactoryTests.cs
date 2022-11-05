@@ -132,16 +132,15 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             // Search teh forked document, ensuring we find all the results we expect.
             var channel = Channel.CreateUnbounded<RoslynNavigateToItem>();
+            var cancellationToken = CancellationToken.None;
 
-            await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
-                forked,
-                (service, solutionChecksum, callbackId, cancellationToken) =>
-                {
-                    return service.SearchProjectAsync(
-                        solutionChecksum, document.Project.Id, ImmutableArray<DocumentId>.Empty, name, s_kinds, callbackId, cancellationToken);
-                },
-                new NavigateToSearchServiceCallback(channel),
-                CancellationToken.None);
+            Task.Run(() => client.TryInvokeAsync<IRemoteNavigateToSearchService>(
+                    forked,
+                    (service, solutionChecksum, callbackId, cancellationToken) =>
+                        service.SearchProjectAsync(
+                            solutionChecksum, document.Project.Id, ImmutableArray<DocumentId>.Empty, name, s_kinds, callbackId, cancellationToken),
+                    new NavigateToSearchServiceCallback(channel), cancellationToken))
+                .CompletesChannel(channel);
 
             var count = 0;
             await foreach (var result in channel.Reader.ReadAllAsync(CancellationToken.None))
