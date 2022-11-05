@@ -5,43 +5,59 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
     internal abstract partial class AbstractNavigateToSearchService
     {
-        public async IAsyncEnumerable<INavigateToSearchResult> SearchDocumentAsync(
+        public IAsyncEnumerable<INavigateToSearchResult> SearchDocumentAsync(
             Document document,
             string searchPattern,
             IImmutableSet<string> kinds,
             Document? activeDocument,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+            CancellationToken cancellationToken)
         {
-            var solution = document.Project.Solution;
+            var result = SearchDocumentWorkerAsync(cancellationToken);
+            return ConvertItemsAsync(document.Project.Solution, activeDocument, result, cancellationToken);
 
-            var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
-            if (client != null)
+            async IAsyncEnumerable<RoslynNavigateToItem> SearchDocumentWorkerAsync(
+                [EnumeratorCancellation] CancellationToken cancellationToken)
             {
-                // Don't need to sync the full solution when searching a particular project.
-                var result = client.TryInvokeStreamAsync<IRemoteNavigateToSearchService, RoslynNavigateToItem>(
-                    document.Project,
-                    (service, solutionInfo, cancellationToken) =>
-                        service.SearchDocumentAsync(solutionInfo, document.Id, searchPattern, kinds.ToImmutableArray(), cancellationToken),
-                    cancellationToken);
+                var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+                if (client != null)
+                {
+                    var channel = Channel.CreateUnbounded<RoslynNavigateToItem>();
+                    var callback = new NavigateToSearchServiceCallback(channel.Writer);
 
-                await foreach (var item in ConvertItemsAsync(solution, activeDocument, result, cancellationToken).ConfigureAwait(false))
-                    yield return item;
-            }
-            else
-            {
-                var result = SearchDocumentInCurrentProcessAsync(document, searchPattern, kinds, cancellationToken);
+                    _ = Task.Run(async () =>
+                    {
+                        // Don't need to sync the full solution when searching a particular project.
+                        await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
+                            document.Project,
+                            (service, solutionInfo, callbackId, cancellationToken) =>
+                            service.SearchDocumentAsync(solutionInfo, document.Id, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
+                            callback, cancellationToken).ConfigureAwait(false);
+                    }, cancellationToken).ContinueWith(
+                        t => channel.Writer.Complete(t.Exception),
+                        CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
 
-                await foreach (var item in ConvertItemsAsync(solution, activeDocument, result, cancellationToken).ConfigureAwait(false))
-                    yield return item;
+                    await foreach (var item in channel.Reader.ReadAllAsync(cancellationToken))
+                        yield return item;
+                }
+                else
+                {
+                    var result = SearchDocumentInCurrentProcessAsync(document, searchPattern, kinds, cancellationToken);
+
+                    await foreach (var item in result.ConfigureAwait(false))
+                        yield return item;
+                }
             }
         }
 
@@ -53,36 +69,51 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 searchPattern, kinds, cancellationToken);
         }
 
-        public async IAsyncEnumerable<INavigateToSearchResult> SearchProjectAsync(
+        public IAsyncEnumerable<INavigateToSearchResult> SearchProjectAsync(
             Project project,
             ImmutableArray<Document> priorityDocuments,
             string searchPattern,
             IImmutableSet<string> kinds,
             Document? activeDocument,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+            CancellationToken cancellationToken)
         {
-            var solution = project.Solution;
+            var result = SearchProjectWorkerAsync(cancellationToken);
+            return ConvertItemsAsync(project.Solution, activeDocument, result, cancellationToken);
 
-            var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
-            if (client != null)
+            async IAsyncEnumerable<RoslynNavigateToItem> SearchProjectWorkerAsync(
+                [EnumeratorCancellation] CancellationToken cancellationToken)
             {
-                var priorityDocumentIds = priorityDocuments.SelectAsArray(d => d.Id);
+                var solution = project.Solution;
 
-                var result = client.TryInvokeStreamAsync<IRemoteNavigateToSearchService, RoslynNavigateToItem>(
-                    solution,
-                    (service, solutionInfo, cancellationToken) =>
-                        service.SearchProjectAsync(solutionInfo, project.Id, priorityDocumentIds, searchPattern, kinds.ToImmutableArray(), cancellationToken),
-                    cancellationToken);
+                var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+                if (client != null)
+                {
+                    var priorityDocumentIds = priorityDocuments.SelectAsArray(d => d.Id);
 
-                await foreach (var item in ConvertItemsAsync(solution, activeDocument, result, cancellationToken).ConfigureAwait(false))
-                    yield return item;
-            }
-            else
-            {
-                var result = SearchProjectInCurrentProcessAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken);
+                    var channel = Channel.CreateUnbounded<RoslynNavigateToItem>();
+                    var callback = new NavigateToSearchServiceCallback(channel.Writer);
 
-                await foreach (var item in ConvertItemsAsync(solution, activeDocument, result, cancellationToken).ConfigureAwait(false))
-                    yield return item;
+                    _ = Task.Run(async () =>
+                    {
+                        // Don't need to sync the full solution when searching a particular project.
+                        await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
+                            solution,
+                            (service, solutionInfo, callbackId, cancellationToken) =>
+                                service.SearchProjectAsync(solutionInfo, project.Id, priorityDocumentIds, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
+                            callback, cancellationToken).ConfigureAwait(false);
+                    }, cancellationToken).ContinueWith(
+                        t => channel.Writer.Complete(t.Exception),
+                        CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+
+                    await foreach (var item in channel.Reader.ReadAllAsync(cancellationToken))
+                        yield return item;
+                }
+                else
+                {
+                    var result = SearchProjectInCurrentProcessAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken);
+                    await foreach (var item in result.ConfigureAwait(false))
+                        yield return item;
+                }
             }
         }
 

@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
@@ -54,38 +56,52 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             return cachedIndexMap != null && stringTable != null;
         }
 
-        public async IAsyncEnumerable<INavigateToSearchResult> SearchCachedDocumentsAsync(
+        public IAsyncEnumerable<INavigateToSearchResult> SearchCachedDocumentsAsync(
             Project project,
             ImmutableArray<Document> priorityDocuments,
             string searchPattern,
             IImmutableSet<string> kinds,
             Document? activeDocument,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+            CancellationToken cancellationToken)
         {
-            var solution = project.Solution;
+            var result = SearchCachedDocumentsWorkerAsync(cancellationToken);
+            return ConvertItemsAsync(project.Solution, activeDocument, result, cancellationToken);
 
-            var documentKeys = project.Documents.SelectAsArray(DocumentKey.ToDocumentKey);
-            var priorityDocumentKeys = priorityDocuments.SelectAsArray(DocumentKey.ToDocumentKey);
-
-            var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
-            if (client != null)
+            async IAsyncEnumerable<RoslynNavigateToItem> SearchCachedDocumentsWorkerAsync([EnumeratorCancellation] CancellationToken cancellationToken)
             {
-                var result = client.TryInvokeStreamAsync<IRemoteNavigateToSearchService, RoslynNavigateToItem>(
-                    (service, cancellationToken) =>
-                        service.SearchCachedDocumentsAsync(documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableArray(), cancellationToken),
-                    cancellationToken);
+                var solution = project.Solution;
 
-                await foreach (var item in ConvertItemsAsync(solution, activeDocument, result, cancellationToken).ConfigureAwait(false))
-                    yield return item;
-            }
-            else
-            {
-                var storageService = solution.Services.GetPersistentStorageService();
-                var result = SearchCachedDocumentsInCurrentProcessAsync(
-                    storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds, cancellationToken);
+                var documentKeys = project.Documents.SelectAsArray(DocumentKey.ToDocumentKey);
+                var priorityDocumentKeys = priorityDocuments.SelectAsArray(DocumentKey.ToDocumentKey);
 
-                await foreach (var item in ConvertItemsAsync(solution, activeDocument, result, cancellationToken).ConfigureAwait(false))
-                    yield return item;
+                var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+                if (client != null)
+                {
+                    var channel = Channel.CreateUnbounded<RoslynNavigateToItem>();
+                    var callback = new NavigateToSearchServiceCallback(channel.Writer);
+
+                    _ = Task.Run(async () =>
+                    {
+                        await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
+                            (service, callbackId, cancellationToken) =>
+                                service.SearchCachedDocumentsAsync(documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
+                            callback, cancellationToken).ConfigureAwait(false);
+                    }, cancellationToken).ContinueWith(
+                        t => channel.Writer.Complete(t.Exception),
+                        CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+
+                    await foreach (var item in channel.Reader.ReadAllAsync(cancellationToken))
+                        yield return item;
+                }
+                else
+                {
+                    var storageService = solution.Services.GetPersistentStorageService();
+                    var result = SearchCachedDocumentsInCurrentProcessAsync(
+                        storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds, cancellationToken);
+
+                    await foreach (var item in result.ConfigureAwait(false))
+                        yield return item;
+                }
             }
         }
 

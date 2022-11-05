@@ -64,21 +64,22 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 t => channel.Writer.Complete(t.Exception),
                 CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
 
-            return ReadAllAsync(channel.Reader, cancellationToken);
+            return channel.Reader.ReadAllAsync(cancellationToken);
 
             static async Task Process(IAsyncEnumerable<T> stream, ChannelWriter<T> writer, CancellationToken cancellationToken)
             {
                 await foreach (var value in stream)
                     await writer.WriteAsync(value, cancellationToken).ConfigureAwait(false);
             }
+        }
 
-            static async IAsyncEnumerable<T> ReadAllAsync(ChannelReader<T> reader, [EnumeratorCancellation] CancellationToken cancellationToken)
+        public static async IAsyncEnumerable<T> ReadAllAsync<T>(
+            this ChannelReader<T> reader, [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            while (await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
             {
-                while (await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    while (reader.TryRead(out var item))
-                        yield return item;
-                }
+                while (reader.TryRead(out var item))
+                    yield return item;
             }
         }
     }
