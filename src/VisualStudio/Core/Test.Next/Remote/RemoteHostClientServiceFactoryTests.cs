@@ -111,10 +111,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             // Kick off a ton of work in parallel to try to shake out race conditions with pinning/syncing.
 
             // 100 outer loops that ensure we generate the same files with the same checksums at least 10 times.
-            for (var i = 0; i < 100; i++)
+            var loops = 1;
+            for (var i = 0; i < loops; i++)
             {
                 // 100 inner loops producing variants of the file.
-                for (var j = 0; j < 100; j++)
+                for (var j = 0; j < loops; j++)
                 {
                     tasks.Add(Task.Run(async () => await PerformSearchesAsync(client, document, name: "Goo" + i)));
                 }
@@ -134,12 +135,12 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var channel = Channel.CreateUnbounded<RoslynNavigateToItem>();
             var cancellationToken = CancellationToken.None;
 
-            Task.Run(() => client.TryInvokeAsync<IRemoteNavigateToSearchService>(
+            Task.Run(async () => await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                     forked,
                     (service, solutionChecksum, callbackId, cancellationToken) =>
                         service.SearchProjectAsync(
                             solutionChecksum, document.Project.Id, ImmutableArray<DocumentId>.Empty, name, s_kinds, callbackId, cancellationToken),
-                    new NavigateToSearchServiceCallback(channel), cancellationToken))
+                    new NavigateToSearchServiceCallback(channel), cancellationToken).ConfigureAwait(false))
                 .CompletesChannel(channel);
 
             var count = 0;

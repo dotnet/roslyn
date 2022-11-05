@@ -43,11 +43,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     // Kick off the work to do the search in another thread.  That work will push the results into the
                     // channel.  When the work finishes (for any reason, including cancellation), the channel will be 
                     // completed.
-                    Task.Run(() => client.TryInvokeAsync<IRemoteNavigateToSearchService>(
+                    Task.Run(async () => await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                             solution,
                             (service, solutionInfo, callbackId, cancellationToken) =>
                                 service.SearchGeneratedDocumentsAsync(solutionInfo, project.Id, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
-                            new NavigateToSearchServiceCallback(channel), cancellationToken), cancellationToken)
+                            new NavigateToSearchServiceCallback(channel), cancellationToken).ConfigureAwait(false), cancellationToken)
                         .CompletesChannel(channel);
 
                     return channel.Reader.ReadAllAsync(cancellationToken);
