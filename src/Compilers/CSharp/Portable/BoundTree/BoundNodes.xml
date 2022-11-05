@@ -1604,6 +1604,7 @@
   <Node Name="BoundSwitchSection" Base="BoundStatementList">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="SwitchLabels" Type="ImmutableArray&lt;BoundSwitchLabel&gt;"/>
+    <Field Name="LocalScopeDepth" Type="uint"/>
   </Node>
 
   <Node Name="BoundSwitchLabel" Base="BoundNode">

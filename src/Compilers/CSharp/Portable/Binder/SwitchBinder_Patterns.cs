@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     labelBuilder.Add(newLabel);
                 }
 
-                sectionBuilder.Add(oldSection.Update(oldSection.Locals, labelBuilder.ToImmutableAndFree(), oldSection.Statements));
+                sectionBuilder.Add(oldSection.Update(oldSection.Locals, labelBuilder.ToImmutableAndFree(), LocalScopeDepth, oldSection.Statements));
             }
 
             switchSections = sectionBuilder.ToImmutableAndFree();
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundStatementsBuilder.Add(boundStatement);
             }
 
-            return new BoundSwitchSection(node, sectionBinder.GetDeclaredLocalsForScope(node), boundLabelsBuilder.ToImmutableAndFree(), boundStatementsBuilder.ToImmutableAndFree());
+            return new BoundSwitchSection(node, sectionBinder.GetDeclaredLocalsForScope(node), boundLabelsBuilder.ToImmutableAndFree(), LocalScopeDepth, boundStatementsBuilder.ToImmutableAndFree());
         }
 
         internal static bool ContainsUsingVariable(BoundStatement boundStatement)

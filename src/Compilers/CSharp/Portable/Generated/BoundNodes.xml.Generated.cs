@@ -5399,7 +5399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundSwitchSection : BoundStatementList
     {
-        public BoundSwitchSection(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundSwitchLabel> switchLabels, ImmutableArray<BoundStatement> statements, bool hasErrors = false)
+        public BoundSwitchSection(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundSwitchLabel> switchLabels, uint localScopeDepth, ImmutableArray<BoundStatement> statements, bool hasErrors = false)
             : base(BoundKind.SwitchSection, syntax, statements, hasErrors || switchLabels.HasErrors() || statements.HasErrors())
         {
 
@@ -5409,19 +5409,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.Locals = locals;
             this.SwitchLabels = switchLabels;
+            this.LocalScopeDepth = localScopeDepth;
         }
 
         public ImmutableArray<LocalSymbol> Locals { get; }
         public ImmutableArray<BoundSwitchLabel> SwitchLabels { get; }
+        public uint LocalScopeDepth { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitSwitchSection(this);
 
-        public BoundSwitchSection Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundSwitchLabel> switchLabels, ImmutableArray<BoundStatement> statements)
+        public BoundSwitchSection Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundSwitchLabel> switchLabels, uint localScopeDepth, ImmutableArray<BoundStatement> statements)
         {
-            if (locals != this.Locals || switchLabels != this.SwitchLabels || statements != this.Statements)
+            if (locals != this.Locals || switchLabels != this.SwitchLabels || localScopeDepth != this.LocalScopeDepth || statements != this.Statements)
             {
-                var result = new BoundSwitchSection(this.Syntax, locals, switchLabels, statements, this.HasErrors);
+                var result = new BoundSwitchSection(this.Syntax, locals, switchLabels, localScopeDepth, statements, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -11064,7 +11066,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<BoundSwitchLabel> switchLabels = this.VisitList(node.SwitchLabels);
             ImmutableArray<BoundStatement> statements = this.VisitList(node.Statements);
-            return node.Update(node.Locals, switchLabels, statements);
+            return node.Update(node.Locals, switchLabels, node.LocalScopeDepth, statements);
         }
         public override BoundNode? VisitSwitchLabel(BoundSwitchLabel node)
         {
@@ -13006,7 +13008,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<LocalSymbol> locals = GetUpdatedArray(node, node.Locals);
             ImmutableArray<BoundSwitchLabel> switchLabels = this.VisitList(node.SwitchLabels);
             ImmutableArray<BoundStatement> statements = this.VisitList(node.Statements);
-            return node.Update(locals, switchLabels, statements);
+            return node.Update(locals, switchLabels, node.LocalScopeDepth, statements);
         }
 
         public override BoundNode? VisitSequencePointExpression(BoundSequencePointExpression node)
@@ -15411,6 +15413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("locals", node.Locals, null),
             new TreeDumperNode("switchLabels", null, from x in node.SwitchLabels select Visit(x, null)),
+            new TreeDumperNode("localScopeDepth", node.LocalScopeDepth, null),
             new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null)),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }

@@ -152,8 +152,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
             // PROTOTYPE: Test all combinations of { safe, unsafe } for { container, local function }.
-            using var _ = new UnsafeRegion(this, node.Symbol.IsUnsafe);
-            return base.VisitLocalFunctionStatement(node);
+            var localFunction = node.Symbol;
+            // PROTOTYPE: Test local function within unsafe block.
+            var analysis = new RefSafetyAnalysis(_compilation, localFunction, localFunction.IsUnsafe, _useUpdatedEscapeRules, _diagnostics);
+            analysis.Visit(node.BlockBody);
+            analysis.Visit(node.ExpressionBody);
+            return null;
+        }
+
+        public override BoundNode? VisitLambda(BoundLambda node)
+        {
+            var lambda = node.Symbol;
+            var analysis = new RefSafetyAnalysis(_compilation, lambda, _inUnsafeRegion, _useUpdatedEscapeRules, _diagnostics);
+            analysis.Visit(node.Body);
+            return null;
         }
 
         public override BoundNode? VisitForStatement(BoundForStatement node)
@@ -172,6 +184,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             using var _ = new LocalScope(this, node.LocalScopeDepth);
             return base.VisitFixedStatement(node);
+        }
+
+        public override BoundNode? VisitSwitchSection(BoundSwitchSection node)
+        {
+            using var _ = new LocalScope(this, node.LocalScopeDepth);
+            return base.VisitSwitchSection(node);
         }
 
         public override BoundNode? VisitLocalDeclaration(BoundLocalDeclaration node)
