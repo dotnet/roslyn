@@ -795,40 +795,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var project1Checksum = await solution.State.GetChecksumAsync(project1.Id, CancellationToken.None);
         }
 
-        [Fact]
-        public async Task TestRemoteWorkspaceStreamingApi1()
-        {
-            var code = @"class Test { void Method() { } }";
-
-            // create base solution
-            using var workspace = TestWorkspace.CreateCSharp(code);
-            using var remoteWorkspace = CreateRemoteWorkspace();
-
-            // create solution service
-            var solution1 = workspace.CurrentSolution;
-            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution1);
-
-            var solutionChecksum = await solution1.State.GetChecksumAsync(CancellationToken.None);
-
-            // ensure the solution stays pinned only for the life of the streaming call, but is released after.
-            Assert.Equal(0, remoteWorkspace.GetTestAccessor().InFlightSolutionCount);
-            await foreach (var result in remoteWorkspace.RunWithSolutionAsync(assetProvider, solutionChecksum, (_, _) => GetStream(), CancellationToken.None))
-            {
-                Assert.Equal(1, remoteWorkspace.GetTestAccessor().InFlightSolutionCount);
-            }
-            Assert.Equal(0, remoteWorkspace.GetTestAccessor().InFlightSolutionCount);
-
-            return;
-
-            async static IAsyncEnumerable<int> GetStream()
-            {
-                await Task.Yield();
-                yield return 1;
-                yield return 2;
-                yield return 3;
-            }
-        }
-
         private static async Task VerifySolutionUpdate(string code, Func<Solution, Solution> newSolutionGetter)
         {
             using var workspace = TestWorkspace.CreateCSharp(code);

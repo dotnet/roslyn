@@ -10,11 +10,13 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Testing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -114,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                 // 100 inner loops producing variants of the file.
                 for (var j = 0; j < 100; j++)
                 {
-                    tasks.Add(Task.Run(async () => await PerformSearchesAsync(client, assetStorage, document, name: "Goo" + i)));
+                    tasks.Add(Task.Run(async () => await PerformSearchesAsync(client, document, name: "Goo" + i)));
                 }
             }
 
@@ -123,28 +125,28 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             Assert.Equal(0, assetStorage.GetTestAccessor().PinnedScopesCount);
         }
 
-        private static async Task PerformSearchesAsync(RemoteHostClient client, SolutionAssetStorage storage, Document document, string name)
+        private static async Task PerformSearchesAsync(RemoteHostClient client, Document document, string name)
         {
             // Fork the document, with 100 variants of methods called 'name' in it.
             var forked = document.Project.Solution.WithDocumentText(document.Id, SourceText.From(CreateText(name)));
 
-            Checksum checksum = null!;
-
             // Search teh forked document, ensuring we find all the results we expect.
-            var stream = client.TryInvokeStreamAsync<IRemoteNavigateToSearchService, RoslynNavigateToItem>(
+            var channel = Channel.CreateUnbounded<RoslynNavigateToItem>();
+
+            await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                 forked,
-                (service, solutionChecksum, _) =>
+                (service, solutionChecksum, callbackId, cancellationToken) =>
                 {
-                    checksum = solutionChecksum;
-                    return service.SearchProjectAsync(solutionChecksum, document.Project.Id, ImmutableArray<DocumentId>.Empty, name, s_kinds, CancellationToken.None);
+                    return service.SearchProjectAsync(
+                        solutionChecksum, document.Project.Id, ImmutableArray<DocumentId>.Empty, name, s_kinds, callbackId, cancellationToken);
                 },
+                new NavigateToSearchServiceCallback(channel),
                 CancellationToken.None);
 
             var count = 0;
-            await foreach (var result in stream)
+            await foreach (var result in channel.Reader.ReadAllAsync(CancellationToken.None))
             {
                 Assert.Equal(document.Id, result.DocumentId);
-                Assert.True(storage.GetTestAccessor().IsPinned(checksum));
                 count++;
             }
 
