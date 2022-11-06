@@ -1277,8 +1277,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return parentDepth;
                 }
 
-                if (node.Parent is BlockSyntax or InitializerExpressionSyntax ||
-                    node is NameEqualsSyntax { Parent: AnonymousObjectMemberDeclaratorSyntax } ||
+                if (node.Parent is BlockSyntax)
+                {
+                    return parentDepth + 1;
+                }
+
+                if (node.Parent is InitializerExpressionSyntax ||
+                    node is { Parent: AnonymousObjectMemberDeclaratorSyntax } ||
                     node is AssignmentExpressionSyntax { Parent: InitializerExpressionSyntax })
                 {
                     if (!IsInsideInterpolation(node))
