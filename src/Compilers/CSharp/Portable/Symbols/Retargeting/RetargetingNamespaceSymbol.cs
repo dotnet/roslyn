@@ -203,23 +203,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return _underlyingNamespace.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
 
-        internal override NamedTypeSymbol LookupMetadataType(ref MetadataTypeName typeName)
+#nullable enable
+
+        internal override NamedTypeSymbol? LookupMetadataType(ref MetadataTypeName typeName)
         {
             // This method is invoked when looking up a type by metadata type
             // name through a RetargetingAssemblySymbol. For instance, in
             // UnitTests.Symbols.Metadata.PE.NoPia.LocalTypeSubstitution2.
-            NamedTypeSymbol underlying = _underlyingNamespace.LookupMetadataType(ref typeName);
+            NamedTypeSymbol? underlying = _underlyingNamespace.LookupMetadataType(ref typeName);
+
+            if (underlying is null)
+            {
+                return null;
+            }
 
             Debug.Assert((object)underlying.ContainingModule == (object)_retargetingModule.UnderlyingModule);
+            Debug.Assert(!underlying.IsErrorType());
 
-            if (!underlying.IsErrorType() && underlying.IsExplicitDefinitionOfNoPiaLocalType)
+            if (underlying.IsExplicitDefinitionOfNoPiaLocalType)
             {
                 // Explicitly defined local types should be hidden.
-                return new MissingMetadataTypeSymbol.TopLevel(_retargetingModule, ref typeName);
+                return null;
             }
 
             return this.RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByName);
         }
+
+#nullable disable
 
         internal override void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
         {

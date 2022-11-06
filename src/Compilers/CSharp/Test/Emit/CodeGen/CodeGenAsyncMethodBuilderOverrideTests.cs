@@ -285,9 +285,9 @@ class C
                 // (15,63): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 //     static async MyTask<int> M() { await Task.Yield(); return null; } // 3
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(15, 63),
-                // (18,78): error CS4016: Since this is an async method, the return expression must be of type 'int' rather than 'Task<int>'
+                // (18,78): error CS4016: Since this is an async method, the return expression must be of type 'int' rather than 'MyTask<int>'
                 //     static async MyTask<int> M2(MyTask<int> mt) { await Task.Yield(); return mt; } // 4
-                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "mt").WithArguments("int").WithLocation(18, 78),
+                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "mt").WithArguments("int", "MyTask<int>").WithLocation(18, 78),
                 // (21,39): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //     static async MyTask M2(bool b) => b ? await Task.Yield() : await Task.Yield(); // 5
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "b ? await Task.Yield() : await Task.Yield()").WithLocation(21, 39)

@@ -117,14 +117,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             // The prefix matches, consume the matching prefix from the lsp completion item label.
-            var displayTextWithSuffix = lspCompletionItem.Label.Substring(completionItem.DisplayTextPrefix.Length, lspCompletionItem.Label.Length - completionItem.DisplayTextPrefix.Length);
+            var displayTextWithSuffix = lspCompletionItem.Label[completionItem.DisplayTextPrefix.Length..];
             if (!displayTextWithSuffix.EndsWith(completionItem.DisplayTextSuffix, StringComparison.Ordinal))
             {
                 return false;
             }
 
             // The suffix matches, consume the matching suffix from the lsp completion item label.
-            var originalDisplayText = displayTextWithSuffix.Substring(0, displayTextWithSuffix.Length - completionItem.DisplayTextSuffix.Length);
+            var originalDisplayText = displayTextWithSuffix[..^completionItem.DisplayTextSuffix.Length];
 
             // Now we're left with what should be the original display text for the lsp completion item.
             // Check to make sure it matches the cached completion item label.

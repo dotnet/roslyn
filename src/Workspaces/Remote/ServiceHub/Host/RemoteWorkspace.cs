@@ -5,15 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
@@ -83,10 +79,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
         /// <summary>
         /// Given an appropriate <paramref name="solutionChecksum"/>, gets or computes the corresponding <see
-        /// cref="Solution"/> snapshot for it, and then invokes <paramref name="implementation"/> with that snapshot.
-        /// That snapshot and the result of <paramref name="implementation"/> are then returned from this method.  Note:
-        /// the solution returned is only for legacy cases where we expose OOP to 2nd party clients who expect to be
-        /// able to call through <see cref="RemoteWorkspaceManager.GetSolutionAsync"/> and who expose that statically to
+        /// cref="Solution"/> snapshot for it, and then invokes <paramref name="implementation"/> with that snapshot.  That
+        /// snapshot and the result of <paramref name="implementation"/> are then returned from this method.  Note: the
+        /// solution returned is only for legacy cases where we expose OOP to 2nd party clients who expect to be able to
+        /// call through <see cref="RemoteWorkspaceManager.GetSolutionAsync"/> and who expose that statically to
         /// themselves.
         /// <para>
         /// During the life of the call to <paramref name="implementation"/> the solution corresponding to <paramref
@@ -100,18 +96,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<Solution, ValueTask<T>> implementation,
             CancellationToken cancellationToken)
         {
-            return RunWithSolutionAsync(
-                assetProvider, solutionChecksum, workspaceVersion: -1, updatePrimaryBranch: false, implementation, cancellationToken);
-        }
-
-        public IAsyncEnumerable<(Solution solution, T result)> RunWithSolutionAsync<T>(
-            AssetProvider assetProvider,
-            Checksum solutionChecksum,
-            Func<Solution, CancellationToken, IAsyncEnumerable<T>> implementation,
-            CancellationToken cancellationToken)
-        {
-            return RunWithSolutionAsync(
-                assetProvider, solutionChecksum, workspaceVersion: -1, updatePrimaryBranch: false, implementation, cancellationToken);
+            return RunWithSolutionAsync(assetProvider, solutionChecksum, workspaceVersion: -1, updatePrimaryBranch: false, implementation, cancellationToken);
         }
 
         private async ValueTask<(Solution solution, T result)> RunWithSolutionAsync<T>(
@@ -122,50 +107,6 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<Solution, ValueTask<T>> implementation,
             CancellationToken cancellationToken)
         {
-            try
-            {
-                // bridge from this single-value callback to the streaming callback form.
-
-                var stream = RunWithSolutionAsync(
-                    assetProvider, solutionChecksum, workspaceVersion, updatePrimaryBranch,
-                    (solution, cancellationToken) => GetStreamImplementation(solution, implementation, cancellationToken), cancellationToken);
-
-                using var buffer = TemporaryArray<(Solution solution, T result)>.Empty;
-                await foreach (var pair in stream.ConfigureAwait(false))
-                    buffer.Add(pair);
-
-                Contract.ThrowIfTrue(buffer.Count != 1, "We must have only gotten a single result, as our stream only produced one result.");
-                return buffer[0];
-            }
-            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken, ErrorSeverity.Critical))
-            {
-                // Any non-cancellation exception is bad and needs to be reported.
-                throw ExceptionUtilities.Unreachable();
-            }
-
-            // we know there must be exactly one result in the results array since we only produced one value in the
-            // stream.  So we should never be able to get here.
-            throw ExceptionUtilities.Unreachable();
-
-            async static IAsyncEnumerable<T> GetStreamImplementation(
-                Solution solution,
-                Func<Solution, ValueTask<T>> implementation,
-                [EnumeratorCancellation] CancellationToken cancellationToken)
-            {
-                // Wrap the single value produced by `implementation` into a stream.
-                var value = await implementation(solution).ConfigureAwait(false);
-                yield return value;
-            }
-        }
-
-        private async IAsyncEnumerable<(Solution solution, T result)> RunWithSolutionAsync<T>(
-            AssetProvider assetProvider,
-            Checksum solutionChecksum,
-            int workspaceVersion,
-            bool updatePrimaryBranch,
-            Func<Solution, CancellationToken, IAsyncEnumerable<T>> implementation,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
-        {
             Contract.ThrowIfNull(solutionChecksum);
             Contract.ThrowIfTrue(solutionChecksum == Checksum.Null);
 
@@ -175,17 +116,18 @@ namespace Microsoft.CodeAnalysis.Remote
 
             try
             {
-                await foreach (var pair in ProcessSolutionAsync(inFlightSolution, solutionTask, cancellationToken).ConfigureAwait(false))
-                    yield return pair;
+                return await ProcessSolutionAsync(inFlightSolution, solutionTask).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken, ErrorSeverity.Critical))
+            {
+                // Any non-cancellation exception is bad and needs to be reported.  We will still ensure that we cleanup
+                // below though no matter what happens so that other calls to OOP can properly work.
+                throw ExceptionUtilities.Unreachable();
             }
             finally
             {
-                // We  must always ensure that we cleanup below though no matter what happens so that other calls to OOP
-                // can properly work.
                 await DecrementInFlightCountAsync(inFlightSolution).ConfigureAwait(false);
             }
-
-            yield break;
 
             // Gets or creates a solution corresponding to the requested checksum.  This will always succeed, and will
             // increment the in-flight of that solution until we decrement it at the end of our try/finally block.
@@ -213,42 +155,30 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
 
-            async IAsyncEnumerable<(Solution solution, T results)> ProcessSolutionAsync(
-                InFlightSolution inFlightSolution,
-                Task<Solution> solutionTask,
-                [EnumeratorCancellation] CancellationToken cancellationToken)
+            async ValueTask<(Solution solution, T result)> ProcessSolutionAsync(InFlightSolution inFlightSolution, Task<Solution> solutionTask)
             {
-                Solution solution;
-                try
-                {
-                    // We must have at least 1 for the in-flight-count (representing this current in-flight call).
-                    Contract.ThrowIfTrue(inFlightSolution.InFlightCount < 1);
+                // We must have at least 1 for the in-flight-count (representing this current in-flight call).
+                Contract.ThrowIfTrue(inFlightSolution.InFlightCount < 1);
 
-                    // Actually get the solution, computing it ourselves, or getting the result that another caller was
-                    // computing. Note: we use our own cancellation token here as the task is currently operating using a
-                    // private CTS token that inFlightSolution controls.
-                    solution = await solutionTask.WithCancellation(cancellationToken).ConfigureAwait(false);
+                // Actually get the solution, computing it ourselves, or getting the result that another caller was
+                // computing. Note: we use our own cancellation token here as the task is currently operating using a
+                // private CTS token that inFlightSolution controls.
+                var solution = await solutionTask.WithCancellation(cancellationToken).ConfigureAwait(false);
 
-                    // now that we've computed the solution, cache it to help out future requests.
-                    using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-                    {
-                        if (updatePrimaryBranch)
-                            _lastRequestedPrimaryBranchSolution = (solutionChecksum, solution);
-                        else
-                            _lastRequestedAnyBranchSolution = (solutionChecksum, solution);
-                    }
-                }
-                catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken, ErrorSeverity.Critical))
+                // now that we've computed the solution, cache it to help out future requests.
+                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    // Any non-cancellation exception is bad and needs to be reported.  We will still ensure that we cleanup
-                    // below though no matter what happens so that other calls to OOP can properly work.
-                    throw ExceptionUtilities.Unreachable();
+                    if (updatePrimaryBranch)
+                        _lastRequestedPrimaryBranchSolution = (solutionChecksum, solution);
+                    else
+                        _lastRequestedAnyBranchSolution = (solutionChecksum, solution);
                 }
 
                 // Now, pass it to the callback to do the work.  Any other callers into us will be able to benefit from
                 // using this same solution as well
-                await foreach (var value in implementation(solution, cancellationToken).ConfigureAwait(false))
-                    yield return (solution, value);
+                var result = await implementation(solution).ConfigureAwait(false);
+
+                return (solution, result);
             }
 
             async ValueTask DecrementInFlightCountAsync(InFlightSolution inFlightSolution)
@@ -422,8 +352,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public ValueTask<(Solution solution, bool updated)> TryUpdateWorkspaceCurrentSolutionAsync(Solution newSolution, int workspaceVersion)
                 => _remoteWorkspace.TryUpdateWorkspaceCurrentSolutionWorkerAsync(workspaceVersion, newSolution, CancellationToken.None);
-
-            public int InFlightSolutionCount => _remoteWorkspace._solutionChecksumToSolution.Count;
 
             public async ValueTask<Solution> GetSolutionAsync(
                 AssetProvider assetProvider,

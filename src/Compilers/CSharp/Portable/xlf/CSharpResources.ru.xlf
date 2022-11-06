@@ -8475,8 +8475,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturnExpression">
-        <source>Since this is an async method, the return expression must be of type '{0}' rather than 'Task&lt;{0}&gt;'</source>
-        <target state="translated">Поскольку данный метод является асинхронным, возвращаемое выражение должно относиться к типу "{0}", а не типу "Task&lt;{0}&gt;".</target>
+        <source>Since this is an async method, the return expression must be of type '{0}' rather than '{1}'</source>
+        <target state="translated">Поскольку данный метод является асинхронным, возвращаемое выражение должно относиться к типу "{0}", а не типу "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAsyncAnonFuncReturns">

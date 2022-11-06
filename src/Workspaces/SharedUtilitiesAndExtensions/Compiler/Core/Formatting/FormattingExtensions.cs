@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             if (i > 0)
             {
                 span = new TextSpan(span.Start + i, span.Length - i);
-                newText = newText.Substring(i);
+                newText = newText[i..];
             }
 
             return new TextChange(span, newText);

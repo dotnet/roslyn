@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -16,6 +18,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -24,8 +27,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
 {
-    internal partial class DeclarationNameRecommender
+    [ExportDeclarationNameRecommender(nameof(DeclarationNameRecommender)), Shared]
+    internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecommender
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public DeclarationNameRecommender()
+        { }
+
         public async Task<ImmutableArray<(string name, Glyph glyph)>> ProvideRecommendedNamesAsync(
             CompletionContext completionContext,
             Document document,
@@ -43,11 +52,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
                     AddNamesFromExistingOverloads(context, partialSemanticModel, nameInfo, result, cancellationToken);
             }
 
-            var baseNames = GetBaseNames(context.SemanticModel, nameInfo);
-            if (baseNames != default)
+            var names = GetBaseNames(context.SemanticModel, nameInfo).NullToEmpty();
+
+            // If we have a direct symbol this binds to, offer its name as a potential name here.
+            if (nameInfo.Symbol != null)
+                names = names.Insert(0, ImmutableArray.Create(nameInfo.Symbol.Name));
+
+            if (!names.IsDefaultOrEmpty)
             {
                 var namingStyleOptions = await document.GetNamingStylePreferencesAsync(completionContext.CompletionOptions.NamingStyleFallbackOptions, cancellationToken).ConfigureAwait(false);
-                GetRecommendedNames(baseNames, nameInfo, context, result, namingStyleOptions, cancellationToken);
+                GetRecommendedNames(names, nameInfo, context, result, namingStyleOptions, cancellationToken);
             }
 
             return result.ToImmutable();
@@ -56,14 +70,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
         private ImmutableArray<ImmutableArray<string>> GetBaseNames(SemanticModel semanticModel, NameDeclarationInfo nameInfo)
         {
             if (nameInfo.Alias != null)
-            {
                 return NameGenerator.GetBaseNames(nameInfo.Alias);
-            }
 
             if (!IsValidType(nameInfo.Type))
-            {
                 return default;
-            }
 
             var (type, plural) = UnwrapType(nameInfo.Type, semanticModel.Compilation, wasPlural: false, seenTypes: new HashSet<ITypeSymbol>());
 
@@ -89,40 +99,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
             }
 
             return !type.IsSpecialType();
-        }
-
-        private static Glyph GetGlyph(SymbolKind kind, Accessibility? declaredAccessibility)
-        {
-            var publicIcon = kind switch
-            {
-                SymbolKind.Field => Glyph.FieldPublic,
-                SymbolKind.Local => Glyph.Local,
-                SymbolKind.Method => Glyph.MethodPublic,
-                SymbolKind.Parameter => Glyph.Parameter,
-                SymbolKind.Property => Glyph.PropertyPublic,
-                SymbolKind.RangeVariable => Glyph.RangeVariable,
-                SymbolKind.TypeParameter => Glyph.TypeParameter,
-                _ => throw ExceptionUtilities.UnexpectedValue(kind),
-            };
-
-            switch (declaredAccessibility)
-            {
-                case Accessibility.Private:
-                    publicIcon += Glyph.ClassPrivate - Glyph.ClassPublic;
-                    break;
-
-                case Accessibility.Protected:
-                case Accessibility.ProtectedAndInternal:
-                case Accessibility.ProtectedOrInternal:
-                    publicIcon += Glyph.ClassProtected - Glyph.ClassPublic;
-                    break;
-
-                case Accessibility.Internal:
-                    publicIcon += Glyph.ClassInternal - Glyph.ClassPublic;
-                    break;
-            }
-
-            return publicIcon;
         }
 
         private (ITypeSymbol, bool plural) UnwrapType(ITypeSymbol type, Compilation compilation, bool wasPlural, HashSet<ITypeSymbol> seenTypes)
@@ -228,13 +204,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
                 PooledHashSet<string> seenUniqueNames,
                 CancellationToken cancellationToken)
             {
-                // There's no special glyph for local functions.
-                // We don't need to differentiate them at this point.
-                var symbolKind =
-                    kind.SymbolKind.HasValue ? kind.SymbolKind.Value :
-                    kind.MethodKind.HasValue ? SymbolKind.Method :
-                    throw ExceptionUtilities.Unreachable();
-
                 var modifiers = declarationInfo.Modifiers;
                 foreach (var rule in rules)
                 {
@@ -258,8 +227,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
                                     filter: s => IsRelevantSymbolKind(s),
                                     usedNames: Enumerable.Empty<string>(),
                                     cancellationToken: cancellationToken);
+
                                 if (seenUniqueNames.Add(uniqueName.Text))
-                                    result.Add((uniqueName.Text, GetGlyph(symbolKind, declarationInfo.DeclaredAccessibility)));
+                                {
+                                    result.Add((uniqueName.Text,
+                                        NameDeclarationInfo.GetGlyph(NameDeclarationInfo.GetSymbolKind(kind), declarationInfo.DeclaredAccessibility)));
+                                }
                             }
                         }
 
@@ -302,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
                     if (!currentParameterNames.Contains(overloadParameter.Name) &&
                         methodParameterType.Equals(overloadParameter.Type, SymbolEqualityComparer.Default))
                     {
-                        result.Add((overloadParameter.Name, GetGlyph(SymbolKind.Parameter, declarationInfo.DeclaredAccessibility)));
+                        result.Add((overloadParameter.Name, NameDeclarationInfo.GetGlyph(SymbolKind.Parameter, declarationInfo.DeclaredAccessibility)));
                     }
                 }
             }

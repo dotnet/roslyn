@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -30,7 +28,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             protected readonly bool Explicitly;
             protected readonly bool Abstractly;
             private readonly bool _onlyRemaining;
-            protected readonly ISymbol ThroughMember;
+            protected readonly ISymbol? ThroughMember;
             protected readonly Document Document;
             protected readonly ImplementTypeGenerationOptions Options;
             protected readonly State State;
@@ -45,7 +43,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 bool explicitly,
                 bool abstractly,
                 bool onlyRemaining,
-                ISymbol throughMember)
+                ISymbol? throughMember)
             {
                 Service = service;
                 Document = document;
@@ -55,7 +53,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 _onlyRemaining = onlyRemaining;
                 Explicitly = explicitly;
                 ThroughMember = throughMember;
-                _equivalenceKey = ComputeEquivalenceKey(state, explicitly, abstractly, onlyRemaining, throughMember, GetType().FullName);
+                _equivalenceKey = ComputeEquivalenceKey(state, explicitly, abstractly, onlyRemaining, throughMember, GetType().FullName!);
             }
 
             public static ImplementInterfaceCodeAction CreateImplementAbstractlyCodeAction(
@@ -139,7 +137,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 bool explicitly,
                 bool abstractly,
                 bool onlyRemaining,
-                ISymbol throughMember,
+                ISymbol? throughMember,
                 string codeActionTypeName)
             {
                 var interfaceType = state.InterfaceTypes.First();
@@ -193,8 +191,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 ImmutableArray<ISymbol> extraMembers,
                 CancellationToken cancellationToken)
             {
-                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                 var isComImport = unimplementedMembers.Any(static t => t.type.IsComImport);
 
@@ -247,18 +245,19 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 {
                     foreach (var unimplementedInterfaceMember in unimplementedInterfaceMembers)
                     {
-                        var member = GenerateMember(
+                        var members = GenerateMembers(
                             compilation, options,
                             unimplementedInterfaceMember, implementedVisibleMembers,
                             propertyGenerationBehavior);
-                        if (member != null)
+                        foreach (var member in members)
                         {
+                            if (member is null)
+                                continue;
+
                             implementedMembers.Add(member);
 
                             if (!(member.ExplicitInterfaceImplementations().Any() && Service.HasHiddenExplicitImplementation))
-                            {
                                 implementedVisibleMembers.Add(member);
-                            }
                         }
                     }
                 }
@@ -289,7 +288,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return member.Name;
             }
 
-            private ISymbol GenerateMember(
+            private IEnumerable<ISymbol?> GenerateMembers(
                 Compilation compilation,
                 ParseOptions options,
                 ISymbol member,
@@ -308,9 +307,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 //
                 // In this case we only want to generate 'Goo' once.
                 if (HasMatchingMember(implementedVisibleMembers, member))
-                {
-                    return null;
-                }
+                    return SpecializedCollections.EmptyEnumerable<ISymbol?>();
 
                 var memberName = DetermineMemberName(member, implementedVisibleMembers);
 
@@ -329,10 +326,10 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var addNew = !generateInvisibleMember && HasNameConflict(member, memberName, State.ClassOrStructType.GetBaseTypes());
 
                 // Check if we need to add 'unsafe' to the signature we're generating.
-                var syntaxFacts = Document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = Document.GetRequiredLanguageService<ISyntaxFactsService>();
                 var addUnsafe = member.RequiresUnsafeModifier() && !syntaxFacts.IsUnsafeContext(State.Location);
 
-                return GenerateMember(
+                return GenerateMembers(
                     compilation, member, memberName, generateInvisibleMember, generateAbstractly,
                     addNew, addUnsafe, propertyGenerationBehavior);
             }
@@ -343,30 +340,22 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 {
                     // User asked for an explicit (i.e. invisible) member.
                     if (Explicitly)
-                    {
                         return true;
-                    }
 
                     // Have to create an invisible member if we have constraints we can't express
                     // with a visible member.
                     if (HasUnexpressibleConstraint(options, member))
-                    {
                         return true;
-                    }
 
                     // If we had a conflict with a member of the same name, then we have to generate
                     // as an invisible member.
                     if (member.Name != memberName)
-                    {
                         return true;
-                    }
 
                     // If the member is less accessible than type, for which we are implementing it,
                     // then only explicit implementation is valid.
                     if (AccessibilityHelper.IsLessAccessibleThan(member, State.ClassOrStructType))
-                    {
                         return true;
-                    }
                 }
 
                 // Can't generate an invisible member if the language doesn't support it.
@@ -400,7 +389,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return condition1 || condition2 || condition3;
             }
 
-            private ISymbol GenerateMember(
+            private IEnumerable<ISymbol?> GenerateMembers(
                 Compilation compilation,
                 ISymbol member,
                 string memberName,
@@ -410,7 +399,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 bool addUnsafe,
                 ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
-                var factory = Document.GetLanguageService<SyntaxGenerator>();
+                var factory = Document.GetRequiredLanguageService<SyntaxGenerator>();
                 var modifiers = new DeclarationModifiers(isStatic: member.IsStatic, isAbstract: generateAbstractly, isNew: addNew, isUnsafe: addUnsafe);
 
                 var useExplicitInterfaceSymbol = generateInvisibly || !Service.CanImplementImplicitly;
@@ -418,13 +407,19 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     ? Accessibility.Public
                     : Accessibility.Private;
 
-                return member switch
+                if (member is IMethodSymbol method)
                 {
-                    IMethodSymbol method => GenerateMethod(compilation, method, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName),
-                    IPropertySymbol property => GenerateProperty(compilation, property, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName, propertyGenerationBehavior),
-                    IEventSymbol @event => GenerateEvent(compilation, memberName, generateInvisibly, factory, modifiers, useExplicitInterfaceSymbol, accessibility, @event),
-                    _ => null,
-                };
+                    yield return GenerateMethod(compilation, method, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName);
+                }
+                else if (member is IPropertySymbol property)
+                {
+                    foreach (var generated in GeneratePropertyMembers(compilation, property, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName, propertyGenerationBehavior))
+                        yield return generated;
+                }
+                else if (member is IEventSymbol @event)
+                {
+                    yield return GenerateEvent(compilation, memberName, generateInvisibly, factory, modifiers, useExplicitInterfaceSymbol, accessibility, @event);
+                }
             }
 
             private ISymbol GenerateEvent(Compilation compilation, string memberName, bool generateInvisibly, SyntaxGenerator factory, DeclarationModifiers modifiers, bool useExplicitInterfaceSymbol, Accessibility accessibility, IEventSymbol @event)
@@ -444,7 +439,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     removeMethod: GetAddOrRemoveMethod(@event, generateInvisibly, accessor, memberName, factory.RemoveEventHandler));
             }
 
-            private IMethodSymbol GetAddOrRemoveMethod(
+            private IMethodSymbol? GetAddOrRemoveMethod(
                 IEventSymbol @event, bool generateInvisibly, IMethodSymbol accessor, string memberName,
                 Func<SyntaxNode, SyntaxNode, SyntaxNode> createAddOrRemoveHandler)
             {
@@ -496,19 +491,11 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             }
 
             private bool IdentifiersMatch(string identifier1, string identifier2)
-            {
-                return IsCaseSensitive
+                => IsCaseSensitive
                     ? identifier1 == identifier2
                     : StringComparer.OrdinalIgnoreCase.Equals(identifier1, identifier2);
-            }
 
-            private bool IsCaseSensitive
-            {
-                get
-                {
-                    return Document.GetLanguageService<ISyntaxFactsService>().IsCaseSensitive;
-                }
-            }
+            private bool IsCaseSensitive => Document.GetRequiredLanguageService<ISyntaxFactsService>().IsCaseSensitive;
 
             private bool HasMatchingMember(ArrayBuilder<ISymbol> implementedVisibleMembers, ISymbol member)
             {
@@ -538,9 +525,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             private bool MembersMatch(ISymbol member1, ISymbol member2)
             {
                 if (member1.Kind != member2.Kind)
-                {
                     return false;
-                }
 
                 if (member1.DeclaredAccessibility != member2.DeclaredAccessibility ||
                     member1.IsStatic != member2.IsStatic)
@@ -549,9 +534,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 }
 
                 if (member1.ExplicitInterfaceImplementations().Any() || member2.ExplicitInterfaceImplementations().Any())
-                {
                     return false;
-                }
 
                 return SignatureComparer.Instance.HaveSameSignatureAndConstraintsAndReturnTypeAndAccessors(
                     member1, member2, IsCaseSensitive);

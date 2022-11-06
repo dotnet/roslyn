@@ -49433,7 +49433,7 @@ public interface I1
         public void RuntimeFeature_01()
         {
             var compilation1 = CreateCompilation("", options: TestOptions.DebugDll,
-                                                 references: new[] { TestMetadata.Net461.mscorlib },
+                                                 references: new[] { Net461.mscorlib },
                                                  targetFramework: TargetFramework.Empty);
 
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -49744,7 +49744,7 @@ namespace System
 ";
 
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll,
-                                                 references: new[] { TestMetadata.Net461.mscorlib },
+                                                 references: new[] { Net461.mscorlib },
                                                  targetFramework: TargetFramework.Empty);
 
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -50578,7 +50578,7 @@ public interface ITest33
             var pia2Compilation = CreateCompilation(pia2, baseReferences, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Empty);
             var pia2Reference = pia2Compilation.EmitToImageReference();
 
-            baseReferences = TargetFrameworkUtil.GetReferencesWithout(TargetFramework.StandardLatest, "System.Runtime.InteropServices.dll").Concat(new[] { attributesRef });
+            baseReferences = TargetFrameworkUtil.GetReferencesWithout(TargetFramework.NetLatest, "System.Runtime.InteropServices.dll").Concat(new[] { attributesRef });
             var compilation1 = CreateCompilation(consumer1, options: TestOptions.ReleaseDll, references: baseReferences.Concat(new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true) }), targetFramework: TargetFramework.Empty);
 
             foreach (var reference2 in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
@@ -62450,7 +62450,7 @@ public class C0 : I1
             string accessorModifiers = isStatic ? "" : "instance";
             string implModifiers = isStatic ? "static " : "";
 
-            var windowsRuntimeRef = CompilationExtensions.CreateWindowsRuntimeMetadataReference();
+            var windowsRuntimeRef = CompilationExtensions.CreateWindowsRuntimeMetadataReference(TargetFramework.Net50);
             var ilSource =
 BuildAssemblyExternClause(windowsRuntimeRef) +
 @"
