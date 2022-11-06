@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -270,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             TestNormalizeExpression(
                 @"$""Printed: {                    new Printer() { TextToPrint = ""Hello world!"" }.PrintedText }""",
-                @"$""Printed: {new Printer(){TextToPrint = ""Hello world!""}.PrintedText}"""
+                @"$""Printed: {new Printer() { TextToPrint = ""Hello world!"" }.PrintedText}"""
             );
         }
 
@@ -279,8 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             TestNormalizeExpression(
                 @"$""""""Printed: {                    new Printer() { TextToPrint = ""Hello world!"" }.PrintedText }""""""",
-                @"$""""""Printed: {new Printer()
-{TextToPrint = ""Hello world!""}.PrintedText}""""""".Replace("\r\n", "\n").Replace("\n", "\r\n")
+                @"$""""""Printed: {new Printer() { TextToPrint = ""Hello world!"" }.PrintedText}"""""""
             );
         }
 
@@ -297,7 +294,7 @@ breaks
             "");",
             @"Console.WriteLine($@""Test with line
 breaks
-{new[]{1, 2, 3}[2]}
+{new[] { 1, 2, 3 }[2]}
             "");"
             );
         }
@@ -317,7 +314,7 @@ breaks
             @"Console.WriteLine($""""""
             Test with line
             breaks
-            {new[]{1, 2, 3}[2]}
+            {new[] { 1, 2, 3 }[2]}
             """""");"
             );
         }
@@ -1364,6 +1361,248 @@ class Derived : Base
         {
             TestNormalizeStatement("scoped  R  x  ;", "scoped R x;");
             TestNormalizeStatement("scoped  ref  R  y  ;", "scoped ref R y;");
+        }
+
+        [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
+        public void TestNormalizeObjectInitializer()
+        {
+            TestNormalizeExpression("new{}", "new\r\n{\r\n}");
+            TestNormalizeExpression("new{A=1,B=2}", "new\r\n{\r\n  A = 1,\r\n  B = 2\r\n}");
+            TestNormalizeExpression("new{A=1,B=2,}", "new\r\n{\r\n  A = 1,\r\n  B = 2,\r\n}");
+            TestNormalizeExpression("new SomeClass{}", "new SomeClass\r\n{\r\n}");
+            TestNormalizeExpression("new SomeClass{A=1,B=2}", "new SomeClass\r\n{\r\n  A = 1,\r\n  B = 2\r\n}");
+            TestNormalizeExpression("new SomeClass{A=1,B=2,}", "new SomeClass\r\n{\r\n  A = 1,\r\n  B = 2,\r\n}");
+            TestNormalizeExpression("new SomeClass(){}", "new SomeClass()\r\n{\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,C=new{}}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = new\r\n  {\r\n  }\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,C=new{D=5l,E=2.5f}}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = new\r\n  {\r\n    D = 5l,\r\n    E = 2.5f\r\n  }\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,C=new{D=5l,E=2.5f,}}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = new\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n  }\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,C=new{D=5l,E=2.5f,},}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = new\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n  },\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,C=new SomeOtherClass{}}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = new SomeOtherClass\r\n  {\r\n  }\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,C=new SomeOtherClass{D=5l,E=2.5f}}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = new SomeOtherClass\r\n  {\r\n    D = 5l,\r\n    E = 2.5f\r\n  }\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,C=new SomeOtherClass{D=5l,E=2.5f,}}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = new SomeOtherClass\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n  }\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,C=new SomeOtherClass{D=5l,E=2.5f,},}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = new SomeOtherClass\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n  },\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){}}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = new SomeOtherClass()\r\n  {\r\n  }\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f}}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = new SomeOtherClass()\r\n  {\r\n    D = 5l,\r\n    E = 2.5f\r\n  }\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,}}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = new SomeOtherClass()\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n  }\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,},}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = new SomeOtherClass()\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n  },\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new{}}}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = new SomeOtherClass()\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n    F = new\r\n    {\r\n    }\r\n  }\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new{G=7u,H=3.72m}}}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = new SomeOtherClass()\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n    F = new\r\n    {\r\n      G = 7u,\r\n      H = 3.72m\r\n    }\r\n  }\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new{G=7u,H=3.72m,}}}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = new SomeOtherClass()\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n    F = new\r\n    {\r\n      G = 7u,\r\n      H = 3.72m,\r\n    }\r\n  }\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new{G=7u,H=3.72m,},}}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = new SomeOtherClass()\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n    F = new\r\n    {\r\n      G = 7u,\r\n      H = 3.72m,\r\n    },\r\n  }\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new{G=7u,H=3.72m,},},}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = new SomeOtherClass()\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n    F = new\r\n    {\r\n      G = 7u,\r\n      H = 3.72m,\r\n    },\r\n  },\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass{}}}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = new SomeOtherClass()\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n    F = new AndAnotherClass\r\n    {\r\n    }\r\n  }\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass{G=7u,H=3.72m}}}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = new SomeOtherClass()\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n    F = new AndAnotherClass\r\n    {\r\n      G = 7u,\r\n      H = 3.72m\r\n    }\r\n  }\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass{G=7u,H=3.72m,}}}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = new SomeOtherClass()\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n    F = new AndAnotherClass\r\n    {\r\n      G = 7u,\r\n      H = 3.72m,\r\n    }\r\n  }\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass{G=7u,H=3.72m,},}}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = new SomeOtherClass()\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n    F = new AndAnotherClass\r\n    {\r\n      G = 7u,\r\n      H = 3.72m,\r\n    },\r\n  }\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass{G=7u,H=3.72m,},},}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = new SomeOtherClass()\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n    F = new AndAnotherClass\r\n    {\r\n      G = 7u,\r\n      H = 3.72m,\r\n    },\r\n  },\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass(){}}}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = new SomeOtherClass()\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n    F = new AndAnotherClass()\r\n    {\r\n    }\r\n  }\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass(){G=7u,H=3.72m}}}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = new SomeOtherClass()\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n    F = new AndAnotherClass()\r\n    {\r\n      G = 7u,\r\n      H = 3.72m\r\n    }\r\n  }\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass(){G=7u,H=3.72m,}}}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = new SomeOtherClass()\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n    F = new AndAnotherClass()\r\n    {\r\n      G = 7u,\r\n      H = 3.72m,\r\n    }\r\n  }\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass(){G=7u,H=3.72m,},}}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = new SomeOtherClass()\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n    F = new AndAnotherClass()\r\n    {\r\n      G = 7u,\r\n      H = 3.72m,\r\n    },\r\n  }\r\n}");
+            TestNormalizeExpression("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass(){G=7u,H=3.72m,},},}", "new SomeClass()\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = new SomeOtherClass()\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n    F = new AndAnotherClass()\r\n    {\r\n      G = 7u,\r\n      H = 3.72m,\r\n    },\r\n  },\r\n}");
+        }
+
+        [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
+        public void TestNormalizeObjectInitializer_Interpolation()
+        {
+            TestNormalizeExpression("$\"{new{}}\"", "$\"{new { }}\"");
+            TestNormalizeExpression("$\"{new{A=1,B=2}}\"", "$\"{new { A = 1, B = 2 }}\"");
+            TestNormalizeExpression("$\"{new{A=1,B=2,}}\"", "$\"{new { A = 1, B = 2, }}\"");
+            TestNormalizeExpression("$\"{new SomeClass{}}\"", "$\"{new SomeClass { }}\"");
+            TestNormalizeExpression("$\"{new SomeClass{A=1,B=2}}\"", "$\"{new SomeClass { A = 1, B = 2 }}\"");
+            TestNormalizeExpression("$\"{new SomeClass{A=1,B=2,}}\"", "$\"{new SomeClass { A = 1, B = 2, }}\"");
+            TestNormalizeExpression("$\"{new SomeClass{A=1,B=2,}}\"", "$\"{new SomeClass { A = 1, B = 2, }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){}}\"", "$\"{new SomeClass() { }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2}}\"", "$\"{new SomeClass() { A = 1, B = 2 }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,}}\"", "$\"{new SomeClass() { A = 1, B = 2, }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new{}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new { } }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new{D=5l,E=2.5f}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new { D = 5l, E = 2.5f } }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new{D=5l,E=2.5f,}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new { D = 5l, E = 2.5f, } }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new{D=5l,E=2.5f,},}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new { D = 5l, E = 2.5f, }, }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass{}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass { } }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass{D=5l,E=2.5f}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass { D = 5l, E = 2.5f } }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass{D=5l,E=2.5f,}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass { D = 5l, E = 2.5f, } }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass{D=5l,E=2.5f,},}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass { D = 5l, E = 2.5f, }, }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { } }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f } }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, } }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,},}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, }, }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new{}}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new { } } }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new{G=7u,H=3.72m}}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new { G = 7u, H = 3.72m } } }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new{G=7u,H=3.72m,}}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new { G = 7u, H = 3.72m, } } }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new{G=7u,H=3.72m,},}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new { G = 7u, H = 3.72m, }, } }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new{G=7u,H=3.72m,},},}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new { G = 7u, H = 3.72m, }, }, }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass{}}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass { } } }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass{G=7u,H=3.72m}}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass { G = 7u, H = 3.72m } } }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass{G=7u,H=3.72m,}}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass { G = 7u, H = 3.72m, } } }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass{G=7u,H=3.72m,},}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass { G = 7u, H = 3.72m, }, } }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass{G=7u,H=3.72m,},},}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass { G = 7u, H = 3.72m, }, }, }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass(){}}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass() { } } }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass(){G=7u,H=3.72m}}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass() { G = 7u, H = 3.72m } } }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass(){G=7u,H=3.72m,}}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass() { G = 7u, H = 3.72m, } } }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass(){G=7u,H=3.72m,},}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass() { G = 7u, H = 3.72m, }, } }}\"");
+            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass(){G=7u,H=3.72m,},},}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass() { G = 7u, H = 3.72m, }, }, }}\"");
+        }
+
+        [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
+        public void TestNormalizeArrayAndCollectionInitializers()
+        {
+            TestNormalizeExpression("new int[]{}", "new int[]\r\n{\r\n}");
+            TestNormalizeExpression("new int[]{1,2,3}", "new int[]\r\n{\r\n  1,\r\n  2,\r\n  3\r\n}");
+            TestNormalizeExpression("new int[]{1,2,3,}", "new int[]\r\n{\r\n  1,\r\n  2,\r\n  3,\r\n}");
+            TestNormalizeExpression("new int[]{1,2,3,}.Length", "new int[]\r\n{\r\n  1,\r\n  2,\r\n  3,\r\n}.Length");
+            TestNormalizeExpression("new int[]{1,2,3,}[0]", "new int[]\r\n{\r\n  1,\r\n  2,\r\n  3,\r\n}[0]");
+
+            TestNormalizeExpression("new List<int>(){}", "new List<int>()\r\n{\r\n}");
+            TestNormalizeExpression("new List<int>(){1,2,3}", "new List<int>()\r\n{\r\n  1,\r\n  2,\r\n  3\r\n}");
+            TestNormalizeExpression("new List<int>(){1,2,3,}", "new List<int>()\r\n{\r\n  1,\r\n  2,\r\n  3,\r\n}");
+            TestNormalizeExpression("new List<int>(){1,2,3,}.Count", "new List<int>()\r\n{\r\n  1,\r\n  2,\r\n  3,\r\n}.Count");
+            TestNormalizeExpression("new List<int>(){1,2,3,}[0]", "new List<int>()\r\n{\r\n  1,\r\n  2,\r\n  3,\r\n}[0]");
+
+            TestNormalizeExpression("new string[]{\"test1\",\"test2\",\"test3\"}", "new string[]\r\n{\r\n  \"test1\",\r\n  \"test2\",\r\n  \"test3\"\r\n}");
+            TestNormalizeExpression("new string[]{\"test1\",\"test2\",\"test3\",}", "new string[]\r\n{\r\n  \"test1\",\r\n  \"test2\",\r\n  \"test3\",\r\n}");
+            TestNormalizeExpression("new string[]{\"test1\",\"test2\",\"test3\",}.Length", "new string[]\r\n{\r\n  \"test1\",\r\n  \"test2\",\r\n  \"test3\",\r\n}.Length");
+            TestNormalizeExpression("new string[]{\"test1\",\"test2\",\"test3\",}[0]", "new string[]\r\n{\r\n  \"test1\",\r\n  \"test2\",\r\n  \"test3\",\r\n}[0]");
+
+            TestNormalizeExpression("new List<string>(){\"test1\",\"test2\",\"test3\"}", "new List<string>()\r\n{\r\n  \"test1\",\r\n  \"test2\",\r\n  \"test3\"\r\n}");
+            TestNormalizeExpression("new List<string>(){\"test1\",\"test2\",\"test3\",}", "new List<string>()\r\n{\r\n  \"test1\",\r\n  \"test2\",\r\n  \"test3\",\r\n}");
+            TestNormalizeExpression("new List<string>(){\"test1\",\"test2\",\"test3\",}.Count", "new List<string>()\r\n{\r\n  \"test1\",\r\n  \"test2\",\r\n  \"test3\",\r\n}.Count");
+            TestNormalizeExpression("new List<string>(){\"test1\",\"test2\",\"test3\",}[0]", "new List<string>()\r\n{\r\n  \"test1\",\r\n  \"test2\",\r\n  \"test3\",\r\n}[0]");
+
+            TestNormalizeExpression("new SomeClass[]{new SomeClass(),new SomeClass(),new SomeClass()}", "new SomeClass[]\r\n{\r\n  new SomeClass(),\r\n  new SomeClass(),\r\n  new SomeClass()\r\n}");
+            TestNormalizeExpression("new SomeClass[]{new SomeClass(),new SomeClass(),new SomeClass(),}", "new SomeClass[]\r\n{\r\n  new SomeClass(),\r\n  new SomeClass(),\r\n  new SomeClass(),\r\n}");
+            TestNormalizeExpression("new SomeClass[]{new SomeClass(),new SomeClass(),new SomeClass(),}.Length", "new SomeClass[]\r\n{\r\n  new SomeClass(),\r\n  new SomeClass(),\r\n  new SomeClass(),\r\n}.Length");
+            TestNormalizeExpression("new SomeClass[]{new SomeClass(),new SomeClass(),new SomeClass(),}[0]", "new SomeClass[]\r\n{\r\n  new SomeClass(),\r\n  new SomeClass(),\r\n  new SomeClass(),\r\n}[0]");
+
+            TestNormalizeExpression("new List<SomeClass>(){new SomeClass(),new SomeClass(),new SomeClass()}", "new List<SomeClass>()\r\n{\r\n  new SomeClass(),\r\n  new SomeClass(),\r\n  new SomeClass()\r\n}");
+            TestNormalizeExpression("new List<SomeClass>(){new SomeClass(),new SomeClass(),new SomeClass(),}", "new List<SomeClass>()\r\n{\r\n  new SomeClass(),\r\n  new SomeClass(),\r\n  new SomeClass(),\r\n}");
+            TestNormalizeExpression("new List<SomeClass>(){new SomeClass(),new SomeClass(),new SomeClass(),}.Count", "new List<SomeClass>()\r\n{\r\n  new SomeClass(),\r\n  new SomeClass(),\r\n  new SomeClass(),\r\n}.Count");
+            TestNormalizeExpression("new List<SomeClass>(){new SomeClass(),new SomeClass(),new SomeClass(),}[0]", "new List<SomeClass>()\r\n{\r\n  new SomeClass(),\r\n  new SomeClass(),\r\n  new SomeClass(),\r\n}[0]");
+
+            TestNormalizeExpression("new int[]{2+2,2+2*2,arr2[0]}", "new int[]\r\n{\r\n  2 + 2,\r\n  2 + 2 * 2,\r\n  arr2[0]\r\n}");
+            TestNormalizeExpression("new List<int>(){2+2,2+2*2,arr2[0]}", "new List<int>()\r\n{\r\n  2 + 2,\r\n  2 + 2 * 2,\r\n  arr2[0]\r\n}");
+        }
+
+        [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
+        public void TestNormalizeArrayAndCollectionInitializers_Interpolation()
+        {
+            TestNormalizeExpression("$\"{new int[]{}}\"", "$\"{new int[] { }}\"");
+            TestNormalizeExpression("$\"{new int[]{1,2,3}}\"", "$\"{new int[] { 1, 2, 3 }}\"");
+            TestNormalizeExpression("$\"{new int[]{1,2,3,}}\"", "$\"{new int[] { 1, 2, 3, }}\"");
+            TestNormalizeExpression("$\"{new int[]{1,2,3,}.Length}\"", "$\"{new int[] { 1, 2, 3, }.Length}\"");
+            TestNormalizeExpression("$\"{new int[]{1,2,3,}[0]}\"", "$\"{new int[] { 1, 2, 3, }[0]}\"");
+
+            TestNormalizeExpression("$\"{new List<int>(){}}\"", "$\"{new List<int>() { }}\"");
+            TestNormalizeExpression("$\"{new List<int>(){1,2,3}}\"", "$\"{new List<int>() { 1, 2, 3 }}\"");
+            TestNormalizeExpression("$\"{new List<int>(){1,2,3,}}\"", "$\"{new List<int>() { 1, 2, 3, }}\"");
+            TestNormalizeExpression("$\"{new List<int>(){1,2,3,}.Count}\"", "$\"{new List<int>() { 1, 2, 3, }.Count}\"");
+            TestNormalizeExpression("$\"{new List<int>(){1,2,3,}[0]}\"", "$\"{new List<int>() { 1, 2, 3, }[0]}\"");
+
+            TestNormalizeExpression("$\"{new SomeClass[]{}}\"", "$\"{new SomeClass[] { }}\"");
+            TestNormalizeExpression("$\"{new SomeClass[]{new SomeClass(),new SomeClass(),new SomeClass()}}\"", "$\"{new SomeClass[] { new SomeClass(), new SomeClass(), new SomeClass() }}\"");
+            TestNormalizeExpression("$\"{new SomeClass[]{new SomeClass(),new SomeClass(),new SomeClass(),}}\"", "$\"{new SomeClass[] { new SomeClass(), new SomeClass(), new SomeClass(), }}\"");
+            TestNormalizeExpression("$\"{new SomeClass[]{new SomeClass(),new SomeClass(),new SomeClass(),}.Length}\"", "$\"{new SomeClass[] { new SomeClass(), new SomeClass(), new SomeClass(), }.Length}\"");
+            TestNormalizeExpression("$\"{new SomeClass[]{new SomeClass(),new SomeClass(),new SomeClass(),}[0]}\"", "$\"{new SomeClass[] { new SomeClass(), new SomeClass(), new SomeClass(), }[0]}\"");
+
+            TestNormalizeExpression("$\"{new List<SomeClass>(){}}\"", "$\"{new List<SomeClass>() { }}\"");
+            TestNormalizeExpression("$\"{new List<SomeClass>(){new SomeClass(),new SomeClass(),new SomeClass()}}\"", "$\"{new List<SomeClass>() { new SomeClass(), new SomeClass(), new SomeClass() }}\"");
+            TestNormalizeExpression("$\"{new List<SomeClass>(){new SomeClass(),new SomeClass(),new SomeClass(),}}\"", "$\"{new List<SomeClass>() { new SomeClass(), new SomeClass(), new SomeClass(), }}\"");
+            TestNormalizeExpression("$\"{new List<SomeClass>(){new SomeClass(),new SomeClass(),new SomeClass(),}.Length}\"", "$\"{new List<SomeClass>() { new SomeClass(), new SomeClass(), new SomeClass(), }.Length}\"");
+            TestNormalizeExpression("$\"{new List<SomeClass>(){new SomeClass(),new SomeClass(),new SomeClass(),}[0]}\"", "$\"{new List<SomeClass>() { new SomeClass(), new SomeClass(), new SomeClass(), }[0]}\"");
+
+            TestNormalizeExpression("$\"{new int[]{2+2,2+2*2,arr2[0]}}\"", "$\"{new int[] { 2 + 2, 2 + 2 * 2, arr2[0] }}\"");
+            TestNormalizeExpression("$\"{new List<int>(){2+2,2+2*2,arr2[0]}}\"", "$\"{new List<int>() { 2 + 2, 2 + 2 * 2, arr2[0] }}\"");
+        }
+
+        [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
+        public void TestNormalizeIndexerInitializer()
+        {
+            TestNormalizeExpression("new Dictionary<int,int>(){}", "new Dictionary<int, int>()\r\n{\r\n}");
+            TestNormalizeExpression("new Dictionary<int,int>(){[0]=1,[1]=2,[2]=3}", "new Dictionary<int, int>()\r\n{\r\n  [0] = 1,\r\n  [1] = 2,\r\n  [2] = 3\r\n}");
+            TestNormalizeExpression("new Dictionary<int,int>(){[0]=1,[1]=2,[2]=3,}", "new Dictionary<int, int>()\r\n{\r\n  [0] = 1,\r\n  [1] = 2,\r\n  [2] = 3,\r\n}");
+            TestNormalizeExpression("new Dictionary<int,int>(){[0]=1,[1]=2,[2]=3,}.Count", "new Dictionary<int, int>()\r\n{\r\n  [0] = 1,\r\n  [1] = 2,\r\n  [2] = 3,\r\n}.Count");
+            TestNormalizeExpression("new Dictionary<int,int>(){[0]=1,[1]=2,[2]=3,}[0]", "new Dictionary<int, int>()\r\n{\r\n  [0] = 1,\r\n  [1] = 2,\r\n  [2] = 3,\r\n}[0]");
+
+            TestNormalizeExpression("new Dictionary<string,string>(){[\"test0\"]=\"test1\",[\"test1\"]=\"test2\",[\"test2\"]=\"test3\"}", "new Dictionary<string, string>()\r\n{\r\n  [\"test0\"] = \"test1\",\r\n  [\"test1\"] = \"test2\",\r\n  [\"test2\"] = \"test3\"\r\n}");
+            TestNormalizeExpression("new Dictionary<string,string>(){[\"test0\"]=\"test1\",[\"test1\"]=\"test2\",[\"test2\"]=\"test3\",}", "new Dictionary<string, string>()\r\n{\r\n  [\"test0\"] = \"test1\",\r\n  [\"test1\"] = \"test2\",\r\n  [\"test2\"] = \"test3\",\r\n}");
+            TestNormalizeExpression("new Dictionary<string,string>(){[\"test0\"]=\"test1\",[\"test1\"]=\"test2\",[\"test2\"]=\"test3\",}.Count", "new Dictionary<string, string>()\r\n{\r\n  [\"test0\"] = \"test1\",\r\n  [\"test1\"] = \"test2\",\r\n  [\"test2\"] = \"test3\",\r\n}.Count");
+            TestNormalizeExpression("new Dictionary<string,string>(){[\"test0\"]=\"test1\",[\"test1\"]=\"test2\",[\"test2\"]=\"test3\",}[0]", "new Dictionary<string, string>()\r\n{\r\n  [\"test0\"] = \"test1\",\r\n  [\"test1\"] = \"test2\",\r\n  [\"test2\"] = \"test3\",\r\n}[0]");
+
+            TestNormalizeExpression("new Dictionary<SomeClass,SomeOtherClass>(){[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass()}", "new Dictionary<SomeClass, SomeOtherClass>()\r\n{\r\n  [new SomeClass()] = new SomeOtherClass(),\r\n  [new SomeClass()] = new SomeOtherClass(),\r\n  [new SomeClass()] = new SomeOtherClass()\r\n}");
+            TestNormalizeExpression("new Dictionary<SomeClass,SomeOtherClass>(){[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),}", "new Dictionary<SomeClass, SomeOtherClass>()\r\n{\r\n  [new SomeClass()] = new SomeOtherClass(),\r\n  [new SomeClass()] = new SomeOtherClass(),\r\n  [new SomeClass()] = new SomeOtherClass(),\r\n}");
+            TestNormalizeExpression("new Dictionary<SomeClass,SomeOtherClass>(){[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),}.Count", "new Dictionary<SomeClass, SomeOtherClass>()\r\n{\r\n  [new SomeClass()] = new SomeOtherClass(),\r\n  [new SomeClass()] = new SomeOtherClass(),\r\n  [new SomeClass()] = new SomeOtherClass(),\r\n}.Count");
+            TestNormalizeExpression("new Dictionary<SomeClass,SomeOtherClass>(){[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),}[0]", "new Dictionary<SomeClass, SomeOtherClass>()\r\n{\r\n  [new SomeClass()] = new SomeOtherClass(),\r\n  [new SomeClass()] = new SomeOtherClass(),\r\n  [new SomeClass()] = new SomeOtherClass(),\r\n}[0]");
+
+            TestNormalizeExpression("new Dictionary<int,int>(){[2+2*2]=2+2*2,[2+2*2]=2+2*2,[arr[0]]=arr[0]}", "new Dictionary<int, int>()\r\n{\r\n  [2 + 2 * 2] = 2 + 2 * 2,\r\n  [2 + 2 * 2] = 2 + 2 * 2,\r\n  [arr[0]] = arr[0]\r\n}");
+            TestNormalizeExpression("new Dictionary<int,int>(){{0,1},{1,2},{2,3}}", "new Dictionary<int, int>()\r\n{\r\n  {\r\n    0,\r\n    1\r\n  },\r\n  {\r\n    1,\r\n    2\r\n  },\r\n  {\r\n    2,\r\n    3\r\n  }\r\n}");
+        }
+
+        [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
+        public void TestNormalizeIndexerInitializer_Interpolation()
+        {
+            TestNormalizeExpression("$\"{new Dictionary<int,int>(){}}\"", "$\"{new Dictionary<int, int>() { }}\"");
+            TestNormalizeExpression("$\"{new Dictionary<int,int>(){[0]=1,[1]=2,[2]=3}}\"", "$\"{new Dictionary<int, int>() { [0] = 1, [1] = 2, [2] = 3 }}\"");
+            TestNormalizeExpression("$\"{new Dictionary<int,int>(){[0]=1,[1]=2,[2]=3,}}\"", "$\"{new Dictionary<int, int>() { [0] = 1, [1] = 2, [2] = 3, }}\"");
+            TestNormalizeExpression("$\"{new Dictionary<int,int>(){[0]=1,[1]=2,[2]=3,}.Count}\"", "$\"{new Dictionary<int, int>() { [0] = 1, [1] = 2, [2] = 3, }.Count}\"");
+            TestNormalizeExpression("$\"{new Dictionary<int,int>(){[0]=1,[1]=2,[2]=3,}[0]}\"", "$\"{new Dictionary<int, int>() { [0] = 1, [1] = 2, [2] = 3, }[0]}\"");
+
+            TestNormalizeExpression("$\"{new Dictionary<SomeClass,SomeOtherClass>(){[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass()}}\"", "$\"{new Dictionary<SomeClass, SomeOtherClass>() { [new SomeClass()] = new SomeOtherClass(), [new SomeClass()] = new SomeOtherClass(), [new SomeClass()] = new SomeOtherClass() }}\"");
+            TestNormalizeExpression("$\"{new Dictionary<SomeClass,SomeOtherClass>(){[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),}}\"", "$\"{new Dictionary<SomeClass, SomeOtherClass>() { [new SomeClass()] = new SomeOtherClass(), [new SomeClass()] = new SomeOtherClass(), [new SomeClass()] = new SomeOtherClass(), }}\"");
+            TestNormalizeExpression("$\"{new Dictionary<SomeClass,SomeOtherClass>(){[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),}.Count}\"", "$\"{new Dictionary<SomeClass, SomeOtherClass>() { [new SomeClass()] = new SomeOtherClass(), [new SomeClass()] = new SomeOtherClass(), [new SomeClass()] = new SomeOtherClass(), }.Count}\"");
+            TestNormalizeExpression("$\"{new Dictionary<SomeClass,SomeOtherClass>(){[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),}[0]}\"", "$\"{new Dictionary<SomeClass, SomeOtherClass>() { [new SomeClass()] = new SomeOtherClass(), [new SomeClass()] = new SomeOtherClass(), [new SomeClass()] = new SomeOtherClass(), }[0]}\"");
+
+            TestNormalizeExpression("$\"{new Dictionary<int,int>(){[2+2*2]=2+2*2,[2+2*2]=2+2*2,[arr[0]]=arr[0]}}\"", "$\"{new Dictionary<int, int>() { [2 + 2 * 2] = 2 + 2 * 2, [2 + 2 * 2] = 2 + 2 * 2, [arr[0]] = arr[0] }}\"");
+            TestNormalizeExpression("$\"{new Dictionary<int,int>(){{0,1},{1,2},{2,3}}}\"", "$\"{new Dictionary<int, int>() { { 0, 1 }, { 1, 2 }, { 2, 3 } }}\"");
+        }
+
+        [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
+        public void TestNormalizeWithInitializer()
+        {
+            TestNormalizeExpression("obj with{}", "obj with\r\n{\r\n}");
+            TestNormalizeExpression("obj with{A=1,B=2}", "obj with\r\n{\r\n  A = 1,\r\n  B = 2\r\n}");
+            TestNormalizeExpression("obj with{A=1,B=2,}", "obj with\r\n{\r\n  A = 1,\r\n  B = 2,\r\n}");
+            TestNormalizeExpression("obj with{A=1,B=2,C=obj2 with{}}", "obj with\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = obj2 with\r\n  {\r\n  }\r\n}");
+            TestNormalizeExpression("obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f}}", "obj with\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = obj2 with\r\n  {\r\n    D = 5l,\r\n    E = 2.5f\r\n  }\r\n}");
+            TestNormalizeExpression("obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,}}", "obj with\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = obj2 with\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n  }\r\n}");
+            TestNormalizeExpression("obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,},}", "obj with\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = obj2 with\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n  },\r\n}");
+            TestNormalizeExpression("obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,F=obj3 with{}}}", "obj with\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = obj2 with\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n    F = obj3 with\r\n    {\r\n    }\r\n  }\r\n}");
+            TestNormalizeExpression("obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,F=obj3 with{G=7u,H=3.72m}}}", "obj with\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = obj2 with\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n    F = obj3 with\r\n    {\r\n      G = 7u,\r\n      H = 3.72m\r\n    }\r\n  }\r\n}");
+            TestNormalizeExpression("obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,F=obj3 with{G=7u,H=3.72m,}}}", "obj with\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = obj2 with\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n    F = obj3 with\r\n    {\r\n      G = 7u,\r\n      H = 3.72m,\r\n    }\r\n  }\r\n}");
+            TestNormalizeExpression("obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,F=obj3 with{G=7u,H=3.72m,},}}", "obj with\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = obj2 with\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n    F = obj3 with\r\n    {\r\n      G = 7u,\r\n      H = 3.72m,\r\n    },\r\n  }\r\n}");
+            TestNormalizeExpression("obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,F=obj3 with{G=7u,H=3.72m,},},}", "obj with\r\n{\r\n  A = 1,\r\n  B = 2,\r\n  C = obj2 with\r\n  {\r\n    D = 5l,\r\n    E = 2.5f,\r\n    F = obj3 with\r\n    {\r\n      G = 7u,\r\n      H = 3.72m,\r\n    },\r\n  },\r\n}");
+        }
+
+        [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
+        public void TestNormalizeWithInitializer_Interpolation()
+        {
+            TestNormalizeExpression("$\"{obj with{}}\"", "$\"{obj with { }}\"");
+            TestNormalizeExpression("$\"{obj with{A=1,B=2}}\"", "$\"{obj with { A = 1, B = 2 }}\"");
+            TestNormalizeExpression("$\"{obj with{A=1,B=2,}}\"", "$\"{obj with { A = 1, B = 2, }}\"");
+            TestNormalizeExpression("$\"{obj with{A=1,B=2,C=obj2 with{}}}\"", "$\"{obj with { A = 1, B = 2, C = obj2 with { } }}\"");
+            TestNormalizeExpression("$\"{obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f}}}\"", "$\"{obj with { A = 1, B = 2, C = obj2 with { D = 5l, E = 2.5f } }}\"");
+            TestNormalizeExpression("$\"{obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,}}}\"", "$\"{obj with { A = 1, B = 2, C = obj2 with { D = 5l, E = 2.5f, } }}\"");
+            TestNormalizeExpression("$\"{obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,},}}\"", "$\"{obj with { A = 1, B = 2, C = obj2 with { D = 5l, E = 2.5f, }, }}\"");
+            TestNormalizeExpression("$\"{obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,F=obj3 with{}}}}\"", "$\"{obj with { A = 1, B = 2, C = obj2 with { D = 5l, E = 2.5f, F = obj3 with { } } }}\"");
+            TestNormalizeExpression("$\"{obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,F=obj3 with{G=7u,H=3.72m}}}}\"", "$\"{obj with { A = 1, B = 2, C = obj2 with { D = 5l, E = 2.5f, F = obj3 with { G = 7u, H = 3.72m } } }}\"");
+            TestNormalizeExpression("$\"{obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,F=obj3 with{G=7u,H=3.72m,}}}}\"", "$\"{obj with { A = 1, B = 2, C = obj2 with { D = 5l, E = 2.5f, F = obj3 with { G = 7u, H = 3.72m, } } }}\"");
+            TestNormalizeExpression("$\"{obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,F=obj3 with{G=7u,H=3.72m,},}}}\"", "$\"{obj with { A = 1, B = 2, C = obj2 with { D = 5l, E = 2.5f, F = obj3 with { G = 7u, H = 3.72m, }, } }}\"");
+            TestNormalizeExpression("$\"{obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,F=obj3 with{G=7u,H=3.72m,},},}}\"", "$\"{obj with { A = 1, B = 2, C = obj2 with { D = 5l, E = 2.5f, F = obj3 with { G = 7u, H = 3.72m, }, }, }}\"");
+        }
+
+        [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
+        public void TestNormalizeMixedInitializer()
+        {
+            TestNormalizeExpression("new SomeClass{A=1,[1]=2,[2,'c']=\"test\"}", "new SomeClass\r\n{\r\n  A = 1,\r\n  [1] = 2,\r\n  [2, 'c'] = \"test\"\r\n}");
+            TestNormalizeExpression("new SomeClass{A=1,[1]=2,[2,'c']=\"test\",}", "new SomeClass\r\n{\r\n  A = 1,\r\n  [1] = 2,\r\n  [2, 'c'] = \"test\",\r\n}");
+        }
+
+        [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
+        public void TestNormalizeMixedInitializer_Interpolation()
+        {
+            TestNormalizeExpression("$\"{new SomeClass{A=1,[1]=2,[2,'c']=3.5f}}\"", "$\"{new SomeClass { A = 1, [1] = 2, [2, 'c'] = 3.5f }}\"");
+            TestNormalizeExpression("$\"{new SomeClass{A=1,[1]=2,[2,'c']=3.5f,}}\"", "$\"{new SomeClass { A = 1, [1] = 2, [2, 'c'] = 3.5f, }}\"");
         }
     }
 }
