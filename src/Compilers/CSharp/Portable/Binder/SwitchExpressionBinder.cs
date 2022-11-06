@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             inputExpression ??= BindSwitchGoverningExpression(BindingDiagnosticBag.Discarded);
             Debug.Assert(inputExpression.Type is not null);
-            return (inputExpression.Type, GetValEscape(inputExpression, LocalScopeDepth));
+            return (inputExpression.Type, Binder.CallingMethodScope);
         }
 
         private BoundExpression BindSwitchGoverningExpression(BindingDiagnosticBag diagnostics)

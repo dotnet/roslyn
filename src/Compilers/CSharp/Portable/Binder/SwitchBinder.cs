@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected TypeSymbol SwitchGoverningType => SwitchGoverningExpression.Type;
 
-        protected uint SwitchGoverningValEscape => GetValEscape(SwitchGoverningExpression, LocalScopeDepth);
+        protected uint SwitchGoverningValEscape => Binder.CallingMethodScope; // PROTOTYPE: Remove property.
 
         protected BindingDiagnosticBag SwitchGoverningDiagnostics
         {

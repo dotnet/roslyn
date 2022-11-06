@@ -15612,10 +15612,14 @@ class Program
                 """;
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            // PROTOTYPE: Is ErrorCode.ERR_AmbigCall for // 2 correct?
             comp.VerifyDiagnostics(
                 // (13,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M2(D1)' and 'C.M2(D2)'
                 //         M2(r => r); // 1
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("C.M2(D1)", "C.M2(D2)").WithLocation(13, 9),
+                // (14,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M2(D1)' and 'C.M2(D2)'
+                //         M2((scoped R r) => r); // 2
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("C.M2(D1)", "C.M2(D2)").WithLocation(14, 9),
                 // (14,28): error CS8352: Cannot use variable 'scoped R' in this context because it may expose referenced variables outside of their declaration scope
                 //         M2((scoped R r) => r); // 2
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("scoped R").WithLocation(14, 28),
@@ -15893,6 +15897,7 @@ class C
                 """;
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeDebugExe);
+            // PROTOTYPE: Is ErrorCode.ERR_AmbigCall for // 8 correct?
             comp.VerifyDiagnostics(
                 // (10,17): error CS8986: The 'scoped' modifier of parameter 'r1' doesn't match target 'D1'.
                 //         D1 d1 = r1 => r1; // 1
@@ -15915,6 +15920,9 @@ class C
                 // (18,36): error CS8352: Cannot use variable 'scoped R' in this context because it may expose referenced variables outside of their declaration scope
                 //         D1 d1_3 = (scoped R r8) => r8; // 7
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "r8").WithArguments("scoped R").WithLocation(18, 36),
+                // (19,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M(D1)' and 'Program.M(D2)'
+                //         M((scoped R r9) => r9); // 8
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(D1)", "Program.M(D2)").WithLocation(19, 9),
                 // (19,28): error CS8352: Cannot use variable 'scoped R' in this context because it may expose referenced variables outside of their declaration scope
                 //         M((scoped R r9) => r9); // 8
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "r9").WithArguments("scoped R").WithLocation(19, 28)

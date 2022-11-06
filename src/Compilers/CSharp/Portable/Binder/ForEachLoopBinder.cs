@@ -255,7 +255,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasNameConflicts = false;
             BoundForEachDeconstructStep deconstructStep = null;
             BoundExpression iterationErrorExpression = null;
-            uint collectionEscape = GetValEscape(collectionExpr, this.LocalScopeDepth);
             switch (_syntax.Kind())
             {
                 case SyntaxKind.ForEachStatement:
@@ -298,7 +297,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         SourceLocalSymbol local = this.IterationVariable;
                         local.SetTypeWithAnnotations(declType);
-                        local.SetValEscape(collectionEscape);
 
                         if (local.Scope == DeclarationScope.ValueScoped && !declType.Type.IsErrorTypeOrRefLikeType())
                         {
@@ -307,11 +305,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (local.RefKind != RefKind.None)
                         {
-                            // The ref-escape of a ref-returning property is decided
-                            // by the value escape of its receiver, in this case the
-                            // collection
-                            local.SetRefEscape(collectionEscape);
-
                             if (CheckRefLocalInAsyncOrIteratorMethod(local.IdentifierToken, diagnostics))
                             {
                                 hasErrors = true;
@@ -355,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var variables = node.Variable;
                         if (variables.IsDeconstructionLeft())
                         {
-                            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, variableSymbol: null, collectionEscape, iterationVariableType.Type).MakeCompilerGenerated();
+                            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, variableSymbol: null, valEscape: 0, iterationVariableType.Type).MakeCompilerGenerated();
                             DeclarationExpressionSyntax declaration = null;
                             ExpressionSyntax expression = null;
                             BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(

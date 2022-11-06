@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private InterpolationHandlerResult RewriteToInterpolatedStringHandlerPattern(InterpolatedStringHandlerData data, ImmutableArray<BoundExpression> parts, SyntaxNode syntax)
         {
             Debug.Assert(parts.All(static p => p is BoundCall or BoundDynamicInvocation));
-            var builderTempSymbol = _factory.InterpolatedStringHandlerLocal(data.BuilderType, data.ScopeOfContainingExpression, syntax);
+            var builderTempSymbol = _factory.InterpolatedStringHandlerLocal(data.BuilderType, syntax);
             BoundLocal builderTemp = _factory.Local(builderTempSymbol);
 
             // var handler = new HandlerType(baseStringLength, numFormatHoles, ...InterpolatedStringHandlerArgumentAttribute parameters, <optional> out bool appendShouldProceed);

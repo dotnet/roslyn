@@ -118,7 +118,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                         BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(diagnostics.DiagnosticBag is object);
-            uint rightEscape = GetValEscape(boundRHS, this.LocalScopeDepth);
 
             if ((object?)boundRHS.Type == null || boundRHS.Type.IsErrorType())
             {
@@ -144,7 +143,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     boundRHS.Type,
                                     node,
                                     boundRHS.Syntax,
-                                    rightEscape,
                                     diagnostics,
                                     checkedVariables,
                                     out conversion);
@@ -245,7 +243,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         TypeSymbol type,
                         SyntaxNode syntax,
                         SyntaxNode rightSyntax,
-                        uint rightValEscape,
                         BindingDiagnosticBag diagnostics,
                         ArrayBuilder<DeconstructionVariable> variables,
                         out Conversion conversion)
@@ -276,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                var inputPlaceholder = new BoundDeconstructValuePlaceholder(syntax, variableSymbol: null, rightValEscape, type);
+                var inputPlaceholder = new BoundDeconstructValuePlaceholder(syntax, variableSymbol: null, valEscape: 0, type);
                 BoundExpression deconstructInvocation = MakeDeconstructInvocationExpression(variables.Count,
                     inputPlaceholder, rightSyntax, diagnostics, outPlaceholders: out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders, out _, variables);
 
@@ -305,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var elementSyntax = syntax.Kind() == SyntaxKind.TupleExpression ? ((TupleExpressionSyntax)syntax).Arguments[i] : syntax;
 
-                    hasErrors |= !MakeDeconstructionConversion(tupleOrDeconstructedTypes[i], elementSyntax, rightSyntax, rightValEscape, diagnostics,
+                    hasErrors |= !MakeDeconstructionConversion(tupleOrDeconstructedTypes[i], elementSyntax, rightSyntax, diagnostics,
                         variable.NestedVariables, out nestedConversion);
 
                     Debug.Assert(nestedConversion.Kind == ConversionKind.Deconstruction);
@@ -406,15 +403,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(variable.Single is object);
                     switch (variable.Single.Kind)
                     {
-                        case BoundKind.Local:
-                            var local = (BoundLocal)variable.Single;
-                            if (local.DeclarationKind != BoundLocalDeclarationKind.None &&
-                                local.LocalSymbol is SourceLocalSymbol localSymbol &&
-                                (localSymbol.ShouldInferValEscapeScope || localSymbol.ValEscapeScope == CallingMethodScope)) // PROTOTYPE: What are the cases where ValEscapeScope == CallingMethodScope?
-                            {
-                                localSymbol.SetValEscape(Binder.InferredScope);
-                            }
-                            break;
                         case BoundKind.DeconstructionVariablePendingInference:
                             BoundExpression errorLocal = ((DeconstructionVariablePendingInference)variable.Single).FailInference(this, diagnostics);
                             variables[i] = new DeconstructionVariable(errorLocal, errorLocal.Syntax);
@@ -648,19 +636,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0; i < numCheckedVariables; i++)
                 {
                     var variableOpt = variablesOpt?[i].Single;
-                    uint valEscape = variableOpt switch
-                    {
-                        null => LocalScopeDepth,
-                        BoundLocal { LocalSymbol: SourceLocalSymbol { ShouldInferValEscapeScope: true } } => Binder.InferredScope,
-                        _ => GetValEscape(variableOpt, LocalScopeDepth),
-                    };
                     var variableSymbol = variableOpt switch
                     {
                         DeconstructionVariablePendingInference { VariableSymbol: var symbol } => symbol,
                         BoundLocal { DeclarationKind: BoundLocalDeclarationKind.WithExplicitType or BoundLocalDeclarationKind.WithInferredType, LocalSymbol: var symbol } => symbol,
                         _ => null,
                     };
-                    var variable = new OutDeconstructVarPendingInference(receiverSyntax, variableSymbol: variableSymbol, valEscape);
+                    var variable = new OutDeconstructVarPendingInference(receiverSyntax, variableSymbol: variableSymbol, valEscape: 0);
                     analyzedArguments.Arguments.Add(variable);
                     analyzedArguments.RefKinds.Add(RefKind.Out);
                     outVars.Add(variable);

@@ -868,7 +868,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return statement;
             }
 
-            return new BoundBlock(statement.Syntax, locals, localFunctions, LocalScopeDepth,
+            return new BoundBlock(statement.Syntax, locals, localFunctions, inUnsafeRegion: InUnsafeRegion,
                                   ImmutableArray.Create(statement))
             { WasCompilerGenerated = true };
         }

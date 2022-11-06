@@ -18,6 +18,9 @@
  is indicated via a "ValueType" declaration.
 -->
 
+<!-- PROTOTYPE: Remove LocalScopeDepth fields from all BoundNodes. -->
+<!-- PROTOTYPE: Remove ValEscape fields from all BoundNodes. -->
+
 <Tree Root="BoundNode">
 
   <!-- Don't put ImmutableArray here, that's handled in a special way internally.-->
@@ -977,7 +980,7 @@
   <Node Name="BoundBlock" Base="BoundStatementList">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="LocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;"/>
-    <Field Name="LocalScopeDepth" Type="uint"/>
+    <Field Name="InUnsafeRegion" Type="bool?"/>
   </Node>
 
   <!--
@@ -1159,7 +1162,6 @@
   </AbstractNode>
 
   <AbstractNode Name="BoundConditionalLoopStatement" Base="BoundLoopStatement">
-    <!-- PROTOTYPE: Review types that have ImmutableArray<LocalSymbol> fields but no LocalScopeDepth field. All of these should be broken. -->
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Condition" Type="BoundExpression"/>
     <Field Name="Body" Type="BoundStatement"/>
@@ -1182,7 +1184,6 @@
     <Field Name="Condition" Type="BoundExpression?"/>
     <Field Name="Increment" Type="BoundStatement?"/>
     <Field Name="Body" Type="BoundStatement"/>
-    <Field Name="LocalScopeDepth" Type="uint"/>
   </Node>
 
   <Node Name="BoundForEachStatement" Base="BoundLoopStatement">
@@ -1227,14 +1228,12 @@
     <Field Name="Body" Type="BoundStatement"/>
     <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
     <Field Name="PatternDisposeInfoOpt" Type="MethodArgumentInfo?"/>
-    <Field Name="LocalScopeDepth" Type="uint"/>
   </Node>
 
   <Node Name="BoundFixedStatement" Base="BoundStatement">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Declarations" Type="BoundMultipleLocalDeclarations"/>
     <Field Name="Body" Type="BoundStatement"/>
-    <Field Name="LocalScopeDepth" Type="uint"/>
   </Node>
 
   <Node Name="BoundLockStatement" Base="BoundStatement">
@@ -1604,7 +1603,6 @@
   <Node Name="BoundSwitchSection" Base="BoundStatementList">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="SwitchLabels" Type="ImmutableArray&lt;BoundSwitchLabel&gt;"/>
-    <Field Name="LocalScopeDepth" Type="uint"/>
   </Node>
 
   <Node Name="BoundSwitchLabel" Base="BoundNode">
@@ -2221,7 +2219,7 @@
     <!-- The index in the containing member of the argument this is the placeholder for. Should be a positive number or
          one of the constants in the other part of the partial class. -->
     <Field Name="ArgumentIndex" Type="int" />
-    <Field Name="ValSafeToEscape" Type="uint" />
+    <Field Name="ValSafeToEscape" Type="uint" /> <!-- PROTOTYPE: Remove field. -->
   </Node>
 
   <Node Name="BoundStringInsert" Base="BoundExpression">
@@ -2390,7 +2388,7 @@
 
   <!-- The node is transformed into BoundLocal or BoundFieldAccess after inference -->
   <Node Name="DeconstructionVariablePendingInference" Base="VariablePendingInference" />
-
+  
   <!-- The node is transformed into BoundDeconstructValuePlaceholder after inference -->
   <Node Name="OutDeconstructVarPendingInference" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->

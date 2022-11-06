@@ -1148,7 +1148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // TODO: we may not need to update if there was nothing to rewrite.
-            return node.Update(newLocals.ToImmutableAndFree(), node.LocalFunctions, node.LocalScopeDepth, newStatements.ToImmutableAndFree());
+            return node.Update(newLocals.ToImmutableAndFree(), node.LocalFunctions, node.InUnsafeRegion, newStatements.ToImmutableAndFree());
         }
 
         public override BoundNode VisitScope(BoundScope node)

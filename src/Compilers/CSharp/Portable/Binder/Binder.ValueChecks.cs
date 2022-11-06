@@ -175,37 +175,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal const uint CallingMethodScope = 0;
         internal const uint ReturnOnlyScope = 1;
         internal const uint CurrentMethodScope = 2;
-        internal const uint InferredScope = uint.MaxValue;
 
         // Some value kinds are semantically the same and the only distinction is how errors are reported
         // for those purposes we reserve lowest 2 bits
         private const int ValueKindInsignificantBits = 2;
         private const BindValueKind ValueKindSignificantBitsMask = unchecked((BindValueKind)~((1 << ValueKindInsignificantBits) - 1));
-
-        // PROTOTYPE: Remove this method!
-        internal uint GetRefEscape(BoundExpression expr, uint scopeOfTheContainingExpression)
-        {
-            var diagnostics = BindingDiagnosticBag.GetInstance();
-            var result = RefSafetyAnalysis.GetRefEscapeOnly(Compilation, ContainingMemberOrLambda, expr, scopeOfTheContainingExpression, diagnostics);
-            diagnostics.Free();
-            return result;
-        }
-
-        // PROTOTYPE: Remove this method!
-        internal uint GetValEscape(BoundExpression expr, uint scopeOfTheContainingExpression)
-        {
-            var diagnostics = BindingDiagnosticBag.GetInstance();
-            var result = RefSafetyAnalysis.GetValEscapeOnly(Compilation, ContainingMemberOrLambda, expr, scopeOfTheContainingExpression, diagnostics);
-            diagnostics.Free();
-            return result;
-        }
-
-        // PROTOTYPE: Remove this method!
-        internal BoundExpression ValidateEscape(BoundExpression expr, uint escapeTo, bool isByRef, BindingDiagnosticBag diagnostics)
-        {
-            RefSafetyAnalysis.ValidateEscapeOnly(Compilation, ContainingMemberOrLambda, expr, escapeTo, isByRef, diagnostics);
-            return expr;
-        }
 
         /// <summary>
         /// Expression capabilities and requirements.
@@ -877,6 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    // PROTOTYPE: Add #nullable enable to each of the partial class RefSafetyAnalysis declarations.
     internal partial class RefSafetyAnalysis
     {
         private bool CheckLocalRefEscape(SyntaxNode node, BoundLocal local, uint escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
@@ -885,7 +860,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // if local symbol can escape to the same or wider/shallower scope then escapeTo
             // then it is all ok, otherwise it is an error.
-            if (localSymbol.RefEscapeScope <= escapeTo)
+            if (GetLocalScopes(localSymbol).RefEscapeScope <= escapeTo)
             {
                 return true;
             }
@@ -1965,7 +1940,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _ => throw ExceptionUtilities.UnexpectedValue(symbol)
                 };
 
-                if (receiver is not BoundValuePlaceholderBase && method is not null && receiver.Type!.IsValueType)
+                if (receiver is not BoundValuePlaceholderBase && method is not null && receiver.Type?.IsValueType == true)
                 {
                     var receiverAddressKind = method.IsEffectivelyReadOnly ? Binder.AddressKind.ReadOnly : Binder.AddressKind.Writeable;
 
@@ -2264,7 +2239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return method?.UseUpdatedEscapeRules == true;
         }
 
-        private static bool ShouldInferDeclarationExpressionValEscape(BoundExpression argument, [NotNullWhen(true)] out SourceLocalSymbol? localSymbol)
+        private bool ShouldInferDeclarationExpressionValEscape(BoundExpression argument, [NotNullWhen(true)] out SourceLocalSymbol? localSymbol)
         {
             var symbol = argument switch
             {
@@ -2273,7 +2248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ => null
             };
             if (symbol is SourceLocalSymbol local &&
-                (local.ShouldInferValEscapeScope || local.ValEscapeScope == Binder.CallingMethodScope)) // PROTOTYPE: What are the cases where ValEscapeScope == CallingMethodScope?
+                GetLocalScopes(local).ValEscapeScope == Binder.CallingMethodScope)
             {
                 localSymbol = local;
                 return true;
@@ -2381,7 +2356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (ShouldInferDeclarationExpressionValEscape(argument, out var localSymbol))
                     {
-                        localSymbol.SetValEscape(inferredDestinationValEscape);
+                        SetLocalScopes(localSymbol, refEscapeScope: _localScopeDepth, valEscapeScope: inferredDestinationValEscape);
                     }
                 }
 
@@ -2476,7 +2451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (ShouldInferDeclarationExpressionValEscape(fromArg, out var localSymbol))
                     {
-                        localSymbol.SetValEscape(inferredDestinationValEscape);
+                        SetLocalScopes(localSymbol, refEscapeScope: _localScopeDepth, valEscapeScope: inferredDestinationValEscape);
                     }
                 }
             }
@@ -2836,7 +2811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetParameterRefEscape(((BoundParameter)expr).ParameterSymbol);
 
                 case BoundKind.Local:
-                    return ((BoundLocal)expr).LocalSymbol.RefEscapeScope;
+                    return GetLocalScopes(((BoundLocal)expr).LocalSymbol).RefEscapeScope;
 
                 case BoundKind.CapturedReceiverPlaceholder:
                     // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
@@ -3401,10 +3376,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((BoundDiscardExpression)expr).ValEscape;
 
                 case BoundKind.DeconstructValuePlaceholder:
-                    return ((BoundDeconstructValuePlaceholder)expr).ValEscape;
+                    return GetPlaceholder((BoundDeconstructValuePlaceholder)expr);
 
                 case BoundKind.Local:
-                    return ((BoundLocal)expr).LocalSymbol.ValEscapeScope;
+                    return GetLocalScopes(((BoundLocal)expr).LocalSymbol).ValEscapeScope;
 
                 case BoundKind.CapturedReceiverPlaceholder:
                     // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
@@ -3817,7 +3792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 case BoundKind.DeconstructValuePlaceholder:
-                    if (((BoundDeconstructValuePlaceholder)expr).ValEscape > escapeTo)
+                    if (GetPlaceholder((BoundDeconstructValuePlaceholder)expr) > escapeTo)
                     {
                         Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
                         return inUnsafeRegion;
@@ -3842,7 +3817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Local:
                     var localSymbol = ((BoundLocal)expr).LocalSymbol;
-                    if (localSymbol.ValEscapeScope > escapeTo)
+                    if (GetLocalScopes(localSymbol).ValEscapeScope > escapeTo)
                     {
                         Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, localSymbol);
                         return inUnsafeRegion;

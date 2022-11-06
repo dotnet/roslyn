@@ -104,12 +104,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (increment.Kind == BoundKind.StatementList)
                     {
-                        increment = new BoundBlock(scopeDesignator, locals, ((BoundStatementList)increment).Statements, localScopeDepth: LocalScopeDepth)
+                        increment = new BoundBlock(scopeDesignator, locals, ((BoundStatementList)increment).Statements)
                         { WasCompilerGenerated = true };
                     }
                     else
                     {
-                        increment = new BoundBlock(increment.Syntax, locals, ImmutableArray.Create(increment), localScopeDepth: LocalScopeDepth)
+                        increment = new BoundBlock(increment.Syntax, locals, ImmutableArray.Create(increment))
                         { WasCompilerGenerated = true };
                     }
                 }
@@ -125,7 +125,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                          condition,
                                          increment,
                                          body,
-                                         LocalScopeDepth,
                                          this.BreakLabel,
                                          this.ContinueLabel);
         }

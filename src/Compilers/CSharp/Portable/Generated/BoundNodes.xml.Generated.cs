@@ -3043,7 +3043,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundBlock : BoundStatementList
     {
-        public BoundBlock(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, uint localScopeDepth, ImmutableArray<BoundStatement> statements, bool hasErrors = false)
+        public BoundBlock(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, bool? inUnsafeRegion, ImmutableArray<BoundStatement> statements, bool hasErrors = false)
             : base(BoundKind.Block, syntax, statements, hasErrors || statements.HasErrors())
         {
 
@@ -3053,21 +3053,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.Locals = locals;
             this.LocalFunctions = localFunctions;
-            this.LocalScopeDepth = localScopeDepth;
+            this.InUnsafeRegion = inUnsafeRegion;
         }
 
         public ImmutableArray<LocalSymbol> Locals { get; }
         public ImmutableArray<LocalFunctionSymbol> LocalFunctions { get; }
-        public uint LocalScopeDepth { get; }
+        public bool? InUnsafeRegion { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitBlock(this);
 
-        public BoundBlock Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, uint localScopeDepth, ImmutableArray<BoundStatement> statements)
+        public BoundBlock Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, bool? inUnsafeRegion, ImmutableArray<BoundStatement> statements)
         {
-            if (locals != this.Locals || localFunctions != this.LocalFunctions || localScopeDepth != this.LocalScopeDepth || statements != this.Statements)
+            if (locals != this.Locals || localFunctions != this.LocalFunctions || inUnsafeRegion.Equals(this.InUnsafeRegion) || statements != this.Statements)
             {
-                var result = new BoundBlock(this.Syntax, locals, localFunctions, localScopeDepth, statements, this.HasErrors);
+                var result = new BoundBlock(this.Syntax, locals, localFunctions, inUnsafeRegion, statements, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -3729,7 +3729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundForStatement : BoundLoopStatement
     {
-        public BoundForStatement(SyntaxNode syntax, ImmutableArray<LocalSymbol> outerLocals, BoundStatement? initializer, ImmutableArray<LocalSymbol> innerLocals, BoundExpression? condition, BoundStatement? increment, BoundStatement body, uint localScopeDepth, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel, bool hasErrors = false)
+        public BoundForStatement(SyntaxNode syntax, ImmutableArray<LocalSymbol> outerLocals, BoundStatement? initializer, ImmutableArray<LocalSymbol> innerLocals, BoundExpression? condition, BoundStatement? increment, BoundStatement body, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel, bool hasErrors = false)
             : base(BoundKind.ForStatement, syntax, breakLabel, continueLabel, hasErrors || initializer.HasErrors() || condition.HasErrors() || increment.HasErrors() || body.HasErrors())
         {
 
@@ -3745,7 +3745,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Condition = condition;
             this.Increment = increment;
             this.Body = body;
-            this.LocalScopeDepth = localScopeDepth;
         }
 
         public ImmutableArray<LocalSymbol> OuterLocals { get; }
@@ -3754,16 +3753,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression? Condition { get; }
         public BoundStatement? Increment { get; }
         public BoundStatement Body { get; }
-        public uint LocalScopeDepth { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitForStatement(this);
 
-        public BoundForStatement Update(ImmutableArray<LocalSymbol> outerLocals, BoundStatement? initializer, ImmutableArray<LocalSymbol> innerLocals, BoundExpression? condition, BoundStatement? increment, BoundStatement body, uint localScopeDepth, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel)
+        public BoundForStatement Update(ImmutableArray<LocalSymbol> outerLocals, BoundStatement? initializer, ImmutableArray<LocalSymbol> innerLocals, BoundExpression? condition, BoundStatement? increment, BoundStatement body, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel)
         {
-            if (outerLocals != this.OuterLocals || initializer != this.Initializer || innerLocals != this.InnerLocals || condition != this.Condition || increment != this.Increment || body != this.Body || localScopeDepth != this.LocalScopeDepth || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(breakLabel, this.BreakLabel) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(continueLabel, this.ContinueLabel))
+            if (outerLocals != this.OuterLocals || initializer != this.Initializer || innerLocals != this.InnerLocals || condition != this.Condition || increment != this.Increment || body != this.Body || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(breakLabel, this.BreakLabel) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(continueLabel, this.ContinueLabel))
             {
-                var result = new BoundForStatement(this.Syntax, outerLocals, initializer, innerLocals, condition, increment, body, localScopeDepth, breakLabel, continueLabel, this.HasErrors);
+                var result = new BoundForStatement(this.Syntax, outerLocals, initializer, innerLocals, condition, increment, body, breakLabel, continueLabel, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -3855,7 +3853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundUsingStatement : BoundStatement
     {
-        public BoundUsingStatement(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, BoundMultipleLocalDeclarations? declarationsOpt, BoundExpression? expressionOpt, BoundStatement body, BoundAwaitableInfo? awaitOpt, MethodArgumentInfo? patternDisposeInfoOpt, uint localScopeDepth, bool hasErrors = false)
+        public BoundUsingStatement(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, BoundMultipleLocalDeclarations? declarationsOpt, BoundExpression? expressionOpt, BoundStatement body, BoundAwaitableInfo? awaitOpt, MethodArgumentInfo? patternDisposeInfoOpt, bool hasErrors = false)
             : base(BoundKind.UsingStatement, syntax, hasErrors || declarationsOpt.HasErrors() || expressionOpt.HasErrors() || body.HasErrors() || awaitOpt.HasErrors())
         {
 
@@ -3868,7 +3866,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Body = body;
             this.AwaitOpt = awaitOpt;
             this.PatternDisposeInfoOpt = patternDisposeInfoOpt;
-            this.LocalScopeDepth = localScopeDepth;
         }
 
         public ImmutableArray<LocalSymbol> Locals { get; }
@@ -3877,16 +3874,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundStatement Body { get; }
         public BoundAwaitableInfo? AwaitOpt { get; }
         public MethodArgumentInfo? PatternDisposeInfoOpt { get; }
-        public uint LocalScopeDepth { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUsingStatement(this);
 
-        public BoundUsingStatement Update(ImmutableArray<LocalSymbol> locals, BoundMultipleLocalDeclarations? declarationsOpt, BoundExpression? expressionOpt, BoundStatement body, BoundAwaitableInfo? awaitOpt, MethodArgumentInfo? patternDisposeInfoOpt, uint localScopeDepth)
+        public BoundUsingStatement Update(ImmutableArray<LocalSymbol> locals, BoundMultipleLocalDeclarations? declarationsOpt, BoundExpression? expressionOpt, BoundStatement body, BoundAwaitableInfo? awaitOpt, MethodArgumentInfo? patternDisposeInfoOpt)
         {
-            if (locals != this.Locals || declarationsOpt != this.DeclarationsOpt || expressionOpt != this.ExpressionOpt || body != this.Body || awaitOpt != this.AwaitOpt || patternDisposeInfoOpt != this.PatternDisposeInfoOpt || localScopeDepth != this.LocalScopeDepth)
+            if (locals != this.Locals || declarationsOpt != this.DeclarationsOpt || expressionOpt != this.ExpressionOpt || body != this.Body || awaitOpt != this.AwaitOpt || patternDisposeInfoOpt != this.PatternDisposeInfoOpt)
             {
-                var result = new BoundUsingStatement(this.Syntax, locals, declarationsOpt, expressionOpt, body, awaitOpt, patternDisposeInfoOpt, localScopeDepth, this.HasErrors);
+                var result = new BoundUsingStatement(this.Syntax, locals, declarationsOpt, expressionOpt, body, awaitOpt, patternDisposeInfoOpt, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -3896,7 +3892,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundFixedStatement : BoundStatement
     {
-        public BoundFixedStatement(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, BoundMultipleLocalDeclarations declarations, BoundStatement body, uint localScopeDepth, bool hasErrors = false)
+        public BoundFixedStatement(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, BoundMultipleLocalDeclarations declarations, BoundStatement body, bool hasErrors = false)
             : base(BoundKind.FixedStatement, syntax, hasErrors || declarations.HasErrors() || body.HasErrors())
         {
 
@@ -3907,22 +3903,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Locals = locals;
             this.Declarations = declarations;
             this.Body = body;
-            this.LocalScopeDepth = localScopeDepth;
         }
 
         public ImmutableArray<LocalSymbol> Locals { get; }
         public BoundMultipleLocalDeclarations Declarations { get; }
         public BoundStatement Body { get; }
-        public uint LocalScopeDepth { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitFixedStatement(this);
 
-        public BoundFixedStatement Update(ImmutableArray<LocalSymbol> locals, BoundMultipleLocalDeclarations declarations, BoundStatement body, uint localScopeDepth)
+        public BoundFixedStatement Update(ImmutableArray<LocalSymbol> locals, BoundMultipleLocalDeclarations declarations, BoundStatement body)
         {
-            if (locals != this.Locals || declarations != this.Declarations || body != this.Body || localScopeDepth != this.LocalScopeDepth)
+            if (locals != this.Locals || declarations != this.Declarations || body != this.Body)
             {
-                var result = new BoundFixedStatement(this.Syntax, locals, declarations, body, localScopeDepth, this.HasErrors);
+                var result = new BoundFixedStatement(this.Syntax, locals, declarations, body, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -5399,7 +5393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundSwitchSection : BoundStatementList
     {
-        public BoundSwitchSection(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundSwitchLabel> switchLabels, uint localScopeDepth, ImmutableArray<BoundStatement> statements, bool hasErrors = false)
+        public BoundSwitchSection(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundSwitchLabel> switchLabels, ImmutableArray<BoundStatement> statements, bool hasErrors = false)
             : base(BoundKind.SwitchSection, syntax, statements, hasErrors || switchLabels.HasErrors() || statements.HasErrors())
         {
 
@@ -5409,21 +5403,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.Locals = locals;
             this.SwitchLabels = switchLabels;
-            this.LocalScopeDepth = localScopeDepth;
         }
 
         public ImmutableArray<LocalSymbol> Locals { get; }
         public ImmutableArray<BoundSwitchLabel> SwitchLabels { get; }
-        public uint LocalScopeDepth { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitSwitchSection(this);
 
-        public BoundSwitchSection Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundSwitchLabel> switchLabels, uint localScopeDepth, ImmutableArray<BoundStatement> statements)
+        public BoundSwitchSection Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundSwitchLabel> switchLabels, ImmutableArray<BoundStatement> statements)
         {
-            if (locals != this.Locals || switchLabels != this.SwitchLabels || localScopeDepth != this.LocalScopeDepth || statements != this.Statements)
+            if (locals != this.Locals || switchLabels != this.SwitchLabels || statements != this.Statements)
             {
-                var result = new BoundSwitchSection(this.Syntax, locals, switchLabels, localScopeDepth, statements, this.HasErrors);
+                var result = new BoundSwitchSection(this.Syntax, locals, switchLabels, statements, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10696,7 +10688,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitBlock(BoundBlock node)
         {
             ImmutableArray<BoundStatement> statements = this.VisitList(node.Statements);
-            return node.Update(node.Locals, node.LocalFunctions, node.LocalScopeDepth, statements);
+            return node.Update(node.Locals, node.LocalFunctions, node.InUnsafeRegion, statements);
         }
         public override BoundNode? VisitScope(BoundScope node)
         {
@@ -10794,7 +10786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? condition = (BoundExpression?)this.Visit(node.Condition);
             BoundStatement? increment = (BoundStatement?)this.Visit(node.Increment);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
-            return node.Update(node.OuterLocals, initializer, node.InnerLocals, condition, increment, body, node.LocalScopeDepth, node.BreakLabel, node.ContinueLabel);
+            return node.Update(node.OuterLocals, initializer, node.InnerLocals, condition, increment, body, node.BreakLabel, node.ContinueLabel);
         }
         public override BoundNode? VisitForEachStatement(BoundForEachStatement node)
         {
@@ -10820,13 +10812,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? expressionOpt = (BoundExpression?)this.Visit(node.ExpressionOpt);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
             BoundAwaitableInfo? awaitOpt = (BoundAwaitableInfo?)this.Visit(node.AwaitOpt);
-            return node.Update(node.Locals, declarationsOpt, expressionOpt, body, awaitOpt, node.PatternDisposeInfoOpt, node.LocalScopeDepth);
+            return node.Update(node.Locals, declarationsOpt, expressionOpt, body, awaitOpt, node.PatternDisposeInfoOpt);
         }
         public override BoundNode? VisitFixedStatement(BoundFixedStatement node)
         {
             BoundMultipleLocalDeclarations declarations = (BoundMultipleLocalDeclarations)this.Visit(node.Declarations);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
-            return node.Update(node.Locals, declarations, body, node.LocalScopeDepth);
+            return node.Update(node.Locals, declarations, body);
         }
         public override BoundNode? VisitLockStatement(BoundLockStatement node)
         {
@@ -11066,7 +11058,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<BoundSwitchLabel> switchLabels = this.VisitList(node.SwitchLabels);
             ImmutableArray<BoundStatement> statements = this.VisitList(node.Statements);
-            return node.Update(node.Locals, switchLabels, node.LocalScopeDepth, statements);
+            return node.Update(node.Locals, switchLabels, statements);
         }
         public override BoundNode? VisitSwitchLabel(BoundSwitchLabel node)
         {
@@ -12637,7 +12629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<LocalSymbol> locals = GetUpdatedArray(node, node.Locals);
             ImmutableArray<LocalFunctionSymbol> localFunctions = GetUpdatedArray(node, node.LocalFunctions);
             ImmutableArray<BoundStatement> statements = this.VisitList(node.Statements);
-            return node.Update(locals, localFunctions, node.LocalScopeDepth, statements);
+            return node.Update(locals, localFunctions, node.InUnsafeRegion, statements);
         }
 
         public override BoundNode? VisitScope(BoundScope node)
@@ -12706,7 +12698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? condition = (BoundExpression?)this.Visit(node.Condition);
             BoundStatement? increment = (BoundStatement?)this.Visit(node.Increment);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
-            return node.Update(outerLocals, initializer, innerLocals, condition, increment, body, node.LocalScopeDepth, node.BreakLabel, node.ContinueLabel);
+            return node.Update(outerLocals, initializer, innerLocals, condition, increment, body, node.BreakLabel, node.ContinueLabel);
         }
 
         public override BoundNode? VisitForEachStatement(BoundForEachStatement node)
@@ -12730,7 +12722,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? expressionOpt = (BoundExpression?)this.Visit(node.ExpressionOpt);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
             BoundAwaitableInfo? awaitOpt = (BoundAwaitableInfo?)this.Visit(node.AwaitOpt);
-            return node.Update(locals, declarationsOpt, expressionOpt, body, awaitOpt, node.PatternDisposeInfoOpt, node.LocalScopeDepth);
+            return node.Update(locals, declarationsOpt, expressionOpt, body, awaitOpt, node.PatternDisposeInfoOpt);
         }
 
         public override BoundNode? VisitFixedStatement(BoundFixedStatement node)
@@ -12738,7 +12730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<LocalSymbol> locals = GetUpdatedArray(node, node.Locals);
             BoundMultipleLocalDeclarations declarations = (BoundMultipleLocalDeclarations)this.Visit(node.Declarations);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
-            return node.Update(locals, declarations, body, node.LocalScopeDepth);
+            return node.Update(locals, declarations, body);
         }
 
         public override BoundNode? VisitCatchBlock(BoundCatchBlock node)
@@ -13008,7 +13000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<LocalSymbol> locals = GetUpdatedArray(node, node.Locals);
             ImmutableArray<BoundSwitchLabel> switchLabels = this.VisitList(node.SwitchLabels);
             ImmutableArray<BoundStatement> statements = this.VisitList(node.Statements);
-            return node.Update(locals, switchLabels, node.LocalScopeDepth, statements);
+            return node.Update(locals, switchLabels, statements);
         }
 
         public override BoundNode? VisitSequencePointExpression(BoundSequencePointExpression node)
@@ -14868,7 +14860,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("locals", node.Locals, null),
             new TreeDumperNode("localFunctions", node.LocalFunctions, null),
-            new TreeDumperNode("localScopeDepth", node.LocalScopeDepth, null),
+            new TreeDumperNode("inUnsafeRegion", node.InUnsafeRegion, null),
             new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null)),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
@@ -15021,7 +15013,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("condition", null, new TreeDumperNode[] { Visit(node.Condition, null) }),
             new TreeDumperNode("increment", null, new TreeDumperNode[] { Visit(node.Increment, null) }),
             new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
-            new TreeDumperNode("localScopeDepth", node.LocalScopeDepth, null),
             new TreeDumperNode("breakLabel", node.BreakLabel, null),
             new TreeDumperNode("continueLabel", node.ContinueLabel, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
@@ -15059,7 +15050,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
             new TreeDumperNode("awaitOpt", null, new TreeDumperNode[] { Visit(node.AwaitOpt, null) }),
             new TreeDumperNode("patternDisposeInfoOpt", node.PatternDisposeInfoOpt, null),
-            new TreeDumperNode("localScopeDepth", node.LocalScopeDepth, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
@@ -15068,7 +15058,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("locals", node.Locals, null),
             new TreeDumperNode("declarations", null, new TreeDumperNode[] { Visit(node.Declarations, null) }),
             new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
-            new TreeDumperNode("localScopeDepth", node.LocalScopeDepth, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
@@ -15413,7 +15402,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("locals", node.Locals, null),
             new TreeDumperNode("switchLabels", null, from x in node.SwitchLabels select Visit(x, null)),
-            new TreeDumperNode("localScopeDepth", node.LocalScopeDepth, null),
             new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null)),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }

@@ -210,8 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundFixedStatement(node,
                                            GetDeclaredLocalsForScope(node),
                                            boundMultipleDeclarations,
-                                           boundBody,
-                                           LocalScopeDepth);
+                                           boundBody);
         }
 
         private void CheckRequiredLangVersionForAsyncIteratorMethods(BindingDiagnosticBag diagnostics)
@@ -242,7 +241,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!argument.HasAnyErrors)
             {
                 argument = GenerateConversionForAssignment(elementType, argument, diagnostics);
-                argument = ValidateEscape(argument, ReturnOnlyScope, isByRef: false, diagnostics: diagnostics);
             }
             else
             {
@@ -1097,34 +1095,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             localSymbol.SetTypeWithAnnotations(declTypeOpt);
 
-            if (initializerOpt != null)
-            {
-                if (UseUpdatedEscapeRules && localSymbol.Scope != DeclarationScope.Unscoped)
-                {
-                    // If the local has a scoped modifier, then the lifetime is not inferred from
-                    // the initializer. Validate the escape values for the initializer instead.
-
-                    Debug.Assert(localSymbol.RefKind == RefKind.None ||
-                        localSymbol.RefEscapeScope >= GetRefEscape(initializerOpt, LocalScopeDepth));
-
-                    if (declTypeOpt.Type.IsRefLikeType)
-                    {
-                        initializerOpt = ValidateEscape(initializerOpt, localSymbol.ValEscapeScope, isByRef: false, diagnostics);
-                    }
-                }
-                else
-                {
-                    var currentScope = LocalScopeDepth;
-
-                    localSymbol.SetValEscape(GetValEscape(initializerOpt, currentScope));
-
-                    if (localSymbol.RefKind != RefKind.None)
-                    {
-                        localSymbol.SetRefEscape(GetRefEscape(initializerOpt, currentScope));
-                    }
-                }
-            }
-
             ImmutableArray<BoundExpression> arguments = BindDeclaratorArguments(declarator, localDiagnostics);
 
             if (kind == LocalDeclarationKind.FixedVariable || kind == LocalDeclarationKind.UsingVariable)
@@ -1869,7 +1839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// I.E. outside of any method will be 0
         ///      immediately inside a method - 1
         /// </summary>
-        internal virtual uint LocalScopeDepth => Next.LocalScopeDepth;
+        internal virtual uint LocalScopeDepth => Next.LocalScopeDepth; // PROTOTYPE: Remove this property.
 
         internal virtual BoundBlock BindEmbeddedBlock(BlockSyntax node, BindingDiagnosticBag diagnostics)
         {
@@ -1926,7 +1896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node,
                 locals,
                 GetDeclaredLocalFunctionsForScope(node),
-                LocalScopeDepth,
+                inUnsafeRegion: InUnsafeRegion,
                 boundStatements);
         }
 
@@ -3436,7 +3406,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         expression = CreateReturnConversion(syntax, diagnostics, expression, refKind, returnType);
-                        expression = ValidateEscape(expression, Binder.ReturnOnlyScope, isByRef: refKind != RefKind.None, diagnostics);
                     }
                     statement = new BoundReturnStatement(syntax, returnRefKind, expression, @checked: CheckOverflowAtRuntime) { WasCompilerGenerated = true };
                 }
@@ -3458,7 +3427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Need to attach the tree for when we generate sequence points.
-            return new BoundBlock(node, locals, LocalScopeDepth, ImmutableArray.Create(statement)) { WasCompilerGenerated = node.Kind() != SyntaxKind.ArrowExpressionClause };
+            return new BoundBlock(node, locals, ImmutableArray.Create(statement)) { WasCompilerGenerated = node.Kind() != SyntaxKind.ArrowExpressionClause };
         }
 
         private static bool IsValidExpressionBody(SyntaxNode expressionSyntax, BoundExpression expression)

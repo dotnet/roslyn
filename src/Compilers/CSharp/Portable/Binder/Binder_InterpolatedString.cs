@@ -663,7 +663,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 interpolatedStringHandlerType,
                                 constructorCall,
                                 usesBoolReturn,
-                                LocalScopeDepth,
                                 additionalConstructorArguments.NullToEmpty(),
                                 positionInfo,
                                 implicitBuilderReceiver);
@@ -1007,27 +1006,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 SyntaxNode placeholderSyntax;
-                uint valSafeToEscapeScope;
                 bool isSuppressed;
 
                 switch (argumentIndex)
                 {
                     case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
                         Debug.Assert(receiver != null);
-                        valSafeToEscapeScope = requiresInstanceReceiver
-                            ? receiver.GetRefKind().IsWritableReference() == true ? GetRefEscape(receiver, LocalScopeDepth) : GetValEscape(receiver, LocalScopeDepth)
-                            : Binder.CallingMethodScope;
                         isSuppressed = receiver.IsSuppressed;
                         placeholderSyntax = receiver.Syntax;
                         break;
                     case BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter:
                         placeholderSyntax = unconvertedString.Syntax;
-                        valSafeToEscapeScope = Binder.CallingMethodScope;
                         isSuppressed = false;
                         break;
                     case >= 0:
                         placeholderSyntax = arguments[argumentIndex].Syntax;
-                        valSafeToEscapeScope = GetValEscape(arguments[argumentIndex], LocalScopeDepth);
                         isSuppressed = arguments[argumentIndex].IsSuppressed;
                         break;
                     default:
@@ -1038,7 +1031,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (BoundInterpolatedStringArgumentPlaceholder)(new BoundInterpolatedStringArgumentPlaceholder(
                         placeholderSyntax,
                         argumentIndex,
-                        valSafeToEscapeScope,
+                        valSafeToEscape: Binder.CallingMethodScope,
                         placeholderType,
                         hasErrors: argumentIndex == BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter)
                     { WasCompilerGenerated = true }.WithSuppression(isSuppressed)));

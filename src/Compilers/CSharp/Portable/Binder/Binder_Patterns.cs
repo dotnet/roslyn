@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(expression.Type is { });
-            uint inputValEscape = GetValEscape(expression, LocalScopeDepth);
-            BoundPattern pattern = BindPattern(node.Pattern, expression.Type, inputValEscape, permitDesignations: true, hasErrors, diagnostics, underIsPattern: true);
+            BoundPattern pattern = BindPattern(node.Pattern, expression.Type, inputValEscape: Binder.CallingMethodScope, permitDesignations: true, hasErrors, diagnostics, underIsPattern: true);
             hasErrors |= pattern.HasErrors;
             return MakeIsPatternExpression(
                 node, expression, pattern, GetSpecialType(SpecialType.System_Boolean, diagnostics, node),
@@ -159,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundPattern BindPattern(
             PatternSyntax node,
             TypeSymbol inputType,
-            uint inputValEscape,
+            uint inputValEscape, // PROTOTYPE: Remove parameter.
             bool permitDesignations,
             bool hasErrors,
             BindingDiagnosticBag diagnostics,
@@ -869,7 +868,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             CheckFeatureAvailability(designation, MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers, diagnostics);
 
                         localSymbol.SetTypeWithAnnotations(declType);
-                        localSymbol.SetValEscape(GetValEscape(declType.Type, inputValEscape));
 
                         // Check for variable declaration errors.
                         hasErrors |= localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);

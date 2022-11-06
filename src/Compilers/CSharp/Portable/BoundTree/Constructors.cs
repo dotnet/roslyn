@@ -595,18 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundBlock
     {
-        public BoundBlock(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> statements, uint localScopeDepth)
-            : this(syntax, locals, ImmutableArray<LocalFunctionSymbol>.Empty, localScopeDepth, statements, hasErrors: false)
-        {
-        }
-
-        public BoundBlock(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> statements, bool hasErrors = false)
-            : this(syntax, locals, ImmutableArray<LocalFunctionSymbol>.Empty, /*PROTOTYPE:*/localScopeDepth: 0, statements, hasErrors)
-        {
-        }
-
-        public BoundBlock(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, uint localScopeDepth, ImmutableArray<BoundStatement> statements, bool hasErrors = false)
-            : this(syntax, locals, ImmutableArray<LocalFunctionSymbol>.Empty, localScopeDepth, statements, hasErrors)
+        public BoundBlock(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> statements, bool hasErrors = false) : this(syntax, locals, ImmutableArray<LocalFunctionSymbol>.Empty, inUnsafeRegion: null, statements, hasErrors)
         {
         }
 
