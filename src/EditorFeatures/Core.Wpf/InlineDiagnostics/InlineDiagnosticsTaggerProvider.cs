@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         private readonly IClassificationTypeRegistryService _classificationTypeRegistryService;
 
         protected sealed override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(InlineDiagnosticsOptions.EnableInlineDiagnostics);
+        protected override TaggerDelay EventChangeDelay => TaggerDelay.OnIdle;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
