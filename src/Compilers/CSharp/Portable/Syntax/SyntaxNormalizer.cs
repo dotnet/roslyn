@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 accessorList.Accessors.All(a => a.Body == null);
 
         private static bool IsAccessorListFollowedByInitializer([NotNullWhen(true)] SyntaxNode? node)
-            => node is AccessorListSyntax  { Parent: PropertyDeclarationSyntax { Initializer: not null } };
+            => node is AccessorListSyntax { Parent: PropertyDeclarationSyntax { Initializer: not null } };
 
         private static int LineBreaksBeforeOpenBrace(SyntaxToken openBraceToken)
         {
