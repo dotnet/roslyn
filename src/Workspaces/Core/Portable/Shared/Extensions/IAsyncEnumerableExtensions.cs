@@ -95,6 +95,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 channel, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
         }
 
+        /// <summary>
         /// Tasks an array of value producing tasks and produces a stream of results out of them.  Like <see
         /// cref="MergeAsync{T}"/> absolutely no ordering guarantee is provided.  It will be expected that the
         /// individual values from distinct tasks will be interleaved together.
