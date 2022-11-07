@@ -2799,7 +2799,7 @@ parse_member_name:;
             }
 
             // `{` or `=>` definitely start a property.  Also allow
-            // `; {` and `; =>` as error recovery fo ra misplaced semicolon.
+            // `; {` and `; =>` as error recovery for a misplaced semicolon.
             if (IsStartOfPropertyBody(this.CurrentToken.Kind) ||
                 (this.CurrentToken.Kind is SyntaxKind.SemicolonToken && IsStartOfPropertyBody(this.PeekToken(1).Kind)))
             {
