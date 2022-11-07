@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -56,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public virtual void Free()
             {
+                Debug.Assert(StateKind != StateKind.InProcess);
                 this.StateKind = StateKind.ReadyToProcess;
                 this.ProcessedActions.Clear();
             }

@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            private void MarkEntityProcessed<TAnalysisEntity, TAnalyzerStateData>(
+            private bool TryMarkEntityProcessed<TAnalysisEntity, TAnalyzerStateData>(
                 TAnalysisEntity analysisEntity,
                 Dictionary<TAnalysisEntity, TAnalyzerStateData?> pendingEntities,
                 ObjectPool<TAnalyzerStateData> pool)
@@ -144,11 +144,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 lock (_gate)
                 {
-                    MarkEntityProcessed_NoLock(analysisEntity, pendingEntities, pool);
+                    return TryMarkEntityProcessed_NoLock(analysisEntity, pendingEntities, pool);
                 }
             }
 
-            private static bool MarkEntityProcessed_NoLock<TAnalysisEntity, TAnalyzerStateData>(
+            private static bool TryMarkEntityProcessed_NoLock<TAnalysisEntity, TAnalyzerStateData>(
                 TAnalysisEntity analysisEntity,
                 Dictionary<TAnalysisEntity, TAnalyzerStateData?> pendingEntities,
                 ObjectPool<TAnalyzerStateData> pool)
@@ -157,6 +157,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (pendingEntities.TryGetValue(analysisEntity, out var state))
                 {
+                    if (state != null && state.StateKind == StateKind.InProcess)
+                    {
+                        // Still being processed.
+                        return false;
+                    }
+
                     pendingEntities.Remove(analysisEntity);
                     FreeState_NoLock(state, pool);
                     return true;
@@ -194,11 +200,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return true;
             }
 
-            private void MarkSyntaxAnalysisComplete_NoLock(SourceOrAdditionalFile file)
+            private bool TryMarkSyntaxAnalysisComplete_NoLock(SourceOrAdditionalFile file)
             {
                 if (_pendingSyntaxAnalysisFilesCount == 0)
                 {
-                    return;
+                    // Already processed.
+                    return true;
                 }
 
                 Debug.Assert(_lazyFilesWithAnalysisData != null);
@@ -206,6 +213,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var wasAlreadyFullyProcessed = false;
                 if (_lazyFilesWithAnalysisData.TryGetValue(file, out var state))
                 {
+                    if (state.StateKind == StateKind.InProcess)
+                    {
+                        // Still being processed.
+                        return false;
+                    }
+
                     if (state.StateKind != StateKind.FullyProcessed)
                     {
                         FreeState_NoLock(state, _analyzerStateDataPool);
@@ -222,6 +235,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 _lazyFilesWithAnalysisData[file] = AnalyzerStateData.FullyProcessedInstance;
+                return true;
             }
 
             private Dictionary<int, DeclarationAnalyzerStateData> EnsureDeclarationDataMap_NoLock(ISymbol symbol, Dictionary<int, DeclarationAnalyzerStateData>? declarationDataMap)
@@ -269,21 +283,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return true;
             }
 
-            private void MarkDeclarationProcessed_NoLock(ISymbol symbol, int declarationIndex)
+            private bool TryMarkDeclarationProcessed_NoLock(ISymbol symbol, int declarationIndex)
             {
                 if (!_pendingDeclarations.TryGetValue(symbol, out var declarationDataMap))
                 {
-                    return;
+                    // All declarations for the symbol have already been processed.
+                    return true;
                 }
 
                 declarationDataMap = EnsureDeclarationDataMap_NoLock(symbol, declarationDataMap);
 
                 if (declarationDataMap.TryGetValue(declarationIndex, out var state))
                 {
+                    if (state.StateKind == StateKind.InProcess)
+                    {
+                        // Still being processed.
+                        return false;
+                    }
+
                     FreeDeclarationAnalyzerState_NoLock(state);
                 }
 
                 declarationDataMap[declarationIndex] = DeclarationAnalyzerStateData.FullyProcessedInstance;
+                return true;
             }
 
             private void MarkDeclarationsProcessed_NoLock(ISymbol symbol)
@@ -319,24 +341,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (state != null && !ReferenceEquals(state, AnalyzerStateData.FullyProcessedInstance))
                 {
-                    // Do not free state if it is still being processed for analysis, i.e. StateKind is 'InProcess'.
-                    // This can happen in rare cases when multiple threads are trying to analyze the same
-                    // symbol/syntax/operation, such that one thread has finished all the analyzer callbacks,
-                    // but before this thread marks the state as complete and invokes this FreeState call,
-                    // second thread starts processing the same symbol/syntax/operation and sets the StateKind to
-                    // 'InProcess' for the same state object. If we free the state here in the first thread,
-                    // then this can lead to data corruption/exceptions in the second thread.
-                    // For example, see https://github.com/dotnet/roslyn/issues/59988.
-                    //
-                    // CONSIDER: Note that our current approach of not freeing the state for StateKind.InProcess
-                    // leads to a leak, as we will never return this state object to the pool. However, this should
-                    // happen in extremely rare cases as described above, so it should be fine. In future, if we do
-                    // see negative performance impact from this leak, we can do a more complex state tracking and
-                    // ensure that we free this state object and return it to the pool once the StateKind is reset
-                    // to StateKind.ReadyToProcess state.
-                    if (state.StateKind == StateKind.InProcess)
-                        return;
-
                     state.Free();
                     pool.Free(state);
                 }
@@ -393,9 +397,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return TryStartProcessingEntity(compilationEvent, _pendingEvents, _analyzerStateDataPool, out state);
             }
 
-            public void MarkEventComplete(CompilationEvent compilationEvent)
+            public bool TryMarkEventComplete(CompilationEvent compilationEvent)
             {
-                MarkEntityProcessed(compilationEvent, _pendingEvents, _analyzerStateDataPool);
+                return TryMarkEntityProcessed(compilationEvent, _pendingEvents, _analyzerStateDataPool);
             }
 
             public bool TryStartAnalyzingSymbol(ISymbol symbol, [NotNullWhen(returnValue: true)] out AnalyzerStateData? state)
@@ -409,17 +413,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return TryStartProcessingEntity(symbol, _lazyPendingSymbolEndAnalyses, _analyzerStateDataPool, out state);
             }
 
-            public void MarkSymbolComplete(ISymbol symbol)
+            public bool TryMarkSymbolComplete(ISymbol symbol)
             {
-                MarkEntityProcessed(symbol, _pendingSymbols, _analyzerStateDataPool);
+                return TryMarkEntityProcessed(symbol, _pendingSymbols, _analyzerStateDataPool);
             }
 
-            public void MarkSymbolEndAnalysisComplete(ISymbol symbol)
+            public bool TryMarkSymbolEndAnalysisComplete(ISymbol symbol)
             {
                 if (_lazyPendingSymbolEndAnalyses != null)
                 {
-                    MarkEntityProcessed(symbol, _lazyPendingSymbolEndAnalyses, _analyzerStateDataPool);
+                    return TryMarkEntityProcessed(symbol, _lazyPendingSymbolEndAnalyses, _analyzerStateDataPool);
                 }
+
+                return true;
             }
 
             public bool TryStartAnalyzingDeclaration(
@@ -441,11 +447,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            public void MarkDeclarationComplete(ISymbol symbol, int declarationIndex)
+            public bool TryMarkDeclarationComplete(ISymbol symbol, int declarationIndex)
             {
                 lock (_gate)
                 {
-                    MarkDeclarationProcessed_NoLock(symbol, declarationIndex);
+                    return TryMarkDeclarationProcessed_NoLock(symbol, declarationIndex);
                 }
             }
 
@@ -466,11 +472,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            public void MarkSyntaxAnalysisComplete(SourceOrAdditionalFile file)
+            public bool TryMarkSyntaxAnalysisComplete(SourceOrAdditionalFile file)
             {
                 lock (_gate)
                 {
-                    MarkSyntaxAnalysisComplete_NoLock(file);
+                    return TryMarkSyntaxAnalysisComplete_NoLock(file);
                 }
             }
 
@@ -579,7 +585,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 MarkDeclarationsProcessed_NoLock(symbolDeclaredEvent.Symbol);
 
                 // Mark the symbol event completely processed.
-                return MarkEntityProcessed_NoLock(symbolDeclaredEvent, _pendingEvents, _analyzerStateDataPool);
+                return TryMarkEntityProcessed_NoLock(symbolDeclaredEvent, _pendingEvents, _analyzerStateDataPool);
             }
         }
     }
