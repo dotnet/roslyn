@@ -404,7 +404,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (TryStartProcessingEvent(compilationEvent, analyzer, analysisScope, analysisState, out analyzerState))
                 {
                     ExecuteCompilationActionsCore(compilationActions, analyzer, analyzerState);
-                    analysisState?.MarkEventComplete(compilationEvent, analyzer);
+                    if (analysisState != null)
+                    {
+                        var completed = analysisState.TryMarkEventComplete(compilationEvent, analyzer);
+                        Debug.Assert(completed);
+                    }
+
                     return true;
                 }
 
@@ -474,7 +479,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (TryStartAnalyzingSymbol(symbol, analyzer, analysisScope, analysisState, out analyzerState))
                 {
                     ExecuteSymbolActionsCore(symbolActions, analyzer, symbolDeclaredEvent, getTopMostNodeForAnalysis, analyzerState, isGeneratedCodeSymbol);
-                    analysisState?.MarkSymbolComplete(symbol, analyzer);
+                    if (analysisState != null)
+                    {
+                        var completed = analysisState.TryMarkSymbolComplete(symbol, analyzer);
+                        Debug.Assert(completed);
+                    }
+
                     return true;
                 }
 
@@ -608,7 +618,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (TryStartSymbolEndAnalysis(symbol, analyzer, analysisState, out analyzerState))
                 {
                     ExecuteSymbolEndActionsCore(symbolEndActions, analyzer, symbolDeclaredEvent, getTopMostNodeForAnalysis, isGeneratedCode, analyzerState);
-                    MarkSymbolEndAnalysisComplete(symbol, analyzer, analysisState);
+                    var completed = TryMarkSymbolEndAnalysisComplete(symbol, analyzer, analysisState);
+                    Debug.Assert(completed);
                     return true;
                 }
 
@@ -626,10 +637,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public void MarkSymbolEndAnalysisComplete(ISymbol symbol, DiagnosticAnalyzer analyzer, AnalysisState? analysisState)
+        public bool TryMarkSymbolEndAnalysisComplete(ISymbol symbol, DiagnosticAnalyzer analyzer, AnalysisState? analysisState)
         {
-            analysisState?.MarkSymbolEndAnalysisComplete(symbol, analyzer);
+            if (analysisState != null &&
+                !analysisState.TryMarkSymbolEndAnalysisComplete(symbol, analyzer))
+            {
+                return false;
+            }
+
             _analyzerManager.MarkSymbolEndAnalysisComplete(symbol, analyzer);
+            return true;
         }
 
         private void ExecuteSymbolEndActionsCore(
@@ -703,7 +720,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (TryStartProcessingEvent(compilationUnitCompletedEvent, analyzer, analysisScope, analysisState, out analyzerState))
                 {
                     ExecuteSemanticModelActionsCore(semanticModelActions, analyzer, semanticModel, analyzerState, analysisScope, isGeneratedCode);
-                    analysisState?.MarkEventComplete(compilationUnitCompletedEvent, analyzer);
+                    if (analysisState != null)
+                    {
+                        var completed = analysisState.TryMarkEventComplete(compilationUnitCompletedEvent, analyzer);
+                        Debug.Assert(completed);
+                    }
+
                     return true;
                 }
 
@@ -785,7 +807,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (TryStartSyntaxAnalysis(file, analyzer, analysisScope, analysisState, out analyzerState))
                 {
                     ExecuteSyntaxTreeActionsCore(syntaxTreeActions, analyzer, file, analyzerState, isGeneratedCode);
-                    analysisState?.MarkSyntaxAnalysisComplete(file, analyzer);
+                    if (analysisState != null)
+                    {
+                        var completed = analysisState.TryMarkSyntaxAnalysisComplete(file, analyzer);
+                        Debug.Assert(completed);
+                    }
+
                     return true;
                 }
 
@@ -866,7 +893,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (TryStartSyntaxAnalysis(file, analyzer, analysisScope, analysisState, out analyzerState))
                 {
                     ExecuteAdditionalFileActionsCore(additionalFileActions, analyzer, file, analyzerState);
-                    analysisState?.MarkSyntaxAnalysisComplete(file, analyzer);
+                    if (analysisState != null)
+                    {
+                        var completed = analysisState.TryMarkSyntaxAnalysisComplete(file, analyzer);
+                        Debug.Assert(completed);
+                    }
+
                     return true;
                 }
 
