@@ -10,7 +10,6 @@ using System.Runtime.CompilerServices;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.ReferenceHighlighting;
 using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
@@ -88,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
         private void SetHighlightBrush(IEditorFormatMap editorMap)
         {
-            var properties = editorMap.GetProperties(ReferenceHighlightingConstants.ReferenceTagId);
+            var properties = editorMap.GetProperties(ReferenceHighlightTag.TagId);
             HighlightBrush = properties["Background"] as Brush;
         }
 

@@ -8,14 +8,13 @@ using System;
 using System.ComponentModel.Composition;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.ReferenceHighlighting;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
 {
     [Export(typeof(EditorFormatDefinition))]
-    [Name(ReferenceHighlightingConstants.WrittenReferenceTagId)]
+    [Name(WrittenReferenceHighlightTag.TagId)]
     [UserVisible(true)]
     internal class WrittenReferenceHighlightTagDefinition : MarkerFormatDefinition
     {

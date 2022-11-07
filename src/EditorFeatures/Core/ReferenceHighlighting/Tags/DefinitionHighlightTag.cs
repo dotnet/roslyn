@@ -9,10 +9,12 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
 {
     internal sealed class DefinitionHighlightTag : NavigableHighlightTag
     {
+        public const string TagId = ReferenceHighlightingConstants.DefinitionTagId;
+
         public static readonly DefinitionHighlightTag Instance = new();
 
         private DefinitionHighlightTag()
-            : base(ReferenceHighlightingConstants.DefinitionTagId)
+            : base(TagId)
         {
         }
     }

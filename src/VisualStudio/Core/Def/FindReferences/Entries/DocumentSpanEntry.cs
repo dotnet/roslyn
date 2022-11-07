@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.PlatformUI;
@@ -149,10 +148,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected override IList<System.Windows.Documents.Inline> CreateLineTextInlines()
             {
                 var propertyId = _spanKind == HighlightSpanKind.Definition
-                    ? ReferenceHighlightingConstants.DefinitionTagId
+                    ? DefinitionHighlightTag.TagId
                     : _spanKind == HighlightSpanKind.WrittenReference
-                        ? ReferenceHighlightingConstants.WrittenReferenceTagId
-                        : ReferenceHighlightingConstants.ReferenceTagId;
+                        ? WrittenReferenceHighlightTag.TagId
+                        : ReferenceHighlightTag.TagId;
 
                 var properties = Presenter.FormatMapService
                                           .GetEditorFormatMap("text")
