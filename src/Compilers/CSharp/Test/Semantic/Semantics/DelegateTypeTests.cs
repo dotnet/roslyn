@@ -14012,8 +14012,8 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
             var source = """
                 int MethodNoParams(int[] xs) => xs.Length;
                 int MethodWithParams(params int[] xs) => xs.Length;
-                var noParams = (params int[] xs) => xs.Length;
-                var withParams = (int[] xs) => xs.Length;
+                var noParams = (int[] xs) => xs.Length;
+                var withParams = (params int[] xs) => xs.Length;
                 noParams = MethodWithParams;
                 withParams = MethodWithParams;
                 noParams = MethodNoParams;
@@ -14055,8 +14055,8 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 int MethodWithParams(params int[] xs) => xs.Length;
                 var inferredNoParams = MethodNoParams;
                 var inferredWithParams = MethodWithParams;
-                var lambdaNoParams = (params int[] xs) => xs.Length;
-                var lambdaWithParams = (int[] xs) => xs.Length;
+                var lambdaNoParams = (int[] xs) => xs.Length;
+                var lambdaWithParams = (params int[] xs) => xs.Length;
                 var a1 = new[] { MethodNoParams, MethodWithParams }; // 1
                 var a2 = new[] { inferredNoParams, inferredWithParams }; // 2
                 var a3 = new[] { lambdaNoParams, lambdaWithParams }; // 3
