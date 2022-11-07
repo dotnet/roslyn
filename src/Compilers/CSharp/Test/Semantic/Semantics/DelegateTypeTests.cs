@@ -14160,6 +14160,47 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
         }
 
         [Fact]
+        public void DefaultsParamsConversion_ExplicitConversion()
+        {
+            var source = """
+                int MethodNoDefault(int x) => x;
+                int MethodWithDefault(int x = 2) => x;
+                var d1 = (DelegateNoDefault)MethodWithDefault;
+                var d2 = (DelegateWithDefault)MethodWithDefault;
+                var d3 = (DelegateWithDefault)MethodNoDefault;
+                var d4 = (DelegateNoDefault)((int x = 1) => x); // 1
+                var d5 = (DelegateWithDefault)((int x = 1) => x);
+                var d6 = (DelegateWithDefault)((int x = 2) => x); // 2
+                var d7 = (DelegateWithDefault)((int x) => x);
+                var d8 = (DelegateNoDefault)((int x) => x);
+                
+                int MethodNoParams(int[] xs) => xs.Length;
+                int MethodWithParams(params int[] xs) => xs.Length;
+                var p1 = (DelegateNoParams)MethodWithParams;
+                var p2 = (DelegateWithParams)MethodNoParams;
+                var p3 = (DelegateNoParams)((params int[] xs) => xs.Length); // 3
+                var p4 = (DelegateWithParams)((params int[] xs) => xs.Length);
+                var p5 = (DelegateWithParams)((int[] xs) => xs.Length);
+                var p6 = (DelegateNoParams)((int[] xs) => xs.Length);
+                
+                delegate int DelegateNoDefault(int x);
+                delegate int DelegateWithDefault(int x = 1);
+                delegate int DelegateNoParams(int[] xs);
+                delegate int DelegateWithParams(params int[] xs);
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,35): warning CS9501: Parameter 1 has default value '1' in lambda but '<missing>' in the target delegate type.
+                // var d4 = (DelegateNoDefault)((int x = 1) => x); // 1
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "x").WithArguments("1", "1", "<missing>").WithLocation(6, 35),
+                // (8,37): warning CS9501: Parameter 1 has default value '2' in lambda but '1' in the target delegate type.
+                // var d6 = (DelegateWithDefault)((int x = 2) => x); // 2
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "x").WithArguments("1", "2", "1").WithLocation(8, 37),
+                // (16,43): warning CS9502: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // var p3 = (DelegateNoParams)((params int[] xs) => xs.Length); // 3
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(16, 43));
+        }
+
+        [Fact]
         public void DefaultsParamsConversion_Invocation()
         {
             var source = """
