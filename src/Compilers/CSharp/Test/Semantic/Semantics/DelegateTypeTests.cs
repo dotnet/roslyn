@@ -14057,16 +14057,19 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 var inferredWithParams = MethodWithParams;
                 var lambdaNoParams = (params int[] xs) => xs.Length;
                 var lambdaWithParams = (int[] xs) => xs.Length;
-                var a1 = new[] { MethodNoParams, MethodNoParams };
-                var a2 = new[] { inferredNoParams, inferredWithParams }; // 1
-                var a3 = new[] { lambdaNoParams, lambdaWithParams }; // 2
+                var a1 = new[] { MethodNoParams, MethodWithParams }; // 1
+                var a2 = new[] { inferredNoParams, inferredWithParams }; // 2
+                var a3 = new[] { lambdaNoParams, lambdaWithParams }; // 3
                 """;
             CreateCompilation(source).VerifyDiagnostics(
+                // (7,10): error CS0826: No best type found for implicitly-typed array
+                // var a1 = new[] { MethodNoParams, MethodWithParams }; // 1
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { MethodNoParams, MethodWithParams }").WithLocation(7, 10),
                 // (8,10): error CS0826: No best type found for implicitly-typed array
-                // var a2 = new[] { inferredNoParams, inferredWithParams }; // 1
+                // var a2 = new[] { inferredNoParams, inferredWithParams }; // 2
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { inferredNoParams, inferredWithParams }").WithLocation(8, 10),
                 // (9,10): error CS0826: No best type found for implicitly-typed array
-                // var a3 = new[] { lambdaNoParams, lambdaWithParams }; // 2
+                // var a3 = new[] { lambdaNoParams, lambdaWithParams }; // 3
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { lambdaNoParams, lambdaWithParams }").WithLocation(9, 10));
         }
 
