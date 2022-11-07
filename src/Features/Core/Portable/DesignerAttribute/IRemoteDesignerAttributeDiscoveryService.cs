@@ -6,7 +6,9 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 
@@ -35,10 +37,33 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         {
         }
 
-        private new IDesignerAttributeDiscoveryService.ICallback GetCallback(RemoteServiceCallbackId callbackId)
-            => (IDesignerAttributeDiscoveryService.ICallback)base.GetCallback(callbackId);
+        private new DesignerAttributeDiscoveryCallback GetCallback(RemoteServiceCallbackId callbackId)
+            => (DesignerAttributeDiscoveryCallback)base.GetCallback(callbackId);
 
         public ValueTask ReportDesignerAttributeDataAsync(RemoteServiceCallbackId callbackId, ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
             => GetCallback(callbackId).ReportDesignerAttributeDataAsync(data, cancellationToken);
+    }
+
+    internal sealed class DesignerAttributeDiscoveryCallback
+    {
+        private readonly Channel<DesignerAttributeData> _channel;
+
+        public DesignerAttributeDiscoveryCallback(
+            Channel<DesignerAttributeData> channel)
+        {
+            _channel = channel;
+        }
+
+        public async ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
+        {
+            try
+            {
+                foreach (var item in data)
+                    await _channel.Writer.WriteAsync(item, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex))
+            {
+            }
+        }
     }
 }
