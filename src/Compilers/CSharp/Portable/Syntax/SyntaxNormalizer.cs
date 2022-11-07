@@ -229,14 +229,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.CloseParenToken:
                     if (currentToken.Parent is PositionalPatternClauseSyntax)
                     {
-                        //don't break inside a recursive pattern
+                        // don't break inside a recursive pattern
                         return 0;
                     }
 
                     if (nextToken.IsKind(SyntaxKind.OpenBraceToken) &&
                         IsInitializerOrAnonymousObjectCreationInsideInterpolationOrAttribute(nextToken.Parent))
                     {
-                        // don't break before an open brace of an initializer when inside interpolation
+                        // Don't break before an open brace of an initializer when inside interpolation or attribute.
+                        // Typically initializers inside interpolations/attributes are quite compact,
+                        // so it is better to produce a nicely formatted single-line initializer in such case
                         return 0;
                     }
 
@@ -811,11 +813,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return true;
             }
 
-            // Rules for single-line initializer syntax inside interpolation ar attribute:
+            // Rules for single-line initializer syntax inside interpolation or attribute:
             // 1. Separator before open brace token
             // 2. Separator after open brace token
             // 3. Separator before close brace token
             // e.g. `$"{new SomeClass() { A = 2 }}"` or [SomeAttribute(new int[] { 1, 2, 3 })]
+            // Typically initializers inside interpolations/attributes are quite compact,
+            // so it is better to produce a nicely formatted single-line initializer in such case.
             if (IsInsideInterpolation(next.Parent) || IsInsideAttribute(next.Parent))
             {
                 if (next.Parent is InitializerExpressionSyntax or AnonymousObjectCreationExpressionSyntax &&
