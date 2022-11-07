@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [ExportCSharpVisualBasicStatelessLspService(typeof(DocumentSymbolsHandler)), Shared]
     [Method(Methods.TextDocumentDocumentSymbolName)]
-    internal class DocumentSymbolsHandler : ILspServiceDocumentRequestHandler<RoslynDocumentSymbolParams, object[]>
+    internal sealed class DocumentSymbolsHandler : ILspServiceDocumentRequestHandler<RoslynDocumentSymbolParams, object[]>
     {
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 },
                 Kind = ProtocolConversions.GlyphToSymbolKind(item.Glyph),
                 ContainerName = containerName,
-                Icon = VSLspExtensionConversions.GetImageIdFromGlyph(item.Glyph),
+                Icon = WorkspaceSymbolsHandler.GetImageIdFromGlyph(document.Project, item.Glyph),
             };
         }
 
