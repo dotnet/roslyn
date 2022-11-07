@@ -2,55 +2,85 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed class RemoteDesignerAttributeDiscoveryService : BrokeredServiceBase, IRemoteDesignerAttributeDiscoveryService
     {
-        /// <summary>
-        /// Allow designer attribute computation to continue on on the server, even while the client is processing the
-        /// last batch of results.
-        /// </summary>
-        /// <remarks>
-        /// This value was not determined empirically.
-        /// </remarks>
-        private const int MaxReadAhead = 64;
+        //private sealed class CallbackWrapper : IDesignerAttributeDiscoveryService.ICallback
+        //{
+        //    private readonly RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> _callback;
+        //    private readonly RemoteServiceCallbackId _callbackId;
 
-        internal sealed class Factory : FactoryBase<IRemoteDesignerAttributeDiscoveryService>
+        //    public CallbackWrapper(
+        //        RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> callback,
+        //        RemoteServiceCallbackId callbackId)
+        //    {
+        //        _callback = callback;
+        //        _callbackId = callbackId;
+        //    }
+
+        //    public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
+        //        => _callback.InvokeAsync((callback, cancellationToken) => callback.ReportDesignerAttributeDataAsync(_callbackId, data, cancellationToken), cancellationToken);
+        //}
+
+        internal sealed class Factory : FactoryBase<IRemoteDesignerAttributeDiscoveryService, IRemoteDesignerAttributeDiscoveryService.ICallback>
         {
-            protected override IRemoteDesignerAttributeDiscoveryService CreateService(in ServiceConstructionArguments arguments)
-                => new RemoteDesignerAttributeDiscoveryService(arguments);
+            protected override IRemoteDesignerAttributeDiscoveryService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> callback)
+                => new RemoteDesignerAttributeDiscoveryService(arguments, callback);
         }
 
-        public RemoteDesignerAttributeDiscoveryService(in ServiceConstructionArguments arguments)
+        private readonly RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> _callback;
+
+        public RemoteDesignerAttributeDiscoveryService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> callback)
             : base(arguments)
         {
+            _callback = callback;
         }
 
-        public IAsyncEnumerable<DesignerAttributeData> DiscoverDesignerAttributesAsync(
+        private Func<ImmutableArray<DesignerAttributeData>, ValueTask> GetCallback(
+            RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
+        {
+            return data => _callback.InvokeAsync((callback, cancellationToken) =>
+                callback.ReportDesignerAttributeDataAsync(callbackId, data, cancellationToken),
+                cancellationToken);
+        }
+
+        private async ValueTask PushToCallbackAsync(
+            RemoteServiceCallbackId callbackId,
+            IAsyncEnumerable<DesignerAttributeData> items,
+            CancellationToken cancellationToken)
+        {
+            var callback = GetCallback(callbackId, cancellationToken);
+            await foreach (var item in items.ConfigureAwait(false))
+                await callback(item).ConfigureAwait(false);
+        }
+
+        public ValueTask DiscoverDesignerAttributesAsync(
+            RemoteServiceCallbackId callbackId,
             Checksum solutionChecksum,
             ProjectId projectId,
             DocumentId? priorityDocument,
             CancellationToken cancellationToken)
         {
-            var stream = StreamWithSolutionAsync(
+            return RunServiceAsync(
                 solutionChecksum,
-                (solution, cancellationToken) =>
+                solution =>
                 {
                     var project = solution.GetRequiredProject(projectId);
                     var service = solution.Services.GetRequiredService<IDesignerAttributeDiscoveryService>();
-                    return service.ProcessProjectAsync(project, priorityDocument, cancellationToken);
-                }, cancellationToken);
-            return stream.WithJsonRpcSettings(new JsonRpcEnumerableSettings { MaxReadAhead = MaxReadAhead });
+                    return service.ProcessSolutionAsync(
+                        solution, priorityDocument, new CallbackWrapper(_callback, callbackId), cancellationToken);
+                },
+                cancellationToken);
         }
     }
 }
