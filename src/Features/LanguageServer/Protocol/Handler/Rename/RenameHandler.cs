@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -16,19 +17,17 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    /// <summary>
-    /// TODO - This must be moved to the MS.CA.LanguageServer.Protocol project once
-    /// we no longer reference the <see cref="IInlineRenameService"/>
-    /// See https://github.com/dotnet/roslyn/issues/55142
-    /// </summary>
     [ExportCSharpVisualBasicStatelessLspService(typeof(RenameHandler)), Shared]
     [Method(LSP.Methods.TextDocumentRenameName)]
     internal class RenameHandler : ILspServiceDocumentRequestHandler<LSP.RenameParams, WorkspaceEdit?>
     {
+        private readonly IGlobalOptionService _optionsService;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RenameHandler()
+        public RenameHandler(IGlobalOptionService optionsService)
         {
+            _optionsService = optionsService;
         }
 
         public bool MutatesSolutionState => false;
@@ -42,14 +41,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Contract.ThrowIfNull(document);
 
             var oldSolution = document.Project.Solution;
-            var renameService = document.Project.Services.GetRequiredService<IEditorInlineRenameService>();
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
-            var renameInfo = await renameService.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
-            if (!renameInfo.CanRename)
-            {
+            var symbolicRenameInfo = await SymbolicRenameInfo.GetRenameInfoAsync(
+                document, position, cancellationToken).ConfigureAwait(false);
+            if (symbolicRenameInfo.IsError)
                 return null;
-            }
 
             var options = new SymbolRenameOptions(
                 RenameOverloads: false,
@@ -57,10 +54,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 RenameInComments: false,
                 RenameFile: false);
 
-            var renameLocationSet = await renameInfo.FindRenameLocationsAsync(options, cancellationToken).ConfigureAwait(false);
-            var renameReplacementInfo = await renameLocationSet.GetReplacementsAsync(request.NewName, options, cancellationToken).ConfigureAwait(false);
+            var renameLocationSet = await Renamer.FindRenameLocationsAsync(
+                oldSolution,
+                symbolicRenameInfo.Symbol,
+                options,
+                _optionsService.CreateProvider(),
+                cancellationToken).ConfigureAwait(false);
 
-            if (!renameReplacementInfo.ReplacementTextValid)
+            var renameReplacementInfo = await renameLocationSet.ResolveConflictsAsync(
+                symbolicRenameInfo.Symbol, symbolicRenameInfo.GetFinalSymbolName(request.NewName), nonConflictSymbolKeys: default, cancellationToken).ConfigureAwait(false);
+
+            if (!renameReplacementInfo.IsSuccessful ||
+                !renameReplacementInfo.ReplacementTextValid)
             {
                 return null;
             }

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,11 +12,31 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
     internal sealed class SymbolicRenameInfo
     {
+        private const string AttributeSuffix = "Attribute";
+
+        [MemberNotNullWhen(true, nameof(LocalizedErrorMessage))]
+        [MemberNotNullWhen(false, nameof(Document))]
+        [MemberNotNullWhen(false, nameof(TriggerText))]
+        [MemberNotNullWhen(false, nameof(Symbol))]
+        public bool IsError => LocalizedErrorMessage != null;
+
+        public string? LocalizedErrorMessage { get; }
+
+        public Document? Document { get; }
+        public SyntaxToken TriggerToken { get; }
+        public string? TriggerText { get; }
+        public ISymbol? Symbol { get; }
+        public bool ForceRenameOverloads { get; }
+        public ImmutableArray<DocumentSpan> DocumentSpans { get; }
+
+        public bool IsRenamingAttributePrefix { get; }
+
         private SymbolicRenameInfo(string localizedErrorMessage)
             => this.LocalizedErrorMessage = localizedErrorMessage;
 
@@ -33,16 +54,64 @@ namespace Microsoft.CodeAnalysis.Rename
             Symbol = symbol;
             ForceRenameOverloads = forceRenameOverloads;
             DocumentSpans = documentSpans;
+
+            this.IsRenamingAttributePrefix = CanRenameAttributePrefix(triggerText);
         }
 
-        public string? LocalizedErrorMessage { get; }
+        private bool CanRenameAttributePrefix(string triggerText)
+        {
+            Contract.ThrowIfTrue(this.IsError);
 
-        public Document Document { get; }
-        public SyntaxToken TriggerToken { get; }
-        public string TriggerText { get; }
-        public ISymbol Symbol { get; }
-        public bool ForceRenameOverloads { get; }
-        public ImmutableArray<DocumentSpan> DocumentSpans { get; }
+            // if this isn't an attribute, or it doesn't have the 'Attribute' suffix, then clearly
+            // we can't rename just the attribute prefix.
+            if (!IsRenamingAttributeTypeWithAttributeSuffix())
+                return false;
+
+            // Ok, the symbol is good.  Now, make sure that the trigger text starts with the prefix
+            // of the attribute.  If it does, then we can rename just the attribute prefix (otherwise
+            // we need to rename the entire attribute).
+#pragma warning disable IDE0059 // Unnecessary assignment of a value - https://github.com/dotnet/roslyn/issues/45895
+            var nameWithoutAttribute = GetWithoutAttributeSuffix(this.Symbol.Name);
+
+            return triggerText.StartsWith(triggerText); // TODO: Always true? What was it supposed to do?
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
+
+            bool IsRenamingAttributeTypeWithAttributeSuffix()
+            {
+                if (this.Symbol.IsAttribute() || (this.Symbol is IAliasSymbol alias && alias.Target.IsAttribute()))
+                {
+                    if (HasAttributeSuffix(this.Symbol.Name))
+                        return true;
+                }
+
+                return false;
+            }
+        }
+
+        public string GetWithoutAttributeSuffix(string value)
+        {
+            Contract.ThrowIfTrue(this.IsError);
+            var isCaseSensitive = this.Document.GetRequiredLanguageService<ISyntaxFactsService>().IsCaseSensitive;
+            return value.GetWithoutAttributeSuffix(isCaseSensitive)!;
+        }
+
+        private bool HasAttributeSuffix(string value)
+        {
+            Contract.ThrowIfTrue(this.IsError);
+
+            var isCaseSensitive = this.Document.GetRequiredLanguageService<ISyntaxFactsService>().IsCaseSensitive;
+            return value.TryGetWithoutAttributeSuffix(isCaseSensitive, result: out var _);
+        }
+
+        public string GetFinalSymbolName(string replacementText)
+        {
+            if (this.IsRenamingAttributePrefix && !HasAttributeSuffix(replacementText))
+            {
+                return replacementText + AttributeSuffix;
+            }
+
+            return replacementText;
+        }
 
         public static async Task<SymbolicRenameInfo> GetRenameInfoAsync(
             Document document, int position, CancellationToken cancellationToken)
@@ -62,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Rename
             return token;
         }
 
-        public static async Task<SymbolicRenameInfo> GetRenameInfoAsync(
+        private static async Task<SymbolicRenameInfo> GetRenameInfoAsync(
             Document document,
             SyntaxToken triggerToken,
             CancellationToken cancellationToken)

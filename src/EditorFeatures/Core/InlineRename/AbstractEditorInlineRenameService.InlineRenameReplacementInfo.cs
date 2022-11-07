@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public Solution NewSolution => _conflicts.NewSolution!;
 
-            public bool ReplacementTextValid => _conflicts.ReplacementTextValid!.Value;
+            public bool ReplacementTextValid => _conflicts.ReplacementTextValid;
 
             public IEnumerable<InlineRenameReplacement> GetReplacements(DocumentId documentId)
             {
