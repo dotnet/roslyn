@@ -92,8 +92,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     // channel.  When the work finishes (for any reason, including cancellation), the channel will be 
                     // completed.
                     Task.Run(async () => await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
-                            // Don't need to sync the full solution when searching a particular project.
-                            project,
+                            solution,
                             (service, solutionInfo, callbackId, cancellationToken) =>
                                 service.SearchProjectAsync(solutionInfo, project.Id, priorityDocumentIds, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
                             new NavigateToSearchServiceCallback(channel), cancellationToken).ConfigureAwait(false), cancellationToken)
