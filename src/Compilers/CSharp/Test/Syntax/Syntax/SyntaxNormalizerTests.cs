@@ -2558,6 +2558,208 @@ class Derived : Base
         public void TestNormalizeNestedInitializers()
         {
             TestNormalizeExpression(
+                "new{A=new{}}", """
+                new
+                {
+                  A = new
+                  {
+                  }
+                }
+                """);
+            TestNormalizeExpression(
+                "new{A=new{B=1,C=2}}", """
+                new
+                {
+                  A = new
+                  {
+                    B = 1,
+                    C = 2
+                  }
+                }
+                """);
+            TestNormalizeExpression(
+                "new{A=new SomeOtherClass{}}", """
+                new
+                {
+                  A = new SomeOtherClass
+                  {
+                  }
+                }
+                """);
+            TestNormalizeExpression(
+                "new{A=new SomeOtherClass{B=1,C=2}}", """
+                new
+                {
+                  A = new SomeOtherClass
+                  {
+                    B = 1,
+                    C = 2
+                  }
+                }
+                """);
+            TestNormalizeExpression(
+                "new SomeClass{A=new{}}", """
+                new SomeClass
+                {
+                  A = new
+                  {
+                  }
+                }
+                """);
+            TestNormalizeExpression(
+                "new SomeClass{A=new{B=1,C=2}}", """
+                new SomeClass
+                {
+                  A = new
+                  {
+                    B = 1,
+                    C = 2
+                  }
+                }
+                """);
+            TestNormalizeExpression(
+                "new SomeClass{A=new SomeOtherClass{}}", """
+                new SomeClass
+                {
+                  A = new SomeOtherClass
+                  {
+                  }
+                }
+                """);
+            TestNormalizeExpression(
+                "new SomeClass{A=new SomeOtherClass{}}", """
+                new SomeClass
+                {
+                  A = new SomeOtherClass
+                  {
+                  }
+                }
+                """);
+
+            TestNormalizeExpression(
+                "new{A=new int[]{}}", """
+                new
+                {
+                  A = new int[]
+                  {
+                  }
+                }
+                """);
+            TestNormalizeExpression(
+                "new{A=new int[]{1,2,3}}", """
+                new
+                {
+                  A = new int[]
+                  {
+                    1,
+                    2,
+                    3
+                  }
+                }
+                """);
+            TestNormalizeExpression(
+                "new SomeClass{A=new int[]{}}", """
+                new SomeClass
+                {
+                  A = new int[]
+                  {
+                  }
+                }
+                """);
+            TestNormalizeExpression(
+                "new SomeClass{A=new int[]{1,2,3}}", """
+                new SomeClass
+                {
+                  A = new int[]
+                  {
+                    1,
+                    2,
+                    3
+                  }
+                }
+                """);
+
+            TestNormalizeExpression(
+                "new SomeClass[]{new SomeClass{},new SomeClass{},new SomeClass{}}", """
+                new SomeClass[]
+                {
+                  new SomeClass
+                  {
+                  },
+                  new SomeClass
+                  {
+                  },
+                  new SomeClass
+                  {
+                  }
+                }
+                """);
+            TestNormalizeExpression(
+                "new SomeClass[]{new SomeClass{A=1,B=2,C=3},new SomeClass{A=1,B=2,C=3},new SomeClass{A=1,B=2,C=3}}", """
+                new SomeClass[]
+                {
+                  new SomeClass
+                  {
+                    A = 1,
+                    B = 2,
+                    C = 3
+                  },
+                  new SomeClass
+                  {
+                    A = 1,
+                    B = 2,
+                    C = 3
+                  },
+                  new SomeClass
+                  {
+                    A = 1,
+                    B = 2,
+                    C = 3
+                  }
+                }
+                """);
+
+            TestNormalizeExpression(
+                "new Dictionary<int,SomeClass>{[0]=new SomeClass(){},[1]=new SomeClass(){},[2]=new SomeClass(){}}", """
+                new Dictionary<int, SomeClass>
+                {
+                  [0] = new SomeClass()
+                  {
+                  },
+                  [1] = new SomeClass()
+                  {
+                  },
+                  [2] = new SomeClass()
+                  {
+                  }
+                }
+                """);
+            TestNormalizeExpression(
+                "new Dictionary<int,SomeClass>{[0]=new SomeClass(){A=1,B=2,C=3},[1]=new SomeClass(){A=1,B=2,C=3},[2]=new SomeClass(){A=1,B=2,C=3}}", """
+                new Dictionary<int, SomeClass>
+                {
+                  [0] = new SomeClass()
+                  {
+                    A = 1,
+                    B = 2,
+                    C = 3
+                  },
+                  [1] = new SomeClass()
+                  {
+                    A = 1,
+                    B = 2,
+                    C = 3
+                  },
+                  [2] = new SomeClass()
+                  {
+                    A = 1,
+                    B = 2,
+                    C = 3
+                  }
+                }
+                """);
+
+            TestNormalizeExpression(
                 "new SomeClass{A=1,B=new SomeOtherClass(){D=7,E=\"test\",F=new int[]{1,2,3}},C=new{G=new List<AndAnotherClass>{new AndAnotherClass{J=8,K=new Dictionary<int,string>{[1]=\"test1\",[2]=\"test2\",[3]=\"test3\"},L=new List<Whatever>(){}}},H=new{},I=new MixedClass(){[\"test1\"]=new MixedClass{[\"innerTest\"]=new MixedClass{M=5.01m}},M=2.71m,[\"test2\"]=new MixedClass()}}}", """
                 new SomeClass
                 {
