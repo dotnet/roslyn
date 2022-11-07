@@ -92,9 +92,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                     return result;
                 }
 
-                var accessors = propertyDeclaration.AccessorList.Accessors.Select(RemoveThrowNotImplemented);
-                return propertyDeclaration.WithAccessorList(
-                    propertyDeclaration.AccessorList.WithAccessors(SyntaxFactory.List(accessors)));
+                if (propertyDeclaration.AccessorList != null)
+                {
+                    var accessors = propertyDeclaration.AccessorList.Accessors.Select(RemoveThrowNotImplemented);
+                    return propertyDeclaration.WithAccessorList(
+                        propertyDeclaration.AccessorList.WithAccessors(SyntaxFactory.List(accessors)));
+                }
             }
 
             return node;
