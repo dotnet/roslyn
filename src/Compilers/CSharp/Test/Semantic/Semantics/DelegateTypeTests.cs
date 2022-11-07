@@ -14012,12 +14012,12 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
             var source = """
                 int MethodNoParams(int[] xs) => xs.Length;
                 int MethodWithParams(params int[] xs) => xs.Length;
-                var lambdaNoParams = (params int[] xs) => xs.Length;
-                var lambdaWithParams = (int[] xs) => xs.Length;
-                lambdaNoParams = MethodWithParams;
-                lambdaWithParams = MethodWithParams;
-                lambdaNoParams = MethodNoParams;
-                lambdaWithParams = MethodNoParams;
+                var noParams = (params int[] xs) => xs.Length;
+                var withParams = (int[] xs) => xs.Length;
+                noParams = MethodWithParams;
+                withParams = MethodWithParams;
+                noParams = MethodNoParams;
+                withParams = MethodNoParams;
                 """;
             CreateCompilation(source).VerifyDiagnostics();
         }
