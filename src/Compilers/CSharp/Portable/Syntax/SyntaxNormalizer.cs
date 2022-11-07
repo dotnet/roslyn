@@ -205,7 +205,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
 
                 if (nextToken.Parent is InitializerExpressionSyntax &&
-                    !IsInsideInterpolation(nextToken.Parent))
+                    !IsInsideInterpolation(nextToken.Parent) &&
+                    !IsInsideAttribute(nextToken.Parent))
                 {
                     return 1;
                 }
@@ -233,8 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     }
 
                     if (nextToken.IsKind(SyntaxKind.OpenBraceToken) &&
-                        nextToken.Parent is InitializerExpressionSyntax &&
-                        IsInsideInterpolation(nextToken.Parent))
+                        IsInitializerOrAnonymousObjectCreationInsideInterpolationOrAttribute(nextToken.Parent))
                     {
                         // don't break before an open brace of an initializer when inside interpolation
                         return 0;
@@ -258,7 +258,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                 case SyntaxKind.CommaToken:
                     if (currentToken.Parent is InitializerExpressionSyntax or AnonymousObjectCreationExpressionSyntax &&
-                        !IsInsideInterpolation(currentToken.Parent))
+                        !IsInsideInterpolation(currentToken.Parent) &&
+                        !IsInsideAttribute(currentToken.Parent))
                     {
                         return 1;
                     }
@@ -319,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             if (parent.IsKind(SyntaxKind.Interpolation) ||
                 parent is PropertyPatternClauseSyntax ||
                 IsAccessorListWithoutAccessorsWithBlockBody(parent) ||
-                IsInitializerInsideInterpolation(parent))
+                IsInitializerOrAnonymousObjectCreationInsideInterpolationOrAttribute(parent))
             {
                 return 0;
             }
@@ -335,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             var parent = closeBraceToken.Parent;
             if (parent.IsKind(SyntaxKind.Interpolation) ||
                 parent is PropertyPatternClauseSyntax ||
-                IsInitializerInsideInterpolation(parent))
+                IsInitializerOrAnonymousObjectCreationInsideInterpolationOrAttribute(parent))
             {
                 return 0;
             }
@@ -351,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             if (parent is PropertyPatternClauseSyntax ||
                 parent.IsKind(SyntaxKind.Interpolation) ||
                 IsAccessorListWithoutAccessorsWithBlockBody(parent) ||
-                IsInitializerInsideInterpolation(parent))
+                IsInitializerOrAnonymousObjectCreationInsideInterpolationOrAttribute(parent))
             {
                 return 0;
             }
@@ -370,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 IsAccessorListFollowedByInitializer(currentTokenParent) ||
                 isCloseBraceFollowedByComma(currentToken, nextToken) ||
                 nextToken.Parent is MemberAccessExpressionSyntax or BracketedArgumentListSyntax ||
-                IsInitializerInsideInterpolation(currentTokenParent))
+                IsInitializerOrAnonymousObjectCreationInsideInterpolationOrAttribute(currentTokenParent))
             {
                 return 0;
             }
@@ -810,12 +811,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return true;
             }
 
-            // Rules for single-line initializer syntax inside interpolation:
+            // Rules for single-line initializer syntax inside interpolation ar attribute:
             // 1. Separator before open brace token
             // 2. Separator after open brace token
             // 3. Separator before close brace token
-            // e.g. `$"{new SomeClass() { A = 2 }}"`
-            if (IsInsideInterpolation(next.Parent))
+            // e.g. `$"{new SomeClass() { A = 2 }}"` or [SomeAttribute(new int[] { 1, 2, 3 })]
+            if (IsInsideInterpolation(next.Parent) || IsInsideAttribute(next.Parent))
             {
                 if (next.Parent is InitializerExpressionSyntax or AnonymousObjectCreationExpressionSyntax &&
                     next.IsKind(SyntaxKind.OpenBraceToken))
@@ -1286,7 +1287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     node is { Parent: AnonymousObjectMemberDeclaratorSyntax } ||
                     node is AssignmentExpressionSyntax { Parent: InitializerExpressionSyntax })
                 {
-                    if (!IsInsideInterpolation(node))
+                    if (!IsInsideInterpolation(node) && !IsInsideAttribute(node.Parent))
                     {
                         return parentDepth + 1;
                     }
@@ -1333,8 +1334,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         private static bool IsInsideInterpolation(SyntaxNode? node)
             => node?.FirstAncestorOrSelf<InterpolationSyntax>() is not null;
 
-        private static bool IsInitializerInsideInterpolation(SyntaxNode? node)
-            => node is InitializerExpressionSyntax && IsInsideInterpolation(node);
+        private static bool IsInsideAttribute(SyntaxNode? node)
+            => node?.FirstAncestorOrSelf<AttributeSyntax>() is not null;
+
+        private static bool IsInitializerOrAnonymousObjectCreationInsideInterpolationOrAttribute(SyntaxNode? node)
+        {
+            if (node is not (InitializerExpressionSyntax or AnonymousObjectCreationExpressionSyntax))
+            {
+                return false;
+            }
+
+            return IsInsideInterpolation(node) || IsInsideAttribute(node);
+        }
 
         public override SyntaxNode? VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node)
         {

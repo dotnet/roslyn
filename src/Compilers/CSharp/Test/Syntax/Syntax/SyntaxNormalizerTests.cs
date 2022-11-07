@@ -1849,45 +1849,45 @@ class Derived : Base
         }
 
         [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
-        public void TestNormalizeObjectInitializer_Interpolation()
+        public void TestNormalizeObjectInitializer_InterpolationAndAttribute()
         {
-            TestNormalizeExpression("$\"{new{}}\"", "$\"{new { }}\"");
-            TestNormalizeExpression("$\"{new{A=1,B=2}}\"", "$\"{new { A = 1, B = 2 }}\"");
-            TestNormalizeExpression("$\"{new{A=1,B=2,}}\"", "$\"{new { A = 1, B = 2, }}\"");
-            TestNormalizeExpression("$\"{new SomeClass{}}\"", "$\"{new SomeClass { }}\"");
-            TestNormalizeExpression("$\"{new SomeClass{A=1,B=2}}\"", "$\"{new SomeClass { A = 1, B = 2 }}\"");
-            TestNormalizeExpression("$\"{new SomeClass{A=1,B=2,}}\"", "$\"{new SomeClass { A = 1, B = 2, }}\"");
-            TestNormalizeExpression("$\"{new SomeClass{A=1,B=2,}}\"", "$\"{new SomeClass { A = 1, B = 2, }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){}}\"", "$\"{new SomeClass() { }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2}}\"", "$\"{new SomeClass() { A = 1, B = 2 }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,}}\"", "$\"{new SomeClass() { A = 1, B = 2, }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new{}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new { } }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new{D=5l,E=2.5f}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new { D = 5l, E = 2.5f } }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new{D=5l,E=2.5f,}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new { D = 5l, E = 2.5f, } }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new{D=5l,E=2.5f,},}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new { D = 5l, E = 2.5f, }, }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass{}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass { } }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass{D=5l,E=2.5f}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass { D = 5l, E = 2.5f } }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass{D=5l,E=2.5f,}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass { D = 5l, E = 2.5f, } }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass{D=5l,E=2.5f,},}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass { D = 5l, E = 2.5f, }, }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { } }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f } }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, } }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,},}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, }, }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new{}}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new { } } }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new{G=7u,H=3.72m}}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new { G = 7u, H = 3.72m } } }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new{G=7u,H=3.72m,}}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new { G = 7u, H = 3.72m, } } }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new{G=7u,H=3.72m,},}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new { G = 7u, H = 3.72m, }, } }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new{G=7u,H=3.72m,},},}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new { G = 7u, H = 3.72m, }, }, }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass{}}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass { } } }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass{G=7u,H=3.72m}}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass { G = 7u, H = 3.72m } } }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass{G=7u,H=3.72m,}}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass { G = 7u, H = 3.72m, } } }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass{G=7u,H=3.72m,},}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass { G = 7u, H = 3.72m, }, } }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass{G=7u,H=3.72m,},},}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass { G = 7u, H = 3.72m, }, }, }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass(){}}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass() { } } }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass(){G=7u,H=3.72m}}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass() { G = 7u, H = 3.72m } } }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass(){G=7u,H=3.72m,}}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass() { G = 7u, H = 3.72m, } } }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass(){G=7u,H=3.72m,},}}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass() { G = 7u, H = 3.72m, }, } }}\"");
-            TestNormalizeExpression("$\"{new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass(){G=7u,H=3.72m,},},}}\"", "$\"{new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass() { G = 7u, H = 3.72m, }, }, }}\"");
+            VerifyInsideInterpolationAndAttribute("new{}", "new { }");
+            VerifyInsideInterpolationAndAttribute("new{A=1,B=2}", "new { A = 1, B = 2 }");
+            VerifyInsideInterpolationAndAttribute("new{A=1,B=2,}", "new { A = 1, B = 2, }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass{}", "new SomeClass { }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass{A=1,B=2}", "new SomeClass { A = 1, B = 2 }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass{A=1,B=2,}", "new SomeClass { A = 1, B = 2, }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass{A=1,B=2,}", "new SomeClass { A = 1, B = 2, }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){}", "new SomeClass() { }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2}", "new SomeClass() { A = 1, B = 2 }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,}", "new SomeClass() { A = 1, B = 2, }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,C=new{}}", "new SomeClass() { A = 1, B = 2, C = new { } }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,C=new{D=5l,E=2.5f}}", "new SomeClass() { A = 1, B = 2, C = new { D = 5l, E = 2.5f } }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,C=new{D=5l,E=2.5f,}}", "new SomeClass() { A = 1, B = 2, C = new { D = 5l, E = 2.5f, } }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,C=new{D=5l,E=2.5f,},}", "new SomeClass() { A = 1, B = 2, C = new { D = 5l, E = 2.5f, }, }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,C=new SomeOtherClass{}}", "new SomeClass() { A = 1, B = 2, C = new SomeOtherClass { } }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,C=new SomeOtherClass{D=5l,E=2.5f}}", "new SomeClass() { A = 1, B = 2, C = new SomeOtherClass { D = 5l, E = 2.5f } }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,C=new SomeOtherClass{D=5l,E=2.5f,}}", "new SomeClass() { A = 1, B = 2, C = new SomeOtherClass { D = 5l, E = 2.5f, } }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,C=new SomeOtherClass{D=5l,E=2.5f,},}", "new SomeClass() { A = 1, B = 2, C = new SomeOtherClass { D = 5l, E = 2.5f, }, }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){}}", "new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { } }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f}}", "new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f } }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,}}", "new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, } }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,},}", "new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, }, }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new{}}}", "new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new { } } }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new{G=7u,H=3.72m}}}", "new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new { G = 7u, H = 3.72m } } }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new{G=7u,H=3.72m,}}}", "new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new { G = 7u, H = 3.72m, } } }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new{G=7u,H=3.72m,},}}", "new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new { G = 7u, H = 3.72m, }, } }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new{G=7u,H=3.72m,},},}", "new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new { G = 7u, H = 3.72m, }, }, }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass{}}}", "new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass { } } }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass{G=7u,H=3.72m}}}", "new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass { G = 7u, H = 3.72m } } }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass{G=7u,H=3.72m,}}}", "new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass { G = 7u, H = 3.72m, } } }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass{G=7u,H=3.72m,},}}", "new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass { G = 7u, H = 3.72m, }, } }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass{G=7u,H=3.72m,},},}", "new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass { G = 7u, H = 3.72m, }, }, }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass(){}}}", "new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass() { } } }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass(){G=7u,H=3.72m}}}", "new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass() { G = 7u, H = 3.72m } } }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass(){G=7u,H=3.72m,}}}", "new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass() { G = 7u, H = 3.72m, } } }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass(){G=7u,H=3.72m,},}}", "new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass() { G = 7u, H = 3.72m, }, } }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass(){A=1,B=2,C=new SomeOtherClass(){D=5l,E=2.5f,F=new AndAnotherClass(){G=7u,H=3.72m,},},}", "new SomeClass() { A = 1, B = 2, C = new SomeOtherClass() { D = 5l, E = 2.5f, F = new AndAnotherClass() { G = 7u, H = 3.72m, }, }, }");
         }
 
         [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
@@ -2148,34 +2148,34 @@ class Derived : Base
         }
 
         [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
-        public void TestNormalizeArrayAndCollectionInitializers_Interpolation()
+        public void TestNormalizeArrayAndCollectionInitializers_InterpolationAndAttribute()
         {
-            TestNormalizeExpression("$\"{new int[]{}}\"", "$\"{new int[] { }}\"");
-            TestNormalizeExpression("$\"{new int[]{1,2,3}}\"", "$\"{new int[] { 1, 2, 3 }}\"");
-            TestNormalizeExpression("$\"{new int[]{1,2,3,}}\"", "$\"{new int[] { 1, 2, 3, }}\"");
-            TestNormalizeExpression("$\"{new int[]{1,2,3,}.Length}\"", "$\"{new int[] { 1, 2, 3, }.Length}\"");
-            TestNormalizeExpression("$\"{new int[]{1,2,3,}[0]}\"", "$\"{new int[] { 1, 2, 3, }[0]}\"");
+            VerifyInsideInterpolationAndAttribute("new int[]{}", "new int[] { }");
+            VerifyInsideInterpolationAndAttribute("new int[]{1,2,3}", "new int[] { 1, 2, 3 }");
+            VerifyInsideInterpolationAndAttribute("new int[]{1,2,3,}", "new int[] { 1, 2, 3, }");
+            VerifyInsideInterpolationAndAttribute("new int[]{1,2,3,}.Length", "new int[] { 1, 2, 3, }.Length");
+            VerifyInsideInterpolationAndAttribute("new int[]{1,2,3,}[0]", "new int[] { 1, 2, 3, }[0]");
 
-            TestNormalizeExpression("$\"{new List<int>(){}}\"", "$\"{new List<int>() { }}\"");
-            TestNormalizeExpression("$\"{new List<int>(){1,2,3}}\"", "$\"{new List<int>() { 1, 2, 3 }}\"");
-            TestNormalizeExpression("$\"{new List<int>(){1,2,3,}}\"", "$\"{new List<int>() { 1, 2, 3, }}\"");
-            TestNormalizeExpression("$\"{new List<int>(){1,2,3,}.Count}\"", "$\"{new List<int>() { 1, 2, 3, }.Count}\"");
-            TestNormalizeExpression("$\"{new List<int>(){1,2,3,}[0]}\"", "$\"{new List<int>() { 1, 2, 3, }[0]}\"");
+            VerifyInsideInterpolationAndAttribute("new List<int>(){}", "new List<int>() { }");
+            VerifyInsideInterpolationAndAttribute("new List<int>(){1,2,3}", "new List<int>() { 1, 2, 3 }");
+            VerifyInsideInterpolationAndAttribute("new List<int>(){1,2,3,}", "new List<int>() { 1, 2, 3, }");
+            VerifyInsideInterpolationAndAttribute("new List<int>(){1,2,3,}.Count", "new List<int>() { 1, 2, 3, }.Count");
+            VerifyInsideInterpolationAndAttribute("new List<int>(){1,2,3,}[0]", "new List<int>() { 1, 2, 3, }[0]");
 
-            TestNormalizeExpression("$\"{new SomeClass[]{}}\"", "$\"{new SomeClass[] { }}\"");
-            TestNormalizeExpression("$\"{new SomeClass[]{new SomeClass(),new SomeClass(),new SomeClass()}}\"", "$\"{new SomeClass[] { new SomeClass(), new SomeClass(), new SomeClass() }}\"");
-            TestNormalizeExpression("$\"{new SomeClass[]{new SomeClass(),new SomeClass(),new SomeClass(),}}\"", "$\"{new SomeClass[] { new SomeClass(), new SomeClass(), new SomeClass(), }}\"");
-            TestNormalizeExpression("$\"{new SomeClass[]{new SomeClass(),new SomeClass(),new SomeClass(),}.Length}\"", "$\"{new SomeClass[] { new SomeClass(), new SomeClass(), new SomeClass(), }.Length}\"");
-            TestNormalizeExpression("$\"{new SomeClass[]{new SomeClass(),new SomeClass(),new SomeClass(),}[0]}\"", "$\"{new SomeClass[] { new SomeClass(), new SomeClass(), new SomeClass(), }[0]}\"");
+            VerifyInsideInterpolationAndAttribute("new SomeClass[]{}", "new SomeClass[] { }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass[]{new SomeClass(),new SomeClass(),new SomeClass()}", "new SomeClass[] { new SomeClass(), new SomeClass(), new SomeClass() }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass[]{new SomeClass(),new SomeClass(),new SomeClass(),}", "new SomeClass[] { new SomeClass(), new SomeClass(), new SomeClass(), }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass[]{new SomeClass(),new SomeClass(),new SomeClass(),}.Length", "new SomeClass[] { new SomeClass(), new SomeClass(), new SomeClass(), }.Length");
+            VerifyInsideInterpolationAndAttribute("new SomeClass[]{new SomeClass(),new SomeClass(),new SomeClass(),}[0]", "new SomeClass[] { new SomeClass(), new SomeClass(), new SomeClass(), }[0]");
 
-            TestNormalizeExpression("$\"{new List<SomeClass>(){}}\"", "$\"{new List<SomeClass>() { }}\"");
-            TestNormalizeExpression("$\"{new List<SomeClass>(){new SomeClass(),new SomeClass(),new SomeClass()}}\"", "$\"{new List<SomeClass>() { new SomeClass(), new SomeClass(), new SomeClass() }}\"");
-            TestNormalizeExpression("$\"{new List<SomeClass>(){new SomeClass(),new SomeClass(),new SomeClass(),}}\"", "$\"{new List<SomeClass>() { new SomeClass(), new SomeClass(), new SomeClass(), }}\"");
-            TestNormalizeExpression("$\"{new List<SomeClass>(){new SomeClass(),new SomeClass(),new SomeClass(),}.Length}\"", "$\"{new List<SomeClass>() { new SomeClass(), new SomeClass(), new SomeClass(), }.Length}\"");
-            TestNormalizeExpression("$\"{new List<SomeClass>(){new SomeClass(),new SomeClass(),new SomeClass(),}[0]}\"", "$\"{new List<SomeClass>() { new SomeClass(), new SomeClass(), new SomeClass(), }[0]}\"");
+            VerifyInsideInterpolationAndAttribute("new List<SomeClass>(){}", "new List<SomeClass>() { }");
+            VerifyInsideInterpolationAndAttribute("new List<SomeClass>(){new SomeClass(),new SomeClass(),new SomeClass()}", "new List<SomeClass>() { new SomeClass(), new SomeClass(), new SomeClass() }");
+            VerifyInsideInterpolationAndAttribute("new List<SomeClass>(){new SomeClass(),new SomeClass(),new SomeClass(),}", "new List<SomeClass>() { new SomeClass(), new SomeClass(), new SomeClass(), }");
+            VerifyInsideInterpolationAndAttribute("new List<SomeClass>(){new SomeClass(),new SomeClass(),new SomeClass(),}.Length", "new List<SomeClass>() { new SomeClass(), new SomeClass(), new SomeClass(), }.Length");
+            VerifyInsideInterpolationAndAttribute("new List<SomeClass>(){new SomeClass(),new SomeClass(),new SomeClass(),}[0]", "new List<SomeClass>() { new SomeClass(), new SomeClass(), new SomeClass(), }[0]");
 
-            TestNormalizeExpression("$\"{new int[]{2+2,2+2*2,arr2[0]}}\"", "$\"{new int[] { 2 + 2, 2 + 2 * 2, arr2[0] }}\"");
-            TestNormalizeExpression("$\"{new List<int>(){2+2,2+2*2,arr2[0]}}\"", "$\"{new List<int>() { 2 + 2, 2 + 2 * 2, arr2[0] }}\"");
+            VerifyInsideInterpolationAndAttribute("new int[]{2+2,2+2*2,arr2[0]}", "new int[] { 2 + 2, 2 + 2 * 2, arr2[0] }");
+            VerifyInsideInterpolationAndAttribute("new List<int>(){2+2,2+2*2,arr2[0]}", "new List<int>() { 2 + 2, 2 + 2 * 2, arr2[0] }");
         }
 
         [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
@@ -2325,21 +2325,21 @@ class Derived : Base
         }
 
         [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
-        public void TestNormalizeIndexerInitializer_Interpolation()
+        public void TestNormalizeIndexerInitializer_InterpolationAndAttribute()
         {
-            TestNormalizeExpression("$\"{new Dictionary<int,int>(){}}\"", "$\"{new Dictionary<int, int>() { }}\"");
-            TestNormalizeExpression("$\"{new Dictionary<int,int>(){[0]=1,[1]=2,[2]=3}}\"", "$\"{new Dictionary<int, int>() { [0] = 1, [1] = 2, [2] = 3 }}\"");
-            TestNormalizeExpression("$\"{new Dictionary<int,int>(){[0]=1,[1]=2,[2]=3,}}\"", "$\"{new Dictionary<int, int>() { [0] = 1, [1] = 2, [2] = 3, }}\"");
-            TestNormalizeExpression("$\"{new Dictionary<int,int>(){[0]=1,[1]=2,[2]=3,}.Count}\"", "$\"{new Dictionary<int, int>() { [0] = 1, [1] = 2, [2] = 3, }.Count}\"");
-            TestNormalizeExpression("$\"{new Dictionary<int,int>(){[0]=1,[1]=2,[2]=3,}[0]}\"", "$\"{new Dictionary<int, int>() { [0] = 1, [1] = 2, [2] = 3, }[0]}\"");
+            VerifyInsideInterpolationAndAttribute("new Dictionary<int,int>(){}", "new Dictionary<int, int>() { }");
+            VerifyInsideInterpolationAndAttribute("new Dictionary<int,int>(){[0]=1,[1]=2,[2]=3}", "new Dictionary<int, int>() { [0] = 1, [1] = 2, [2] = 3 }");
+            VerifyInsideInterpolationAndAttribute("new Dictionary<int,int>(){[0]=1,[1]=2,[2]=3,}", "new Dictionary<int, int>() { [0] = 1, [1] = 2, [2] = 3, }");
+            VerifyInsideInterpolationAndAttribute("new Dictionary<int,int>(){[0]=1,[1]=2,[2]=3,}.Count", "new Dictionary<int, int>() { [0] = 1, [1] = 2, [2] = 3, }.Count");
+            VerifyInsideInterpolationAndAttribute("new Dictionary<int,int>(){[0]=1,[1]=2,[2]=3,}[0]", "new Dictionary<int, int>() { [0] = 1, [1] = 2, [2] = 3, }[0]");
 
-            TestNormalizeExpression("$\"{new Dictionary<SomeClass,SomeOtherClass>(){[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass()}}\"", "$\"{new Dictionary<SomeClass, SomeOtherClass>() { [new SomeClass()] = new SomeOtherClass(), [new SomeClass()] = new SomeOtherClass(), [new SomeClass()] = new SomeOtherClass() }}\"");
-            TestNormalizeExpression("$\"{new Dictionary<SomeClass,SomeOtherClass>(){[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),}}\"", "$\"{new Dictionary<SomeClass, SomeOtherClass>() { [new SomeClass()] = new SomeOtherClass(), [new SomeClass()] = new SomeOtherClass(), [new SomeClass()] = new SomeOtherClass(), }}\"");
-            TestNormalizeExpression("$\"{new Dictionary<SomeClass,SomeOtherClass>(){[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),}.Count}\"", "$\"{new Dictionary<SomeClass, SomeOtherClass>() { [new SomeClass()] = new SomeOtherClass(), [new SomeClass()] = new SomeOtherClass(), [new SomeClass()] = new SomeOtherClass(), }.Count}\"");
-            TestNormalizeExpression("$\"{new Dictionary<SomeClass,SomeOtherClass>(){[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),}[0]}\"", "$\"{new Dictionary<SomeClass, SomeOtherClass>() { [new SomeClass()] = new SomeOtherClass(), [new SomeClass()] = new SomeOtherClass(), [new SomeClass()] = new SomeOtherClass(), }[0]}\"");
+            VerifyInsideInterpolationAndAttribute("new Dictionary<SomeClass,SomeOtherClass>(){[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass()}", "new Dictionary<SomeClass, SomeOtherClass>() { [new SomeClass()] = new SomeOtherClass(), [new SomeClass()] = new SomeOtherClass(), [new SomeClass()] = new SomeOtherClass() }");
+            VerifyInsideInterpolationAndAttribute("new Dictionary<SomeClass,SomeOtherClass>(){[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),}", "new Dictionary<SomeClass, SomeOtherClass>() { [new SomeClass()] = new SomeOtherClass(), [new SomeClass()] = new SomeOtherClass(), [new SomeClass()] = new SomeOtherClass(), }");
+            VerifyInsideInterpolationAndAttribute("new Dictionary<SomeClass,SomeOtherClass>(){[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),}.Count", "new Dictionary<SomeClass, SomeOtherClass>() { [new SomeClass()] = new SomeOtherClass(), [new SomeClass()] = new SomeOtherClass(), [new SomeClass()] = new SomeOtherClass(), }.Count");
+            VerifyInsideInterpolationAndAttribute("new Dictionary<SomeClass,SomeOtherClass>(){[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),[new SomeClass()]=new SomeOtherClass(),}[0]", "new Dictionary<SomeClass, SomeOtherClass>() { [new SomeClass()] = new SomeOtherClass(), [new SomeClass()] = new SomeOtherClass(), [new SomeClass()] = new SomeOtherClass(), }[0]");
 
-            TestNormalizeExpression("$\"{new Dictionary<int,int>(){[2+2*2]=2+2*2,[2+2*2]=2+2*2,[arr[0]]=arr[0]}}\"", "$\"{new Dictionary<int, int>() { [2 + 2 * 2] = 2 + 2 * 2, [2 + 2 * 2] = 2 + 2 * 2, [arr[0]] = arr[0] }}\"");
-            TestNormalizeExpression("$\"{new Dictionary<int,int>(){{0,1},{1,2},{2,3}}}\"", "$\"{new Dictionary<int, int>() { { 0, 1 }, { 1, 2 }, { 2, 3 } }}\"");
+            VerifyInsideInterpolationAndAttribute("new Dictionary<int,int>(){[2+2*2]=2+2*2,[2+2*2]=2+2*2,[arr[0]]=arr[0]}", "new Dictionary<int, int>() { [2 + 2 * 2] = 2 + 2 * 2, [2 + 2 * 2] = 2 + 2 * 2, [arr[0]] = arr[0] }");
+            VerifyInsideInterpolationAndAttribute("new Dictionary<int,int>(){{0,1},{1,2},{2,3}}", "new Dictionary<int, int>() { { 0, 1 }, { 1, 2 }, { 2, 3 } }");
         }
 
         [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
@@ -2508,20 +2508,20 @@ class Derived : Base
         }
 
         [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
-        public void TestNormalizeWithInitializer_Interpolation()
+        public void TestNormalizeWithInitializer_InterpolationAndAttribute()
         {
-            TestNormalizeExpression("$\"{obj with{}}\"", "$\"{obj with { }}\"");
-            TestNormalizeExpression("$\"{obj with{A=1,B=2}}\"", "$\"{obj with { A = 1, B = 2 }}\"");
-            TestNormalizeExpression("$\"{obj with{A=1,B=2,}}\"", "$\"{obj with { A = 1, B = 2, }}\"");
-            TestNormalizeExpression("$\"{obj with{A=1,B=2,C=obj2 with{}}}\"", "$\"{obj with { A = 1, B = 2, C = obj2 with { } }}\"");
-            TestNormalizeExpression("$\"{obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f}}}\"", "$\"{obj with { A = 1, B = 2, C = obj2 with { D = 5l, E = 2.5f } }}\"");
-            TestNormalizeExpression("$\"{obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,}}}\"", "$\"{obj with { A = 1, B = 2, C = obj2 with { D = 5l, E = 2.5f, } }}\"");
-            TestNormalizeExpression("$\"{obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,},}}\"", "$\"{obj with { A = 1, B = 2, C = obj2 with { D = 5l, E = 2.5f, }, }}\"");
-            TestNormalizeExpression("$\"{obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,F=obj3 with{}}}}\"", "$\"{obj with { A = 1, B = 2, C = obj2 with { D = 5l, E = 2.5f, F = obj3 with { } } }}\"");
-            TestNormalizeExpression("$\"{obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,F=obj3 with{G=7u,H=3.72m}}}}\"", "$\"{obj with { A = 1, B = 2, C = obj2 with { D = 5l, E = 2.5f, F = obj3 with { G = 7u, H = 3.72m } } }}\"");
-            TestNormalizeExpression("$\"{obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,F=obj3 with{G=7u,H=3.72m,}}}}\"", "$\"{obj with { A = 1, B = 2, C = obj2 with { D = 5l, E = 2.5f, F = obj3 with { G = 7u, H = 3.72m, } } }}\"");
-            TestNormalizeExpression("$\"{obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,F=obj3 with{G=7u,H=3.72m,},}}}\"", "$\"{obj with { A = 1, B = 2, C = obj2 with { D = 5l, E = 2.5f, F = obj3 with { G = 7u, H = 3.72m, }, } }}\"");
-            TestNormalizeExpression("$\"{obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,F=obj3 with{G=7u,H=3.72m,},},}}\"", "$\"{obj with { A = 1, B = 2, C = obj2 with { D = 5l, E = 2.5f, F = obj3 with { G = 7u, H = 3.72m, }, }, }}\"");
+            VerifyInsideInterpolationAndAttribute("obj with{}", "obj with { }");
+            VerifyInsideInterpolationAndAttribute("obj with{A=1,B=2}", "obj with { A = 1, B = 2 }");
+            VerifyInsideInterpolationAndAttribute("obj with{A=1,B=2,}", "obj with { A = 1, B = 2, }");
+            VerifyInsideInterpolationAndAttribute("obj with{A=1,B=2,C=obj2 with{}}", "obj with { A = 1, B = 2, C = obj2 with { } }");
+            VerifyInsideInterpolationAndAttribute("obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f}}", "obj with { A = 1, B = 2, C = obj2 with { D = 5l, E = 2.5f } }");
+            VerifyInsideInterpolationAndAttribute("obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,}}", "obj with { A = 1, B = 2, C = obj2 with { D = 5l, E = 2.5f, } }");
+            VerifyInsideInterpolationAndAttribute("obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,},}", "obj with { A = 1, B = 2, C = obj2 with { D = 5l, E = 2.5f, }, }");
+            VerifyInsideInterpolationAndAttribute("obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,F=obj3 with{}}}", "obj with { A = 1, B = 2, C = obj2 with { D = 5l, E = 2.5f, F = obj3 with { } } }");
+            VerifyInsideInterpolationAndAttribute("obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,F=obj3 with{G=7u,H=3.72m}}}", "obj with { A = 1, B = 2, C = obj2 with { D = 5l, E = 2.5f, F = obj3 with { G = 7u, H = 3.72m } } }");
+            VerifyInsideInterpolationAndAttribute("obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,F=obj3 with{G=7u,H=3.72m,}}}", "obj with { A = 1, B = 2, C = obj2 with { D = 5l, E = 2.5f, F = obj3 with { G = 7u, H = 3.72m, } } }");
+            VerifyInsideInterpolationAndAttribute("obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,F=obj3 with{G=7u,H=3.72m,},}}", "obj with { A = 1, B = 2, C = obj2 with { D = 5l, E = 2.5f, F = obj3 with { G = 7u, H = 3.72m, }, } }");
+            VerifyInsideInterpolationAndAttribute("obj with{A=1,B=2,C=obj2 with{D=5l,E=2.5f,F=obj3 with{G=7u,H=3.72m,},},}", "obj with { A = 1, B = 2, C = obj2 with { D = 5l, E = 2.5f, F = obj3 with { G = 7u, H = 3.72m, }, }, }");
         }
 
         [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
@@ -2548,10 +2548,10 @@ class Derived : Base
         }
 
         [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
-        public void TestNormalizeMixedInitializer_Interpolation()
+        public void TestNormalizeMixedInitializer_InterpolationAndAttribute()
         {
-            TestNormalizeExpression("$\"{new SomeClass{A=1,[1]=2,[2,'c']=3.5f}}\"", "$\"{new SomeClass { A = 1, [1] = 2, [2, 'c'] = 3.5f }}\"");
-            TestNormalizeExpression("$\"{new SomeClass{A=1,[1]=2,[2,'c']=3.5f,}}\"", "$\"{new SomeClass { A = 1, [1] = 2, [2, 'c'] = 3.5f, }}\"");
+            VerifyInsideInterpolationAndAttribute("new SomeClass{A=1,[1]=2,[2,'c']=3.5f}", "new SomeClass { A = 1, [1] = 2, [2, 'c'] = 3.5f }");
+            VerifyInsideInterpolationAndAttribute("new SomeClass{A=1,[1]=2,[2,'c']=3.5f,}", "new SomeClass { A = 1, [1] = 2, [2, 'c'] = 3.5f, }");
         }
 
         [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
@@ -2612,11 +2612,17 @@ class Derived : Base
         }
 
         [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
-        public void TestNormalizeNestedInitializers_Interpolation()
+        public void TestNormalizeNestedInitializers_InterpolationAndAttribute()
         {
-            TestNormalizeExpression(
-                "$\"{new SomeClass{A=1,B=new SomeOtherClass(){D=7,E=0,F=new int[]{1,2,3}},C=new{G=new List<AndAnotherClass>{new AndAnotherClass{J=8,K=new Dictionary<int,int>{[1]=0,[2]=0,[3]=0},L=new List<Whatever>(){}}},H=new{},I=new MixedClass(){[0]=new MixedClass{[0]=new MixedClass{M=5.01m}},M=2.71m,[0]=new MixedClass()}}}}\"",
-                "$\"{new SomeClass { A = 1, B = new SomeOtherClass() { D = 7, E = 0, F = new int[] { 1, 2, 3 } }, C = new { G = new List<AndAnotherClass> { new AndAnotherClass { J = 8, K = new Dictionary<int, int> { [1] = 0, [2] = 0, [3] = 0 }, L = new List<Whatever>() { } } }, H = new { }, I = new MixedClass() { [0] = new MixedClass { [0] = new MixedClass { M = 5.01m } }, M = 2.71m, [0] = new MixedClass() } } }}\"");
+            VerifyInsideInterpolationAndAttribute(
+                "new SomeClass{A=1,B=new SomeOtherClass(){D=7,E=0,F=new int[]{1,2,3}},C=new{G=new List<AndAnotherClass>{new AndAnotherClass{J=8,K=new Dictionary<int,int>{[1]=0,[2]=0,[3]=0},L=new List<Whatever>(){}}},H=new{},I=new MixedClass(){[0]=new MixedClass{[0]=new MixedClass{M=5.01m}},M=2.71m,[0]=new MixedClass()}}}",
+                "new SomeClass { A = 1, B = new SomeOtherClass() { D = 7, E = 0, F = new int[] { 1, 2, 3 } }, C = new { G = new List<AndAnotherClass> { new AndAnotherClass { J = 8, K = new Dictionary<int, int> { [1] = 0, [2] = 0, [3] = 0 }, L = new List<Whatever>() { } } }, H = new { }, I = new MixedClass() { [0] = new MixedClass { [0] = new MixedClass { M = 5.01m } }, M = 2.71m, [0] = new MixedClass() } } }");
+        }
+
+        private void VerifyInsideInterpolationAndAttribute(string text, string expected)
+        {
+            //TestNormalizeExpression("$\"{" + text + "}\"", "$\"{" + expected + "}\"");
+            TestNormalizeDeclaration($"[SomeAttribute({text})]", $"[SomeAttribute({expected})]");
         }
     }
 }
