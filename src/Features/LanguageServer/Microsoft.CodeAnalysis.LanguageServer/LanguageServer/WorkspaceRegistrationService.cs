@@ -10,13 +10,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 /// Implements the workspace registration service so that any new workspaces we
 /// create are automatically registered by <see cref="LspWorkspaceRegistrationEventListener"/>
 /// </summary>
-[Export(typeof(LspWorkspaceRegistrationService))]
+[Export(typeof(LspWorkspaceRegistrationService)), Shared]
 internal class WorkspaceRegistrationService : LspWorkspaceRegistrationService
 {
+    [ImportingConstructor]
+    public WorkspaceRegistrationService()
+    {
+
+    }
+
     public override string GetHostWorkspaceKind()
     {
         // For now mark the host workspace kind as the 'main' workspace where
         // 'workspace/XXXX' requests go to.
-        return WorkspaceKind.Host;
+        return WorkspaceKind.MSBuild;
     }
 }
