@@ -4433,7 +4433,7 @@ class innerClass
         {
             var code = @"			       W   )b";
 
-            var expected = @"			       W   )b";
+            var expected = @"W   )b";
 
             await AssertFormatAsync(expected, code);
         }
