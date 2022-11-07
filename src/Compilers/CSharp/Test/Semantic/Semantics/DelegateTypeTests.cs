@@ -14078,18 +14078,6 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
         }
 
         [Fact]
-        public void ParamsArray_CommonType_Methods()
-        {
-            var source = """
-                int MethodNoParams(int[] xs) => xs.Length;
-                int MethodWithParams(params int[] xs) => xs.Length;
-                var a = new[] { MethodNoParams, MethodNoParams };
-                System.Console.WriteLine(a.GetType());
-                """;
-            CompileAndVerify(source, expectedOutput: "System.Func`2[System.Int32[],System.Int32][]");
-        }
-
-        [Fact]
         public void DefaultsParamsConversion_Spec()
         {
             var source = """
