@@ -2,28 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.NamingStyles;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSetSources
 {
+    using static SymbolSpecification;
+
     [Trait(Traits.Feature, Traits.Features.Completion)]
     public class DeclarationNameCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
@@ -2817,6 +2813,76 @@ class C
             await VerifyItemIsAbsentAsync(markup, "consoleColor");
         }
 
+        [Fact, WorkItem(29487, "https://github.com/dotnet/roslyn/issues/29487")]
+        public async Task TestForOutParam1()
+        {
+            var markup = @"
+using System.Threading;
+
+class C
+{
+    void Main()
+    {
+        Goo(out var $$)
+    }
+
+    void Goo(out CancellationToken interestingName)
+    {
+
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "interestingName");
+            await VerifyItemExistsAsync(markup, "cancellationToken");
+        }
+
+        [Fact, WorkItem(43602, "https://github.com/dotnet/roslyn/issues/43602")]
+        public async Task TestForOutParam2()
+        {
+            var markup = @"
+class C
+{
+    void Main()
+    {
+        int.TryParse("""", out var $$)
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "result");
+        }
+
+        [Fact, WorkItem(49791, "https://github.com/dotnet/roslyn/issues/49791")]
+        public async Task TestForErrorType1()
+        {
+            var markup = @"
+class C
+{
+    void Main(string _rootPath)
+    {
+        _rootPath $$
+        _rootPath = null;
+    }
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact, WorkItem(49791, "https://github.com/dotnet/roslyn/issues/49791")]
+        public async Task TestForErrorType2()
+        {
+            var markup = @"
+class C
+{
+    void Main()
+    {
+        Goo $$
+        Goo = null;
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "goo");
+        }
+
         private static NamingStylePreferences MultipleCamelCaseLocalRules()
         {
             var styles = new[]
@@ -2926,13 +2992,11 @@ class C
         }
 
         private static SerializableNamingRule CreateRule(SymbolSpecification specification, NamingStyle style)
-        {
-            return new SerializableNamingRule()
+            => new()
             {
                 SymbolSpecificationID = specification.ID,
                 NamingStyleID = style.ID,
                 EnforcementLevel = ReportDiagnostic.Error
             };
-        }
     }
 }

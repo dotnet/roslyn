@@ -55,8 +55,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
             var expectedCaretMarkupEndIndex = expectedCaretIndex + "$$".Length;
 
-            var expectedTextBeforeCaret = expectedText.Substring(0, expectedCaretIndex);
-            var expectedTextAfterCaret = expectedText.Substring(expectedCaretMarkupEndIndex);
+            var expectedTextBeforeCaret = expectedText[..expectedCaretIndex];
+            var expectedTextAfterCaret = expectedText[expectedCaretMarkupEndIndex..];
 
             var lineText = await TestServices.Editor.GetCurrentLineTextAsync(cancellationToken);
             var lineTextBeforeCaret = await TestServices.Editor.GetLineTextBeforeCaretAsync(cancellationToken);

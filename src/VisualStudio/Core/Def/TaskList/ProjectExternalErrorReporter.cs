@@ -337,10 +337,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         {
             if (!string.IsNullOrEmpty(errorId) && errorId.Length > 2)
             {
-                var prefix = errorId.Substring(0, 2);
+                var prefix = errorId[..2];
                 if (prefix.Equals("CS", StringComparison.OrdinalIgnoreCase) || prefix.Equals("BC", StringComparison.OrdinalIgnoreCase))
                 {
-                    var suffix = errorId.Substring(2);
+                    var suffix = errorId[2..];
                     return int.TryParse(suffix, out _);
                 }
             }
