@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
@@ -92,6 +93,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             task.ContinueWith(
                 static (task, channel) => ((Channel<T>)channel!).Writer.Complete(task.Exception),
                 channel, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+        }
+
+        /// Tasks an array of value producing tasks and produces a stream of results out of them.  Like <see
+        /// cref="MergeAsync{T}"/> absolutely no ordering guarantee is provided.  It will be expected that the
+        /// individual values from distinct tasks will be interleaved together.
+        /// </summary>
+        public static IAsyncEnumerable<T> StreamAsync<T>(this ImmutableArray<Task<T>> tasks, CancellationToken cancellationToken)
+        {
+            return tasks.SelectAsArray(static (t, cancellationToken) => CreateStream(t, cancellationToken), cancellationToken).MergeAsync(cancellationToken);
+
+            static async IAsyncEnumerable<T> CreateStream(
+                Task<T> task, [EnumeratorCancellation] CancellationToken cancellationToken)
+            {
+                yield return await task.ConfigureAwait(false);
+            }
         }
     }
 }
