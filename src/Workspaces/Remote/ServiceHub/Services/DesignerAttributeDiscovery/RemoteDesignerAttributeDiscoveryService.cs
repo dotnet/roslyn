@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _callback = callback;
         }
 
-        private Func<ImmutableArray<DesignerAttributeData>, ValueTask> GetCallback(
+        private Func<DesignerAttributeData, ValueTask> GetCallback(
             RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
         {
             return data => _callback.InvokeAsync((callback, cancellationToken) =>

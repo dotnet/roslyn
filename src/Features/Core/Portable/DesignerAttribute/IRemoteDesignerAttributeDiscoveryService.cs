@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
     {
         internal interface ICallback
         {
-            ValueTask ReportDesignerAttributeDataAsync(RemoteServiceCallbackId callbackId, ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken);
+            ValueTask ReportDesignerAttributeDataAsync(RemoteServiceCallbackId callbackId, DesignerAttributeData data, CancellationToken cancellationToken);
         }
 
         ValueTask DiscoverDesignerAttributesAsync(RemoteServiceCallbackId callbackId, Checksum solutionChecksum, ProjectId project, DocumentId? priorityDocument, CancellationToken cancellationToken);
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         private new DesignerAttributeDiscoveryCallback GetCallback(RemoteServiceCallbackId callbackId)
             => (DesignerAttributeDiscoveryCallback)base.GetCallback(callbackId);
 
-        public ValueTask ReportDesignerAttributeDataAsync(RemoteServiceCallbackId callbackId, ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
+        public ValueTask ReportDesignerAttributeDataAsync(RemoteServiceCallbackId callbackId, DesignerAttributeData data, CancellationToken cancellationToken)
             => GetCallback(callbackId).ReportDesignerAttributeDataAsync(data, cancellationToken);
     }
 
@@ -54,12 +54,11 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             _channel = channel;
         }
 
-        public async ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
+        public async ValueTask ReportDesignerAttributeDataAsync(DesignerAttributeData data, CancellationToken cancellationToken)
         {
             try
             {
-                foreach (var item in data)
-                    await _channel.Writer.WriteAsync(item, cancellationToken).ConfigureAwait(false);
+                await _channel.Writer.WriteAsync(data, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex))
             {
