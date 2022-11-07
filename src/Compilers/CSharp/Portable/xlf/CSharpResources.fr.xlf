@@ -2153,8 +2153,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParamsArrayInLambdaOnly_Title">
-        <source>Parameter {0} has params modifier in lambda but not in target delegate type.</source>
-        <target state="new">Parameter {0} has params modifier in lambda but not in target delegate type.</target>
+        <source>Parameter has params modifier in lambda but not in target delegate type.</source>
+        <target state="new">Parameter has params modifier in lambda but not in target delegate type.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
