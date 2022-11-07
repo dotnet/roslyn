@@ -3,46 +3,55 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+namespace Microsoft.CodeAnalysis.Rename
 {
-    internal abstract partial class AbstractEditorInlineRenameService : IEditorInlineRenameService
+    internal sealed class SymbolicRenameInfo
     {
-        private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
-        private readonly IGlobalOptionService _globalOptions;
+        private SymbolicRenameInfo(string localizedErrorMessage)
+            => this.LocalizedErrorMessage = localizedErrorMessage;
 
-        protected AbstractEditorInlineRenameService(IEnumerable<IRefactorNotifyService> refactorNotifyServices, IGlobalOptionService globalOptions)
+        private SymbolicRenameInfo(
+            Document document,
+            SyntaxToken triggerToken,
+            string triggerText,
+            ISymbol symbol,
+            bool forceRenameOverloads,
+            ImmutableArray<DocumentSpan> documentSpans)
         {
-            _refactorNotifyServices = refactorNotifyServices;
-            _globalOptions = globalOptions;
+            Document = document;
+            TriggerToken = triggerToken;
+            TriggerText = triggerText;
+            Symbol = symbol;
+            ForceRenameOverloads = forceRenameOverloads;
+            DocumentSpans = documentSpans;
         }
 
-        protected abstract bool CheckLanguageSpecificIssues(
-            SemanticModel semantic, ISymbol symbol, SyntaxToken triggerToken, [NotNullWhen(true)] out string? langError);
+        public string? LocalizedErrorMessage { get; }
 
-        public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
+        public Document Document { get; }
+        public SyntaxToken TriggerToken { get; }
+        public string TriggerText { get; }
+        public ISymbol Symbol { get; }
+        public bool ForceRenameOverloads { get; }
+        public ImmutableArray<DocumentSpan> DocumentSpans { get; }
+
+        public static async Task<SymbolicRenameInfo> GetRenameInfoAsync(
+            Document document, int position, CancellationToken cancellationToken)
         {
             var triggerToken = await GetTriggerTokenAsync(document, position, cancellationToken).ConfigureAwait(false);
-
             if (triggerToken == default)
-            {
-                return new FailureInlineRenameInfo(EditorFeaturesResources.You_must_rename_an_identifier);
-            }
+                return new SymbolicRenameInfo(FeaturesResources.You_must_rename_an_identifier);
 
-            return await GetRenameInfoAsync(_refactorNotifyServices, document, triggerToken, cancellationToken).ConfigureAwait(false);
+            return await GetRenameInfoAsync(document, triggerToken, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<SyntaxToken> GetTriggerTokenAsync(Document document, int position, CancellationToken cancellationToken)
@@ -53,14 +62,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             return token;
         }
 
-        private async Task<IInlineRenameInfo> GetRenameInfoAsync(
-            IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-            Document document, SyntaxToken triggerToken,
+        public static async Task<SymbolicRenameInfo> GetRenameInfoAsync(
+            Document document,
+            SyntaxToken triggerToken,
             CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             if (syntaxFacts.IsReservedOrContextualKeyword(triggerToken))
-                return new FailureInlineRenameInfo(EditorFeaturesResources.You_must_rename_an_identifier);
+                return new SymbolicRenameInfo(FeaturesResources.You_must_rename_an_identifier);
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
@@ -72,24 +81,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // RenameOverloads option to be on.
             var triggerSymbol = tokenRenameInfo.HasSymbols ? tokenRenameInfo.Symbols.First() : null;
             if (triggerSymbol == null)
-                return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
+                return new SymbolicRenameInfo(FeaturesResources.You_cannot_rename_this_element);
 
             // see https://github.com/dotnet/roslyn/issues/10898
             // we are disabling rename for tuple fields for now
             // 1) compiler does not return correct location information in these symbols
             // 2) renaming tuple fields seems a complex enough thing to require some design
             if (triggerSymbol.ContainingType?.IsTupleType == true)
-                return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
+                return new SymbolicRenameInfo(FeaturesResources.You_cannot_rename_this_element);
 
             // If rename is invoked on a member group reference in a nameof expression, then the
             // RenameOverloads option should be forced on.
             var forceRenameOverloads = tokenRenameInfo.IsMemberGroup;
             var symbol = await RenameUtilities.TryGetRenamableSymbolAsync(document, triggerToken.SpanStart, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (symbol == null)
-                return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
+                return new SymbolicRenameInfo(FeaturesResources.You_cannot_rename_this_element);
 
             if (symbol.Kind == SymbolKind.Alias && symbol.IsExtern)
-                return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
+                return new SymbolicRenameInfo(FeaturesResources.You_cannot_rename_this_element);
 
             // Cannot rename constructors in VB.  TODO: this logic should be in the VB subclass of this type.
             if (symbol.Kind == SymbolKind.NamedType &&
@@ -100,11 +109,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     semanticModel, triggerToken.SpanStart, document.Project.Solution.Services, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 if (originalSymbol != null && originalSymbol.IsConstructor())
-                    return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
+                    return new SymbolicRenameInfo(FeaturesResources.You_cannot_rename_this_element);
             }
 
-            if (CheckLanguageSpecificIssues(semanticModel, symbol, triggerToken, out var langError))
-                return new FailureInlineRenameInfo(langError);
+            var issuesService = document.GetRequiredLanguageService<IRenameIssuesService>();
+            if (issuesService.CheckLanguageSpecificIssues(semanticModel, symbol, triggerToken, out var langError))
+                return new SymbolicRenameInfo(langError);
 
             // we allow implicit locals and parameters of Event handlers
             if (symbol.IsImplicitlyDeclared &&
@@ -118,27 +128,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // We enable the parameter in RaiseEvent, if the Event is declared with a signature. If the Event is declared as a 
                 // delegate type, we do not have a connection between the delegate type and the event.
                 // this prevents a rename in this case :(.
-                return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
+                return new SymbolicRenameInfo(FeaturesResources.You_cannot_rename_this_element);
             }
 
             if (symbol.Kind == SymbolKind.Property && symbol.ContainingType.IsAnonymousType)
-                return new FailureInlineRenameInfo(EditorFeaturesResources.Renaming_anonymous_type_members_is_not_yet_supported);
+                return new SymbolicRenameInfo(FeaturesResources.Renaming_anonymous_type_members_is_not_yet_supported);
 
             if (symbol.IsErrorType())
-                return new FailureInlineRenameInfo(EditorFeaturesResources.Please_resolve_errors_in_your_code_before_renaming_this_element);
+                return new SymbolicRenameInfo(FeaturesResources.Please_resolve_errors_in_your_code_before_renaming_this_element);
 
             if (symbol.Kind == SymbolKind.Method && ((IMethodSymbol)symbol).MethodKind == MethodKind.UserDefinedOperator)
-                return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_operators);
+                return new SymbolicRenameInfo(FeaturesResources.You_cannot_rename_operators);
 
             var symbolLocations = symbol.Locations;
 
             // Does our symbol exist in an unchangeable location?
-            var documentSpans = ArrayBuilder<DocumentSpan>.GetInstance();
+            using var _ = ArrayBuilder<DocumentSpan>.GetInstance(out var documentSpans);
             foreach (var location in symbolLocations)
             {
                 if (location.IsInMetadata)
                 {
-                    return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_elements_that_are_defined_in_metadata);
+                    return new SymbolicRenameInfo(FeaturesResources.You_cannot_rename_elements_that_are_defined_in_metadata);
                 }
                 else if (location.IsInSource)
                 {
@@ -148,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     if (sourceDocument is SourceGeneratedDocument)
                     {
                         // The file is generated so we can't go editing it (for now)
-                        return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
+                        return new SymbolicRenameInfo(FeaturesResources.You_cannot_rename_this_element);
                     }
 
                     if (document.Project.IsSubmission)
@@ -156,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         var projectIdOfLocation = sourceDocument.Project.Id;
 
                         if (solution.Projects.Any(p => p.IsSubmission && p.ProjectReferences.Any(r => r.ProjectId == projectIdOfLocation)))
-                            return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_elements_from_previous_submissions);
+                            return new SymbolicRenameInfo(FeaturesResources.You_cannot_rename_elements_from_previous_submissions);
                     }
                     else
                     {
@@ -166,18 +176,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
                 else
                 {
-                    return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
+                    return new SymbolicRenameInfo(FeaturesResources.You_cannot_rename_this_element);
                 }
             }
 
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var triggerText = sourceText.ToString(triggerToken.Span);
-            var fallbackOptions = _globalOptions.CreateProvider();
 
-            return new SymbolInlineRenameInfo(
-                refactorNotifyServices, document, triggerToken.Span, triggerText,
-                symbol, forceRenameOverloads, documentSpans.ToImmutableAndFree(),
-                fallbackOptions, cancellationToken);
+            return new SymbolicRenameInfo(
+                document, triggerToken, triggerText, symbol, forceRenameOverloads, documentSpans.ToImmutable());
         }
     }
 }
