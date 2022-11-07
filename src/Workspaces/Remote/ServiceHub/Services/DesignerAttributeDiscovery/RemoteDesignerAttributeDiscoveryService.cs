@@ -77,8 +77,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     var project = solution.GetRequiredProject(projectId);
                     var service = solution.Services.GetRequiredService<IDesignerAttributeDiscoveryService>();
-                    return service.ProcessSolutionAsync(
-                        solution, priorityDocument, new CallbackWrapper(_callback, callbackId), cancellationToken);
+                    return PushToCallbackAsync(
+                        callbackId,
+                        service.ProcessProjectAsync(project, priorityDocument, cancellationToken),
+                        cancellationToken);
                 },
                 cancellationToken);
         }
