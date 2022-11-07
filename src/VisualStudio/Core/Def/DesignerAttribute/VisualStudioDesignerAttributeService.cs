@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
@@ -206,15 +207,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             if (!_projectToLastComputedDependentSemanticVersion.TryGetValue(project.Id, out var lastComputedVersion) ||
                 lastComputedVersion != dependentSemanticVersion)
             {
-                var stream = client.TryInvokeStreamAsync<IRemoteDesignerAttributeDiscoveryService, DesignerAttributeData>(
-                    project,
-                    (service, checksum, cancellationToken) => service.DiscoverDesignerAttributesAsync(checksum, project.Id, priorityDocumentId, cancellationToken),
-                    cancellationToken);
-
+                // get the results and add all the documents we hear about to the notification queue so they can be batched up.
                 using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenDocuments);
 
-                // get the results and add all the documents we hear about to the notification queue so they can be batched up.
-                await foreach (var data in stream.ConfigureAwait(false))
+                await foreach (var data in GetDataStream().ConfigureAwait(false))
                 {
                     seenDocuments.Add(data.DocumentId);
                     _projectSystemNotificationQueue.AddWork((solution: null, data));
@@ -238,6 +234,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
                 // now that we're done processing the project, record this version-stamp so we don't have to process it again in the future.
                 _projectToLastComputedDependentSemanticVersion[project.Id] = dependentSemanticVersion;
+            }
+
+            return;
+
+            IAsyncEnumerable<DesignerAttributeData> GetDataStream()
+            {
+                var channel = Channel.CreateUnbounded<DesignerAttributeData>();
+
+                // Kick off the work to do the search in another thread.  That work will push the results into the
+                // channel.  When the work finishes (for any reason, including cancellation), the channel will be 
+                // completed.
+                Task.Run(async () => await client.TryInvokeAsync<IRemoteDesignerAttributeDiscoveryService>(
+                        project.Solution,
+                        (service, solutionInfo, callbackId, cancellationToken) =>
+                            service.DiscoverDesignerAttributesAsync(solutionInfo, project.Id, priorityDocumentId, callbackId, cancellationToken),
+                        new DesignerAttributeDiscoveryCallback(channel), cancellationToken).ConfigureAwait(false), cancellationToken)
+                    .CompletesChannel(channel);
+
+                return channel.Reader.ReadAllAsync(cancellationToken);
             }
         }
 

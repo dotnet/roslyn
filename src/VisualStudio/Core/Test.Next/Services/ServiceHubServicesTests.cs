@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DesignerAttribute;
@@ -27,6 +28,7 @@ using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 {
@@ -136,15 +138,19 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
             await remoteWorkspace.UpdatePrimaryBranchSolutionAsync(assetProvider, solutionChecksum, solution.WorkspaceVersion, CancellationToken.None);
 
-            using var connection = client.CreateConnection<IRemoteDesignerAttributeDiscoveryService>(callbackTarget: null);
+            var channel = Channel.CreateUnbounded<DesignerAttributeData>();
 
-            var stream = connection.TryInvokeStreamAsync(
+            Task.Run(async () => await client.TryInvokeAsync<IRemoteDesignerAttributeDiscoveryService>(
                 solution,
-                (service, checksum, cancellationToken) => service.DiscoverDesignerAttributesAsync(checksum, solution.Projects.Single().Id, priorityDocument: null, cancellationToken),
-                cancellationTokenSource.Token);
+                (service, checksum, callbackId, cancellationToken) =>
+                    service.DiscoverDesignerAttributesAsync(checksum, solution.Projects.Single().Id, priorityDocument: null, callbackId, cancellationToken),
+                new DesignerAttributeDiscoveryCallback(channel),
+                cancellationTokenSource.Token)).CompletesChannel(channel);
+
+            var stream = channel.Reader.ReadAllAsync(cancellationTokenSource.Token);
 
             var items = new List<DesignerAttributeData>();
-            await foreach (var item in stream)
+            await foreach (var item in stream.ConfigureAwait(false))
                 items.Add(item);
 
             Assert.Equal(1, items.Count);

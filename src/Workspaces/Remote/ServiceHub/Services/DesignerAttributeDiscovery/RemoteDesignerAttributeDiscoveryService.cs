@@ -15,23 +15,6 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed class RemoteDesignerAttributeDiscoveryService : BrokeredServiceBase, IRemoteDesignerAttributeDiscoveryService
     {
-        //private sealed class CallbackWrapper : IDesignerAttributeDiscoveryService.ICallback
-        //{
-        //    private readonly RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> _callback;
-        //    private readonly RemoteServiceCallbackId _callbackId;
-
-        //    public CallbackWrapper(
-        //        RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> callback,
-        //        RemoteServiceCallbackId callbackId)
-        //    {
-        //        _callback = callback;
-        //        _callbackId = callbackId;
-        //    }
-
-        //    public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
-        //        => _callback.InvokeAsync((callback, cancellationToken) => callback.ReportDesignerAttributeDataAsync(_callbackId, data, cancellationToken), cancellationToken);
-        //}
-
         internal sealed class Factory : FactoryBase<IRemoteDesignerAttributeDiscoveryService, IRemoteDesignerAttributeDiscoveryService.ICallback>
         {
             protected override IRemoteDesignerAttributeDiscoveryService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> callback)
@@ -65,10 +48,10 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask DiscoverDesignerAttributesAsync(
-            RemoteServiceCallbackId callbackId,
             Checksum solutionChecksum,
             ProjectId projectId,
             DocumentId? priorityDocument,
+            RemoteServiceCallbackId callbackId,
             CancellationToken cancellationToken)
         {
             return RunServiceAsync(

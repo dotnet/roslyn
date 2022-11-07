@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             ValueTask ReportDesignerAttributeDataAsync(RemoteServiceCallbackId callbackId, DesignerAttributeData data, CancellationToken cancellationToken);
         }
 
-        ValueTask DiscoverDesignerAttributesAsync(RemoteServiceCallbackId callbackId, Checksum solutionChecksum, ProjectId project, DocumentId? priorityDocument, CancellationToken cancellationToken);
+        ValueTask DiscoverDesignerAttributesAsync(Checksum solutionChecksum, ProjectId project, DocumentId? priorityDocument, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
     }
 
     [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteDesignerAttributeDiscoveryService)), Shared]
