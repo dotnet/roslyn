@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
     /// </summary>
     internal interface IRemoteDesignerAttributeDiscoveryService
     {
-        internal interface ICallback
+        ValueTask DiscoverDesignerAttributesAsync(Checksum solutionChecksum, ProjectId project, DocumentId? priorityDocument, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+
+        public interface ICallback
         {
             ValueTask ReportDesignerAttributeDataAsync(RemoteServiceCallbackId callbackId, DesignerAttributeData data, CancellationToken cancellationToken);
         }
-
-        ValueTask DiscoverDesignerAttributesAsync(Checksum solutionChecksum, ProjectId project, DocumentId? priorityDocument, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
     }
 
     [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteDesignerAttributeDiscoveryService)), Shared]
