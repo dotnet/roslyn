@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             if (index != null)
             {
                 await foreach (var item in ProcessIndexAsync(
-                documentKey.Id, document: null, patternName, patternContainer, kinds, index, cancellationToken).ConfigureAwait(false))
+                    documentKey.Id, document: null, patternName, patternContainer, kinds, index, cancellationToken).ConfigureAwait(false))
                 {
                     yield return item;
                 }
