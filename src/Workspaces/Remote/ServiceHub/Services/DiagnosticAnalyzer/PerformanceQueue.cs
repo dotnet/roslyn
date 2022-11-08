@@ -22,17 +22,20 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         private readonly int _maxSampleSize, _minSampleSize;
         private readonly LinkedList<Snapshot> _snapshots;
 
-        public PerformanceQueue(int maxSampleSize, int minSampleSize)
-        {
-            Contract.ThrowIfFalse(maxSampleSize > minSampleSize);
+        private int _spanshotsSinceLastReport;
 
-            _maxSampleSize = maxSampleSize;
+        public PerformanceQueue(int minSampleSize)
+        {
+            // We allow at most 3 times the number of samples in the queue and
+            // use sliding window algorithm to choose the latest 'minSampleSize' samples.
+            _maxSampleSize = minSampleSize * 3;
+
             _minSampleSize = minSampleSize;
             _snapshots = new LinkedList<Snapshot>();
+            _spanshotsSinceLastReport = 0;
         }
 
         public int Count => _snapshots.Count;
-
         public void Add(IEnumerable<(string analyzerId, TimeSpan timeSpan)> rawData, int unitCount)
         {
             if (_snapshots.Count < _maxSampleSize)
@@ -49,15 +52,19 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 first.Value.Update(rawData, unitCount);
                 _snapshots.AddLast(first);
             }
+
+            _spanshotsSinceLastReport++;
         }
 
-        public void GetPerformanceData(Dictionary<string, (double average, double stddev)> aggregatedPerformanceDataPerAnalyzer)
+        public void GetPerformanceData(List<(string analyzerId, double average, double stddev)> aggregatedPerformanceDataPerAnalyzer)
         {
-            if (_snapshots.Count < _minSampleSize)
+            if (_spanshotsSinceLastReport < _minSampleSize)
             {
                 // we don't have enough data to report this
                 return;
             }
+
+            _spanshotsSinceLastReport = 0;
 
             using var pooledMap = SharedPools.Default<Dictionary<int, string>>().GetPooledObject();
             using var pooledSet = SharedPools.Default<HashSet<int>>().GetPooledObject();
@@ -99,7 +106,9 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 }
 
                 // set performance data
-                aggregatedPerformanceDataPerAnalyzer[reverseMap[assignedAnalyzerNumber]] = GetAverageAndAdjustedStandardDeviation(list);
+                var analyzerId = reverseMap[assignedAnalyzerNumber];
+                var (average, stddev) = GetAverageAndAdjustedStandardDeviation(list);
+                aggregatedPerformanceDataPerAnalyzer.Add((analyzerId, average, stddev));
 
                 list.Clear();
             }

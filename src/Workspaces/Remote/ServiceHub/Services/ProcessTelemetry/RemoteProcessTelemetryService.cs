@@ -66,15 +66,14 @@ namespace Microsoft.CodeAnalysis.Remote
                     m["Framework"] = RuntimeInformation.FrameworkDescription;
                 }));
 
-#if DEBUG
                 // start performance reporter
                 var diagnosticAnalyzerPerformanceTracker = services.GetService<IPerformanceTrackerService>();
                 if (diagnosticAnalyzerPerformanceTracker != null)
                 {
                     var globalOperationNotificationService = services.GetService<IGlobalOperationNotificationService>();
-                    _performanceReporter = new PerformanceReporter(TraceLogger, telemetrySession, diagnosticAnalyzerPerformanceTracker, globalOperationNotificationService, _shutdownCancellationSource.Token);
+                    _performanceReporter = new PerformanceReporter(telemetrySession, diagnosticAnalyzerPerformanceTracker, globalOperationNotificationService, _shutdownCancellationSource.Token);
                 }
-#endif
+
                 return ValueTaskFactory.CompletedTask;
             }, cancellationToken);
         }

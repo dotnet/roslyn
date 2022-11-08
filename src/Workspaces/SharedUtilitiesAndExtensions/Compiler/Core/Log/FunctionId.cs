@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         LiveTableDataSource_OnDiagnosticsUpdated = 333,
         Experiment_KeybindingsReset = 334,
         Diagnostics_GeneratePerformaceReport = 335,
-        Diagnostics_BadAnalyzer = 336,
+        // obsolete: Diagnostics_BadAnalyzer = 336,
         CodeAnalysisService_ReportAnalyzerPerformance = 337,
         PerformanceTrackerService_AddSnapshot = 338,
         // obsolete: AbstractProject_SetIntelliSenseBuild = 339,
@@ -576,6 +576,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         SourceGenerator_SolutionStatistics = 620,
         SourceGenerator_OtherWorkspaceSessionStatistics = 621,
+
+        Diagnostics_AnalyzerPerformanceInfo = 622,
 
         // 630-650 for sqlite errors.
         SQLite_SqlException = 630,
