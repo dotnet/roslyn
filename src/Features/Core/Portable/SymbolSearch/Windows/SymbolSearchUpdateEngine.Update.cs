@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             }
 
             /// <summary>Returns 'null' if download is not available and caller should keep polling.</summary>
-            private async Task<(XElement? element, TimeSpan delay)> TryDownloadFileAsync(IFileDownloader fileDownloader, CancellationToken cancellationToken)
+            private async Task<(XElement element, TimeSpan delay)> TryDownloadFileAsync(IFileDownloader fileDownloader, CancellationToken cancellationToken)
             {
                 await LogInfoAsync("Read file from client", cancellationToken).ConfigureAwait(false);
 
