@@ -14257,5 +14257,76 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 // D d1 = (int a, int b = 2, params int[] c) => { }; // 1, 2
                 Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(1, 41));
         }
+
+        [Fact]
+        public void Lambda_DefaultParameters_BreakingChange()
+        {
+            var source = """
+                void MethodWithDefault(int i = 0) { }
+                var action = MethodWithDefault;
+                DoAction(action, 1);
+                void DoAction(System.Action<int> a, int p) => a(p);
+                """;
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+                // (3,10): error CS1503: Argument 1: cannot convert from '<anonymous delegate>' to 'System.Action<int>'
+                // DoAction(action, 1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "action").WithArguments("1", "<anonymous delegate>", "System.Action<int>").WithLocation(3, 10));
+        }
+        
+        [Fact]
+        public void Lambda_DefaultParameters_BreakingChange_CommonType()
+        {
+            var source = """
+                void MethodNoDefault(int i) { }
+                void MethodWithDefault1(int i = 1) { }
+                void MethodWithDefault2(int i = 2) { }
+                var arr = new[] { MethodNoDefault, MethodWithDefault1, MethodWithDefault2 };
+                """;
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+                // (4,11): error CS0826: No best type found for implicitly-typed array
+                // var arr = new[] { MethodNoDefault, MethodWithDefault1, MethodWithDefault2 };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { MethodNoDefault, MethodWithDefault1, MethodWithDefault2 }").WithLocation(4, 11));
+        }
+
+        [Fact]
+        public void Lambda_ParamsArray_BreakingChange()
+        {
+            var source = """
+                void MethodWithParams(params int[] xs) { }
+                var action = MethodWithParams;
+                DoAction(action, 1);
+                void DoAction(System.Action<int[]> a, int p) => a(new[] { p });
+                """;
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+                // (3,10): error CS1503: Argument 1: cannot convert from '<anonymous delegate>' to 'System.Action<int[]>'
+                // DoAction(action, 1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "action").WithArguments("1", "<anonymous delegate>", "System.Action<int[]>").WithLocation(3, 10));
+        }
+
+        [Fact]
+        public void Lambda_ParamsArray_BreakingChange_CommonType()
+        {
+            var source = """
+                void MethodNoParams(int[] xs) { }
+                void MethodWithParams(params int[] xs) { }
+                var arr = new[] { MethodNoParams, MethodWithParams };
+                """;
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+                // (3,11): error CS0826: No best type found for implicitly-typed array
+                // var arr = new[] { MethodNoParams, MethodWithParams };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { MethodNoParams, MethodWithParams }").WithLocation(3, 11));
+        }
     }
 }
