@@ -727,12 +727,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                if (_lazyIteratorElementType == TypeWithAnnotations.Boxed.Sentinel)
+                {
+                    TypeWithAnnotations elementType = InMethodBinder.GetIteratorElementTypeFromReturnType(DeclaringCompilation, RefKind, ReturnType, errorLocation: null, diagnostics: null);
+
+                    if (elementType.IsDefault)
+                    {
+                        elementType = TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(DeclaringCompilation, name: "", arity: 0, errorInfo: null, unreported: false));
+                    }
+
+                    Interlocked.CompareExchange(ref _lazyIteratorElementType, new TypeWithAnnotations.Boxed(elementType), TypeWithAnnotations.Boxed.Sentinel);
+
+                    Debug.Assert(TypeSymbol.Equals(_lazyIteratorElementType.Value.Type, elementType.Type, TypeCompareKind.ConsiderEverything));
+                }
+
                 return _lazyIteratorElementType?.Value ?? default;
-            }
-            set
-            {
-                Debug.Assert(_lazyIteratorElementType == TypeWithAnnotations.Boxed.Sentinel || TypeSymbol.Equals(_lazyIteratorElementType.Value.Type, value.Type, TypeCompareKind.ConsiderEverything2));
-                Interlocked.CompareExchange(ref _lazyIteratorElementType, new TypeWithAnnotations.Boxed(value), TypeWithAnnotations.Boxed.Sentinel);
             }
         }
 

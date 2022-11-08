@@ -1898,19 +1898,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<LocalSymbol> locals = GetDeclaredLocalsForScope(node);
 
-            if (IsDirectlyInIterator)
-            {
-                var method = ContainingMemberOrLambda as MethodSymbol;
-                if ((object)method != null)
-                {
-                    method.IteratorElementTypeWithAnnotations = GetIteratorElementType();
-                }
-                else
-                {
-                    Debug.Assert(diagnostics.DiagnosticBag is null || !diagnostics.DiagnosticBag.IsEmptyWithoutResolution);
-                }
-            }
-
             return new BoundBlock(
                 node,
                 locals,

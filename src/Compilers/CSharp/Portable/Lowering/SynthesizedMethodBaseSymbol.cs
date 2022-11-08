@@ -244,11 +244,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return _iteratorElementType.Value;
             }
-            set
-            {
-                Debug.Assert(!value.IsDefault);
-                Interlocked.Exchange(ref _iteratorElementType, new TypeWithAnnotations.Boxed(value));
-            }
         }
 
         internal override bool IsIterator => BaseMethod.IsIterator;
