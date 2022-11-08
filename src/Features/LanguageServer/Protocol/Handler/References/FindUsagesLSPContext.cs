@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -27,7 +28,7 @@ using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     internal sealed class FindUsagesLSPContext : FindUsagesContext
     {
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         /// Keeps track of definitions that cannot be reported without references and which we have
         /// not yet found a reference for.
         /// </summary>
-        private readonly Dictionary<int, VSInternalReferenceItem> _definitionsWithoutReference = new();
+        private readonly Dictionary<int, SumType<VSInternalReferenceItem, LSP.Location>> _definitionsWithoutReference = new();
 
         /// <summary>
         /// Set of the locations we've found references at.  We may end up with multiple references
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
                 // Creating a new VSReferenceItem for the definition
                 var definitionItem = await GenerateVSReferenceItemAsync(
-                    definitionId: _id, definition.SourceSpans.FirstOrNull(),
+                    definitionId: _id, id: _id, definition.SourceSpans.FirstOrNull(),
                     definition.DisplayableProperties, definition.GetClassifiedText(),
                     definition.Tags.GetFirstGlyph(), symbolUsageInfo: null, isWrittenTo: false, cancellationToken).ConfigureAwait(false);
 
@@ -125,11 +126,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                     // have to hold off on reporting it until later when we do find a reference.
                     if (definition.DisplayIfNoReferences)
                     {
-                        _workQueue.AddWork(definitionItem);
+                        _workQueue.AddWork(definitionItem.Value);
                     }
                     else
                     {
-                        _definitionsWithoutReference.Add(definitionItem.Id, definitionItem);
+                        _definitionsWithoutReference.Add(_id, definitionItem.Value);
                     }
                 }
             }
@@ -159,23 +160,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                     _definitionsWithoutReference.Remove(definitionId);
                 }
 
+                // give this reference a fresh id.
                 _id++;
 
                 // Creating a new VSReferenceItem for the reference
                 var referenceItem = await GenerateVSReferenceItemAsync(
-                    definitionId, reference.SourceSpan,
+                    definitionId, _id, reference.SourceSpan,
                     reference.AdditionalProperties, definitionText: null,
                     definitionGlyph: Glyph.None, reference.SymbolUsageInfo, reference.IsWrittenTo, cancellationToken).ConfigureAwait(false);
 
                 if (referenceItem != null)
-                {
-                    _workQueue.AddWork(referenceItem);
-                }
+                    _workQueue.AddWork(referenceItem.Value);
             }
         }
 
-        private async Task<VSInternalReferenceItem?> GenerateVSReferenceItemAsync(
-            int? definitionId,
+        private async Task<SumType<VSInternalReferenceItem, LSP.Location>?> GenerateVSReferenceItemAsync(
+            int definitionId,
+            int id,
             DocumentSpan? documentSpan,
             ImmutableDictionary<string, string> properties,
             ClassifiedTextElement? definitionText,
@@ -184,16 +185,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             bool isWrittenTo,
             CancellationToken cancellationToken)
         {
-            var location = await ComputeLocationAsync(documentSpan, cancellationToken).ConfigureAwait(false);
-
             // Getting the text for the Text property. If we somehow can't compute the text, that means we're probably dealing with a metadata
             // reference, and those don't show up in the results list in Roslyn FAR anyway.
             var text = await ComputeTextAsync(definitionId, documentSpan, definitionText, isWrittenTo, cancellationToken).ConfigureAwait(false);
             if (text == null)
-            {
                 return null;
-            }
 
+            var location = await ComputeLocationAsync(documentSpan, cancellationToken).ConfigureAwait(false);
+            var service = _workspace.Services.GetRequiredService<ITextDocumentReferencesResultCreationService>();
+            return service.CreateReference(
+                definitionId, id, text, documentSpan, properties, definitionText, definitionGlyph, symbolUsageInfo, location);
+        }
+
+        private SumType<VSInternalReferenceItem, LSP.Location>? CreateItem(
+            int definitionId, int id, ClassifiedTextElement text, DocumentSpan? documentSpan, ImmutableDictionary<string, string> properties, ClassifiedTextElement? definitionText, Glyph definitionGlyph, SymbolUsageInfo? symbolUsageInfo, LSP.Location? location)
+        {
             var conversionService = _workspace.Services.GetRequiredService<IGlyphConversionService>();
             var guidAndId = conversionService.ConvertToImageId(definitionGlyph);
 
@@ -205,7 +211,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 DefinitionText = definitionText,    // Only definitions should have a non-null DefinitionText
                 DefinitionIcon = guidAndId is null ? null : new ImageElement(new ImageId(guidAndId.Value.guid, guidAndId.Value.id)),
                 DisplayPath = location?.Uri.LocalPath,
-                Id = _id,
+                Id = id,
                 Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : Array.Empty<VSInternalReferenceKind>(),
                 ResolutionStatus = VSInternalResolutionStatusKind.ConfirmedAsReference,
                 Text = text,
@@ -213,9 +219,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
             // There are certain items that may not have locations, such as namespace definitions.
             if (location != null)
-            {
                 result.Location = location;
-            }
 
             if (documentSpan != null)
             {
