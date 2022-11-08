@@ -192,6 +192,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
 
             var location = await ComputeLocationAsync(documentSpan, cancellationToken).ConfigureAwait(false);
+
+            // Defer to the host we're in to determine the sort of result to return.  In simple hosts this will just be
+            // a Location.  In richer hosts this can include far more data to enhance the user experience.
             var service = _workspace.Services.GetRequiredService<ILspReferencesResultCreationService>();
             return service.CreateReference(
                 definitionId, id, text, documentSpan, properties, definitionText, definitionGlyph, symbolUsageInfo, location);
