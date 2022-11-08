@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
         }
 
-        public SymbolInformation Create(string name, string containerName, LSP.SymbolKind kind, LSP.Location location, Glyph glyph)
+        public SymbolInformation Create(string name, string? containerName, LSP.SymbolKind kind, LSP.Location location, Glyph glyph)
         {
             var imageId = glyph.GetImageId();
             return new VSSymbolInformation

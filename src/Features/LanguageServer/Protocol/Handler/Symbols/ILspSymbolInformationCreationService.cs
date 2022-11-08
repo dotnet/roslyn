@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal interface ILspSymbolInformationCreationService : IWorkspaceService
     {
         SymbolInformation Create(
-            string name, string containerName, LSP.SymbolKind kind, LSP.Location location, Glyph glyph);
+            string name, string? containerName, LSP.SymbolKind kind, LSP.Location location, Glyph glyph);
     }
 
     [ExportWorkspaceService(typeof(ILspSymbolInformationCreationService)), Shared]
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public SymbolInformation Create(string name, string containerName, LSP.SymbolKind kind, LSP.Location location, Glyph glyph)
+        public SymbolInformation Create(string name, string? containerName, LSP.SymbolKind kind, LSP.Location location, Glyph glyph)
             => new()
             {
                 Name = name,
