@@ -165,10 +165,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     pendingEntities.Remove(analysisEntity);
                     FreeState_NoLock(state, pool);
-                    return true;
                 }
 
-                return false;
+                return true;
             }
 
             private bool TryStartSyntaxAnalysis_NoLock(SourceOrAdditionalFile file, [NotNullWhen(returnValue: true)] out AnalyzerStateData? state)
