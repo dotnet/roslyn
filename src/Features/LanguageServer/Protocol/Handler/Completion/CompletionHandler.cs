@@ -196,10 +196,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 CompletionItem item,
                 CancellationToken cancellationToken)
             {
-
                 var creationService = document.Project.Solution.Services.GetRequiredService<ILspCompletionResultCreationService>();
                 var lspItem = await creationService.CreateAsync(
-                    document, documentText, itemDefaultsSupported, defaultSpan, item, cancellationToken).ConfigureAwait(false);
+                    document, documentText, snippetsSupported, itemDefaultsSupported, defaultSpan, item, cancellationToken).ConfigureAwait(false);
 
                 // Generate display text
                 stringBuilder.Append(item.DisplayTextPrefix);
