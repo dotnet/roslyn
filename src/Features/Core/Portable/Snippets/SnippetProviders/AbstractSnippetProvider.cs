@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 
             // Takes out the first and last token since
             // those do not need elastic trivia added to them.
-            for (var i = 1; i < allTokens.Count() - 1; i++)
+            for (var i = 1; i < allTokens.Count - 1; i++)
             {
                 filteredTokens.Add(allTokens[i]);
             }
