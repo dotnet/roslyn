@@ -18,14 +18,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    [ExportWorkspaceService(typeof(IHoverCreationService), ServiceLayer.Editor), Shared]
-    internal sealed class EditorHoverCreationService : IHoverCreationService
+    [ExportWorkspaceService(typeof(ILspHoverResultCreationService), ServiceLayer.Editor), Shared]
+    internal sealed class EditorLspHoverResultCreationService : ILspHoverResultCreationService
     {
         private readonly IGlobalOptionService _optionService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditorHoverCreationService(IGlobalOptionService optionService)
+        public EditorLspHoverResultCreationService(IGlobalOptionService optionService)
         {
             _optionService = optionService;
         }
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var supportsVSExtensions = clientCapabilities.HasVisualStudioLspCapability();
 
             if (!supportsVSExtensions)
-                return DefaultHoverCreationService.CreateDefaultHover(text, language, info, clientCapabilities);
+                return DefaultLspHoverResultCreationService.CreateDefaultHover(text, language, info, clientCapabilities);
 
             var classificationOptions = _optionService.GetClassificationOptions(document.Project.Language);
 

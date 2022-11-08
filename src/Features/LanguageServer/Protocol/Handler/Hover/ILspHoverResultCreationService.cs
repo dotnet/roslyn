@@ -16,18 +16,18 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    internal interface IHoverCreationService : IWorkspaceService
+    internal interface ILspHoverResultCreationService : IWorkspaceService
     {
         Task<Hover> CreateHoverAsync(
             SourceText text, string language, QuickInfoItem info, Document? document, ClientCapabilities? clientCapabilities, CancellationToken cancellationToken);
     }
 
-    [ExportWorkspaceService(typeof(IHoverCreationService)), Shared]
-    internal sealed class DefaultHoverCreationService : IHoverCreationService
+    [ExportWorkspaceService(typeof(ILspHoverResultCreationService)), Shared]
+    internal sealed class DefaultLspHoverResultCreationService : ILspHoverResultCreationService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefaultHoverCreationService()
+        public DefaultLspHoverResultCreationService()
         {
         }
 

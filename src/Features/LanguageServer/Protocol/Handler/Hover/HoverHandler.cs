@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             ClientCapabilities? clientCapabilities,
             CancellationToken cancellationToken)
         {
-            var hoverService = solutionServices.GetRequiredService<IHoverCreationService>();
+            var hoverService = solutionServices.GetRequiredService<ILspHoverResultCreationService>();
             return await hoverService.CreateHoverAsync(
                 text, language, info, document, clientCapabilities, cancellationToken).ConfigureAwait(false);
         }
