@@ -10,7 +10,9 @@
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CodeFixesResources.resx" GenerateSource="true" Link="CodeFixesResources.resx" />
-    <None Include="$(MSBuildThisFileDirectory)CodeFixesResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)CodeFixesResources.resx">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AbstractAddAccessibilityModifiersCodeFixProvider.cs" />

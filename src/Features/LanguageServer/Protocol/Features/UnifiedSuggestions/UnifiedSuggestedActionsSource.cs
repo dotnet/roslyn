@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             {
                 // Wrap the suppression/configuration actions within another top level suggested action
                 // to avoid clutter in the light bulb menu.
-                var suppressOrConfigureCodeAction = NoChangeAction.Create(CodeFixesResources.Suppress_or_Configure_issues, nameof(CodeFixesResources.Suppress_or_Configure_issues));
+                var suppressOrConfigureCodeAction = NoChangeAction.Create(CodeFixesResources.Suppress_or_configure_issues, nameof(CodeFixesResources.Suppress_or_configure_issues));
                 var wrappingSuggestedAction = new UnifiedSuggestedActionWithNestedActions(
                     workspace, codeAction: suppressOrConfigureCodeAction,
                     codeActionPriority: suppressOrConfigureCodeAction.Priority, provider: null,
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                     originalSolution,
                     category,
                     actions: ImmutableArray.Create<IUnifiedSuggestedAction>(wrappingSuggestedAction),
-                    title: CodeFixesResources.Suppress_or_Configure_issues,
+                    title: CodeFixesResources.Suppress_or_configure_issues,
                     priority: UnifiedSuggestedActionSetPriority.Lowest,
                     applicableToSpan: span);
                 sets = sets.Add(wrappingSet);

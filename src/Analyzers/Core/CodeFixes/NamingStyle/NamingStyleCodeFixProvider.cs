@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
                         symbol,
                         fixedName,
 #endif
-                        string.Format(CodeFixesResources.Fix_Name_Violation_colon_0, fixedName),
+                        string.Format(CodeFixesResources.Fix_name_violation_colon_0, fixedName),
                         c => FixAsync(document, symbol, fixedName, c),
                         equivalenceKey: nameof(NamingStyleCodeFixProvider)),
                     diagnostic);
