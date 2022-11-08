@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 {
     internal sealed class FindUsagesLSPContext : FindUsagesContext
     {
-        private readonly IProgress<VSInternalReferenceItem[]> _progress;
+        private readonly IProgress<SumType<VSInternalReferenceItem, LSP.Location>[]> _progress;
 
         private readonly Workspace _workspace;
         private readonly Document _document;
@@ -40,9 +40,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         private readonly IGlobalOptionService _globalOptions;
 
         /// <summary>
-        /// Methods in FindUsagesLSPContext can be called by multiple threads concurrently.
-        /// We need this sempahore to ensure that we aren't making concurrent
-        /// modifications to data such as _id and _definitionToId.
+        /// Methods in FindUsagesLSPContext can be called by multiple threads concurrently. We need this semaphore to
+        /// ensure that we aren't making concurrent modifications to data such as _id and _definitionToId.
         /// </summary>
         private readonly SemaphoreSlim _semaphore = new(1);
 
@@ -56,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
         /// <summary>
         /// Set of the locations we've found references at.  We may end up with multiple references
-        /// being reported for the same location.  For example, this can happen in multi-targetting 
+        /// being reported for the same location.  For example, this can happen in multi-targeting 
         /// scenarios when there are symbols in files linked into multiple projects.  Those symbols
         /// may have references that themselves are in linked locations, leading to multiple references
         /// found at different virtual locations that the user considers at the same physical location.
@@ -69,13 +68,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         /// <summary>
         /// We report the results in chunks. A batch, if it contains results, is reported every 0.5s.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<VSInternalReferenceItem> _workQueue;
+        private readonly AsyncBatchingWorkQueue<SumType<VSInternalReferenceItem, LSP.Location>> _workQueue;
 
         // Unique identifier given to each definition and reference.
         private int _id = 0;
 
         public FindUsagesLSPContext(
-            IProgress<VSInternalReferenceItem[]> progress,
+            IProgress<SumType<VSInternalReferenceItem, LSP.Location>[]> progress,
             Workspace workspace,
             Document document,
             int position,
@@ -90,7 +89,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             _position = position;
             _metadataAsSourceFileService = metadataAsSourceFileService;
             _globalOptions = globalOptions;
-            _workQueue = new AsyncBatchingWorkQueue<VSInternalReferenceItem>(
+            _workQueue = new AsyncBatchingWorkQueue<SumType<VSInternalReferenceItem, LSP.Location>>(
                 TimeSpan.FromMilliseconds(500), ReportReferencesAsync, asyncListener, cancellationToken);
         }
 
@@ -353,7 +352,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             return classifiedTextRuns.ToArray();
         }
 
-        private ValueTask ReportReferencesAsync(ImmutableSegmentedList<VSInternalReferenceItem> referencesToReport, CancellationToken cancellationToken)
+        private ValueTask ReportReferencesAsync(ImmutableSegmentedList<SumType<VSInternalReferenceItem, LSP.Location>> referencesToReport, CancellationToken cancellationToken)
         {
             // We can report outside of the lock here since _progress is thread-safe.
             _progress.Report(referencesToReport.ToArray());

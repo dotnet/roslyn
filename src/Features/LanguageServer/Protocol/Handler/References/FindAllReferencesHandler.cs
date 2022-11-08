@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [ExportCSharpVisualBasicStatelessLspService(typeof(FindAllReferencesHandler)), Shared]
     [Method(LSP.Methods.TextDocumentReferencesName)]
-    internal class FindAllReferencesHandler : ILspServiceDocumentRequestHandler<LSP.ReferenceParams, LSP.VSInternalReferenceItem[]?>
+    internal class FindAllReferencesHandler : ILspServiceDocumentRequestHandler<LSP.ReferenceParams, LSP.SumType<LSP.VSInternalReferenceItem, LSP.Location>[]?>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
         private readonly IAsynchronousOperationListener _asyncListener;
@@ -51,7 +51,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(ReferenceParams request) => request.TextDocument;
 
-        public async Task<LSP.VSInternalReferenceItem[]?> HandleRequestAsync(ReferenceParams referenceParams, RequestContext context, CancellationToken cancellationToken)
+        public async Task<LSP.SumType<LSP.VSInternalReferenceItem, LSP.Location>[]?> HandleRequestAsync(
+            ReferenceParams referenceParams,
+            RequestContext context,
+            CancellationToken cancellationToken)
         {
             var clientCapabilities = context.GetRequiredClientCapabilities();
             Debug.Assert(clientCapabilities.HasVisualStudioLspCapability());
@@ -61,7 +64,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Contract.ThrowIfNull(document);
             Contract.ThrowIfNull(workspace);
 
-            using var progress = BufferedProgress.Create<VSInternalReferenceItem>(referenceParams.PartialResultToken);
+            using var progress = BufferedProgress.Create<SumType<VSInternalReferenceItem, LSP.Location>>(referenceParams.PartialResultToken);
 
             var findUsagesService = document.GetRequiredLanguageService<IFindUsagesLSPService>();
             var position = await document.GetPositionFromLinePositionAsync(
