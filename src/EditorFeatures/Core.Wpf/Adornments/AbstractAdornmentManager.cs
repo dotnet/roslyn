@@ -263,8 +263,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
             }
 
             var mappedPoint = point.Value;
-
             viewLine = TextView.TextViewLines.GetTextViewLineContainingBufferPosition(mappedPoint);
+
+            // Unsure what the scenario is - but sometimes the SnapshotPoint is not located
+            // within any of the lines in the TextViewLineCollection. In that case, we do not want to draw a tag.
             if (viewLine is null)
             {
                 return false;
