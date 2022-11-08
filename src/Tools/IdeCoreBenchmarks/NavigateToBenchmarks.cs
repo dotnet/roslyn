@@ -197,15 +197,19 @@ namespace IdeCoreBenchmarks
             Console.WriteLine("Time to search: " + (DateTime.Now - start));
         }
 
-        private static async Task<int> SearchAsync(Project project, ImmutableArray<Document> priorityDocuments)
+        private async Task<int> SearchAsync(Project project, ImmutableArray<Document> priorityDocuments)
         {
             var service = project.Services.GetService<INavigateToSearchService>();
             var results = new List<INavigateToSearchResult>();
-            await foreach (var item in service.SearchProjectAsync(
-                project, priorityDocuments, "Syntax", service.KindsProvided, activeDocument: null, CancellationToken.None))
-            {
-                results.Add(item);
-            }
+            await service.SearchProjectAsync(
+                project, priorityDocuments, "Syntax", service.KindsProvided, activeDocument: null,
+                r =>
+                {
+                    lock (results)
+                        results.Add(r);
+
+                    return Task.CompletedTask;
+                }, CancellationToken.None);
 
             return results.Count;
         }

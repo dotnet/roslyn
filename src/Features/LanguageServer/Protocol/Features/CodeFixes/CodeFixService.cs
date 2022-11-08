@@ -941,7 +941,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private static ProjectCodeFixProvider.ExtensionInfo GetExtensionInfo(ExportCodeFixProviderAttribute attribute)
-                => new(attribute.DocumentKinds.ToImmutableArray(), attribute.DocumentExtensions);
+                => new(attribute.DocumentKinds, attribute.DocumentExtensions);
 
         private sealed class FixerComparer : IComparer<CodeFixProvider>
         {

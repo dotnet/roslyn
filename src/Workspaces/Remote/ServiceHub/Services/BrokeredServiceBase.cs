@@ -3,12 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -91,7 +89,6 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var workspace = GetWorkspace();
             var assetProvider = workspace.CreateAssetProvider(solutionChecksum, WorkspaceManager.SolutionAssetCache, SolutionAssetSource);
-
             var (_, result) = await workspace.RunWithSolutionAsync(
                 assetProvider,
                 solutionChecksum,
@@ -99,21 +96,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 cancellationToken).ConfigureAwait(false);
 
             return result;
-        }
-
-        protected async IAsyncEnumerable<T> StreamWithSolutionAsync<T>(
-            Checksum solutionChecksum,
-            Func<Solution, CancellationToken, IAsyncEnumerable<T>> implementation,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
-        {
-            var workspace = GetWorkspace();
-            var assetProvider = workspace.CreateAssetProvider(solutionChecksum, WorkspaceManager.SolutionAssetCache, SolutionAssetSource);
-
-            await foreach (var (_, item) in workspace.RunWithSolutionAsync(
-                assetProvider, solutionChecksum, implementation, cancellationToken).ConfigureAwait(false))
-            {
-                yield return item;
-            }
         }
 
         protected ValueTask<T> RunServiceAsync<T>(Func<CancellationToken, ValueTask<T>> implementation, CancellationToken cancellationToken)

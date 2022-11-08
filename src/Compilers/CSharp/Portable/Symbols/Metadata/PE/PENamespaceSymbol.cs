@@ -295,26 +295,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal NamedTypeSymbol LookupMetadataType(ref MetadataTypeName emittedTypeName, out bool isNoPiaLocalType)
+#nullable enable
+
+        internal NamedTypeSymbol? UnifyIfNoPiaLocalType(ref MetadataTypeName emittedTypeName)
         {
-            NamedTypeSymbol result = LookupMetadataType(ref emittedTypeName);
-            isNoPiaLocalType = false;
+            EnsureAllMembersLoaded();
+            TypeDefinitionHandle typeDef;
 
-            if (result is MissingMetadataTypeSymbol)
+            // See if this is a NoPia local type, which we should unify.
+            // Note, VB should use FullName.
+            if (_lazyNoPiaLocalTypes != null && _lazyNoPiaLocalTypes.TryGetValue(emittedTypeName.TypeName, out typeDef))
             {
-                EnsureAllMembersLoaded();
-                TypeDefinitionHandle typeDef;
-
-                // See if this is a NoPia local type, which we should unify.
-                // Note, VB should use FullName.
-                if (_lazyNoPiaLocalTypes != null && _lazyNoPiaLocalTypes.TryGetValue(emittedTypeName.TypeName, out typeDef))
-                {
-                    result = (NamedTypeSymbol)new MetadataDecoder(ContainingPEModule).GetTypeOfToken(typeDef, out isNoPiaLocalType);
-                    Debug.Assert(isNoPiaLocalType);
-                }
+                var result = (NamedTypeSymbol)new MetadataDecoder(ContainingPEModule).GetTypeOfToken(typeDef, out bool isNoPiaLocalType);
+                Debug.Assert(isNoPiaLocalType);
+                Debug.Assert(result is not null);
+                return result;
             }
 
-            return result;
+            return null;
         }
     }
 }
