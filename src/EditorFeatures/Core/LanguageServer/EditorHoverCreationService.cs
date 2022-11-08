@@ -33,24 +33,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public async Task<Hover> CreateHoverAsync(
             SourceText text, string language, QuickInfoItem info, Document? document, ClientCapabilities? clientCapabilities, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(document);
-
             var supportsVSExtensions = clientCapabilities.HasVisualStudioLspCapability();
 
             if (!supportsVSExtensions)
                 return DefaultLspHoverResultCreationService.CreateDefaultHover(text, language, info, clientCapabilities);
 
-            var classificationOptions = _optionService.GetClassificationOptions(document.Project.Language);
+            var classificationOptions = _optionService.GetClassificationOptions(language);
 
             // We can pass null for all these parameter values as they're only needed for quick-info content navigation
             // and we explicitly calling BuildContentWithoutNavigationActionsAsync.
-            var context = new IntellisenseQuickInfoBuilderContext(
-                document,
-                classificationOptions,
-                threadingContext: null,
-                operationExecutor: null,
-                asynchronousOperationListener: null,
-                streamingPresenter: null);
+            var context = document is null
+                ? null
+                : new IntellisenseQuickInfoBuilderContext(
+                    document,
+                    classificationOptions,
+                    threadingContext: null,
+                    operationExecutor: null,
+                    asynchronousOperationListener: null,
+                    streamingPresenter: null);
             return new VSInternalHover
             {
                 Range = ProtocolConversions.TextSpanToRange(info.Span, text),
