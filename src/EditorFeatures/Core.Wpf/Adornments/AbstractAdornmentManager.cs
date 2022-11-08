@@ -262,20 +262,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
                 return false;
             }
 
+            var mappedPoint = point.Value;
+
+            viewLine = TextView.TextViewLines.GetTextViewLineContainingBufferPosition(mappedPoint);
+            if (viewLine is null)
+            {
+                return false;
+            }
+
             if (!TryMapToSingleSnapshotSpan(mappingTagSpan.Span, TextView.TextSnapshot, out var span))
             {
                 return false;
             }
 
             if (!TextView.TextViewLines.IntersectsBufferSpan(span))
-            {
-                return false;
-            }
-
-            var mappedPoint = point.Value;
-
-            viewLine = TextView.TextViewLines.GetTextViewLineContainingBufferPosition(mappedPoint);
-            if (viewLine is null)
             {
                 return false;
             }
