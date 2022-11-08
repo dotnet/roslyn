@@ -145,14 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 var tagSpans = TagAggregator.GetTags(changedSpan);
                 foreach (var tagMappingSpan in tagSpans)
                 {
-                    if (!ShouldDrawTag(changedSpan, tagMappingSpan, out var mappedPoint))
-                    {
-                        continue;
-                    }
-
-                    var viewLine = viewLines.GetTextViewLineContainingBufferPosition(mappedPoint);
-
-                    if (viewLine is null)
+                    if (!ShouldDrawTag(changedSpan, tagMappingSpan, out var viewLine))
                     {
                         continue;
                     }
