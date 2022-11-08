@@ -142,16 +142,10 @@ namespace Microsoft.CodeAnalysis.Snippets
             }
 
             var allTokens = node.DescendantTokens(descendIntoTrivia: true).ToList();
-            var filteredTokens = new List<SyntaxToken>();
 
-            // Takes out the first and last token since
+            // Skips the first and last token since
             // those do not need elastic trivia added to them.
-            for (var i = 1; i < allTokens.Count - 1; i++)
-            {
-                filteredTokens.Add(allTokens[i]);
-            }
-
-            var nodeWithTrivia = node.ReplaceTokens(filteredTokens,
+            var nodeWithTrivia = node.ReplaceTokens(allTokens.Skip(1).Take(allTokens.Count - 2),
                 (oldtoken, _) => oldtoken.WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation)
                 .WithAppendedTrailingTrivia(syntaxFacts.ElasticMarker)
                 .WithPrependedLeadingTrivia(syntaxFacts.ElasticMarker));
