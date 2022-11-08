@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -27,11 +28,11 @@ using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     internal sealed class FindUsagesLSPContext : FindUsagesContext
     {
-        private readonly IProgress<VSInternalReferenceItem[]> _progress;
+        private readonly IProgress<SumType<VSInternalReferenceItem, LSP.Location>[]> _progress;
 
         private readonly Workspace _workspace;
         private readonly Document _document;
@@ -40,9 +41,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         private readonly IGlobalOptionService _globalOptions;
 
         /// <summary>
-        /// Methods in FindUsagesLSPContext can be called by multiple threads concurrently.
-        /// We need this sempahore to ensure that we aren't making concurrent
-        /// modifications to data such as _id and _definitionToId.
+        /// Methods in FindUsagesLSPContext can be called by multiple threads concurrently. We need this semaphore to
+        /// ensure that we aren't making concurrent modifications to data such as _id and _definitionToId.
         /// </summary>
         private readonly SemaphoreSlim _semaphore = new(1);
 
@@ -52,11 +52,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         /// Keeps track of definitions that cannot be reported without references and which we have
         /// not yet found a reference for.
         /// </summary>
-        private readonly Dictionary<int, VSInternalReferenceItem> _definitionsWithoutReference = new();
+        private readonly Dictionary<int, SumType<VSInternalReferenceItem, LSP.Location>> _definitionsWithoutReference = new();
 
         /// <summary>
         /// Set of the locations we've found references at.  We may end up with multiple references
-        /// being reported for the same location.  For example, this can happen in multi-targetting 
+        /// being reported for the same location.  For example, this can happen in multi-targeting 
         /// scenarios when there are symbols in files linked into multiple projects.  Those symbols
         /// may have references that themselves are in linked locations, leading to multiple references
         /// found at different virtual locations that the user considers at the same physical location.
@@ -69,13 +69,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         /// <summary>
         /// We report the results in chunks. A batch, if it contains results, is reported every 0.5s.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<VSInternalReferenceItem> _workQueue;
+        private readonly AsyncBatchingWorkQueue<SumType<VSInternalReferenceItem, LSP.Location>> _workQueue;
 
         // Unique identifier given to each definition and reference.
         private int _id = 0;
 
         public FindUsagesLSPContext(
-            IProgress<VSInternalReferenceItem[]> progress,
+            IProgress<SumType<VSInternalReferenceItem, LSP.Location>[]> progress,
             Workspace workspace,
             Document document,
             int position,
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             _position = position;
             _metadataAsSourceFileService = metadataAsSourceFileService;
             _globalOptions = globalOptions;
-            _workQueue = new AsyncBatchingWorkQueue<VSInternalReferenceItem>(
+            _workQueue = new AsyncBatchingWorkQueue<SumType<VSInternalReferenceItem, LSP.Location>>(
                 TimeSpan.FromMilliseconds(500), ReportReferencesAsync, asyncListener, cancellationToken);
         }
 
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
                 // Creating a new VSReferenceItem for the definition
                 var definitionItem = await GenerateVSReferenceItemAsync(
-                    definitionId: _id, definition.SourceSpans.FirstOrNull(),
+                    definitionId: _id, id: _id, definition.SourceSpans.FirstOrNull(),
                     definition.DisplayableProperties, definition.GetClassifiedText(),
                     definition.Tags.GetFirstGlyph(), symbolUsageInfo: null, isWrittenTo: false, cancellationToken).ConfigureAwait(false);
 
@@ -126,11 +126,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                     // have to hold off on reporting it until later when we do find a reference.
                     if (definition.DisplayIfNoReferences)
                     {
-                        _workQueue.AddWork(definitionItem);
+                        _workQueue.AddWork(definitionItem.Value);
                     }
                     else
                     {
-                        _definitionsWithoutReference.Add(definitionItem.Id, definitionItem);
+                        _definitionsWithoutReference.Add(_id, definitionItem.Value);
                     }
                 }
             }
@@ -160,23 +160,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                     _definitionsWithoutReference.Remove(definitionId);
                 }
 
+                // give this reference a fresh id.
                 _id++;
 
                 // Creating a new VSReferenceItem for the reference
                 var referenceItem = await GenerateVSReferenceItemAsync(
-                    definitionId, reference.SourceSpan,
+                    definitionId, _id, reference.SourceSpan,
                     reference.AdditionalProperties, definitionText: null,
                     definitionGlyph: Glyph.None, reference.SymbolUsageInfo, reference.IsWrittenTo, cancellationToken).ConfigureAwait(false);
 
                 if (referenceItem != null)
-                {
-                    _workQueue.AddWork(referenceItem);
-                }
+                    _workQueue.AddWork(referenceItem.Value);
             }
         }
 
-        private async Task<VSInternalReferenceItem?> GenerateVSReferenceItemAsync(
-            int? definitionId,
+        private async Task<SumType<VSInternalReferenceItem, LSP.Location>?> GenerateVSReferenceItemAsync(
+            int definitionId,
+            int id,
             DocumentSpan? documentSpan,
             ImmutableDictionary<string, string> properties,
             ClassifiedTextElement? definitionText,
@@ -185,52 +185,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             bool isWrittenTo,
             CancellationToken cancellationToken)
         {
-            var location = await ComputeLocationAsync(documentSpan, cancellationToken).ConfigureAwait(false);
-
             // Getting the text for the Text property. If we somehow can't compute the text, that means we're probably dealing with a metadata
             // reference, and those don't show up in the results list in Roslyn FAR anyway.
             var text = await ComputeTextAsync(definitionId, documentSpan, definitionText, isWrittenTo, cancellationToken).ConfigureAwait(false);
             if (text == null)
-            {
                 return null;
-            }
 
-            var conversionService = _workspace.Services.GetRequiredService<IGlyphConversionService>();
-            var guidAndId = conversionService.ConvertToImageId(definitionGlyph);
+            var location = await ComputeLocationAsync(documentSpan, cancellationToken).ConfigureAwait(false);
 
-            // TO-DO: The Origin property should be added once Rich-Nav is completed.
-            // https://github.com/dotnet/roslyn/issues/42847
-            var result = new VSInternalReferenceItem
-            {
-                DefinitionId = definitionId,
-                DefinitionText = definitionText,    // Only definitions should have a non-null DefinitionText
-                DefinitionIcon = guidAndId is null ? null : new ImageElement(new ImageId(guidAndId.Value.guid, guidAndId.Value.id)),
-                DisplayPath = location?.Uri.LocalPath,
-                Id = _id,
-                Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : Array.Empty<VSInternalReferenceKind>(),
-                ResolutionStatus = VSInternalResolutionStatusKind.ConfirmedAsReference,
-                Text = text,
-            };
-
-            // There are certain items that may not have locations, such as namespace definitions.
-            if (location != null)
-            {
-                result.Location = location;
-            }
-
-            if (documentSpan != null)
-            {
-                result.DocumentName = documentSpan.Value.Document.Name;
-                result.ProjectName = documentSpan.Value.Document.Project.Name;
-            }
-
-            if (properties.TryGetValue(AbstractReferenceFinder.ContainingMemberInfoPropertyName, out var referenceContainingMember))
-                result.ContainingMember = referenceContainingMember;
-
-            if (properties.TryGetValue(AbstractReferenceFinder.ContainingTypeInfoPropertyName, out var referenceContainingType))
-                result.ContainingType = referenceContainingType;
-
-            return result;
+            // Defer to the host we're in to determine the sort of result to return.  In simple hosts this will just be
+            // a Location.  In richer hosts this can include far more data to enhance the user experience.
+            var service = _workspace.Services.GetRequiredService<ILspReferencesResultCreationService>();
+            return service.CreateReference(
+                definitionId, id, text, documentSpan, properties, definitionText, definitionGlyph, symbolUsageInfo, location);
         }
 
         private async Task<LSP.Location?> ComputeLocationAsync(DocumentSpan? documentSpan, CancellationToken cancellationToken)
@@ -353,7 +320,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             return classifiedTextRuns.ToArray();
         }
 
-        private ValueTask ReportReferencesAsync(ImmutableSegmentedList<VSInternalReferenceItem> referencesToReport, CancellationToken cancellationToken)
+        private ValueTask ReportReferencesAsync(ImmutableSegmentedList<SumType<VSInternalReferenceItem, LSP.Location>> referencesToReport, CancellationToken cancellationToken)
         {
             // We can report outside of the lock here since _progress is thread-safe.
             _progress.Report(referencesToReport.ToArray());
