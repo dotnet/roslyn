@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -140,7 +141,17 @@ namespace Microsoft.CodeAnalysis.Snippets
                 return null;
             }
 
-            var nodeWithTrivia = node.ReplaceTokens(node.DescendantTokens(descendIntoTrivia: true),
+            var allTokens = node.DescendantTokens(descendIntoTrivia: true).ToList();
+            var filteredTokens = new List<SyntaxToken>();
+
+            // Takes out the first and last token since
+            // those do not need elastic trivia added to them.
+            for (var i = 1; i < allTokens.Count() - 1; i++)
+            {
+                filteredTokens.Add(allTokens[i]);
+            }
+
+            var nodeWithTrivia = node.ReplaceTokens(filteredTokens,
                 (oldtoken, _) => oldtoken.WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation)
                 .WithAppendedTrailingTrivia(syntaxFacts.ElasticMarker)
                 .WithPrependedLeadingTrivia(syntaxFacts.ElasticMarker));
