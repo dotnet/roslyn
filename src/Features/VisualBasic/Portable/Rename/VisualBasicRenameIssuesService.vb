@@ -7,7 +7,7 @@ Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.Rename
-    <ExportLanguageService(GetType(IRenameIssuesService), LanguageNames.VisualBasic)>
+    <ExportLanguageService(GetType(IRenameIssuesService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicRenameIssuesService
         Implements IRenameIssuesService
 
