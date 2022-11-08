@@ -192,48 +192,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
 
             var location = await ComputeLocationAsync(documentSpan, cancellationToken).ConfigureAwait(false);
-            var service = _workspace.Services.GetRequiredService<ITextDocumentReferencesResultCreationService>();
+            var service = _workspace.Services.GetRequiredService<ILspReferencesResultCreationService>();
             return service.CreateReference(
                 definitionId, id, text, documentSpan, properties, definitionText, definitionGlyph, symbolUsageInfo, location);
-        }
-
-        private SumType<VSInternalReferenceItem, LSP.Location>? CreateItem(
-            int definitionId, int id, ClassifiedTextElement text, DocumentSpan? documentSpan, ImmutableDictionary<string, string> properties, ClassifiedTextElement? definitionText, Glyph definitionGlyph, SymbolUsageInfo? symbolUsageInfo, LSP.Location? location)
-        {
-            var conversionService = _workspace.Services.GetRequiredService<IGlyphConversionService>();
-            var guidAndId = conversionService.ConvertToImageId(definitionGlyph);
-
-            // TO-DO: The Origin property should be added once Rich-Nav is completed.
-            // https://github.com/dotnet/roslyn/issues/42847
-            var result = new VSInternalReferenceItem
-            {
-                DefinitionId = definitionId,
-                DefinitionText = definitionText,    // Only definitions should have a non-null DefinitionText
-                DefinitionIcon = guidAndId is null ? null : new ImageElement(new ImageId(guidAndId.Value.guid, guidAndId.Value.id)),
-                DisplayPath = location?.Uri.LocalPath,
-                Id = id,
-                Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : Array.Empty<VSInternalReferenceKind>(),
-                ResolutionStatus = VSInternalResolutionStatusKind.ConfirmedAsReference,
-                Text = text,
-            };
-
-            // There are certain items that may not have locations, such as namespace definitions.
-            if (location != null)
-                result.Location = location;
-
-            if (documentSpan != null)
-            {
-                result.DocumentName = documentSpan.Value.Document.Name;
-                result.ProjectName = documentSpan.Value.Document.Project.Name;
-            }
-
-            if (properties.TryGetValue(AbstractReferenceFinder.ContainingMemberInfoPropertyName, out var referenceContainingMember))
-                result.ContainingMember = referenceContainingMember;
-
-            if (properties.TryGetValue(AbstractReferenceFinder.ContainingTypeInfoPropertyName, out var referenceContainingType))
-                result.ContainingType = referenceContainingType;
-
-            return result;
         }
 
         private async Task<LSP.Location?> ComputeLocationAsync(DocumentSpan? documentSpan, CancellationToken cancellationToken)

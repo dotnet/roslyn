@@ -13,7 +13,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    internal interface ITextDocumentReferencesResultCreationService : IWorkspaceService
+    internal interface ILspReferencesResultCreationService : IWorkspaceService
     {
         SumType<VSInternalReferenceItem, LSP.Location>? CreateReference(
             int definitionId,
@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             LSP.Location? location);
     }
 
-    [ExportWorkspaceService(typeof(ITextDocumentReferencesResultCreationService)), Shared]
-    internal sealed class DefaultTextDocumentReferencesResultCreationService : ITextDocumentReferencesResultCreationService
+    [ExportWorkspaceService(typeof(ILspReferencesResultCreationService)), Shared]
+    internal sealed class DefaultLspReferencesResultCreationService : ILspReferencesResultCreationService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefaultTextDocumentReferencesResultCreationService()
+        public DefaultLspReferencesResultCreationService()
         {
         }
 
