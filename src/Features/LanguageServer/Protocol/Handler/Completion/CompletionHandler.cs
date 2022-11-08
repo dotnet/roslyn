@@ -127,6 +127,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             foreach (var item in list.ItemsList)
             {
+                stringBuilder.Clear();
+
                 var lspCompletionItem = await CreateLSPCompletionItemAsync(
                     request, document, documentText, lspVSClientCapability, commitCharactersRuleCache,
                     snippetsSupported, itemDefaultsSupported, defaultSpan,
@@ -195,26 +197,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 CompletionResolveData? completionResolveData,
                 CancellationToken cancellationToken)
             {
+
+                var creationService = document.Project.Solution.Services.GetRequiredService<ILspCompletionResultCreationService>();
+                LSP.CompletionItem lspItem = await creationService.CreateAsync(
+                    document, documentText, item, cancellationToken).ConfigureAwait(false);
+
                 // Generate display text
                 stringBuilder.Append(item.DisplayTextPrefix);
                 stringBuilder.Append(item.DisplayText);
                 stringBuilder.Append(item.DisplayTextSuffix);
-                var completeDisplayText = stringBuilder.ToString();
-                stringBuilder.Clear();
+                lspItem.Label = stringBuilder.ToString();
 
-                var creationService = document.Project.Solution.Services.GetRequiredService<ILspCompletionResultCreationService>();
-                return creationService.CreateAsync(
-                    document, documentText, item, completeDisplayText, cancellationToken);
+                lspItem.SortText = item.SortText;
+                lspItem.FilterText = item.FilterText;
 
-                var completionItem = supportsVSExtensions ? new LSP.VSInternalCompletionItem() : new LSP.CompletionItem();
-                completionItem.Label = completeDisplayText;
-                completionItem.SortText = item.SortText;
-                completionItem.FilterText = item.FilterText;
-                completionItem.Kind = GetCompletionKind(item.Tags);
-                completionItem.Data = completionResolveData;
-                completionItem.Preselect = ShouldItemBePreselected(item);
+                lspItem.Kind = GetCompletionKind(item.Tags);
+                lspItem.Preselect = ShouldItemBePreselected(item);
 
-                var commitCharacters = GetCommitCharacters(item, commitCharacterRulesCache, supportsVSExtensions);
+                lspItem.CommitCharacters = GetCommitCharacters(item, commitCharacterRulesCache, supportsVSExtensions);
 
                 // Complex text edits (e.g. override and partial method completions) are always populated in the
                 // resolve handler, so we leave both TextEdit and InsertText unpopulated in these cases.
@@ -232,11 +232,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 {
                     await AddTextEdit(
                         document, item, completionItem, completionService, documentText, defaultSpan, itemDefaultsSupported, cancellationToken).ConfigureAwait(false);
-                }
-
-                if (commitCharacters != null)
-                {
-                    completionItem.CommitCharacters = commitCharacters;
                 }
 
                 if (completionItem is LSP.VSInternalCompletionItem vsCompletionItem)
@@ -277,6 +272,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         lspItem.TextEdit = textEdit;
                     }
                 }
+            }
+
+            static LSP.CompletionItemKind GetCompletionKind(ImmutableArray<string> tags)
+            {
+                foreach (var tag in tags)
+                {
+                    if (ProtocolConversions.RoslynTagToCompletionItemKind.TryGetValue(tag, out var completionItemKind))
+                        return completionItemKind;
+                }
+
+                return LSP.CompletionItemKind.Text;
             }
 
             static string[]? GetCommitCharacters(
