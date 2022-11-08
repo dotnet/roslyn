@@ -8470,8 +8470,8 @@ Un bloque catch() después de un bloque catch (System.Exception e) puede abarcar
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturnExpression">
-        <source>Since this is an async method, the return expression must be of type '{0}' rather than 'Task&lt;{0}&gt;'</source>
-        <target state="translated">Como este es un método asincrónico, la expresión devuelta debe ser de tipo '{0}' en lugar de 'Task&lt;{0}&gt;'</target>
+        <source>Since this is an async method, the return expression must be of type '{0}' rather than '{1}'</source>
+        <target state="translated">Como este es un método asincrónico, la expresión devuelta debe ser de tipo '{0}' en lugar de '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAsyncAnonFuncReturns">

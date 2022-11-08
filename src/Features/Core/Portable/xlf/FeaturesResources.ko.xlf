@@ -495,6 +495,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">{0} 표시 유형을 변경하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_snippet_for_0">
+        <source>Code snippet for '{0}'</source>
+        <target state="new">Code snippet for '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Comments_not_allowed">
         <source>Comments not allowed</source>
         <target state="translated">주석이 허용되지 않습니다.</target>
@@ -973,6 +978,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Inline_and_keep_0">
         <source>Inline and keep '{0}'</source>
         <target state="translated">'{0}'을(를) 인라인으로 지정 및 유지</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_temporary_variable">
+        <source>Inline temporary variable</source>
+        <target state="new">Inline temporary variable</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">

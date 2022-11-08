@@ -3170,7 +3170,13 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="struct_" xml:space="preserve">
     <value>struct</value>
   </data>
+  <data name="Inline_temporary_variable" xml:space="preserve">
+    <value>Inline temporary variable</value>
+  </data>
   <data name="while_loop" xml:space="preserve">
     <value>while loop</value>
+  </data>
+  <data name="Code_snippet_for_0" xml:space="preserve">
+    <value>Code snippet for '{0}'</value>
   </data>
 </root>

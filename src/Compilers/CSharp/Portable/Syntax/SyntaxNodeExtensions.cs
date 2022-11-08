@@ -102,9 +102,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.UncheckedExpression:
                     return true;
 
-                case SyntaxKind.RecordDeclaration:
-                    return ((RecordDeclarationSyntax)syntax).ParameterList is object;
-
                 case SyntaxKind.RecordStructDeclaration:
                     return false;
 

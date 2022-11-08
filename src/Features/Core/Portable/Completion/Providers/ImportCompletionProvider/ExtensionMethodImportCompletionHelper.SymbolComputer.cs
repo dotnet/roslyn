@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     // First try to filter out types from already imported namespaces
                     var indexOfLastDot = fullyQualifiedContainerName.LastIndexOf('.');
-                    var qualifiedNamespaceName = indexOfLastDot > 0 ? fullyQualifiedContainerName.Substring(0, indexOfLastDot) : string.Empty;
+                    var qualifiedNamespaceName = indexOfLastDot > 0 ? fullyQualifiedContainerName[..indexOfLastDot] : string.Empty;
 
                     if (_namespaceInScope.Contains(qualifiedNamespaceName))
                     {
