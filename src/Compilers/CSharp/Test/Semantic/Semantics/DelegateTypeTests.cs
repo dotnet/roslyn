@@ -11684,12 +11684,13 @@ class Program
             var source = """
                 using static A;
                 var f = M;
+                f();
                 static class A
                 {
-                    public static void M() { }
+                    public static void M() => System.Console.WriteLine("A.M()");
                 }
                 """;
-            CreateCompilation(source).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: "A.M()").VerifyDiagnostics();
         }
     }
 }
