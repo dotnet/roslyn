@@ -153,7 +153,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
         private static string GetAnalyzerId(string line)
         {
-            return line.Substring(1, line.LastIndexOf('"') - 1);
+            return line[1..line.LastIndexOf('"')];
         }
 
         private static int GetExpectedDataCount(string header)
@@ -164,7 +164,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
         private static string SkipAnalyzerId(string line)
         {
-            return line.Substring(line.LastIndexOf('"') + 2);
+            return line[(line.LastIndexOf('"') + 2)..];
         }
 
         private static string ReadTestFile(string name)

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Completion
         private sealed class ProviderManager : IEqualityComparer<ImmutableHashSet<string>>
         {
             private readonly object _gate = new();
-            private readonly Dictionary<string, CompletionProvider?> _nameToProvider = new();
+            private readonly Lazy<ImmutableDictionary<string, CompletionProvider>> _nameToProvider;
             private readonly Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _rolesToProviders;
             private IReadOnlyList<Lazy<CompletionProvider, CompletionProviderMetadata>>? _lazyImportedProviders;
             private readonly CompletionService _service;
@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 _service = service;
                 _rolesToProviders = new Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>>(this);
+                _nameToProvider = new Lazy<ImmutableDictionary<string, CompletionProvider>>(LoadImportedProvidersAndCreateNameMap, LazyThreadSafetyMode.PublicationOnly);
 
                 _projectProvidersWorkQueue = new AsyncBatchingWorkQueue<IReadOnlyList<AnalyzerReference>>(
                         TimeSpan.FromSeconds(1),
@@ -45,7 +46,23 @@ namespace Microsoft.CodeAnalysis.Completion
                         CancellationToken.None);
             }
 
-            public IReadOnlyList<Lazy<CompletionProvider, CompletionProviderMetadata>> GetLazyImportedProviders()
+            private ImmutableDictionary<string, CompletionProvider> LoadImportedProvidersAndCreateNameMap()
+            {
+                var builder = ImmutableDictionary.CreateBuilder<string, CompletionProvider>();
+
+                foreach (var lazyImportedProvider in GetLazyImportedProviders())
+                    builder[lazyImportedProvider.Value.Name] = lazyImportedProvider.Value;
+
+#pragma warning disable CS0618
+                // We need to keep supporting built-in providers for a while longer since this is a public API.
+                foreach (var builtinProvider in _service.GetBuiltInProviders())
+                    builder[builtinProvider.Name] = builtinProvider;
+#pragma warning restore CS0618
+
+                return builder.ToImmutable();
+            }
+
+            private IReadOnlyList<Lazy<CompletionProvider, CompletionProviderMetadata>> GetLazyImportedProviders()
             {
                 if (_lazyImportedProviders == null)
                 {
@@ -105,9 +122,6 @@ namespace Microsoft.CodeAnalysis.Completion
                     {
                         providers = GetImportedAndBuiltInProvidersWorker(roles);
                         _rolesToProviders.Add(roles, providers);
-
-                        foreach (var provider in providers)
-                            _nameToProvider[provider.Name] = provider;
                     }
 
                     return providers;
@@ -135,11 +149,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 if (item.ProviderName == null)
                     return null;
 
-                lock (_gate)
-                {
-                    if (_nameToProvider.TryGetValue(item.ProviderName, out var provider))
-                        return provider;
-                }
+                if (_nameToProvider.Value.TryGetValue(item.ProviderName, out var provider))
+                    return provider;
 
                 using var _ = PooledDelegates.GetPooledFunction(static (p, n) => p.Name == n, item.ProviderName, out Func<CompletionProvider, bool> isNameMatchingProviderPredicate);
                 return GetCachedProjectCompletionProvidersOrQueueLoadInBackground(project).FirstOrDefault(isNameMatchingProviderPredicate);
@@ -194,6 +205,11 @@ namespace Microsoft.CodeAnalysis.Completion
                 }
 
                 return ImmutableArray<CompletionProvider>.Empty;
+            }
+
+            public void LoadProviders()
+            {
+                _ = _nameToProvider.Value;
             }
 
             bool IEqualityComparer<ImmutableHashSet<string>>.Equals([AllowNull] ImmutableHashSet<string> x, [AllowNull] ImmutableHashSet<string> y)

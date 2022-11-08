@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -15,7 +17,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class ExportCodeFixProviderAttribute : ExportAttribute
     {
-        private static readonly TextDocumentKind[] s_defaultDocumentKinds = new[] { TextDocumentKind.Document };
+        private static readonly string[] s_defaultDocumentKinds = new[] { nameof(TextDocumentKind.Document) };
+        private static readonly string[] s_documentKindNames = Enum.GetNames(typeof(TextDocumentKind));
+
+        private string[] _documentKinds;
 
         /// <summary>
         /// Optional name of the <see cref="CodeFixProvider"/>.  
@@ -31,8 +36,30 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// The document kinds for which this provider can provide code fixes. See <see cref="TextDocumentKind"/>.
         /// By default, the provider supports code fixes only for source documents, <see cref="TextDocumentKind.Document"/>.
+        /// Provide string representation of the documents kinds for this property, for example:
+        ///     DocumentKinds = new[] { nameof(TextDocumentKind.AdditionalDocument) }
         /// </summary>
-        public TextDocumentKind[] DocumentKinds { get; set; }
+        public string[] DocumentKinds
+        {
+            get => _documentKinds;
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+
+                foreach (var kind in value)
+                {
+                    if (kind == null || !s_documentKindNames.Contains(kind))
+                    {
+                        var message = string.Format(WorkspacesResources.Unexpected_value_0_in_DocumentKinds_array,
+                            arg0: kind?.ToString() ?? "null");
+                        throw new ArgumentException(message);
+                    }
+                }
+
+                _documentKinds = value;
+            }
+        }
 
         /// <summary>
         /// The document extensions for which this provider can provide code fixes.
@@ -64,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             this.Languages = languages;
-            this.DocumentKinds = s_defaultDocumentKinds;
+            this._documentKinds = s_defaultDocumentKinds;
             this.DocumentExtensions = null;
         }
     }
