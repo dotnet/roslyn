@@ -152,6 +152,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 
                     var viewLine = viewLines.GetTextViewLineContainingBufferPosition(mappedPoint);
 
+                    if (viewLine is null)
+                    {
+                        continue;
+                    }
+
                     // If the line does not have an associated tagMappingSpan and changedSpan, then add the first one.
                     if (!map.TryGetValue(viewLine, out var value))
                     {
