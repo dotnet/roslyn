@@ -5,19 +5,14 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 {
@@ -40,26 +35,31 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpAddExplicitCastCodeFixProvider() : base(CSharpSyntaxFacts.Instance)
+        public CSharpAddExplicitCastCodeFixProvider()
         {
-            _argumentFixer = new ArgumentFixer(this);
-            _attributeArgumentFixer = new AttributeArgumentFixer(this);
+            _argumentFixer = new ArgumentFixer();
+            _attributeArgumentFixer = new AttributeArgumentFixer();
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0266, CS1503);
 
-        protected override SyntaxNode ApplyFix(SyntaxNode currentRoot, ExpressionSyntax targetNode, ITypeSymbol conversionType)
+        protected override void GetPartsOfCastOrConversionExpression(ExpressionSyntax expression, out SyntaxNode type, out SyntaxNode castedExpression)
         {
-            // TODO:
-            // the Simplifier doesn't remove the redundant cast from the expression
-            // Issue link: https://github.com/dotnet/roslyn/issues/41500
-            var castExpression = targetNode.Cast(conversionType).WithAdditionalAnnotations(Simplifier.Annotation);
-            var newRoot = currentRoot.ReplaceNode(targetNode, castExpression);
-            return newRoot;
+            var castExpression = (CastExpressionSyntax)expression;
+            type = castExpression.Type;
+            castedExpression = castExpression.Expression;
         }
 
-        protected override bool TryGetTargetTypeInfo(Document document, SemanticModel semanticModel, SyntaxNode root,
-            string diagnosticId, ExpressionSyntax spanNode, CancellationToken cancellationToken,
+        protected override ExpressionSyntax Cast(ExpressionSyntax expression, ITypeSymbol type)
+            => expression.Cast(type);
+
+        protected override bool TryGetTargetTypeInfo(
+            Document document,
+            SemanticModel semanticModel,
+            SyntaxNode root,
+            string diagnosticId,
+            ExpressionSyntax spanNode,
+            CancellationToken cancellationToken,
             out ImmutableArray<(ExpressionSyntax, ITypeSymbol)> potentialConversionTypes)
         {
             potentialConversionTypes = ImmutableArray<(ExpressionSyntax, ITypeSymbol)>.Empty;
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 {
                     // invocationNode could be Invocation Expression, Object Creation, Base Constructor...)
                     mutablePotentialConversionTypes.AddRange(_argumentFixer.GetPotentialConversionTypes(
-                        semanticModel, root, targetArgument, argumentList, invocationNode, cancellationToken));
+                        document, semanticModel, root, targetArgument, argumentList, invocationNode, cancellationToken));
                 }
                 else if (spanNode.GetAncestorOrThis<AttributeArgumentSyntax>() is AttributeArgumentSyntax targetAttributeArgument
                     && targetAttributeArgument.Parent is AttributeArgumentListSyntax attributeArgumentList
@@ -90,16 +90,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 {
                     // attribute node
                     mutablePotentialConversionTypes.AddRange(_attributeArgumentFixer.GetPotentialConversionTypes(
-                        semanticModel, root, targetAttributeArgument, attributeArgumentList, attributeNode, cancellationToken));
+                        document, semanticModel, root, targetAttributeArgument, attributeArgumentList, attributeNode, cancellationToken));
                 }
             }
 
             // clear up duplicate types
-            potentialConversionTypes = FilterValidPotentialConversionTypes(semanticModel, mutablePotentialConversionTypes);
+            potentialConversionTypes = FilterValidPotentialConversionTypes(document, semanticModel, mutablePotentialConversionTypes);
             return !potentialConversionTypes.IsEmpty;
         }
-
-        protected override CommonConversion ClassifyConversion(SemanticModel semanticModel, ExpressionSyntax expression, ITypeSymbol type)
-            => semanticModel.ClassifyConversion(expression, type).ToCommonConversion();
     }
 }

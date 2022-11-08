@@ -21,11 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExternalAccess.Pythia
     [ExtensionOrder(Before = nameof(DeclarationNameRecommender))]
     internal sealed class PythiaDeclarationNameRecommender : IDeclarationNameRecommender
     {
-        private readonly Lazy<IPythiaDeclarationNameRecommenderImplmentation>? _lazyImplementation;
+        private readonly Lazy<IPythiaDeclarationNameRecommenderImplementation>? _lazyImplementation;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PythiaDeclarationNameRecommender([Import(AllowDefault = true)] Lazy<IPythiaDeclarationNameRecommenderImplmentation>? implementation)
+        public PythiaDeclarationNameRecommender([Import(AllowDefault = true)] Lazy<IPythiaDeclarationNameRecommenderImplementation>? implementation)
             => _lazyImplementation = implementation;
 
         public async Task<ImmutableArray<(string name, Glyph glyph)>> ProvideRecommendedNamesAsync(
@@ -39,14 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExternalAccess.Pythia
                 return ImmutableArray<(string, Glyph)>.Empty;
 
             var context = new PythiaDeclarationNameContext(syntaxContext);
-
-            var _ = ArrayBuilder<(string, Glyph)>.GetInstance(out var builder);
             var result = await _lazyImplementation.Value.ProvideRecommendationsAsync(context, cancellationToken).ConfigureAwait(false);
-            // We just pick the first possible symbol kind for glyph.
-            builder.AddRange(result.Select(name
-                => (name, NameDeclarationInfo.GetGlyph(NameDeclarationInfo.GetSymbolKind(nameInfo.PossibleSymbolKinds[0]), nameInfo.DeclaredAccessibility))));
 
-            return builder.ToImmutable();
+            // We just pick the first possible symbol kind for glyph.
+            return result.SelectAsArray(
+                name => (name, NameDeclarationInfo.GetGlyph(NameDeclarationInfo.GetSymbolKind(nameInfo.PossibleSymbolKinds[0]), nameInfo.DeclaredAccessibility)));
         }
     }
 }

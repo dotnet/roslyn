@@ -10487,18 +10487,18 @@ class MyClass
             End Using
         End Function
 
-        <Export(GetType(IPythiaDeclarationNameRecommenderImplmentation))>
+        <Export(GetType(IPythiaDeclarationNameRecommenderImplementation))>
         <[Shared]>
         <PartNotDiscoverable>
         Private Class TestPythiaDeclarationNameRecommenderImplmentation
-            Implements IPythiaDeclarationNameRecommenderImplmentation
+            Implements IPythiaDeclarationNameRecommenderImplementation
 
             <ImportingConstructor>
             <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New()
             End Sub
 
-            Public Function ProvideRecommendationsAsync(context As PythiaDeclarationNameContext, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of String)) Implements IPythiaDeclarationNameRecommenderImplmentation.ProvideRecommendationsAsync
+            Public Function ProvideRecommendationsAsync(context As PythiaDeclarationNameContext, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of String)) Implements IPythiaDeclarationNameRecommenderImplementation.ProvideRecommendationsAsync
                 Dim result = ImmutableArray.Create("PythiaRecommendName")
                 Return Task.FromResult(result)
             End Function
@@ -10592,6 +10592,230 @@ class Goo
                 state.SendTab()
                 Await state.WaitForAsynchronousOperationsAsync()
                 state.AssertMatchesTextStartingAtLine(7, "[Test(argument:)]")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem(39689, "https://github.com/dotnet/roslyn/issues/39689")>
+        Public Async Function TestFilteringOfExtensionMethodsWithConstraints1() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System;
+
+public interface ISomeInterface&lt;T&gt;
+{
+}
+
+public static class Extensions
+{       
+    public static bool SomeExtMethod&lt;T1, T2&gt;(this T1 builder, T2 x)
+        where T1 : ISomeInterface&lt;T2&gt;
+    {
+        return true;
+    }
+}
+public class Bar
+{
+    void M(string[] s)
+    {
+        s.$$
+    }
+}
+                </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsDoNotContainAny("SomeExtMethod")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem(39689, "https://github.com/dotnet/roslyn/issues/39689")>
+        Public Async Function TestFilteringOfExtensionMethodsWithConstraints2() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System;
+
+public interface ISomeInterface&lt;T&gt;
+{
+}
+
+public static class Extensions
+{       
+    public static bool SomeExtMethod&lt;T1, T2&gt;(this T1 builder, T2 x)
+        where T1 : ISomeInterface&lt;T2&gt;
+    {
+        return true;
+    }
+}
+public class Bar : ISomeInterface&lt;int&gt;
+{
+    void M(Bar s)
+    {
+        s.$$
+    }
+}
+                </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("SomeExtMethod", displayTextSuffix:="<>")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem(39689, "https://github.com/dotnet/roslyn/issues/39689")>
+        Public Async Function TestFilteringOfExtensionMethodsWithConstraints3() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System;
+
+public interface ISomeInterface&lt;T&gt;
+{
+}
+
+public static class Extensions
+{       
+    public static bool SomeExtMethod&lt;T1, T2&gt;(this T1 builder, T2 x)
+        where T1 : ISomeInterface&lt;T2&gt;
+    {
+        return true;
+    }
+}
+public class Bar&lt;T&gt; : ISomeInterface&lt;T&gt;
+{
+    void M(Bar&lt;T&gt; s)
+    {
+        s.$$
+    }
+}
+                </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("SomeExtMethod", displayTextSuffix:="<>")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem(39689, "https://github.com/dotnet/roslyn/issues/39689")>
+        Public Async Function TestFilteringOfExtensionMethodsWithConstraints4() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System;
+
+public interface ISomeInterface&lt;T&gt;
+{
+}
+
+public static class Extensions
+{       
+    public static bool SomeExtMethod&lt;T1, T2&gt;(this T1 builder, T2 x)
+        where T1 : ISomeInterface&lt;T2&gt;
+    {
+        return true;
+    }
+}
+public class Bar&lt;T&gt;
+{
+    void M(ISomeInterface&lt;T&gt; s)
+    {
+        s.$$
+    }
+}
+                </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("SomeExtMethod", displayTextSuffix:="<>")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem(39689, "https://github.com/dotnet/roslyn/issues/39689")>
+        Public Async Function TestFilteringOfExtensionMethodsWithConstraints5() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System;
+
+public interface ISomeInterface&lt;T&gt;
+{
+}
+
+public static class Extensions
+{       
+    public static bool SomeExtMethod&lt;T1, T2&gt;(this T1 builder, T2 x)
+        where T1 : ISomeInterface&lt;T2&gt;
+    {
+        return true;
+    }
+}
+public class Bar&lt;T&gt;
+{
+    void M(ISomeInterface&lt;int&gt; s)
+    {
+        s.$$
+    }
+}
+                </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("SomeExtMethod", displayTextSuffix:="<>")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem(39689, "https://github.com/dotnet/roslyn/issues/39689")>
+        Public Async Function TestFilteringOfExtensionMethodsWithConstraints6() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System;
+
+public interface ISomeInterface&lt;T&gt;
+{
+}
+
+public static class Extensions
+{       
+    public static bool SomeExtMethod&lt;T1, T2&gt;(this T1 builder, T2 x)
+        where T1 : T2
+    {
+        return true;
+    }
+}
+public class Bar&lt;T&gt;
+{
+    void M(string[] s)
+    {
+        s.$$
+    }
+}
+                </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("SomeExtMethod", displayTextSuffix:="<>")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem(39689, "https://github.com/dotnet/roslyn/issues/39689")>
+        Public Async Function TestFilteringOfExtensionMethodsWithConstraints7() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System;
+
+public interface ISomeInterface&lt;T&gt;
+{
+}
+
+public static class Extensions
+{       
+    public static bool SomeExtMethod&lt;T1, T2&gt;(this T1 builder, T2 x)
+        where T1 : ISomeInterface&lt;T2&gt;
+    {
+        return true;
+    }
+}
+public class Bar&lt;T&gt; : ISomeInterface&lt;T&gt;
+{
+    void M(Bar&lt;int&gt; s)
+    {
+        s.$$
+    }
+}
+                </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("SomeExtMethod", displayTextSuffix:="<>")
             End Using
         End Function
     End Class
