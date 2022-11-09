@@ -322,5 +322,12 @@ int y = x is $$ Method();
             await VerifyKeywordAsync(
 @"var lam = (int i, $$");
         }
+
+        [Fact]
+        public async Task TestLambdaDefaultParameterValue()
+        {
+            await VerifyKeywordAsync(
+@"var lam = (int i = $$");
+        }
     }
 }
