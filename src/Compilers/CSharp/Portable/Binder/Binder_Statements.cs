@@ -2202,24 +2202,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (reason == LambdaConversionResult.MismatchedParameterDefaultValue)
-            {
-                Debug.Assert(anonymousFunction.ParameterCount == delegateParameters.Length);
-
-                var lambdaSymbol = anonymousFunction.LambdaForParameterDefaultValues;
-                Debug.Assert(lambdaSymbol is not null);
-
-                // The lambda symbol may have diagnostics from
-                // binding default parameters, so copy these to the current diagnostic bag
-                lambdaSymbol.GetDeclarationDiagnostics(diagnostics);
-
-                for (int i = 0; i < anonymousFunction.ParameterCount; i++)
-                {
-                    CheckDefaultParameterMatch(ErrorCode.ERR_OptionalParamValueMismatch, lambdaSymbol.Parameters[i], delegateParameters[i], anonymousFunction.ParameterLocation(i), diagnostics);
-                }
-                return;
-            }
-
             if (reason == LambdaConversionResult.BindingFailed)
             {
                 var bindingResult = anonymousFunction.Bind(delegateType, isExpressionTree: false);

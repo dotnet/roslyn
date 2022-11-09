@@ -311,6 +311,7 @@
                 case ErrorCode.WRN_RefReturnOnlyParameter2:
                 case ErrorCode.WRN_RefAssignValEscapeWider:
                 case ErrorCode.WRN_OptionalParamValueMismatch:
+                case ErrorCode.WRN_ParamsArrayInLambdaOnly:
                     return true;
                 default:
                     return false;
