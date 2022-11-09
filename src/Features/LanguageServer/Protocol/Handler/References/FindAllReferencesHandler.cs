@@ -8,8 +8,8 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -20,6 +20,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
+
     /// <summary>
     /// TODO - This must be moved to the MS.CA.LanguageServer.Protocol project once
     /// the <see cref="IFindUsagesService"/> is moved down to the features layer and
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [ExportCSharpVisualBasicStatelessLspService(typeof(FindAllReferencesHandler)), Shared]
     [Method(LSP.Methods.TextDocumentReferencesName)]
-    internal class FindAllReferencesHandler : ILspServiceDocumentRequestHandler<LSP.ReferenceParams, LSP.VSInternalReferenceItem[]?>
+    internal sealed class FindAllReferencesHandler : ILspServiceDocumentRequestHandler<LSP.ReferenceParams, LSP.SumType<LSP.VSInternalReferenceItem, LSP.Location>[]?>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
         private readonly IAsynchronousOperationListener _asyncListener;
@@ -51,7 +52,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(ReferenceParams request) => request.TextDocument;
 
-        public async Task<LSP.VSInternalReferenceItem[]?> HandleRequestAsync(ReferenceParams referenceParams, RequestContext context, CancellationToken cancellationToken)
+        public async Task<LSP.SumType<LSP.VSInternalReferenceItem, LSP.Location>[]?> HandleRequestAsync(
+            ReferenceParams referenceParams,
+            RequestContext context,
+            CancellationToken cancellationToken)
         {
             var clientCapabilities = context.GetRequiredClientCapabilities();
             Debug.Assert(clientCapabilities.HasVisualStudioLspCapability());
@@ -61,7 +65,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Contract.ThrowIfNull(document);
             Contract.ThrowIfNull(workspace);
 
-            using var progress = BufferedProgress.Create<VSInternalReferenceItem>(referenceParams.PartialResultToken);
+            using var progress = BufferedProgress.Create<SumType<VSInternalReferenceItem, LSP.Location>>(referenceParams.PartialResultToken);
 
             var findUsagesService = document.GetRequiredLanguageService<IFindUsagesLSPService>();
             var position = await document.GetPositionFromLinePositionAsync(

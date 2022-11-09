@@ -2980,16 +2980,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (arg != null)
                     {
                         var container = this.ContainingMemberOrLambda;
-                        var lambda = container as LambdaSymbol;
-                        if ((object)lambda != null)
+                        if (container is LambdaSymbol)
                         {
                             // Error case: void-returning or async task-returning method or lambda with "return x;"
-                            var errorCode = retType.IsVoidType()
-                                ? ErrorCode.ERR_RetNoObjectRequiredLambda
-                                : ErrorCode.ERR_TaskRetNoObjectRequiredLambda;
+                            if (retType.IsVoidType())
+                            {
+                                Error(diagnostics, ErrorCode.ERR_RetNoObjectRequiredLambda, syntax.ReturnKeyword);
+                            }
+                            else
+                            {
+                                Error(diagnostics, ErrorCode.ERR_TaskRetNoObjectRequiredLambda, syntax.ReturnKeyword, retType);
+                            }
 
-                            // Anonymous function converted to a void returning delegate cannot return a value
-                            Error(diagnostics, errorCode, syntax.ReturnKeyword);
                             hasErrors = true;
 
                             // COMPATIBILITY: The native compiler also produced an error
@@ -3001,11 +3003,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             // Error case: void-returning or async task-returning method or lambda with "return x;"
-                            var errorCode = retType.IsVoidType()
-                                ? ErrorCode.ERR_RetNoObjectRequired
-                                : ErrorCode.ERR_TaskRetNoObjectRequired;
+                            if (retType.IsVoidType())
+                            {
+                                Error(diagnostics, ErrorCode.ERR_RetNoObjectRequired, syntax.ReturnKeyword, container);
+                            }
+                            else
+                            {
+                                Error(diagnostics, ErrorCode.ERR_TaskRetNoObjectRequired, syntax.ReturnKeyword, container, retType);
+                            }
 
-                            Error(diagnostics, errorCode, syntax.ReturnKeyword, container);
                             hasErrors = true;
                         }
                     }
