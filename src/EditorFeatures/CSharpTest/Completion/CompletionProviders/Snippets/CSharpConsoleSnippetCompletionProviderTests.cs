@@ -154,10 +154,6 @@ class Program
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        /// <summary>
-        /// Simplifier does not work as intended, once that changes this outcome
-        /// should be able to simplify the inserted snippet.
-        /// </summary>
         [WpfFact]
         public async Task InsertConsoleSnippetInLocalFunctionTest()
         {
@@ -184,17 +180,13 @@ class Program
         var x = 5;
         void LocalMethod()
         {
-            global::System.Console.WriteLine($$);
+            Console.WriteLine($$);
         }
     }
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        /// <summary>
-        /// Simplifier does not work as intended, once that changes this outcome
-        /// should be able to simplify the inserted snippet.
-        /// </summary>
         [WpfFact]
         public async Task InsertConsoleSnippetInAnonymousFunctionTest()
         {
@@ -217,17 +209,13 @@ public delegate void Print(int value);
 static void Main(string[] args)
 {
     Print print = delegate(int val) {
-        global::System.Console.WriteLine($$);
+        Console.WriteLine($$);
     };
 
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        /// <summary>
-        /// Simplifier does not work as intended, once that changes this outcome
-        /// should be able to simplify the inserted snippet.
-        /// </summary>
         [WpfFact]
         public async Task InsertConsoleSnippetInParenthesizedLambdaExpressionTest()
         {
@@ -245,7 +233,7 @@ using System;
 
 Func<int, int, bool> testForEquality = (x, y) =>
 {
-    global::System.Console.WriteLine($$);
+    Console.WriteLine($$);
     return x == y;
 };";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
