@@ -121,13 +121,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
             private readonly Func<CancellationToken, Task<Solution>> _createChangedSolutionAsync;
             private readonly string _equivalenceKey;
 
-#if !CODE_STYLE
             /// <summary>
-            /// This code action invokes code on the UI thread to tell 3rd parties about the rename.  As such, it does
-            /// more than make document changes (and is thus restricted in which hosts it can run).
+            /// This code action does produce non-text-edit operations (like notifying 3rd parties about a rename).  But
+            /// it doesn't require this.  As such, we can allow it to run in hosts that only allow document edits. Those
+            /// hosts will simply ignore the operations they don't understand.
             /// </summary>
-            public override ImmutableArray<string> Tags => MakesNonDocumentChangeTags;
-#endif
+            public override ImmutableArray<string> Tags => ImmutableArray<string>.Empty;
 
             public FixNameCodeAction(
 #if !CODE_STYLE
@@ -167,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
                 {
                     codeAction,
                     factory.CreateSymbolRenamedOperation(_symbol, _newName, _startingSolution, newSolution)
-                }.AsEnumerable();
+                };
 #endif
             }
 

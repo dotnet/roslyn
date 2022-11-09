@@ -21,12 +21,16 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// </summary>
         private class ProjectSymbolReferenceCodeAction : SymbolReferenceCodeAction
         {
+            /// <summary>
+            /// This code action may or may not add a project reference.  If it does, it requires a non document change
+            /// (and is thus restricted in which hosts it can run).  If it doesn't, it can run anywhere.
+            /// </summary>
             public ProjectSymbolReferenceCodeAction(
                 Document originalDocument,
                 AddImportFixData fixData)
                 : base(originalDocument,
                        fixData,
-                       additionalTags: ShouldAddProjectReference(originalDocument, fixData) ? MakesNonDocumentChangeTags : ImmutableArray<string>.Empty)
+                       additionalTags: ShouldAddProjectReference(originalDocument, fixData) ? RequiresNonDocumentChangeTags : ImmutableArray<string>.Empty)
             {
                 Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.ProjectSymbol);
             }

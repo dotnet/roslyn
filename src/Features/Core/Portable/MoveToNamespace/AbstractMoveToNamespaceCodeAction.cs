@@ -31,22 +31,12 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             _cleanupOptions = cleanupOptions;
         }
 
-        public override ImmutableArray<string> Tags
-        {
-            get
-            {
-                var solution = _moveToNamespaceAnalysisResult.Document.Project.Solution;
-                var symbolRenameCodeActionOperationFactory = solution.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
-
-                // If we're in a host that supports the symbol rename code action, then this code action will do more
-                // than just move.  It will also notify clients about the rename it does.  As such, it does more than
-                // make / document changes (and is thus restricted in which hosts it can run).
-                if (symbolRenameCodeActionOperationFactory != null)
-                    return MakesNonDocumentChangeTags;
-
-                return ImmutableArray<string>.Empty;
-            }
-        }
+        /// <summary>
+        /// This code action does notify clients about the rename it performs.  However, this is an optional part of
+        /// this work, that happens after the move has happened.  As such, this does not require non document changes
+        /// and can run in all our hosts.
+        /// </summary>
+        public override ImmutableArray<string> Tags => ImmutableArray<string>.Empty;
 
         public override object GetOptions(CancellationToken cancellationToken)
         {

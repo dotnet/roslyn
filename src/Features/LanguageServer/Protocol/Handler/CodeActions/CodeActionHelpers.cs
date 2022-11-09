@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnifiedSuggestions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 using CodeAction = Microsoft.CodeAnalysis.CodeActions.CodeAction;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -60,9 +59,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                     if (suggestedAction.OriginalCodeAction is CodeActionWithOptions)
                         continue;
 
-                    // Skip code actions that make non-document changes.  We can't apply them in LSP currently.
+                    // Skip code actions that requires non-document changes.  We can't apply them in LSP currently.
                     // https://github.com/dotnet/roslyn/issues/48698
-                    if (suggestedAction.OriginalCodeAction.Tags.Contains(CodeAction.MakesNonDocumentChange))
+                    if (suggestedAction.OriginalCodeAction.Tags.Contains(CodeAction.RequiresNonDocumentChange))
                         continue;
 
                     codeActions.Add(GenerateVSCodeAction(
@@ -231,7 +230,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 }
             }
 
-            return CodeActionWithNestedActions.Create(
+            return CodeAction.CodeActionWithNestedActions.Create(
                 codeAction.Title, nestedActions.ToImmutable(), codeAction.IsInlinable, codeAction.Priority);
         }
 

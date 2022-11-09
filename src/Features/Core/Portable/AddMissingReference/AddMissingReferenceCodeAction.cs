@@ -23,10 +23,10 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
         public override string Title { get; }
 
         /// <summary>
-        /// This code action adds references, and thus definitely makes non-document changes.  It cannot run in hosts
-        /// that only support text changes.
+        /// This code action only works by adding references.  As such, it requires a non document change (and is
+        /// thus restricted in which hosts it can run).
         /// </summary>
-        public override ImmutableArray<string> Tags => MakesNonDocumentChangeTags;
+        public override ImmutableArray<string> Tags => RequiresNonDocumentChangeTags;
 
         public AddMissingReferenceCodeAction(Project project, string title, ProjectReference? projectReferenceToAdd, AssemblyIdentity missingAssemblyIdentity)
         {

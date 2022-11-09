@@ -163,11 +163,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             return codeAction;
 
-            async Task AddTextDocumentEditsAsync<T>(
+            async Task AddTextDocumentEditsAsync<TTextDocument>(
                 IEnumerable<DocumentId> changedDocuments,
-                Func<DocumentId, T?> getNewDocument,
-                Func<DocumentId, T?> getOldDocument)
-                where T : TextDocument
+                Func<DocumentId, TTextDocument?> getNewDocument,
+                Func<DocumentId, TTextDocument?> getOldDocument)
+                where TTextDocument : TextDocument
             {
                 foreach (var docId in changedDocuments)
                 {
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                     var edits = textChanges.Select(tc => ProtocolConversions.TextChangeToTextEdit(tc, oldText)).ToArray();
                     var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newTextDoc.GetURI() };
-                    textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = edits.ToArray() });
+                    textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = edits });
                 }
             }
         }

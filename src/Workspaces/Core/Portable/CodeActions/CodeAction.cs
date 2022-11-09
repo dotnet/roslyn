@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
     /// </summary>
     public abstract class CodeAction
     {
-        internal const string MakesNonDocumentChange = nameof(MakesNonDocumentChange);
-        private protected static ImmutableArray<string> MakesNonDocumentChangeTags = ImmutableArray.Create(MakesNonDocumentChange);
+        internal const string RequiresNonDocumentChange = nameof(RequiresNonDocumentChange);
+        private protected static ImmutableArray<string> RequiresNonDocumentChangeTags = ImmutableArray.Create(RequiresNonDocumentChange);
 
         /// <summary>
         /// A short title describing the action that may appear in a menu.
