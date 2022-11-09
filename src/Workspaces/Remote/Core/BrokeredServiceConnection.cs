@@ -3,11 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO.Pipelines;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -124,15 +122,6 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public override async IAsyncEnumerable<TResult> TryInvokeStreamAsync<TResult>(
-            Func<TService, CancellationToken, IAsyncEnumerable<TResult>> invocation,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
-        {
-            using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
-            await foreach (var item in invocation(rental.Service, cancellationToken).ConfigureAwait(false))
-                yield return item;
-        }
-
         // no solution, callback
 
         public override async ValueTask<bool> TryInvokeAsync(Func<TService, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
@@ -201,17 +190,6 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public override async IAsyncEnumerable<TResult> TryInvokeStreamAsync<TResult>(
-            Solution solution,
-            Func<TService, Checksum, CancellationToken, IAsyncEnumerable<TResult>> invocation,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
-        {
-            using var scope = await _solutionAssetStorage.StoreAssetsAsync(solution, cancellationToken).ConfigureAwait(false);
-            using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
-            await foreach (var value in invocation(rental.Service, scope.SolutionChecksum, cancellationToken))
-                yield return value;
-        }
-
         // project, no callback
 
         public override async ValueTask<bool> TryInvokeAsync(Project project, Func<TService, Checksum, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
@@ -243,17 +221,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 OnUnexpectedException(exception, cancellationToken);
                 return default;
             }
-        }
-
-        public override async IAsyncEnumerable<TResult> TryInvokeStreamAsync<TResult>(
-            Project project,
-            Func<TService, Checksum, CancellationToken, IAsyncEnumerable<TResult>> invocation,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
-        {
-            using var scope = await _solutionAssetStorage.StoreAssetsAsync(project, cancellationToken).ConfigureAwait(false);
-            using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
-            await foreach (var item in invocation(rental.Service, scope.SolutionChecksum, cancellationToken).ConfigureAwait(false))
-                yield return item;
         }
 
         // solution, callback

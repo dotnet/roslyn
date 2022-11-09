@@ -4987,7 +4987,7 @@ public class Derived : Base<short, int>
     public override void Method(short s, int i) { }
 }
 ";
-            CSharpCompilation comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            CSharpCompilation comp = CreateCompilation(text, targetFramework: TargetFramework.NetLatest);
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
             {
@@ -5046,7 +5046,7 @@ class Derived : Base<int>
     public override void Method(int @in, ref int @ref) { }
 }
 ";
-            var compilation = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            var compilation = CreateCompilation(text, targetFramework: TargetFramework.NetLatest);
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
             {

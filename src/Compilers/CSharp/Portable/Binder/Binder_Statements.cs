@@ -2980,16 +2980,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (arg != null)
                     {
                         var container = this.ContainingMemberOrLambda;
-                        var lambda = container as LambdaSymbol;
-                        if ((object)lambda != null)
+                        if (container is LambdaSymbol)
                         {
                             // Error case: void-returning or async task-returning method or lambda with "return x;"
-                            var errorCode = retType.IsVoidType()
-                                ? ErrorCode.ERR_RetNoObjectRequiredLambda
-                                : ErrorCode.ERR_TaskRetNoObjectRequiredLambda;
+                            if (retType.IsVoidType())
+                            {
+                                Error(diagnostics, ErrorCode.ERR_RetNoObjectRequiredLambda, syntax.ReturnKeyword);
+                            }
+                            else
+                            {
+                                Error(diagnostics, ErrorCode.ERR_TaskRetNoObjectRequiredLambda, syntax.ReturnKeyword, retType);
+                            }
 
-                            // Anonymous function converted to a void returning delegate cannot return a value
-                            Error(diagnostics, errorCode, syntax.ReturnKeyword);
                             hasErrors = true;
 
                             // COMPATIBILITY: The native compiler also produced an error
@@ -3001,11 +3003,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             // Error case: void-returning or async task-returning method or lambda with "return x;"
-                            var errorCode = retType.IsVoidType()
-                                ? ErrorCode.ERR_RetNoObjectRequired
-                                : ErrorCode.ERR_TaskRetNoObjectRequired;
+                            if (retType.IsVoidType())
+                            {
+                                Error(diagnostics, ErrorCode.ERR_RetNoObjectRequired, syntax.ReturnKeyword, container);
+                            }
+                            else
+                            {
+                                Error(diagnostics, ErrorCode.ERR_TaskRetNoObjectRequired, syntax.ReturnKeyword, container, retType);
+                            }
 
-                            Error(diagnostics, errorCode, syntax.ReturnKeyword, container);
                             hasErrors = true;
                         }
                     }
@@ -3098,8 +3104,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (IsEffectivelyGenericTaskReturningAsyncMethod()
                             && TypeSymbol.Equals(argument.Type, this.GetCurrentReturnType(out unusedRefKind), TypeCompareKind.ConsiderEverything2))
                         {
-                            // Since this is an async method, the return expression must be of type '{0}' rather than 'Task<{0}>'
-                            Error(diagnostics, ErrorCode.ERR_BadAsyncReturnExpression, argument.Syntax, returnType);
+                            // Since this is an async method, the return expression must be of type '{0}' rather than '{1}'
+                            Error(diagnostics, ErrorCode.ERR_BadAsyncReturnExpression, argument.Syntax, returnType, argument.Type);
                         }
                         else
                         {
@@ -3573,21 +3579,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(recordDecl.ParameterList is object);
             Debug.Assert(recordDecl.IsKind(SyntaxKind.RecordDeclaration));
 
-            Binder bodyBinder = this.GetBinder(recordDecl);
-            Debug.Assert(bodyBinder != null);
-
             BoundExpressionStatement initializer;
+            ImmutableArray<LocalSymbol> constructorLocals;
             if (recordDecl.PrimaryConstructorBaseTypeIfClass is PrimaryConstructorBaseTypeSyntax baseWithArguments)
             {
-                initializer = bodyBinder.BindConstructorInitializer(baseWithArguments, diagnostics);
+                Binder initializerBinder = GetBinder(baseWithArguments);
+                Debug.Assert(initializerBinder != null);
+                initializer = initializerBinder.BindConstructorInitializer(baseWithArguments, diagnostics);
+                constructorLocals = initializerBinder.GetDeclaredLocalsForScope(baseWithArguments);
             }
             else
             {
-                initializer = bodyBinder.BindImplicitConstructorInitializer(recordDecl, diagnostics);
+                initializer = BindImplicitConstructorInitializer(recordDecl, diagnostics);
+                constructorLocals = ImmutableArray<LocalSymbol>.Empty;
             }
 
             return new BoundConstructorMethodBody(recordDecl,
-                                                  bodyBinder.GetDeclaredLocalsForScope(recordDecl),
+                                                  constructorLocals,
                                                   initializer,
                                                   blockBody: new BoundBlock(recordDecl, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty).MakeCompilerGenerated(),
                                                   expressionBody: null);

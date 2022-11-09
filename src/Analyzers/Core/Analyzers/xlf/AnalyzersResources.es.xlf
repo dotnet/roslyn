@@ -327,6 +327,11 @@
         <target state="translated">Simplificar nombres</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_check">
+        <source>Simplify check</source>
+        <target state="new">Simplify check</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_collection_initialization">
         <source>Simplify collection initialization</source>
         <target state="translated">Simplificar la inicialización de la recopilación</target>
