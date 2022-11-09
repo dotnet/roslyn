@@ -8,7 +8,7 @@ internal class Razor : IProduct
 {
     public string Name => "Razor";
 
-    public string RepoBaseUrl => "https://github.com/dotnet/razor-tooling";
+    public string RepoBaseUrl => "https://github.com/dotnet/razor";
     public string ComponentJsonFileName => @".corext\Configs\aspnet-components.json";
     public string ComponentName => "Microsoft.VisualStudio.RazorExtension";
     public string? PackageName => null;
@@ -18,7 +18,7 @@ internal class Razor : IProduct
     public string? GetBuildPipelineName(string buildProjectName)
         => buildProjectName switch
         {
-            "internal" => "razor-tooling-ci-official",
+            "internal" => "razor-ci-official",
             _ => null
         };
 }
