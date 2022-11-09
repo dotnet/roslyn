@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.LanguageService
@@ -63,14 +62,14 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         bool CanReplaceWithRValue(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken);
 
-        ISymbol GetDeclaredSymbol(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken);
+        ISymbol? GetDeclaredSymbol(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken);
 
         bool LastEnumValueHasInitializer(INamedTypeSymbol namedTypeSymbol);
 
         /// <summary>
         /// return speculative semantic model for supported node. otherwise, it will return null
         /// </summary>
-        bool TryGetSpeculativeSemanticModel(SemanticModel oldSemanticModel, SyntaxNode oldNode, SyntaxNode newNode, out SemanticModel speculativeModel);
+        bool TryGetSpeculativeSemanticModel(SemanticModel oldSemanticModel, SyntaxNode oldNode, SyntaxNode newNode, [NotNullWhen(true)] out SemanticModel? speculativeModel);
 
         /// <summary>
         /// get all alias names defined in the semantic model
@@ -79,7 +78,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         ForEachSymbols GetForEachSymbols(SemanticModel semanticModel, SyntaxNode forEachStatement);
 
-        IMethodSymbol GetGetAwaiterMethod(SemanticModel semanticModel, SyntaxNode node);
+        IMethodSymbol? GetGetAwaiterMethod(SemanticModel semanticModel, SyntaxNode node);
 
         ImmutableArray<IMethodSymbol> GetDeconstructionAssignmentMethods(SemanticModel semanticModel, SyntaxNode node);
 
@@ -89,17 +88,13 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken);
 
-#nullable enable
         IParameterSymbol? FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argument, bool allowUncertainCandidates, bool allowParams, CancellationToken cancellationToken);
         IParameterSymbol? FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argument, bool allowUncertainCandidates, bool allowParams, CancellationToken cancellationToken);
-#nullable disable
 
-        ISymbol FindFieldOrPropertyForArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken);
-        ISymbol FindFieldOrPropertyForAttributeArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken);
+        ISymbol? FindFieldOrPropertyForArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken);
+        ISymbol? FindFieldOrPropertyForAttributeArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken);
 
-#nullable enable
         ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode? node, SyntaxToken token, CancellationToken cancellationToken);
-#nullable disable
 
         bool IsInsideNameOfExpression(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
 
