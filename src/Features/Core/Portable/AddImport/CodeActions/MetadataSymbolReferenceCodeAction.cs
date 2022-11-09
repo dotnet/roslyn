@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         private class MetadataSymbolReferenceCodeAction : SymbolReferenceCodeAction
         {
             public MetadataSymbolReferenceCodeAction(Document originalDocument, AddImportFixData fixData)
-                : base(originalDocument, fixData)
+                : base(originalDocument, fixData, MakesNonDocumentChangeTags)
             {
                 Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.MetadataSymbol);
             }

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             public AssemblyReferenceCodeAction(
                 Document originalDocument,
                 AddImportFixData fixData)
-                : base(originalDocument, fixData)
+                : base(originalDocument, fixData, MakesNonDocumentChangeTags)
             {
                 Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.ReferenceAssemblySymbol);
             }

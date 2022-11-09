@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 AddImportFixData fixData,
                 string title,
                 InstallPackageDirectlyCodeActionOperation installOperation)
-                : base(originalDocument, fixData)
+                : base(originalDocument, fixData, MakesNonDocumentChangeTags)
             {
                 Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.PackageSymbol);
                 Title = title;
