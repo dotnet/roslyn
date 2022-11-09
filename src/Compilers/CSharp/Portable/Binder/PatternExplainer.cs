@@ -184,13 +184,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool requiresFalseWhenClause,
             out bool unnamedEnumValue)
         {
+            // Prefer a sample only involving named enum values when possible
+            string samplePattern = SamplePatternForPathToDagNode(rootIdentifier, nodes, targetNode, nullPaths, requireNamedEnumValues: true, out requiresFalseWhenClause);
+            if (samplePattern is not null)
+            {
+                unnamedEnumValue = false;
+                return samplePattern;
+            }
+
+            // Otherwise try again allowing unnamed enum values
+            samplePattern = SamplePatternForPathToDagNode(rootIdentifier, nodes, targetNode, nullPaths, requireNamedEnumValues: false, out requiresFalseWhenClause);
+            unnamedEnumValue = true;
+            return samplePattern;
+        }
+
+        // Returns null when no paths provided an adequate sample given the requireNamedEnumValues requirement
+        internal static string SamplePatternForPathToDagNode(
+            BoundDagTemp rootIdentifier,
+            ImmutableArray<BoundDecisionDagNode> nodes,
+            BoundDecisionDagNode targetNode,
+            bool nullPaths,
+            bool requireNamedEnumValues,
+            out bool requiresFalseWhenClause)
+        {
 #if DEBUG
             // Exercise enumeration of all paths to node
             VisitPathsToNode(nodes[0], targetNode, nullPaths: true, handler: (currentPathToNode, currentRequiresFalseWhenClause) => true);
             VisitPathsToNode(nodes[0], targetNode, nullPaths: false, handler: (currentPathToNode, currentRequiresFalseWhenClause) => true);
 #endif
-
-            unnamedEnumValue = false;
 
             // Compute the path to the node, excluding the node itself.
             var shortestPathToNode = ShortestPathToNode(nodes, targetNode, nullPaths, out requiresFalseWhenClause);
@@ -198,21 +219,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             try
             {
-                return SamplePatternForTemp(rootIdentifier, constraints, evaluations, requireExactType: false, ref unnamedEnumValue);
+                return SamplePatternForTemp(rootIdentifier, constraints, evaluations, requireExactType: false, requireNamedEnumValues);
             }
             catch (NoRemainingValuesException)
             {
             }
 
-            // In rare cases, the shortest path isn't the one that yields a sample
-            return samplePatternFromOtherPaths(rootIdentifier, nodes[0], targetNode, nullPaths, out requiresFalseWhenClause, out unnamedEnumValue);
+            // The shortest path isn't the one that yields a sample
+            return samplePatternFromOtherPaths(rootIdentifier, nodes[0], targetNode, nullPaths, out requiresFalseWhenClause, requireNamedEnumValues);
 
             static string samplePatternFromOtherPaths(BoundDagTemp rootIdentifier, BoundDecisionDagNode rootNode,
-                BoundDecisionDagNode targetNode, bool nullPaths, out bool requiresFalseWhenClause, out bool unnamedEnumValue)
+                BoundDecisionDagNode targetNode, bool nullPaths, out bool requiresFalseWhenClause, bool requireNamedEnumValues)
             {
                 string altSamplePatternForTemp = null;
                 bool altRequiresFalseWhenClause = false;
-                bool altUnnamedEnumValue = false;
 
                 VisitPathsToNode(rootNode, targetNode, nullPaths, handler: (currentPathToNode, currentRequiresFalseWhenClause) =>
                 {
@@ -221,8 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     try
                     {
-                        altUnnamedEnumValue = false;
-                        altSamplePatternForTemp = SamplePatternForTemp(rootIdentifier, constraints, evaluations, requireExactType: false, ref altUnnamedEnumValue);
+                        altSamplePatternForTemp = SamplePatternForTemp(rootIdentifier, constraints, evaluations, requireExactType: false, requireNamedEnumValues);
                         return false; // we've successfully produced a sample, so stop exploring paths
                     }
                     catch (NoRemainingValuesException)
@@ -233,12 +252,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (altSamplePatternForTemp is not null)
                 {
-                    unnamedEnumValue = altUnnamedEnumValue;
                     requiresFalseWhenClause = altRequiresFalseWhenClause;
                     return altSamplePatternForTemp;
                 }
 
-                throw ExceptionUtilities.Unreachable();
+                if (!requireNamedEnumValues)
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
+
+                requiresFalseWhenClause = false;
+                return null;
             }
 
             static void gatherConstraintsAndEvaluations(BoundDecisionDagNode targetNode, ImmutableArray<BoundDecisionDagNode> pathToNode,
@@ -293,19 +317,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             Dictionary<BoundDagTemp, ArrayBuilder<(BoundDagTest test, bool sense)>> constraintMap,
             Dictionary<BoundDagTemp, ArrayBuilder<BoundDagEvaluation>> evaluationMap,
             bool requireExactType,
-            ref bool unnamedEnumValue)
+            bool requireNamedEnumValues)
         {
             var constraints = getArray(constraintMap, input);
             var evaluations = getArray(evaluationMap, input);
 
             return
                 tryHandleSingleTest() ??
-                tryHandleTypeTestAndTypeEvaluation(ref unnamedEnumValue) ??
-                tryHandleUnboxNullableValueType(ref unnamedEnumValue) ??
-                tryHandleTuplePattern(ref unnamedEnumValue) ??
-                tryHandleNumericLimits(ref unnamedEnumValue) ??
-                tryHandleRecursivePattern(ref unnamedEnumValue) ??
-                tryHandleListPattern(ref unnamedEnumValue) ??
+                tryHandleTypeTestAndTypeEvaluation() ??
+                tryHandleUnboxNullableValueType() ??
+                tryHandleTuplePattern() ??
+                tryHandleNumericLimits() ??
+                tryHandleRecursivePattern() ??
+                tryHandleListPattern() ??
                 produceFallbackPattern();
 
             static ImmutableArray<T> getArray<T>(Dictionary<BoundDagTemp, ArrayBuilder<T>> map, BoundDagTemp temp)
@@ -334,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Handle the special case of a type test and a type evaluation.
-            string tryHandleTypeTestAndTypeEvaluation(ref bool unnamedEnumValue)
+            string tryHandleTypeTestAndTypeEvaluation()
             {
                 if (evaluations.Length == 1 && constraints.Length == 1 &&
                     constraints[0] is (BoundDagTypeTest { Type: var constraintType }, true) &&
@@ -342,14 +366,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     constraintType.Equals(evaluationType, TypeCompareKind.AllIgnoreOptions))
                 {
                     var typedTemp = new BoundDagTemp(te.Syntax, te.Type, te);
-                    return SamplePatternForTemp(typedTemp, constraintMap, evaluationMap, requireExactType: true, ref unnamedEnumValue);
+                    return SamplePatternForTemp(typedTemp, constraintMap, evaluationMap, requireExactType: true, requireNamedEnumValues);
                 }
 
                 return null;
             }
 
             // Handle the special case of a null test and a type evaluation to unbox a nullable value type
-            string tryHandleUnboxNullableValueType(ref bool unnamedEnumValue)
+            string tryHandleUnboxNullableValueType()
             {
                 if (evaluations.Length == 1 && constraints.Length == 1 &&
                     constraints[0] is (BoundDagNonNullTest _, true) &&
@@ -357,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     input.Type.IsNullableType() && input.Type.GetNullableUnderlyingType().Equals(evaluationType, TypeCompareKind.AllIgnoreOptions))
                 {
                     var typedTemp = new BoundDagTemp(te.Syntax, te.Type, te);
-                    var result = SamplePatternForTemp(typedTemp, constraintMap, evaluationMap, requireExactType: false, ref unnamedEnumValue);
+                    var result = SamplePatternForTemp(typedTemp, constraintMap, evaluationMap, requireExactType: false, requireNamedEnumValues);
                     // We need a null check. If not included in the result, add it.
                     return (result == "_") ? "not null" : result;
                 }
@@ -366,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Handle the special case of a list pattern
-            string tryHandleListPattern(ref bool unnamedEnumValue)
+            string tryHandleListPattern()
             {
                 if (constraints.IsEmpty && evaluations.IsEmpty)
                     return null;
@@ -434,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (effectiveIndex < 0 || effectiveIndex >= lengthValue)
                                     return null;
                                 var oldPattern = subpatterns[effectiveIndex];
-                                var newPattern = SamplePatternForTemp(indexerTemp, constraintMap, evaluationMap, requireExactType: false, ref unnamedEnumValue);
+                                var newPattern = SamplePatternForTemp(indexerTemp, constraintMap, evaluationMap, requireExactType: false, requireNamedEnumValues);
                                 subpatterns[effectiveIndex] = makeConjunct(oldPattern, newPattern);
                                 continue;
                             case BoundDagSliceEvaluation e:
@@ -448,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (slice != null)
                     {
                         var sliceTemp = new BoundDagTemp(slice.Syntax, slice.SliceType, slice);
-                        var slicePattern = SamplePatternForTemp(sliceTemp, constraintMap, evaluationMap, requireExactType: false, ref unnamedEnumValue);
+                        var slicePattern = SamplePatternForTemp(sliceTemp, constraintMap, evaluationMap, requireExactType: false, requireNamedEnumValues);
                         if (slicePattern != "_")
                         {
                             // If the slice is not matched against any pattern, the slice pattern would
@@ -464,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Handle the special case of a tuple pattern
-            string tryHandleTuplePattern(ref bool unnamedEnumValue)
+            string tryHandleTuplePattern()
             {
                 if (input.Type.IsTupleType &&
                     constraints.IsEmpty &&
@@ -482,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return null;
 
                         var oldPattern = subpatterns[index];
-                        var newPattern = SamplePatternForTemp(elementTemp, constraintMap, evaluationMap, requireExactType: false, ref unnamedEnumValue);
+                        var newPattern = SamplePatternForTemp(elementTemp, constraintMap, evaluationMap, requireExactType: false, requireNamedEnumValues);
                         subpatterns[index] = makeConjunct(oldPattern, newPattern);
                     }
 
@@ -493,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Handle the special case of numeric limits
-            string tryHandleNumericLimits(ref bool unnamedEnumValue)
+            string tryHandleNumericLimits()
             {
                 if (evaluations.IsEmpty &&
                     constraints.All(t => t switch
@@ -511,14 +535,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (remainingValues.Complement().IsEmpty)
                         return "_";
 
-                    return SampleValueString(remainingValues, input.Type, requireExactType: requireExactType, unnamedEnumValue: ref unnamedEnumValue);
+                    return SampleValueString(remainingValues, input.Type, requireExactType: requireExactType, requireNamedEnumValues: requireNamedEnumValues);
                 }
 
                 return null;
             }
 
             // Handle the special case of a recursive pattern
-            string tryHandleRecursivePattern(ref bool unnamedEnumValue)
+            string tryHandleRecursivePattern()
             {
                 if (constraints.IsEmpty && evaluations.IsEmpty)
                     return null;
@@ -545,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             for (int j = 0; j < count; j++)
                             {
                                 var elementTemp = new BoundDagTemp(e.Syntax, method.Parameters[j + extensionExtra].Type, e, j);
-                                var newPattern = SamplePatternForTemp(elementTemp, constraintMap, evaluationMap, requireExactType: false, ref unnamedEnumValue);
+                                var newPattern = SamplePatternForTemp(elementTemp, constraintMap, evaluationMap, requireExactType: false, requireNamedEnumValues);
                                 if (j != 0)
                                     subpatternBuilder.Append(", ");
                                 subpatternBuilder.Append(newPattern);
@@ -564,14 +588,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundDagFieldEvaluation e:
                             {
                                 var subInput = new BoundDagTemp(e.Syntax, e.Field.Type, e);
-                                var subPattern = SamplePatternForTemp(subInput, constraintMap, evaluationMap, false, ref unnamedEnumValue);
+                                var subPattern = SamplePatternForTemp(subInput, constraintMap, evaluationMap, false, requireNamedEnumValues);
                                 properties.Add(e.Field, subPattern);
                             }
                             break;
                         case BoundDagPropertyEvaluation e:
                             {
                                 var subInput = new BoundDagTemp(e.Syntax, e.Property.Type, e);
-                                var subPattern = SamplePatternForTemp(subInput, constraintMap, evaluationMap, false, ref unnamedEnumValue);
+                                var subPattern = SamplePatternForTemp(subInput, constraintMap, evaluationMap, false, requireNamedEnumValues);
                                 properties.Add(e.Property, subPattern);
                             }
                             break;
@@ -638,7 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static string SampleValueString(IValueSet remainingValues, TypeSymbol type, bool requireExactType, ref bool unnamedEnumValue)
+        private static string SampleValueString(IValueSet remainingValues, TypeSymbol type, bool requireExactType, bool requireNamedEnumValues)
         {
             // In rare cases it's possible the DAG path we analyzed yields empty remaining values
             if (remainingValues.IsEmpty)
@@ -658,7 +682,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                unnamedEnumValue = true;
+                if (requireNamedEnumValues)
+                    throw new NoRemainingValuesException();
             }
 
             var sample = remainingValues.Sample;
