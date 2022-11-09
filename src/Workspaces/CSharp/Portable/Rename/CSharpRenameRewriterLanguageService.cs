@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
                     string? suffix = null;
                     var prefix = isRenameLocation && _renameLocations[token.Span].IsRenamableAccessor
-                        ? newToken.ValueText.Substring(0, newToken.ValueText.IndexOf('_') + 1)
+                        ? newToken.ValueText[..(newToken.ValueText.IndexOf('_') + 1)]
                         : null;
 
                     if (symbols.Length == 1)
@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             private SyntaxToken RenameToken(SyntaxToken oldToken, SyntaxToken newToken, string? prefix, string? suffix)
             {
                 var parent = oldToken.Parent!;
-                var currentNewIdentifier = _isVerbatim ? _replacementText.Substring(1) : _replacementText;
+                var currentNewIdentifier = _isVerbatim ? _replacementText[1..] : _replacementText;
                 var oldIdentifier = newToken.ValueText;
                 var isAttributeName = SyntaxFacts.IsAttributeName(parent);
 
@@ -1101,7 +1101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         {
             if (replacementText.EndsWith("Attribute", StringComparison.Ordinal) && replacementText.Length > 9)
             {
-                var conflict = replacementText.Substring(0, replacementText.Length - 9);
+                var conflict = replacementText[..^9];
                 if (!possibleNameConflicts.Contains(conflict))
                 {
                     possibleNameConflicts.Add(conflict);

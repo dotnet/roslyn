@@ -628,6 +628,19 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal AsyncQueue<CompilationEvent>? EventQueue { get; }
 
+        /// <summary>
+        /// If this value is not 0, we might be about to enqueue more events into <see cref="EventQueue"/>.
+        /// In this case, we need to wait for the count to go to zero before completing the queue. 
+        ///
+        /// This is necessary in cases where multi-step operations that impact the queue occur. For 
+        /// example when a thread of execution is storing cached data on a symbol before pushing
+        /// an event to the queue. If another thread were to come in between those two steps, see the 
+        /// cached data it could mistakenly believe the operation was complete and cause the queue 
+        /// to close. This counter ensures that the queue will remain open for the duration of a 
+        /// complex operation.
+        /// </summary>
+        private int _eventQueueEnqueuePendingCount;
+
         #endregion
 
         #region References
@@ -1765,9 +1778,24 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal void RegisterPossibleUpcomingEventEnqueue()
+        {
+            Interlocked.Increment(ref _eventQueueEnqueuePendingCount);
+        }
+
+        internal void UnregisterPossibleUpcomingEventEnqueue()
+        {
+            Interlocked.Decrement(ref _eventQueueEnqueuePendingCount);
+        }
+
         internal void CompleteCompilationEventQueue_NoLock()
         {
             RoslynDebug.Assert(EventQueue != null);
+
+            if (Volatile.Read(ref _eventQueueEnqueuePendingCount) != 0)
+            {
+                SpinWait.SpinUntil(() => Volatile.Read(ref _eventQueueEnqueuePendingCount) == 0);
+            }
 
             // Signal the end of compilation.
             EventQueue.TryEnqueue(new CompilationCompletedEvent(this));

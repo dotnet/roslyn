@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
             string insertText,
             CSharpParseOptions options)
         {
-            text = text.Substring(0, position) + insertText + "/**/" + text.Substring(position);
+            text = text[..position] + insertText + "/**/" + text[position..];
 
             position += insertText.Length;
 
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
             string insertText,
             CSharpParseOptions options)
         {
-            text = text.Substring(0, position) + insertText + text.Substring(position);
+            text = text[..position] + insertText + text[position..];
 
             position += insertText.Length;
 
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
                 return;
             }
 
-            text = text.Substring(startIndex: 0, length: position) + insertText;
+            text = text[..position] + insertText;
 
             position += insertText.Length;
 
