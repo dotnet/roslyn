@@ -35,11 +35,11 @@ namespace Microsoft.CodeAnalysis
 
         public IncrementalGeneratorOutputKind Kind => _outputKind;
 
-        public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<TOutput> previousTable, CancellationToken cancellationToken)
+        public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<TOutput>? previousTable, CancellationToken cancellationToken)
         {
             string stepName = Kind == IncrementalGeneratorOutputKind.Source ? WellKnownGeneratorOutputs.SourceOutput : WellKnownGeneratorOutputs.ImplementationSourceOutput;
             var sourceTable = graphState.GetLatestStateTableForNode(_source);
-            if (sourceTable.IsCached)
+            if (sourceTable.IsCached && previousTable is not null)
             {
                 if (graphState.DriverState.TrackIncrementalSteps)
                 {
