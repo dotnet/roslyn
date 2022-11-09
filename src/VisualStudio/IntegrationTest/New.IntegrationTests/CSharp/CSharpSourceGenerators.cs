@@ -150,7 +150,7 @@ internal static class Program
         {
             await TestServices.Shell.ShowNavigateToDialogAsync(HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendToNavigateToAsync(HelloWorldGenerator.GeneratedEnglishClassName, VirtualKeyCode.RETURN);
+            await TestServices.Input.SendToNavigateToAsync(new InputKey[] { HelloWorldGenerator.GeneratedEnglishClassName, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
             await TestServices.Workarounds.WaitForNavigationAsync(HangMitigatingCancellationToken);
 
             Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs [generated]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));

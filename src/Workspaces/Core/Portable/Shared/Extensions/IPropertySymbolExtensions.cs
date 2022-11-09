@@ -44,11 +44,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var arg = (attributesToRemove, accessibleWithin);
 
             var someParameterHasAttribute = property.Parameters
-                .Any(static (p, arg) => p.GetAttributes().Any(shouldRemoveAttribute, arg), arg);
+                .Any(static (p, arg) => p.GetAttributes().Any(ShouldRemoveAttribute, arg), arg);
             if (!someParameterHasAttribute)
-            {
                 return property;
-            }
 
             return CodeGenerationSymbolFactory.CreatePropertySymbol(
                 property.ContainingType,
@@ -61,20 +59,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 property.Name,
                 property.Parameters.SelectAsArray(static (p, arg) =>
                     CodeGenerationSymbolFactory.CreateParameterSymbol(
-                        p.GetAttributes().WhereAsArray(static (a, arg) => !shouldRemoveAttribute(a, arg), arg),
+                        p.GetAttributes().WhereAsArray(static (a, arg) => !ShouldRemoveAttribute(a, arg), arg),
                         p.RefKind, p.IsParams, p.Type, p.Name, p.IsOptional,
                         p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null), arg),
                 property.GetMethod,
                 property.SetMethod,
                 property.IsIndexer);
 
-            static bool shouldRemoveAttribute(AttributeData a, (INamedTypeSymbol[] attributesToRemove, ISymbol accessibleWithin) arg) =>
+            static bool ShouldRemoveAttribute(AttributeData a, (INamedTypeSymbol[] attributesToRemove, ISymbol accessibleWithin) arg) =>
                 arg.attributesToRemove.Any(attr => attr.Equals(a.AttributeClass)) ||
                 a.AttributeClass?.IsAccessibleWithin(arg.accessibleWithin) == false;
         }
 
         public static bool IsWritableInConstructor(this IPropertySymbol property)
-            => (property.SetMethod != null || ContainsBackingField(property));
+            => property.SetMethod != null || ContainsBackingField(property);
 
         public static IFieldSymbol? GetBackingFieldIfAny(this IPropertySymbol property)
             => property.ContainingType.GetMembers()

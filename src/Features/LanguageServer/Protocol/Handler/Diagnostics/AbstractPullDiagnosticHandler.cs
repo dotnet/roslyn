@@ -314,6 +314,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     Message = diagnosticData.Message,
                     Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
                     Tags = ConvertTags(diagnosticData),
+                    ExpandedMessage = diagnosticData.Description,
                 };
 
                 diagnostic.Range = GetRange(diagnosticData.DataLocation);

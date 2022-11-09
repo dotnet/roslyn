@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxReference syntaxRef,
             bool isParams,
             bool isExtensionMethodThis,
-            DeclarationScope? scope)
+            DeclarationScope scope)
             : base(owner, parameterType, ordinal, refKind, scope, name, locations)
         {
             Debug.Assert((syntaxRef == null) || (syntaxRef.GetSyntax().IsKind(SyntaxKind.Parameter)));
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
 
-        internal override DeclarationScope EffectiveScope
+        internal sealed override DeclarationScope EffectiveScope
         {
             get
             {
@@ -575,25 +575,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Binds attributes applied to this parameter.
         /// </summary>
-        public ImmutableArray<BoundAttribute> BindParameterAttributes()
+        public ImmutableArray<(CSharpAttributeData, BoundAttribute)> BindParameterAttributes()
         {
-            var binder = new ContextualAttributeBinder(WithTypeParametersBinderOpt, this);
-            var boundAttributeArrayBuilder = ArrayBuilder<BoundAttribute>.GetInstance();
-            foreach (var attributeListSyntaxList in GetAttributeDeclarations())
-            {
-                foreach (var attributeListSyntax in attributeListSyntaxList)
-                {
-                    foreach (var attributeSyntax in attributeListSyntax.Attributes)
-                    {
-                        var boundType = binder.BindType(attributeSyntax.Name, BindingDiagnosticBag.Discarded);
-                        var boundTypeSymbol = (NamedTypeSymbol)boundType.Type;
-                        var boundAttribute = new ExecutableCodeBinder(attributeSyntax, binder.ContainingMemberOrLambda, binder)
-                            .BindAttribute(attributeSyntax, boundTypeSymbol, this, BindingDiagnosticBag.Discarded);
-                        boundAttributeArrayBuilder.Add(boundAttribute);
-                    }
-                }
-            }
-            return boundAttributeArrayBuilder.ToImmutableAndFree();
+            return BindAttributes(GetAttributeDeclarations(), WithTypeParametersBinderOpt);
         }
 
         internal override void EarlyDecodeWellKnownAttributeType(NamedTypeSymbol attributeType, AttributeSyntax attributeSyntax)
@@ -1503,7 +1487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxReference syntaxRef,
             bool isParams,
             bool isExtensionMethodThis,
-            DeclarationScope? scope)
+            DeclarationScope scope)
             : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, isParams, isExtensionMethodThis, scope)
         {
         }
@@ -1526,7 +1510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxReference syntaxRef,
             bool isParams,
             bool isExtensionMethodThis,
-            DeclarationScope? scope)
+            DeclarationScope scope)
             : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, isParams, isExtensionMethodThis, scope)
         {
             Debug.Assert(!refCustomModifiers.IsEmpty);

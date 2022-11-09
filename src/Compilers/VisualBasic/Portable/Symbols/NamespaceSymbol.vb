@@ -308,7 +308,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Full type name possibly with generic name mangling.
         ''' </param>
         ''' <returns>
-        ''' Symbol for the type, or MissingMetadataSymbol if the type isn't found.
+        ''' Symbol for the type, or Nothing if the type isn't found.
         ''' </returns>
         ''' <remarks></remarks>
         Friend Overridable Function LookupMetadataType(ByRef fullEmittedName As MetadataTypeName) As NamedTypeSymbol
@@ -385,13 +385,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
 
 Done:
-            If namedType Is Nothing Then
-                If fullEmittedName.FullName.StartsWith("Microsoft.CodeAnalysis.VisualBasic.Syntax.SyntaxList", StringComparison.Ordinal) Then
-                    Stop
-                End If
-
-                Return New MissingMetadataTypeSymbol.TopLevel(Me.ContainingModule, fullEmittedName)
-            End If
 
             Return namedType
         End Function

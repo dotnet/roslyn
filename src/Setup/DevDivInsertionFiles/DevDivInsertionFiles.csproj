@@ -137,6 +137,7 @@
       <_Dependency Remove="System.Text.Encodings.Web" />
       <_Dependency Remove="System.Text.Json" />
       <_Dependency Remove="System.Threading.AccessControl"/>
+      <_Dependency Remove="System.Threading.Channels" />
       <_Dependency Remove="System.Threading.Tasks.Dataflow"/>
       <_Dependency Remove="System.Threading.Tasks.Extensions" />
       <_Dependency Remove="VSLangProj"/>

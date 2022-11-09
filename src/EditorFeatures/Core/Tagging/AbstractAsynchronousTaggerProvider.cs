@@ -13,8 +13,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Elfie.Serialization;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
@@ -80,6 +82,21 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// This controls what delay tagger will use to let editor know about newly inserted tags
         /// </summary>
         protected virtual TaggerDelay AddedTagNotificationDelay => TaggerDelay.NearImmediate;
+
+        /// <summary>
+        /// Comparer used to check if two tags are the same.  Used so that when new tags are produced, they can be
+        /// appropriately 'diffed' to determine what changes to actually report in <see cref="ITagger{T}.TagsChanged"/>.
+        /// <para>
+        /// Subclasses should always override this.  It is only virtual for binary compat.
+        /// </para>
+        /// </summary>
+        protected virtual bool TagEquals(TTag tag1, TTag tag2)
+            => EqualityComparer<TTag>.Default.Equals(tag1, tag2);
+
+        // Prevent accidental usage of object.Equals instead of TagEquals when comparing tags.
+        [Obsolete("Did you mean to call TagEquals(TTag tag1, TTag tag2) instead", error: true)]
+        public static new bool Equals(object objA, object objB)
+            => throw ExceptionUtilities.Unreachable();
 
 #if DEBUG
         public readonly string StackTrace;
@@ -217,6 +234,25 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         protected virtual Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition, CancellationToken cancellationToken)
             => Task.CompletedTask;
+
+        public bool SpanEquals(ITextSnapshot snapshot1, TextSpan? span1, ITextSnapshot snapshot2, TextSpan? span2)
+            => SpanEquals(snapshot1, span1?.ToSpan(), snapshot2, span2?.ToSpan());
+
+        public bool SpanEquals(ITextSnapshot snapshot1, Span? span1, ITextSnapshot snapshot2, Span? span2)
+            => SpanEquals(span1 is null ? null : new SnapshotSpan(snapshot1, span1.Value), span2 is null ? null : new SnapshotSpan(snapshot2, span2.Value));
+
+        public bool SpanEquals(SnapshotSpan? span1, SnapshotSpan? span2)
+        {
+            if (span1 is null && span2 is null)
+                return true;
+
+            if (span1 is null || span2 is null)
+                return false;
+
+            // map one span to the snapshot of the other and see if they match.
+            span1 = span1.Value.TranslateTo(span2.Value.Snapshot, this.SpanTrackingMode);
+            return span1.Value.Span == span2.Value.Span;
+        }
 
         internal TestAccessor GetTestAccessor()
             => new(this);
