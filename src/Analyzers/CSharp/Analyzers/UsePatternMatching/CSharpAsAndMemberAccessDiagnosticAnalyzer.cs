@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var asExpression = (BinaryExpressionSyntax)context.Node;
 
             if (!UsePatternMatchingHelpers.TryGetPartsOfAsAndMemberAccessCheck(
-                    asExpression, out _, out var binaryExpression, out var isPatternExpression, out var requiredLanguageVersion))
+                    asExpression, out var conditionalAccessExpression, out var binaryExpression, out var isPatternExpression, out var requiredLanguageVersion))
             {
                 return;
             }
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             if (context.Compilation.LanguageVersion() < requiredLanguageVersion)
                 return;
 
-            if (!IsSafeToConvert(semanticModel, binaryExpression, isPatternExpression, cancellationToken))
+            if (!IsSafeToConvert())
                 return;
 
             // Looks good!
@@ -90,96 +90,92 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 styleOption.Notification.Severity,
                 additionalLocations: null,
                 properties: null));
-        }
 
-        private static bool IsSafeToConvert(
-            SemanticModel semanticModel,
-            BinaryExpressionSyntax? binaryExpression,
-            IsPatternExpressionSyntax? isPatternExpression,
-            CancellationToken cancellationToken)
-        {
-            if (binaryExpression != null)
+            bool IsSafeToConvert()
             {
-                // `(expr as T)?... == other_expr
-                //
-                // in this case we can only convert if other_expr is a constant.
-                var constantValue = semanticModel.GetConstantValue(binaryExpression.Right, cancellationToken);
-                if (!constantValue.HasValue)
-                    return false;
-
-                if (binaryExpression.Kind() is SyntaxKind.EqualsExpression)
+                if (binaryExpression != null)
                 {
-                    // `(a as T)?.Prop == null` does *not* have the same semantics as `a is T { Prop: null }`
-                    // (specifically, when the type check fails)
-                    if (constantValue.Value is null)
-                        return false;
-
-                    // `(a as T)?.Prop == constant` does* have the same semantics as `a is T { Prop: constant }`
-                    return true;
-                }
-                else if (binaryExpression.Kind() is SyntaxKind.NotEqualsExpression)
-                {
-                    // `(a as T)?.Prop != constant` *does not* have the same semantics as `a is T { Prop: not constant }`
-                    // (specifically, when the type check fails)
-                    if (constantValue.Value is not null)
-                        return false;
-
-                    // `(a as T)?.Prop != null` *does* have the same semantics as `a is T { Prop: not null }`.
+                    // `(expr as T)?... == other_expr
                     //
-                    // However, that's still only allowed if `Prop` is not a value type.
-                    var type = semanticModel.GetTypeInfo(binaryExpression.Left, cancellationToken).ConvertedType;
-                    if (type.IsNonNullableValueType())
-                        return false;
-
-                    return true;
-                }
-
-                // don't need to check the other relational comparisons. These comparisons do a null check themselves,
-                // so it's safe to add a null-check with the 'is'.
-                return true;
-            }
-            else
-            {
-                Contract.ThrowIfNull(isPatternExpression);
-
-                // similar to the binary cases above.
-
-                if (isPatternExpression.Pattern is ConstantPatternSyntax { Expression: var expression1 })
-                {
-                    var constantValue = semanticModel.GetConstantValue(expression1, cancellationToken);
+                    // in this case we can only convert if other_expr is a constant.
+                    var constantValue = semanticModel.GetConstantValue(binaryExpression.Right, cancellationToken);
                     if (!constantValue.HasValue)
                         return false;
 
-                    // `(a as T)?.Prop is null` does *not* have the same semantics as `a is T { Prop: null }`
-                    // (specifically, when the type check fails)
-                    if (constantValue.Value is null)
-                        return false;
+                    if (binaryExpression.Kind() is SyntaxKind.EqualsExpression)
+                    {
+                        // `(a as T)?.Prop == null` does *not* have the same semantics as `a is T { Prop: null }`
+                        // (specifically, when the type check fails)
+                        if (constantValue.Value is null)
+                            return false;
 
-                    // `(a as T)?.Prop is constant` does* have the same semantics as `a is T { Prop: constant }`
+                        // `(a as T)?.Prop == constant` does* have the same semantics as `a is T { Prop: constant }`
+                        return true;
+                    }
+                    else if (binaryExpression.Kind() is SyntaxKind.NotEqualsExpression)
+                    {
+                        // `(a as T)?.Prop != constant` *does not* have the same semantics as `a is T { Prop: not constant }`
+                        // (specifically, when the type check fails)
+                        if (constantValue.Value is not null)
+                            return false;
+
+                        // `(a as T)?.Prop != null` *does* have the same semantics as `a is T { Prop: not null }`.
+                        //
+                        // However, that's still only allowed if `Prop` is not a value type.
+                        var symbol = semanticModel.GetSymbolInfo(conditionalAccessExpression.WhenNotNull, cancellationToken).GetAnySymbol();
+                        if (symbol.GetMemberType().IsNonNullableValueType())
+                            return false;
+
+                        return true;
+                    }
+
+                    // don't need to check the other relational comparisons. These comparisons do a null check themselves,
+                    // so it's safe to add a null-check with the 'is'.
                     return true;
                 }
-                else if (isPatternExpression.Pattern is UnaryPatternSyntax { Pattern: ConstantPatternSyntax { Expression: var expression2 } })
+                else
                 {
-                    var constantValue = semanticModel.GetConstantValue(expression2, cancellationToken);
-                    if (!constantValue.HasValue)
-                        return false;
+                    Contract.ThrowIfNull(isPatternExpression);
 
-                    // `(a as T)?.Prop is not constant` *does not* have the same semantics as `a is T { Prop: not constant }`
-                    // (specifically, when the type check fails)
-                    if (constantValue.Value is not null)
-                        return false;
+                    // similar to the binary cases above.
 
-                    // `(a as T)?.Prop is not null` *does* have the same semantics as `a is T { Prop: not null }`.
-                    //
-                    // However, that's still only allowed if `Prop` is not a value type.
-                    var type = semanticModel.GetTypeInfo(isPatternExpression.Expression, cancellationToken).ConvertedType;
-                    if (type.IsNonNullableValueType())
-                        return false;
+                    if (isPatternExpression.Pattern is ConstantPatternSyntax { Expression: var expression1 })
+                    {
+                        var constantValue = semanticModel.GetConstantValue(expression1, cancellationToken);
+                        if (!constantValue.HasValue)
+                            return false;
+
+                        // `(a as T)?.Prop is null` does *not* have the same semantics as `a is T { Prop: null }`
+                        // (specifically, when the type check fails)
+                        if (constantValue.Value is null)
+                            return false;
+
+                        // `(a as T)?.Prop is constant` does* have the same semantics as `a is T { Prop: constant }`
+                        return true;
+                    }
+                    else if (isPatternExpression.Pattern is UnaryPatternSyntax { Pattern: ConstantPatternSyntax { Expression: var expression2 } })
+                    {
+                        var constantValue = semanticModel.GetConstantValue(expression2, cancellationToken);
+                        if (!constantValue.HasValue)
+                            return false;
+
+                        // `(a as T)?.Prop is not constant` *does not* have the same semantics as `a is T { Prop: not constant }`
+                        // (specifically, when the type check fails)
+                        if (constantValue.Value is not null)
+                            return false;
+
+                        // `(a as T)?.Prop is not null` *does* have the same semantics as `a is T { Prop: not null }`.
+                        //
+                        // However, that's still only allowed if `Prop` is not a value type.
+                        var symbol = semanticModel.GetSymbolInfo(conditionalAccessExpression.WhenNotNull, cancellationToken).GetAnySymbol();
+                        if (symbol.GetMemberType().IsNonNullableValueType())
+                            return false;
+
+                        return true;
+                    }
 
                     return true;
                 }
-
-                return true;
             }
         }
     }

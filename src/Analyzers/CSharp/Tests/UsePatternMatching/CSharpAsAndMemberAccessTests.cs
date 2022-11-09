@@ -226,6 +226,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         }
 
         [Fact]
+        public async Task TestNotEqualsNull_ValueType2_CSharp9()
+        {
+            var test = """
+                class C
+                {
+                    C X;
+                    int Length;
+
+                    void M(object o)
+                    {
+                        if ((o as C)?.X.Length != null)
+                        {
+                        }
+                    }
+                }
+                """;
+            await new VerifyCS.Test
+            {
+                TestCode = test,
+                FixedCode = test,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestNotEqualsNull_ReferenceType_CSharp8()
         {
             var test = """
@@ -285,6 +310,43 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         }
 
         [Fact]
+        public async Task TestNotEqualsNull_ReferenceType_CSharp10()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    class C
+                    {
+                        C Y;
+                        string X;
+                    
+                        void M(object o)
+                        {
+                            if (([|o as C|])?.Y.X != null)
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    class C
+                    {
+                        C Y;
+                        string X;
+
+                        void M(object o)
+                        {
+                            if (o is C { Y.X: not null })
+                            {
+                            }
+                        }
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestNotEqualsNull_NullableType_CSharp8()
         {
             var test = """
@@ -309,18 +371,43 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         }
 
         [Fact]
-        public async Task TestNotEqualsNull_NullableType_CSharp9()
+        public async Task TestNotEqualsNull_NullableType2_CSharp8()
+        {
+            var test = """
+                class C
+                {
+                    int? X;
+
+                    void M(object o)
+                    {
+                        if ((o as C)?.X != null)
+                        {
+                        }
+                    }
+                }
+                """;
+            await new VerifyCS.Test
+            {
+                TestCode = test,
+                FixedCode = test,
+                LanguageVersion = LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestNotEqualsNull_NullableType_CSharp10()
         {
             await new VerifyCS.Test
             {
                 TestCode = """
                     class C
                     {
+                        C Y;
                         int? X;
                     
                         void M(object o)
                         {
-                            if (([|o as C|])?.X != null)
+                            if (([|o as C|])?.Y.X != null)
                             {
                             }
                         }
@@ -329,17 +416,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
                 FixedCode = """
                     class C
                     {
+                        C Y;
                         int? X;
 
                         void M(object o)
                         {
-                            if (o is C { X: not null })
+                            if (o is C { Y.X: not null })
                             {
                             }
                         }
                     }
                     """,
-                LanguageVersion = LanguageVersion.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
 
@@ -546,16 +634,65 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         }
 
         [Fact]
-        public async Task TestIsNotNullPattern()
+        public async Task TestIsNotNullPattern_ValueType()
+        {
+            var test = """
+                class C
+                {
+                    void M(object o)
+                    {
+                        if ((o as string)?.Length is not null)
+                        {
+                        }
+                    }
+                }
+                """;
+            await new VerifyCS.Test
+            {
+                TestCode = test,
+                FixedCode = test,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestIsNotNullPattern_ValueType2()
+        {
+            var test = """
+                class C
+                {
+                    C X;
+                    int Length;
+
+                    void M(object o)
+                    {
+                        if ((o as C)?.X.Length is not null)
+                        {
+                        }
+                    }
+                }
+                """;
+            await new VerifyCS.Test
+            {
+                TestCode = test,
+                FixedCode = test,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestIsNotNullPattern_ReferenceType()
         {
             await new VerifyCS.Test
             {
                 TestCode = """
                     class C
                     {
+                        string X;
+
                         void M(object o)
                         {
-                            if (([|o as string|])?.Length is not null)
+                            if (([|o as C|])?.X is not null)
                             {
                             }
                         }
@@ -564,15 +701,126 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
                 FixedCode = """
                     class C
                     {
+                        string X;
+
                         void M(object o)
                         {
-                            if (o is string { Length: not null })
+                            if (o is C { X: not null })
                             {
                             }
                         }
                     }
                     """,
                 LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestIsNotNullPattern_ReferenceType_CSharp10()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    class C
+                    {
+                        C Y;
+                        string X;
+
+                        void M(object o)
+                        {
+                            if (([|o as C|])?.Y.X is not null)
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    class C
+                    {
+                        C Y;
+                        string X;
+
+                        void M(object o)
+                        {
+                            if (o is C { Y.X: not null })
+                            {
+                            }
+                        }
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestIsNotNullPattern_NullableValueType()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    class C
+                    {
+                        int? X;
+
+                        void M(object o)
+                        {
+                            if (([|o as C|])?.X is not null)
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    class C
+                    {
+                        int? X;
+
+                        void M(object o)
+                        {
+                            if (o is C { X: not null })
+                            {
+                            }
+                        }
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestIsNotNullPattern_NullableValueType_CSharp10()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    class C
+                    {
+                        int? X;
+                        C Y;
+
+                        void M(object o)
+                        {
+                            if (([|o as C|])?.Y.X is not null)
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    class C
+                    {
+                        int? X;
+                        C Y;
+
+                        void M(object o)
+                        {
+                            if (o is C { Y.X: not null })
+                            {
+                            }
+                        }
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
 
