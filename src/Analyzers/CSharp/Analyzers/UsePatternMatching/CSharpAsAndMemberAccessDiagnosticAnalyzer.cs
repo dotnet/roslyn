@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
@@ -124,6 +125,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                         return false;
 
                     // `(a as T)?.Prop != null` *does* have the same semantics as `a is T { Prop: not null }`.
+                    //
+                    // However, that's still only allowed if `Prop` is not a value type.
+                    var type = semanticModel.GetTypeInfo(binaryExpression.Left, cancellationToken).ConvertedType;
+                    if (type.IsNonNullableValueType())
+                        return false;
+
                     return true;
                 }
 
@@ -163,6 +170,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                         return false;
 
                     // `(a as T)?.Prop is not null` *does* have the same semantics as `a is T { Prop: not null }`.
+                    //
+                    // However, that's still only allowed if `Prop` is not a value type.
+                    var type = semanticModel.GetTypeInfo(isPatternExpression.Expression, cancellationToken).ConvertedType;
+                    if (type.IsNonNullableValueType())
+                        return false;
+
                     return true;
                 }
 

@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         }
 
         [Fact]
-        public async Task TestNotEqualsNull_CSharp8()
+        public async Task TestNotEqualsNull_ValueType_CSharp8()
         {
             var test = """
                 class C
@@ -204,16 +204,64 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         }
 
         [Fact]
-        public async Task TestNotEqualsNull_CSharp9()
+        public async Task TestNotEqualsNull_ValueType_CSharp9()
+        {
+            var test = """
+                class C
+                {
+                    void M(object o)
+                    {
+                        if ((o as string)?.Length != null)
+                        {
+                        }
+                    }
+                }
+                """;
+            await new VerifyCS.Test
+            {
+                TestCode = test,
+                FixedCode = test,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestNotEqualsNull_ReferenceType_CSharp8()
+        {
+            var test = """
+                class C
+                {
+                    string X;
+
+                    void M(object o)
+                    {
+                        if ((o as C)?.X != null)
+                        {
+                        }
+                    }
+                }
+                """;
+            await new VerifyCS.Test
+            {
+                TestCode = test,
+                FixedCode = test,
+                LanguageVersion = LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestNotEqualsNull_ReferenceType_CSharp9()
         {
             await new VerifyCS.Test
             {
                 TestCode = """
                     class C
                     {
+                        string X;
+                    
                         void M(object o)
                         {
-                            if (([|o as string|])?.Length != null)
+                            if (([|o as C|])?.X != null)
                             {
                             }
                         }
@@ -222,9 +270,70 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
                 FixedCode = """
                     class C
                     {
+                        string X;
+
                         void M(object o)
                         {
-                            if (o is string { Length: not null })
+                            if (o is C { X: not null })
+                            {
+                            }
+                        }
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestNotEqualsNull_NullableType_CSharp8()
+        {
+            var test = """
+                class C
+                {
+                    int? X;
+
+                    void M(object o)
+                    {
+                        if ((o as C)?.X != null)
+                        {
+                        }
+                    }
+                }
+                """;
+            await new VerifyCS.Test
+            {
+                TestCode = test,
+                FixedCode = test,
+                LanguageVersion = LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestNotEqualsNull_NullableType_CSharp9()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    class C
+                    {
+                        int? X;
+                    
+                        void M(object o)
+                        {
+                            if (([|o as C|])?.X != null)
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    class C
+                    {
+                        int? X;
+
+                        void M(object o)
+                        {
+                            if (o is C { X: not null })
                             {
                             }
                         }
