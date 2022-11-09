@@ -101,7 +101,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // However, we cannot enforce this as 3rd party fixers can still run.  So we filter their results to 
                 // only apply the portions of their work that updates documents, and nothing else.
                 if (option is not ApplyChangesOperation applyChangesOperation)
+                {
+                    context.TraceInformation($"Skipping code action operation for '{data.UniqueIdentifier}'.  It was a '{option.GetType().FullName}'");
                     continue;
+                }
 
                 var changes = applyChangesOperation.ChangedSolution.GetChanges(solution);
                 var projectChanges = changes.GetProjectChanges();
