@@ -14275,7 +14275,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 // DoAction(action, 1);
                 Diagnostic(ErrorCode.ERR_BadArgType, "action").WithArguments("1", "<anonymous delegate>", "System.Action<int>").WithLocation(3, 10));
         }
-        
+
         [Fact]
         public void Lambda_DefaultParameters_BreakingChange_CommonType()
         {
