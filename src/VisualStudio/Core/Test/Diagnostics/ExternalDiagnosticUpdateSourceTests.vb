@@ -481,7 +481,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     Dim diagnosticRemoved = False
                     AddHandler source.DiagnosticsUpdated, Sub(o, args)
                                                               Assert.Equal(document.Id, args.DocumentId)
-                                                              Dim diagnostics = args.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode)
+                                                              Dim diagnostics = args.Diagnostics
                                                               If args.Kind = DiagnosticsUpdatedKind.DiagnosticsCreated Then
                                                                   actualDiagnostic = Assert.Single(diagnostics)
                                                                   diagnosticAdded = True
