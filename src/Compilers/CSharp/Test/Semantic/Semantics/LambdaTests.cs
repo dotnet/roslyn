@@ -7105,17 +7105,21 @@ public class DisplayAttribute : System.Attribute
 }
 ";
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (5,25): warning CS9501: Parameter 1 has default value '7' in lambda but '<missing>' in the target delegate type.
+                //         var lam1 = (int x = 7) => x;
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "x").WithArguments("1", "7", "<missing>").WithLocation(5, 25),
                 // (5,27): error CS8652: The feature 'lambda optional parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var lam1 = (int x = 7) => x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "=").WithArguments("lambda optional parameters").WithLocation(5, 27));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "=").WithArguments("lambda optional parameters").WithLocation(5, 27),
+                // (6,9): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of 'Func<int, int>'
+                //         lam1();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam1").WithArguments("arg", "System.Func<int, int>").WithLocation(6, 9));
 
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
 
-        [Theory]
-        [InlineData(LanguageVersion.CSharp11)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
-        public void AnonymousMethodWithExplicitDefaultParam(LanguageVersion languageVersion)
+        [Fact]
+        public void AnonymousMethodWithExplicitDefaultParam()
         {
             var source = """
 class Program
@@ -7128,8 +7132,15 @@ class Program
 }
 
 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (5,34): error CS1065: Default values are not valid in this context.
+                //         var lam = delegate(int x = 7) { return x; };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 34),
+                // (6,9): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of 'Func<int, int>'
+                //         lam();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam").WithArguments("arg", "System.Func<int, int>").WithLocation(6, 9));
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (5,34): error CS1065: Default values are not valid in this context.
                 //         var lam = delegate(int x = 7) { return x; };
                 Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 34));
@@ -7941,7 +7952,10 @@ class Program
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (1,12): error CS8652: The feature 'lambda params array' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // var lam = (params int[] xs) => xs.Length;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "params").WithArguments("lambda params array").WithLocation(1, 12));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "params").WithArguments("lambda params array").WithLocation(1, 12),
+                // (1,25): warning CS9502: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // var lam = (params int[] xs) => xs.Length;
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(1, 25));
 
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
