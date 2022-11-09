@@ -2366,8 +2366,22 @@ class C
             })();
     }
 }";
-            CreateCompilation(src, options: TestOptions.UnsafeDebugDll)
-                .VerifyDiagnostics(
+            var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", "never"));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            LocalFunctionStatementSyntax declaration = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().First();
+            var local = model.GetDeclaredSymbol(declaration).GetSymbol<MethodSymbol>();
+
+            Assert.True(local.IsIterator);
+            Assert.Equal("System.Int32", local.IteratorElementTypeWithAnnotations.ToTestDisplayString());
+
+            model.GetOperation(declaration.Body);
+
+            Assert.True(local.IsIterator);
+            Assert.Equal("System.Int32", local.IteratorElementTypeWithAnnotations.ToTestDisplayString());
+
+            comp.VerifyDiagnostics(
                 // (8,37): error CS1637: Iterators cannot have unsafe parameters or yield types
                 //         IEnumerable<int> Local(int* a) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(8, 37),
@@ -10067,6 +10081,190 @@ int P
                 .Single();
 
             Assert.Null(model.GetSymbolInfo(node).Symbol);
+        }
+
+        [Fact, WorkItem(43697, "https://github.com/dotnet/roslyn/issues/43697")]
+        public void DefiniteAssignment_01()
+        {
+            var text = @"
+using System;
+using System.Threading.Tasks;
+
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+
+public class C
+{
+    public void M()
+    {
+        bool a;
+        M1();
+        Console.WriteLine(a);
+        async Task M1()
+        {
+            if ("""" == String.Empty)
+            {
+                throw new Exception();
+            }
+            else
+            {
+                a = true;
+            }
+        }
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (14,27): error CS0165: Use of unassigned local variable 'a'
+                //         Console.WriteLine(a);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(14, 27)
+                );
+        }
+
+        [Fact, WorkItem(43697, "https://github.com/dotnet/roslyn/issues/43697")]
+        public void DefiniteAssignment_02()
+        {
+            var text = @"
+using System;
+using System.Threading.Tasks;
+
+public class C
+{
+    public void M()
+    {
+        bool a;
+        M1();
+        Console.WriteLine(a);
+        Task M1()
+        {
+            if ("""" == String.Empty)
+            {
+                throw new Exception();
+            }
+            else
+            {
+                a = true;
+            }
+
+            return null;
+        }
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(43697, "https://github.com/dotnet/roslyn/issues/43697")]
+        public void DefiniteAssignment_03()
+        {
+            var text = @"
+using System;
+using System.Threading.Tasks;
+
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+
+public class C
+{
+    public void M()
+    {
+        bool a;
+        M1();
+        Console.WriteLine(a);
+        async Task M1()
+        {
+            await Task.Yield();
+
+            if ("""" == String.Empty)
+            {
+                throw new Exception();
+            }
+            else
+            {
+                a = true;
+            }
+        }
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (13,27): error CS0165: Use of unassigned local variable 'a'
+                //         Console.WriteLine(a);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(13, 27)
+                );
+        }
+
+        [Fact, WorkItem(43697, "https://github.com/dotnet/roslyn/issues/43697")]
+        public void DefiniteAssignment_04()
+        {
+            var text = @"
+using System;
+using System.Threading.Tasks;
+
+#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+
+public class C
+{
+    public async Task M()
+    {
+        bool a;
+        await M1();
+        Console.WriteLine(a);
+        async Task M1()
+        {
+            if ("""" == String.Empty)
+            {
+                throw new Exception();
+            }
+            else
+            {
+                a = true;
+            }
+        }
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (13,27): error CS0165: Use of unassigned local variable 'a'
+                //         Console.WriteLine(a);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(13, 27)
+                );
+        }
+
+        [Fact, WorkItem(43697, "https://github.com/dotnet/roslyn/issues/43697")]
+        public void DefiniteAssignment_05()
+        {
+            var text = @"
+using System;
+using System.Threading.Tasks;
+
+public class C
+{
+    public async Task M()
+    {
+        bool a;
+        await M1();
+        Console.WriteLine(a);
+        async Task M1()
+        {
+            await Task.Yield();
+
+            if ("""" == String.Empty)
+            {
+                throw new Exception();
+            }
+            else
+            {
+                a = true;
+            }
+        }
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (11,27): error CS0165: Use of unassigned local variable 'a'
+                //         Console.WriteLine(a);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(11, 27)
+                );
         }
     }
 }

@@ -115,7 +115,7 @@ namespace Microsoft.Cci
                     {
                         if (_alreadySeenScopes.Add(scope))
                         {
-                            VisitImports(scope.GetUsedNamespaces());
+                            VisitImports(scope.GetUsedNamespaces(Context));
                         }
                         else
                         {

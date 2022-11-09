@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     if (predicate(currentNode.Value, start, length))
                     {
                         // hold onto best answer
-                        if (EqualityComparer<T/*??*/>.Default.Equals(result!, default!) ||
+                        if (EqualityComparer<T?>.Default.Equals(result, default) ||
                             (Introspector.GetStart(result!) <= Introspector.GetStart(currentNode.Value) &&
                              Introspector.GetLength(currentNode.Value) < Introspector.GetLength(result!)))
                         {
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                         {
                             // right side tree doesn't have any answer or if the right side has
                             // an answer but left side can have better answer then try left side
-                            if (EqualityComparer<T/*??*/>.Default.Equals(result!, default!) ||
+                            if (EqualityComparer<T?>.Default.Equals(result, default) ||
                                 Introspector.GetStart(parentNode.Value) == Introspector.GetStart(currentNode.Value))
                             {
                                 // put left as new root, and break out inner loop
