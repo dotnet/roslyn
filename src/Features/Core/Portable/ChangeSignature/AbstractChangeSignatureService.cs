@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -1059,17 +1058,15 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         {
             var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
             var parameter = semanticFacts.FindParameterForArgument(semanticModel, argument, cancellationToken);
-            var parameterIndex = parameter.Ordinal;
+            if (parameter is null)
+                return 0;
 
-            if (parameter.ContainingSymbol is IMethodSymbol methodSymbol && methodSymbol.MethodKind is MethodKind.ReducedExtension)
-            {
-                // We're in the invocation of an extension method that is called via this.Method(params).
-                // The 'this' argument has an ordinal value of -1 but change signature is expecting all params
-                // to start at 0 (including the 'this' param).
-                parameterIndex += 1;
-            }
-
-            return parameterIndex;
+            // If we're in the invocation of an extension method that is called via this.Method(params). The 'this'
+            // argument has an ordinal value of -1 but change signature is expecting all params to start at 0 (including
+            // the 'this' param).
+            return parameter.ContainingSymbol.IsReducedExtension()
+                ? parameter.Ordinal + 1
+                : parameter.Ordinal;
         }
     }
 }
