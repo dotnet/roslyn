@@ -30,13 +30,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 => new RemoteProcessTelemetryService(arguments);
         }
 
-#if DEBUG
         private readonly CancellationTokenSource _shutdownCancellationSource = new();
 
 #pragma warning disable IDE0052 // Remove unread private members
         private PerformanceReporter? _performanceReporter;
 #pragma warning restore
-#endif
+
         public RemoteProcessTelemetryService(ServiceConstructionArguments arguments)
             : base(arguments)
         {
