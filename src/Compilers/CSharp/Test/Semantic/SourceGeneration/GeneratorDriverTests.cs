@@ -3247,7 +3247,7 @@ class C { }
         public void IncrementalGenerator_Add_New_Generator_After_Generation_SourceOutputNode()
         {
             // 1. run a generator, smuggling out some inputs from context
-            // 2. add a second generator, re-using the inputs from the first step and using a Combine node
+            // 2. add a second generator, re-using the inputs from the first step
             // 3. run the new graph
 
             var source = @"
@@ -3257,7 +3257,6 @@ class C { }
             compilation.VerifyDiagnostics();
 
             IncrementalValueProvider<ParseOptions> parseOptionsProvider = default;
-            IncrementalValueProvider<AnalyzerConfigOptionsProvider> configOptionsProvider = default;
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
