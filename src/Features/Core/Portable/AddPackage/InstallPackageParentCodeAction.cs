@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
     /// </summary>
     internal class InstallPackageParentCodeAction : CodeAction.CodeActionWithNestedActions
     {
-        public override ImmutableArray<string> Tags => WellKnownTagArrays.NuGet;
+        public override ImmutableArray<string> Tags => MakesNonDocumentChangeTags;
 
         /// <summary>
         /// Even though we have child actions, we mark ourselves as explicitly non-inlinable.

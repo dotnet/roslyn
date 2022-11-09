@@ -85,9 +85,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var operations = await codeActionToResolve.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
             if (operations.IsEmpty)
-            {
                 return codeAction;
-            }
 
             // If we have all non-ApplyChangesOperations, set up to run as command on the server
             // instead of using WorkspaceEdits.
