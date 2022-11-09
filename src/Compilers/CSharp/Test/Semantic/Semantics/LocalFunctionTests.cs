@@ -2366,8 +2366,22 @@ class C
             })();
     }
 }";
-            CreateCompilation(src, options: TestOptions.UnsafeDebugDll)
-                .VerifyDiagnostics(
+            var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", "never"));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            LocalFunctionStatementSyntax declaration = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().First();
+            var local = model.GetDeclaredSymbol(declaration).GetSymbol<MethodSymbol>();
+
+            Assert.True(local.IsIterator);
+            Assert.Equal("System.Int32", local.IteratorElementTypeWithAnnotations.ToTestDisplayString());
+
+            model.GetOperation(declaration.Body);
+
+            Assert.True(local.IsIterator);
+            Assert.Equal("System.Int32", local.IteratorElementTypeWithAnnotations.ToTestDisplayString());
+
+            comp.VerifyDiagnostics(
                 // (8,37): error CS1637: Iterators cannot have unsafe parameters or yield types
                 //         IEnumerable<int> Local(int* a) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(8, 37),
