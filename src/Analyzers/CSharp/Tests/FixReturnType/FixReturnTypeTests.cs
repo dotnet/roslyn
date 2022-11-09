@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
         CSharpFixReturnTypeCodeFixProvider>;
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixReturnType)]
-    public partial class FixReturnTypeTests
+    public class FixReturnTypeTests
     {
         [Fact]
         public async Task Simple()
@@ -110,9 +110,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
                 """);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/65302")]
+        [Fact]
         public async Task ReturnTypelessTuple()
         {
+            // The fix should be smarter here and not create other compilation error after execution. See https://github.com/dotnet/roslyn/issues/65302
             await VerifyCS.VerifyCodeFixAsync("""
                 class C
                 {
@@ -124,9 +125,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
                 """, """
                 class C
                 {
-                    (object, string) M()
+                    object M()
                     {
-                        return (null, string.Empty);
+                        return {|CS8135:(null, string.Empty)|};
                     }
                 }
                 """);
