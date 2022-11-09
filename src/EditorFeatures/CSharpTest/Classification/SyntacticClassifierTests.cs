@@ -6743,5 +6743,66 @@ static T I1.operator checked >>>(T a, T b)
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
         }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task LambdaParamsArray(TestHost testHost)
+        {
+            await TestInMethodAsync("var lam = (params int[] xs) => xs.Length;",
+                testHost,
+                Keyword("var"),
+                Local("lam"),
+                Operators.Equals,
+                Punctuation.OpenParen,
+                Keyword("params"),
+                Keyword("int"),
+                Punctuation.OpenBracket,
+                Punctuation.CloseBracket,
+                Parameter("xs"),
+                Punctuation.CloseParen,
+                Operators.EqualsGreaterThan,
+                Identifier("xs"),
+                Operators.Dot,
+                Identifier("Length"),
+                Punctuation.Semicolon);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task LambdaParamsArray_Multiple(TestHost testHost)
+        {
+            await TestInMethodAsync("var lam = (int a, int b = 1, params int[] xs, params int[] ys.Length) => { };",
+                testHost,
+                Keyword("var"),
+                Local("lam"),
+                Operators.Equals,
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Local("a"),
+                Punctuation.Comma,
+                Keyword("int"),
+                Identifier("b"),
+                Operators.Equals,
+                Number("1"),
+                Punctuation.Comma,
+                Keyword("params"),
+                Keyword("int"),
+                Punctuation.OpenBracket,
+                Punctuation.CloseBracket,
+                Local("xs"),
+                Punctuation.Comma,
+                Keyword("params"),
+                Keyword("int"),
+                Punctuation.OpenBracket,
+                Punctuation.CloseBracket,
+                Local("ys"),
+                Operators.Dot,
+                Identifier("Length"),
+                Punctuation.CloseParen,
+                Operators.EqualsGreaterThan,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.Semicolon);
+        }
     }
 }

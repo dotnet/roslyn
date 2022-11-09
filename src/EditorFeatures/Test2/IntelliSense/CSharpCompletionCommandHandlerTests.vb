@@ -9838,6 +9838,46 @@ class C
 
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionForLambdaDefaultParameters_01_AferParameter(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class C
+{
+    void M()
+    {
+        (int y, int x = $$
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("int.M")
+                Await state.AssertSelectedCompletionItem(displayText:="MaxValue")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionForLambdaDefaultParameters_01_AferOptionalParameter(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class C
+{
+    void M()
+    {
+        (int y = 1, int x = $$
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("int.M")
+                Await state.AssertSelectedCompletionItem(displayText:="MaxValue")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletionForLambdaDefaultParameters_02(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
@@ -9858,13 +9898,95 @@ class C
 
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CompletionForLambdaParamsArray(showCompletionInArgumentLists As Boolean) As Task
+        Public Async Function CompletionForLambdaDefaultParameters_02_AferParameter(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
 class C
 {
+    const int myConst = 100;
     void M()
     {
+        (int y, int x = $$) => x;
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                state.SendTypeChars("my")
+                Await state.AssertCompletionItemsContain("myConst", "")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionForLambdaDefaultParameters_02_AferOptionalParameter(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class C
+{
+    const int myConst = 100;
+    void M()
+    {
+        (int y = 1, int x = $$) => x;
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                state.SendTypeChars("my")
+                Await state.AssertCompletionItemsContain("myConst", "")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionForLambdaDefaultParameters_02_BeforeParameter(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class C
+{
+    const int myConst = 100;
+    void M()
+    {
+        (int x = $$, int y) => x;
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                state.SendTypeChars("my")
+                Await state.AssertCompletionItemsContain("myConst", "")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionForLambdaDefaultParameters_02_BeforeOptionalParameter(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class C
+{
+    const int myConst = 100;
+    void M()
+    {
+        (int x = $$, int y = 1) => x;
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                state.SendTypeChars("my")
+                Await state.AssertCompletionItemsContain("myConst", "")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionForLambdaParamsArray(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class pType { }
+class C
+{
+    void M()
+    {
+        string pLocal = "p";
         var lam = ($$
     }
 }
@@ -9873,6 +9995,7 @@ class C
 
                 state.SendTypeChars("p")
                 Await state.AssertSelectedCompletionItem(displayText:="params")
+                Await state.AssertCompletionItemsContainAll("pType", "pLocal")
             End Using
         End Function
 
@@ -9881,10 +10004,12 @@ class C
         Public Async Function CompletionForLambdaParamsArray_BeforeParameter(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
+class pType { }
 class C
 {
     void M()
     {
+        string pLocal = "p";
         var lam = ($$ int[] xs) => { };
     }
 }
@@ -9893,6 +10018,7 @@ class C
 
                 state.SendTypeChars("p")
                 Await state.AssertSelectedCompletionItem(displayText:="params")
+                Await state.AssertCompletionItemsContainAll("pType", "pLocal")
             End Using
         End Function
 
@@ -9901,10 +10027,12 @@ class C
         Public Async Function CompletionForLambdaParamsArray_AfterParameter(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
+class pType { }
 class C
 {
     void M()
     {
+        string pLocal = "p";
         var lam = (int x, $$
     }
 }
@@ -9913,6 +10041,7 @@ class C
 
                 state.SendTypeChars("p")
                 Await state.AssertSelectedCompletionItem(displayText:="params")
+                Await state.AssertCompletionItemsContainAll("pType", "pLocal")
             End Using
         End Function
 
@@ -9921,10 +10050,12 @@ class C
         Public Async Function CompletionForLambdaParamsArray_AfterOptionalParameter(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
+class pType { }
 class C
 {
     void M()
     {
+        string pLocal = "p";
         var lam = (int x = 1, $$) => { };
     }
 }
@@ -9933,6 +10064,8 @@ class C
 
                 state.SendTypeChars("p")
                 Await state.AssertSelectedCompletionItem(displayText:="params")
+                Await state.AssertCompletionItemsContainAll("pType")
+                Await state.AssertCompletionItemsDoNotContainAny("pLocal")
             End Using
         End Function
 

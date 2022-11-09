@@ -7593,21 +7593,36 @@ class Program
             var source = """
 class Program
 {
-    void M(int a)
+    void M(int a, int b)
     {
-       var _ = (int i = M2(a)) => { }; // parameter 'a' should be considered read/used
+        var _ = (int i = M2(a)) => { }; // parameter 'a' should be considered read/used
     }
 
     static int M2(int j) => j;
 }
 """;
-
-            // PROTOTYPE: verify this case with DataFlowAnalysis APIs
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (5,25): error CS1736: Default parameter value for 'i' must be a compile-time constant
-                //        var _ = (int i = M2(a)) => { }; // parameter 'a' should be considered read/used
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M2(a)").WithArguments("i").WithLocation(5, 25));
+                // (5,26): error CS1736: Default parameter value for 'i' must be a compile-time constant
+                //         var _ = (int i = M2(a)) => { }; // parameter 'a' should be considered read/used
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M2(a)").WithArguments("i").WithLocation(5, 26));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            // Find method parameters.
+            var method = comp.GetMember<MethodSymbol>("Program.M").GetPublicSymbol();
+            Assert.Equal(2, method.Parameters.Length);
+            var a = method.Parameters[0];
+            Assert.Equal("a", a.Name);
+            var b = method.Parameters[1];
+            Assert.Equal("b", b.Name);
+
+            // Analyze flow inside method's body.
+            var methodSyntax = (MethodDeclarationSyntax)method.DeclaringSyntaxReferences.Single().GetSyntax();
+            var dataFlow = model.AnalyzeDataFlow(methodSyntax.Body);
+            Assert.Contains(a, dataFlow.ReadInside);
+            Assert.DoesNotContain(b, dataFlow.ReadInside);
         }
 
         [Fact]
@@ -7929,6 +7944,193 @@ class Program
                 // (6,9): error CS7036: There is no argument given that corresponds to the required parameter 'arg2' of '<anonymous delegate>'
                 //         lam(5);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam").WithArguments("arg2", "<anonymous delegate>").WithLocation(6, 9));
+        }
+
+        [Fact]
+        public void LambdaWithDefaultParameter_SymbolInfo()
+        {
+            var source = """
+                using System.Runtime.InteropServices;
+                var lam1 = (int a, int b = 1) => a + b;
+                var lam2 = ([Optional] int x) => x;
+                var lam3 = ([DefaultParameterValue(2)] int x) => x;
+                var lam4 = ([Optional, DefaultParameterValue(3)] int x) => x;
+                """;
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var lambdas = tree.GetRoot().DescendantNodes()
+                .Where(n => n.IsKind(SyntaxKind.ParenthesizedLambdaExpression))
+                .Select(n => (Node: n, Symbol: (IMethodSymbol)model.GetSymbolInfo(n).Symbol))
+                .ToImmutableArray();
+            Assert.Equal(4, lambdas.Length);
+
+            // lam1
+            Assert.Equal("(int a, int b = 1) => a + b", lambdas[0].Node.ToString());
+            Assert.Equal(2, lambdas[0].Symbol.Parameters.Length);
+            Assert.False(lambdas[0].Symbol.Parameters[0].IsOptional);
+            Assert.False(lambdas[0].Symbol.Parameters[0].HasExplicitDefaultValue);
+            Assert.Throws<InvalidOperationException>(() => lambdas[0].Symbol.Parameters[0].ExplicitDefaultValue);
+            Assert.True(lambdas[0].Symbol.Parameters[1].IsOptional);
+            Assert.True(lambdas[0].Symbol.Parameters[1].HasExplicitDefaultValue);
+            Assert.Equal(1, lambdas[0].Symbol.Parameters[1].ExplicitDefaultValue);
+
+            // lam2
+            Assert.Equal("([Optional] int x) => x", lambdas[1].Node.ToString());
+            Assert.Equal(1, lambdas[1].Symbol.Parameters.Length);
+            Assert.True(lambdas[1].Symbol.Parameters[0].IsOptional);
+            Assert.False(lambdas[2].Symbol.Parameters[0].HasExplicitDefaultValue);
+            Assert.Throws<InvalidOperationException>(() => lambdas[1].Symbol.Parameters[0].ExplicitDefaultValue);
+
+            // lam3
+            Assert.Equal("([DefaultParameterValue(2)] int x) => x", lambdas[2].Node.ToString());
+            Assert.Equal(1, lambdas[2].Symbol.Parameters.Length);
+            Assert.False(lambdas[2].Symbol.Parameters[0].IsOptional);
+            Assert.False(lambdas[2].Symbol.Parameters[0].HasExplicitDefaultValue);
+            Assert.Throws<InvalidOperationException>(() => lambdas[2].Symbol.Parameters[0].ExplicitDefaultValue);
+
+            // lam4
+            Assert.Equal("([Optional, DefaultParameterValue(3)] int x) => x", lambdas[3].Node.ToString());
+            Assert.Equal(1, lambdas[3].Symbol.Parameters.Length);
+            Assert.True(lambdas[3].Symbol.Parameters[0].IsOptional);
+            Assert.True(lambdas[3].Symbol.Parameters[0].HasExplicitDefaultValue);
+            Assert.Equal(3, lambdas[3].Symbol.Parameters[0].ExplicitDefaultValue);
+        }
+
+        [Fact]
+        public void LambdaWithDefaultParameter_EqualsValueClauseSyntax()
+        {
+            var source = """
+                var lam = (int a, int b = 1) => a + b;
+                """;
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var lambda = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var equalsValue = lambda.DescendantNodes().OfType<EqualsValueClauseSyntax>().Single();
+            Assert.Equal("= 1", equalsValue.ToString());
+            var constantValue = model.GetConstantValue(equalsValue.Value);
+            Assert.True(constantValue.HasValue);
+            Assert.Equal(1, constantValue.Value);
+        }
+
+        [Fact]
+        public void LambdaWithDefaultParameter_SpeculativeSemanticModel()
+        {
+            var source = """
+                class C
+                {
+                    public static int M1(int x) => x * 2;
+                    public static void M2()
+                    {
+                        var lam = (int b) => b;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var m2 = comp.GetMember<MethodSymbol>("C.M2").GetPublicSymbol();
+            var m2Syntax = (MethodDeclarationSyntax)m2.DeclaringSyntaxReferences.Single().GetSyntax();
+            var newStmt = SyntaxFactory.ParseStatement("var lam = (int b = M1(4)) => b;");
+            var newMethod = m2Syntax.WithBody(SyntaxFactory.Block(newStmt));
+            Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(m2Syntax.Body.SpanStart, newMethod, out var speculativeModel));
+            var newLambda = newMethod.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var newLambdaSymbol = (IMethodSymbol)speculativeModel.GetSymbolInfo(newLambda).Symbol;
+            var newParam = newLambdaSymbol.Parameters.Single();
+            Assert.True(newParam.HasExplicitDefaultValue);
+            Assert.Null(newParam.ExplicitDefaultValue);
+
+            // Ensure errors from default parameter values are not added to declaration table.
+            model.GetDiagnostics().Verify();
+        }
+
+        [Fact]
+        public void LambdaWithDefaultParameter_SameSymbols()
+        {
+            var source = """
+                class C
+                {
+                    public static void M()
+                    {
+                        const int N = 10;
+                        var lam = (int a = N) => a;
+                        var x = N;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (7,13): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         var x = N;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(7, 13));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().ToImmutableArray();
+            Assert.Equal(3, decls.Length);
+
+            Assert.Equal("const int N = 10;", decls[0].ToString());
+            var constSymbol = model.GetDeclaredSymbol(decls[0].Declaration.Variables.Single());
+            Assert.NotNull(constSymbol);
+
+            Assert.Equal("var lam = (int a = N) => a;", decls[1].ToString());
+            var defaultValue = decls[1].DescendantNodes().OfType<LambdaExpressionSyntax>().Single()
+                .DescendantNodes().OfType<EqualsValueClauseSyntax>().Single().Value;
+            var defaultValueSymbol = model.GetSymbolInfo(defaultValue).Symbol;
+            Assert.Same(constSymbol, defaultValueSymbol);
+
+            Assert.Equal("var x = N;", decls[2].ToString());
+            var lhs = decls[2].DescendantNodes().OfType<EqualsValueClauseSyntax>().Single().Value;
+            var lhsSymbol = model.GetSymbolInfo(lhs).Symbol;
+            Assert.Same(constSymbol, lhsSymbol);
+        }
+
+        [Fact]
+        public void LambdaWithDefaultParameter_MemberSemanticModel()
+        {
+            var source = """
+                class C
+                {
+                    public static void M()
+                    {
+                        const int N = 10;
+                        var lam = (int a = N) => a;
+                        lam();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
+
+            // Ensure MemberSemanticModel is parented to the correct outer SemanticModel.
+            var defaultValue = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single()
+                .DescendantNodes().OfType<EqualsValueClauseSyntax>().Single().Value;
+            var defaultValueModel = model.GetMemberModel(defaultValue);
+            Assert.Same(model, defaultValueModel.ContainingPublicModelOrSelf);
+
+            // Ensure binder chain is shared with member model for the enclosing method body.
+            var methodSyntax = (MethodDeclarationSyntax)comp.GetMember<MethodSymbol>("C.M").GetNonNullSyntaxNode();
+            var methodModel = model.GetMemberModel(methodSyntax.Body);
+            Assert.NotNull(methodModel);
+            var methodBinder = GetBinder<BlockBinder>(methodModel.GetEnclosingBinder(methodSyntax.Body.SpanStart));
+            var defaultValueBinder = GetBinder<BlockBinder>(defaultValueModel.GetEnclosingBinder(defaultValue.SpanStart));
+            Assert.Same(methodBinder, defaultValueBinder);
+
+            static T GetBinder<T>(Binder binder) where T : Binder
+            {
+                while (true)
+                {
+                    if (binder is T t)
+                    {
+                        return t;
+                    }
+                    binder = binder.NextRequired;
+                }
+            }
         }
 
         [Fact]

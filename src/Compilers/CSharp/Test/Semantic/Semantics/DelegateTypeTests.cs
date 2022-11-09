@@ -12083,9 +12083,7 @@ class Program
 }
 """;
 
-            // PROTOTYPE: these two delegate types could be unified into a single anonymous delegate class that has a type parameter
-            // for the first argument, so the invoke would look like `<>f__AnonymousDelegate0<T>::Invoke(T arg1, int arg2 = 10)`.
-            // Do we want to change the behavior here to avoid generating too many anonymous delegates?
+            // Emit only one templated delegate type? https://github.com/dotnet/roslyn/issues/65213
             CompileAndVerify(source, expectedOutput:
 @"<>f__AnonymousDelegate0
 <>f__AnonymousDelegate1");
@@ -13557,6 +13555,29 @@ class Program
         }
 
         [Fact]
+        public void LambdaWithDefaultParameterValueAttribute_SynthesizedDelegateTypeMatch()
+        {
+            var source = """
+                using System.Runtime.InteropServices;
+                var lam1 = (int a = 1) => a;
+                var lam2 = ([Optional] int b) => b;
+                var lam3 = ([DefaultParameterValue(1)] int c) => c;
+                var lam4 = ([Optional, DefaultParameterValue(1)] int d) => d;
+                Report(lam1);
+                Report(lam2);
+                Report(lam3);
+                Report(lam4);
+                static void Report(object obj) => System.Console.WriteLine(obj.GetType());
+                """;
+            CompileAndVerify(source, expectedOutput: """
+                <>f__AnonymousDelegate0
+                System.Func`2[System.Int32,System.Int32]
+                System.Func`2[System.Int32,System.Int32]
+                <>f__AnonymousDelegate0
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void LambdaDefaultParameter_UnsafeNull()
         {
             var source = """
@@ -13858,6 +13879,38 @@ class Program
             CompileAndVerify(source, expectedOutput:
 $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
 {s_expressionOfTDelegate1ArgTypeName}[System.Func`2[System.Int32,<>f__AnonymousDelegate0]]").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_MissingConstantValueType()
+        {
+            var source = """
+                var lam1 = (int x = 1) => x;
+                var lam2 = (decimal d = 2m) => x;
+                """;
+            CreateEmptyCompilation(source).VerifyDiagnostics(
+                // (1,1): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // var lam1 = (int x = 1) => x;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "var").WithArguments("System.Object").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Void' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Void").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.String' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.String").WithLocation(1, 1),
+                // (1,1): error CS1729: 'object' does not contain a constructor that takes 0 arguments
+                // var lam1 = (int x = 1) => x;
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "var").WithArguments("object", "0").WithLocation(1, 1),
+                // (1,12): error CS0518: Predefined type 'System.MulticastDelegate' is not defined or imported
+                // var lam1 = (int x = 1) => x;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int x = 1) => x").WithArguments("System.MulticastDelegate").WithLocation(1, 12),
+                // (1,13): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                // var lam1 = (int x = 1) => x;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(1, 13),
+                // (2,12): error CS0518: Predefined type 'System.MulticastDelegate' is not defined or imported
+                // var lam2 = (decimal d = 2m) => x;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(decimal d = 2m) => x").WithArguments("System.MulticastDelegate").WithLocation(2, 12),
+                // (2,13): error CS0518: Predefined type 'System.Decimal' is not defined or imported
+                // var lam2 = (decimal d = 2m) => x;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "decimal").WithArguments("System.Decimal").WithLocation(2, 13));
         }
 
         [Fact]
