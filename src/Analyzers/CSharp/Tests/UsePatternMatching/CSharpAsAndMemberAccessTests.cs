@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         }
 
         [Fact]
-        public async Task TestNotEquals_CSharp8()
+        public async Task TestNotEqualsConstant_CSharp8()
         {
             var test = """
                 class C
@@ -160,7 +160,51 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         }
 
         [Fact]
-        public async Task TestNotEquals_CSharp9()
+        public async Task TestNotEqualsConstant_CSharp9()
+        {
+            var test = """
+                class C
+                {
+                    void M(object o)
+                    {
+                        if ((o as string)?.Length != 0)
+                        {
+                        }
+                    }
+                }
+                """;
+            await new VerifyCS.Test
+            {
+                TestCode = test,
+                FixedCode = test,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestNotEqualsNull_CSharp8()
+        {
+            var test = """
+                class C
+                {
+                    void M(object o)
+                    {
+                        if ((o as string)?.Length != null)
+                        {
+                        }
+                    }
+                }
+                """;
+            await new VerifyCS.Test
+            {
+                TestCode = test,
+                FixedCode = test,
+                LanguageVersion = LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestNotEqualsNull_CSharp9()
         {
             await new VerifyCS.Test
             {
@@ -169,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
                     {
                         void M(object o)
                         {
-                            if (([|o as string|])?.Length != 0)
+                            if (([|o as string|])?.Length != null)
                             {
                             }
                         }
@@ -180,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
                     {
                         void M(object o)
                         {
-                            if (o is string { Length: not 0 })
+                            if (o is string { Length: not null })
                             {
                             }
                         }
@@ -319,7 +363,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         }
 
         [Fact]
-        public async Task TestIsPattern1()
+        public async Task TestIsConstantPattern1()
         {
             await new VerifyCS.Test
             {
@@ -349,7 +393,51 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         }
 
         [Fact]
-        public async Task TestIsPattern2()
+        public async Task TestIsNotConstantPattern()
+        {
+            var test = """
+                class C
+                {
+                    void M(object o)
+                    {
+                        if ((o as string)?.Length is not 0)
+                        {
+                        }
+                    }
+                }
+                """;
+            await new VerifyCS.Test
+            {
+                TestCode = test,
+                FixedCode = test,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestIsNullPattern()
+        {
+            var test = """
+                class C
+                {
+                    void M(object o)
+                    {
+                        if ((o as string)?.Length is null)
+                        {
+                        }
+                    }
+                }
+                """;
+            await new VerifyCS.Test
+            {
+                TestCode = test,
+                FixedCode = test,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestIsNotNullPattern()
         {
             await new VerifyCS.Test
             {
@@ -358,7 +446,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
                     {
                         void M(object o)
                         {
-                            if (([|o as string|])?.Length is not 0)
+                            if (([|o as string|])?.Length is not null)
                             {
                             }
                         }
@@ -369,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
                     {
                         void M(object o)
                         {
-                            if (o is string { Length: not 0 })
+                            if (o is string { Length: not null })
                             {
                             }
                         }
