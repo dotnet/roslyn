@@ -48,19 +48,19 @@ namespace Microsoft.CodeAnalysis.LanguageService
         /// to the expression as well.  For example, "++a".  In this expression 'a' is both read from
         /// and written to.
         /// </summary>
-        bool IsWrittenTo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
+        bool IsWrittenTo(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? node, CancellationToken cancellationToken);
 
         /// <summary>
         /// True if a write is performed to the given expression.  Note: unlike IsWrittenTo, this
         /// will not return true if reads are performed on the expression as well.  For example,
         /// "++a" will return 'false'.  However, 'a' in "out a" or "a = 1" will return true.
         /// </summary>
-        bool IsOnlyWrittenTo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
-        bool IsInOutContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
-        bool IsInRefContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
-        bool IsInInContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
+        bool IsOnlyWrittenTo(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? node, CancellationToken cancellationToken);
+        bool IsInOutContext(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? node, CancellationToken cancellationToken);
+        bool IsInRefContext(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? node, CancellationToken cancellationToken);
+        bool IsInInContext(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? node, CancellationToken cancellationToken);
 
-        bool CanReplaceWithRValue(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken);
+        bool CanReplaceWithRValue(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? expression, CancellationToken cancellationToken);
 
         ISymbol? GetDeclaredSymbol(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken);
 
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode? node, SyntaxToken token, CancellationToken cancellationToken);
 
-        bool IsInsideNameOfExpression(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
+        bool IsInsideNameOfExpression(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? node, CancellationToken cancellationToken);
 
         /// <summary>
         /// Finds all local function definitions within the syntax references for a given <paramref name="symbol"/>

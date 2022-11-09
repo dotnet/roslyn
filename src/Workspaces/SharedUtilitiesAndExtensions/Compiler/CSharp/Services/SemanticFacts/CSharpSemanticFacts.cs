@@ -35,22 +35,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool ExposesAnonymousFunctionParameterNames => false;
 
-        public bool IsWrittenTo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        public bool IsWrittenTo(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? node, CancellationToken cancellationToken)
             => (node as ExpressionSyntax).IsWrittenTo(semanticModel, cancellationToken);
 
-        public bool IsOnlyWrittenTo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        public bool IsOnlyWrittenTo(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? node, CancellationToken cancellationToken)
             => (node as ExpressionSyntax).IsOnlyWrittenTo();
 
-        public bool IsInOutContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        public bool IsInOutContext(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? node, CancellationToken cancellationToken)
             => (node as ExpressionSyntax).IsInOutContext();
 
-        public bool IsInRefContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        public bool IsInRefContext(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? node, CancellationToken cancellationToken)
             => (node as ExpressionSyntax).IsInRefContext();
 
-        public bool IsInInContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        public bool IsInInContext(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? node, CancellationToken cancellationToken)
             => (node as ExpressionSyntax).IsInInContext();
 
-        public bool CanReplaceWithRValue(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken)
+        public bool CanReplaceWithRValue(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? expression, CancellationToken cancellationToken)
             => (expression as ExpressionSyntax).CanReplaceWithRValue(semanticModel, cancellationToken);
 
         public ISymbol? GetDeclaredSymbol(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return semanticModel.GetSymbolInfo(node, cancellationToken);
         }
 
-        public bool IsInsideNameOfExpression(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        public bool IsInsideNameOfExpression(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? node, CancellationToken cancellationToken)
             => (node as ExpressionSyntax).IsInsideNameOfExpression(semanticModel, cancellationToken);
 
         public ImmutableArray<IMethodSymbol> GetLocalFunctionSymbols(Compilation compilation, ISymbol symbol, CancellationToken cancellationToken)
