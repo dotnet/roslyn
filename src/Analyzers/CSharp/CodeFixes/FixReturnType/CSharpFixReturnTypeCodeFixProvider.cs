@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
     internal class CSharpFixReturnTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         // error CS0127: Since 'M()' returns void, a return keyword must not be followed by an object expression
-        // error CS1997: Since 'M()' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task<T>'?
+        // error CS1997: Since 'M()' is an async method that returns 'Task', a return keyword must not be followed by an object expression
         // error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create("CS0127", "CS1997", "CS0201");
 
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
             if (returnedValue == null)
                 return default;
 
-            var (declarationTypeToFix, useTask) = TryGetDeclarationTypeToFix(node);
+            var (declarationTypeToFix, isAsync) = TryGetDeclarationTypeToFix(node);
             if (declarationTypeToFix == null)
                 return default;
 
@@ -83,13 +83,33 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
             returnedType ??= semanticModel.Compilation.ObjectType;
 
             TypeSyntax fixedDeclaration;
-            if (useTask)
+            if (isAsync)
             {
-                var taskOfTType = semanticModel.Compilation.TaskOfTType();
-                if (taskOfTType is null)
+                var previousReturnType = semanticModel.GetTypeInfo(declarationTypeToFix, cancellationToken).Type;
+                if (previousReturnType is null)
                     return default;
 
-                fixedDeclaration = taskOfTType.Construct(returnedType).GenerateTypeSyntax(allowVar: false);
+                var compilation = semanticModel.Compilation;
+
+                INamedTypeSymbol? taskType = null;
+
+                // void, Task -> Task<T>
+                // ValueTask -> ValueTask<T>
+                // other type -> we cannot infer anything
+                if (previousReturnType.SpecialType is SpecialType.System_Void ||
+                    Equals(previousReturnType, compilation.TaskType()))
+                {
+                    taskType = compilation.TaskOfTType();
+                }
+                else if (Equals(previousReturnType, compilation.ValueTaskType()))
+                {
+                    taskType = compilation.ValueTaskOfTType();
+                }
+
+                if (taskType is null)
+                    return default;
+
+                fixedDeclaration = taskType.Construct(returnedType).GenerateTypeSyntax(allowVar: false);
             }
             else
             {
@@ -109,11 +129,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
             editor.ReplaceNode(declarationTypeToFix, fixedDeclaration);
         }
 
-        private static (TypeSyntax type, bool useTask) TryGetDeclarationTypeToFix(SyntaxNode node)
+        private static (TypeSyntax type, bool isAsync) TryGetDeclarationTypeToFix(SyntaxNode node)
         {
             return node.GetAncestors().Select(TryGetReturnTypeToFix).FirstOrDefault(p => p.type != null);
 
-            static (TypeSyntax type, bool useTask) TryGetReturnTypeToFix(SyntaxNode containingMember)
+            static (TypeSyntax type, bool isAsync) TryGetReturnTypeToFix(SyntaxNode containingMember)
             {
                 return containingMember switch
                 {
