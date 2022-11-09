@@ -114,6 +114,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // add that support here.
                 //
                 // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspaceEdit
+                //
+                // Tracked with: https://github.com/dotnet/roslyn/issues/65303
 #if false
 
                 // TO-DO: If the change involves adding or removing a document, execute via command instead of WorkspaceEdit
