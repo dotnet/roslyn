@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 properties: null));
         }
 
-        private bool IsSafeToConvert(
+        private static bool IsSafeToConvert(
             SemanticModel semanticModel,
             BinaryExpressionSyntax? binaryExpression,
             IsPatternExpressionSyntax? isPatternExpression,
@@ -108,41 +108,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
                 if (binaryExpression.Kind() is SyntaxKind.EqualsExpression)
                 {
-                    // (a as T)?.Prop == null
-                    //
-                    // The previous semantics are effectively:
-                    //
-                    //      a is not T || ((T)a).Prop == null
-                    //
-                    // The new semantics would be:
-                    //
-                    //      a is T && ((T)a).Prop == null
-                    //
-                    // Which is not the same.  So we cannot allow this.
-                    //
-                    // However: `(a as T)?.Prop != null` is safe to convert as it never will be true when the `as` cast
-                    // fails.
+                    // `(a as T)?.Prop == null` does *not* have the same semantics as `a is T { Prop: null }`
+                    // (specifically, when the type check fails)
                     if (constantValue.Value is null)
                         return false;
+
+                    // `(a as T)?.Prop == constant` does* have the same semantics as `a is T { Prop: constant }`
+                    return true;
                 }
                 else if (binaryExpression.Kind() is SyntaxKind.NotEqualsExpression)
                 {
-                    // (a as T)?.Prop != constant
-                    //
-                    // The previous semantics are effectively:
-                    //
-                    //      a is not T || ((T)a).Prop != constant
-                    //
-                    // The new semantics would be:
-                    //
-                    //      a is T && ((T)a).Prop != constant
-                    //
-                    // Which is not the same.  So we cannot allow this.
-                    //
-                    // However: `(a as T)?.Prop == constant` is safe to convert as it never will be true when the `as` cast
-                    // fails.
+                    // `(a as T)?.Prop != constant` *does not* have the same semantics as `a is T { Prop: not constant }`
+                    // (specifically, when the type check fails)
                     if (constantValue.Value is not null)
                         return false;
+
+                    // `(a as T)?.Prop != null` *does* have the same semantics as `a is T { Prop: not null }`.
+                    return true;
                 }
 
                 // don't need to check the other relational comparisons. These comparisons do a null check themselves,
@@ -161,8 +143,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                     if (!constantValue.HasValue)
                         return false;
 
+                    // `(a as T)?.Prop is null` does *not* have the same semantics as `a is T { Prop: null }`
+                    // (specifically, when the type check fails)
                     if (constantValue.Value is null)
                         return false;
+
+                    // `(a as T)?.Prop is constant` does* have the same semantics as `a is T { Prop: constant }`
+                    return true;
                 }
                 else if (isPatternExpression.Pattern is UnaryPatternSyntax { Pattern: ConstantPatternSyntax { Expression: var expression2 } })
                 {
@@ -170,8 +157,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                     if (!constantValue.HasValue)
                         return false;
 
+                    // `(a as T)?.Prop is not constant` *does not* have the same semantics as `a is T { Prop: not constant }`
+                    // (specifically, when the type check fails)
                     if (constantValue.Value is not null)
                         return false;
+
+                    // `(a as T)?.Prop is not null` *does* have the same semantics as `a is T { Prop: not null }`.
+                    return true;
                 }
 
                 return true;
