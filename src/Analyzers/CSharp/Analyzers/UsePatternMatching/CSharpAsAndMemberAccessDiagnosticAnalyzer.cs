@@ -68,10 +68,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var asExpression = (BinaryExpressionSyntax)context.Node;
 
             if (!UsePatternMatchingHelpers.TryGetPartsOfAsAndMemberAccessCheck(
-                    asExpression, out _, out var binaryExpression, out _))
+                    asExpression, out _, out var binaryExpression, out _, out var requiredLanguageVersion))
             {
                 return;
             }
+
+            if (context.Compilation.LanguageVersion() < requiredLanguageVersion)
+                return;
 
             if (binaryExpression != null)
             {

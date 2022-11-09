@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
 
             if (!UsePatternMatchingHelpers.TryGetPartsOfAsAndMemberAccessCheck(
-                    asExpression, out var conditionalAccessExpression, out var binaryExpression, out var isPatternExpression))
+                    asExpression, out var conditionalAccessExpression, out var binaryExpression, out var isPatternExpression, out _))
             {
                 return;
             }
@@ -87,9 +87,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 Token(SyntaxKind.IsKeyword).WithTriviaFrom(asExpression.OperatorToken),
                 newPattern);
 
+            var toReplace = parent.WalkUpParentheses();
             editor.ReplaceNode(
-                parent.WalkUpParentheses(),
-                newIsExpression);
+                toReplace,
+                newIsExpression.WithTriviaFrom(toReplace));
 
             return;
 

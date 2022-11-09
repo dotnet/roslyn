@@ -15,11 +15,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             BinaryExpressionSyntax asExpression,
             [NotNullWhen(true)] out ConditionalAccessExpressionSyntax? conditionalAccessExpression,
             out BinaryExpressionSyntax? binaryExpression,
-            out IsPatternExpressionSyntax? isPatternExpression)
+            out IsPatternExpressionSyntax? isPatternExpression,
+            out LanguageVersion requiredLanguageVersion)
         {
             conditionalAccessExpression = null;
             binaryExpression = null;
             isPatternExpression = null;
+            requiredLanguageVersion = LanguageVersion.CSharp8;
 
             if (asExpression.Kind() == SyntaxKind.AsExpression)
             {
@@ -39,26 +41,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
                 var whenNotNull = parentConditionalAccess.WhenNotNull;
                 while (whenNotNull is MemberAccessExpressionSyntax memberAccess)
+                {
+                    // Extended property patterns are only in 10 and up.
+                    requiredLanguageVersion = LanguageVersion.CSharp10;
                     whenNotNull = memberAccess.Expression;
+                }
 
                 // Ensure we have `.X`
                 if (whenNotNull is not MemberBindingExpressionSyntax)
                     return false;
 
-                if (conditionalAccessExpression.Parent is
-                        BinaryExpressionSyntax(
-                            SyntaxKind.EqualsExpression or
-                            SyntaxKind.NotEqualsExpression or
-                            SyntaxKind.GreaterThanExpression or
-                            SyntaxKind.GreaterThanOrEqualExpression or
-                            SyntaxKind.LessThanExpression or
-                            SyntaxKind.LessThanOrEqualExpression) parentBinaryExpression &&
-                    parentBinaryExpression.Left == conditionalAccessExpression)
+                if (conditionalAccessExpression.Parent is BinaryExpressionSyntax(SyntaxKind.EqualsExpression) parentBinaryExpression1 &&
+                    parentBinaryExpression1.Left == conditionalAccessExpression)
                 {
                     // `(expr as T)?... == other_expr
                     //
                     // Can convert if other_expr is a constant (checked by caller).
-                    binaryExpression = parentBinaryExpression;
+                    binaryExpression = parentBinaryExpression1;
+                    return true;
+                }
+                else if (conditionalAccessExpression.Parent is
+                        BinaryExpressionSyntax(
+                            SyntaxKind.NotEqualsExpression or
+                            SyntaxKind.GreaterThanExpression or
+                            SyntaxKind.GreaterThanOrEqualExpression or
+                            SyntaxKind.LessThanExpression or
+                            SyntaxKind.LessThanOrEqualExpression) parentBinaryExpression2 &&
+                    parentBinaryExpression2.Left == conditionalAccessExpression)
+                {
+                    // `(expr as T)?... != other_expr
+                    //
+                    // Can convert if other_expr is a constant (checked by caller).
+                    binaryExpression = parentBinaryExpression2;
+
+                    // relational patterns need c# 9 or above.
+                    requiredLanguageVersion = (LanguageVersion)Math.Max((int)requiredLanguageVersion, (int)LanguageVersion.CSharp9);
                     return true;
                 }
                 else if (conditionalAccessExpression.Parent is IsPatternExpressionSyntax parentIsPatternExpression)
