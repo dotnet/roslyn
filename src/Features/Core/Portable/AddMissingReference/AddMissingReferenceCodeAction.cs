@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -20,6 +21,12 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
         private readonly AssemblyIdentity _missingAssemblyIdentity;
 
         public override string Title { get; }
+
+        /// <summary>
+        /// This code action adds references, and thus definitely makes non-document changes.  It cannot run in hosts
+        /// that only support text changes.
+        /// </summary>
+        public override ImmutableArray<string> Tags => MakesNonDocumentChangeTags;
 
         public AddMissingReferenceCodeAction(Project project, string title, ProjectReference? projectReferenceToAdd, AssemblyIdentity missingAssemblyIdentity)
         {

@@ -121,6 +121,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
             private readonly Func<CancellationToken, Task<Solution>> _createChangedSolutionAsync;
             private readonly string _equivalenceKey;
 
+#if !CODE_STYLE
+            /// <summary>
+            /// This code action invokes code on the UI thread to tell 3rd parties about the rename.  As such, it does
+            /// more than make document changes (and is thus restricted in which hosts it can run).
+            /// </summary>
+            public override ImmutableArray<string> Tags => MakesNonDocumentChangeTags;
+#endif
+
             public FixNameCodeAction(
 #if !CODE_STYLE
                 Solution startingSolution,

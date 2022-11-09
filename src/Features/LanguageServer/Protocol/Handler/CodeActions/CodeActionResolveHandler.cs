@@ -24,15 +24,13 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     /// <summary>
-    /// Resolves a code action by filling out its Edit and/or Command property.
-    /// The handler is triggered only when a user hovers over a code action. This
-    /// system allows the basic code action data to be computed quickly, and the
-    /// complex data, such as edits and commands, to be computed only when necessary
-    /// (i.e. when hovering/previewing a code action).
-    /// 
-    /// TODO - This must be moved to the MS.CA.LanguageServer.Protocol project once the
-    /// EditorFeatures references in <see cref="RunCodeActionHandler"/> are removed.
-    /// See https://github.com/dotnet/roslyn/issues/55142
+    /// Resolves a code action by filling out its Edit property. The handler is triggered only when a user hovers over a
+    /// code action. This system allows the basic code action data to be computed quickly, and the complex data, to be
+    /// computed only when necessary (i.e. when hovering/previewing a code action).
+    /// <para>
+    /// This system only supports text edits to documents.  In the future, supporting complex edits (including changes to
+    /// project files) would be desirable.
+    /// </para>
     /// </summary>
     [ExportCSharpVisualBasicStatelessLspService(typeof(CodeActionResolveHandler)), Shared]
     [Method(LSP.Methods.CodeActionResolveName)]
@@ -79,113 +77,102 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _codeRefactoringService,
                 cancellationToken).ConfigureAwait(false);
 
-            var codeActionToResolve = CodeActionHelpers.GetCodeActionToResolve(
-                data.UniqueIdentifier, codeActions);
+            var codeActionToResolve = CodeActionHelpers.GetCodeActionToResolve(data.UniqueIdentifier, codeActions);
             Contract.ThrowIfNull(codeActionToResolve);
 
             var operations = await codeActionToResolve.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
-            if (operations.IsEmpty)
-                return codeAction;
 
-            // If we have all non-ApplyChangesOperations, set up to run as command on the server
-            // instead of using WorkspaceEdits.
-            if (operations.All(operation => operation is not ApplyChangesOperation))
-            {
-                codeAction.Command = SetCommand(codeAction.Title, data);
-                return codeAction;
-            }
+            // We only support making solution changing actions.  We can also ignore DocumentNavigation as that is an
+            // additional suggestion a code action can make about what to do post edit.
+            var applicableActions = operations.Where(o => o is ApplyChangesOperation or DocumentNavigationOperation).ToArray();
 
             // TO-DO: We currently must execute code actions which add new documents on the server as commands,
             // since there is no LSP support for adding documents yet. In the future, we should move these actions
             // to execute on the client.
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/
 
-            // Add workspace edits
-            var applyChangesOperations = operations.OfType<ApplyChangesOperation>();
-            if (applyChangesOperations.Any())
+            var solution = document.Project.Solution;
+            var textDiffService = solution.Services.GetService<IDocumentTextDifferencingService>();
+
+            using var _ = ArrayBuilder<TextDocumentEdit>.GetInstance(out var textDocumentEdits);
+
+            foreach (var option in operations)
             {
-                var solution = document.Project.Solution;
-                var textDiffService = solution.Services.GetService<IDocumentTextDifferencingService>();
+                // We only support making solution-updating operations in LSP.  And only ones that modify documents. 1st
+                // class code actions that do more than this are supposed to add the CodeAction.MakesNonDocumentChange
+                // in their Tags so we can filter them out before returning them to the client.
+                //
+                // However, we cannot enforce this as 3rd party fixers can still run.  So we filter their results to 
+                // only apply the portions of their work that updates documents, and nothing else.
+                if (option is not ApplyChangesOperation applyChangesOperation)
+                    continue;
 
-                using var _ = ArrayBuilder<TextDocumentEdit>.GetInstance(out var textDocumentEdits);
-                foreach (var applyChangesOperation in applyChangesOperations)
+                var changes = applyChangesOperation.ChangedSolution.GetChanges(solution);
+                var projectChanges = changes.GetProjectChanges();
+
+                // ignore any non-document changes.  In the future we could see if there is some mechanism by which we
+                // can make these changes safely in LSP.
+#if false
+
+                // TO-DO: If the change involves adding or removing a document, execute via command instead of WorkspaceEdit
+                // until adding/removing documents is supported in LSP: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/
+                // After support is added, remove the below if-statement and add code to support adding/removing documents.
+                var addedDocuments = projectChanges.SelectMany(
+                    pc => pc.GetAddedDocuments().Concat(pc.GetAddedAdditionalDocuments().Concat(pc.GetAddedAnalyzerConfigDocuments())));
+                var removedDocuments = projectChanges.SelectMany(
+                    pc => pc.GetRemovedDocuments().Concat(pc.GetRemovedAdditionalDocuments().Concat(pc.GetRemovedAnalyzerConfigDocuments())));
+                if (addedDocuments.Any() || removedDocuments.Any())
                 {
-                    var changes = applyChangesOperation.ChangedSolution.GetChanges(solution);
-                    var projectChanges = changes.GetProjectChanges();
-
-                    // TO-DO: If the change involves adding or removing a document, execute via command instead of WorkspaceEdit
-                    // until adding/removing documents is supported in LSP: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/
-                    // After support is added, remove the below if-statement and add code to support adding/removing documents.
-                    var addedDocuments = projectChanges.SelectMany(
-                        pc => pc.GetAddedDocuments().Concat(pc.GetAddedAdditionalDocuments().Concat(pc.GetAddedAnalyzerConfigDocuments())));
-                    var removedDocuments = projectChanges.SelectMany(
-                        pc => pc.GetRemovedDocuments().Concat(pc.GetRemovedAdditionalDocuments().Concat(pc.GetRemovedAnalyzerConfigDocuments())));
-                    if (addedDocuments.Any() || removedDocuments.Any())
-                    {
-                        codeAction.Command = SetCommand(codeAction.Title, data);
-                        return codeAction;
-                    }
-
-                    // TO-DO: If the change involves adding or removing a project reference, execute via command instead of
-                    // WorkspaceEdit until adding/removing project references is supported in LSP:
-                    // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1166040
-                    var projectReferences = projectChanges.SelectMany(
-                        pc => pc.GetAddedProjectReferences().Concat(pc.GetRemovedProjectReferences()));
-                    if (projectReferences.Any())
-                    {
-                        codeAction.Command = SetCommand(codeAction.Title, data);
-                        return codeAction;
-                    }
-
-                    var changedDocuments = projectChanges.SelectMany(pc => pc.GetChangedDocuments());
-                    var changedAnalyzerConfigDocuments = projectChanges.SelectMany(pc => pc.GetChangedAnalyzerConfigDocuments());
-                    var changedAdditionalDocuments = projectChanges.SelectMany(pc => pc.GetChangedAdditionalDocuments());
-
-                    // Changed documents
-                    await AddTextDocumentEditsAsync(
-                        textDocumentEdits, changedDocuments,
-                        applyChangesOperation.ChangedSolution.GetDocument, solution.GetDocument, textDiffService,
-                        cancellationToken).ConfigureAwait(false);
-
-                    // Changed analyzer config documents
-                    await AddTextDocumentEditsAsync(
-                        textDocumentEdits, changedAnalyzerConfigDocuments,
-                        applyChangesOperation.ChangedSolution.GetAnalyzerConfigDocument, solution.GetAnalyzerConfigDocument,
-                        textDiffService: null, cancellationToken).ConfigureAwait(false);
-
-                    // Changed additional documents
-                    await AddTextDocumentEditsAsync(
-                        textDocumentEdits, changedAdditionalDocuments,
-                        applyChangesOperation.ChangedSolution.GetAdditionalDocument, solution.GetAdditionalDocument,
-                        textDiffService: null, cancellationToken).ConfigureAwait(false);
+                    codeAction.Command = SetCommand(codeAction.Title, data);
+                    return codeAction;
                 }
 
-                codeAction.Edit = new LSP.WorkspaceEdit { DocumentChanges = textDocumentEdits.ToArray() };
+                // TO-DO: If the change involves adding or removing a project reference, execute via command instead of
+                // WorkspaceEdit until adding/removing project references is supported in LSP:
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1166040
+                var projectReferences = projectChanges.SelectMany(
+                    pc => pc.GetAddedProjectReferences().Concat(pc.GetRemovedProjectReferences()));
+                if (projectReferences.Any())
+                {
+                    codeAction.Command = SetCommand(codeAction.Title, data);
+                    return codeAction;
+                }
+
+#endif
+
+                // Changed documents
+                await AddTextDocumentEditsAsync(
+                    projectChanges.SelectMany(pc => pc.GetChangedDocuments()),
+                    applyChangesOperation.ChangedSolution.GetDocument,
+                    solution.GetDocument).ConfigureAwait(false);
+
+                // Changed analyzer config documents
+                await AddTextDocumentEditsAsync(
+                    projectChanges.SelectMany(pc => pc.GetChangedAnalyzerConfigDocuments()),
+                    applyChangesOperation.ChangedSolution.GetAnalyzerConfigDocument,
+                    solution.GetAnalyzerConfigDocument).ConfigureAwait(false);
+
+                // Changed additional documents
+                await AddTextDocumentEditsAsync(
+                    projectChanges.SelectMany(pc => pc.GetChangedAdditionalDocuments()),
+                    applyChangesOperation.ChangedSolution.GetAdditionalDocument,
+                    solution.GetAdditionalDocument).ConfigureAwait(false);
             }
+
+            codeAction.Edit = new LSP.WorkspaceEdit { DocumentChanges = textDocumentEdits.ToArray() };
 
             return codeAction;
 
-            // Local functions
-            static LSP.Command SetCommand(string title, CodeActionResolveData data) => new LSP.Command
-            {
-                CommandIdentifier = CodeActionsHandler.RunCodeActionCommandName,
-                Title = title,
-                Arguments = new object[] { data }
-            };
-
-            static async Task AddTextDocumentEditsAsync<T>(
-                ArrayBuilder<TextDocumentEdit> textDocumentEdits,
+            async Task AddTextDocumentEditsAsync<T>(
                 IEnumerable<DocumentId> changedDocuments,
-                Func<DocumentId, T?> getNewDocumentFunc,
-                Func<DocumentId, T?> getOldDocumentFunc,
-                IDocumentTextDifferencingService? textDiffService,
-                CancellationToken cancellationToken)
+                Func<DocumentId, T?> getNewDocument,
+                Func<DocumentId, T?> getOldDocument)
                 where T : TextDocument
             {
                 foreach (var docId in changedDocuments)
                 {
-                    var newTextDoc = getNewDocumentFunc(docId);
-                    var oldTextDoc = getOldDocumentFunc(docId);
+                    var newTextDoc = getNewDocument(docId);
+                    var oldTextDoc = getOldDocument(docId);
 
                     Contract.ThrowIfNull(oldTextDoc);
                     Contract.ThrowIfNull(newTextDoc);
