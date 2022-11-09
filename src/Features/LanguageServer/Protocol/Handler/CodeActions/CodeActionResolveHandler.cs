@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public async Task<LSP.CodeAction> HandleRequestAsync(LSP.CodeAction codeAction, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.GetRequiredDocument();
+            var solution = document.Project.Solution;
 
             var data = ((JToken)codeAction.Data!).ToObject<CodeActionResolveData>();
             Assumes.Present(data);
@@ -82,16 +83,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var operations = await codeActionToResolve.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
 
-            // We only support making solution changing actions.  We can also ignore DocumentNavigation as that is an
-            // additional suggestion a code action can make about what to do post edit.
-            var applicableActions = operations.Where(o => o is ApplyChangesOperation or DocumentNavigationOperation).ToArray();
-
             // TO-DO: We currently must execute code actions which add new documents on the server as commands,
             // since there is no LSP support for adding documents yet. In the future, we should move these actions
             // to execute on the client.
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/
 
-            var solution = document.Project.Solution;
             var textDiffService = solution.Services.GetService<IDocumentTextDifferencingService>();
 
             using var _ = ArrayBuilder<TextDocumentEdit>.GetInstance(out var textDocumentEdits);
@@ -110,8 +106,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var changes = applyChangesOperation.ChangedSolution.GetChanges(solution);
                 var projectChanges = changes.GetProjectChanges();
 
-                // ignore any non-document changes.  In the future we could see if there is some mechanism by which we
-                // can make these changes safely in LSP.
+                // Ignore any non-document changes for now.  Note though that LSP does support additional functionality
+                // (like create/rename/delete file).  Once VS updates their LSP client impl to support this, we should
+                // add that support here.
+                //
+                // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspaceEdit
 #if false
 
                 // TO-DO: If the change involves adding or removing a document, execute via command instead of WorkspaceEdit
