@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string MakeStructReadOnlyDiagnosticId = "IDE0250";
 
-        public const string UsePatternMatchingAsAndMemberAccessId = "IDE260";
+        public const string UsePatternMatchingAsAndMemberAccessId = "IDE0260";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

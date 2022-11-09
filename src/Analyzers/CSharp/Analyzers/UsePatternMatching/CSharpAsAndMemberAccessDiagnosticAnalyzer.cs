@@ -4,7 +4,9 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -13,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
+
     /// <summary>
     /// Looks for code of the forms:
     /// <code>
@@ -64,37 +67,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var semanticModel = context.SemanticModel;
             var asExpression = (BinaryExpressionSyntax)context.Node;
 
-            // we're starting with `expr as T`
-
-            // has to be `(expr as T)`
-            if (asExpression.Parent is not ParenthesizedExpressionSyntax
-                {
-                    // Has to be `(expr as T)?...`
-                    Parent: ConditionalAccessExpressionSyntax conditionalAccess
-                })
+            if (!UsePatternMatchingHelpers.TryGetPartsOfAsAndMemberAccessCheck(
+                    asExpression, out _, out var binaryExpression, out _))
             {
                 return;
             }
 
-            // After the `?` has to be `.X.Y.Z`
-
-            var whenNotNull = conditionalAccess.WhenNotNull;
-            while (whenNotNull is MemberAccessExpressionSyntax memberAccess)
-                whenNotNull = memberAccess.Expression;
-
-            // Ensure we have `.X`
-            if (whenNotNull is not MemberBindingExpressionSyntax)
-                return;
-
-            if (conditionalAccess.Parent is
-                    BinaryExpressionSyntax(
-                        SyntaxKind.EqualsExpression or
-                        SyntaxKind.NotEqualsExpression or
-                        SyntaxKind.GreaterThanExpression or
-                        SyntaxKind.GreaterThanEqualsToken or
-                        SyntaxKind.LessThanExpression or
-                        SyntaxKind.LessThanOrEqualExpression) binaryExpression &&
-                binaryExpression.Left == conditionalAccess)
+            if (binaryExpression != null)
             {
                 // `(expr as T)?... == other_expr
                 //
@@ -102,16 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 var constantValue = semanticModel.GetConstantValue(binaryExpression.Right, cancellationToken);
                 if (!constantValue.HasValue)
                     return;
-            }
-            else if (conditionalAccess.Parent is IsPatternExpressionSyntax)
-            {
-                // `(expr as T)?... is pattern
-                //
-                //  In this case we can always convert to a pattern.
-            }
-            else
-            {
-                return;
             }
 
             // Looks good!
