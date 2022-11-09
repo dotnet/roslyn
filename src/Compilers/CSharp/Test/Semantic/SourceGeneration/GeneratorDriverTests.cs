@@ -3242,5 +3242,44 @@ class C { }
             driver = driver.RunGenerators(compilation);
             Assert.True(wasCalled);
         }
+
+        [Fact]
+        public void IncrementalGenerator_Add_New_Generator_After_Generation_SourceOutputNode()
+        {
+            // 1. run a generator, smuggling out some inputs from context
+            // 2. add a second generator, re-using the inputs from the first step and using a Combine node
+            // 3. run the new graph
+
+            var source = @"
+class C { }
+";
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing);
+            compilation.VerifyDiagnostics();
+
+            IncrementalValueProvider<ParseOptions> parseOptionsProvider = default;
+            IncrementalValueProvider<AnalyzerConfigOptionsProvider> configOptionsProvider = default;
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var source = parseOptionsProvider = ctx.ParseOptionsProvider;
+                ctx.RegisterSourceOutput(source, (spc, c) => { });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator });
+            driver = driver.RunGenerators(compilation);
+
+            // parse options are now cached
+            // add a new generator that depends on them
+            bool wasCalled = false;
+            var generator2 = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator2(ctx =>
+            {
+                var source = parseOptionsProvider;
+                ctx.RegisterSourceOutput(source, (spc, c) => { wasCalled = true; });
+            }));
+
+            driver = driver.AddGenerators(ImmutableArray.Create<ISourceGenerator>(generator2));
+            driver = driver.RunGenerators(compilation);
+            Assert.True(wasCalled);
+        }
     }
 }
