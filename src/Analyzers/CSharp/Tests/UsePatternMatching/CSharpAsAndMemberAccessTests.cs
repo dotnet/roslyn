@@ -471,5 +471,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
                     """,
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task TestBinaryParent()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    class C
+                    {
+                        void M(object o)
+                        {
+                            if (([|o as string|])?.Length == 0 && true)
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    class C
+                    {
+                        void M(object o)
+                        {
+                            if (o is string { Length: 0 } && true)
+                            {
+                            }
+                        }
+                    }
+                    """,
+            }.RunAsync();
+        }
     }
 }

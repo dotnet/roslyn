@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 SingletonSeparatedList(
                     Subpattern(
                         CreateExpressionColon(conditionalAccessExpression),
-                        CreatePattern(binaryExpression, isPatternExpression).WithAppendedTrailingTrivia(Space))),
+                        CreatePattern(binaryExpression, isPatternExpression).WithTrailingTrivia(Space))),
                 Token(SyntaxKind.CloseBraceToken).WithoutTrivia());
 
             // T { X.Y: pattern }
