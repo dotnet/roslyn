@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutable();
         }
 
-        public bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol? expressionType, CancellationToken cancellationToken)
+        public bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, [NotNullWhen(true)] INamedTypeSymbol? expressionType, CancellationToken cancellationToken)
             => node.IsInExpressionTree(semanticModel, expressionType, cancellationToken);
     }
 }
