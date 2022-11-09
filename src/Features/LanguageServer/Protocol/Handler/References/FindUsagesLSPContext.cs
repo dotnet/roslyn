@@ -10,8 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
@@ -19,9 +17,11 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
@@ -195,13 +195,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 return null;
             }
 
+            var conversionService = _workspace.Services.GetRequiredService<IGlyphConversionService>();
+            var guidAndId = conversionService.ConvertToImageId(definitionGlyph);
+
             // TO-DO: The Origin property should be added once Rich-Nav is completed.
             // https://github.com/dotnet/roslyn/issues/42847
             var result = new VSInternalReferenceItem
             {
                 DefinitionId = definitionId,
                 DefinitionText = definitionText,    // Only definitions should have a non-null DefinitionText
-                DefinitionIcon = definitionGlyph.GetImageElement(),
+                DefinitionIcon = guidAndId is null ? null : new ImageElement(new ImageId(guidAndId.Value.guid, guidAndId.Value.id)),
                 DisplayPath = location?.Uri.LocalPath,
                 Id = _id,
                 Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : Array.Empty<VSInternalReferenceKind>(),
@@ -329,17 +332,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                     // Case 1a: Highlight a definition
                     if (id == definitionId)
                     {
-                        markerTagType = DefinitionHighlightTag.TagId;
+                        markerTagType = ReferenceHighlightingConstants.DefinitionTagId;
                     }
                     // Case 1b: Highlight a written reference
                     else if (isWrittenTo)
                     {
-                        markerTagType = WrittenReferenceHighlightTag.TagId;
+                        markerTagType = ReferenceHighlightingConstants.WrittenReferenceTagId;
                     }
                     // Case 1c: Highlight a read reference
                     else
                     {
-                        markerTagType = ReferenceHighlightTag.TagId;
+                        markerTagType = ReferenceHighlightingConstants.ReferenceTagId;
                     }
                 }
 
