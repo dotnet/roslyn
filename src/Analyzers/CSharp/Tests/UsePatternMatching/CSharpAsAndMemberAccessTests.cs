@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -44,6 +45,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
                         }
                     }
                     """,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestNotInCSharp7()
+        {
+            var test = """
+                class C
+                {
+                    void M(object o)
+                    {
+                        if ((o as string)?.Length == 0)
+                        {
+                        }
+                    }
+                }
+                """;
+            await new VerifyCS.Test
+            {
+                TestCode = test,
+                FixedCode = test,
+                LanguageVersion = LanguageVersion.CSharp7,
             }.RunAsync();
         }
     }
