@@ -1867,5 +1867,53 @@ class C
                 int un[||]managed = 0;
                 """, expectedText: "System.Int32");
         }
+
+        [Fact, WorkItem(65312, "https://github.com/dotnet/roslyn/issues/65312")]
+        public async Task TestSwitchStatement()
+        {
+            await Test_KeywordAsync("""
+                swit[||]ch (1) { default: break; }
+                """, expectedText: "switch");
+        }
+
+        [Fact, WorkItem(65312, "https://github.com/dotnet/roslyn/issues/65312")]
+        public async Task TestSwitchExpression()
+        {
+            await Test_KeywordAsync("""
+                _ = 1 swit[||]ch { _ => 0 };
+                """, expectedText: "switch-expression");
+        }
+
+        [Fact]
+        public async Task TestFile()
+        {
+            await Test_KeywordAsync("""
+                fi[||]le class C { }
+                """, expectedText: "file");
+        }
+
+        [Fact]
+        public async Task TestRightShift()
+        {
+            await Test_KeywordAsync("""
+                _ = 1 >[||]> 2;
+                """, expectedText: ">>");
+        }
+
+        [Fact]
+        public async Task TestUnsignedRightShift()
+        {
+            await Test_KeywordAsync("""
+                _ = 1 >>[||]> 2;
+                """, expectedText: ">>>");
+        }
+
+        [Fact]
+        public async Task TestUnsignedRightShiftAssignment()
+        {
+            await Test_KeywordAsync("""
+                1 >>[||]>= 2;
+                """, expectedText: ">>>=");
+        }
     }
 }

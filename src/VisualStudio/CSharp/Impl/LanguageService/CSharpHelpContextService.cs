@@ -498,6 +498,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
+            if (token.IsKind(SyntaxKind.SwitchKeyword) && token.Parent is SwitchExpressionSyntax)
+            {
+                text = Keyword("switch-expression");
+                return true;
+            }
+
             if (token.IsKeyword())
             {
                 text = Keyword(token.Text);
