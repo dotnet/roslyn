@@ -537,7 +537,7 @@ class C
         [Fact, WorkItem(44480, "https://github.com/dotnet/roslyn/issues/44480")]
         public async Task TestAfterSwitchExpressionPattern1()
         {
-            await VerifyAbsenceAsync(@"
+            await VerifyKeywordAsync(@"
 using var = System.String;
 class C
 {
@@ -554,7 +554,7 @@ class C
         [Fact, WorkItem(44480, "https://github.com/dotnet/roslyn/issues/44480")]
         public async Task TestAfterSwitchExpressionPattern2()
         {
-            await VerifyAbsenceAsync(@"
+            await VerifyKeywordAsync(@"
 using var = System.String;
 class C
 {
@@ -571,7 +571,7 @@ class C
         [Fact, WorkItem(44480, "https://github.com/dotnet/roslyn/issues/44480")]
         public async Task TestAfterSwitchExpressionPattern3()
         {
-            await VerifyAbsenceAsync(@"
+            await VerifyKeywordAsync(@"
 using var = System.String;
 class C
 {
@@ -580,6 +580,23 @@ class C
         _ = i switch
         {
             int $$ => 1,
+        };
+    }
+}");
+        }
+
+        [Fact, WorkItem(44480, "https://github.com/dotnet/roslyn/issues/44480")]
+        public async Task TestAfterSwitchExpressionPattern4()
+        {
+            await VerifyKeywordAsync(@"
+using var = System.String;
+class C
+{
+    void M(int i)
+    {
+        _ = i switch
+        {
+            int $$ or 1 => 1,
         };
     }
 }");

@@ -24,20 +24,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             return context.IsCatchFilterContext ||
                 IsAfterCompleteExpressionOrPatternInCaseLabel(context) ||
-                IsAtEndOfPatternInSwitchExpression(position, context, cancellationToken);
+                IsAtEndOfPatternInSwitchExpression(context);
         }
 
-        private static bool IsAtEndOfPatternInSwitchExpression(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsAtEndOfPatternInSwitchExpression(CSharpSyntaxContext context)
         {
             if (!context.IsAtEndOfPattern)
                 return false;
 
-            // have to make sure the pattern we're after is actually one in a switch-statement/expression.
-            if (!context.SyntaxTree.IsAtEndOfPattern(position, out var parent, cancellationToken))
-                return false;
-
             // `x switch { SomePattern $$
-            if (parent.Parent is SwitchExpressionArmSyntax)
+            var pattern = context.TargetToken.GetAncestors<PatternSyntax>().LastOrDefault();
+            if (pattern?.Parent is SwitchExpressionArmSyntax)
                 return true;
 
             return false;

@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 containingTypeDeclaration: containingTypeDeclaration,
                 containingTypeOrEnumDeclaration: containingTypeOrEnumDeclaration,
                 isAnyExpressionContext: isAnyExpressionContext,
-                isAtEndOfPattern: syntaxTree.IsAtEndOfPattern(position, out _, cancellationToken),
+                isAtEndOfPattern: syntaxTree.IsAtEndOfPattern(position, cancellationToken),
                 isAtStartOfPattern: syntaxTree.IsAtStartOfPattern(leftToken, position),
                 isAttributeNameContext: syntaxTree.IsAttributeNameContext(position, cancellationToken),
                 isAwaitKeywordContext: ComputeIsAwaitKeywordContext(position, leftToken, targetToken, isGlobalStatementContext, isAnyExpressionContext, isStatementContext),

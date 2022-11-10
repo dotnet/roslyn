@@ -1409,16 +1409,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
-        /// <returns>The parent node that this position is at the end of.  This node may be a <see
-        /// cref="PatternSyntax"/> for normal complete code.  But it may also be a <see cref="TypeSyntax"/> or <see
-        /// cref="ExpressionSyntax"/> in the case of incomplete constructs.</returns>
         public static bool IsAtEndOfPattern(
             this SyntaxTree syntaxTree,
             int position,
             CancellationToken cancellationToken)
         {
-            parent = null;
-
             var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             var targetToken = leftToken.GetPreviousTokenIfTouchingWord(position);
 
@@ -1431,7 +1426,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (patternSyntax != null)
             {
                 var lastTokenInPattern = patternSyntax.GetLastToken();
-                parent = patternSyntax;
 
                 // This check should cover the majority of cases, e.g.:
                 // e is 1 $$
@@ -1486,21 +1480,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     binaryExpressionSyntax.OperatorToken.IsKind(SyntaxKind.IsKeyword) &&
                     binaryExpressionSyntax.Right == typeSyntax && !typeSyntax.IsVar)
                 {
-                    parent = typeSyntax;
                     return true;
                 }
             }
 
             // We need to include a special case for switch statement cases, as some are not currently parsed as patterns, e.g. case (1 $$
-            if (IsAtEndOfSwitchStatementPattern(targetToken, out parent))
+            if (IsAtEndOfSwitchStatementPattern(targetToken))
                 return true;
 
             return false;
 
-            static bool IsAtEndOfSwitchStatementPattern(SyntaxToken targetToken, [NotNullWhen(true)] out SyntaxNode? parent)
+            static bool IsAtEndOfSwitchStatementPattern(SyntaxToken targetToken)
             {
-                parent = null;
-
                 SyntaxNode? node = targetToken.Parent as ExpressionSyntax;
                 if (node == null)
                     return false;
@@ -1514,11 +1505,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     node = node.GetRequiredParent();
 
                 // case (1 $$
-                if (node is not CaseSwitchLabelSyntax { Parent: SwitchSectionSyntax } caseSwitch)
-                    return false;
+                if (node is CaseSwitchLabelSyntax { Parent: SwitchSectionSyntax } caseSwitch)
+                    return true;
 
-                parent = caseSwitch.Value;
-                return true;
+                return false;
             }
         }
 
