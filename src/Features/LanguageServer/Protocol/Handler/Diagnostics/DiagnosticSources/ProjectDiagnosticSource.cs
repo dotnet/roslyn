@@ -17,7 +17,7 @@ internal sealed record class ProjectDiagnosticSource(Project Project) : IDiagnos
     public ProjectOrDocumentId GetId() => new(Project.Id);
     public Project GetProject() => Project;
     public TextDocumentIdentifier? GetDocumentIdentifier()
-        => Project.FilePath != null
+        => !string.IsNullOrEmpty(Project.FilePath)
             ? new VSTextDocumentIdentifier { ProjectContext = ProtocolConversions.ProjectToProjectContext(Project), Uri = ProtocolConversions.GetUriFromFilePath(Project.FilePath) }
             : null;
 

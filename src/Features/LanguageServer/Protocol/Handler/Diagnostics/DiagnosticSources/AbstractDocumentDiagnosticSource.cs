@@ -32,7 +32,7 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
     public ProjectOrDocumentId GetId() => new(Document.Id);
     public Project GetProject() => Document.Project;
     public TextDocumentIdentifier? GetDocumentIdentifier()
-        => Document.FilePath != null
+        => !string.IsNullOrEmpty(Document.FilePath)
             ? new VSTextDocumentIdentifier { ProjectContext = ProtocolConversions.ProjectToProjectContext(Document.Project), Uri = Document.GetURI() }
             : null;
 
