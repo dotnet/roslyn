@@ -211,13 +211,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         protected static bool IsParameterReference(IOperation operation, IParameterSymbol parameter)
-        => UnwrapImplicitConversion(operation) is IParameterReferenceOperation parameterReference &&
+        => operation.UnwrapImplicitConversion() is IParameterReferenceOperation parameterReference &&
            parameter.Equals(parameterReference.Parameter);
-
-        protected static IOperation UnwrapImplicitConversion(IOperation operation)
-            => operation is IConversionOperation conversion && conversion.IsImplicit
-                ? conversion.Operand
-                : operation;
 
         protected static bool ContainsParameterReference(
             SemanticModel semanticModel,

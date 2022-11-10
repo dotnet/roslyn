@@ -803,9 +803,9 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
             compilation.VerifyDiagnostics(
-                // (6,28): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C<MyTask<int>>')
+                // (6,28): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C<MyTask<int>>')
                 //     static C<MyTask<int>>* F0;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "F0").WithArguments("C<MyTask<int>>").WithLocation(6, 28));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "F0").WithArguments("C<MyTask<int>>").WithLocation(6, 28));
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
             var normalized = type.NormalizeTaskTypes(compilation);
@@ -1388,13 +1388,13 @@ class C
         public void TestConstraintViolationApplicabilityErrors()
         {
             // The rules for constraint satisfaction during overload resolution are a bit odd. If a constraint
-            // *on a formal parameter type* is not met then the candidate is not applicable. But if a constraint
+            // *on a parameter type* is not met then the candidate is not applicable. But if a constraint
             // is violated *on the method type parameter itself* then the method can be chosen as the best
             // applicable candidate, and then rejected during "final validation".
             //
             // Furthermore: most of the time a constraint violation on a formal type parameter will also 
             // be a constraint violation on the method type parameter. The latter seems like the better 
-            // error to report. We only report the violation on the formal parameter if the constraint
+            // error to report. We only report the violation on the parameter if the constraint
             // is not violated on the method type parameter.
 
             var source =
@@ -6621,10 +6621,10 @@ public class Q
             // Problem 2:
             //
             // The native compiler gets the "betterness" rules wrong when lambdas are involved. The right thing
-            // to do is to first, check to see if one method has a more specific formal parameter type than the other.
-            // If betterness cannot be determined by formal parameter types, and the argument is a lambda, then 
+            // to do is to first, check to see if one method has a more specific parameter type than the other.
+            // If betterness cannot be determined by parameter types, and the argument is a lambda, then 
             // a special rule regarding the inferred return type of the lambda is used. What the native compiler does
-            // is, if there is a lambda, then it skips doing the formal parameter type check and goes straight to the
+            // is, if there is a lambda, then it skips doing the parameter type check and goes straight to the
             // lambda check.
             //
             // After some debate, we decided a while back to replicate this bug in Roslyn. 
@@ -8319,7 +8319,7 @@ public class C : CodeAccessSecurityAttribute
                 // (16,35): error CS1001: Identifier expected
                 //     public A(params SecurityAction)
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(16, 35),
-                // (30,22): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                // (30,22): error CS0231: A params parameter must be the last parameter in a parameter list
                 //     public C(int p1, params SecurityAction p2, string p3)
                 Diagnostic(ErrorCode.ERR_ParamsLast, "params SecurityAction p2").WithLocation(30, 22),
                 // (14,14): error CS0534: 'A' does not implement inherited abstract member 'SecurityAttribute.CreatePermission()'
@@ -8346,13 +8346,13 @@ public class C : CodeAccessSecurityAttribute
                 // (8,6): error CS7048: First argument to a security attribute must be a valid SecurityAction
                 //     [C(p3: "again", p2: SecurityAction.Assert, p1: 0)]
                 Diagnostic(ErrorCode.ERR_SecurityAttributeMissingAction, "C").WithLocation(8, 6),
-                // (16,12): error CS7036: There is no argument given that corresponds to the required formal parameter 'action' of 'CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(SecurityAction)'
+                // (16,12): error CS7036: There is no argument given that corresponds to the required parameter 'action' of 'CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(SecurityAction)'
                 //     public A(params SecurityAction)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "A").WithArguments("action", "System.Security.Permissions.CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(System.Security.Permissions.SecurityAction)").WithLocation(16, 12),
-                // (23,12): error CS7036: There is no argument given that corresponds to the required formal parameter 'action' of 'CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(SecurityAction)'
+                // (23,12): error CS7036: There is no argument given that corresponds to the required parameter 'action' of 'CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(SecurityAction)'
                 //     public B(int p1, params SecurityAction p2)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "B").WithArguments("action", "System.Security.Permissions.CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(System.Security.Permissions.SecurityAction)").WithLocation(23, 12),
-                // (30,12): error CS7036: There is no argument given that corresponds to the required formal parameter 'action' of 'CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(SecurityAction)'
+                // (30,12): error CS7036: There is no argument given that corresponds to the required parameter 'action' of 'CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(SecurityAction)'
                 //     public C(int p1, params SecurityAction p2, string p3)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("action", "System.Security.Permissions.CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(System.Security.Permissions.SecurityAction)").WithLocation(30, 12));
         }
@@ -8378,7 +8378,7 @@ public class A
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,28): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                // (4,28): error CS0231: A params parameter must be the last parameter in a parameter list
                 //     public static void Goo(params int[] vals, bool truth)
                 Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] vals"),
                 // (12,13): error CS1503: Argument 1: cannot convert from 'int' to 'params int[]'
@@ -8868,16 +8868,16 @@ class C
     // (22,15): error CS1744: Named argument 'x' specifies a parameter for which a positional argument has already been given
     //         M6(0, x: 1);
     Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "x").WithArguments("x").WithLocation(22, 15),
-    // (24,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'w' of 'C.M7(int, int, int)'
+    // (24,9): error CS7036: There is no argument given that corresponds to the required parameter 'w' of 'C.M7(int, int, int)'
     //         M7(0, x: 1);
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M7").WithArguments("w", "C.M7(int, int, int)").WithLocation(24, 9),
-    // (25,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'w' of 'C.M9(int, int, int)'
+    // (25,9): error CS7036: There is no argument given that corresponds to the required parameter 'w' of 'C.M9(int, int, int)'
     //         M9(0, x: 1);
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M9").WithArguments("w", "C.M9(int, int, int)").WithLocation(25, 9),
-    // (26,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'w' of 'C.M8(int, int, int)'
+    // (26,9): error CS7036: There is no argument given that corresponds to the required parameter 'w' of 'C.M8(int, int, int)'
     //         M8(0, x: 1);
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M8").WithArguments("w", "C.M8(int, int, int)").WithLocation(26, 9),
-    // (27,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'w' of 'C.M10(int, int, int)'
+    // (27,9): error CS7036: There is no argument given that corresponds to the required parameter 'w' of 'C.M10(int, int, int)'
     //         M10(0, x: 1);
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M10").WithArguments("w", "C.M10(int, int, int)").WithLocation(27, 9),
     // (29,25): error CS1739: The best overload for 'M11' does not have a parameter named 'z'
@@ -11097,18 +11097,18 @@ public static class Extensions
 
 
             CreateCompilation(code, references: new[] { libComp.EmitToImageReference() }).VerifyDiagnostics(
-                // (13,10): error CS8329: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
+                // (13,10): error CS8329: Cannot use variable 'y' as a ref or out value because it is a readonly variable
                 //          y.R_extension(); // error 1
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "in int").WithLocation(13, 10),
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "y").WithLocation(13, 10),
                 // (14,10): error CS1510: A ref or out value must be an assignable variable
                 //          1.R_extension(); // error 2
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "1").WithLocation(14, 10)
                 );
 
             CreateCompilation(code, references: new[] { libComp.ToMetadataReference() }).VerifyDiagnostics(
-                // (13,10): error CS8329: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
+                // (13,10): error CS8329: Cannot use variable 'y' as a ref or out value because it is a readonly variable
                 //          y.R_extension(); // error 1
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "in int").WithLocation(13, 10),
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "y").WithLocation(13, 10),
                 // (14,10): error CS1510: A ref or out value must be an assignable variable
                 //          1.R_extension(); // error 2
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "1").WithLocation(14, 10)

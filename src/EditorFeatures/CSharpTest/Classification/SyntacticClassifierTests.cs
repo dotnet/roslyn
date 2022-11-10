@@ -472,8 +472,7 @@ on a new line ""U8"),
                 Local("stuff"));
         }
 
-        [Theory]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Theory, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
         public async Task VerbatimStringLiterals6(bool script, TestHost testHost)
         {
@@ -692,8 +691,7 @@ on a new line ""U8"),
                 String(@"""bar"""));
         }
 
-        [Theory]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Theory, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
         public async Task VarContextualKeywordAtNamespaceLevel(bool script, TestHost testHost)
         {
@@ -712,8 +710,7 @@ on a new line ""U8"),
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Theory, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
         public async Task LinqKeywordsAtNamespaceLevel(bool script, TestHost testHost)
         {
@@ -1584,8 +1581,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(531155, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531155")]
-        [Theory]
+        [Theory, WorkItem(531155, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531155")]
         [CombinatorialData]
         public async Task XmlDocComment_ExteriorTriviaInsideCRef(TestHost testHost)
         {
@@ -2067,8 +2063,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(4302, "DevDiv_Projects/Roslyn")]
-        [Theory]
+        [Theory, WorkItem(4302, "DevDiv_Projects/Roslyn")]
         [CombinatorialData]
         public async Task ClassInEnum(TestHost testHost)
         {
@@ -3905,8 +3900,7 @@ public class Goo<T>
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(538680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538680")]
-        [Theory]
+        [Theory, WorkItem(538680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538680")]
         [CombinatorialData]
         public async Task TestValueInLabel(TestHost testHost)
         {
@@ -3939,8 +3933,7 @@ public class Goo<T>
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(541150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541150")]
-        [Theory]
+        [Theory, WorkItem(541150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541150")]
         [CombinatorialData]
         public async Task TestGenericVar(TestHost testHost)
         {
@@ -3990,8 +3983,7 @@ class var<T>
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(541154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541154")]
-        [Theory]
+        [Theory, WorkItem(541154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541154")]
         [CombinatorialData]
         public async Task TestInaccessibleVar(TestHost testHost)
         {
@@ -4046,8 +4038,7 @@ class B : A
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(541613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541613")]
-        [Theory]
+        [Theory, WorkItem(541613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541613")]
         [CombinatorialData]
         public async Task TestEscapedVar(TestHost testHost)
         {
@@ -4083,8 +4074,7 @@ class B : A
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(542432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542432")]
-        [Theory]
+        [Theory, WorkItem(542432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542432")]
         [CombinatorialData]
         public async Task TestVar(TestHost testHost)
         {
@@ -4160,8 +4150,7 @@ class B : A
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(543123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543123")]
-        [Theory]
+        [Theory, WorkItem(543123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543123")]
         [CombinatorialData]
         public async Task TestVar2(TestHost testHost)
         {
@@ -5320,8 +5309,7 @@ int F = int.TryParse(""1"", out int x) ? x : -1;
                 Punctuation.Semicolon);
         }
 
-        [WorkItem(33039, "https://github.com/dotnet/roslyn/issues/33039")]
-        [Theory]
+        [Theory, WorkItem(33039, "https://github.com/dotnet/roslyn/issues/33039")]
         [CombinatorialData]
         public async Task ForEachVariableStatement(TestHost testHost)
         {
@@ -6602,6 +6590,56 @@ static T I1.operator checked >>>(T a, T b)
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task ScopedParameter(TestHost testHost)
+        {
+            await TestInMethodAsync(@"interface I { void F(scoped R r); }",
+                testHost,
+                Keyword("interface"),
+                Interface("I"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("F"),
+                Punctuation.OpenParen,
+                Keyword("scoped"),
+                Identifier("R"),
+                Parameter("r"),
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task ScopedLocalDeclaration(TestHost testHost)
+        {
+            await TestInMethodAsync(@"scoped var v;",
+                testHost,
+                Keyword("scoped"),
+                Identifier("var"),
+                Local("v"),
+                Punctuation.Semicolon);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task ScopedOutDeclaration(TestHost testHost)
+        {
+            await TestInMethodAsync(@"F(x, out scoped R y);",
+                testHost,
+                Identifier("F"),
+                Punctuation.OpenParen,
+                Identifier("x"),
+                Punctuation.Comma,
+                Keyword("out"),
+                Keyword("scoped"),
+                Identifier("R"),
+                Local("y"),
+                Punctuation.CloseParen,
+                Punctuation.Semicolon);
         }
     }
 }

@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             if (statement is IConditionalOperation ifStatement)
             {
                 var condition = ifStatement.Condition;
-                condition = UnwrapImplicitConversion(condition);
+                condition = condition.UnwrapImplicitConversion();
 
                 if (condition is IBinaryOperation binaryOperator)
                 {
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private static bool IsNullCheck(IOperation operand1, IOperation operand2, IParameterSymbol parameter)
-            => UnwrapImplicitConversion(operand1).IsNullLiteral() && IsParameterReference(operand2, parameter);
+            => operand1.UnwrapImplicitConversion().IsNullLiteral() && IsParameterReference(operand2, parameter);
 
         private async Task<Document> AddNullCheckAsync(
             Document document,
@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             {
                 nameof(string.IsNullOrEmpty) => new LocalizableResourceString(nameof(FeaturesResources._0_cannot_be_null_or_empty), FeaturesResources.ResourceManager, typeof(FeaturesResources)).ToString(),
                 nameof(string.IsNullOrWhiteSpace) => new LocalizableResourceString(nameof(FeaturesResources._0_cannot_be_null_or_whitespace), FeaturesResources.ResourceManager, typeof(FeaturesResources)).ToString(),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             // The resource string is written to be shown in a UI and is not necessarily valid code, but we're

@@ -202,8 +202,7 @@ $$", "class {$$}");
 }");
         }
 
-        [WpfFact]
-        [WorkItem(57323, "https://github.com/dotnet/roslyn/issues/57323")]
+        [WpfFact, WorkItem(57323, "https://github.com/dotnet/roslyn/issues/57323")]
         public void EmbededStatementFollowedByStatement()
         {
             Test(@"class C
@@ -1179,7 +1178,7 @@ public class Bar
 {
     public int P
     {
-        ge$$t
+        ge$$t$$
     }
 }";
 
@@ -1260,7 +1259,7 @@ public class Bar
 {
     public int this[int i]
     {
-        ge$$t
+        ge$$t$$
     }
 }");
         }
@@ -1380,7 +1379,7 @@ public class Bar
     public int this[int i]
     {
         get;
-        se$$t
+        se$$t$$
     }
 }");
         }
@@ -1435,7 +1434,7 @@ public class Bar
 {
     public event EventHandler e
     {
-        ad$$d
+        ad$$d$$
         remove
     }
 }");
@@ -1494,7 +1493,7 @@ public class Bar
     public event EventHandler e
     {
         add
-        remo$$ve
+        remo$$ve$$
     }
 }");
         }
@@ -3076,7 +3075,7 @@ public class Bar
         catch (System.Exception)
         {
         }
-        fin$$ally
+        fin$$ally$$
         {
         }
     }

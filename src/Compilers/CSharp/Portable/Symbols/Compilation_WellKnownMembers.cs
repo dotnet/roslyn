@@ -145,11 +145,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = this.Assembly.GetTypeByMetadataName(
                         mdName, includeReferences: true, useCLSCompliantNameArityEncoding: true, isWellKnownType: true, conflicts: out conflicts,
                         warnings: legacyWarnings, ignoreCorLibraryDuplicatedTypes: ignoreCorLibraryDuplicatedTypes);
+                    Debug.Assert(result?.IsErrorType() != true);
                 }
 
                 if (result is null)
                 {
-                    // TODO: should GetTypeByMetadataName rather return a missing symbol?
                     MetadataTypeName emittedName = MetadataTypeName.FromFullName(mdName, useCLSCompliantNameArityEncoding: true);
                     if (type.IsValueTupleType())
                     {
@@ -612,6 +612,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         locationOpt,
                         WellKnownType.System_Runtime_CompilerServices_ScopedRefAttribute,
                         WellKnownMember.System_Runtime_CompilerServices_ScopedRefAttribute__ctor);
+
+                case EmbeddableAttributes.RefSafetyRulesAttribute:
+                    return CheckIfAttributeShouldBeEmbedded(
+                        diagnosticsOpt,
+                        locationOpt,
+                        WellKnownType.System_Runtime_CompilerServices_RefSafetyRulesAttribute,
+                        WellKnownMember.System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(attribute);

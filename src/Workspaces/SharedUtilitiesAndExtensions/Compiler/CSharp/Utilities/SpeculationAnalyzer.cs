@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             Debug.Assert(previousOriginalNode == null || previousOriginalNode.Parent == currentOriginalNode);
             Debug.Assert(previousReplacedNode == null || previousReplacedNode.Parent == currentReplacedNode);
 
-            if (currentOriginalNode.IsKind(SyntaxKind.CaseSwitchLabel, SyntaxKind.ConstantPattern))
+            if (currentOriginalNode.Kind() is SyntaxKind.CaseSwitchLabel or SyntaxKind.ConstantPattern)
             {
                 var expression = (ExpressionSyntax)currentReplacedNode.ChildNodes().First();
                 if (expression.WalkDownParentheses().IsKind(SyntaxKind.DefaultLiteralExpression))
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                 return false;
             }
-            else if (currentOriginalNode.IsKind(SyntaxKind.ConditionalExpression, out ConditionalExpressionSyntax originalExpression))
+            else if (currentOriginalNode is ConditionalExpressionSyntax originalExpression)
             {
                 var newExpression = (ConditionalExpressionSyntax)currentReplacedNode;
 
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     }
                 }
             }
-            else if (currentOriginalNode.IsKind(SyntaxKind.CaseSwitchLabel, out CaseSwitchLabelSyntax originalCaseSwitchLabel))
+            else if (currentOriginalNode is CaseSwitchLabelSyntax originalCaseSwitchLabel)
             {
                 var newCaseSwitchLabel = (CaseSwitchLabelSyntax)currentReplacedNode;
 
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 // (since originalCaseType != newCaseType)
                 return originalConversion == newConversion;
             }
-            else if (currentOriginalNode.IsKind(SyntaxKind.SwitchStatement, out SwitchStatementSyntax originalSwitchStatement) &&
+            else if (currentOriginalNode is SwitchStatementSyntax originalSwitchStatement &&
                      originalSwitchStatement.Expression == previousOriginalNode)
             {
                 // Switch statement's expression changed, verify that the conversions from switch case labels to new switch
@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 var previousReplacedExpression = (ExpressionSyntax)previousReplacedNode;
 
                 // it is never legal to use `default/null` in a switch statement's expression.
-                if (previousReplacedExpression.WalkDownParentheses().IsKind(SyntaxKind.NullLiteralExpression, SyntaxKind.DefaultLiteralExpression))
+                if (previousReplacedExpression.WalkDownParentheses().Kind() is SyntaxKind.NullLiteralExpression or SyntaxKind.DefaultLiteralExpression)
                     return true;
 
                 var originalSwitchLabels = originalSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     }
                 }
             }
-            else if (currentOriginalNode.IsKind(SyntaxKind.SwitchExpression, out SwitchExpressionSyntax originalSwitchExpression) &&
+            else if (currentOriginalNode is SwitchExpressionSyntax originalSwitchExpression &&
                      originalSwitchExpression.GoverningExpression == previousOriginalNode)
             {
                 var replacedSwitchExpression = (SwitchExpressionSyntax)currentReplacedNode;
@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 if (!Equals(originalExprType.Type, replacedExprType.Type))
                     return true;
             }
-            else if (currentOriginalNode.IsKind(SyntaxKind.IfStatement, out IfStatementSyntax originalIfStatement))
+            else if (currentOriginalNode is IfStatementSyntax originalIfStatement)
             {
                 var newIfStatement = (IfStatementSyntax)currentReplacedNode;
 
@@ -565,14 +565,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         protected override bool ExpressionMightReferenceMember(SyntaxNode node)
-        {
-            return node.IsKind(
-                SyntaxKind.InvocationExpression,
-                SyntaxKind.ElementAccessExpression,
-                SyntaxKind.SimpleMemberAccessExpression,
-                SyntaxKind.ImplicitElementAccess,
-                SyntaxKind.ObjectCreationExpression);
-        }
+            => node.Kind() is
+                SyntaxKind.InvocationExpression or
+                SyntaxKind.ElementAccessExpression or
+                SyntaxKind.SimpleMemberAccessExpression or
+                SyntaxKind.ImplicitElementAccess or
+                SyntaxKind.ObjectCreationExpression;
 
         protected override ImmutableArray<ArgumentSyntax> GetArguments(ExpressionSyntax expression)
         {

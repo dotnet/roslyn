@@ -102,7 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax,
                 typeBinder,
                 diagnostics,
-                suppressUseSiteDiagnostics);
+                suppressUseSiteDiagnostics,
+                useUpdatedEscapeRules: typeBinder.UseUpdatedEscapeRules);
 
             static CallingConvention getCallingConvention(CSharpCompilation compilation, FunctionPointerCallingConventionSyntax? callingConventionSyntax, ArrayBuilder<CustomModifier> customModifiers, BindingDiagnosticBag diagnostics)
             {
@@ -206,13 +207,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     string typeName = "CallConv" + specifierText;
                     var metadataName = MetadataTypeName.FromNamespaceAndTypeName("System.Runtime.CompilerServices", typeName, useCLSCompliantNameArityEncoding: true, forcedArity: 0);
-                    NamedTypeSymbol specifierType;
-                    specifierType = compilation.Assembly.CorLibrary.LookupTopLevelMetadataType(ref metadataName, digThroughForwardedTypes: false);
+                    NamedTypeSymbol? specifierType;
+                    specifierType = compilation.Assembly.CorLibrary.LookupDeclaredTopLevelMetadataType(ref metadataName);
+                    Debug.Assert(specifierType?.IsErrorType() != true);
+                    Debug.Assert(specifierType is null || ReferenceEquals(specifierType.ContainingAssembly, compilation.Assembly.CorLibrary));
 
-                    if (specifierType is MissingMetadataTypeSymbol)
+                    if (specifierType is null)
                     {
-                        // Replace the existing missing type symbol with one that has a better error message
-                        specifierType = new MissingMetadataTypeSymbol.TopLevel(specifierType.ContainingModule, ref metadataName, new CSDiagnosticInfo(ErrorCode.ERR_TypeNotFound, typeName));
+                        specifierType = new MissingMetadataTypeSymbol.TopLevel(compilation.Assembly.CorLibrary.Modules[0], ref metadataName, new CSDiagnosticInfo(ErrorCode.ERR_TypeNotFound, typeName));
                     }
                     else if (specifierType.DeclaredAccessibility != Accessibility.Public)
                     {
@@ -323,8 +325,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return CSharpCustomModifier.CreateRequired(attributeType);
         }
 
-        public static FunctionPointerMethodSymbol CreateFromMetadata(CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes)
-            => new FunctionPointerMethodSymbol(callingConvention, retAndParamTypes);
+        public static FunctionPointerMethodSymbol CreateFromMetadata(ModuleSymbol containingModule, CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes)
+            => new FunctionPointerMethodSymbol(callingConvention, retAndParamTypes, useUpdatedEscapeRules: containingModule.UseUpdatedEscapeRules);
 
         public FunctionPointerMethodSymbol SubstituteParameterSymbols(
             TypeWithAnnotations substitutedReturnType,
@@ -338,7 +340,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 refCustomModifiers.IsDefault ? this.RefCustomModifiers : refCustomModifiers,
                 this.Parameters,
                 substitutedParameterTypes,
-                paramRefCustomModifiers);
+                paramRefCustomModifiers,
+                this.UseUpdatedEscapeRules);
 
         internal FunctionPointerMethodSymbol MergeEquivalentTypes(FunctionPointerMethodSymbol signature, VarianceKind variance)
         {
@@ -440,7 +443,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<CustomModifier> refCustomModifiers,
             ImmutableArray<ParameterSymbol> originalParameters,
             ImmutableArray<TypeWithAnnotations> substitutedParameterTypes,
-            ImmutableArray<ImmutableArray<CustomModifier>> substitutedRefCustomModifiers)
+            ImmutableArray<ImmutableArray<CustomModifier>> substitutedRefCustomModifiers,
+            bool useUpdatedEscapeRules)
         {
             Debug.Assert(originalParameters.Length == substitutedParameterTypes.Length);
             Debug.Assert(substitutedRefCustomModifiers.IsDefault || originalParameters.Length == substitutedRefCustomModifiers.Length);
@@ -448,6 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CallingConvention = callingConvention;
             RefKind = refKind;
             ReturnTypeWithAnnotations = returnType;
+            UseUpdatedEscapeRules = useUpdatedEscapeRules;
 
             if (originalParameters.Length > 0)
             {
@@ -493,6 +498,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind = refKind;
             CallingConvention = callingConvention;
             ReturnTypeWithAnnotations = returnTypeWithAnnotations;
+            UseUpdatedEscapeRules = compilation.SourceModule.UseUpdatedEscapeRules;
+
             _parameters = parameterTypes.ZipAsArray(parameterRefKinds, (Method: this, Comp: compilation, ParamRefCustomModifiers: parameterRefCustomModifiers),
                 (type, refKind, i, arg) =>
                 {
@@ -513,13 +520,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             FunctionPointerTypeSyntax syntax,
             Binder typeBinder,
             BindingDiagnosticBag diagnostics,
-            bool suppressUseSiteDiagnostics)
+            bool suppressUseSiteDiagnostics,
+            bool useUpdatedEscapeRules)
         {
             RefCustomModifiers = refCustomModifiers;
             CallingConvention = callingConvention;
             RefKind = refKind;
             ReturnTypeWithAnnotations = returnType;
-
+            UseUpdatedEscapeRules = useUpdatedEscapeRules;
             _parameters = syntax.ParameterList.Parameters.Count > 1
                 ? ParameterHelpers.MakeFunctionPointerParameters(
                     typeBinder,
@@ -530,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : ImmutableArray<FunctionPointerParameterSymbol>.Empty;
         }
 
-        private FunctionPointerMethodSymbol(CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes)
+        private FunctionPointerMethodSymbol(CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes, bool useUpdatedEscapeRules)
         {
             Debug.Assert(retAndParamTypes.Length > 0);
 
@@ -542,6 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ReturnTypeWithAnnotations = returnType;
             RefKind = getRefKind(retInfo, RefCustomModifiers, RefKind.RefReadOnly, RefKind.Ref);
             Debug.Assert(RefKind != RefKind.Out);
+            UseUpdatedEscapeRules = useUpdatedEscapeRules;
             _parameters = makeParametersFromMetadata(retAndParamTypes.AsSpan()[1..], this);
 
             static ImmutableArray<FunctionPointerParameterSymbol> makeParametersFromMetadata(ReadOnlySpan<ParamInfo<TypeSymbol>> parameterTypes, FunctionPointerMethodSymbol parent)
@@ -749,6 +758,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => Hash.Combine(ReturnType, Hash.Combine(CallingConvention.GetHashCode(), FunctionPointerTypeSymbol.GetRefKindForHashCode(RefKind).GetHashCode()));
 
         internal override CallingConvention CallingConvention { get; }
+        internal override bool UseUpdatedEscapeRules { get; }
+
         public override bool ReturnsVoid => ReturnTypeWithAnnotations.IsVoidType();
         public override RefKind RefKind { get; }
         public override TypeWithAnnotations ReturnTypeWithAnnotations { get; }
@@ -822,15 +833,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => false;
         internal sealed override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
 
-        internal override bool GenerateDebugInfo => throw ExceptionUtilities.Unreachable;
-        internal override ObsoleteAttributeData? ObsoleteAttributeData => throw ExceptionUtilities.Unreachable;
+        internal override bool GenerateDebugInfo => throw ExceptionUtilities.Unreachable();
+        internal override ObsoleteAttributeData? ObsoleteAttributeData => throw ExceptionUtilities.Unreachable();
 
-        public override bool AreLocalsZeroed => throw ExceptionUtilities.Unreachable;
-        public override DllImportData GetDllImportData() => throw ExceptionUtilities.Unreachable;
-        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) => throw ExceptionUtilities.Unreachable;
-        internal override IEnumerable<SecurityAttribute> GetSecurityInformation() => throw ExceptionUtilities.Unreachable;
-        internal sealed override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
-        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
+        public override bool AreLocalsZeroed => throw ExceptionUtilities.Unreachable();
+        public override DllImportData GetDllImportData() => throw ExceptionUtilities.Unreachable();
+        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) => throw ExceptionUtilities.Unreachable();
+        internal override IEnumerable<SecurityAttribute> GetSecurityInformation() => throw ExceptionUtilities.Unreachable();
+        internal sealed override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable();
+        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
         internal sealed override bool HasUnscopedRefAttribute => false;
     }
 }

@@ -2,26 +2,25 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.CSharp.ImplementInterface
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ImplementInterface
-
+    <Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
     Public Class ImplementInterfaceCrossLanguageTests
         Inherits AbstractCrossLanguageUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As (DiagnosticAnalyzer, CodeFixProvider)
             If language = LanguageNames.CSharp Then
-                Throw New NotSupportedException("Please add C# Implement interface tests to CSharpEditorTestTests.csproj. These tests require DiagnosticAnalyzer based test base and are NYI for AbstractCrossLanguageUserDiagnosticTest test base.")
+                Return (Nothing, New CSharpImplementInterfaceCodeFixProvider())
             Else
                 Return (Nothing, New VisualBasicImplementInterfaceCodeFixProvider())
             End If
         End Function
 
-        <WorkItem(545692, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545692")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <Fact, WorkItem(545692, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545692")>
         Public Async Function Test_EnumsWithConflictingNames1() As Task
             Dim input =
                 <Workspace>
@@ -62,8 +61,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(545743, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545743")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <Fact, WorkItem(545743, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545743")>
         Public Async Function Test_EnumsWithConflictingNames2() As Task
             Dim input =
                 <Workspace>
@@ -104,8 +102,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(545788, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545788"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <Fact, WorkItem(545788, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545788"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function Test_EnumsWithConflictingNames3() As Task
             Dim input =
                 <Workspace>
@@ -151,8 +148,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(545699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545699")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <Fact, WorkItem(545699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545699")>
         Public Async Function Test_OptionalWithNoDefaultValue() As Task
             Dim input =
                 <Workspace>
@@ -190,8 +186,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(545820, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545820")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <Fact, WorkItem(545820, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545820")>
         Public Async Function Test_IndexerWithNoRequiredParameters() As Task
             Dim input =
                 <Workspace>
@@ -229,8 +224,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(545868, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545868")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <Fact, WorkItem(545868, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545868")>
         Public Async Function Test_ConflictingParameterNames1() As Task
             Dim input =
                 <Workspace>
@@ -266,8 +260,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(545868, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545868")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <Fact, WorkItem(545868, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545868")>
         Public Async Function Test_ConflictingParameterNames2() As Task
             Dim input =
                 <Workspace>
@@ -300,6 +293,46 @@ Class C
         End Get
     End Property
 End Class
+                </text>.Value.Trim()
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact, WorkItem(39434, "https://github.com/dotnet/roslyn/issues/39434")>
+        Public Async Function Test_ParameterizedProperty() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language='Visual Basic' AssemblyName='VBAssembly1' CommonReferences='true'>
+                        <Document>
+Public Interface I
+    Property Goo(x As Integer) As String
+End Interface
+                        </Document>
+                    </Project>
+                    <Project Language='C#' AssemblyName='CSharpAssembly1' CommonReferences='true'>
+                        <ProjectReference>VBAssembly1</ProjectReference>
+                        <Document FilePath='Test1.cs'>
+public class C : $$I
+{
+}
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+public class C : I
+{
+    public string get_Goo(int x)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public void set_Goo(int x, string Value)
+    {
+        throw new System.NotImplementedException();
+    }
+}
                 </text>.Value.Trim()
 
             Await TestAsync(input, expected)

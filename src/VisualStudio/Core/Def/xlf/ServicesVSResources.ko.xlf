@@ -359,37 +359,37 @@
       </trans-unit>
       <trans-unit id="Document_Outline">
         <source>Document Outline</source>
-        <target state="new">Document Outline</target>
+        <target state="translated">문서 개요</target>
         <note />
       </trans-unit>
       <trans-unit id="Document_Outline_Collapse_All">
         <source>Collapse All</source>
-        <target state="new">Collapse All</target>
+        <target state="translated">모두 축소</target>
         <note />
       </trans-unit>
       <trans-unit id="Document_Outline_Expand_All">
         <source>Expand All</source>
-        <target state="new">Expand All</target>
+        <target state="translated">모두 확장</target>
         <note />
       </trans-unit>
       <trans-unit id="Document_Outline_Search">
         <source>Search Document Outline</source>
-        <target state="new">Search Document Outline</target>
+        <target state="translated">문서 개요 검색</target>
         <note />
       </trans-unit>
       <trans-unit id="Document_Outline_Sort_Name">
         <source>Sort By Name</source>
-        <target state="new">Sort By Name</target>
+        <target state="translated">이름순 정렬</target>
         <note />
       </trans-unit>
       <trans-unit id="Document_Outline_Sort_Order">
         <source>Sort By Order</source>
-        <target state="new">Sort By Order</target>
+        <target state="translated">정렬 기준 순서</target>
         <note />
       </trans-unit>
       <trans-unit id="Document_Outline_Sort_Type">
         <source>Sort By Type</source>
-        <target state="new">Sort By Type</target>
+        <target state="translated">형식순 정렬</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit">
@@ -434,7 +434,7 @@
       </trans-unit>
       <trans-unit id="Enable_navigation_to_sourcelink_and_embedded_sources">
         <source>Enable navigation to Source Link and Embedded sources</source>
-        <target state="new">Enable navigation to Source Link and Embedded sources</target>
+        <target state="translated">Source Link 및 포함된 소스 탐색 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
@@ -499,7 +499,7 @@
       </trans-unit>
       <trans-unit id="Extract_Base_Record">
         <source>Extract Base Record</source>
-        <target state="new">Extract Base Record</target>
+        <target state="translated">기본 Record 추출</target>
         <note>{Locked="Record"} "Record" is a language construct for C# and should not be localized</note>
       </trans-unit>
       <trans-unit id="Finish">
@@ -1093,8 +1093,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Paste_valid_stack_trace">
-        <source>Paste a stack trace to view and navigate its values.</source>
-        <target state="translated">스택 추적을 붙여넣어 해당 값을 보고 탐색합니다.</target>
+        <source>Paste a stack trace to view and navigate it's values.</source>
+        <target state="translated">값을 보고 탐색하려면 스택 추적을 붙여넣습니다.</target>
         <note>"Stack Trace" is a language term and should be kept the same. </note>
       </trans-unit>
       <trans-unit id="Paused_0_tasks_in_queue">
@@ -1140,6 +1140,11 @@
       <trans-unit id="Prefer_range_operator">
         <source>Prefer range operator</source>
         <target state="translated">범위 연산자 선호</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_read_only_struct">
+        <source>Prefer read-only struct</source>
+        <target state="translated">읽기 전용 구조체 선호</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
@@ -1234,7 +1239,7 @@
       </trans-unit>
       <trans-unit id="Rename_asynchronously_experimental">
         <source>Rename asynchronously (experimental)</source>
-        <target state="needs-review-translation">비동기식으로 이름 바꾸기 실험</target>
+        <target state="translated">비동기적으로 이름 바꾸기(실험적)</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
@@ -1369,12 +1374,12 @@
       </trans-unit>
       <trans-unit id="Show_UI_as_dashboard_in_top_right">
         <source>Show UI as a dashboard in top right</source>
-        <target state="new">Show UI as a dashboard in top right</target>
+        <target state="translated">오른쪽 위에 대시보드로 UI 표시</target>
         <note>"UI" is an acronym for "User Interface"</note>
       </trans-unit>
       <trans-unit id="Show_UI_inline">
         <source>Show UI Inline</source>
-        <target state="new">Show UI Inline</target>
+        <target state="translated">UI 인라인 표시</target>
         <note>"UI" is an acronym for "User Interface"</note>
       </trans-unit>
       <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
@@ -1664,7 +1669,7 @@
       </trans-unit>
       <trans-unit id="Where_should_the_rename_UI_be_shown">
         <source>Where should the rename UI be shown?</source>
-        <target state="new">Where should the rename UI be shown?</target>
+        <target state="translated">이름 바꾸기 UI는 어디에 표시되어야 하나요?</target>
         <note>"UI" is an acronym for "User Interface"</note>
       </trans-unit>
       <trans-unit id="Whitespace">

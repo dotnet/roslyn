@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private readonly Registration _registration;
                 private readonly IAsynchronousOperationListener _listener;
                 private readonly IDocumentTrackingService _documentTracker;
-                private readonly IProjectCacheService? _cacheService;
 
                 private readonly HighPriorityProcessor _highPriorityProcessor;
                 private readonly NormalPriorityProcessor _normalPriorityProcessor;
@@ -60,7 +59,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     _listener = listener;
                     _registration = registration;
-                    _cacheService = registration.Workspace.Services.GetService<IProjectCacheService>();
 
                     _lazyDiagnosticAnalyzerService = new Lazy<IDiagnosticAnalyzerService?>(() => GetDiagnosticAnalyzerService(analyzerProviders));
 
@@ -147,9 +145,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
-                private IDisposable EnableCaching(ProjectId projectId)
-                    => _cacheService?.EnableCaching(projectId) ?? NullDisposable.Instance;
-
                 private IEnumerable<DocumentId> GetOpenDocumentIds()
                     => _registration.Workspace.GetOpenDocumentIds();
 
@@ -225,7 +220,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                         {
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
                         }
                     }
                 }
@@ -297,7 +292,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                     catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                     {
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
                 }
 
@@ -319,7 +314,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     catch (Exception e) when (FatalError.ReportAndPropagate(e))
                     {
                         // TODO: manage bad workers like what code actions does now
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
 
                     static bool ReportWithoutCrashUnlessAllCanceledAndPropagate(AggregateException aggregate)
@@ -386,13 +381,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _incrementalAnalyzerProcessor._normalPriorityProcessor.GetTestAccessor().WaitUntilCompletion();
                         _incrementalAnalyzerProcessor._lowPriorityProcessor.GetTestAccessor().WaitUntilCompletion();
                     }
-                }
-
-                private class NullDisposable : IDisposable
-                {
-                    public static readonly IDisposable Instance = new NullDisposable();
-
-                    public void Dispose() { }
                 }
 
                 private class AnalyzersGetter

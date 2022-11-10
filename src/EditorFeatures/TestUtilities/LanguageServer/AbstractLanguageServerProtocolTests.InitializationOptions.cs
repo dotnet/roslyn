@@ -11,7 +11,7 @@ namespace Roslyn.Test.Utilities
 {
     public abstract partial class AbstractLanguageServerProtocolTests
     {
-        internal record struct InitializationOptions()
+        internal readonly record struct InitializationOptions()
         {
             internal string[] SourceGeneratedMarkups { get; init; } = Array.Empty<string>();
             internal LSP.ClientCapabilities ClientCapabilities { get; init; } = new LSP.ClientCapabilities();

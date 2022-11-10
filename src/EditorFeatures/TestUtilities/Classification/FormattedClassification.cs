@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             {
                 if (ClassificationName.StartsWith(kvp.Key))
                 {
-                    var remainder = ClassificationName.Substring(kvp.Key.Length);
+                    var remainder = ClassificationName[kvp.Key.Length..];
                     var parts = remainder.Split(' ');
                     var type = string.Join("", parts.Select(Capitalize));
                     return kvp.Value + $"{type}(\"{Text}\")";
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                     {
                         "operator" => "Operators",
                         "operator - overloaded" => "OverloadedOperators",
-                        _ => throw ExceptionUtilities.Unreachable,
+                        _ => throw ExceptionUtilities.Unreachable(),
                     };
 
                     switch (Text)
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                     var trimmedClassification = ClassificationName;
                     if (trimmedClassification.EndsWith(" name"))
                     {
-                        trimmedClassification = trimmedClassification.Substring(0, trimmedClassification.Length - " name".Length);
+                        trimmedClassification = trimmedClassification[..^" name".Length];
                     }
 
                     return $"{string.Join("", trimmedClassification.Split(' ').Select(Capitalize))}(\"{Text}\")";
@@ -215,6 +215,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
         }
 
         private static string Capitalize(string val)
-            => char.ToUpperInvariant(val[0]) + val.Substring(1);
+            => char.ToUpperInvariant(val[0]) + val[1..];
     }
 }

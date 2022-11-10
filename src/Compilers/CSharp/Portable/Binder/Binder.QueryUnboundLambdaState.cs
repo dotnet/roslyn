@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override bool IsAsync { get { return false; } }
             public override bool IsStatic => false;
             public override RefKind RefKind(int index) { return Microsoft.CodeAnalysis.RefKind.None; }
-            public override DeclarationScope Scope(int index) => DeclarationScope.Unscoped;
+            public override DeclarationScope DeclaredScope(int index) => DeclarationScope.Unscoped;
             public override MessageID MessageID { get { return MessageID.IDS_FeatureQueryExpression; } } // TODO: what is the correct ID here?
             public override Location ParameterLocation(int index) { return _parameters[index].Locations[0]; }
             public override TypeWithAnnotations ParameterTypeWithAnnotations(int index) { throw new ArgumentException(); } // implicitly typed
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override BoundBlock CreateBlockFromLambdaExpressionBody(Binder lambdaBodyBinder, BoundExpression expression, BindingDiagnosticBag diagnostics)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics)

@@ -1908,233 +1908,7 @@ namespace System.Runtime.InteropServices
 "
 
         <Fact>
-        <WorkItem(35852, "https://github.com/dotnet/roslyn/issues/35852")>
-        Public Sub NoPia_01()
-            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
-
-            Dim csSource =
-"
-using System;
-using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
-
-[assembly: PrimaryInteropAssemblyAttribute(1,1)]
-[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
-
-[ComImport()]
-[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
-public interface ITest33
-{
-    void M1(){}
-}
-"
-
-            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
-
-            Dim source1 =
-<compilation>
-    <file name="c.vb"><![CDATA[
-class UsePia7 
-    Implements ITest33
-    Sub M1() Implements ITest33.M1
-    End Sub
-End Class
-]]></file>
-</compilation>
-
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={attributesRef, csCompilation})
-            comp1.AssertTheseEmitDiagnostics(
-<expected>
-BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-    Implements ITest33
-               ~~~~~~~
-BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-    Sub M1() Implements ITest33.M1
-                        ~~~~~~~
-</expected>)
-        End Sub
-
-        <Fact>
-        <WorkItem(35852, "https://github.com/dotnet/roslyn/issues/35852")>
-        Public Sub NoPia_02()
-            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
-
-            Dim csSource =
-"
-using System;
-using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
-
-[assembly: PrimaryInteropAssemblyAttribute(1,1)]
-[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
-
-[ComImport()]
-[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
-public interface ITest33
-{
-    void M1(){}
-}
-"
-
-            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
-
-            Dim source1 =
-<compilation>
-    <file name="c.vb"><![CDATA[
-class UsePia 
-    Sub Main(x as ITest33)
-        x.M1()
-    End Sub
-End Class
-]]></file>
-</compilation>
-
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={attributesRef, csCompilation})
-            comp1.AssertTheseEmitDiagnostics(
-<expected>
-BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-    Sub Main(x as ITest33)
-                  ~~~~~~~
-</expected>)
-        End Sub
-
-        <Fact>
-        <WorkItem(35852, "https://github.com/dotnet/roslyn/issues/35852")>
-        Public Sub NoPia_03()
-            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
-
-            Dim csSource =
-"
-using System;
-using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
-
-[assembly: PrimaryInteropAssemblyAttribute(1,1)]
-[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
-
-[ComImport()]
-[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
-public interface ITest33
-{
-    void M1(){}
-    void M2();
-}
-"
-
-            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
-
-            Dim source1 =
-<compilation>
-    <file name="c.vb"><![CDATA[
-class UsePia 
-    Sub Main(x as ITest33)
-        x.M2()
-    End Sub
-End Class
-]]></file>
-</compilation>
-
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={attributesRef, csCompilation})
-            comp1.AssertTheseEmitDiagnostics(
-<expected>
-BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-    Sub Main(x as ITest33)
-                  ~~~~~~~
-</expected>)
-        End Sub
-
-        <Fact>
-        <WorkItem(35852, "https://github.com/dotnet/roslyn/issues/35852")>
-        Public Sub NoPia_04()
-            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
-
-            Dim csSource =
-"
-using System;
-using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
-
-[assembly: PrimaryInteropAssemblyAttribute(1,1)]
-[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
-
-[ComImport()]
-[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
-public interface ITest33
-{
-    sealed void M1(){}
-}
-"
-
-            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
-
-            Dim source1 =
-<compilation>
-    <file name="c.vb"><![CDATA[
-class UsePia 
-    Sub Main(x as ITest33)
-        x.M1()
-    End Sub
-End Class
-]]></file>
-</compilation>
-
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={attributesRef, csCompilation})
-            comp1.AssertTheseEmitDiagnostics(
-<expected>
-BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-    Sub Main(x as ITest33)
-                  ~~~~~~~
-</expected>)
-        End Sub
-
-        <Fact>
-        <WorkItem(35852, "https://github.com/dotnet/roslyn/issues/35852")>
-        Public Sub NoPia_05()
-            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
-
-            Dim csSource =
-"
-using System;
-using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
-
-[assembly: PrimaryInteropAssemblyAttribute(1,1)]
-[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
-
-[ComImport()]
-[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
-public interface ITest33
-{
-    static void M1(){}
-}
-"
-
-            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
-
-            Dim source1 =
-<compilation>
-    <file name="c.vb"><![CDATA[
-class UsePia 
-    Sub Main()
-        ITest33.M1()
-    End Sub
-End Class
-]]></file>
-</compilation>
-
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={attributesRef, csCompilation})
-            comp1.AssertTheseEmitDiagnostics(
-<expected>
-BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-        ITest33.M1()
-        ~~~~~~~~~~~~
-</expected>)
-        End Sub
-
-        <Fact>
         Public Sub NoPia_06()
-            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
-
             Dim csSource =
 "
 using System;
@@ -2156,7 +1930,7 @@ public interface ITest33
 }
 "
 
-            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
+            Dim csCompilation = GetCSharpCompilation(csSource, targetFramework:=TargetFramework.Net50).EmitToImageReference(embedInteropTypes:=True)
 
             Dim source1 =
 <compilation>
@@ -2168,7 +1942,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={attributesRef, csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseEmitDiagnostics(
 <error>
 BC31558: Nested type 'ITest33.I1' cannot be embedded.
@@ -2180,8 +1954,6 @@ BC31558: Nested type 'ITest33.I1' cannot be embedded.
         <Fact>
         <WorkItem(35852, "https://github.com/dotnet/roslyn/issues/35852")>
         Public Sub NoPia_07()
-            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
-
             Dim csSource =
 "
 using System;
@@ -2199,7 +1971,7 @@ public interface ITest33
 }
 "
 
-            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
+            Dim csCompilation = GetCSharpCompilation(csSource, targetFramework:=TargetFramework.Net50).EmitToImageReference(embedInteropTypes:=True)
 
             Dim source1 =
 <compilation>
@@ -2212,7 +1984,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={attributesRef, csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseEmitDiagnostics(
 <error>
 BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
@@ -2223,61 +1995,8 @@ BC37307: Type 'ITest33' cannot be embedded because it has a non-abstract member.
         End Sub
 
         <Fact>
-        <WorkItem(35852, "https://github.com/dotnet/roslyn/issues/35852")>
-        Public Sub NoPia_08()
-            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
-
-            Dim csSource =
-"
-using System;
-using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
-
-[assembly: PrimaryInteropAssemblyAttribute(1,1)]
-[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
-
-[ComImport()]
-[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
-public interface ITest33
-{
-    void M1();
-}
-
-[ComImport()]
-[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58280"")]
-public interface ITest44 : ITest33
-{
-    void ITest33.M1(){}
-}
-"
-
-            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
-
-            Dim source1 =
-<compilation>
-    <file name="c.vb"><![CDATA[
-class UsePia 
-    Sub Main(x as ITest44)
-        x.M1()
-    End Sub
-End Class
-]]></file>
-</compilation>
-
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={attributesRef, csCompilation})
-            comp1.AssertTheseEmitDiagnostics(
-<expected>
-BC37307: Type 'ITest44' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
-    Sub Main(x as ITest44)
-                  ~~~~~~~
-</expected>)
-        End Sub
-
-        <Fact>
         <WorkItem(35911, "https://github.com/dotnet/roslyn/issues/35911")>
         Public Sub NoPia_10()
-            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
-
             Dim csSource =
 "
 using System;
@@ -2302,7 +2021,7 @@ public interface ITest44 : ITest33
 }
 "
 
-            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
+            Dim csCompilation = GetCSharpCompilation(csSource, targetFramework:=TargetFramework.Net50).EmitToImageReference(embedInteropTypes:=True)
 
             Dim source1 =
 <compilation>
@@ -2315,104 +2034,13 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={attributesRef, csCompilation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             comp1.AssertTheseEmitDiagnostics(
 <expected>
 BC37308: Type 'ITest44' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.
     Sub Main(x as ITest44)
                   ~~~~~~~
 </expected>)
-        End Sub
-
-        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NoPiaNeedsDesktop)>
-        Public Sub NoPia_09()
-            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
-
-            Dim pia =
-"
-using System;
-using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
-
-[assembly: PrimaryInteropAssemblyAttribute(1,1)]
-[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
-
-[ComImport()]
-[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
-public interface ITest33
-{
-    void M1();
-
-    public interface ITest55
-    {
-        void M2();
-    }
-}
-
-[ComImport()]
-[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58280"")]
-public interface ITest44 : ITest33
-{
-    void ITest33.M1(){}
-}
-"
-
-            Dim piaReference = GetCSharpCompilation(pia, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
-
-            Dim consumer1 =
-<compilation>
-    <file name="c.vb"><![CDATA[
-Public class UsePia 
-    Public Shared Sub Test(x as ITest33)
-        x.M1()
-    End Sub
-End Class
-]]></file>
-</compilation>
-
-            Dim consumer2 =
-<compilation>
-    <file name="c.vb"><![CDATA[
-class Test 
-    Implements ITest33
-
-    public shared Sub Main()
-        UsePia.Test(new Test())
-    End Sub
-
-    Sub M1() Implements ITest33.M1
-        System.Console.WriteLine("Test.M1")
-    End Sub
-End Class
-]]></file>
-</compilation>
-
-
-            Dim pia2 As String =
-"
-using System;
-using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
-
-[assembly: PrimaryInteropAssemblyAttribute(1,1)]
-[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
-
-[ComImport()]
-[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
-public interface ITest33
-{
-    void M1();
-}
-"
-
-            Dim pia2Reference = GetCSharpCompilation(pia2, {attributesRef}).EmitToImageReference()
-
-            Dim compilation1 = CreateCompilation(consumer1, options:=TestOptions.ReleaseDll, references:={piaReference})
-
-            For Each reference2 In {compilation1.ToMetadataReference(), compilation1.EmitToImageReference()}
-                Dim compilation2 = CreateCompilation(consumer2, options:=TestOptions.ReleaseExe, references:={reference2, pia2Reference})
-                CompileAndVerify(compilation2, expectedOutput:="Test.M1", verify:=Verification.FailsILVerify)
-            Next
         End Sub
 
         <Fact>

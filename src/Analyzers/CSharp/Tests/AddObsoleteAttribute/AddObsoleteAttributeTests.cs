@@ -13,9 +13,10 @@ using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeF
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddObsoleteAttribute
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
     public class AddObsoleteAttributeTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
+        [Fact]
         public async Task TestObsoleteClassNoMessage()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -36,7 +37,7 @@ class Derived : Base {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
+        [Fact]
         public async Task TestObsoleteClassWithMessage()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -57,7 +58,7 @@ class Derived : Base {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
+        [Fact]
         public async Task TestObsoleteClassWithMessageAndErrorFalse()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -78,7 +79,7 @@ class Derived : Base {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
+        [Fact]
         public async Task TestObsoleteClassWithMessageAndErrorTrue()
         {
             var code = @"
@@ -91,7 +92,7 @@ class Derived : {|CS0619:Base|} {
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
+        [Fact]
         public async Task TestObsoleteClassUsedInField()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -114,7 +115,7 @@ class Derived {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
+        [Fact]
         public async Task TestObsoleteClassUsedInMethod()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -141,7 +142,7 @@ class Derived {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
+        [Fact]
         public async Task TestObsoleteOverride()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -168,7 +169,7 @@ class Derived : Base {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
+        [Fact]
         public async Task TestObsoleteClassFixAll1()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -197,7 +198,7 @@ class Derived {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
+        [Fact]
         public async Task TestObsoleteClassFixAll2()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -226,7 +227,7 @@ class Derived {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
+        [Fact]
         public async Task TestObsoleteClassFixAll3()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -262,7 +263,7 @@ class Derived {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
+        [Fact]
         public async Task TestObsoleteCollectionAddMethod()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -303,7 +304,7 @@ class Derived {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
+        [Fact]
         public async Task TestObsoleteCollectionAddMethodWithMessage()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -344,7 +345,7 @@ class Derived {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
+        [Fact]
         public async Task TestObsoleteCollectionAddMethodWithMessageAndErrorFalse()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -385,7 +386,7 @@ class Derived {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
+        [Fact]
         public async Task TestObsoleteCollectionAddMethodWithMessageAndErrorTrue()
         {
             var code = @"

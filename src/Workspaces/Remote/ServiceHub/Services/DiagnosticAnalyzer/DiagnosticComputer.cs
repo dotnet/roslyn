@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -24,15 +25,18 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
     {
         /// <summary>
         /// Cache of <see cref="CompilationWithAnalyzers"/> and a map from analyzer IDs to <see cref="DiagnosticAnalyzer"/>s
-        /// for all analyzers for each project.
+        /// for all analyzers for the last project to be analyzed.
         /// The <see cref="CompilationWithAnalyzers"/> instance is shared between all the following document analyses modes for the project:
         ///  1. Span-based analysis for active document (lightbulb)
         ///  2. Background analysis for active and open documents.
         ///  
-        /// NOTE: We do not re-use this cache for project analysis as it leads to significant memory increase in the OOP process,
-        /// and CWT does not seem to drop entries until ForceGC happens.
+        /// NOTE: We do not re-use this cache for project analysis as it leads to significant memory increase in the OOP process.
+        /// Additionally, we only store the cache entry for the last project to be analyzed instead of maintaining a CWT keyed off
+        /// each project in the solution, as the CWT does not seem to drop entries until ForceGC happens, leading to significant memory
+        /// pressure when there are large number of open documents across different projects to be analyzed by background analysis.
         /// </summary>
-        private static readonly ConditionalWeakTable<Project, CompilationWithAnalyzersCacheEntry> s_compilationWithAnalyzersCache = new();
+        private static readonly WeakReference<CompilationWithAnalyzersCacheEntry?> s_compilationWithAnalyzersCache = new(null);
+        private static readonly object s_gate = new();
 
         private readonly TextDocument? _document;
         private readonly Project _project;
@@ -81,8 +85,6 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 compilationWithAnalyzers = compilationWithAnalyzers.Compilation.WithAnalyzers(analyzers, compilationWithAnalyzers.AnalysisOptions);
             }
 
-            var cacheService = _project.Solution.Services.GetRequiredService<IProjectCacheService>();
-            using var cache = cacheService.EnableCaching(_project.Id);
             var skippedAnalyzersInfo = _project.GetSkippedAnalyzersInfo(_analyzerInfoCache);
 
             try
@@ -93,7 +95,15 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             catch
             {
                 // Do not re-use cached CompilationWithAnalyzers instance in presence of an exception, as the underlying analysis state might be corrupt.
-                s_compilationWithAnalyzersCache.Remove(_project);
+                lock (s_gate)
+                {
+                    if (s_compilationWithAnalyzersCache.TryGetTarget(out var target) &&
+                        target?.Project == _project)
+                    {
+                        s_compilationWithAnalyzersCache.SetTarget(null);
+                    }
+                }
+
                 throw;
             }
         }
@@ -224,13 +234,23 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                     return await CreateCompilationWithAnalyzersCacheEntryAsync(cancellationToken).ConfigureAwait(false);
                 }
 
-                if (s_compilationWithAnalyzersCache.TryGetValue(_project, out var data))
+                lock (s_gate)
                 {
-                    return data;
+                    if (s_compilationWithAnalyzersCache.TryGetTarget(out var target) &&
+                        target?.Project == _project)
+                    {
+                        return target;
+                    }
                 }
 
-                data = await CreateCompilationWithAnalyzersCacheEntryAsync(cancellationToken).ConfigureAwait(false);
-                return s_compilationWithAnalyzersCache.GetValue(_project, _ => data);
+                var entry = await CreateCompilationWithAnalyzersCacheEntryAsync(cancellationToken).ConfigureAwait(false);
+
+                lock (s_gate)
+                {
+                    s_compilationWithAnalyzersCache.SetTarget(entry);
+                }
+
+                return entry;
             }
         }
 
@@ -259,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             var compilationWithAnalyzers = await CreateCompilationWithAnalyzerAsync(analyzerBuilder.ToImmutable(), cancellationToken).ConfigureAwait(false);
             var analyzerToIdMap = new BidirectionalMap<string, DiagnosticAnalyzer>(analyzerMapBuilder);
 
-            return new CompilationWithAnalyzersCacheEntry(compilationWithAnalyzers, analyzerToIdMap);
+            return new CompilationWithAnalyzersCacheEntry(_project, compilationWithAnalyzers, analyzerToIdMap);
         }
 
         private async Task<CompilationWithAnalyzers> CreateCompilationWithAnalyzerAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
@@ -280,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             // TODO: can we support analyzerExceptionFilter in remote host? 
             //       right now, host doesn't support watson, we might try to use new NonFatal watson API?
             var analyzerOptions = new CompilationWithAnalyzersOptions(
-                options: new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, _project.Solution, _ideOptions),
+                options: new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, _ideOptions),
                 onAnalyzerException: null,
                 analyzerExceptionFilter: null,
                 concurrentAnalysis: concurrentAnalysis,
@@ -292,11 +312,13 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         private sealed class CompilationWithAnalyzersCacheEntry
         {
+            public Project Project { get; }
             public CompilationWithAnalyzers CompilationWithAnalyzers { get; }
             public BidirectionalMap<string, DiagnosticAnalyzer> AnalyzerToIdMap { get; }
 
-            public CompilationWithAnalyzersCacheEntry(CompilationWithAnalyzers compilationWithAnalyzers, BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)
+            public CompilationWithAnalyzersCacheEntry(Project project, CompilationWithAnalyzers compilationWithAnalyzers, BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)
             {
+                Project = project;
                 CompilationWithAnalyzers = compilationWithAnalyzers;
                 AnalyzerToIdMap = analyzerToIdMap;
             }

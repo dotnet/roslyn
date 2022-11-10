@@ -7,11 +7,17 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
+using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Basic.Reference.Assemblies;
 using static TestReferences;
 using static Roslyn.Test.Utilities.TestMetadata;
-using Basic.Reference.Assemblies;
+using Microsoft.CodeAnalysis.CodeGen;
+using System.Reflection;
+using System.Collections.Concurrent;
 
 namespace Roslyn.Test.Utilities
 {
@@ -22,11 +28,23 @@ namespace Roslyn.Test.Utilities
         /// </summary>
         Empty,
 
-        // These are the preferred values that we should be targeting 
         NetStandard20,
+
+        /// <summary>
+        /// The latest .NET Core target framework
+        /// </summary>
         NetCoreApp,
+
+        /// <summary>
+        /// The latest .NET Framework
+        /// </summary>
         NetFramework,
-        StandardLatest,
+
+        /// <summary>
+        /// This will be <see cref="NetCoreApp" /> when running on .NET Core and <see cref="NetFramework"/>
+        /// when running on .NET Framework.
+        /// </summary>
+        NetLatest,
 
         // Eventually these will be deleted and replaced with NetStandard20. Short term this creates the "standard"
         // API set across desktop and coreclr. It's also helpful because there are no null annotations hence error
@@ -39,12 +57,6 @@ namespace Roslyn.Test.Utilities
         /// Compat framework for the default set of references many vb compilations get.
         /// </summary>
         DefaultVb,
-
-        /// <summary>
-        /// This will eventually be folded into NetCoreApp. The default experience for compiling .NET Core code 
-        /// includes the Microsoft.CSharp reference hence it should be the default for our tests
-        /// </summary>
-        NetCoreAppAndCSharp,
 
         /// <summary>
         /// Used for building tests against WinRT scenarios
@@ -78,6 +90,7 @@ namespace Roslyn.Test.Utilities
 
         Net50,
         Net60,
+        Net70
     }
 
     /// <summary>
@@ -87,35 +100,12 @@ namespace Roslyn.Test.Utilities
     /// </summary>
     public static class NetCoreApp
     {
-        public static ImmutableArray<Net50.ReferenceInfo> AllReferenceInfos { get; } = ImmutableArray.CreateRange(Net50.References.All);
-        public static ImmutableArray<MetadataReference> References { get; } = ImmutableArray.CreateRange<MetadataReference>(Net50.All);
+        public static ImmutableArray<Net70.ReferenceInfo> AllReferenceInfos { get; } = ImmutableArray.CreateRange(Net70.References.All);
+        public static ImmutableArray<MetadataReference> References { get; } = ImmutableArray.CreateRange<MetadataReference>(Net70.All);
 
-        /// <summary>
-        /// A subset of <see cref="References"/> that can compile 99% of our test code.
-        /// </summary>
-        public static ImmutableArray<MetadataReference> StandardReferences { get; } = ImmutableArray.Create<MetadataReference>(
-            Net50.netstandard,
-            Net50.mscorlib,
-            Net50.SystemRuntime,
-            Net50.SystemCore,
-            Net50.SystemConsole,
-            Net50.SystemLinq,
-            Net50.SystemLinqExpressions,
-            Net50.SystemThreadingTasks,
-            Net50.SystemCollections);
-
-        public static PortableExecutableReference netstandard { get; } = Net50.netstandard;
-        public static PortableExecutableReference mscorlib { get; } = Net50.mscorlib;
-        public static PortableExecutableReference SystemRuntime { get; } = Net50.SystemRuntime;
-        public static PortableExecutableReference SystemCore { get; } = Net50.SystemCore;
-        public static PortableExecutableReference SystemConsole { get; } = Net50.SystemConsole;
-        public static PortableExecutableReference SystemLinq { get; } = Net50.SystemLinq;
-        public static PortableExecutableReference SystemLinqExpressions { get; } = Net50.SystemLinqExpressions;
-        public static PortableExecutableReference SystemThreadingTasks { get; } = Net50.SystemThreadingTasks;
-        public static PortableExecutableReference SystemCollections { get; } = Net50.SystemCollections;
-        public static PortableExecutableReference SystemRuntimeInteropServices { get; } = Net50.SystemRuntimeInteropServices;
-        public static PortableExecutableReference MicrosoftCSharp { get; } = Net50.MicrosoftCSharp;
-        public static PortableExecutableReference MicrosoftVisualBasic { get; } = Net50.MicrosoftVisualBasic;
+        public static PortableExecutableReference netstandard { get; } = Net70.netstandard;
+        public static PortableExecutableReference mscorlib { get; } = Net70.mscorlib;
+        public static PortableExecutableReference SystemRuntime { get; } = Net70.SystemRuntime;
     }
 
     /// <summary>
@@ -125,12 +115,31 @@ namespace Roslyn.Test.Utilities
     /// </summary>
     public static class NetFramework
     {
-        public static ImmutableArray<MetadataReference> StandardReferences => ImmutableArray.Create<MetadataReference>(
-            Net461.mscorlib,
-            Net461.System,
-            Net461.SystemCore,
-            NetFx.ValueTuple.tuplelib,
-            Net461.SystemRuntime);
+        /// <summary>
+        /// This is the full set of references provided by default on the .NET Framework TFM
+        /// </summary>
+        /// <remarks>
+        /// Need to special case tuples until we move to net472
+        /// </remarks>
+        public static ImmutableArray<MetadataReference> References { get; } =
+            ImmutableArray
+                .CreateRange<MetadataReference>(Net461.All)
+                .Add(NetFx.ValueTuple.tuplelib);
+
+        /// <summary>
+        /// This is a limited set of references on this .NET Framework TFM. This should be avoided in new code 
+        /// as it represents the way reference hookup used to work.
+        /// </summary>
+        /// <remarks>
+        /// Need to special case tuples until we move to net472
+        /// </remarks>
+        public static ImmutableArray<MetadataReference> Standard { get; } =
+            ImmutableArray.Create<MetadataReference>(
+                Net461.mscorlib,
+                Net461.System,
+                Net461.SystemCore,
+                NetFx.ValueTuple.tuplelib,
+                Net461.SystemRuntime);
 
         public static PortableExecutableReference mscorlib { get; } = Net461.mscorlib;
         public static PortableExecutableReference System { get; } = Net461.System;
@@ -143,8 +152,10 @@ namespace Roslyn.Test.Utilities
 
     public static class TargetFrameworkUtil
     {
-        public static ImmutableArray<MetadataReference> StandardLatestReferences => RuntimeUtilities.IsCoreClrRuntime ? NetCoreApp.StandardReferences : NetFramework.StandardReferences;
-        public static ImmutableArray<MetadataReference> StandardReferences => RuntimeUtilities.IsCoreClrRuntime ? NetStandard20References : NetFramework.StandardReferences;
+        private static readonly ConcurrentDictionary<string, ImmutableArray<PortableExecutableReference>> s_dynamicReferenceMap = new ConcurrentDictionary<string, ImmutableArray<PortableExecutableReference>>(StringComparer.Ordinal);
+
+        public static ImmutableArray<MetadataReference> NetLatest => RuntimeUtilities.IsCoreClrRuntime ? NetCoreApp.References : NetFramework.References;
+        public static ImmutableArray<MetadataReference> StandardReferences => RuntimeUtilities.IsCoreClrRuntime ? NetStandard20References : NetFramework.Standard;
         public static MetadataReference StandardCSharpReference => RuntimeUtilities.IsCoreClrRuntime ? MicrosoftCSharp.Netstandard13Lib : NetFramework.MicrosoftCSharp;
         public static MetadataReference StandardVisualBasicReference => RuntimeUtilities.IsCoreClrRuntime ? MicrosoftVisualBasic.Netstandard11 : NetFramework.MicrosoftVisualBasic;
         public static ImmutableArray<MetadataReference> StandardAndCSharpReferences => StandardReferences.Add(StandardCSharpReference);
@@ -166,7 +177,7 @@ namespace Roslyn.Test.Utilities
         public static ImmutableArray<MetadataReference> Mscorlib45AndCSharpReferences => ImmutableArray.Create<MetadataReference>(Net451.mscorlib, Net451.SystemCore, Net451.MicrosoftCSharp);
         public static ImmutableArray<MetadataReference> Mscorlib45AndVBRuntimeReferences => ImmutableArray.Create<MetadataReference>(Net451.mscorlib, Net451.System, Net451.MicrosoftVisualBasic);
         public static ImmutableArray<MetadataReference> Mscorlib46References => ImmutableArray.Create<MetadataReference>(Net461.mscorlib);
-        public static ImmutableArray<MetadataReference> Mscorlib46ExtendedReferences => ImmutableArray.Create<MetadataReference>(Net461.mscorlib, Net461.System, TestMetadata.Net461.SystemCore, TestBase.ValueTupleRef, Net461.SystemRuntime);
+        public static ImmutableArray<MetadataReference> Mscorlib46ExtendedReferences => ImmutableArray.Create<MetadataReference>(Net461.mscorlib, Net461.System, Net461.SystemCore, TestBase.ValueTupleRef, Net461.SystemRuntime);
         public static ImmutableArray<MetadataReference> Mscorlib461References => ImmutableArray.Create<MetadataReference>(Net461.mscorlib);
         public static ImmutableArray<MetadataReference> Mscorlib461ExtendedReferences => ImmutableArray.Create<MetadataReference>(Net461.mscorlib, Net461.System, Net461.SystemCore, NetFx.ValueTuple.tuplelib, Net461.SystemRuntime);
         public static ImmutableArray<MetadataReference> NetStandard20References => ImmutableArray.Create<MetadataReference>(NetStandard20.netstandard, NetStandard20.mscorlib, NetStandard20.SystemRuntime, NetStandard20.SystemCore, NetStandard20.SystemDynamicRuntime, NetStandard20.SystemLinq, NetStandard20.SystemLinqExpressions);
@@ -175,15 +186,29 @@ namespace Roslyn.Test.Utilities
         public static ImmutableArray<MetadataReference> MinimalReferences => ImmutableArray.Create(TestBase.MinCorlibRef);
         public static ImmutableArray<MetadataReference> MinimalAsyncReferences => ImmutableArray.Create(TestBase.MinAsyncCorlibRef);
 
+#if DEBUG
+
+        static TargetFrameworkUtil()
+        {
+            // Asserts to ensure these two values keep in sync
+            Debug.Assert(GetReferences(TargetFramework.NetCoreApp).SequenceEqual(NetCoreApp.References));
+            Debug.Assert(GetReferences(TargetFramework.NetFramework).SequenceEqual(NetFramework.References));
+        }
+
+#endif
+
         public static ImmutableArray<MetadataReference> GetReferences(TargetFramework targetFramework) => targetFramework switch
         {
             // Primary
+            // Note: NetCoreApp should behave like latest Core TFM
             TargetFramework.Empty => ImmutableArray<MetadataReference>.Empty,
             TargetFramework.NetStandard20 => NetStandard20References,
-            TargetFramework.NetCoreApp or TargetFramework.Net50 => NetCoreApp.StandardReferences,
-            TargetFramework.Net60 => ImmutableArray.CreateRange<MetadataReference>(Net60.All),
-            TargetFramework.NetCoreAppAndCSharp => NetCoreApp.StandardReferences.Add(NetCoreApp.MicrosoftCSharp),
-            TargetFramework.NetFramework => NetFramework.StandardReferences,
+            TargetFramework.Net50 => ImmutableArray.CreateRange<MetadataReference>(LoadDynamicReferences("Net50")),
+            TargetFramework.Net60 => ImmutableArray.CreateRange<MetadataReference>(LoadDynamicReferences("Net60")),
+            TargetFramework.NetCoreApp or TargetFramework.Net70 => ImmutableArray.CreateRange<MetadataReference>(Net70.All),
+            TargetFramework.NetFramework => NetFramework.References,
+            TargetFramework.NetLatest => NetLatest,
+            TargetFramework.Standard => StandardReferences,
 
             // Legacy we should be phasing out
             TargetFramework.Mscorlib40 => Mscorlib40References,
@@ -199,13 +224,11 @@ namespace Roslyn.Test.Utilities
             TargetFramework.Mscorlib461 => Mscorlib46References,
             TargetFramework.Mscorlib461Extended => Mscorlib461ExtendedReferences,
             TargetFramework.WinRT => WinRTReferences,
-            TargetFramework.Standard => StandardReferences,
             TargetFramework.StandardAndCSharp => StandardAndCSharpReferences,
             TargetFramework.StandardAndVBRuntime => StandardAndVBRuntimeReferences,
             TargetFramework.DefaultVb => DefaultVbReferences,
             TargetFramework.Minimal => MinimalReferences,
             TargetFramework.MinimalAsync => MinimalAsyncReferences,
-            TargetFramework.StandardLatest => StandardLatestReferences,
             _ => throw new InvalidOperationException($"Unexpected target framework {targetFramework}"),
         };
 
@@ -271,6 +294,46 @@ namespace Roslyn.Test.Utilities
                 }
 
                 return null;
+            }
+        }
+
+        public static IEnumerable<MetadataReference> GetReferencesWithout(TargetFramework targetFramework, params string[] excludeReferenceNames) =>
+            GetReferences(targetFramework)
+            .Where(x => !(x is PortableExecutableReference pe && excludeReferenceNames.Contains(pe.FilePath)));
+
+        /// <summary>
+        /// Many of our reference assemblies are only used by a subset of compiler unit tests. Having a PackageReference
+        /// to the assemblies here would cause them to be deployed to every unit test we write though. These are non-trivial 
+        /// in size (4+ MB) and we have ~50 test projects so this adds up fast. To keep size down we just add 
+        /// PackageReference on the few projects that and dynamically load here.
+        /// </summary>
+        private static ImmutableArray<PortableExecutableReference> LoadDynamicReferences(string targetFrameworkName)
+        {
+            var assemblyName = $"Basic.Reference.Assemblies.{targetFrameworkName}";
+            if (s_dynamicReferenceMap.TryGetValue(assemblyName, out var references))
+            {
+                return references;
+            }
+
+            try
+            {
+                var name = new AssemblyName(assemblyName);
+                var assembly = Assembly.Load(name);
+
+                var type = assembly.GetType(assemblyName, throwOnError: true);
+                var prop = type.GetProperty("All", BindingFlags.Public | BindingFlags.Static);
+                var obj = prop.GetGetMethod()!.Invoke(obj: null, parameters: null);
+                references = ((IEnumerable<PortableExecutableReference>)obj).ToImmutableArray();
+
+                // This method can de called in parallel. Who wins this TryAdd isn't important, it's the same 
+                // values. 
+                _ = s_dynamicReferenceMap.TryAdd(assemblyName, references);
+                return references;
+            }
+            catch (Exception ex)
+            {
+                var message = $"Error loading {assemblyName}. Make sure the test project has a <PackageReference> for this assembly";
+                throw new Exception(message, ex);
             }
         }
     }

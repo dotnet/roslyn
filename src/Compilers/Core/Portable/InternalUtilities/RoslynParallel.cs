@@ -31,14 +31,14 @@ namespace Roslyn.Utilities
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
                 catch (OperationCanceledException e) when (cancellationToken.IsCancellationRequested && e.CancellationToken != cancellationToken)
                 {
                     // Parallel.For checks for a specific cancellation token, so make sure we throw with the
                     // correct one.
                     cancellationToken.ThrowIfCancellationRequested();
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
         }

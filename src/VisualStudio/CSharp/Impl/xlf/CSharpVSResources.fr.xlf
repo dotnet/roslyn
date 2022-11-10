@@ -102,6 +102,16 @@
         <target state="translated">Insérer // au début des nouvelles lignes pour l'écriture de commentaires //</target>
         <note />
       </trans-unit>
+      <trans-unit id="Insert_space_between_called_method_name_and_its_opening_parenthesis">
+        <source>Insert space between called method name and its opening parenthesis</source>
+        <target state="new">Insert space between called method name and its opening parenthesis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis">
+        <source>Insert space between method name and its opening parenthesis</source>
+        <target state="new">Insert space between method name and its opening parenthesis</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inside_namespace">
         <source>Inside namespace</source>
         <target state="translated">Dans le namespace</target>
@@ -184,7 +194,7 @@
       </trans-unit>
       <trans-unit id="Show_new_snippet_experience_experimental">
         <source>Show new snippet experience (experimental)</source>
-        <target state="new">Show new snippet experience (experimental)</target>
+        <target state="translated">Afficher une nouvelle expérience d’extrait de code (expérimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
@@ -402,19 +412,9 @@
         <target state="translated">Insérer un espace dans les parenthèses de la liste d'arguments vide</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis1">
-        <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">Insérer un espace entre le nom de la méthode et sa parenthèse ouvrante</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_space_within_empty_parameter_list_parentheses">
         <source>Insert space within empty parameter list parentheses</source>
         <target state="translated">Insérer un espace dans les parenthèses vides de la liste de paramètres</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis2">
-        <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">Insérer un espace entre le nom de la méthode et sa parenthèse ouvrante</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_space_within_parameter_list_parentheses">

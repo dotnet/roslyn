@@ -91,6 +91,11 @@
     <EditorConfigFiles Condition="'$(IsShipping)' != 'true'" Include="$(RepositoryEngineeringDir)config\globalconfigs\NonShipping.globalconfig" />
   </ItemGroup>
 
+  <!-- Check that all shipping assemblies are packaged -->
+  <Target Name="_CheckTestProjectTargetFileName" BeforeTargets="Build" Condition="'$(IsShippingAssembly)' == 'true' and '$(IsPackable)' != 'true'">
+    <Error Text="Project output assembly is shipping (IsShipping == $(IsShipping), IsShippingAssembly == '$(IsShippingAssembly)', IsShippingPackage == '$(IsShippingPackage)') but is not packaged (IsPackable == '$(IsPackable)')" />
+  </Target>
+
   <!--
     Some dependencies bring in references to UIAutomationClient and UIAutomationTypes. These conflict with the faster
     UIAComWrapper implementation used by the Roslyn integration tests. This target sets the alias for the slower
@@ -175,8 +180,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Include BannedSymbols covering all projects -->
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\config\BannedSymbols.txt" />
+    <!-- Include BannedSymbols covering all product projects -->
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\config\BannedSymbols.txt" Condition="'$(IsTestProject)' == 'false'" />
   </ItemGroup>
 
   <ItemGroup>
@@ -367,6 +372,14 @@
     </ItemGroup>
   </Target>
   
-  <Import Project="DoNotDeployToSymStore_Workaround.targets" Condition="'$(UsingToolPdbConverter)' == 'false'" />
+  <!-- Workaround for https://github.com/dotnet/wpf/issues/6792 -->
+  <Target Name="RemoveDuplicateAnalyzers" BeforeTargets="CoreCompile" Condition="'$(UseWpf)' == 'true'">
+    <ItemGroup>
+        <FilteredAnalyzer Include="@(Analyzer->Distinct())" />
+        <Analyzer Remove="@(Analyzer)" />
+        <Analyzer Include="@(FilteredAnalyzer)" />
+    </ItemGroup>
+  </Target>
+
   <Import Project="DoNotGenerateSatelliteAssemblies_Workaround.targets" Condition="'$(GenerateSatelliteAssemblies)' == 'false'" />
 </Project>

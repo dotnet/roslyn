@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         /// This hits a special codepath in the product that is optimized for more than 100 spans.
         /// I'm leaving this test here because it covers that code path (as shown by code coverage)
         /// </summary>
-        [WpfFact]
-        [WorkItem(530368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530368")]
+        [WpfFact, WorkItem(530368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530368")]
         public async Task LargeNumberOfSpans()
         {
             using var workspace = TestWorkspace.CreateCSharp(@"class Program
@@ -184,6 +183,9 @@ class Program
 
                 return Task.CompletedTask;
             }
+
+            protected override bool TagEquals(TestTag tag1, TestTag tag2)
+                => tag1 == tag2;
         }
 
         private sealed class TestTaggerEventSource : AbstractTaggerEventSource

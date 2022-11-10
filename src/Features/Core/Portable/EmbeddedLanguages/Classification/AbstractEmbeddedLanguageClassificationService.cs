@@ -4,15 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -52,10 +49,10 @@ namespace Microsoft.CodeAnalysis.Classification
 
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
             var worker = new Worker(this, project, semanticModel, textSpan, options, result, cancellationToken);
-            worker.Recurse(root);
+            worker.VisitTokens(root);
         }
 
-        private ref struct Worker
+        private readonly ref struct Worker
         {
             private readonly AbstractEmbeddedLanguageClassificationService _owner;
             private readonly Project _project;
@@ -83,20 +80,27 @@ namespace Microsoft.CodeAnalysis.Classification
                 _cancellationToken = cancellationToken;
             }
 
-            public void Recurse(SyntaxNode node)
+            public void VisitTokens(SyntaxNode node)
             {
-                _cancellationToken.ThrowIfCancellationRequested();
-                if (node.Span.IntersectsWith(_textSpan))
+                using var pooledStack = SharedPools.Default<Stack<SyntaxNodeOrToken>>().GetPooledObject();
+                var stack = pooledStack.Object;
+                stack.Push(node);
+                while (!stack.IsEmpty())
                 {
-                    foreach (var child in node.ChildNodesAndTokens())
+                    _cancellationToken.ThrowIfCancellationRequested();
+                    var currentNodeOrToken = stack.Pop();
+                    if (currentNodeOrToken.Span.IntersectsWith(_textSpan))
                     {
-                        if (child.IsNode)
+                        if (currentNodeOrToken.IsNode)
                         {
-                            Recurse(child.AsNode()!);
+                            foreach (var child in currentNodeOrToken.ChildNodesAndTokens().Reverse())
+                            {
+                                stack.Push(child);
+                            }
                         }
                         else
                         {
-                            ProcessToken(child.AsToken());
+                            ProcessToken(currentNodeOrToken.AsToken());
                         }
                     }
                 }
@@ -146,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Classification
             private void ProcessTrivia(SyntaxTrivia trivia)
             {
                 if (trivia.HasStructure && trivia.FullSpan.IntersectsWith(_textSpan))
-                    Recurse(trivia.GetStructure()!);
+                    VisitTokens(trivia.GetStructure()!);
             }
         }
     }

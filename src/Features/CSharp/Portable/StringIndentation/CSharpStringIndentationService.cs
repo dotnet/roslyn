@@ -8,7 +8,6 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -17,10 +16,10 @@ using Microsoft.CodeAnalysis.StringIndentation;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.LineSeparators
+namespace Microsoft.CodeAnalysis.CSharp.StringIndentation
 {
     [ExportLanguageService(typeof(IStringIndentationService), LanguageNames.CSharp), Shared]
-    internal class CSharpStringIndentationService : IStringIndentationService
+    internal sealed class CSharpStringIndentationService : IStringIndentationService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -33,59 +32,52 @@ namespace Microsoft.CodeAnalysis.CSharp.LineSeparators
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            using var _1 = ArrayBuilder<(SyntaxNode node, int nextChild)>.GetInstance(out var nodeStack);
-            using var _2 = ArrayBuilder<StringIndentationRegion>.GetInstance(out var result);
 
-            nodeStack.Push((root, 0));
-            Recurse(text, nodeStack, textSpan, result, cancellationToken);
+            using var _ = ArrayBuilder<StringIndentationRegion>.GetInstance(out var result);
+
+            Recurse(text, root, textSpan, result, cancellationToken);
 
             return result.ToImmutable();
         }
 
         private static void Recurse(
-            SourceText text, ArrayBuilder<(SyntaxNode node, int nextChild)> nodeStack, TextSpan textSpan, ArrayBuilder<StringIndentationRegion> result, CancellationToken cancellationToken)
+            SourceText text,
+            SyntaxNode root,
+            TextSpan textSpan,
+            ArrayBuilder<StringIndentationRegion> result,
+            CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            while (nodeStack.TryPop(out var nextNode))
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var nodeStack);
+            nodeStack.Add(root);
+
+            while (nodeStack.TryPop(out var node))
             {
-                var (node, nextChild) = nextNode;
+                // Dont' bother recursing into nodes that don't hit the requested span, they can never contribute 
+                // regions of interest.
+                if (!node.Span.IntersectsWith(textSpan))
+                    continue;
 
-                if (nextChild == 0)
+                if (node is InterpolatedStringExpressionSyntax interpolatedString &&
+                    interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken))
                 {
-                    // This is the first time we are processing this node
-                    if (!node.Span.IntersectsWith(textSpan))
-                        continue;
-
-                    if (node.IsKind(SyntaxKind.InterpolatedStringExpression, out InterpolatedStringExpressionSyntax? interpolatedString) &&
-                        interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken))
-                    {
-                        ProcessInterpolatedStringExpression(text, interpolatedString, result, cancellationToken);
-                    }
+                    ProcessInterpolatedStringExpression(text, interpolatedString, result, cancellationToken);
                 }
 
-                var childList = node.ChildNodesAndTokens();
-                for (var i = nextChild; i < childList.Count; i++)
+                foreach (var child in node.ChildNodesAndTokens().Reverse())
                 {
-                    var child = childList[i];
                     if (child.IsNode)
                     {
-                        // If necessary, push the current node so we can pick back up after processing the child
-                        if (i < childList.Count - 1)
-                        {
-                            nodeStack.Push((node, i + 1));
-                        }
-
-                        // Push the child for immediate processing
-                        nodeStack.Push((child.AsNode()!, 0));
-
-                        // Break out of the 'for' loop, which effectively continues the containing 'while' loop
-                        break;
+                        nodeStack.Add(child.AsNode()!);
                     }
-                    else if (child.IsKind(SyntaxKind.MultiLineRawStringLiteralToken) ||
-                             child.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken))
+                    else if (child.IsToken)
                     {
-                        ProcessMultiLineRawStringLiteralToken(text, child.AsToken(), result, cancellationToken);
+                        if (child.IsKind(SyntaxKind.MultiLineRawStringLiteralToken) ||
+                            child.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken))
+                        {
+                            ProcessMultiLineRawStringLiteralToken(text, child.AsToken(), result, cancellationToken);
+                        }
                     }
                 }
             }

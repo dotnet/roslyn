@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -40,6 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
     {
         private readonly Workspace _workspace;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
+        private readonly IBuildOnlyDiagnosticsService _buildOnlyDiagnosticsService;
         private readonly IGlobalOperationNotificationService _notificationService;
         private readonly CancellationToken _disposalToken;
 
@@ -101,9 +103,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
             _diagnosticService = diagnosticService;
+            _buildOnlyDiagnosticsService = _workspace.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
 
             _notificationService = _workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
         }
+
+        public DiagnosticAnalyzerInfoCache AnalyzerInfoCache => _diagnosticService.AnalyzerInfoCache;
 
         /// <summary>
         /// Event generated from the serialized <see cref="_taskQueue"/> whenever the build progress in Visual Studio changes.
@@ -229,7 +234,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
         }
 
-        private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+        // internal for testing purposes only.
+        internal void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
             // Clear relevant build-only errors on workspace events such as solution added/removed/reloaded,
             // project added/removed/reloaded, etc.
@@ -252,22 +258,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                 case WorkspaceChangeKind.DocumentRemoved:
                 case WorkspaceChangeKind.DocumentReloaded:
+                case WorkspaceChangeKind.AdditionalDocumentRemoved:
+                case WorkspaceChangeKind.AdditionalDocumentReloaded:
+                case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
+                case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
                     _taskQueue.ScheduleTask("OnDocumentRemoved", () => ClearBuildOnlyDocumentErrors(e.OldSolution, e.ProjectId, e.DocumentId), _disposalToken);
+                    break;
+
+                case WorkspaceChangeKind.DocumentChanged:
+                case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
+                case WorkspaceChangeKind.AdditionalDocumentChanged:
+                    // We clear build-only errors for the document on document edits.
+                    // This is done to address multiple customer reports of stale build-only diagnostics
+                    // after they fix/remove the code flagged from build-only diagnostics, but the diagnostics
+                    // do not get automatically removed/refreshed while typing.
+                    // See https://github.com/dotnet/docs/issues/26708 and https://github.com/dotnet/roslyn/issues/64659
+                    // for additional details.
+                    _taskQueue.ScheduleTask("OnDocumentChanged", () => ClearBuildOnlyDocumentErrors(e.OldSolution, e.ProjectId, e.DocumentId), _disposalToken);
                     break;
 
                 case WorkspaceChangeKind.ProjectAdded:
                 case WorkspaceChangeKind.DocumentAdded:
-                case WorkspaceChangeKind.DocumentChanged:
                 case WorkspaceChangeKind.ProjectChanged:
                 case WorkspaceChangeKind.SolutionChanged:
                 case WorkspaceChangeKind.AdditionalDocumentAdded:
-                case WorkspaceChangeKind.AdditionalDocumentRemoved:
-                case WorkspaceChangeKind.AdditionalDocumentReloaded:
-                case WorkspaceChangeKind.AdditionalDocumentChanged:
                 case WorkspaceChangeKind.AnalyzerConfigDocumentAdded:
-                case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
-                case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
-                case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
                     break;
 
                 default:
@@ -516,12 +531,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private void RaiseDiagnosticsCreated(object? id, Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableArray<DiagnosticData> items)
         {
+            _buildOnlyDiagnosticsService.AddBuildOnlyDiagnostics(solution, projectId, documentId, items);
             DiagnosticsUpdated?.Invoke(this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
                    CreateArgumentKey(id), _workspace, solution, projectId, documentId, items));
         }
 
         private void RaiseDiagnosticsRemoved(object? id, Solution solution, ProjectId? projectId, DocumentId? documentId)
         {
+            _buildOnlyDiagnosticsService.ClearBuildOnlyDiagnostics(solution, projectId, documentId);
             DiagnosticsUpdated?.Invoke(this, DiagnosticsUpdatedArgs.DiagnosticsRemoved(
                    CreateArgumentKey(id), _workspace, solution, projectId, documentId));
         }
@@ -805,10 +822,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     // 
                     // unfortunately, there is no 100% correct way to do this.
                     // so we will use a heuristic that will most likely work for most of common cases.
-                    return diagnosticData.DataLocation != null &&
-                        !string.IsNullOrEmpty(diagnosticData.DataLocation.OriginalFilePath) &&
-                        (diagnosticData.DataLocation.OriginalStartLine > 0 ||
-                         diagnosticData.DataLocation.OriginalStartColumn > 0);
+                    return
+                        !string.IsNullOrEmpty(diagnosticData.DataLocation.UnmappedFileSpan.Path) &&
+                        (diagnosticData.DataLocation.UnmappedFileSpan.StartLinePosition.Line > 0 ||
+                         diagnosticData.DataLocation.UnmappedFileSpan.StartLinePosition.Character > 0);
                 }
             }
 
@@ -932,33 +949,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     item1.ProjectId != item2.ProjectId ||
                     item1.Severity != item2.Severity ||
                     item1.Message != item2.Message ||
-                    (item1.DataLocation?.MappedStartLine ?? 0) != (item2.DataLocation?.MappedStartLine ?? 0) ||
-                    (item1.DataLocation?.MappedStartColumn ?? 0) != (item2.DataLocation?.MappedStartColumn ?? 0) ||
-                    (item1.DataLocation?.OriginalStartLine ?? 0) != (item2.DataLocation?.OriginalStartLine ?? 0) ||
-                    (item1.DataLocation?.OriginalStartColumn ?? 0) != (item2.DataLocation?.OriginalStartColumn ?? 0))
+                    item1.DataLocation.MappedFileSpan.Span != item2.DataLocation.MappedFileSpan.Span ||
+                    item2.DataLocation.UnmappedFileSpan.Span != item2.DataLocation.UnmappedFileSpan.Span)
                 {
                     return false;
                 }
 
-                return (item1.DocumentId != null) ?
-                    item1.DocumentId == item2.DocumentId :
-                    item1.DataLocation?.OriginalFilePath == item2.DataLocation?.OriginalFilePath;
+                // TODO: unclear why we are comparing the original paths, and not the normalized paths.   This may
+                // indicate a bug. If it is correct behavior, this should be documented as to why this is the right span
+                // to be considering.
+                return (item1.DocumentId != null)
+                    ? item1.DocumentId == item2.DocumentId
+                    : item1.DataLocation.UnmappedFileSpan.Path == item2.DataLocation.UnmappedFileSpan.Path;
             }
 
             public int GetHashCode(DiagnosticData obj)
             {
+                // TODO: unclear on why we're hashing the start of the data location, whereas .Equals above checks the
+                // full span.
                 var result =
                     Hash.Combine(obj.Id,
                     Hash.Combine(obj.Message,
                     Hash.Combine(obj.ProjectId,
-                    Hash.Combine(obj.DataLocation?.MappedStartLine ?? 0,
-                    Hash.Combine(obj.DataLocation?.MappedStartColumn ?? 0,
-                    Hash.Combine(obj.DataLocation?.OriginalStartLine ?? 0,
-                    Hash.Combine(obj.DataLocation?.OriginalStartColumn ?? 0, (int)obj.Severity)))))));
+                    Hash.Combine(obj.DataLocation.MappedFileSpan.Span.Start.GetHashCode(),
+                    Hash.Combine(obj.DataLocation.UnmappedFileSpan.Span.Start.GetHashCode(), (int)obj.Severity)))));
 
-                return obj.DocumentId != null ?
-                    Hash.Combine(obj.DocumentId, result) :
-                    Hash.Combine(obj.DataLocation?.OriginalFilePath?.GetHashCode() ?? 0, result);
+                // TODO: unclear why we are hashing the original path, and not the normalized path.   This may
+                // indicate a bug. If it is correct behavior, this should be documented as to why this is the right span
+                // to be considering.
+                return obj.DocumentId != null
+                    ? Hash.Combine(obj.DocumentId, result)
+                    : Hash.Combine(obj.DataLocation.UnmappedFileSpan.Path, result);
             }
         }
     }

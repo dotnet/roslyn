@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.GenerateVariable
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateVariable
+    <Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
     Public Class GenerateVariableTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -20,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
             Return FlattenActions(actions)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateSimpleProperty() As Threading.Tasks.Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -37,7 +38,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateSimpleField() As Threading.Tasks.Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -55,7 +56,7 @@ End Module",
 index:=1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateReadOnlyField() As Threading.Tasks.Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -73,8 +74,7 @@ End Module",
 index:=2)
         End Function
 
-        <WorkItem(539692, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539692")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(539692, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539692")>
         Public Async Function TestGenerateFromAssignment() As Threading.Tasks.Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -92,8 +92,7 @@ End Class",
 index:=1)
         End Function
 
-        <WorkItem(539694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539694")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(539694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539694")>
         Public Async Function TestGenerateReadOnlyProperty() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -115,8 +114,7 @@ Interface IGoo
 End Interface")
         End Function
 
-        <WorkItem(539694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539694")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(539694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539694")>
         Public Async Function TestGenerateReadWriteProperty() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -139,8 +137,7 @@ End Interface",
 index:=1)
         End Function
 
-        <WorkItem(539695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539695")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(539695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539695")>
         Public Async Function TestGenerateProtectedSharedFieldIntoBase() As Threading.Tasks.Task
             Await TestInRegularAndScriptAsync(
 "Class Base
@@ -163,7 +160,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestNotOfferedForSharedAccessOffInterface() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Interface IGoo
@@ -175,7 +172,7 @@ Class Program
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateFriendAccessibilityForField() As Threading.Tasks.Task
             Await TestInRegularAndScriptAsync(
 "Class A
@@ -196,7 +193,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGeneratePropertyOnInterface1() As Threading.Tasks.Task
             Await TestInRegularAndScriptAsync(
 "Interface IGoo
@@ -218,7 +215,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGeneratePropertyOnInterface2() As Threading.Tasks.Task
             Await TestInRegularAndScriptAsync(
 "Interface IGoo
@@ -240,8 +237,7 @@ Class C
 End Class", index:=1)
         End Function
 
-        <WorkItem(539796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539796")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(539796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539796")>
         Public Async Function TestGeneratePropertyIntoModule() As Threading.Tasks.Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -266,8 +262,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(539796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539796")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(539796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539796")>
         Public Async Function TestFieldPropertyIntoModule() As Threading.Tasks.Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -293,8 +288,7 @@ End Class",
 index:=1)
         End Function
 
-        <WorkItem(539848, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539848")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(539848, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539848")>
         Public Async Function TestOnLeftOfMemberAccess() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -312,8 +306,7 @@ End Module",
 index:=1)
         End Function
 
-        <WorkItem(539725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539725")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(539725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539725")>
         Public Async Function TestMissingWhenInterfacePropertyAlreadyExists() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Interface IGoo
@@ -327,8 +320,7 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(540013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540013")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(540013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540013")>
         Public Async Function TestMissingInAddressOf() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Delegate Sub D(x As Integer)
@@ -339,8 +331,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(540578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540578")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(540578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540578")>
         Public Async Function TestInferProperReturnType() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -357,8 +348,7 @@ End Module",
 End Module")
         End Function
 
-        <WorkItem(540576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540576")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(540576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540576")>
         Public Async Function TestAssignment() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -377,7 +367,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateFromSharedMethod() As Task
             Await TestInRegularAndScriptAsync(
 "Class GenPropTest
@@ -394,7 +384,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateSharedField() As Task
             Await TestInRegularAndScriptAsync(
 "Class GenPropTest
@@ -411,7 +401,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateInstanceFieldOffMe() As Task
             Await TestInRegularAndScriptAsync(
 "Class GenPropTest
@@ -428,7 +418,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestSimpleInstanceField() As Task
             Await TestInRegularAndScriptAsync(
 "Class GenPropTest
@@ -445,7 +435,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestFieldOnByRefParam() As Task
             Await TestInRegularAndScriptAsync(
 "Class A
@@ -471,7 +461,7 @@ Class B
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateFieldInByRefProperty() As Task
             Await TestInRegularAndScriptAsync(
 "Class A
@@ -497,7 +487,7 @@ Class B
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGeneratePropertyInByRefProperty() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -533,7 +523,7 @@ Class B
 End Class", index:=1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateFieldIsFirstWithLowerCase() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -550,7 +540,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGeneratePropertyIsFirstWithUpperCase() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -567,7 +557,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestNestedTypesAndInference() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Collections.Generic
@@ -593,7 +583,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestTypeInferenceWithGenerics1() As Task
             Await TestInRegularAndScriptAsync(
 "Class A
@@ -618,8 +608,7 @@ Class C(Of T)
 End Class")
         End Function
 
-        <WorkItem(540693, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540693")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(540693, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540693")>
         Public Async Function TestErrorType() As Task
             Await TestInRegularAndScriptAsync(
 "Class A
@@ -643,7 +632,7 @@ Class C(Of B)
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestTypeParameter() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -666,7 +655,7 @@ Class A
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestInterfaceProperty() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -694,7 +683,7 @@ Interface IGoo
 End Interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateEscapedKeywords() As Task
             Await TestInRegularAndScriptAsync(
 "Class [Class]
@@ -711,7 +700,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateEscapedKeywords2() As Task
             Await TestInRegularAndScriptAsync(
 "Class [Class]
@@ -730,7 +719,7 @@ index:=1)
         End Function
 
         <WorkItem(528229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528229")>
-        <WpfFact(Skip:="528229"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <WpfFact(Skip:="528229")>
         Public Async Function TestRefLambda() As Task
             Await TestInRegularAndScriptAsync(
 "Class [Class]
@@ -755,7 +744,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestPropertyParameters1() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -799,7 +788,7 @@ Interface IGoo
 End Interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestPropertyParameters2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -843,7 +832,7 @@ Interface IGoo
 End Interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestDefaultProperty1() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -887,8 +876,7 @@ Interface IGoo
 End Interface")
         End Function
 
-        <WorkItem(540703, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540703")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(540703, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540703")>
         Public Async Function TestDefaultProperty2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -932,8 +920,7 @@ Interface IGoo
 End Interface")
         End Function
 
-        <WorkItem(540737, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540737")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(540737, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540737")>
         Public Async Function TestErrorInGenericType() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Collections.Generic
@@ -959,8 +946,7 @@ Class C(Of T)
 End Class")
         End Function
 
-        <WorkItem(542241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542241")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(542241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542241")>
         Public Async Function TestFieldWithAnonymousTypeType() As Threading.Tasks.Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -983,8 +969,7 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(542395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542395")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(542395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542395")>
         Public Async Function TestUnqualifiedModuleMethod1() As Task
             Await TestAsync(
 "Imports System.Runtime.CompilerServices
@@ -1014,8 +999,7 @@ End Module",
 parseOptions:=Nothing) ' TODO (tomat): Modules nested in Script class not supported yet
         End Function
 
-        <WorkItem(542395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542395")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(542395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542395")>
         Public Async Function TestUnqualifiedModuleMethod2() As Task
             Await TestAsync(
 "Imports System.Runtime.CompilerServices
@@ -1047,8 +1031,7 @@ End Module",
 parseOptions:=Nothing) ' TODO (tomat): Modules nested in Script class not supported yet)
         End Function
 
-        <WorkItem(542942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542942")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(542942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542942")>
         Public Async Function TestInsideLambda() As Task
             Await TestInRegularAndScriptAsync(
 "Module P
@@ -1069,8 +1052,7 @@ End Module",
 End Module")
         End Function
 
-        <WorkItem(544632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544632")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(544632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544632")>
         Public Async Function TestMissingOnForEachExpression() As Task
             Await TestMissingInRegularAndScriptAsync(
 <Text>
@@ -1101,7 +1083,7 @@ End Module
 </Text>.Value)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestLeftOfBinaryExpression() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -1118,7 +1100,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestRightOfBinaryExpression() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -1135,7 +1117,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateLocal() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -1152,8 +1134,7 @@ End Module",
 End Module")
         End Function
 
-        <WorkItem(809542, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/809542")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(809542, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/809542")>
         Public Async Function TestGenerateLocalBeforeComment() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1179,8 +1160,7 @@ Module Program
 End Module", index:=2)
         End Function
 
-        <WorkItem(809542, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/809542")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(809542, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/809542")>
         Public Async Function TestGenerateLocalAfterComment() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1208,8 +1188,7 @@ Module Program
 End Module", index:=2)
         End Function
 
-        <WorkItem(545218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545218")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(545218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545218")>
         Public Async Function TestTypeForLocal() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -1230,7 +1209,7 @@ End Module",
 index:=3)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestInSelect() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Linq
@@ -1251,8 +1230,7 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(545400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545400")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(545400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545400")>
         Public Async Function TestGenerateLocalInIfPart() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -1272,8 +1250,7 @@ End Module",
 index:=3)
         End Function
 
-        <WorkItem(545672, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545672")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(545672, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545672")>
         Public Async Function TestCrashOnAggregateSelect() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -1284,8 +1261,7 @@ index:=3)
 End Module")
         End Function
 
-        <WorkItem(546753, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546753")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(546753, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546753")>
         Public Async Function TestAddressOf() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -1310,8 +1286,7 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(530756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530756")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(530756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530756")>
         Public Async Function TestMissingOnDictionaryAccess1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System.Collections
@@ -1323,8 +1298,7 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(530756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530756")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(530756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530756")>
         Public Async Function TestMissingOnDictionaryAccess2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System.Collections
@@ -1336,8 +1310,7 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(530756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530756")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(530756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530756")>
         Public Async Function TestMissingOnDictionaryAccess3() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System.Collections
@@ -1349,7 +1322,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestFormattingInGenerateVariable() As Task
             Await TestInRegularAndScriptAsync(
 <Text>Module Program
@@ -1369,8 +1342,7 @@ End Module</Text>.Value.Replace(vbLf, vbCrLf),
 index:=2)
         End Function
 
-        <WorkItem(666189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666189")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(666189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666189")>
         Public Async Function TestGeneratePropertyInScript() As Task
             Await TestAsync(
 <Text>Dim x As Integer
@@ -1380,8 +1352,7 @@ Public Property Goo As Integer
 x = Goo</Text>.Value.Replace(vbLf, vbCrLf),
 parseOptions:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
         End Function
-        <WorkItem(666189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666189")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(666189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666189")>
         Public Async Function TestGenerateFieldInScript() As Task
             Await TestAsync(
 <Text>Dim x As Integer
@@ -1393,8 +1364,7 @@ parseOptions:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script),
 index:=1)
         End Function
 
-        <WorkItem(977580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/977580")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(977580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/977580")>
         Public Async Function TestWithThrow() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1413,8 +1383,7 @@ Public Class A
 End Class", index:=1)
         End Function
 
-        <WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")>
         Public Async Function TestInsideNameOfProperty() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1433,8 +1402,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")>
         Public Async Function TestInsideNameOfField() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1453,8 +1421,7 @@ Class C
 End Class", index:=1)
         End Function
 
-        <WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")>
         Public Async Function TestInsideNameOfReadonlyField() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1473,8 +1440,7 @@ Class C
 End Class", index:=2)
         End Function
 
-        <WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")>
         Public Async Function TestInsideNameOfLocal() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1492,8 +1458,7 @@ Class C
 End Class", index:=3)
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessProperty() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -1510,8 +1475,7 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessProperty2() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -1528,8 +1492,7 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessProperty3() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -1546,8 +1509,7 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessProperty4() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -1564,8 +1526,7 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessField() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -1583,8 +1544,7 @@ End Class",
 index:=1)
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessField2() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -1602,8 +1562,7 @@ End Class",
 index:=1)
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessField3() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -1621,8 +1580,7 @@ End Class",
 index:=1)
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessField4() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -1640,8 +1598,7 @@ End Class",
 index:=1)
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessReadOnlyField() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -1659,8 +1616,7 @@ End Class",
 index:=2)
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessReadOnlyField2() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -1678,8 +1634,7 @@ End Class",
 index:=2)
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessReadOnlyField3() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -1697,8 +1652,7 @@ End Class",
 index:=2)
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessReadOnlyField4() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -1716,8 +1670,7 @@ End Class",
 index:=2)
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessPropertyInsideReferencedClass() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1745,8 +1698,7 @@ Public Class C
 End Class")
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessPropertyInsideReferencedClass2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1774,8 +1726,7 @@ Public Class C
 End Class")
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessPropertyInsideReferencedClass3() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1803,8 +1754,7 @@ Public Class C
 End Class")
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessPropertyInsideReferencedClass4() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1832,8 +1782,7 @@ Public Class C
 End Class")
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessFieldInsideReferencedClass() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1862,8 +1811,7 @@ End Class",
 index:=1)
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessFieldInsideReferencedClass2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1892,8 +1840,7 @@ End Class",
 index:=1)
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessFieldInsideReferencedClass3() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1922,8 +1869,7 @@ End Class",
 index:=1)
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessFieldInsideReferencedClass4() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1952,8 +1898,7 @@ End Class",
 index:=1)
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessReadOnlyFieldInsideReferencedClass() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1982,8 +1927,7 @@ End Class",
 index:=2)
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessReadOnlyFieldInsideReferencedClass2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -2012,8 +1956,7 @@ End Class",
 index:=2)
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessReadOnlyFieldInsideReferencedClass3() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -2042,8 +1985,7 @@ End Class",
 index:=2)
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestConditionalAccessReadOnlyFieldInsideReferencedClass4() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -2072,7 +2014,7 @@ End Class",
 index:=2)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGeneratePropertyInPropertyInitializer() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -2090,7 +2032,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateFieldInPropertyInitializer() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -2109,7 +2051,7 @@ End Module",
 index:=1)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateReadonlyFieldInPropertyInitializer() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -2128,7 +2070,7 @@ End Module",
 index:=2)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGeneratePropertyInObjectInitializer1() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -2148,7 +2090,7 @@ Friend Class Customer
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGeneratePropertyInObjectInitializer2() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -2170,7 +2112,7 @@ Friend Class Customer
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGeneratePropertyInObjectInitializer3() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -2192,7 +2134,7 @@ End Class",
 index:=2)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateFieldInObjectInitializer1() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -2213,7 +2155,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateFieldInObjectInitializer2() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -2234,7 +2176,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateFieldInObjectInitializer3() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -2255,7 +2197,7 @@ Friend Class Customer
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestInvalidObjectInitializer() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -2267,7 +2209,7 @@ Friend Class Customer
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestOnlyPropertyAndFieldOfferedForObjectInitializer() As Task
             Await TestActionCountAsync(
 "Module Program
@@ -2280,7 +2222,7 @@ End Class",
 2)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateLocalInObjectInitializerValue() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -2301,7 +2243,7 @@ End Class",
 index:=3)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGeneratePropertyInTypeOf() As Task
             Await TestInRegularAndScriptAsync(
 "Module C
@@ -2320,7 +2262,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateFieldInTypeOf() As Task
             Await TestInRegularAndScriptAsync(
 "Module C
@@ -2340,7 +2282,7 @@ End Module",
 index:=1)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateReadOnlyFieldInTypeOf() As Task
             Await TestInRegularAndScriptAsync(
 "Module C
@@ -2360,7 +2302,7 @@ End Module",
 index:=2)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateLocalInTypeOf() As Task
             Await TestInRegularAndScriptAsync(
 "Module C
@@ -2380,8 +2322,8 @@ End Module",
 index:=3)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         <WorkItem(1130960, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130960")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGeneratePropertyInTypeOfIsNot() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -2406,8 +2348,7 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(1130960, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130960")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1130960, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130960")>
         Public Async Function TestGenerateFieldInTypeOfIsNot() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -2433,8 +2374,7 @@ End Module",
 index:=1)
         End Function
 
-        <WorkItem(1130960, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130960")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1130960, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130960")>
         Public Async Function TestGenerateReadOnlyFieldInTypeOfIsNot() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -2460,8 +2400,7 @@ End Module",
 index:=2)
         End Function
 
-        <WorkItem(1130960, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130960")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(1130960, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130960")>
         Public Async Function TestGenerateLocalInTypeOfIsNot() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -2487,7 +2426,7 @@ End Module",
 index:=3)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateVariableFromLambda() As Task
             Await TestInRegularAndScriptAsync(
 "Class [Class]
@@ -2510,7 +2449,7 @@ Class [Class]
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateVariableFromLambda2() As Task
             Await TestInRegularAndScriptAsync(
 "Class [Class]
@@ -2534,7 +2473,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateVariableFromLambda3() As Task
             Await TestInRegularAndScriptAsync(
 "Class [Class]
@@ -2555,7 +2494,7 @@ End Class",
 index:=2)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TupleRead() As Task
             Await TestInRegularAndScriptAsync(
 "Class [Class]
@@ -2572,7 +2511,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TupleWithOneNameRead() As Task
             Await TestInRegularAndScriptAsync(
 "Class [Class]
@@ -2589,7 +2528,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TupleWrite() As Task
             Await TestInRegularAndScriptAsync(
 "Class [Class]
@@ -2606,7 +2545,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TupleWithOneNameWrite() As Task
             Await TestInRegularAndScriptAsync(
 "Class [Class]
@@ -2623,7 +2562,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestPreferReadOnlyIfAfterReadOnlyAssignment() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -2645,7 +2584,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestPreferReadOnlyIfBeforeReadOnlyAssignment() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -2667,7 +2606,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestPlaceFieldBasedOnSurroundingStatements() As Task
             Await TestInRegularAndScriptAsync(
 "class Class
@@ -2693,7 +2632,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestPlacePropertyBasedOnSurroundingStatements() As Task
             Await TestInRegularAndScriptAsync(
 "class Class
@@ -2719,8 +2658,7 @@ end class",
 end class")
         End Function
 
-        <WorkItem(18988, "https://github.com/dotnet/roslyn/issues/18988")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(18988, "https://github.com/dotnet/roslyn/issues/18988")>
         Public Async Function GroupNonReadonlyFieldsTogether() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -2747,8 +2685,7 @@ class C
 end class")
         End Function
 
-        <WorkItem(18988, "https://github.com/dotnet/roslyn/issues/18988")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(18988, "https://github.com/dotnet/roslyn/issues/18988")>
         Public Async Function GroupReadonlyFieldsTogether() As Task
             Await TestInRegularAndScriptAsync("
 class C
@@ -2774,7 +2711,7 @@ class C
 end class", index:=1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateSimplePropertyInSyncLock() As Threading.Tasks.Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -2793,7 +2730,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateSimpleFieldInSyncLock() As Threading.Tasks.Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -2813,7 +2750,7 @@ End Module",
 index:=1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateReadOnlyFieldInSyncLock() As Threading.Tasks.Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -2833,7 +2770,7 @@ End Module",
 index:=2)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestAddParameter() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -2849,7 +2786,7 @@ End Module",
 index:=4)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestAddParameterDoesntAddToOverride() As Task
             Await TestInRegularAndScriptAsync(
 "Class Base
@@ -2873,7 +2810,7 @@ End Class",
 index:=4)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestAddParameterAndOverridesAddsToOverrides() As Task
             Await TestInRegularAndScriptAsync(
 "Class Base
@@ -2899,7 +2836,7 @@ End Class",
 index:=5)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestAddParameterIsOfCorrectType() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -2919,7 +2856,7 @@ End Module",
 index:=4)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestAddParameterAndOverridesIsOfCorrectType() As Task
             Await TestInRegularAndScriptAsync(
 "Class Base
@@ -2949,7 +2886,7 @@ End Class",
 index:=5)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestAddParameterAndOverridesNotOfferedToNonOverride1() As Task
             Await TestActionCountAsync(
 "Module Program
@@ -2960,7 +2897,7 @@ End Module",
 count:=5)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestAddParameterAndOverridesNotOfferedToNonOverride2() As Task
             Await TestActionCountAsync(
 "Class Base
@@ -2978,8 +2915,7 @@ End Class",
 count:=5)
         End Function
 
-        <WorkItem(45367, "https://github.com/dotnet/roslyn/issues/45367")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(45367, "https://github.com/dotnet/roslyn/issues/45367")>
         Public Async Function TestCrashInNamespace() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Namespace ConsoleApp5
@@ -2991,8 +2927,7 @@ count:=5)
 End Namespace")
         End Function
 
-        <WorkItem(60842, "https://github.com/dotnet/roslyn/issues/60842")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(60842, "https://github.com/dotnet/roslyn/issues/60842")>
         Public Async Function TestGenerateParameterBeforeCancellationToken_OneParameter() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Threading
@@ -3013,8 +2948,7 @@ Class Test
 End Class", index:=4)
         End Function
 
-        <WorkItem(60842, "https://github.com/dotnet/roslyn/issues/60842")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, WorkItem(60842, "https://github.com/dotnet/roslyn/issues/60842")>
         Public Async Function TestGenerateParameterBeforeCancellationToken_SeveralParameters() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Threading
@@ -3035,7 +2969,7 @@ Class Test
 End Class", index:=4)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateParameterBeforeCancellationTokenAndOptionalParameter() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Threading
@@ -3056,7 +2990,7 @@ Class Test
 End Class", index:=4)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateParameterBeforeCancellationTokenAndOptionalParameter_MultipleParameters() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Threading
@@ -3077,7 +3011,7 @@ Class Test
 End Class", index:=4)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateParameterBeforeOptionalParameter() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Threading
@@ -3098,7 +3032,7 @@ Class Test
 End Class", index:=4)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateParameterBeforeParamsParameter() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Threading
@@ -3119,7 +3053,7 @@ Class Test
 End Class", index:=4)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact>
         Public Async Function TestGenerateParameterExtensionMethod() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Runtime.CompilerServices

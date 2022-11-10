@@ -118,10 +118,10 @@ namespace Microsoft.CodeAnalysis.LanguageService
         private static bool IsFloatingPoint([NotNullWhen(returnValue: true)] ITypeSymbol? type)
             => type?.SpecialType is SpecialType.System_Single or SpecialType.System_Double;
 
-        public static IParameterSymbol FindParameterForArgument(this ISemanticFacts semanticFacts, SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken)
-            => semanticFacts.FindParameterForArgument(semanticModel, argument, allowUncertainCandidates: false, cancellationToken);
+        public static IParameterSymbol? FindParameterForArgument(this ISemanticFacts semanticFacts, SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken)
+            => semanticFacts.FindParameterForArgument(semanticModel, argument, allowUncertainCandidates: false, allowParams: false, cancellationToken);
 
-        public static IParameterSymbol FindParameterForAttributeArgument(this ISemanticFacts semanticFacts, SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken)
-            => semanticFacts.FindParameterForAttributeArgument(semanticModel, argument, allowUncertainCandidates: false, cancellationToken);
+        public static IParameterSymbol? FindParameterForAttributeArgument(this ISemanticFacts semanticFacts, SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken)
+            => semanticFacts.FindParameterForAttributeArgument(semanticModel, argument, allowUncertainCandidates: false, allowParams: false, cancellationToken);
     }
 }

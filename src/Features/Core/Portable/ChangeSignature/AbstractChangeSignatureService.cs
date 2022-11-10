@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -192,7 +191,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             {
                 ChangeSignatureAnalysisSucceededContext changeSignatureAnalyzedSucceedContext => await GetChangeSignatureResultAsync(changeSignatureAnalyzedSucceedContext, options, cancellationToken).ConfigureAwait(false),
                 CannotChangeSignatureAnalyzedContext cannotChangeSignatureAnalyzedContext => new ChangeSignatureResult(succeeded: false, changeSignatureFailureKind: cannotChangeSignatureAnalyzedContext.CannotChangeSignatureReason),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             async Task<ChangeSignatureResult> GetChangeSignatureResultAsync(ChangeSignatureAnalysisSucceededContext context, ChangeSignatureOptionsResult? options, CancellationToken cancellationToken)
@@ -1053,6 +1052,21 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             return false;
+        }
+
+        protected static int GetParameterIndexFromInvocationArgument(SyntaxNode argument, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
+            var parameter = semanticFacts.FindParameterForArgument(semanticModel, argument, cancellationToken);
+            if (parameter is null)
+                return 0;
+
+            // If we're in the invocation of an extension method that is called via this.Method(params). The 'this'
+            // argument has an ordinal value of -1 but change signature is expecting all params to start at 0 (including
+            // the 'this' param).
+            return parameter.ContainingSymbol.IsReducedExtension()
+                ? parameter.Ordinal + 1
+                : parameter.Ordinal;
         }
     }
 }

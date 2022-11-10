@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion
     /// <summary>
     /// Contextual information needed for processing completion requests.
     /// </summary>
-    internal struct XamlCompletionContext
+    internal readonly struct XamlCompletionContext
     {
         public XamlCompletionContext(TextDocument document, int offset, char triggerChar = '\0')
         {
