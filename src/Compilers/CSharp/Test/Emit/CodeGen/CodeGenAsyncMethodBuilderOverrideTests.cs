@@ -276,9 +276,9 @@ class C
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics(
-                // (9,51): error CS1997: Since 'C.F()' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task<T>'?
+                // (9,51): error CS1997: Since 'C.F()' is an async method that returns 'MyTask', a return keyword must not be followed by an object expression
                 //     static async MyTask F() { await Task.Yield(); return 1; } // 1
-                Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequired, "return").WithArguments("C.F()").WithLocation(9, 51),
+                Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequired, "return").WithArguments("C.F()", "MyTask").WithLocation(9, 51),
                 // (12,60): error CS0126: An object of a type convertible to 'T' is required
                 //     static async MyTask<T> G<T>(T t) { await Task.Yield(); return; } // 2
                 Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("T").WithLocation(12, 60),
