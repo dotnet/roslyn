@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
     internal abstract class AbstractDocumentPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> : AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>, ITextDocumentIdentifierHandler<TDiagnosticsParams, TextDocumentIdentifier?>
         where TDiagnosticsParams : IPartialResultParams<TReport[]>
+        where TReport : class
     {
         public AbstractDocumentPullDiagnosticHandler(
             IDiagnosticAnalyzerService diagnosticAnalyzerService,
@@ -38,7 +39,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     /// <typeparam name="TDiagnosticsParams">The LSP input param type</typeparam>
     /// <typeparam name="TReport">The LSP type that is reported via IProgress</typeparam>
     /// <typeparam name="TReturn">The LSP type that is returned on completion of the request.</typeparam>
-    internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> : ILspServiceRequestHandler<TDiagnosticsParams, TReturn?> where TDiagnosticsParams : IPartialResultParams<TReport[]>
+    internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> : ILspServiceRequestHandler<TDiagnosticsParams, TReturn?>
+        where TDiagnosticsParams : IPartialResultParams<TReport[]>
+        where TReport : class
     {
         /// <summary>
         /// Diagnostic mode setting for Razor.  This should always be <see cref="DiagnosticMode.Pull"/> as there is no push support in Razor.
@@ -275,7 +278,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             {
                 // We are not expecting to get any diagnostics for sources that don't have a path.
                 Contract.ThrowIfFalse(diagnostics.IsEmpty);
-                return default;
+                return null;
             }
 
             context.TraceInformation($"Found {diagnostics.Length} diagnostics for {diagnosticSource.ToDisplayString()}");
