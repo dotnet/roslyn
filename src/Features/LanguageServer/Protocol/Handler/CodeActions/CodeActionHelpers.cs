@@ -16,9 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnifiedSuggestions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 using CodeAction = Microsoft.CodeAnalysis.CodeActions.CodeAction;
-using CodeActionOptions = Microsoft.CodeAnalysis.CodeActions.CodeActionOptions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
@@ -59,16 +57,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 {
                     // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
                     if (suggestedAction.OriginalCodeAction is CodeActionWithOptions)
-                    {
                         continue;
-                    }
 
-                    // TO-DO: Re-enable code actions involving package manager once supported by LSP.
+                    // Skip code actions that requires non-document changes.  We can't apply them in LSP currently.
                     // https://github.com/dotnet/roslyn/issues/48698
-                    if (suggestedAction.OriginalCodeAction.Tags.Equals(WellKnownTagArrays.NuGet))
-                    {
+                    if (suggestedAction.OriginalCodeAction.Tags.Contains(CodeAction.RequiresNonDocumentChange))
                         continue;
-                    }
 
                     codeActions.Add(GenerateVSCodeAction(
                         request, documentText,
@@ -236,7 +230,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 }
             }
 
-            return CodeActionWithNestedActions.Create(
+            return CodeAction.CodeActionWithNestedActions.Create(
                 codeAction.Title, nestedActions.ToImmutable(), codeAction.IsInlinable, codeAction.Priority);
         }
 

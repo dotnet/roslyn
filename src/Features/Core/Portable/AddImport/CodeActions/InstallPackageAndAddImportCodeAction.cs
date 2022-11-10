@@ -28,12 +28,16 @@ namespace Microsoft.CodeAnalysis.AddImport
             /// </summary>
             private readonly InstallPackageDirectlyCodeActionOperation _installOperation;
 
+            /// <summary>
+            /// This code action only works by installing a package.  As such, it requires a non document change (and is
+            /// thus restricted in which hosts it can run).
+            /// </summary>
             public InstallPackageAndAddImportCodeAction(
                 Document originalDocument,
                 AddImportFixData fixData,
                 string title,
                 InstallPackageDirectlyCodeActionOperation installOperation)
-                : base(originalDocument, fixData)
+                : base(originalDocument, fixData, RequiresNonDocumentChangeTags)
             {
                 Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.PackageSymbol);
                 Title = title;
