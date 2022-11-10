@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
     internal abstract class AbstractDocumentPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> : AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>, ITextDocumentIdentifierHandler<TDiagnosticsParams, TextDocumentIdentifier?>
         where TDiagnosticsParams : IPartialResultParams<TReport[]>
-        where TReport : class
     {
         public AbstractDocumentPullDiagnosticHandler(
             IDiagnosticAnalyzerService diagnosticAnalyzerService,
@@ -41,7 +40,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     /// <typeparam name="TReturn">The LSP type that is returned on completion of the request.</typeparam>
     internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> : ILspServiceRequestHandler<TDiagnosticsParams, TReturn?>
         where TDiagnosticsParams : IPartialResultParams<TReport[]>
-        where TReport : class
     {
         /// <summary>
         /// Diagnostic mode setting for Razor.  This should always be <see cref="DiagnosticMode.Pull"/> as there is no push support in Razor.
@@ -171,12 +169,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     cancellationToken).ConfigureAwait(false);
                 if (newResultId != null)
                 {
-                    var diagnosticReport = await ComputeAndReportCurrentDiagnosticsAsync(
-                        context, diagnosticSource, newResultId, clientCapabilities, cancellationToken).ConfigureAwait(false);
-                    if (diagnosticReport != null)
-                    {
-                        progress.Report(diagnosticReport);
-                    }
+                    await ComputeAndReportCurrentDiagnosticsAsync(
+                        context, diagnosticSource, progress, newResultId, clientCapabilities, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -261,9 +255,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return diagnosticMode;
         }
 
-        private async Task<TReport?> ComputeAndReportCurrentDiagnosticsAsync(
+        private async Task ComputeAndReportCurrentDiagnosticsAsync(
             RequestContext context,
             IDiagnosticSource diagnosticSource,
+            BufferedProgress<TReport> progress,
             string resultId,
             ClientCapabilities clientCapabilities,
             CancellationToken cancellationToken)
@@ -278,7 +273,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             {
                 // We are not expecting to get any diagnostics for sources that don't have a path.
                 Contract.ThrowIfFalse(diagnostics.IsEmpty);
-                return null;
+                return;
             }
 
             context.TraceInformation($"Found {diagnostics.Length} diagnostics for {diagnosticSource.ToDisplayString()}");
@@ -286,7 +281,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             foreach (var diagnostic in diagnostics)
                 result.AddRange(ConvertDiagnostic(diagnosticSource, diagnostic, clientCapabilities));
 
-            return CreateReport(documentIdentifier, result.ToArray(), resultId);
+            var report = CreateReport(documentIdentifier, result.ToArray(), resultId);
+            progress.Report(report);
         }
 
         private void HandleRemovedDocuments(RequestContext context, ImmutableArray<PreviousPullResult> removedPreviousResults, BufferedProgress<TReport> progress)
