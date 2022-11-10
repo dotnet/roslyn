@@ -2290,7 +2290,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure, false));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         [WorkItem(63280, "https://github.com/dotnet/roslyn/issues/63280")]
         public async Task GenerateType_GenericBaseList()
         {
@@ -2319,7 +2319,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions, false));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateType_QualifiedBaseList()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2354,7 +2354,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Interface, false));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateType_AliasQualifiedBaseList()
         {
             await TestWithMockedGenerateTypeDialog(
