@@ -1802,5 +1802,70 @@ class C
                 #line def[||]ault
                 """, expectedText: "defaultline");
         }
+
+        [Fact, WorkItem(65311, "https://github.com/dotnet/roslyn/issues/65311")]
+        public async Task TestNotnull_OnType()
+        {
+            await Test_KeywordAsync("""
+                public class C<T> where T : not[||]null
+                {
+                }
+                """, expectedText: "notnull");
+        }
+
+        [Fact, WorkItem(65311, "https://github.com/dotnet/roslyn/issues/65311")]
+        public async Task TestNotnull_OnMethod()
+        {
+            await Test_KeywordAsync("""
+                public class C
+                {
+                    void M<T>() where T : not[||]null
+                    {
+                    }
+                }
+                """, expectedText: "notnull");
+        }
+
+        [Fact, WorkItem(65311, "https://github.com/dotnet/roslyn/issues/65311")]
+        public async Task TestNotnull_FieldName()
+        {
+            await TestAsync("""
+                public class C
+                {
+                    int not[||]null = 0;
+                }
+                """, expectedText: "C.notnull");
+        }
+
+        [Fact, WorkItem(65311, "https://github.com/dotnet/roslyn/issues/65311")]
+        public async Task TestUnmanaged_OnType()
+        {
+            await Test_KeywordAsync("""
+                public class C<T> where T : un[||]managed
+                {
+                }
+                """, expectedText: "unmanaged");
+        }
+
+        [Fact, WorkItem(65311, "https://github.com/dotnet/roslyn/issues/65311")]
+        public async Task TestUnmanaged_OnMethod()
+        {
+            await Test_KeywordAsync("""
+                public class C
+                {
+                    void M<T>() where T : un[||]managed
+                    {
+                    }
+                }
+                """, expectedText: "unmanaged");
+        }
+
+        [Fact, WorkItem(65311, "https://github.com/dotnet/roslyn/issues/65311")]
+        public async Task TestUnmanaged_LocalName()
+        {
+            await TestAsync("""
+                int un[||]managed = 0;
+                """, expectedText: "System.Int32");
+        }
     }
 }

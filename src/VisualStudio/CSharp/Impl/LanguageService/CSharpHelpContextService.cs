@@ -393,6 +393,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                         return true;
                 }
             }
+            else if (token.ValueText is "notnull" or "unmanaged")
+            {
+                if (token.Parent is IdentifierNameSyntax { Parent: TypeConstraintSyntax { Parent: TypeParameterConstraintClauseSyntax } })
+                {
+                    text = Keyword(token.ValueText);
+                    return true;
+                }
+            }
 
             text = null;
             return false;
