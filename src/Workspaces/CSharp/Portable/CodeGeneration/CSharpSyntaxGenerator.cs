@@ -243,10 +243,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode OperatorDeclaration(OperatorKind kind, IEnumerable<SyntaxNode>? parameters = null, SyntaxNode? returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default, IEnumerable<SyntaxNode>? statements = null)
         {
-            return OperatorDeclaration((int)GetTokenKind(kind), isChecked: false, isImplicitConversion: kind == OperatorKind.ImplicitConversion, parameters, returnType, accessibility, modifiers, statements);
+            return OperatorDeclaration(GetOperatorName(kind), isImplicitConversion: kind == OperatorKind.ImplicitConversion, parameters, returnType, accessibility, modifiers, statements);
         }
 
-        private protected override SyntaxNode OperatorDeclaration(int syntaxKind, bool isChecked, bool isImplicitConversion, IEnumerable<SyntaxNode>? parameters = null, SyntaxNode? returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default, IEnumerable<SyntaxNode>? statements = null)
+        private protected override SyntaxNode OperatorDeclaration(string operatorName, bool isImplicitConversion, IEnumerable<SyntaxNode>? parameters = null, SyntaxNode? returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default, IEnumerable<SyntaxNode>? statements = null)
         {
             var hasBody = !modifiers.IsAbstract && (!modifiers.IsPartial || statements != null);
             var returnTypeNode = returnType != null ? (TypeSyntax)returnType : SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword));
@@ -256,13 +256,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var modifierList = AsModifierList(accessibility, modifiers, SyntaxKind.OperatorDeclaration);
             var attributes = default(SyntaxList<AttributeListSyntax>);
 
-            if ((SyntaxKind)syntaxKind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword)
+            if (operatorName is WellKnownMemberNames.ImplicitConversionName or WellKnownMemberNames.ExplicitConversionName)
             {
+                var isImplicit = operatorName is WellKnownMemberNames.ImplicitConversionName;
                 return SyntaxFactory.ConversionOperatorDeclaration(
-                    attributes, modifierList, SyntaxFactory.Token((SyntaxKind)syntaxKind),
+                    attributes, modifierList, SyntaxFactory.Token(isImplicit ? SyntaxKind.ImplicitKeyword : SyntaxKind.ExplicitKeyword),
                     explicitInterfaceSpecifier: null,
                     SyntaxFactory.Token(SyntaxKind.OperatorKeyword),
-                    checkedKeyword: isChecked ? SyntaxFactory.Token(SyntaxKind.CheckedKeyword) : default,
+                    checkedKeyword: default,
                     returnTypeNode, parameterList, body, expressionBody: null, semicolon);
             }
             else
@@ -271,54 +272,53 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     attributes, modifierList, returnTypeNode,
                     explicitInterfaceSpecifier: null,
                     SyntaxFactory.Token(SyntaxKind.OperatorKeyword),
-                    checkedKeyword: isChecked ? SyntaxFactory.Token(SyntaxKind.CheckedKeyword) : default,
-                    SyntaxFactory.Token((SyntaxKind)syntaxKind),
+                    checkedKeyword: CSharp.SyntaxFacts.IsCheckedOperator(operatorName) ? SyntaxFactory.Token(SyntaxKind.CheckedKeyword) : default,
+                    operatorToken: SyntaxFactory.Token(GetOperatorSyntaxKind(operatorName)),
                     parameterList, body, expressionBody: null, semicolon);
             }
         }
 
-        private protected override int GetOperatorSyntaxKind(IMethodSymbol method, out bool isChecked)
+        private static SyntaxKind GetOperatorSyntaxKind(string operatorName)
         {
-            var operatorKind = CSharp.SyntaxFacts.GetOperatorKind(method.Name);
+            var operatorKind = CSharp.SyntaxFacts.GetOperatorKind(operatorName);
             if (operatorKind == SyntaxKind.None)
             {
                 throw new ArgumentException("Unknown operator kind.");
             }
 
-            isChecked = CSharp.SyntaxFacts.IsCheckedOperator(method.Name);
-            return (int)operatorKind;
+            return operatorKind;
         }
 
-        private static SyntaxKind GetTokenKind(OperatorKind kind)
+        private static string GetOperatorName(OperatorKind kind)
             => kind switch
             {
-                OperatorKind.ImplicitConversion => SyntaxKind.ImplicitKeyword,
-                OperatorKind.ExplicitConversion => SyntaxKind.ExplicitKeyword,
-                OperatorKind.Addition => SyntaxKind.PlusToken,
-                OperatorKind.BitwiseAnd => SyntaxKind.AmpersandToken,
-                OperatorKind.BitwiseOr => SyntaxKind.BarToken,
-                OperatorKind.Decrement => SyntaxKind.MinusMinusToken,
-                OperatorKind.Division => SyntaxKind.SlashToken,
-                OperatorKind.Equality => SyntaxKind.EqualsEqualsToken,
-                OperatorKind.ExclusiveOr => SyntaxKind.CaretToken,
-                OperatorKind.False => SyntaxKind.FalseKeyword,
-                OperatorKind.GreaterThan => SyntaxKind.GreaterThanToken,
-                OperatorKind.GreaterThanOrEqual => SyntaxKind.GreaterThanEqualsToken,
-                OperatorKind.Increment => SyntaxKind.PlusPlusToken,
-                OperatorKind.Inequality => SyntaxKind.ExclamationEqualsToken,
-                OperatorKind.LeftShift => SyntaxKind.LessThanLessThanToken,
-                OperatorKind.LessThan => SyntaxKind.LessThanToken,
-                OperatorKind.LessThanOrEqual => SyntaxKind.LessThanEqualsToken,
-                OperatorKind.LogicalNot => SyntaxKind.ExclamationToken,
-                OperatorKind.Modulus => SyntaxKind.PercentToken,
-                OperatorKind.Multiply => SyntaxKind.AsteriskToken,
-                OperatorKind.OnesComplement => SyntaxKind.TildeToken,
-                OperatorKind.RightShift => SyntaxKind.GreaterThanGreaterThanToken,
-                OperatorKind.UnsignedRightShift => SyntaxKind.GreaterThanGreaterThanGreaterThanToken,
-                OperatorKind.Subtraction => SyntaxKind.MinusToken,
-                OperatorKind.True => SyntaxKind.TrueKeyword,
-                OperatorKind.UnaryNegation => SyntaxKind.MinusToken,
-                OperatorKind.UnaryPlus => SyntaxKind.PlusToken,
+                OperatorKind.ImplicitConversion => WellKnownMemberNames.ImplicitConversionName,
+                OperatorKind.ExplicitConversion => WellKnownMemberNames.ExplicitConversionName,
+                OperatorKind.Addition => WellKnownMemberNames.AdditionOperatorName,
+                OperatorKind.BitwiseAnd => WellKnownMemberNames.BitwiseAndOperatorName,
+                OperatorKind.BitwiseOr => WellKnownMemberNames.BitwiseOrOperatorName,
+                OperatorKind.Decrement => WellKnownMemberNames.DecrementOperatorName,
+                OperatorKind.Division => WellKnownMemberNames.DivisionOperatorName,
+                OperatorKind.Equality => WellKnownMemberNames.EqualityOperatorName,
+                OperatorKind.ExclusiveOr => WellKnownMemberNames.ExclusiveOrOperatorName,
+                OperatorKind.False => WellKnownMemberNames.FalseOperatorName,
+                OperatorKind.GreaterThan => WellKnownMemberNames.GreaterThanOperatorName,
+                OperatorKind.GreaterThanOrEqual => WellKnownMemberNames.GreaterThanOrEqualOperatorName,
+                OperatorKind.Increment => WellKnownMemberNames.IncrementOperatorName,
+                OperatorKind.Inequality => WellKnownMemberNames.InequalityOperatorName,
+                OperatorKind.LeftShift => WellKnownMemberNames.LeftShiftOperatorName,
+                OperatorKind.LessThan => WellKnownMemberNames.LessThanOperatorName,
+                OperatorKind.LessThanOrEqual => WellKnownMemberNames.LessThanOrEqualOperatorName,
+                OperatorKind.LogicalNot => WellKnownMemberNames.LogicalNotOperatorName,
+                OperatorKind.Modulus => WellKnownMemberNames.ModulusOperatorName,
+                OperatorKind.Multiply => WellKnownMemberNames.MultiplyOperatorName,
+                OperatorKind.OnesComplement => WellKnownMemberNames.OnesComplementOperatorName,
+                OperatorKind.RightShift => WellKnownMemberNames.RightShiftOperatorName,
+                OperatorKind.UnsignedRightShift => WellKnownMemberNames.UnsignedRightShiftOperatorName,
+                OperatorKind.Subtraction => WellKnownMemberNames.SubtractionOperatorName,
+                OperatorKind.True => WellKnownMemberNames.TrueOperatorName,
+                OperatorKind.UnaryNegation => WellKnownMemberNames.UnaryNegationOperatorName,
+                OperatorKind.UnaryPlus => WellKnownMemberNames.UnaryPlusOperatorName,
                 _ => throw new ArgumentException("Unknown operator kind."),
             };
 

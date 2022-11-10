@@ -203,8 +203,7 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         private protected abstract SyntaxNode OperatorDeclaration(
-            int syntaxKind,
-            bool isChecked,
+            string operatorName,
             bool isImplicitConversion,
             IEnumerable<SyntaxNode>? parameters = null,
             SyntaxNode? returnType = null,
@@ -227,10 +226,8 @@ namespace Microsoft.CodeAnalysis.Editing
             Debug.Assert(!method.Name.Equals(WellKnownMemberNames.ImplicitConversionName, StringComparison.OrdinalIgnoreCase));
             Debug.Assert(!method.Name.Equals(WellKnownMemberNames.ExplicitConversionName, StringComparison.OrdinalIgnoreCase));
 
-            var kind = GetOperatorSyntaxKind(method, out var isChecked);
             var decl = OperatorDeclaration(
-                kind,
-                isChecked,
+                method.Name,
                 isImplicitConversion: false,
                 parameters: method.Parameters.Select(p => ParameterDeclaration(p)),
                 returnType: method.ReturnType.IsSystemVoid() ? null : TypeExpression(method.ReturnType),
@@ -240,8 +237,6 @@ namespace Microsoft.CodeAnalysis.Editing
 
             return decl;
         }
-
-        private protected abstract int GetOperatorSyntaxKind(IMethodSymbol method, out bool isChecked);
 
         /// <summary>
         /// Creates a parameter declaration.
