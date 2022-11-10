@@ -28,11 +28,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         public bool CanFilter => true;
 
         private static Func<RoslynNavigateToItem, Task> GetOnItemFoundCallback(
-            Solution solution, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
+            Solution solution, Document? activeDocument, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
         {
             return async item =>
             {
-                var result = await item.TryCreateSearchResultAsync(solution, cancellationToken).ConfigureAwait(false);
+                var result = await item.TryCreateSearchResultAsync(solution, activeDocument, cancellationToken).ConfigureAwait(false);
                 if (result != null)
                     await onResultFound(result).ConfigureAwait(false);
             };

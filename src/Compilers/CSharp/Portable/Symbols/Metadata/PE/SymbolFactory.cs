@@ -46,9 +46,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return new PointerTypeSymbol(CreateType(type, customModifiers));
         }
 
-        internal override TypeSymbol MakeFunctionPointerTypeSymbol(Cci.CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes)
+        internal override TypeSymbol MakeFunctionPointerTypeSymbol(PEModuleSymbol moduleSymbol, Cci.CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes)
         {
-            return FunctionPointerTypeSymbol.CreateFromMetadata(callingConvention, retAndParamTypes);
+            return FunctionPointerTypeSymbol.CreateFromMetadata(moduleSymbol, callingConvention, retAndParamTypes);
         }
 
         internal override TypeSymbol GetEnumUnderlyingType(PEModuleSymbol moduleSymbol, TypeSymbol type)

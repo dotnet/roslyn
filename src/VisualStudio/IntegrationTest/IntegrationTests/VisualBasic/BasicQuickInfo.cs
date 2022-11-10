@@ -12,6 +12,7 @@ using Xunit.Abstractions;
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.QuickInfo)]
     public class BasicQuickInfo : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
@@ -21,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/38301"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/38301")]
         public void QuickInfo1()
         {
             SetUpEditor(@"
@@ -34,7 +35,7 @@ End Class");
             Assert.Equal("Class System.String\r\nRepresents text as a sequence of UTF-16 code units.To browse the .NET Framework source code for this type, see the Reference Source.", VisualStudio.Editor.GetQuickInfo());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/62280"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/62280")]
         public void International()
         {
             SetUpEditor(@"

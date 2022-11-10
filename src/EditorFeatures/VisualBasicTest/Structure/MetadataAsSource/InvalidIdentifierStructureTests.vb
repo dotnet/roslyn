@@ -13,6 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
     ''' Identifiers coming from IL can be just about any valid string and since VB doesn't have a way to escape all possible
     ''' IL identifiers, we have to account for the possibility that an item's metadata name could lead to unparseable code.
     ''' </summary>
+    <Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
     Public Class InvalidIdentifierTests
         Inherits AbstractSyntaxStructureProviderTests
 
@@ -34,8 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
             Return (Await outliningService.GetBlockStructureAsync(document, options, CancellationToken.None)).Spans
         End Function
 
-        <WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")>
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact, WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")>
         Public Async Function PrependDollarSign() As Task
             Const code = "
 {|hint:{|textspan:$$Class C
@@ -46,8 +46,7 @@ End Class|}|}
                 Region("textspan", "hint", "Class C " & Ellipsis, autoCollapse:=False))
         End Function
 
-        <WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")>
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact, WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")>
         Public Async Function SymbolsAndPunctuation() As Task
             Const code = "
 $$Class C
@@ -57,8 +56,7 @@ End Class
             Await VerifyNoBlockSpansAsync(code)
         End Function
 
-        <WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")>
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact, WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")>
         Public Async Function IdentifierThatLooksLikeCode() As Task
             Const code = "
 {|hint1:{|textspan1:$$Class C

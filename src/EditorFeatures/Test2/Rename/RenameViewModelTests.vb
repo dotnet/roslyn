@@ -5,15 +5,20 @@
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+Imports Microsoft.CodeAnalysis.Editor.InlineRename
 Imports Microsoft.CodeAnalysis.InlineRename
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename
+Imports Microsoft.CodeAnalysis.[Shared].TestHooks
+Imports Microsoft.VisualStudio.Language.Intellisense
+Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Rename)>
     Public Class RenameViewModelTests
         <WpfTheory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CombinatorialData>
         Public Async Function RenameWithNoOverload(host As RenameTestHost) As Task
             Await VerifyViewModels(
                     (<Workspace>
@@ -39,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         End Function
 
         <WpfTheory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CombinatorialData>
         Public Async Function RenameWithOverload(host As RenameTestHost) As Task
             Await VerifyViewModels(
                     (<Workspace>
@@ -69,9 +74,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     renameOverloads:=True)
         End Function
 
-        <WpfTheory>
-        <WorkItem(883263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883263")>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WpfTheory, WorkItem(883263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883263")>
+        <CombinatorialData>
         Public Async Function RenameWithInvalidOverload(host As RenameTestHost) As Task
             Await VerifyViewModels(
                 <Workspace>
@@ -100,7 +104,7 @@ class Program
         End Function
 
         <WpfTheory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CombinatorialData>
         <WorkItem(853839, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853839")>
         Public Async Function RenameAttributeAlias(host As RenameTestHost) As Task
             Await VerifyViewModels(
@@ -120,7 +124,7 @@ class AttributeAttribute : System.Attribute { }
         End Function
 
         <WpfTheory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CombinatorialData>
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         Public Async Function RenameWithOverloadAndInStringsAndComments(host As RenameTestHost) As Task
             Await VerifyViewModels(
@@ -157,7 +161,7 @@ class AttributeAttribute : System.Attribute { }
         End Function
 
         <WpfTheory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CombinatorialData>
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         Public Async Function RenameInComments(host As RenameTestHost) As Task
             Await VerifyViewModels(
@@ -195,7 +199,7 @@ class $$Program
         End Function
 
         <WpfTheory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CombinatorialData>
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         Public Async Function RenameInStrings(host As RenameTestHost) As Task
             Await VerifyViewModels(
@@ -233,7 +237,7 @@ class $$Program
         End Function
 
         <WpfTheory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CombinatorialData>
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         Public Async Function RenameInCommentsAndStrings(host As RenameTestHost) As Task
             Await VerifyViewModels(
@@ -272,7 +276,7 @@ class $$Program
         End Function
 
         <WpfTheory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CombinatorialData>
         Public Async Function NonConflictingEditWithMultipleLocations(host As RenameTestHost) As Task
             Await VerifyViewModels(
                     (<Workspace>
@@ -293,7 +297,7 @@ class $$Program
         End Function
 
         <WpfTheory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CombinatorialData>
         Public Async Function NonConflictingEditWithSingleLocation(host As RenameTestHost) As Task
             Await VerifyViewModels(
                     (<Workspace>
@@ -314,7 +318,7 @@ class $$Program
         End Function
 
         <WpfTheory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CombinatorialData>
         Public Async Function ParameterConflictingWithInstanceField(host As RenameTestHost) As Task
             Await VerifyViewModels(
                 (<Workspace>
@@ -339,7 +343,7 @@ class $$Program
 
         <WorkItem(5923, "DevDiv_Projects/Roslyn")>
         <WpfTheory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CombinatorialData>
         Public Async Function ParameterConflictingWithInstanceFieldMoreThanOnce(host As RenameTestHost) As Task
             Await VerifyViewModels(
                 (<Workspace>
@@ -363,7 +367,7 @@ class $$Program
         End Function
 
         <WpfTheory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CombinatorialData>
         Public Async Function ParameterConflictingWithLocal_Unresolvable(host As RenameTestHost) As Task
             Await VerifyViewModels(
                 (<Workspace>
@@ -386,7 +390,7 @@ class $$Program
         End Function
 
         <WpfTheory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CombinatorialData>
         Public Async Function MoreThanOneUnresolvableConflicts(host As RenameTestHost) As Task
             Await VerifyViewModels(
                 (<Workspace>
@@ -411,7 +415,7 @@ class $$Program
         End Function
 
         <WpfTheory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CombinatorialData>
         Public Async Function ConflictsAcrossLanguages_Resolvable(host As RenameTestHost) As Task
             Await VerifyViewModels(
                 (<Workspace>
@@ -448,7 +452,7 @@ class $$Program
         End Function
 
         <WpfTheory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CombinatorialData>
         Public Async Function RenameWithNameof_FromDefinition_DoesNotForceRenameOverloadsOption(host As RenameTestHost) As Task
             Await VerifyViewModels(
                 (<Workspace>
@@ -472,7 +476,7 @@ class C
         End Function
 
         <WpfTheory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CombinatorialData>
         Public Async Function RenameWithNameof_FromReference_DoesForceRenameOverloadsOption(host As RenameTestHost) As Task
             Await VerifyViewModels(
                 (<Workspace>
@@ -496,7 +500,7 @@ class C
         End Function
 
         <WpfTheory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CombinatorialData>
         Public Async Function RenameWithNameof_FromDefinition_WithRenameOverloads_Cascading(host As RenameTestHost) As Task
             Await VerifyViewModels(
                 (<Workspace>
@@ -613,9 +617,15 @@ class D : B
                     Assert.Equal(severity, model.Severity)
                 End Using
 
+                Dim TestQuickInfoBroker = New TestQuickInfoBroker()
+                Dim listenerProvider = workspace.ExportProvider.GetExport(Of IAsynchronousOperationListenerProvider)().Value
+
                 Using flyout = New RenameFlyout(
-                    New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False), ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
-                    textView:=cursorDocument.GetTextView())
+                    New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions), ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
+                    textView:=cursorDocument.GetTextView(),
+                    themeService:=Nothing,
+                    TestQuickInfoBroker,
+                    listenerProvider)
 
                     Await WaitForRename(workspace)
 
@@ -627,6 +637,12 @@ class D : B
                     If Not isRenameOverloadsEditable Then
                         Assert.True(model.RenameOverloadsFlag)
                     End If
+
+                    Dim waiter = listenerProvider.GetWaiter(FeatureAttribute.InlineRenameFlyout)
+                    Await waiter.ExpeditedWaitAsync()
+
+                    Dim QuickInfoSession = DirectCast(TestQuickInfoBroker.GetSession(cursorDocument.GetTextView()), TestQuickInfoBroker.TestSession)
+                    Assert.True(QuickInfoSession.Dismissed)
                 End Using
 
                 sessionInfo.Session.Cancel()
@@ -634,7 +650,7 @@ class D : B
         End Function
 
         <WpfTheory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CombinatorialData>
         Public Async Function RenameWithReferenceInUnchangeableDocument(host As RenameTestHost) As Task
             Await VerifyViewModels(
                     (<Workspace>
@@ -659,5 +675,133 @@ class D : B
                     searchResultText:=EditorFeaturesResources.Rename_will_update_1_reference_in_1_file,
                     renameOverloads:=True)
         End Function
+
+        <WpfTheory>
+        <CombinatorialData>
+        Public Sub RenameFlyoutRemembersCollapsedState(host As RenameTestHost)
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>
+                                class Program
+                                {
+                                    public void $$goo()
+                                    {
+                                    }
+                                }
+                            </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = CreateWorkspaceWithWaiter(test, host)
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
+                globalOptions.SetGlobalOption(New OptionKey(InlineRenameUIOptions.CollapseUI), False)
+
+                Dim cursorDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
+                Dim renameService = DirectCast(workspace.GetService(Of IInlineRenameService)(), InlineRenameService)
+
+                Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
+                Assert.NotNull(document)
+
+                Dim cursorPosition = cursorDocument.CursorPosition.Value
+                Dim sessionInfo = renameService.StartInlineSession(
+                    document, document.GetSyntaxTreeAsync().Result.GetRoot().FindToken(cursorPosition).Span, CancellationToken.None)
+
+                Dim vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
+                Assert.False(vm.IsCollapsed)
+                Assert.True(vm.IsExpanded)
+                vm.IsCollapsed = True
+
+                vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
+                Assert.True(vm.IsCollapsed)
+                Assert.False(vm.IsExpanded)
+
+            End Using
+        End Sub
+    End Class
+
+    Friend Class TestQuickInfoBroker
+        Implements IAsyncQuickInfoBroker
+
+        Private ReadOnly Session As TestSession = New TestSession()
+
+        Public Function IsQuickInfoActive(textView As VisualStudio.Text.Editor.ITextView) As Boolean Implements IAsyncQuickInfoBroker.IsQuickInfoActive
+            Return False
+        End Function
+
+        Public Function TriggerQuickInfoAsync(textView As VisualStudio.Text.Editor.ITextView, Optional triggerPoint As VisualStudio.Text.ITrackingPoint = Nothing, Optional options As QuickInfoSessionOptions = QuickInfoSessionOptions.None, Optional cancellationToken As CancellationToken = Nothing) As Task(Of IAsyncQuickInfoSession) Implements IAsyncQuickInfoBroker.TriggerQuickInfoAsync
+            Throw New NotImplementedException()
+        End Function
+
+        Public Function GetQuickInfoItemsAsync(textView As VisualStudio.Text.Editor.ITextView, triggerPoint As VisualStudio.Text.ITrackingPoint, cancellationToken As CancellationToken) As Task(Of QuickInfoItemsCollection) Implements IAsyncQuickInfoBroker.GetQuickInfoItemsAsync
+            Throw New NotImplementedException()
+        End Function
+
+        Public Function GetSession(textView As VisualStudio.Text.Editor.ITextView) As IAsyncQuickInfoSession Implements IAsyncQuickInfoBroker.GetSession
+            Return Session
+        End Function
+
+        Public Class TestSession
+            Implements IAsyncQuickInfoSession
+
+            Public Dismissed As Boolean = False
+
+            Public ReadOnly Property ApplicableToSpan As VisualStudio.Text.ITrackingSpan Implements IAsyncQuickInfoSession.ApplicableToSpan
+                Get
+                    Throw New NotImplementedException()
+                End Get
+            End Property
+
+            Public ReadOnly Property Content As IEnumerable(Of Object) Implements IAsyncQuickInfoSession.Content
+                Get
+                    Throw New NotImplementedException()
+                End Get
+            End Property
+
+            Public ReadOnly Property HasInteractiveContent As Boolean Implements IAsyncQuickInfoSession.HasInteractiveContent
+                Get
+                    Throw New NotImplementedException()
+                End Get
+            End Property
+
+            Public ReadOnly Property Options As QuickInfoSessionOptions Implements IAsyncQuickInfoSession.Options
+                Get
+                    Throw New NotImplementedException()
+                End Get
+            End Property
+
+            Public ReadOnly Property State As QuickInfoSessionState Implements IAsyncQuickInfoSession.State
+                Get
+                    Throw New NotImplementedException()
+                End Get
+            End Property
+
+            Public ReadOnly Property TextView As VisualStudio.Text.Editor.ITextView Implements IAsyncQuickInfoSession.TextView
+                Get
+                    Throw New NotImplementedException()
+                End Get
+            End Property
+
+            Public ReadOnly Property Properties As PropertyCollection Implements IPropertyOwner.Properties
+                Get
+                    Throw New NotImplementedException()
+                End Get
+            End Property
+
+            Public Event StateChanged As EventHandler(Of QuickInfoSessionStateChangedEventArgs) Implements IAsyncQuickInfoSession.StateChanged
+
+            Public Function GetTriggerPoint(textBuffer As VisualStudio.Text.ITextBuffer) As VisualStudio.Text.ITrackingPoint Implements IAsyncQuickInfoSession.GetTriggerPoint
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function GetTriggerPoint(snapshot As VisualStudio.Text.ITextSnapshot) As VisualStudio.Text.SnapshotPoint? Implements IAsyncQuickInfoSession.GetTriggerPoint
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function DismissAsync() As Task Implements IAsyncQuickInfoSession.DismissAsync
+                Dismissed = True
+
+                Return Task.CompletedTask
+            End Function
+        End Class
     End Class
 End Namespace

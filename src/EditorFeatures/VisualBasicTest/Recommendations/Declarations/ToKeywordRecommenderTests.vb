@@ -3,76 +3,75 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class ToKeywordRecommenderTests
         Inherits RecommenderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NoToWithEmptyBoundInDimTest()
             VerifyRecommendationsMissing(<MethodBody>Dim i( |</MethodBody>, "To")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ToAfterLowerBoundInDimTest()
             VerifyRecommendationsContain(<MethodBody>Dim i(0 |</MethodBody>, "To")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NoToAfterUpperBoundInDimTest()
             VerifyRecommendationsMissing(<MethodBody>Dim i(0 To 4 |</MethodBody>, "To")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NoToAfterCommaInDimTest()
             VerifyRecommendationsMissing(<MethodBody>Dim i(0 To 4, |</MethodBody>, "To")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ToAfterSecondLowerBoundInDimTest()
             VerifyRecommendationsContain(<MethodBody>Dim i(0 To 4, 0 |</MethodBody>, "To")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NoToWithEmptyBoundInReDimTest()
             VerifyRecommendationsMissing(<MethodBody>ReDim i( |</MethodBody>, "To")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ToAfterLowerBoundInReDimTest()
             VerifyRecommendationsContain(<MethodBody>ReDim i(0 |</MethodBody>, "To")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NoToAfterUpperBoundInReDimTest()
             VerifyRecommendationsMissing(<MethodBody>ReDim i(0 To 4 |</MethodBody>, "To")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NoToAfterCommaInReDimTest()
             VerifyRecommendationsMissing(<MethodBody>ReDim i(0 To 4, |</MethodBody>, "To")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ToAfterSecondLowerBoundInReDimTest()
             VerifyRecommendationsContain(<MethodBody>ReDim i(0 To 4, 0 |</MethodBody>, "To")
         End Sub
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub NotAfterEolTest()
             VerifyRecommendationsMissing(
 <MethodBody>Dim i(0 
 |</MethodBody>, "To")
         End Sub
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub AfterExplicitLineContinuationTest()
             VerifyRecommendationsContain(
 <MethodBody>Dim i(0 _
 |</MethodBody>, "To")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AfterExplicitLineContinuationTestCommentsAfterLineContinuation()
             VerifyRecommendationsContain(
 <MethodBody>Dim i(0 _ ' Test

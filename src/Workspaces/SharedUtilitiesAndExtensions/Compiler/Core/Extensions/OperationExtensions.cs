@@ -386,5 +386,72 @@ namespace Microsoft.CodeAnalysis
 
             return operation;
         }
+
+        public static bool IsSingleThrowNotImplementedOperation([NotNullWhen(true)] this IOperation? firstBlock)
+        {
+            if (firstBlock is null)
+                return false;
+
+            var compilation = firstBlock.SemanticModel!.Compilation;
+            var notImplementedExceptionType = compilation.NotImplementedExceptionType();
+            if (notImplementedExceptionType == null)
+                return false;
+
+            if (firstBlock is not IBlockOperation block)
+                return false;
+
+            if (block.Operations.Length == 0)
+                return false;
+
+            var firstOp = block.Operations.Length == 1
+                ? block.Operations[0]
+                : TryGetSingleExplicitStatement(block.Operations);
+            if (firstOp == null)
+                return false;
+
+            if (firstOp is IExpressionStatementOperation expressionStatement)
+            {
+                // unwrap: { throw new NYI(); }
+                firstOp = expressionStatement.Operation;
+            }
+            else if (firstOp is IReturnOperation returnOperation)
+            {
+                // unwrap: 'int M(int p) => throw new NYI();'
+                // For this case, the throw operation is wrapped within a conversion operation to 'int',
+                // which in turn is wrapped within a return operation.
+                firstOp = returnOperation.ReturnedValue.WalkDownConversion();
+            }
+
+            // => throw new NotImplementedOperation(...)
+            return IsThrowNotImplementedOperation(notImplementedExceptionType, firstOp);
+
+            static IOperation? TryGetSingleExplicitStatement(ImmutableArray<IOperation> operations)
+            {
+                IOperation? firstOp = null;
+                foreach (var operation in operations)
+                {
+                    if (operation.IsImplicit)
+                        continue;
+
+                    if (firstOp != null)
+                        return null;
+
+                    firstOp = operation;
+                }
+
+                return firstOp;
+            }
+
+            static bool IsThrowNotImplementedOperation(INamedTypeSymbol notImplementedExceptionType, IOperation? operation)
+                => operation is IThrowOperation throwOperation &&
+                   throwOperation.Exception.UnwrapImplicitConversion() is IObjectCreationOperation objectCreation &&
+                   notImplementedExceptionType.Equals(objectCreation.Type);
+        }
+
+        [return: NotNullIfNotNull("value")]
+        public static IOperation? UnwrapImplicitConversion(this IOperation? value)
+            => value is IConversionOperation conversion && conversion.IsImplicit
+                ? conversion.Operand
+                : value;
     }
 }

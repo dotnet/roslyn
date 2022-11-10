@@ -60,56 +60,73 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static Document? GetDocument(this Solution solution, TextDocumentIdentifier documentIdentifier)
         {
             var documents = solution.GetDocuments(documentIdentifier.Uri);
-            if (documents.Length == 0)
-            {
-                return null;
-            }
-
-            return documents.FindDocumentInProjectContext(documentIdentifier);
+            return documents.Length == 0
+                ? null
+                : documents.FindDocumentInProjectContext(documentIdentifier, (sln, id) => sln.GetRequiredDocument(id));
         }
 
-        public static Document FindDocumentInProjectContext(this ImmutableArray<Document> documents, TextDocumentIdentifier documentIdentifier)
+        private static T FindItemInProjectContext<T>(
+            ImmutableArray<T> items,
+            TextDocumentIdentifier itemIdentifier,
+            Func<T, ProjectId> projectIdGetter,
+            Func<T> defaultGetter)
         {
-            if (documents.Length > 1)
+            if (items.Length > 1)
             {
                 // We have more than one document; try to find the one that matches the right context
-                if (documentIdentifier is VSTextDocumentIdentifier vsDocumentIdentifier && vsDocumentIdentifier.ProjectContext != null)
+                if (itemIdentifier is VSTextDocumentIdentifier vsDocumentIdentifier && vsDocumentIdentifier.ProjectContext != null)
                 {
                     var projectId = ProtocolConversions.ProjectContextToProjectId(vsDocumentIdentifier.ProjectContext);
-                    var matchingDocument = documents.FirstOrDefault(d => d.Project.Id == projectId);
+                    var matchingItem = items.FirstOrDefault(d => projectIdGetter(d) == projectId);
 
-                    if (matchingDocument != null)
+                    if (matchingItem != null)
                     {
-                        return matchingDocument;
+                        return matchingItem;
                     }
                 }
                 else
                 {
-                    // We were not passed a project context.  This can happen when the LSP powered NavBar is not enabled.
-                    // This branch should be removed when we're using the LSP based navbar in all scenarios.
-
-                    var solution = documents.First().Project.Solution;
-                    // Lookup which of the linked documents is currently active in the workspace.
-                    var documentIdInCurrentContext = solution.Workspace.GetDocumentIdInCurrentContext(documents.First().Id);
-                    return solution.GetRequiredDocument(documentIdInCurrentContext);
+                    return defaultGetter();
                 }
             }
 
-            // We either have only one document or have multiple, but none of them  matched our context. In the
+            // We either have only one item or have multiple, but none of them  matched our context. In the
             // latter case, we'll just return the first one arbitrarily since this might just be some temporary mis-sync
             // of client and server state.
-            return documents[0];
+            return items[0];
+        }
+
+        public static T FindDocumentInProjectContext<T>(this ImmutableArray<T> documents, TextDocumentIdentifier documentIdentifier, Func<Solution, DocumentId, T> documentGetter) where T : TextDocument
+        {
+            return FindItemInProjectContext(documents, documentIdentifier, projectIdGetter: (item) => item.Project.Id, defaultGetter: () =>
+            {
+                // We were not passed a project context.  This can happen when the LSP powered NavBar is not enabled.
+                // This branch should be removed when we're using the LSP based navbar in all scenarios.
+
+                var solution = documents.First().Project.Solution;
+                // Lookup which of the linked documents is currently active in the workspace.
+                var documentIdInCurrentContext = solution.Workspace.GetDocumentIdInCurrentContext(documents.First().Id);
+                return documentGetter(solution, documentIdInCurrentContext);
+            });
         }
 
         public static Project? GetProject(this Solution solution, TextDocumentIdentifier projectIdentifier)
-            => solution.Projects.Where(project => project.FilePath == projectIdentifier.Uri.LocalPath).SingleOrDefault();
+        {
+            var projects = solution.Projects.Where(project => project.FilePath == projectIdentifier.Uri.LocalPath).ToImmutableArray();
+            return !projects.Any()
+                ? null
+                : FindItemInProjectContext(projects, projectIdentifier, projectIdGetter: (item) => item.Id, defaultGetter: () => projects[0]);
+        }
 
         public static TextDocument? GetAdditionalDocument(this Solution solution, TextDocumentIdentifier documentIdentifier)
         {
             var documentIds = GetDocumentIds(solution, documentIdentifier.Uri);
 
             // We don't call GetRequiredAdditionalDocument as the id could be referring to a regular document.
-            return documentIds.Select(solution.GetAdditionalDocument).WhereNotNull().SingleOrDefault();
+            var additionalDocuments = documentIds.Select(solution.GetAdditionalDocument).WhereNotNull().ToImmutableArray();
+            return !additionalDocuments.Any()
+                ? null
+                : additionalDocuments.FindDocumentInProjectContext(documentIdentifier, (sln, id) => sln.GetRequiredAdditionalDocument(id));
         }
 
         public static async Task<int> GetPositionFromLinePositionAsync(this TextDocument document, LinePosition linePosition, CancellationToken cancellationToken)

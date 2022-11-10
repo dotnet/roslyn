@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
     internal partial class PackageInstallerService
     {
-        private struct ProjectState
+        private readonly struct ProjectState
         {
             public static readonly ProjectState Disabled = new(isEnabled: false, ImmutableDictionary<string, string>.Empty);
 

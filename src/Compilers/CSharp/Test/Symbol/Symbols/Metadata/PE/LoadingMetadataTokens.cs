@@ -36,7 +36,8 @@ public class C
 
 public struct S
 {
-}");
+}",
+                parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
 
             CompileAndVerify(compilation, symbolValidator: module =>
             {

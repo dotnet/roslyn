@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (type != null)
             {
                 if (type.Parent is BaseTypeSyntax baseType &&
-                    baseType.IsParentKind(SyntaxKind.BaseList, out BaseListSyntax baseList) &&
+                    baseType.Parent is BaseListSyntax baseList &&
                     baseType.Type == type)
                 {
                     var containingType = semanticModel.GetDeclaredSymbol(type.GetAncestor<BaseTypeDeclarationSyntax>(), cancellationToken);
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // 4) The type of a constant must be at least as accessible as the constant itself.
             // 5) The type of a field must be at least as accessible as the field itself.
-            if (type.IsParentKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax variableDeclaration) &&
+            if (type?.Parent is VariableDeclarationSyntax variableDeclaration &&
                 variableDeclaration.IsParentKind(SyntaxKind.FieldDeclaration))
             {
                 return semanticModel.GetDeclaredSymbol(

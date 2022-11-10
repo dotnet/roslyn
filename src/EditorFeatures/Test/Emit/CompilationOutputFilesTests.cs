@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Emit.UnitTests
         {
             var source = @"class C { public static void Main() { int x = 1; } }";
 
-            var compilation = CSharpTestBase.CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, assemblyName: "lib");
+            var compilation = CSharpTestBase.CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll, assemblyName: "lib");
             var pdbStream = new MemoryStream();
             var peImage = compilation.EmitToArray(new EmitOptions(debugInformationFormat: DebugInformationFormat.PortablePdb), pdbStream: pdbStream);
             pdbStream.Position = 0;

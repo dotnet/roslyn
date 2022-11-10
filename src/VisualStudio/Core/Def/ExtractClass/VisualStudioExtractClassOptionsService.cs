@@ -83,6 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
             var viewModel = new ExtractClassViewModel(
                 _uiThreadOperationExecutor,
                 notificationService,
+                selectedType,
                 memberViewModels,
                 memberToDependentsMap,
                 defaultTypeName,

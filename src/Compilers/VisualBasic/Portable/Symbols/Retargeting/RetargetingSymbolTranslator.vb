@@ -337,14 +337,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
                     mdName = MetadataTypeName.FromTypeName(type.MetadataName, forcedArity:=type.Arity)
                     result = scope.LookupMetadataType(mdName)
-                    Debug.Assert(result IsNot Nothing)
-                    Debug.Assert(result.Arity = type.Arity)
                 Else
                     Dim namespaceName As String = If(type.GetEmittedNamespaceName(), type.ContainingNamespace.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat))
                     mdName = MetadataTypeName.FromNamespaceAndTypeName(namespaceName, type.MetadataName, forcedArity:=type.Arity)
                     result = addedModule.LookupTopLevelMetadataType(mdName)
-                    Debug.Assert(result.Arity = type.Arity)
                 End If
+
+                Debug.Assert(If(TryCast(result, PENamedTypeSymbol)?.Handle = type.Handle, False))
 
                 Return result
             End Function
@@ -367,14 +366,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                         Dim scope As NamedTypeSymbol = PerformTypeRetargeting(destination, containingType)
                         mdName = MetadataTypeName.FromTypeName(type.MetadataName, forcedArity:=type.Arity)
                         result1 = scope.LookupMetadataType(mdName)
-                        Debug.Assert(result1 IsNot Nothing)
-                        Debug.Assert(result1.Arity = type.Arity)
+
+                        If result1 Is Nothing Then
+                            result1 = New MissingMetadataTypeSymbol.Nested(scope, mdName)
+                        Else
+                            Debug.Assert(Not result1.IsErrorType())
+                        End If
                     Else
                         Dim namespaceName As String = If(type.GetEmittedNamespaceName(), type.ContainingNamespace.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat))
                         mdName = MetadataTypeName.FromNamespaceAndTypeName(namespaceName, type.MetadataName, forcedArity:=type.Arity)
-                        result1 = destination.To.LookupTopLevelMetadataType(mdName, digThroughForwardedTypes:=True)
-                        Debug.Assert(result1.Arity = type.Arity)
+                        result1 = destination.To.LookupDeclaredOrForwardedTopLevelMetadataType(mdName, visitedAssemblies:=Nothing)
                     End If
+
+                    Debug.Assert(result1.Arity = type.Arity)
 
                     result = destination.SymbolMap.GetOrAdd(type, result1)
                     Debug.Assert(result1.Equals(result))
@@ -699,7 +703,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                                                     newCtorArguments,
                                                     newNamedArguments,
                                                     oldAttribute.IsConditionallyOmitted,
-                                                    oldAttribute.HasErrors)
+                                                    hasErrors:=oldAttribute.HasErrors OrElse newAttributeCtor Is Nothing)
             End Function
 
             Private Function RetargetAttributeConstructorArguments(constructorArguments As ImmutableArray(Of TypedConstant)) As ImmutableArray(Of TypedConstant)

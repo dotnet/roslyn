@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         /// <summary>
-        /// Constructor for a code style analyzer with a multiple diagnostic descriptors with zero or more code style options that can be used to configure each descriptor.
+        /// Constructor for a code style analyzer with multiple diagnostic descriptors with zero or more code style options that can be used to configure each descriptor.
         /// </summary>
         protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(ImmutableDictionary<DiagnosticDescriptor, ImmutableHashSet<IOption2>> supportedDiagnosticsWithOptions)
             : this(supportedDiagnosticsWithOptions.Keys.ToImmutableArray())

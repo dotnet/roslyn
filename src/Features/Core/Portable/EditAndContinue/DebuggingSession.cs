@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal sealed class DebuggingSession : IDisposable
     {
         private readonly Func<Project, CompilationOutputs> _compilationOutputsProvider;
+        internal readonly IPdbMatchingSourceTextProvider SourceTextProvider;
         private readonly CancellationTokenSource _cancellationSource = new();
 
         /// <summary>
@@ -101,10 +102,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Solution solution,
             IManagedHotReloadService debuggerService,
             Func<Project, CompilationOutputs> compilationOutputsProvider,
+            IPdbMatchingSourceTextProvider sourceTextProvider,
             IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>> initialDocumentStates,
             bool reportDiagnostics)
         {
             _compilationOutputsProvider = compilationOutputsProvider;
+            SourceTextProvider = sourceTextProvider;
             _reportTelemetry = ReportTelemetry;
             _telemetry = new DebuggingSessionTelemetry(solution.State.SolutionAttributes.TelemetryId);
 
@@ -152,9 +155,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             if (_isDisposed)
                 throw new ObjectDisposedException(nameof(DebuggingSession));
         }
-
-        internal Task OnSourceFileUpdatedAsync(Document document)
-            => LastCommittedSolution.OnSourceFileUpdatedAsync(document, _cancellationSource.Token);
 
         private void StorePendingUpdate(Solution solution, SolutionUpdate update)
         {
@@ -540,13 +540,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             var log = EditAndContinueWorkspaceService.Log;
 
-            log.Write("Solution update status: {0}",
-                ((int)update.ModuleUpdates.Status, typeof(ModuleUpdateStatus)));
+            log.Write("Solution update status: {0}", update.ModuleUpdates.Status);
 
             foreach (var moduleUpdate in update.ModuleUpdates.Updates)
             {
                 log.Write("Module update: capabilities=[{0}], types=[{1}], methods=[{2}]",
-                    ((int)moduleUpdate.RequiredCapabilities, typeof(EditAndContinueCapabilities)),
+                    moduleUpdate.RequiredCapabilities,
                     moduleUpdate.UpdatedTypes,
                     moduleUpdate.UpdatedMethods);
             }
@@ -760,7 +759,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -837,11 +836,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
-        public async ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, ManagedInstructionId instructionId, CancellationToken cancellationToken)
+        public async ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(
+            Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, ManagedInstructionId instructionId, CancellationToken cancellationToken)
         {
             ThrowIfDisposed();
 
@@ -992,7 +992,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     Debug.Assert(oldProject.SupportsEditAndContinue());
                     Debug.Assert(newProject.SupportsEditAndContinue());
 
-                    documentId = await GetChangedDocumentContainingUnmappedActiveStatementAsync(activeStatementsMap, LastCommittedSolution, oldProject, newProject, baseActiveStatement, cancellationToken).ConfigureAwait(false);
+                    documentId = await GetChangedDocumentContainingUnmappedActiveStatementAsync(
+                        activeStatementsMap, LastCommittedSolution, oldProject, newProject, baseActiveStatement, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -1037,13 +1038,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
         // Enumerate all changed documents in the project whose module contains the active statement.
         // For each such document enumerate all #line directives to find which maps code to the span that contains the active statement.
-        private static async ValueTask<DocumentId?> GetChangedDocumentContainingUnmappedActiveStatementAsync(ActiveStatementsMap baseActiveStatements, CommittedSolution oldSolution, Project oldProject, Project newProject, ActiveStatement activeStatement, CancellationToken cancellationToken)
+        private static async ValueTask<DocumentId?> GetChangedDocumentContainingUnmappedActiveStatementAsync(
+            ActiveStatementsMap baseActiveStatements, CommittedSolution oldSolution, Project oldProject, Project newProject, ActiveStatement activeStatement, CancellationToken cancellationToken)
         {
             Debug.Assert(oldProject.Id == newProject.Id);
             Debug.Assert(oldProject.SupportsEditAndContinue());

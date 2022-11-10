@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Private ReadOnly _parseOptions As CSharp.CSharpParseOptions = CSharp.CSharpParseOptions.Default.WithLanguageVersion(CSharp.LanguageVersion.Default)
         Private ReadOnly _csharpCompOptions As CSharp.CSharpCompilationOptions = New CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe:=True)
-        Private ReadOnly _csharpReferences As ImmutableArray(Of MetadataReference) = TargetFrameworkUtil.GetReferences(TargetFramework.NetCoreApp).Add(NetCoreApp.SystemRuntimeInteropServices)
+        Private ReadOnly _csharpReferences As ImmutableArray(Of MetadataReference) = TargetFrameworkUtil.GetReferences(TargetFramework.Net50)
 
         Private ReadOnly UnmanagedCallersOnlyAttributeIl As String = <![CDATA[
 .class public auto ansi sealed beforefieldinit System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute
@@ -72,7 +72,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilation(source, references:={NetCoreApp.SystemRuntimeInteropServices}, targetFramework:=TargetFramework.NetCoreApp)
+            Dim comp = CreateCompilation(source, targetFramework:=TargetFramework.Net50)
 
             comp.AssertTheseDiagnostics(<![CDATA[
 BC37316: 'UnmanagedCallersOnly' attribute is not supported.
@@ -119,7 +119,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilation(source, references:={NetCoreApp.SystemRuntimeInteropServices, reference}, targetFramework:=TargetFramework.NetCoreApp)
+            Dim comp = CreateCompilation(source, references:={reference}, targetFramework:=TargetFramework.Net50)
 
             comp.AssertTheseDiagnostics(<![CDATA[
 BC30657: 'M1' has a return type that is not supported or parameter types that are not supported.

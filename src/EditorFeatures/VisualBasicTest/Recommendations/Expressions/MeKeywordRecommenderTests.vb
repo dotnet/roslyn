@@ -5,154 +5,155 @@
 Imports Microsoft.CodeAnalysis.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class MeKeywordRecommenderTests
         Inherits RecommenderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NoneInClassDeclarationTest()
             VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NoneInModuleDeclarationTest()
             VerifyRecommendationsMissing(<ModuleDeclaration>|</ModuleDeclaration>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NoneInModuleMethodBodyTest()
             VerifyRecommendationsMissing(<ModuleMethodBody>|</ModuleMethodBody>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NoneInSharedMethodBodyTest()
             VerifyRecommendationsMissing(<SharedMethodBody>|</SharedMethodBody>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NoneInSharedPropertyGetterTest()
             VerifyRecommendationsMissing(<SharedPropertyGetter>|</SharedPropertyGetter>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NoneInSharedEventAddHandlerTest()
             VerifyRecommendationsMissing(<SharedEventAddHandler>|</SharedEventAddHandler>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeInStatementTest()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeInStatementInPropertyGetterTest()
             VerifyRecommendationsContain(<PropertyGetter>|</PropertyGetter>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeInStatementInEventAddHandlerTest()
             VerifyRecommendationsContain(<EventAddHandler>|</EventAddHandler>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeAfterReturnTest()
             VerifyRecommendationsContain(<MethodBody>Return |</MethodBody>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeAfterArgument1Test()
             VerifyRecommendationsContain(<MethodBody>Goo(|</MethodBody>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeAfterArgument2Test()
             VerifyRecommendationsContain(<MethodBody>Goo(bar, |</MethodBody>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeAfterBinaryExpressionTest()
             VerifyRecommendationsContain(<MethodBody>Goo(bar + |</MethodBody>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeAfterNotTest()
             VerifyRecommendationsContain(<MethodBody>Goo(Not |</MethodBody>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeAfterTypeOfTest()
             VerifyRecommendationsContain(<MethodBody>If TypeOf |</MethodBody>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeAfterDoWhileTest()
             VerifyRecommendationsContain(<MethodBody>Do While |</MethodBody>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeAfterDoUntilTest()
             VerifyRecommendationsContain(<MethodBody>Do Until |</MethodBody>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeAfterLoopWhileTest()
             VerifyRecommendationsContain(<MethodBody>
 Do
 Loop While |</MethodBody>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeAfterLoopUntilTest()
             VerifyRecommendationsContain(<MethodBody>
 Do
 Loop Until |</MethodBody>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeAfterIfTest()
             VerifyRecommendationsContain(<MethodBody>If |</MethodBody>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeAfterElseIfTest()
             VerifyRecommendationsContain(<MethodBody>ElseIf |</MethodBody>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeAfterElseSpaceIfTest()
             VerifyRecommendationsContain(<MethodBody>Else If |</MethodBody>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeAfterErrorTest()
             VerifyRecommendationsContain(<MethodBody>Error |</MethodBody>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeAfterThrowTest()
             VerifyRecommendationsContain(<MethodBody>Throw |</MethodBody>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeAfterInitializerTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = |</MethodBody>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeAfterArrayInitializerSquiggleTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = {|</MethodBody>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeAfterArrayInitializerCommaTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = {0, |</MethodBody>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeInFieldInitializerTest()
             VerifyRecommendationsContain(<ClassDeclaration>Dim x = |</ClassDeclaration>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeAfterHandlesInClassWithEventsTest()
             Dim text = <ClassDeclaration>
         Public Event Ev_Event()
@@ -162,7 +163,7 @@ Loop Until |</MethodBody>, "Me")
             VerifyRecommendationsContain(text, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeAfterHandlesInClassWithEventsAfterCommaTest()
             Dim text = <ClassDeclaration>
         Public Event Ev_Event()
@@ -172,7 +173,7 @@ Loop Until |</MethodBody>, "Me")
             VerifyRecommendationsContain(text, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeNotAfterHandlesInClassWithNoEventsTest()
             Dim text = <ClassDeclaration>
         Sub Handler() Handles |</ClassDeclaration>
@@ -180,7 +181,7 @@ Loop Until |</MethodBody>, "Me")
             VerifyRecommendationsMissing(text, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeForDerivedEventTest()
             Dim text = <File>Public Class Base
     Public Event Click()
@@ -194,17 +195,17 @@ End Class|</File>
             VerifyRecommendationsContain(text, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeInNameOf1Test()
             VerifyRecommendationsContain(<MethodBody>Dim s = NameOf(|</MethodBody>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub MeInNameOf2Test()
             VerifyRecommendationsMissing(<MethodBody>Dim s = NameOf(System.|</MethodBody>, "Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub Preselection()
             Dim code =
 <File>

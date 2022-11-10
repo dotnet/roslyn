@@ -5,6 +5,7 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net472;net6.0</TargetFrameworks>
     <UseAppHost>false</UseAppHost>
+    <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
   </PropertyGroup>
   
   <!-- Can't put this in shared project due to https://github.com/dotnet/project-system/issues/8157 -->

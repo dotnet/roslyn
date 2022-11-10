@@ -2613,5 +2613,541 @@ _ = x is { Length.Error: > 0 };
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
+
+        [Fact, WorkItem(64399, "https://github.com/dotnet/roslyn/issues/64399")]
+        public void ShortestPathToDefaultNodeYieldsNoRemainingValues()
+        {
+            var source = """
+public enum Enum
+{
+    Zero = 0,
+    One = 1,
+    Two = 2,
+}
+
+class N
+{
+    private static int M(Enum e1, Enum e2)
+    {
+        return (e1, e2) switch
+        {
+            (Enum.Two, _) => 0,
+            (_, Enum.Two) => 0,
+            (Enum.Zero, Enum.Zero) => 0,
+            (Enum.Zero, Enum.One) => 0,
+            (Enum.One, Enum.Zero) => 0,
+            ( < 0 or > Enum.Two, _) => 0,
+            (_, < 0 or > Enum.Two) => 0,
+        };
+    }
+}
+""";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,25): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One)' is not covered.
+                //         return (e1, e2) switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(Enum.One, Enum.One)").WithLocation(12, 25)
+                );
+        }
+
+        [Fact, WorkItem(64399, "https://github.com/dotnet/roslyn/issues/64399")]
+        public void ShortestPathToDefaultNodeYieldsNoRemainingValues_RequiringFalseWhenClause()
+        {
+            var source = """
+public enum Enum
+{
+    Zero = 0,
+    One = 1,
+    Two = 2,
+}
+
+class N
+{
+    private static int M(Enum e1, Enum e2, bool b)
+    {
+        return (e1, e2) switch
+        {
+            (Enum.One, Enum.One) when b => 0,
+            (Enum.Two, _) => 0,
+            (_, Enum.Two) => 0,
+            (Enum.Zero, Enum.Zero) => 0,
+            (Enum.Zero, Enum.One) => 0,
+            (Enum.One, Enum.Zero) => 0,
+            ( < 0 or > Enum.Two, _) => 0,
+            (_, < 0 or > Enum.Two) => 0,
+        };
+    }
+}
+""";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,25): warning CS8846: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One)' is not covered. However, a pattern with a 'when' clause might successfully match this value.
+                //         return (e1, e2) switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen, "switch").WithArguments("(Enum.One, Enum.One)").WithLocation(12, 25)
+                );
+        }
+
+        [Fact, WorkItem(64399, "https://github.com/dotnet/roslyn/issues/64399")]
+        public void ShortestPathToDefaultNodeYieldsNoRemainingValues_NullBranch()
+        {
+            var source = """
+public enum Enum
+{
+    Zero = 0,
+    One = 1,
+    Two = 2,
+}
+
+class N
+{
+    private static int M(Enum e1, Enum e2, object o)
+    {
+        return (e1, e2, o) switch
+        {
+            (Enum.One, Enum.One, _) => 0,
+            (Enum.Two, _, _) => 0,
+            (_, Enum.Two, _) => 0,
+            (Enum.Zero, Enum.Zero, _) => 0,
+            (Enum.Zero, Enum.One, _) => 0,
+            (Enum.One, Enum.Zero, _) => 0,
+            ( < 0 or > Enum.Two, _, _) => 0,
+            (_, < 0 or > Enum.Two, string s) => 0,
+        };
+    }
+}
+""";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,28): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(Enum.One, (Enum)-1, _)' is not covered.
+                //         return (e1, e2, o) switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(Enum.One, (Enum)-1, _)").WithLocation(12, 28)
+                );
+        }
+
+        [Fact, WorkItem(64399, "https://github.com/dotnet/roslyn/issues/64399")]
+        public void ShortestPathToDefaultNodeYieldsNoRemainingValues_Nullability()
+        {
+            var source = """
+#nullable enable
+
+public enum Enum
+{
+    Zero = 0,
+    One = 1,
+    Two = 2,
+}
+
+class N
+{
+    private static int M(Enum e1, Enum e2, string s)
+    {
+        return (e1, e2, s) switch
+        {
+            (Enum.Two, _, _) => 0,
+            (_, Enum.Two, _) => 0,
+            (Enum.Zero, Enum.Zero, _) => 0,
+            (Enum.Zero, Enum.One, _) => 0,
+            (Enum.One, Enum.Zero, _) => 0,
+            ( < 0 or > Enum.Two, _, _) => 0,
+            (_, < 0 or > Enum.Two, _) => 0,
+            (_, _, string) => 0,
+        };
+    }
+}
+""";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(64399, "https://github.com/dotnet/roslyn/issues/64399")]
+        public void ShortestPathToDefaultNodeYieldsNoRemainingValues_Nullability_NullableString()
+        {
+            var source = """
+#nullable enable
+
+public enum Enum
+{
+    Zero = 0,
+    One = 1,
+    Two = 2,
+}
+
+class N
+{
+    private static int M1(Enum e1, Enum e2, string? s)
+    {
+        return (e1, e2, s) switch // 1
+        {
+            (Enum.Two, _, _) => 0,
+            (_, Enum.Two, _) => 0,
+            (Enum.Zero, Enum.Zero, _) => 0,
+            (Enum.Zero, Enum.One, _) => 0,
+            (Enum.One, Enum.Zero, _) => 0,
+            ( < 0 or > Enum.Two, _, _) => 0,
+            (_, < 0 or > Enum.Two, null) => 0,
+            (_, _, null) => 1,
+        };
+    }
+
+    private static int M2(Enum e1, Enum e2, string? s)
+    {
+        return (e1, e2, s) switch // 2
+        {
+            (Enum.Two, _, _) => 0,
+            (_, Enum.Two, _) => 0,
+            (Enum.Zero, Enum.Zero, _) => 0,
+            (Enum.Zero, Enum.One, _) => 0,
+            (Enum.One, Enum.Zero, _) => 0,
+            ( < 0 or > Enum.Two, _, _) => 0,
+            (_, < 0 or > Enum.Two, _) => 0,
+            (_, _, "") => 1,
+        };
+    }
+
+    private static int M3(Enum e1, Enum e2, string? s)
+    {
+        return (e1, e2, s) switch // 3
+        {
+            (Enum.Two, _, _) => 0,
+            (_, Enum.Two, _) => 0,
+            (Enum.Zero, Enum.Zero, _) => 0,
+            (Enum.Zero, Enum.One, _) => 0,
+            (Enum.One, Enum.Zero, _) => 0,
+            ( < 0 or > Enum.Two, _, _) => 0,
+            (_, < 0 or > Enum.Two, _) => 0,
+            (_, _, string) => 1,
+        };
+    }
+
+    private static int M4(Enum e1, Enum e2, string? s)
+    {
+        return (e1, e2, s) switch // 4
+        {
+            (Enum.Two, _, _) => 0,
+            (_, Enum.Two, _) => 0,
+            (Enum.Zero, Enum.Zero, _) => 0,
+            (Enum.Zero, Enum.One, _) => 0,
+            (Enum.One, Enum.Zero, _) => 0,
+            ( < 0 or > Enum.Two, _, _) => 0,
+            (_, < 0 or > Enum.Two, null) => 1,
+        };
+    }
+
+    private static int M5(Enum e1, Enum e2, string? s)
+    {
+        return (e1, e2, s) switch // 5
+        {
+            (Enum.Two, _, _) => 0,
+            (_, Enum.Two, _) => 0,
+            (Enum.Zero, Enum.Zero, _) => 0,
+            (Enum.Zero, Enum.One, _) => 0,
+            (Enum.One, Enum.Zero, _) => 0,
+            ( < 0 or > Enum.Two, _, _) => 0,
+            (_, < 0 or > Enum.Two, "") => 1,
+        };
+    }
+
+    private static int M6(Enum e1, Enum e2, string? s)
+    {
+        return (e1, e2, s) switch // 6
+        {
+            (Enum.Two, _, _) => 0,
+            (_, Enum.Two, _) => 0,
+            (Enum.Zero, Enum.Zero, _) => 0,
+            (Enum.Zero, Enum.One, _) => 0,
+            (Enum.One, Enum.Zero, _) => 0,
+            ( < 0 or > Enum.Two, _, _) => 0,
+            (_, < 0 or > Enum.Two, string) => 1,
+        };
+    }
+}
+""";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (14,28): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(Enum.Zero, (Enum)-1, not null)' is not covered.
+                //         return (e1, e2, s) switch // 1
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(Enum.Zero, (Enum)-1, not null)").WithLocation(14, 28),
+                // (29,28): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, "A")' is not covered.
+                //         return (e1, e2, s) switch // 2
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(Enum.One, Enum.One, \"A\")").WithLocation(29, 28),
+                // (44,28): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, null)' is not covered.
+                //         return (e1, e2, s) switch // 3
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(Enum.One, Enum.One, null)").WithLocation(44, 28),
+                // (59,28): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(Enum.Zero, (Enum)-1, not null)' is not covered.
+                //         return (e1, e2, s) switch // 4
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(Enum.Zero, (Enum)-1, not null)").WithLocation(59, 28),
+                // (73,28): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(Enum.Zero, (Enum)-1, "A")' is not covered.
+                //         return (e1, e2, s) switch // 5
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(Enum.Zero, (Enum)-1, \"A\")").WithLocation(73, 28),
+                // (87,28): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, _)' is not covered.
+                //         return (e1, e2, s) switch // 6
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(Enum.One, Enum.One, _)").WithLocation(87, 28)
+                );
+        }
+
+        [Theory, CombinatorialData, WorkItem(64399, "https://github.com/dotnet/roslyn/issues/64399")]
+        public void ShortestPathToDefaultNodeYieldsNoRemainingValues_Nullability_Deconstruction(bool nullableEnable)
+        {
+            var source = """
+public enum Enum
+{
+    Zero = 0,
+    One = 1,
+    Two = 2,
+}
+
+class N
+{
+    private int M1()
+    {
+        return this switch // 1
+        {
+            (Enum.Two, _, _) => 0,
+            (_, Enum.Two, _) => 0,
+            (Enum.Zero, Enum.Zero, _) => 0,
+            (Enum.Zero, Enum.One, _) => 0,
+            (Enum.One, Enum.Zero, _) => 0,
+            ( < 0 or > Enum.Two, _, _) => 0,
+            (_, < 0 or > Enum.Two, _) => 0,
+            (_, _, not null) => 1,
+        };
+    }
+
+    private int M2()
+    {
+        return this switch // 2
+        {
+            (Enum.Two, _, _) => 0,
+            (_, Enum.Two, _) => 0,
+            (Enum.Zero, Enum.Zero, _) => 0,
+            (Enum.Zero, Enum.One, _) => 0,
+            (Enum.One, Enum.Zero, _) => 0,
+            ( < 0 or > Enum.Two, _, _) => 0,
+            (_, < 0 or > Enum.Two, _) => 0,
+            (_, _, true) => 1,
+            (_, _, false) => 1,
+        };
+    }
+
+    private int M3()
+    {
+        return this switch // 3
+        {
+            null => 1,
+            (Enum.Two, _, _) => 0,
+            (_, Enum.Two, _) => 0,
+            (Enum.Zero, Enum.Zero, _) => 0,
+            (Enum.Zero, Enum.One, _) => 0,
+            (Enum.One, Enum.Zero, _) => 0,
+            ( < 0 or > Enum.Two, _, _) => 0,
+            (_, < 0 or > Enum.Two, _) => 0,
+            (_, _, true) => 1,
+            (_, _, false) => 1,
+        };
+    }
+
+    private int M4()
+    {
+        return this switch // 4
+        {
+            null => 1,
+            (Enum.Two, _, _) => 0,
+            (_, Enum.Two, _) => 0,
+            (Enum.Zero, Enum.Zero, _) => 0,
+            (Enum.Zero, Enum.One, _) => 0,
+            (Enum.One, Enum.Zero, _) => 0,
+            ( < 0 or > Enum.Two, _, _) => 0,
+            (_, < 0 or > Enum.Two, _) => 0,
+            (_, _, true) => 1,
+        };
+    }
+
+    private int M5()
+    {
+        return this switch // 5
+        {
+            (Enum.Two, _, _) => 0,
+            (_, Enum.Two, _) => 0,
+            (Enum.Zero, Enum.Zero, _) => 0,
+            (Enum.Zero, Enum.One, _) => 0,
+            (Enum.One, Enum.Zero, _) => 0,
+            ( < 0 or > Enum.Two, _, _) => 0,
+            (_, < 0 or > Enum.Two, not null) => 1,
+        };
+    }
+
+    private int M6()
+    {
+        return this switch // 6
+        {
+            (Enum.Two, _, _) => 0,
+            (_, Enum.Two, _) => 0,
+            (Enum.Zero, Enum.Zero, _) => 0,
+            (Enum.Zero, Enum.One, _) => 0,
+            (Enum.One, Enum.Zero, _) => 0,
+            ( < 0 or > Enum.Two, _, _) => 0,
+            (_, < 0 or > Enum.Two, true) => 1,
+            (_, < 0 or > Enum.Two, false) => 1,
+        };
+    }
+
+    private int M7()
+    {
+        return this switch // 7
+        {
+            null => 1,
+            (Enum.Two, _, _) => 0,
+            (_, Enum.Two, _) => 0,
+            (Enum.Zero, Enum.Zero, _) => 0,
+            (Enum.Zero, Enum.One, _) => 0,
+            (Enum.One, Enum.Zero, _) => 0,
+            ( < 0 or > Enum.Two, _, _) => 0,
+            (_, < 0 or > Enum.Two, true) => 1,
+            (_, < 0 or > Enum.Two, false) => 1,
+        };
+    }
+
+    private int M8()
+    {
+        return this switch // 8
+        {
+            null => 1,
+            (Enum.Two, _, _) => 0,
+            (_, Enum.Two, _) => 0,
+            (Enum.Zero, Enum.Zero, _) => 0,
+            (Enum.Zero, Enum.One, _) => 0,
+            (Enum.One, Enum.Zero, _) => 0,
+            ( < 0 or > Enum.Two, _, _) => 0,
+            (_, < 0 or > Enum.Two, true) => 1,
+        };
+    }
+
+    void Deconstruct(out Enum e1, out Enum e2, out bool? s) => throw null!;
+}
+""";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithNullableContextOptions(nullableEnable ? NullableContextOptions.Enable : NullableContextOptions.Disable));
+            if (nullableEnable)
+            {
+                comp.VerifyDiagnostics(
+                    // (12,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                    //         return this switch // 1
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(12, 21),
+                    // (27,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                    //         return this switch // 2
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(27, 21),
+                    // (43,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, null)' is not covered.
+                    //         return this switch // 3
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(Enum.One, Enum.One, null)").WithLocation(43, 21),
+                    // (60,21): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, false)' is not covered.
+                    //         return this switch // 4
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(Enum.One, Enum.One, false)").WithLocation(60, 21),
+                    // (76,21): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, _)' is not covered.
+                    //         return this switch // 5
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(Enum.One, Enum.One, _)").WithLocation(76, 21),
+                    // (90,21): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, _)' is not covered.
+                    //         return this switch // 6
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(Enum.One, Enum.One, _)").WithLocation(90, 21),
+                    // (105,21): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, _)' is not covered.
+                    //         return this switch // 7
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(Enum.One, Enum.One, _)").WithLocation(105, 21),
+                    // (121,21): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(Enum.Zero, (Enum)-1, false)' is not covered.
+                    //         return this switch // 8
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(Enum.Zero, (Enum)-1, false)").WithLocation(121, 21)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (60,21): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, false)' is not covered.
+                    //         return this switch // 4
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(Enum.One, Enum.One, false)").WithLocation(60, 21),
+                    // (76,21): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, _)' is not covered.
+                    //         return this switch // 5
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(Enum.One, Enum.One, _)").WithLocation(76, 21),
+                    // (90,21): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, _)' is not covered.
+                    //         return this switch // 6
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(Enum.One, Enum.One, _)").WithLocation(90, 21),
+                    // (105,21): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, _)' is not covered.
+                    //         return this switch // 7
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(Enum.One, Enum.One, _)").WithLocation(105, 21),
+                    // (121,21): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(Enum.Zero, (Enum)-1, false)' is not covered.
+                    //         return this switch // 8
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(Enum.Zero, (Enum)-1, false)").WithLocation(121, 21)
+                    );
+            }
+        }
+
+        [Theory, CombinatorialData, WorkItem(64399, "https://github.com/dotnet/roslyn/issues/64399")]
+        public void ShortestPathToDefaultNodeYieldsNoRemainingValues_Nullability_NullableBool(bool nullableEnable)
+        {
+            var source = """
+public enum Enum
+{
+    Zero = 0,
+    One = 1,
+    Two = 2,
+}
+
+class N
+{
+    private static int M1(Enum e1, Enum e2, bool? i)
+    {
+        return (e1, e2, i) switch // 1
+        {
+            (Enum.Two, _, _) => 0,
+            (_, Enum.Two, _) => 0,
+            (Enum.Zero, Enum.Zero, _) => 0,
+            (Enum.Zero, Enum.One, _) => 0,
+            (Enum.One, Enum.Zero, _) => 0,
+            ( < 0 or > Enum.Two, _, _) => 0,
+            (_, < 0 or > Enum.Two, _) => 0,
+            (_, _, true) => 1,
+        };
+    }
+
+    private static int M2(Enum e1, Enum e2, bool? i)
+    {
+        return (e1, e2, i) switch // 2
+        {
+            (Enum.Two, _, _) => 0,
+            (_, Enum.Two, _) => 0,
+            (Enum.Zero, Enum.Zero, _) => 0,
+            (Enum.Zero, Enum.One, _) => 0,
+            (Enum.One, Enum.Zero, _) => 0,
+            ( < 0 or > Enum.Two, _, _) => 0,
+            (_, < 0 or > Enum.Two, _) => 0,
+            (_, _, true) => 1,
+            (_, _, false) => 1,
+        };
+    }
+}
+""";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithNullableContextOptions(nullableEnable ? NullableContextOptions.Enable : NullableContextOptions.Disable));
+            if (nullableEnable)
+            {
+                comp.VerifyDiagnostics(
+                    // (12,28): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, false)' is not covered.
+                    //         return (e1, e2, i) switch // 1
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(Enum.One, Enum.One, false)").WithLocation(12, 28),
+                    // (27,28): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, null)' is not covered.
+                    //         return (e1, e2, i) switch // 2
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(Enum.One, Enum.One, null)").WithLocation(27, 28)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (12,28): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, false)' is not covered.
+                    //         return (e1, e2, i) switch // 1
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(Enum.One, Enum.One, false)").WithLocation(12, 28)
+                    );
+            }
+        }
     }
 }

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -29,6 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         private readonly IServiceProvider _serviceProvider;
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly Workspace _workspace;
+        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
         private readonly GraphQueryManager _graphQueryManager;
 
         private bool _initialized = false;
@@ -38,6 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             IGlyphService glyphService,
             SVsServiceProvider serviceProvider,
             Workspace workspace,
+            Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _threadingContext = threadingContext;
@@ -45,6 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             _serviceProvider = serviceProvider;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.GraphProvider);
             _workspace = workspace;
+            _streamingPresenter = streamingPresenter;
             _graphQueryManager = new GraphQueryManager(workspace, _asyncListener);
         }
 
@@ -367,7 +371,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 }
 
                 if (typeof(T) == typeof(IGraphNavigateToItem))
-                    return new GraphNavigatorExtension(_threadingContext, _workspace) as T;
+                    return new GraphNavigatorExtension(_threadingContext, _workspace, _streamingPresenter) as T;
 
                 if (typeof(T) == typeof(IGraphFormattedLabel))
                     return new GraphFormattedLabelExtension() as T;

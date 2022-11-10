@@ -1502,6 +1502,23 @@ class Customer2
 //]
 " };
 
+        private static readonly string s_preferReadOnlyStruct = $@"
+//[
+// {ServicesVSResources.Prefer_colon}
+readonly struct Point
+{{
+    public readonly int X, Y;
+}}
+//]
+//[
+// {ServicesVSResources.Over_colon}
+struct Point
+{{
+    public readonly int X, Y;
+}}
+//]
+";
+
         private static readonly string s_preferStaticLocalFunction = $@"
 class Customer1
 {{
@@ -2185,6 +2202,7 @@ class C2
 
             // Modifier preferences.
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferReadonly, ServicesVSResources.Prefer_readonly_fields, s_preferReadonly, s_preferReadonly, this, optionStore, modifierGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferReadOnlyStruct, ServicesVSResources.Prefer_read_only_struct, s_preferReadOnlyStruct, s_preferReadOnlyStruct, this, optionStore, modifierGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferStaticLocalFunction, ServicesVSResources.Prefer_static_local_functions, s_preferStaticLocalFunction, s_preferStaticLocalFunction, this, optionStore, modifierGroupTitle));
 
             // Parameter preferences

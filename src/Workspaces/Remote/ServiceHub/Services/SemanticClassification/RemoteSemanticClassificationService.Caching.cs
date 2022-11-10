@@ -112,9 +112,6 @@ namespace Microsoft.CodeAnalysis.Remote
             var solution = document.Project.Solution;
             var persistenceService = solution.Services.GetPersistentStorageService();
 
-            // we should never use no-op storage in OOP
-            Contract.ThrowIfTrue(persistenceService is NoOpPersistentStorageService);
-
             var storage = await persistenceService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
             await using var _1 = storage.ConfigureAwait(false);
             if (storage == null)

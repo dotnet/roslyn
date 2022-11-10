@@ -10,6 +10,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
                 if (ExecutionConditionUtil.IsCoreClr)
                 {
                     var dir = temp.CreateDirectory();
-                    File.WriteAllBytes(Path.Combine(dir.Path, "mscorlib.dll"), ResourcesNet461.mscorlib);
+                    File.WriteAllBytes(Path.Combine(dir.Path, "mscorlib.dll"), Net461.References.mscorlib.ImageBytes);
                     return dir.Path;
                 }
 

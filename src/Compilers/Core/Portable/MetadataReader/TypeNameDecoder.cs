@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis
 
         protected TypeSymbol MakeFunctionPointerTypeSymbol(Cci.CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamInfos)
         {
-            return _factory.MakeFunctionPointerTypeSymbol(callingConvention, retAndParamInfos);
+            return _factory.MakeFunctionPointerTypeSymbol(this.moduleSymbol, callingConvention, retAndParamInfos);
         }
 
         protected TypeSymbol GetSpecialType(SpecialType specialType)

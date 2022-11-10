@@ -897,36 +897,6 @@
         <target state="translated">Le jeton n'est pas contenu dans l'espace de travail.</target>
         <note />
       </trans-unit>
-      <trans-unit id="You_must_rename_an_identifier">
-        <source>You must rename an identifier.</source>
-        <target state="translated">Vous devez renommer un identificateur.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="You_cannot_rename_this_element">
-        <source>You cannot rename this element.</source>
-        <target state="translated">Vous ne pouvez pas renommer cet élément.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Please_resolve_errors_in_your_code_before_renaming_this_element">
-        <source>Please resolve errors in your code before renaming this element.</source>
-        <target state="translated">Corrigez les erreurs dans votre code avant de renommer cet élément.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="You_cannot_rename_operators">
-        <source>You cannot rename operators.</source>
-        <target state="translated">Vous ne pouvez pas renommer des opérateurs.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="You_cannot_rename_elements_that_are_defined_in_metadata">
-        <source>You cannot rename elements that are defined in metadata.</source>
-        <target state="translated">Vous ne pouvez pas renommer des éléments définis dans les métadonnées.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="You_cannot_rename_elements_from_previous_submissions">
-        <source>You cannot rename elements from previous submissions.</source>
-        <target state="translated">Vous ne pouvez pas renommer des éléments de soumissions précédentes.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Navigation_Bars">
         <source>Navigation Bars</source>
         <target state="translated">Barres de navigation</target>
@@ -1135,11 +1105,6 @@
       <trans-unit id="Automatic_Pair_Completion_End_Point_Marker_Color">
         <source>Automatic Pair Completion End Point Marker Color</source>
         <target state="translated">Couleur du marqueur du point de terminaison pour la finalisation de paires automatique</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
-        <source>Renaming anonymous type members is not yet supported.</source>
-        <target state="translated">Le changement de nom des membres de type anonyme n'est pas encore pris en charge.</target>
         <note />
       </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">

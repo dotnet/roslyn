@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void ForEachTest()
         {
-            ForEachImpl(ImmutableSegmentedList<int>.Empty, n => { throw ExceptionUtilities.Unreachable; });
+            ForEachImpl(ImmutableSegmentedList<int>.Empty, n => { throw ExceptionUtilities.Unreachable(); });
 
             var list = ImmutableSegmentedList<int>.Empty.AddRange(Enumerable.Range(5, 3));
             var hitTest = new bool[list.Max() + 1];
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void FindLastTest()
         {
-            Assert.Equal(0, FindLastImpl(ImmutableSegmentedList<int>.Empty, n => { throw ExceptionUtilities.Unreachable; }));
+            Assert.Equal(0, FindLastImpl(ImmutableSegmentedList<int>.Empty, n => { throw ExceptionUtilities.Unreachable(); }));
             var list = ImmutableSegmentedList<int>.Empty.AddRange(new[] { 2, 3, 4, 5, 6 });
             Assert.Equal(5, FindLastImpl(list, n => (n % 2) == 1));
         }

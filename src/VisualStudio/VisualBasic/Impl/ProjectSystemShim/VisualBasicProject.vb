@@ -49,7 +49,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             Dim componentModel = DirectCast(serviceProvider.GetService(GetType(SComponentModel)), IComponentModel)
 
             ProjectCodeModel = componentModel.GetService(Of IProjectCodeModelFactory).CreateProjectCodeModel(VisualStudioProject.Id, New VisualBasicCodeModelInstanceFactory(Me))
-            VisualStudioProjectOptionsProcessor = New OptionsProcessor(VisualStudioProject, Workspace.Services)
+            VisualStudioProjectOptionsProcessor = New OptionsProcessor(VisualStudioProject, Workspace.Services.SolutionServices)
         End Sub
 
         Private Shadows Property VisualStudioProjectOptionsProcessor As OptionsProcessor

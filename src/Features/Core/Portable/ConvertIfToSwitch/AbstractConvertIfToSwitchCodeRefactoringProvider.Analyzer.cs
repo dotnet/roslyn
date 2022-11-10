@@ -101,20 +101,30 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             //
             private bool ParseIfStatementSequence(ReadOnlySpan<IOperation> operations, ArrayBuilder<AnalyzedSwitchSection> sections, out IOperation? defaultBodyOpt)
             {
-                if (operations.Length > 1 &&
-                    operations[0] is IConditionalOperation { WhenFalse: null } op &&
-                    HasUnreachableEndPoint(op.WhenTrue))
+                var current = 0;
+                while (current < operations.Length &&
+                    operations[current] is IConditionalOperation { WhenFalse: null } op &&
+                    HasUnreachableEndPoint(op.WhenTrue) &&
+                    ParseIfStatement(op, sections, out _))
                 {
-                    if (!ParseIfStatement(op, sections, out defaultBodyOpt))
-                    {
-                        return false;
-                    }
+                    current++;
+                }
 
-                    if (!ParseIfStatementSequence(operations[1..], sections, out defaultBodyOpt))
+                defaultBodyOpt = null;
+                if (current == 0)
+                {
+                    // didn't consume a sequence of if-statements with unreachable ends.  Check for the last case.
+                    return operations.Length > 0 && ParseIfStatement(operations[0], sections, out defaultBodyOpt);
+                }
+                else
+                {
+                    if (current < operations.Length)
                     {
-                        var nextStatement = operations[1];
-                        if (nextStatement is IReturnOperation { ReturnedValue: { } } or
-                            IThrowOperation { Exception: { } })
+                        // consumed a sequence of if-statements with unreachable-ends.  If we end with a normal
+                        // if-statement, we're done.  Otherwise, we end with whatever last return/throw we see.
+                        var nextStatement = operations[current];
+                        if (!ParseIfStatement(nextStatement, sections, out defaultBodyOpt) &&
+                            nextStatement is IReturnOperation { ReturnedValue: not null } or IThrowOperation { Exception: not null })
                         {
                             defaultBodyOpt = nextStatement;
                         }
@@ -122,14 +132,6 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
                     return true;
                 }
-
-                if (operations.Length > 0)
-                {
-                    return ParseIfStatement(operations[0], sections, out defaultBodyOpt);
-                }
-
-                defaultBodyOpt = null;
-                return false;
             }
 
             // Tree to parse:

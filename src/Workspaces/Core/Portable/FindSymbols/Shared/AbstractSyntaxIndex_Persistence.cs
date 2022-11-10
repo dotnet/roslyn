@@ -3,13 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
@@ -19,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class AbstractSyntaxIndex<TIndex> : IObjectWritable
     {
         private static readonly string s_persistenceName = typeof(TIndex).Name;
-        private static readonly Checksum s_serializationFormatChecksum = Checksum.Create("31");
+        private static readonly Checksum s_serializationFormatChecksum = Checksum.Create("34");
 
         /// <summary>
         /// Cache of ParseOptions to a checksum for the <see cref="ParseOptions.PreprocessorSymbolNames"/> contained
@@ -89,7 +86,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // to make the final checksum.
             //
             // Note: this intentionally ignores *other* ParseOption changes.  This may look like it could cause us to
-            // get innacurate results, but here's why it's ok.  The other ParseOption changes include:
+            // get inaccurate results, but here's why it's ok.  The other ParseOption changes include:
             //
             //  1. LanguageVersion changes.  It's ok to ignore that as for practically all language versions we don't
             //     produce different trees.  And, while there are some lang versions that produce different trees (for

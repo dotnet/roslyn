@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             private SyntaxKind AnalyzeNextStatement(StatementSyntax? nextStatement)
             {
                 // Only the following "throw" and "return" can be moved into the switch expression.
-                return nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement)
+                return nextStatement is (kind: SyntaxKind.ThrowStatement or SyntaxKind.ReturnStatement)
                     ? Visit(nextStatement)
                     : default;
             }

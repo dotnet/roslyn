@@ -658,7 +658,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -817,7 +817,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var oldProject = oldSolution.GetProject(newProject.Id);
                     if (oldProject == null)
                     {
-                        log.Write("EnC state of '{0}' queried: project not loaded", newProject.FilePath);
+                        log.Write("EnC state of '{0}' queried: project not loaded", newProject.Id);
 
                         // TODO (https://github.com/dotnet/roslyn/issues/1204):
                         //
@@ -839,7 +839,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    log.Write("Found {0} potentially changed document(s) in project '{1}'", changedOrAddedDocuments.Count, newProject.FilePath);
+                    log.Write("Found {0} potentially changed document(s) in project '{1}'", changedOrAddedDocuments.Count, newProject.Id);
 
                     var (mvid, mvidReadError) = await DebuggingSession.GetProjectModuleIdAsync(newProject, cancellationToken).ConfigureAwait(false);
                     if (mvidReadError != null)
@@ -856,7 +856,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (mvid == Guid.Empty)
                     {
-                        log.Write("Emitting update of '{0}': project not built", newProject.FilePath);
+                        log.Write("Emitting update of '{0}': project not built", newProject.Id);
                         continue;
                     }
 
@@ -886,7 +886,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
 
                     var projectSummary = GetProjectAnalysisSummary(changedDocumentAnalyses);
-                    log.Write("Project summary for '{0}': {1}", projectSummary, newProject.FilePath);
+                    log.Write("Project summary for '{0}': {1}", newProject.Id, projectSummary);
                     if (projectSummary == ProjectAnalysisSummary.NoChanges)
                     {
                         continue;
@@ -950,7 +950,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    log.Write("Emitting update of '{0}'", newProject.FilePath);
+                    log.Write("Emitting update of '{0}'", newProject.Id);
 
                     if (log.FileLoggingEnabled)
                     {
@@ -1090,7 +1090,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -1119,7 +1119,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             var generation = baselineGeneration + 1;
             log.WriteToFile(sessionId, delta.ILDelta, newProject.Name, generation + ".il");
-            log.WriteToFile(sessionId, delta.MetadataDelta, newProject.Name, generation + ".md");
+            log.WriteToFile(sessionId, delta.MetadataDelta, newProject.Name, generation + ".meta");
             log.WriteToFile(sessionId, delta.PdbDelta, newProject.Name, generation + ".pdb");
         }
 

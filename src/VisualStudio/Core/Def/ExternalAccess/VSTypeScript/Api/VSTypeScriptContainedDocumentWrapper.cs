@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api
 {
-    internal struct VSTypeScriptContainedDocumentWrapper
+    internal readonly struct VSTypeScriptContainedDocumentWrapper
     {
         private readonly ContainedDocument _underlyingObject;
 

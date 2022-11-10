@@ -12,17 +12,16 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    [Trait(Traits.Feature, Traits.Features.Workspace)]
     public class ReferenceCountedDisposableTests
     {
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestArgumentValidation()
             => Assert.Throws<ArgumentNullException>("instance", () => new ReferenceCountedDisposable<IDisposable>(null));
 
         [Theory]
         [InlineData(1)]
         [InlineData(3)]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestSingleReferenceDispose(int disposeCount)
         {
             var target = new DisposableObject();
@@ -43,7 +42,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestTryAddReferenceFailsAfterDispose()
         {
             var target = new DisposableObject();
@@ -55,7 +53,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestTryAddReferenceFailsAfterDispose2()
         {
             var target = new DisposableObject();
@@ -75,7 +72,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOutOfOrderDispose()
         {
             var target = new DisposableObject();
@@ -96,7 +92,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestWeakReferenceLifetime()
         {
             var target = new DisposableObject();
@@ -126,12 +121,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestWeakReferenceArgumentValidation()
             => Assert.Throws<ArgumentNullException>("reference", () => new ReferenceCountedDisposable<IDisposable>.WeakReference(null));
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestDefaultWeakReference()
             => Assert.Null(default(ReferenceCountedDisposable<IDisposable>.WeakReference).TryAddReference());
 

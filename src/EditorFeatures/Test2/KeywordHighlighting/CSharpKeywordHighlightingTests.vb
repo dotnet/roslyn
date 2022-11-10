@@ -5,10 +5,11 @@
 Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
+    <Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
     Public Class CSharpKeywordHighlightingTests
         Inherits AbstractKeywordHighlightingTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact>
         Public Async Function TestVerifyNoHighlightsWhenOptionDisabled() As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
@@ -28,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                 optionIsEnabled:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact>
         Public Async Function TestVerifyHighlightsWhenOptionEnabled() As Task
             Await VerifyHighlightsAsync(
                 <Workspace>

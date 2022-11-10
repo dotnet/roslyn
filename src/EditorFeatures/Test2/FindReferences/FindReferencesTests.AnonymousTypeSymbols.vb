@@ -6,9 +6,10 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
+    <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
         <WorkItem(542553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542553")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestAnonymousType1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -30,7 +31,7 @@ End Module
         End Function
 
         <WorkItem(542553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542553")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestAnonymousType2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -52,7 +53,7 @@ End Module
         End Function
 
         <WorkItem(542553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542553")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestAnonymousType3(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -76,7 +77,7 @@ End Module
         End Function
 
         <WorkItem(542553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542553")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestAnonymousType4(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -100,7 +101,7 @@ End Module
         End Function
 
         <WorkItem(542705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542705")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestAnonymousType5(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -126,7 +127,7 @@ End Class
         End Function
 
         <WorkItem(3284, "https://github.com/dotnet/roslyn/issues/3284")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCaseInsensitiveAnonymousType1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -146,7 +147,7 @@ End Class
         End Function
 
         <WorkItem(3284, "https://github.com/dotnet/roslyn/issues/3284")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCaseInsensitiveAnonymousType2(kind As TestKind, host As TestHost) As System.Threading.Tasks.Task
             Dim input =
 <Workspace>

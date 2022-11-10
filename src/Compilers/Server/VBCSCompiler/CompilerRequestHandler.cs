@@ -74,11 +74,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             Logger = logger;
         }
 
-        private bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers, [NotNullWhen(false)] out List<string>? errorMessages)
-        {
-            return AnalyzerConsistencyChecker.Check(baseDirectory, analyzers, AnalyzerAssemblyLoader, Logger, out errorMessages);
-        }
-
         public bool TryCreateCompiler(in RunRequest request, BuildPaths buildPaths, [NotNullWhen(true)] out CommonCompiler? compiler)
         {
             switch (request.Language)
@@ -141,16 +136,18 @@ Run Compilation for {request.RequestId}
                 return new RejectedBuildResponse(message);
             }
 
-            bool utf8output = compiler.Arguments.Utf8Output;
-            if (!CheckAnalyzers(request.WorkingDirectory, compiler.Arguments.AnalyzerReferences, out List<string>? errorMessages))
+#if NETFRAMEWORK
+            if (!AnalyzerConsistencyChecker.Check(request.WorkingDirectory, compiler.Arguments.AnalyzerReferences, AnalyzerAssemblyLoader, Logger, out List<string?> errorMessages))
             {
                 Logger.Log($"Rejected: {request.RequestId}: for analyzer load issues {string.Join(";", errorMessages)}");
                 return new AnalyzerInconsistencyBuildResponse(new ReadOnlyCollection<string>(errorMessages));
             }
+#endif
 
             Logger.Log($"Begin {request.RequestId} {request.Language} compiler run");
             try
             {
+                bool utf8output = compiler.Arguments.Utf8Output;
                 TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
                 int returnCode = compiler.Run(output, cancellationToken);
                 var outputString = output.ToString();

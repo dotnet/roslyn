@@ -147,7 +147,7 @@ namespace Roslyn.Utilities
         internal struct EventHandlerSet<TEventHandler>
             where TEventHandler : class
         {
-            private ImmutableArray<Registry<TEventHandler>> _registries;
+            private readonly ImmutableArray<Registry<TEventHandler>> _registries;
 
             internal EventHandlerSet(ImmutableArray<Registry<TEventHandler>> registries)
                 => _registries = registries;
@@ -177,7 +177,7 @@ namespace Roslyn.Utilities
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagate(e))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
         }

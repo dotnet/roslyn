@@ -19,7 +19,7 @@ Imports Xunit
 Friend Module CompilationUtils
 
     Private Function ParseSources(source As IEnumerable(Of String), parseOptions As VisualBasicParseOptions) As IEnumerable(Of SyntaxTree)
-        Return source.Select(Function(s) VisualBasicSyntaxTree.ParseText(s, parseOptions))
+        Return source.Select(Function(s) VisualBasicSyntaxTree.ParseText(SourceText.From(s, encoding:=Nothing, SourceHashAlgorithms.Default), parseOptions))
     End Function
 
     Public Function CreateCompilation(
@@ -408,8 +408,9 @@ Friend Module CompilationUtils
         Return s
     End Function
 
-    Public Function FindBindingText(Of TNode As SyntaxNode)(compilation As Compilation, fileName As String, Optional which As Integer = 0, Optional prefixMatch As Boolean = False) As TNode
-        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
+    Public Function FindBindingText(Of TNode As SyntaxNode)(compilation As Compilation, Optional fileName As String = Nothing, Optional which As Integer = 0, Optional prefixMatch As Boolean = False) As TNode
+        Dim trees = If(fileName Is Nothing, compilation.SyntaxTrees, compilation.SyntaxTrees.Where(Function(t) t.FilePath = fileName))
+        Dim tree = trees.Single()
 
         Dim bindText As String = Nothing
         Dim bindPoint = FindBindingTextPosition(compilation, fileName, bindText, which)
@@ -621,7 +622,7 @@ Friend Module CompilationUtils
     ''' &lt;/file&gt;
     ''' </param>
     Public Function CreateParseTree(programElement As XElement) As SyntaxTree
-        Return VisualBasicSyntaxTree.ParseText(FilterString(programElement.Value), path:=If(programElement.@name, ""), encoding:=Encoding.UTF8)
+        Return VisualBasicSyntaxTree.ParseText(SourceText.From(FilterString(programElement.Value), Encoding.UTF8, SourceHashAlgorithms.Default), path:=If(programElement.@name, ""))
     End Function
 
     ''' <summary>

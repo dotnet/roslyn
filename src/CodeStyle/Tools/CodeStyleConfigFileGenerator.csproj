@@ -5,6 +5,7 @@
     <NonShipping>true</NonShipping>
     <UseAppHost>false</UseAppHost>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <IsShipping>false</IsShipping>
   </PropertyGroup>  
   <ItemGroup>
     <Compile Include="..\..\Analyzers\Core\Analyzers\EnforceOnBuild.cs" Link="EnforceOnBuild.cs" />

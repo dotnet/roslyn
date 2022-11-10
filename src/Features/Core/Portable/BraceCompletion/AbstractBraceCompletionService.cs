@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         protected virtual Task<bool> IsValidOpenBraceTokenAtPositionAsync(Document document, SyntaxToken token, int position, CancellationToken cancellationToken)
         {
             // Subclass should have overridden this.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         /// <summary>

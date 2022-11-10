@@ -15,6 +15,7 @@ using Xunit.Abstractions;
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
     public class CSharpSignatureHelp : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
@@ -25,7 +26,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact]
         public void MethodSignatureHelp()
         {
             SetUpEditor(@"
@@ -85,7 +86,7 @@ class C
                 ("d", "Dynamic and Params param"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact]
         public void GenericMethodSignatureHelp1()
         {
             SetUpEditor(@"
@@ -133,7 +134,7 @@ class C
                 ("T2", ""));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact]
         public void GenericMethodSignatureHelp2()
         {
             SetUpEditor(@"
@@ -181,8 +182,7 @@ class C
                 ("i2", ""));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        [WorkItem(42484, "https://github.com/dotnet/roslyn/issues/42484")]
+        [WpfFact, WorkItem(42484, "https://github.com/dotnet/roslyn/issues/42484")]
         public void ExplicitSignatureHelpDismissesCompletion()
         {
             SetUpEditor(@"

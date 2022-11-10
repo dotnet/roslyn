@@ -81,30 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 : null;
         }
 
-        private static bool IsCompilerInternalAttribute(AttributeData attribute)
-        {
-            // from https://github.com/dotnet/roslyn/blob/main/docs/features/nullable-metadata.md
-            var attrClass = attribute.AttributeClass;
-            if (attrClass == null)
-                return false;
-
-            var name = attrClass.Name;
-
-            if (name is not "NullableAttribute" and
-                not "NullableContextAttribute" and
-                not "NativeIntegerAttribute" and
-                not "DynamicAttribute")
-            {
-                return false;
-            }
-
-            var ns = attrClass.ContainingNamespace;
-            return ns?.Name == nameof(System.Runtime.CompilerServices) &&
-                   ns.ContainingNamespace?.Name == nameof(System.Runtime) &&
-                   ns.ContainingNamespace.ContainingNamespace?.Name == nameof(System) &&
-                   ns.ContainingNamespace.ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true;
-        }
-
         private static AttributeArgumentListSyntax? GenerateAttributeArgumentList(AttributeData attribute)
         {
             if (attribute.ConstructorArguments.Length == 0 && attribute.NamedArguments.Length == 0)

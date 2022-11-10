@@ -17,11 +17,12 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Host.UnitTests
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Workspace)]
     public class ProjectDependencyGraphTests : TestBase
     {
         #region GetTopologicallySortedProjects
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestGetTopologicallySortedProjects()
         {
             VerifyTopologicalSort(CreateSolutionFromReferenceMap("A"), "A");
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyTopologicalSort(CreateSolutionFromReferenceMap("B:A A C:A D:C,B"), "ABCD", "ACBD");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestTopologicallySortedProjectsIncrementalUpdate()
         {
             var solution = CreateSolutionFromReferenceMap("A");
@@ -63,8 +64,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
 
         #region Dependency Sets
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(542438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542438")]
+        [Fact, WorkItem(542438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542438")]
         public void TestGetDependencySets()
         {
             VerifyDependencySets(CreateSolutionFromReferenceMap("A B:A C:A D E:D F:D"), "ABC DEF");
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyDependencySets(CreateSolutionFromReferenceMap("A B:A C:A D:B,C"), "ABCD");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestDependencySetsIncrementalUpdate()
         {
             var solution = CreateSolutionFromReferenceMap("A");
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
 
         #region GetProjectsThatThisProjectTransitivelyDependsOn
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestGetProjectsThatThisProjectTransitivelyDependsOn()
         {
             VerifyTransitiveReferences(CreateSolutionFromReferenceMap("A"), "A", new string[] { });
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyTransitiveReferences(CreateSolutionFromReferenceMap("C:B B:A A"), "A", new string[] { });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestGetProjectsThatThisProjectTransitivelyDependsOnThrowsArgumentNull()
         {
             var solution = CreateSolutionFromReferenceMap("");
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
                 () => solution.GetProjectDependencyGraph().GetProjectsThatThisProjectDirectlyDependsOn(null!));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestTransitiveReferencesIncrementalUpdateInMiddle()
         {
             // We are going to create a solution with the references:
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyTransitiveReferences(solution, "D", new string[] { });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestTransitiveReferencesIncrementalUpdateInMiddleLongerChain()
         {
             // We are going to create a solution with the references:
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyTransitiveReferences(solution, "A", new string[] { "B", "C", "D", "E", "F" });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestTransitiveReferencesIncrementalUpdateWithReferencesAlreadyTransitivelyIncluded()
         {
             // We are going to create a solution with the references:
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyDirectReferences(solution, "A", new string[] { "B", "C" });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestTransitiveReferencesIncrementalUpdateWithProjectThatHasUnknownReferences()
         {
             // We are going to create a solution with the references:
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyTransitiveReferences(solution, dependencyGraph, project: "A", expectedResults: new string[] { "B" });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestTransitiveReferencesWithDanglingProjectReference()
         {
             // We are going to create a solution with the references:
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyTransitiveReferences(solution, "A", new string[] { "B" });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestTransitiveReferencesWithMultipleReferences()
         {
             // We are going to create a solution with the references:
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
 
         #endregion
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestDirectAndReverseDirectReferencesAfterWithProjectReferences()
         {
             var solution = CreateSolutionFromReferenceMap("A:B B");
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
 
         #region GetProjectsThatTransitivelyDependOnThisProject
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestGetProjectsThatTransitivelyDependOnThisProject()
         {
             VerifyReverseTransitiveReferences(CreateSolutionFromReferenceMap("A"), "A", new string[] { });
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyReverseTransitiveReferences(CreateSolutionFromReferenceMap("D:C,B B:A C A"), "A", new string[] { "D", "B" });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestGetProjectsThatTransitivelyDependOnThisProjectThrowsArgumentNull()
         {
             var solution = CreateSolutionFromReferenceMap("");
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
                 () => solution.GetProjectDependencyGraph().GetProjectsThatTransitivelyDependOnThisProject(null!));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestReverseTransitiveReferencesIncrementalUpdateInMiddle()
         {
             // We are going to create a solution with the references:
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyReverseTransitiveReferences(solution, "D", new string[] { "A", "B", "C" });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestReverseTransitiveReferencesForUnrelatedProjectAfterWithProjectReferences()
         {
             // We are going to create a solution with the references:
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyReverseTransitiveReferences(solution, "B", new string[] { "A" });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestForwardReferencesAfterProjectRemoval()
         {
             // We are going to create a solution with the references:
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyDirectReferences(solution, "D", new string[] { });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestForwardTransitiveReferencesAfterProjectRemoval()
         {
             // We are going to create a solution with the references:
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyTransitiveReferences(solution, "D", new string[] { });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestReverseReferencesAfterProjectRemoval()
         {
             // We are going to create a solution with the references:
@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyDirectReverseReferences(solution, "D", new string[] { "C" });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestReverseTransitiveReferencesAfterProjectRemoval()
         {
             // We are going to create a solution with the references:
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyReverseTransitiveReferences(solution, "D", new string[] { "C" });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestReverseTransitiveReferencesAfterProjectReferenceRemoval_PreserveThroughUnrelatedSequence()
         {
             // We are going to create a solution with the references:
@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             Assert.Same(expected, solution.State.GetProjectDependencyGraph().GetTestAccessor().TryGetProjectsThatTransitivelyDependOnThisProject(d.Id));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestReverseTransitiveReferencesAfterProjectReferenceRemoval_PreserveUnrelated()
         {
             // We are going to create a solution with the references:
@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             Assert.Same(expected, solution.State.GetProjectDependencyGraph().GetTestAccessor().TryGetProjectsThatTransitivelyDependOnThisProject(e.Id));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestReverseTransitiveReferencesAfterProjectReferenceRemoval_DiscardImpacted()
         {
             // We are going to create a solution with the references:
@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyReverseTransitiveReferences(solution, "C", new string[] { "B" });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestSameDependencyGraphAfterOneOfMultipleReferencesRemoved()
         {
             // We are going to create a solution with the references:

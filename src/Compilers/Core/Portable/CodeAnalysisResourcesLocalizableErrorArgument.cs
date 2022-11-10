@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal struct CodeAnalysisResourcesLocalizableErrorArgument : IFormattable
+    internal readonly struct CodeAnalysisResourcesLocalizableErrorArgument : IFormattable
     {
         private readonly string _targetResourceId;
 

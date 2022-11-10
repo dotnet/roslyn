@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         ImmutableArray<TypeInferenceInfo> GetTypeInferenceInfo(SemanticModel semanticModel, SyntaxNode expression, string nameOpt, CancellationToken cancellationToken);
     }
 
-    internal struct TypeInferenceInfo
+    internal readonly struct TypeInferenceInfo
     {
         public TypeInferenceInfo(ITypeSymbol type)
         {

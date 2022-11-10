@@ -75,23 +75,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _service = service;
                 _workspace = workspace;
                 _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(service._analyzerInfoCache);
-                _service._globalOptions.OptionChanged += OnGlobalOptionChanged;
             }
 
             public void Shutdown()
             {
-                _service._globalOptions.OptionChanged -= OnGlobalOptionChanged;
-            }
-
-            private void OnGlobalOptionChanged(object sender, OptionChangedEventArgs e)
-            {
-                if (e.Option == InternalRuntimeDiagnosticOptions.Syntax ||
-                    e.Option == InternalRuntimeDiagnosticOptions.Semantic ||
-                    e.Option == InternalRuntimeDiagnosticOptions.ScriptSemantic)
-                {
-                    var service = _workspace.Services.GetService<ISolutionCrawlerService>();
-                    service?.Reanalyze(_workspace, this, projectIds: null, documentIds: null, highPriority: false);
-                }
             }
 
             public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
@@ -105,8 +92,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Debug.Assert(textDocument.Project.Solution.Workspace == _workspace);
 
                 // right now, there is no way to observe diagnostics for closed file.
-                if (!_workspace.IsDocumentOpen(textDocument.Id) ||
-                    !_workspace.Options.GetOption(InternalRuntimeDiagnosticOptions.Syntax))
+                if (!_workspace.IsDocumentOpen(textDocument.Id))
                 {
                     return;
                 }
@@ -129,16 +115,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     // right now, there is no way to observe diagnostics for closed file.
                     if (!_workspace.IsDocumentOpen(document.Id))
-                    {
                         return false;
-                    }
 
-                    if (_workspace.Options.GetOption(InternalRuntimeDiagnosticOptions.Semantic))
-                    {
-                        return true;
-                    }
+                    // Misc and cloud workspaces never supports semantics.
+                    if (_workspace.Kind is WorkspaceKind.MiscellaneousFiles or WorkspaceKind.CloudEnvironmentClientWorkspace)
+                        return false;
 
-                    return _workspace.Options.GetOption(InternalRuntimeDiagnosticOptions.ScriptSemantic) && document.SourceCodeKind == SourceCodeKind.Script;
+                    return true;
                 }
             }
 

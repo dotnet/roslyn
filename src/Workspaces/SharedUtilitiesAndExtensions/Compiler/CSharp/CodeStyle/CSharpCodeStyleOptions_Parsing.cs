@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 PreferBracesPreference.None => $"false{notificationString}",
                 PreferBracesPreference.WhenMultiline => $"when_multiline{notificationString}",
                 PreferBracesPreference.Always => $"true{notificationString}",
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
         }
     }

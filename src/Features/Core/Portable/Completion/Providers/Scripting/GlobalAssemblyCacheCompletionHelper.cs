@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var comma = directoryPath.IndexOf(',');
             if (comma >= 0)
             {
-                var partialName = directoryPath.Substring(0, comma);
+                var partialName = directoryPath[..comma];
                 foreach (var identity in GetAssemblyIdentities(partialName))
                 {
                     result.Add(CommonCompletionItem.Create(

@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations.ModifierKeywordRecommenderTests
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class InsideNamespaceDeclaration
         Inherits RecommenderTests
 
@@ -28,15 +29,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 |</File>, recommendations)
         End Sub
 
-        <WorkItem(530100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530100")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(530100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530100")>
         Public Sub AccessibilityModifiersTest()
             VerifyContains("Public", "Friend")
             VerifyMissing("Protected", "Private", "Protected Friend")
         End Sub
 
-        <WorkItem(530100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530100")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(530100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530100")>
         Public Sub ClassModifiersTest()
             VerifyContains("MustInherit", "NotInheritable", "Partial")
         End Sub

@@ -39,10 +39,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
     public partial class CodeCleanupTests
     {
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public Task RemoveUsings()
         {
             var code = @"using System;
@@ -70,7 +70,6 @@ internal class Program
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public Task SortUsings()
         {
             var code = @"using System.Collections.Generic;
@@ -101,7 +100,6 @@ internal class Program
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public Task SortGlobalUsings()
         {
             var code = @"using System.Threading.Tasks;
@@ -140,7 +138,6 @@ internal class Program
         }
 
         [Fact, WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public Task GroupUsings()
         {
             var code = @"using M;
@@ -185,7 +182,6 @@ namespace M
         }
 
         [Fact, WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public Task SortAndGroupUsings()
         {
             var code = @"using M;
@@ -230,7 +226,6 @@ namespace M
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public Task FixAddRemoveBraces()
         {
             var code = @"class Program
@@ -263,7 +258,6 @@ namespace M
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public Task RemoveUnusedVariable()
         {
             var code = @"class Program
@@ -285,7 +279,6 @@ namespace M
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public Task FixAccessibilityModifiers()
         {
             var code = @"class Program
@@ -307,7 +300,6 @@ namespace M
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public Task FixUsingPlacementPreferOutside()
         {
             var code = @"namespace A
@@ -342,7 +334,6 @@ namespace A
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public Task FixUsingPlacementPreferInside()
         {
             var code = @"using System;
@@ -377,7 +368,6 @@ namespace A
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public Task FixUsingPlacementPreferInsidePreserve()
         {
             var code = @"using System;
@@ -400,7 +390,6 @@ namespace A
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public Task FixUsingPlacementPreferOutsidePreserve()
         {
             var code = @"namespace A
@@ -423,7 +412,6 @@ namespace A
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public Task FixUsingPlacementMixedPreferOutside()
         {
             var code = @"using System;
@@ -465,7 +453,6 @@ namespace A
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public Task FixUsingPlacementMixedPreferInside()
         {
             var code = @"using System;
@@ -508,7 +495,6 @@ namespace A
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public Task FixUsingPlacementMixedPreferInsidePreserve()
         {
             var code = @"using System;
@@ -535,7 +521,6 @@ namespace A
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public Task FixUsingPlacementMixedPreferOutsidePreserve()
         {
             var code = @"using System;
@@ -562,7 +547,6 @@ namespace A
         }
 
         [Theory]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         [InlineData(LanguageNames.CSharp)]
         [InlineData(LanguageNames.VisualBasic)]
         public void VerifyAllCodeStyleFixersAreSupportedByCodeCleanup(string language)
@@ -580,7 +564,7 @@ namespace A
                 language switch
                 {
                     LanguageNames.CSharp => 35,
-                    LanguageNames.VisualBasic => 71,
+                    LanguageNames.VisualBasic => 72,
                     _ => throw ExceptionUtilities.UnexpectedValue(language),
                 };
 
@@ -679,14 +663,12 @@ class C
 ";
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public async Task RunThirdPartyFixer()
         {
             await TestThirdPartyCodeFixerApplied<TestThirdPartyCodeFixWithFixAll, CaseTestAnalyzer>(_code, _fixed);
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public async Task DoNotRunThirdPartyFixerWithNoFixAll()
         {
             await TestThirdPartyCodeFixerNoChanges<TestThirdPartyCodeFixWithOutFixAll, CaseTestAnalyzer>(_code);
@@ -695,7 +677,6 @@ class C
         [Theory]
         [InlineData(DiagnosticSeverity.Warning)]
         [InlineData(DiagnosticSeverity.Error)]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public async Task RunThirdPartyFixerWithSeverityOfWarningOrHigher(DiagnosticSeverity severity)
         {
             await TestThirdPartyCodeFixerApplied<TestThirdPartyCodeFixWithFixAll, CaseTestAnalyzer>(_code, _fixed, severity);
@@ -704,21 +685,18 @@ class C
         [Theory]
         [InlineData(DiagnosticSeverity.Hidden)]
         [InlineData(DiagnosticSeverity.Info)]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public async Task DoNotRunThirdPartyFixerWithSeverityLessThanWarning(DiagnosticSeverity severity)
         {
             await TestThirdPartyCodeFixerNoChanges<TestThirdPartyCodeFixWithOutFixAll, CaseTestAnalyzer>(_code, severity);
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public async Task DoNotRunThirdPartyFixerIfItDoesNotSupportDocumentScope()
         {
             await TestThirdPartyCodeFixerNoChanges<TestThirdPartyCodeFixDoesNotSupportDocumentScope, CaseTestAnalyzer>(_code);
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public async Task DoNotApplyFixerIfChangesAreMadeOutsideDocument()
         {
             await TestThirdPartyCodeFixerNoChanges<TestThirdPartyCodeFixModifiesSolution, CaseTestAnalyzer>(_code);

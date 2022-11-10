@@ -6,9 +6,11 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.CodeAnalysis.VisualBasic.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Collections.Generic;
@@ -1422,8 +1424,8 @@ End Class
             string fileName = language == LanguageNames.CSharp ? "Test.cs" : "Test.vb";
 
             return language == LanguageNames.CSharp ?
-                CSharpSyntaxTree.ParseText(source, path: fileName) :
-                VisualBasicSyntaxTree.ParseText(source, path: fileName);
+                CSharpTestSource.Parse(source, path: fileName) :
+                BasicTestSource.Parse(source, path: fileName);
         }
     }
 }

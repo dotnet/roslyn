@@ -103,6 +103,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
             public static string NonExistentProject => GetText("SolutionFiles.NonExistentProject.sln");
             public static string ProjectLoadErrorOnMissingDebugType => GetText("SolutionFiles.ProjectLoadErrorOnMissingDebugType.sln");
             public static string SolutionFolder => GetText("SolutionFiles.SolutionFolder.sln");
+            public static string VisualBasic => GetText("SolutionFiles.VisualBasic.sln");
             public static string VB_and_CSharp => GetText("SolutionFiles.VB_and_CSharp.sln");
         }
 
@@ -160,6 +161,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string WithoutCSharpTargetsImported => GetText("ProjectFiles.CSharp.WithoutCSharpTargetsImported.csproj");
                 public static string WithDiscoverEditorConfigFiles => GetText("ProjectFiles.CSharp.WithDiscoverEditorConfigFiles.csproj");
                 public static string WithPrefer32Bit => GetText("ProjectFiles.CSharp.WithPrefer32Bit.csproj");
+                public static string WithChecksumAlgorithm => GetText("ProjectFiles.CSharp.WithChecksumAlgorithm.csproj");
                 public static string WithLink => GetText("ProjectFiles.CSharp.WithLink.csproj");
                 public static string WithSystemNumerics => GetText("ProjectFiles.CSharp.WithSystemNumerics.csproj");
                 public static string WithXaml => GetText("ProjectFiles.CSharp.WithXaml.csproj");
@@ -186,6 +188,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string VisualBasicProject => GetText("ProjectFiles.VisualBasic.VisualBasicProject.vbproj");
                 public static string VisualBasicProject_3_5 => GetText("ProjectFiles.VisualBasic.VisualBasicProject_3_5.vbproj");
                 public static string WithPrefer32Bit => GetText("ProjectFiles.VisualBasic.WithPrefer32Bit.vbproj");
+                public static string WithChecksumAlgorithm => GetText("ProjectFiles.VisualBasic.WithChecksumAlgorithm.vbproj");
                 public static string WithoutPrefer32Bit => GetText("ProjectFiles.VisualBasic.WithoutPrefer32Bit.vbproj");
                 public static string WithoutVBTargetsImported => GetText("ProjectFiles.VisualBasic.WithoutVBTargetsImported.vbproj");
                 public static string VBNetCoreAppWithGlobalImportAndLibrary_VBProject => GetText("VBNetCoreAppWithGlobalImportAndLibrary.VBProject.vbproj");

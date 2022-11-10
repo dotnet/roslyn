@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         var localDeclaration = (LocalDeclarationStatementSyntax)node;
                         if (localDeclaration.Declaration.Variables.Count != 1)
                         {
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
                         }
 
                         return new IEnumerable<SyntaxTrivia>[] {
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         break;
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

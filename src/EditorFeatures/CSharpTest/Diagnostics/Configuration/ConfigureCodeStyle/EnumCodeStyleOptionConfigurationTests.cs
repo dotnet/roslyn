@@ -43,11 +43,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
                         new CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer(), new ConfigureCodeStyleOptionCodeFixProvider());
         }
 
+        [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
         public class UnusedLocalVariableConfigurationTests : EnumCodeStyleOptionConfigurationTests
         {
             protected override int CodeActionIndex => 0;
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_Empty_UnusedLocalVariable()
             {
                 var input = @"
@@ -95,7 +96,7 @@ csharp_style_unused_value_assignment_preference = unused_local_variable
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [Fact]
             public async Task ConfigureEditorconfig_RuleExists_UnusedLocalVariable()
             {
                 var input = @"
@@ -143,7 +144,7 @@ csharp_style_unused_value_assignment_preference = unused_local_variable:suggesti
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_RuleExists_DotnetDiagnosticEntry()
             {
                 var input = @"
@@ -194,7 +195,7 @@ csharp_style_unused_value_assignment_preference = unused_local_variable
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_RuleExists_ConflictingDotnetDiagnosticEntry()
             {
                 var input = @"
@@ -244,7 +245,7 @@ csharp_style_unused_value_assignment_preference = unused_local_variable:suggesti
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_InvalidHeader_UnusedLocalVariable()
             {
                 var input = @"
@@ -297,7 +298,7 @@ csharp_style_unused_value_assignment_preference = unused_local_variable
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [Fact]
             public async Task ConfigureEditorconfig_MaintainSeverity_UnusedLocalVariable()
             {
                 var input = @"
@@ -345,7 +346,7 @@ csharp_style_unused_value_assignment_preference = unused_local_variable:suggesti
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_InvalidRule_UnusedLocalVariable()
             {
                 var input = @"
@@ -397,11 +398,12 @@ csharp_style_unused_value_assignment_preference = unused_local_variable
             }
         }
 
+        [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
         public class DiscardVariableConfigurationTests : EnumCodeStyleOptionConfigurationTests
         {
             protected override int CodeActionIndex => 1;
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_Empty_DiscardVariable()
             {
                 var input = @"
@@ -449,7 +451,7 @@ csharp_style_unused_value_assignment_preference = discard_variable
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [Fact]
             public async Task ConfigureEditorconfig_RuleExists_DiscardVariable()
             {
                 var input = @"
@@ -497,7 +499,7 @@ csharp_style_unused_value_assignment_preference = discard_variable:suggestion
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [Fact]
             public async Task ConfigureEditorconfig_RuleExists_DiscardVariable_WithoutSeveritySuffix()
             {
                 var input = @"
@@ -545,7 +547,7 @@ csharp_style_unused_value_assignment_preference = discard_variable
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_InvalidHeader_DiscardVariable()
             {
                 var input = @"
@@ -598,7 +600,7 @@ csharp_style_unused_value_assignment_preference = discard_variable
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [Fact]
             public async Task ConfigureEditorconfig_MaintainSeverity_DiscardVariable()
             {
                 var input = @"
@@ -646,7 +648,7 @@ csharp_style_unused_value_assignment_preference = discard_variable:suggestion
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_InvalidRule_DiscardVariable()
             {
                 var input = @"

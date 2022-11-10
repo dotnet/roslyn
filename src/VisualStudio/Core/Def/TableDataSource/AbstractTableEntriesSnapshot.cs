@@ -2,12 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Windows;
+using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
@@ -30,6 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private readonly int _version;
         private readonly ImmutableArray<TItem> _items;
         private ImmutableArray<ITrackingPoint> _trackingPoints;
+        private FrameworkElement[]? _descriptions;
 
         protected AbstractTableEntriesSnapshot(IThreadingContext threadingContext, int version, ImmutableArray<TItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
         {
@@ -180,11 +185,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             var documentId = item.DocumentId;
             if (documentId is null)
             {
-                if (item is { ProjectId: { } projectId }
-                    && solution.GetProject(projectId) is { } project)
+                if (solution.GetProject(item.ProjectId) is { } project)
                 {
-                    // We couldn't find a document ID when the item was created, so it may be a source generator
-                    // output.
+                    // We couldn't find a document ID when the item was created, so it may be a source generator output.
                     var documents = ThreadingContext.JoinableTaskFactory.Run(() => project.GetSourceGeneratedDocumentsAsync(cancellationToken).AsTask());
                     var projectDirectory = Path.GetDirectoryName(project.FilePath);
                     documentId = documents.FirstOrDefault(document => Path.Combine(projectDirectory, document.FilePath) == item.GetOriginalFilePath())?.Id;
@@ -229,6 +232,73 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public void StopCaching()
         {
+        }
+
+        protected static bool CanCreateDetailsContent(int index, Func<int, DiagnosticTableItem?> getDiagnosticTableItem)
+        {
+            var item = getDiagnosticTableItem(index)?.Data;
+            if (item == null)
+            {
+                return false;
+            }
+
+            return !string.IsNullOrWhiteSpace(item.Description);
+        }
+
+        protected bool TryCreateDetailsContent(int index, Func<int, DiagnosticTableItem?> getDiagnosticTableItem, [NotNullWhen(returnValue: true)] out FrameworkElement? expandedContent)
+        {
+            var item = getDiagnosticTableItem(index)?.Data;
+            if (item == null)
+            {
+                expandedContent = null;
+                return false;
+            }
+
+            expandedContent = GetOrCreateTextBlock(ref _descriptions, this.Count, index, item, i => GetDescriptionTextBlock(i));
+            return true;
+        }
+
+        protected static bool TryCreateDetailsStringContent(int index, Func<int, DiagnosticTableItem?> getDiagnosticTableItem, [NotNullWhen(returnValue: true)] out string? content)
+        {
+            var item = getDiagnosticTableItem(index)?.Data;
+            if (item == null)
+            {
+                content = null;
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(item.Description))
+            {
+                content = null;
+                return false;
+            }
+
+            content = item.Description;
+            return content != null;
+        }
+
+        private static FrameworkElement GetDescriptionTextBlock(DiagnosticData item)
+        {
+            return new TextBlock()
+            {
+                Background = null,
+                Padding = new Thickness(10, 6, 10, 8),
+                TextWrapping = TextWrapping.Wrap,
+                Text = item.Description
+            };
+        }
+
+        private static FrameworkElement GetOrCreateTextBlock(
+            [NotNull] ref FrameworkElement[]? caches, int count, int index, DiagnosticData item, Func<DiagnosticData, FrameworkElement> elementCreator)
+        {
+            caches ??= new FrameworkElement[count];
+
+            if (caches[index] == null)
+            {
+                caches[index] = elementCreator(item);
+            }
+
+            return caches[index];
         }
     }
 }

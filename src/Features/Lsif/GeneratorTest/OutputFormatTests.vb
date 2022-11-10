@@ -26,13 +26,13 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
 
             AssertEx.EqualOrDiff(
 "{""hoverProvider"":true,""declarationProvider"":false,""definitionProvider"":true,""referencesProvider"":true,""typeDefinitionProvider"":false,""documentSymbolProvider"":false,""foldingRangeProvider"":true,""diagnosticProvider"":false,""id"":1,""type"":""vertex"",""label"":""capabilities""}
-{""kind"":""csharp"",""resource"":""file:///Z:/TestProject.csproj"",""id"":2,""type"":""vertex"",""label"":""project""}
+{""kind"":""csharp"",""resource"":""file:///Z:/TestProject.csproj"",""name"":""TestProject"",""id"":2,""type"":""vertex"",""label"":""project""}
 {""kind"":""begin"",""scope"":""project"",""data"":2,""id"":3,""type"":""vertex"",""label"":""$event""}
 {""uri"":""file:///Z:/A.cs"",""languageId"":""csharp"",""id"":4,""type"":""vertex"",""label"":""document""}
 {""kind"":""begin"",""scope"":""document"",""data"":4,""id"":5,""type"":""vertex"",""label"":""$event""}
 {""outV"":4,""inVs"":[],""id"":6,""type"":""edge"",""label"":""contains""}
 {""result"":[],""id"":7,""type"":""vertex"",""label"":""foldingRangeResult""}
-{""outV"":4,""inVs"":[7],""id"":8,""type"":""edge"",""label"":""textDocument/foldingRange""}
+{""outV"":4,""inV"":7,""id"":8,""type"":""edge"",""label"":""textDocument/foldingRange""}
 {""kind"":""end"",""scope"":""document"",""data"":4,""id"":9,""type"":""vertex"",""label"":""$event""}
 {""outV"":2,""inVs"":[4],""id"":10,""type"":""edge"",""label"":""contains""}
 {""kind"":""end"",""scope"":""project"",""data"":2,""id"":11,""type"":""vertex"",""label"":""$event""}
@@ -71,6 +71,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
   {
     ""kind"": ""csharp"",
     ""resource"": ""file:///Z:/TestProject.csproj"",
+    ""name"": ""TestProject"",
     ""id"": 2,
     ""type"": ""vertex"",
     ""label"": ""project""
@@ -113,9 +114,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
   },
   {
     ""outV"": 4,
-    ""inVs"": [
-      7
-    ],
+    ""inV"": 7,
     ""id"": 8,
     ""type"": ""edge"",
     ""label"": ""textDocument/foldingRange""

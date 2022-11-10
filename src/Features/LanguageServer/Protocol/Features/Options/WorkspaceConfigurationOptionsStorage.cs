@@ -12,8 +12,6 @@ internal static class WorkspaceConfigurationOptionsStorage
     public static WorkspaceConfigurationOptions GetWorkspaceConfigurationOptions(this IGlobalOptionService globalOptions)
         => new(
             CacheStorage: globalOptions.GetOption(CloudCacheFeatureFlag) ? StorageDatabase.CloudCache : globalOptions.GetOption(Database),
-            DisableProjectCacheService: globalOptions.GetOption(DisableProjectCacheService),
-            DisableRecoverableTrees: globalOptions.GetOption(DisableRecoverableTrees),
             EnableOpeningSourceGeneratedFiles: globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspace) ??
                                                globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag),
             DisableCloneWhenProducingSkeletonReferences: globalOptions.GetOption(DisableCloneWhenProducingSkeletonReferences));
@@ -26,20 +24,13 @@ internal static class WorkspaceConfigurationOptionsStorage
         "FeatureManager/Storage", "CloudCacheFeatureFlag", WorkspaceConfigurationOptions.Default.CacheStorage == StorageDatabase.CloudCache,
         new FeatureFlagStorageLocation("Roslyn.CloudCache3"));
 
-    /// <summary>
-    /// Disables if the workspace creates recoverable trees when from its <see cref="ISyntaxTreeFactoryService"/>s.
-    /// </summary>
-    public static readonly Option2<bool> DisableRecoverableTrees = new(
-        "WorkspaceConfigurationOptions", "DisableRecoverableTrees", WorkspaceConfigurationOptions.Default.DisableRecoverableTrees,
-        new FeatureFlagStorageLocation("Roslyn.DisableRecoverableTrees"));
-
-    public static readonly Option2<bool> DisableProjectCacheService = new(
-        "WorkspaceConfigurationOptions", nameof(DisableProjectCacheService), WorkspaceConfigurationOptions.Default.DisableProjectCacheService,
-        new FeatureFlagStorageLocation("Roslyn.DisableProjectCacheService"));
-
     public static readonly Option2<bool> DisableCloneWhenProducingSkeletonReferences = new(
         "WorkspaceConfigurationOptions", "DisableCloneWhenProducingSkeletonReferences", WorkspaceConfigurationOptions.Default.DisableCloneWhenProducingSkeletonReferences,
         new FeatureFlagStorageLocation("Roslyn.DisableCloneWhenProducingSkeletonReferences"));
+
+    public static readonly Option2<bool> DisableReferenceManagerRecoverableMetadata = new(
+        "WorkspaceConfigurationOptions", "DisableReferenceManagerRecoverableMetadata", WorkspaceConfigurationOptions.Default.DisableReferenceManagerRecoverableMetadata,
+        new FeatureFlagStorageLocation("Roslyn.DisableReferenceManagerRecoverableMetadata"));
 
     /// <summary>
     /// This option allows the user to enable this. We are putting this behind a feature flag for now since we could have extensions

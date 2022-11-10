@@ -16,6 +16,7 @@ using Xunit.Abstractions;
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
     public class BasicExtractMethod : AbstractEditorTest
     {
         private const string TestSource = @"
@@ -46,7 +47,6 @@ End Module";
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void SimpleExtractMethod()
         {
             VisualStudio.Editor.SetText(TestSource);
@@ -88,7 +88,7 @@ End Module";
     End Sub");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact]
         public void ExtractViaCodeAction()
         {
             VisualStudio.Editor.SetText(TestSource);

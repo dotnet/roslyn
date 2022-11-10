@@ -163,14 +163,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.ParameterList is object);
             Debug.Assert(node.IsKind(SyntaxKind.RecordDeclaration));
 
-            Binder enclosing = new ExpressionVariableBinder(node, _enclosing);
-            AddToMap(node, enclosing);
-            Visit(node.PrimaryConstructorBaseTypeIfClass, enclosing);
+            Visit(node.PrimaryConstructorBaseTypeIfClass);
         }
 
         public override void VisitPrimaryConstructorBaseType(PrimaryConstructorBaseTypeSyntax node)
         {
-            Binder enclosing = _enclosing.WithAdditionalFlags(BinderFlags.ConstructorInitializer);
+            Binder enclosing = new ExpressionVariableBinder(node, _enclosing).WithAdditionalFlags(BinderFlags.ConstructorInitializer);
             AddToMap(node, enclosing);
             VisitConstructorInitializerArgumentList(node, node.ArgumentList, enclosing);
         }

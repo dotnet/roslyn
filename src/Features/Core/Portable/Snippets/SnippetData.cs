@@ -14,16 +14,16 @@ namespace Microsoft.CodeAnalysis.Snippets
     /// Avoids using the Snippet and creating a TextChange/finding cursor
     /// position before we know it was the selected CompletionItem.
     /// </summary>
-    internal struct SnippetData
+    internal readonly struct SnippetData
     {
         public readonly string Description;
-        public readonly string SnippetIdentifier;
+        public readonly string Identifier;
         public readonly ImmutableArray<string> AdditionalFilterTexts;
 
-        public SnippetData(string description, string snippetIdentifier, ImmutableArray<string> additionalFilterTexts)
+        public SnippetData(string description, string identifier, ImmutableArray<string> additionalFilterTexts)
         {
             Description = description;
-            SnippetIdentifier = snippetIdentifier;
+            Identifier = identifier;
             AdditionalFilterTexts = additionalFilterTexts;
         }
     }

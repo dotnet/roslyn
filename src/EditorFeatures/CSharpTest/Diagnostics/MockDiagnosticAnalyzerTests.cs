@@ -59,8 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MockDiagnos
             actualDiagnostics.Verify(expectedDiagnostics);
         }
 
-        [WorkItem(906919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/906919")]
-        [Fact]
+        [Fact, WorkItem(906919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/906919")]
         public async Task Bug906919()
         {
             var source = "[|class C { }|]";

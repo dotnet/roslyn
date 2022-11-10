@@ -7,9 +7,9 @@ Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBas
     Microsoft.CodeAnalysis.VisualBasic.UseIsNotExpression.VisualBasicUseIsNotExpressionCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseIsNotExpression
+    <Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNotExpression)>
     Partial Public Class UseIsNotExpressionTests
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNotExpression)>
-        <WorkItem(46706, "https://github.com/dotnet/roslyn/issues/46706")>
+        <Fact, WorkItem(46706, "https://github.com/dotnet/roslyn/issues/46706")>
         Public Async Function TestIsExpression() As Task
             Await New VerifyVB.Test With {
                 .TestCode = "
@@ -29,7 +29,7 @@ end class"
             }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNotExpression)>
+        <Fact>
         Public Async Function TestTypeOfIsExpression() As Task
             Await New VerifyVB.Test With {
                 .TestCode = "
@@ -49,7 +49,7 @@ end class"
             }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNotExpression)>
+        <Fact>
         Public Async Function TestVB12() As Task
             Await New VerifyVB.Test With {
                 .TestCode = "

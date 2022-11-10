@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 {
     internal sealed class CompilationTestData
     {
-        internal struct MethodData
+        internal readonly struct MethodData
         {
             public readonly ILBuilder ILBuilder;
             public readonly IMethodSymbolInternal Method;

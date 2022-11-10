@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
 {
-    internal struct PatternMatch : IComparable<PatternMatch>
+    internal readonly struct PatternMatch : IComparable<PatternMatch>
     {
         /// <summary>
         /// True if this was a case sensitive match.

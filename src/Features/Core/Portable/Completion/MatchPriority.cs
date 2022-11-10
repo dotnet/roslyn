@@ -11,6 +11,12 @@ namespace Microsoft.CodeAnalysis.Completion
     public static class MatchPriority
     {
         /// <summary>
+        /// The matching algorithm should not select this item unless it's a dramatically 
+        /// better text-based match than other items.
+        /// </summary>
+        internal const int Deprioritize = int.MinValue / 2;
+
+        /// <summary>
         /// The matching algorithm should give this item no special treatment.
         /// 
         /// Ordinary <see cref="CompletionProvider"/>s typically specify this.

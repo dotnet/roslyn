@@ -11,6 +11,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 {
+    [Trait(Traits.Feature, Traits.Features.CodeModel)]
     public class FileCodeClassWithMissingBraceTests : AbstractFileCodeElementTests
     {
         public FileCodeClassWithMissingBraceTests()
@@ -51,7 +52,6 @@ class Baz
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Body_BeforeNamespace()
         {
             var testObject = GetCodeClass("Goo");
@@ -63,7 +63,6 @@ class Baz
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Body_BeforeOtherClass()
         {
             var testObject = GetCodeClass("Goo", "Bar");
@@ -75,7 +74,6 @@ class Baz
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Body_Eof()
         {
             var testObject = GetCodeClass("Baz");

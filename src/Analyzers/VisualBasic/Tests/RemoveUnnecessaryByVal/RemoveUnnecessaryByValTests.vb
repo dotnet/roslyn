@@ -7,6 +7,7 @@ Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBas
     Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal.VisualBasicRemoveUnnecessaryByValCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryByVal
+    <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveByVal)>
     Public Class RemoveUnnecessaryByValTests
         Private Shared Async Function VerifyCodeFixAsync(source As String, fixedSource As String) As Task
             Await New VerifyVB.Test With
@@ -16,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryB
             }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveByVal)>
+        <Fact>
         Public Async Function TestRemoveByVal() As Task
             Await VerifyCodeFixAsync(
 "Public Class Program
@@ -31,7 +32,7 @@ End Class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveByVal)>
+        <Fact>
         Public Async Function TestRemoveByValLowerCase() As Task
             Await VerifyCodeFixAsync(
 "Public Class Program
@@ -46,7 +47,7 @@ End Class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveByVal)>
+        <Fact>
         Public Async Function TestRemoveByValMoreThanOneModifier() As Task
             Await VerifyCodeFixAsync(
 "Public Class Program
@@ -61,7 +62,7 @@ End Class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveByVal)>
+        <Fact>
         Public Async Function TestRemoveByValCodeHasError() As Task
             Await VerifyCodeFixAsync(
 "Public Class Program
@@ -76,7 +77,7 @@ End Class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveByVal)>
+        <Fact>
         Public Async Function TestRemoveByValInConstructor() As Task
             Await VerifyCodeFixAsync(
 "Public Class Program
@@ -91,7 +92,7 @@ End Class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveByVal)>
+        <Fact>
         Public Async Function TestRemoveByValInOperator() As Task
             Await VerifyCodeFixAsync(
 "Public Class Program
@@ -108,7 +109,7 @@ End Class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveByVal)>
+        <Fact>
         Public Async Function TestRemoveByValParameterizedProperty() As Task
             Await VerifyCodeFixAsync(
 "Public Class Program
@@ -129,7 +130,7 @@ End Class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveByVal)>
+        <Fact>
         Public Async Function TestRemoveByValInDelegate() As Task
             Await VerifyCodeFixAsync(
 "Public Class Program
@@ -142,7 +143,7 @@ End Class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveByVal)>
+        <Fact>
         Public Async Function TestRemoveByValInLambdaSingleLine() As Task
             Await VerifyCodeFixAsync(
 "Public Class Program
@@ -161,7 +162,7 @@ End Class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveByVal)>
+        <Fact>
         Public Async Function TestRemoveByValInLambdaMultiLine() As Task
             Await VerifyCodeFixAsync(
 "Public Class Program

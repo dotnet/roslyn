@@ -16,10 +16,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
+    [Trait(Traits.Feature, Traits.Features.Formatting)]
     public class FormattingEngineElasticTriviaTests : CSharpFormattingTestBase
     {
         [Fact(Skip = "530167")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatElasticTrivia()
         {
             var expected = @"extern alias A1;
@@ -95,9 +95,7 @@ class B
             Assert.Equal(expected, newCompilation.ToFullString());
         }
 
-        [WorkItem(1947, "https://github.com/dotnet/roslyn/issues/1947")]
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, WorkItem(1947, "https://github.com/dotnet/roslyn/issues/1947")]
         public void ElasticLineBreaksBetweenMembers()
         {
             var text = @"
@@ -143,9 +141,7 @@ public class SomeAttribute : System.Attribute { }
             Assert.Equal(expected, annotationFormatted);
         }
 
-        [WorkItem(408, "https://roslyn.codeplex.com/workitem/408")]
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, WorkItem(408, "https://roslyn.codeplex.com/workitem/408")]
         public void FormatElasticTriviaBetweenPropertiesWithoutAccessors()
         {
             var expected = @"class PropertyTest

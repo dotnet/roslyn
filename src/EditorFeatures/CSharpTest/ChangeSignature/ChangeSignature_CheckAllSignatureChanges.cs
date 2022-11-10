@@ -13,9 +13,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 {
+    [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
-        [Theory, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Theory]
 #pragma warning disable xUnit1019
         // There is a bug in xUnit analyzer might generate false alarm, temporary disable it
         // https://github.com/xunit/xunit/issues/1968
@@ -74,7 +75,7 @@ static class Ext
                 verifyNoDiagnostics: true);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Theory]
 #pragma warning disable xUnit1019
         // There is a bug in xUnit analyzer might generate false alarm, temporary disable it
         // https://github.com/xunit/xunit/issues/1968

@@ -412,22 +412,10 @@ class Test
     void M(readonly ref int p)
     {
     }
-}").GetParseDiagnostics().Verify(
-                // (4,12): error CS1026: ) expected
+}").VerifyDiagnostics(
+                // (4,12): error CS9068: 'readonly' is not supported as a parameter modifier. Did you mean 'in'?
                 //     void M(readonly ref int p)
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(4, 12),
-                // (4,12): error CS1002: ; expected
-                //     void M(readonly ref int p)
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(4, 12),
-                // (4,30): error CS1003: Syntax error, ',' expected
-                //     void M(readonly ref int p)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(4, 30),
-                // (5,6): error CS1002: ; expected
-                //     {
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 6),
-                // (7,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(7, 1));
+                Diagnostic(ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn, "readonly").WithLocation(4, 12));
         }
 
         [Fact]
@@ -473,27 +461,9 @@ class Test
 {
     void M(ref readonly int p) => throw null;
 }").VerifyDiagnostics(
-                // (4,16): error CS1031: Type expected
+                // (4,16): error CS9068: 'readonly' is not supported as a parameter modifier. Did you mean 'in'?
                 //     void M(ref readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "readonly").WithLocation(4, 16),
-                // (4,16): error CS1001: Identifier expected
-                //     void M(ref readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "readonly").WithLocation(4, 16),
-                // (4,16): error CS1026: ) expected
-                //     void M(ref readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(4, 16),
-                // (4,16): error CS1002: ; expected
-                //     void M(ref readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(4, 16),
-                // (4,30): error CS1003: Syntax error, ',' expected
-                //     void M(ref readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(4, 30),
-                // (4,10): error CS0501: 'Test.M(ref ?)' must declare a body because it is not marked abstract, extern, or partial
-                //     void M(ref readonly int p) => throw null;
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M").WithArguments("Test.M(ref ?)").WithLocation(4, 10),
-                // (4,29): warning CS0169: The field 'Test.p' is never used
-                //     void M(ref readonly int p) => throw null;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "p").WithArguments("Test.p").WithLocation(4, 29));
+                Diagnostic(ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn, "readonly").WithLocation(4, 16));
         }
 
         [Fact, WorkItem(25264, "https://github.com/dotnet/roslyn/issues/25264")]

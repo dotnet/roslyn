@@ -2672,7 +2672,7 @@ outerDefault:
 
             protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
@@ -3083,7 +3083,7 @@ outerDefault:
             parameterRefKinds = effectiveParameters.ParameterRefKinds;
         }
 
-        private struct EffectiveParameters
+        private readonly struct EffectiveParameters
         {
             internal readonly ImmutableArray<TypeWithAnnotations> ParameterTypes;
             internal readonly ImmutableArray<RefKind> ParameterRefKinds;

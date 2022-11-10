@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                             // We don't support lambda target analysis for operation tree
                             // and control flow graph should have replaced 'AnonymousFunction' nodes
                             // with 'FlowAnonymousFunction' nodes.
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
 
                         case OperationKind.FlowAnonymousFunction:
                             _currentAnalysisData.SetLambdaTargetForDelegate(write, (IFlowAnonymousFunctionOperation)currentOperation);
@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                             break;
 
                         default:
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
                     }
                 }
             }

@@ -3,10 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
+    <Trait(Traits.Feature, Traits.Features.InlineHints)>
     Public Class CSharpInlineParameterNameHintsTests
         Inherits AbstractInlineHintsTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestNoParameterSimpleCase() As Task
             Dim input =
             <Workspace>
@@ -30,7 +31,7 @@ class A
             Await VerifyParamHints(input, input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestOneParameterSimpleCase() As Task
             Dim input =
             <Workspace>
@@ -73,7 +74,7 @@ class A
             Await VerifyParamHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestTwoParametersSimpleCase() As Task
             Dim input =
             <Workspace>
@@ -116,7 +117,7 @@ class A
             Await VerifyParamHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestNegativeNumberParametersSimpleCase() As Task
             Dim input =
             <Workspace>
@@ -159,7 +160,7 @@ class A
             Await VerifyParamHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestLiteralNestedCastParametersSimpleCase() As Task
             Dim input =
             <Workspace>
@@ -202,7 +203,7 @@ class A
             Await VerifyParamHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestObjectCreationParametersSimpleCase() As Task
             Dim input =
             <Workspace>
@@ -245,7 +246,7 @@ class A
             Await VerifyParamHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestCastingANegativeSimpleCase() As Task
             Dim input =
             <Workspace>
@@ -288,7 +289,7 @@ class A
             Await VerifyParamHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestNegatingACastSimpleCase() As Task
             Dim input =
             <Workspace>
@@ -331,7 +332,7 @@ class A
             Await VerifyParamHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestMissingParameterNameSimpleCase() As Task
             Dim input =
             <Workspace>
@@ -355,7 +356,7 @@ class A
             Await VerifyParamHints(input, input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestDelegateParameter() As Task
             Dim input =
             <Workspace>
@@ -406,7 +407,7 @@ class Test
             Await VerifyParamHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestFunctionPointerNoParameter() As Task
             Dim input =
             <Workspace>
@@ -424,7 +425,7 @@ unsafe class Example {
             Await VerifyParamHints(input, input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestParamsArgument() As Task
             Dim input =
             <Workspace>
@@ -467,7 +468,7 @@ class A
             Await VerifyParamHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestAttributesArgument() As Task
             Dim input =
             <Workspace>
@@ -504,7 +505,7 @@ class Foo
             Await VerifyParamHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestIncompleteFunctionCall() As Task
             Dim input =
             <Workspace>
@@ -547,7 +548,7 @@ class A
             Await VerifyParamHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestInterpolatedString() As Task
             Dim input =
             <Workspace>
@@ -590,8 +591,7 @@ class A
             Await VerifyParamHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
-        <WorkItem(47696, "https://github.com/dotnet/roslyn/issues/47696")>
+        <WpfFact, WorkItem(47696, "https://github.com/dotnet/roslyn/issues/47696")>
         Public Async Function TestRecordBaseType() As Task
             Dim input =
             <Workspace>
@@ -616,8 +616,7 @@ record Derived(int Other) : Base(Alice: 2, Bob: 2);
             Await VerifyParamHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
-        <WorkItem(47696, "https://github.com/dotnet/roslyn/issues/47696")>
+        <WpfFact, WorkItem(47696, "https://github.com/dotnet/roslyn/issues/47696")>
         Public Async Function TestClassBaseType() As Task
             Dim input =
             <Workspace>
@@ -655,7 +654,7 @@ class Derived : Base
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestNotOnEnableDisableBoolean1() As Task
             Dim input =
             <Workspace>
@@ -680,7 +679,7 @@ class A
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestNotOnEnableDisableBoolean2() As Task
             Dim input =
             <Workspace>
@@ -705,7 +704,7 @@ class A
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/60145")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestNotOnEnableDisableBoolean3() As Task
             Dim input =
             <Workspace>
@@ -730,7 +729,7 @@ class A
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestOnEnableDisableNonBoolean1() As Task
             Dim input =
             <Workspace>
@@ -774,7 +773,7 @@ class A
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestOnEnableDisableNonBoolean2() As Task
             Dim input =
             <Workspace>
@@ -818,7 +817,7 @@ class A
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestOnSetMethodWithClearContext() As Task
             Dim input =
             <Workspace>
@@ -843,7 +842,7 @@ class A
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestOnSetMethodWithUnclearContext() As Task
             Dim input =
             <Workspace>
@@ -887,7 +886,7 @@ class A
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestMethodWithAlphaSuffix1() As Task
             Dim input =
             <Workspace>
@@ -912,7 +911,7 @@ class A
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestMethodWithNonAlphaSuffix1() As Task
             Dim input =
             <Workspace>
@@ -956,7 +955,7 @@ class A
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestMethodWithNumericSuffix1() As Task
             Dim input =
             <Workspace>
@@ -981,7 +980,7 @@ class A
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestMethodWithNonNumericSuffix1() As Task
             Dim input =
             <Workspace>
@@ -1024,8 +1023,7 @@ class A
             Await VerifyParamHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
-        <WorkItem(48910, "https://github.com/dotnet/roslyn/issues/48910")>
+        <WpfFact, WorkItem(48910, "https://github.com/dotnet/roslyn/issues/48910")>
         Public Async Function TestNullableSuppression() As Task
             Dim input =
             <Workspace>
@@ -1072,8 +1070,7 @@ class A
             Await VerifyParamHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
-        <WorkItem(46614, "https://github.com/dotnet/roslyn/issues/46614")>
+        <WpfFact, WorkItem(46614, "https://github.com/dotnet/roslyn/issues/46614")>
         Public Async Function TestIndexerParameter() As Task
             Dim input =
             <Workspace>

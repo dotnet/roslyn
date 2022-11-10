@@ -3,15 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class ForKeywordRecommenderTests
         Inherits RecommenderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ForInMethodBodyTest()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "For")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ForInLambdaTest()
             VerifyRecommendationsContain(<MethodBody>
 Dim x = Sub()
@@ -19,14 +20,14 @@ Dim x = Sub()
         End Sub</MethodBody>, "For")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ForAfterStatementTest()
             VerifyRecommendationsContain(<MethodBody>
 Dim x
 |</MethodBody>, "For")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ForAfterExitKeywordTest()
             VerifyRecommendationsContain(<MethodBody>
 For
@@ -34,7 +35,7 @@ Exit |
 Loop</MethodBody>, "For")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ForAfterContinueKeywordTest()
             VerifyRecommendationsContain(<MethodBody>
 For
@@ -42,26 +43,26 @@ Continue |
 Loop</MethodBody>, "For")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ForNotAfterContinueKeywordOutsideLoopTest()
             VerifyRecommendationsMissing(<MethodBody>
 Continue |
 </MethodBody>, "For")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ForNotAfterExitKeywordOutsideLoopTest()
             VerifyRecommendationsMissing(<MethodBody>
 Exit |
 </MethodBody>, "For")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ForNotInSingleLineLambdaTest()
             VerifyRecommendationsMissing(<MethodBody>Dim x = Sub() |</MethodBody>, "For")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NoForAfterExitInsideLambdaInsideLoopTest()
             VerifyRecommendationsMissing(<MethodBody>
 For Each i In goo
@@ -72,7 +73,7 @@ Next
 </MethodBody>, "For")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ForAfterExitInsideForLoopInsideLambdaTest()
             VerifyRecommendationsContain(<MethodBody>
 Dim x = Sub()
@@ -83,7 +84,7 @@ Dim x = Sub()
 </MethodBody>, "For")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ForNotAfterExitInsideForLoopInsideFinallyBlockTest()
             Dim code =
 <MethodBody>

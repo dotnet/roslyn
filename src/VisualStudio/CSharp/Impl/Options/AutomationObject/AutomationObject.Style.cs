@@ -333,6 +333,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CSharpCodeStyleOptions.PreferredModifierOrder, value); }
         }
 
+        public string Style_PreferReadOnlyStruct
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferReadOnlyStruct); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferReadOnlyStruct, value); }
+        }
+
         public string Style_PreferStaticLocalFunction
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.PreferStaticLocalFunction); }

@@ -14,6 +14,7 @@ using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.Pro
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
     public class BasicExtractInterfaceDialog : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
@@ -25,7 +26,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [WpfFact]
         public void CoreScenario()
         {
             SetUpEditor(@"Class C$$
@@ -59,7 +60,7 @@ End Class");
 End Interface");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [WpfFact]
         public void CheckFileName()
         {
             SetUpEditor(@"Class C2$$
@@ -81,7 +82,7 @@ End Class");
             ExtractInterfaceDialog.ClickCancel();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [WpfFact]
         public void CheckSameFile()
         {
             SetUpEditor(@"Class C$$
@@ -114,7 +115,7 @@ End Class");
 
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [WpfFact]
         public void CheckSameFileOnlySelectedItems()
         {
             SetUpEditor(@"Class C$$
@@ -148,7 +149,7 @@ Class C
 End Class");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [WpfFact]
         public void CheckSameFileNamespace()
         {
             SetUpEditor(@"Namespace A

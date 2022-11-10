@@ -70,21 +70,29 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
         }
 
         [Fact]
-        public void ChecksumAlgorithm1()
+        public void ChecksumAlgorithm_Default()
         {
             Assert.Equal(SourceHashAlgorithm.Sha1, SourceText.From(HelloWorld).ChecksumAlgorithm);
-            Assert.Equal(SourceHashAlgorithm.Sha1, SourceText.From(HelloWorld, checksumAlgorithm: SourceHashAlgorithm.Sha1).ChecksumAlgorithm);
-            Assert.Equal(SourceHashAlgorithm.Sha256, SourceText.From(HelloWorld, checksumAlgorithm: SourceHashAlgorithm.Sha256).ChecksumAlgorithm);
 
             var bytes = s_unicode.GetBytes(HelloWorld);
             Assert.Equal(SourceHashAlgorithm.Sha1, SourceText.From(bytes, bytes.Length).ChecksumAlgorithm);
-            Assert.Equal(SourceHashAlgorithm.Sha1, SourceText.From(bytes, bytes.Length, checksumAlgorithm: SourceHashAlgorithm.Sha1).ChecksumAlgorithm);
-            Assert.Equal(SourceHashAlgorithm.Sha256, SourceText.From(bytes, bytes.Length, checksumAlgorithm: SourceHashAlgorithm.Sha256).ChecksumAlgorithm);
 
             var stream = new MemoryStream(bytes);
             Assert.Equal(SourceHashAlgorithm.Sha1, SourceText.From(stream).ChecksumAlgorithm);
-            Assert.Equal(SourceHashAlgorithm.Sha1, SourceText.From(stream, checksumAlgorithm: SourceHashAlgorithm.Sha1).ChecksumAlgorithm);
-            Assert.Equal(SourceHashAlgorithm.Sha256, SourceText.From(stream, checksumAlgorithm: SourceHashAlgorithm.Sha256).ChecksumAlgorithm);
+        }
+
+        [Theory]
+        [InlineData(SourceHashAlgorithm.Sha1)]
+        [InlineData(SourceHashAlgorithm.Sha256)]
+        public void ChecksumAlgorithm1(SourceHashAlgorithm algorithm)
+        {
+            Assert.Equal(algorithm, SourceText.From(HelloWorld, checksumAlgorithm: algorithm).ChecksumAlgorithm);
+
+            var bytes = s_unicode.GetBytes(HelloWorld);
+            Assert.Equal(algorithm, SourceText.From(bytes, bytes.Length, checksumAlgorithm: algorithm).ChecksumAlgorithm);
+
+            var stream = new MemoryStream(bytes);
+            Assert.Equal(algorithm, SourceText.From(stream, checksumAlgorithm: algorithm).ChecksumAlgorithm);
         }
 
         [WorkItem(7225, "https://github.com/dotnet/roslyn/issues/7225")]

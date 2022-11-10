@@ -55,6 +55,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
 
                 Dim definitionContextTracker = workspace.ExportProvider.GetExportedValue(Of DefinitionContextTracker)
                 Dim locations = Await definitionContextTracker.GetContextFromPointAsync(
+                    workspace,
                     document,
                     hostDocument.CursorPosition.Value,
                     CancellationToken.None)
@@ -80,6 +81,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
 
             Dim definitionContextTracker = workspace.ExportProvider.GetExportedValue(Of DefinitionContextTracker)
             Dim locations = Await definitionContextTracker.GetContextFromPointAsync(
+                workspace,
                 triggerDocument,
                 triggerHostDocument.CursorPosition.Value,
                 CancellationToken.None)

@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 if (GetContainingScope() is not ExpressionSyntax node)
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 var model = SemanticDocument.SemanticModel;

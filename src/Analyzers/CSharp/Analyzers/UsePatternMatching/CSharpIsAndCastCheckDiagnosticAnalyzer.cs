@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
@@ -43,7 +44,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         }
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.IsExpression);
+        {
+            context.RegisterCompilationStartAction(context =>
+            {
+                // "x is Type y" is only available in C# 7.0 and above.  Don't offer this refactoring
+                // in projects targeting a lesser version.
+                if (context.Compilation.LanguageVersion() < LanguageVersion.CSharp7)
+                    return;
+
+                context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.IsExpression);
+            });
+        }
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
@@ -51,16 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             if (!styleOption.Value)
             {
                 // Bail immediately if the user has disabled this feature.
-                return;
-            }
-
-            var severity = styleOption.Notification.Severity;
-
-            // "x is Type y" is only available in C# 7.0 and above.  Don't offer this refactoring
-            // in projects targeting a lesser version.
-            var syntaxTree = syntaxContext.Node.SyntaxTree;
-            if (syntaxTree.Options.LanguageVersion() < LanguageVersion.CSharp7)
-            {
                 return;
             }
 
@@ -142,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 localDeclarationStatement.GetLocation(),
-                severity,
+                styleOption.Notification.Severity,
                 additionalLocations,
                 properties: null));
         }
@@ -160,42 +161,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             // The is check has to be in an if check: "if (x is Type)
             if (!isExpression.Parent.IsKind(SyntaxKind.IfStatement, out ifStatement))
-            {
                 return false;
-            }
 
-            if (!ifStatement.Statement.IsKind(SyntaxKind.Block, out BlockSyntax? ifBlock))
-            {
+            if (ifStatement.Statement is not BlockSyntax block)
                 return false;
-            }
 
-            if (ifBlock.Statements.Count == 0)
-            {
+            if (block.Statements is [TryStatementSyntax tryStatement, ..])
+                block = tryStatement.Block;
+
+            if (block.Statements.Count == 0)
                 return false;
-            }
 
-            var firstStatement = ifBlock.Statements[0];
+            var firstStatement = block.Statements[0];
             if (!firstStatement.IsKind(SyntaxKind.LocalDeclarationStatement, out localDeclarationStatement))
-            {
                 return false;
-            }
 
             if (localDeclarationStatement.Declaration.Variables.Count != 1)
-            {
                 return false;
-            }
 
             declarator = localDeclarationStatement.Declaration.Variables[0];
             if (declarator.Initializer == null)
-            {
                 return false;
-            }
 
             var declaratorValue = declarator.Initializer.Value.WalkDownParentheses();
             if (!declaratorValue.IsKind(SyntaxKind.CastExpression, out castExpression))
-            {
                 return false;
-            }
 
             if (!SyntaxFactory.AreEquivalent(isExpression.Left.WalkDownParentheses(), castExpression.Expression.WalkDownParentheses(), topLevel: false) ||
                 !SyntaxFactory.AreEquivalent(isExpression.Right.WalkDownParentheses(), castExpression.Type, topLevel: false))
@@ -210,10 +200,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             SyntaxNode scope, VariableDeclaratorSyntax variable)
         {
             var variableName = variable.Identifier.ValueText;
-            return scope.DescendantNodes()
-                        .OfType<VariableDeclaratorSyntax>()
-                        .Where(d => d != variable)
-                        .Any(d => d.Identifier.ValueText.Equals(variableName));
+
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
+            stack.Push(scope);
+
+            while (stack.Count > 0)
+            {
+                var current = stack.Pop();
+
+                if (current == variable)
+                    continue;
+
+                if (current is VariableDeclaratorSyntax declarator &&
+                    declarator.Identifier.ValueText.Equals(variableName))
+                {
+                    return true;
+                }
+                else if (current is SingleVariableDesignationSyntax designation &&
+                    designation.Identifier.ValueText.Equals(variableName))
+                {
+                    return true;
+                }
+
+                foreach (var child in current.ChildNodesAndTokens())
+                {
+                    if (child.IsNode)
+                        stack.Push(child.AsNode()!);
+                }
+            }
+
+            return false;
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()

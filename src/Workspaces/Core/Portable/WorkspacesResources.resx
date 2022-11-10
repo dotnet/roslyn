@@ -582,4 +582,10 @@
   <data name="Failed_to_resolve_rename_conflicts" xml:space="preserve">
     <value>Failed to resolve rename conflicts</value>
   </data>
+  <data name="Use_TextDocument_property_instead_of_Document_property_as_the_provider_supports_non_source_text_documents" xml:space="preserve">
+    <value>Use 'TextDocument' property instead of 'Document' property as the provider supports non-source text documents.</value>
+  </data>
+  <data name="Unexpected_value_0_in_DocumentKinds_array" xml:space="preserve">
+    <value>Unexpected value '{0}' in DocumentKinds array.</value>
+  </data>
 </root>

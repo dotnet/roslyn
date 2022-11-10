@@ -101,7 +101,7 @@ using Xunit;
 //            a local or parameter.
 //
 // Reported *only* when there is a local variable, local constant or lambda parameter
-// but NOT range variable that shadows a local variable, local constant, formal parameter,
+// but NOT range variable that shadows a local variable, local constant, parameter,
 // range variable, or lambda parameter that was declared in an enclosing local declaration space. Again,
 // report it on the inner usage. eg:
 //
@@ -110,7 +110,7 @@ using Xunit;
 // CS0412: (ERR_LocalSameNameAsTypeParam) 
 // 'X': a parameter or local variable cannot have the same name as a method type parameter
 //
-// Reported *only* when a local variable, local constant, formal parameter or lambda parameter
+// Reported *only* when a local variable, local constant, parameter or lambda parameter
 // has the same name as a method type parameter. eg:
 //
 // void M<X>(){ int X; }

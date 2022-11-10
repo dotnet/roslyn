@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.SemanticModelReuse
@@ -16,7 +15,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SemanticModelReuse
     Friend Class VisualBasicSemanticModelReuseLanguageService
         Inherits AbstractSemanticModelReuseLanguageService(Of
             DeclarationStatementSyntax,
-            MethodBlockBaseSyntax,
             DeclarationStatementSyntax,
             AccessorBlockSyntax)
 
@@ -55,20 +53,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SemanticModelReuse
             Return Nothing
         End Function
 
-        Protected Overrides Async Function TryGetSpeculativeSemanticModelWorkerAsync(
-            previousSemanticModel As SemanticModel, currentBodyNode As SyntaxNode, cancellationToken As CancellationToken) As Task(Of SemanticModel)
+        Protected Overrides Function TryGetSpeculativeSemanticModelWorker(previousSemanticModel As SemanticModel, previousBodyNode As SyntaxNode, currentBodyNode As SyntaxNode) As SemanticModel
 
-            Dim previousRoot = Await previousSemanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim currentRoot = Await currentBodyNode.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(False)
-
-            Dim previousBodyNode = TryCast(GetPreviousBodyNode(previousRoot, currentRoot, currentBodyNode), MethodBlockBaseSyntax)
-            If previousBodyNode Is Nothing Then
+            Dim previousMethodBlockBaseNode = TryCast(previousBodyNode, MethodBlockBaseSyntax)
+            If previousMethodBlockBaseNode Is Nothing Then
                 Debug.Fail("Could not map current body to previous body, despite no top level changes")
                 Return Nothing
             End If
 
             Dim speculativeModel As SemanticModel = Nothing
-            If previousSemanticModel.TryGetSpeculativeSemanticModelForMethodBody(previousBodyNode.BlockStatement.FullSpan.End, DirectCast(currentBodyNode, MethodBlockBaseSyntax), speculativeModel) Then
+            If previousSemanticModel.TryGetSpeculativeSemanticModelForMethodBody(previousMethodBlockBaseNode.BlockStatement.FullSpan.End, DirectCast(currentBodyNode, MethodBlockBaseSyntax), speculativeModel) Then
                 Return speculativeModel
             End If
 

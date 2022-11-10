@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceUsingStatement
     <ExtensionOrder(Before:=PredefinedCodeRefactoringProviderNames.IntroduceVariable)>
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.IntroduceUsingStatement), [Shared]>
     Friend NotInheritable Class VisualBasicIntroduceUsingStatementCodeRefactoringProvider
-        Inherits AbstractIntroduceUsingStatementCodeRefactoringProvider(Of StatementSyntax, LocalDeclarationStatementSyntax)
+        Inherits AbstractIntroduceUsingStatementCodeRefactoringProvider(Of StatementSyntax, LocalDeclarationStatementSyntax, TryBlockSyntax)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
@@ -22,13 +22,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceUsingStatement
 
         Protected Overrides ReadOnly Property CodeActionTitle As String = VBFeaturesResources.Introduce_Using_statement
 
+        Protected Overrides Function HasCatchBlocks(tryStatement As TryBlockSyntax) As Boolean
+            Return tryStatement.CatchBlocks.Count > 0
+        End Function
+
+        Protected Overrides Function GetTryFinallyStatements(tryStatement As TryBlockSyntax) As (SyntaxList(Of StatementSyntax), SyntaxList(Of StatementSyntax))
+            Return (tryStatement.Statements, If(tryStatement.FinallyBlock IsNot Nothing, tryStatement.FinallyBlock.Statements, Nothing))
+        End Function
+
         Protected Overrides Function CanRefactorToContainBlockStatements(parent As SyntaxNode) As Boolean
             ' We don’t care enough about declarations in single-line If, Else, lambdas, etc, to support them.
             Return parent.IsMultiLineExecutableBlock()
         End Function
 
-        Protected Overrides Function GetStatements(parentOfStatementsToSurround As SyntaxNode) As SyntaxList(Of StatementSyntax)
-            Return parentOfStatementsToSurround.GetExecutableBlockStatements()
+        Protected Overrides Function GetSurroundingStatements(declarationStatement As LocalDeclarationStatementSyntax) As SyntaxList(Of StatementSyntax)
+            Return declarationStatement.GetRequiredParent().GetExecutableBlockStatements()
         End Function
 
         Protected Overrides Function WithStatements(parentOfStatementsToSurround As SyntaxNode, statements As SyntaxList(Of StatementSyntax)) As SyntaxNode

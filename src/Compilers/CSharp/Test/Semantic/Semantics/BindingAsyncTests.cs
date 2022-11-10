@@ -237,15 +237,15 @@ class C
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-    // (14,9): error CS1997: Since 'C.F1()' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task<T>'?
+    // (14,9): error CS1997: Since 'C.F1()' is an async method that returns 'System.Threading.Tasks.Task', a return keyword must not be followed by an object expression
     //         return await Task.Factory.StartNew(() => 1);
-    Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequired, "return").WithArguments("C.F1()").WithLocation(14, 9),
-    // (19,79): error CS8030: Async lambda expression converted to a 'Task' returning delegate cannot return a value. Did you intend to return 'Task<T>'?
+    Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequired, "return").WithArguments("C.F1()", "System.Threading.Tasks.Task").WithLocation(14, 9),
+    // (19,79): error CS8030: Async lambda expression converted to a 'System.Threading.Tasks.Task' returning delegate cannot return a value
     //         Func<Task> F2 = async () => { await Task.Factory.StartNew(() => { }); return 1; };
-    Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequiredLambda, "return").WithLocation(19, 79),
-    // (20,33): error CS8030: Async lambda expression converted to a 'Task' returning delegate cannot return a value. Did you intend to return 'Task<T>'?
+    Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequiredLambda, "return").WithArguments("System.Threading.Tasks.Task").WithLocation(19, 79),
+    // (20,33): error CS8030: Async lambda expression converted to a 'System.Threading.Tasks.Task' returning delegate cannot return a value
     //         InferTask(async () => { return await Task.Factory.StartNew(() => 1); });
-    Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequiredLambda, "return").WithLocation(20, 33)
+    Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequiredLambda, "return").WithArguments("System.Threading.Tasks.Task").WithLocation(20, 33)
     );
         }
 
@@ -358,16 +358,35 @@ class C
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (11,42): error CS4016: Since this is an async method, the return expression must be of type 'int' rather than 'Task<int>'
                 //         Func<Task<int>> f1 = async () => await Task.Factory.StartNew(() => new Task<int>(null));
-                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "await Task.Factory.StartNew(() => new Task<int>(null))").WithArguments("int"),
+                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "await Task.Factory.StartNew(() => new Task<int>(null))").WithArguments("int", "System.Threading.Tasks.Task<int>").WithLocation(11, 42),
                 // (12,51): error CS4016: Since this is an async method, the return expression must be of type 'int' rather than 'Task<int>'
                 //         Func<Task<int>> f2 = async () => { return await Task.Factory.StartNew(() => new Task<int>(null)); };
-                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "await Task.Factory.StartNew(() => new Task<int>(null))").WithArguments("int"),
+                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "await Task.Factory.StartNew(() => new Task<int>(null))").WithArguments("int", "System.Threading.Tasks.Task<int>").WithLocation(12, 51),
                 // (14,33): error CS4016: Since this is an async method, the return expression must be of type 'int' rather than 'Task<int>'
                 //         InferTask_T(async () => await Task.Factory.StartNew(() => new Task<int>(() => 1)));
-                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "await Task.Factory.StartNew(() => new Task<int>(() => 1))").WithArguments("int"),
+                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "await Task.Factory.StartNew(() => new Task<int>(() => 1))").WithArguments("int", "System.Threading.Tasks.Task<int>").WithLocation(14, 33),
                 // (15,42): error CS4016: Since this is an async method, the return expression must be of type 'int' rather than 'Task<int>'
                 //         InferTask_T(async () => { return await Task.Factory.StartNew(() => new Task<int>(() => 1)); });
-                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "await Task.Factory.StartNew(() => new Task<int>(() => 1))").WithArguments("int"));
+                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "await Task.Factory.StartNew(() => new Task<int>(() => 1))").WithArguments("int", "System.Threading.Tasks.Task<int>").WithLocation(15, 42));
+        }
+
+        [Fact]
+        public void BadAsyncReturnExpression_ValueTask()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+static async ValueTask<int> M() {
+    await Task.Yield();
+    return new ValueTask<int>();
+}
+await M();
+";
+            CreateCompilationWithTasksExtensions(source).VerifyDiagnostics(
+                // (6,12): error CS4016: Since this is an async method, the return expression must be of type 'int' rather than 'ValueTask<int>'
+                //     return new ValueTask<int>();
+                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "new ValueTask<int>()").WithArguments("int", "System.Threading.Tasks.ValueTask<int>").WithLocation(6, 12)
+            );
         }
 
         [Fact]
@@ -525,9 +544,9 @@ class C
     }
 }";
             CreateCompilationWithMscorlib45(source, new MetadataReference[] { LinqAssemblyRef, SystemRef }).VerifyDiagnostics(
-    // (16,17): error CS8030: Async lambda expression converted to a 'Task' returning delegate cannot return a value. Did you intend to return 'Task<T>'?
+    // (16,17): error CS8030: Async lambda expression converted to a 'System.Threading.Tasks.Task' returning delegate cannot return a value
     //                 return 1;
-    Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequiredLambda, "return").WithLocation(16, 17)
+    Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequiredLambda, "return").WithArguments("System.Threading.Tasks.Task").WithLocation(16, 17)
     );
         }
 

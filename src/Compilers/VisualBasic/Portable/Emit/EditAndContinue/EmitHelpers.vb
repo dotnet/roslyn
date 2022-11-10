@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
 
             Dim currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers()
-            Dim currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.GetAllDeletedMethods()
+            Dim currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.GetAllDeletedMembers()
 
             ' Mapping from previous compilation to the current.
             Dim anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap()

@@ -126,5 +126,25 @@ internal partial class SolutionAssetStorage
 
             return null;
         }
+
+        public bool IsPinned(Checksum checksum)
+        {
+            lock (_solutionAssetStorage._gate)
+            {
+                return _solutionAssetStorage._checksumToScope.TryGetValue(checksum, out var scope) &&
+                    scope.RefCount >= 1;
+            }
+        }
+
+        public int PinnedScopesCount
+        {
+            get
+            {
+                lock (_solutionAssetStorage._gate)
+                {
+                    return _solutionAssetStorage._checksumToScope.Count;
+                }
+            }
+        }
     }
 }

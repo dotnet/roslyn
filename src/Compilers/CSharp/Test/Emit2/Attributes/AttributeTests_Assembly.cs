@@ -1025,6 +1025,7 @@ public class C {}
             var consoleappCompilation = CreateCompilationWithMscorlib40(
                 consoleappSource,
                 references: new[] { netModuleWithAssemblyAttributes.GetReference() },
+                parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
                 options: TestOptions.ReleaseExe);
 
             Assert.NotNull(consoleappCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHere"));
@@ -1071,6 +1072,7 @@ public class C {}
             consoleappCompilation = CreateCompilationWithMscorlib40(
                 consoleappSource,
                 references: new[] { netModuleWithAssemblyAttributes.GetReference() },
+                parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
                 options: TestOptions.ReleaseModule);
 
             Assert.Equal(0, consoleappCompilation.Assembly.GetAttributes().Length);
@@ -1125,6 +1127,7 @@ public class C {}
 
             var netmoduleCompilation = CreateEmptyCompilation(netModuleSource,
                                                          options: TestOptions.ReleaseModule,
+                                                         parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
                                                          references: new[] { MinCorlibRef });
             Assert.Null(netmoduleCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHere"));
             Assert.Null(netmoduleCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHereM"));
@@ -1143,6 +1146,7 @@ public class C {}
             var consoleappCompilation = CreateEmptyCompilation(
                 consoleappSource,
                 references: new[] { MinCorlibRef, netModuleWithAssemblyAttributes.GetReference() },
+                parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
                 options: TestOptions.ReleaseExe);
 
             Assert.Null(consoleappCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHere"));
@@ -1183,6 +1187,7 @@ public class C {}
             consoleappCompilation = CreateEmptyCompilation(
                 consoleappSource,
                 references: new[] { MinCorlibRef, netModuleWithAssemblyAttributes.GetReference() },
+                parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
                 options: TestOptions.ReleaseModule);
 
             Assert.Equal(0, consoleappCompilation.Assembly.GetAttributes().Length);

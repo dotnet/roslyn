@@ -137,6 +137,17 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private ImmutableArray<TPackageResult> FilterAndOrderPackages<TPackageResult>(
             ImmutableArray<TPackageResult> allPackages) where TPackageResult : PackageResult
         {
+            // The ranking threshold under while we start aggressively filtering out packages if they don't have a high
+            // enough rank.  Above this and we will always include the item as it's shown more than enough usage to
+            // indicate it's a high value, highly used package.  Note: the reason for this is that some minor packages
+            // include copies of types within them).  So we don't want to clutter the display with redundant duplicate
+            // matches from rarely used packages that are extremely unlikely to be relevant.  Once the package is highly
+            // used though, it's def likely that this could be a viable match.
+            //
+            // The 25 number was picked as it's equivalent to >25m downloads from nuget, which def seems a reasonable
+            // signal that this is an important package.
+            const int RankThreshold = 25;
+
             var packagesUsedInOtherProjects = new List<TPackageResult>();
             var packagesNotUsedInOtherProjects = new List<TPackageResult>();
 
@@ -165,10 +176,8 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 var rank = packageWithType.Rank;
                 bestRank = bestRank == null ? rank : Math.Max(bestRank.Value, rank);
 
-                if (Math.Abs(bestRank.Value - rank) > 1)
-                {
+                if (rank < RankThreshold && Math.Abs(bestRank.Value - rank) > 1)
                     break;
-                }
 
                 result.Add(packageWithType);
             }

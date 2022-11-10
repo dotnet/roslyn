@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.UseCoalesceExpression
 Imports Microsoft.CodeAnalysis.VisualBasic.UseCoalesceExpression
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseCoalesceExpression
+    <Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
     Public Class UseCoalesceExpressionTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -17,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseCoalesceExpress
                     New UseCoalesceExpressionCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
+        <Fact>
         Public Async Function TestOnLeft_Equals() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -38,7 +39,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
+        <Fact>
         Public Async Function TestOnLeft_NotEquals() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -59,7 +60,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
+        <Fact>
         Public Async Function TestOnRight_Equals() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -80,7 +81,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
+        <Fact>
         Public Async Function TestOnRight_NotEquals() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -101,7 +102,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
+        <Fact>
         Public Async Function TestComplexExpression() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -122,7 +123,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
+        <Fact>
         Public Async Function TestParens1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -143,7 +144,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
+        <Fact>
         Public Async Function TestParens2() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -164,7 +165,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
+        <Fact>
         Public Async Function TestParens3() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -185,7 +186,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
+        <Fact>
         Public Async Function TestParens4() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -206,7 +207,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
+        <Fact>
         Public Async Function TestFixAll1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -229,7 +230,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
+        <Fact>
         Public Async Function TestFixAll2() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -250,8 +251,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(17028, "https://github.com/dotnet/roslyn/issues/17028")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
+        <Fact, WorkItem(17028, "https://github.com/dotnet/roslyn/issues/17028")>
         Public Async Function TestInExpressionOfT() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -274,7 +274,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
+        <Fact>
         Public Async Function TestTrivia() As Task
             Await TestInRegularAndScriptAsync(
 "

@@ -161,7 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 // to the next token. This accounts for the fact that comments were included in the token
                 // stream in Dev10.
                 var significantTrivia = openBrace.GetAllTrailingTrivia()
-                                                 .Where(t => !t.MatchesKind(SyntaxKind.WhitespaceTrivia, SyntaxKind.EndOfLineTrivia))
+                                                 .Where(t => t is not SyntaxTrivia(SyntaxKind.WhitespaceTrivia or SyntaxKind.EndOfLineTrivia))
                                                  .FirstOrDefault();
 
                 if (significantTrivia.Kind() != SyntaxKind.None)

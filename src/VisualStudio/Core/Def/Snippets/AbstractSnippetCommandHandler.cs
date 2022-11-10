@@ -260,12 +260,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return CommandState.Unspecified;
             }
 
-            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
-            {
-                return CommandState.Unspecified;
-            }
-
-            if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
+            if (!args.SubjectBuffer.TryGetWorkspace(out var workspace) ||
+                !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
             {
                 return CommandState.Unspecified;
             }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -85,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (baseList?.Parent is TypeDeclarationSyntax typeDecl)
             {
                 if (typeDecl.TypeParameterList != null &&
-                    typeDecl.BaseList.Types.Any(t => token == t.GetLastToken(includeSkipped: true)))
+                    baseList.Types.Any(t => token == t.GetLastToken(includeSkipped: true)))
                 {
                     // token is IdentifierName "where"
                     // only suggest "where" if token's previous token is also "where"

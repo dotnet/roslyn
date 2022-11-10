@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         internal static readonly PatternMatch s_emptyCamelCaseNonContiguousSubstringPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.CamelCaseNonContiguousSubstring, true, false, ImmutableArray<Span>.Empty);
         internal static readonly PatternMatch s_emptyFuzzyPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.Fuzzy, true, false, ImmutableArray<Span>.Empty);
 
-        protected abstract TestWorkspace CreateWorkspace(string content, ExportProvider exportProvider);
+        protected abstract TestWorkspace CreateWorkspace(string content, TestComposition composition);
         protected abstract string Language { get; }
 
         public enum Composition
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         }
 
         private protected static NavigateToItemProvider CreateProvider(TestWorkspace workspace)
-            => new NavigateToItemProvider(
+            => new(
                 workspace,
                 workspace.GetService<IThreadingContext>(),
                 workspace.GetService<IUIThreadOperationExecutor>(),
@@ -130,9 +130,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             TestHost testHost,
             TestComposition composition)
         {
-            var exportProvider = composition.WithTestHostParts(testHost).ExportProviderFactory.CreateExportProvider();
+            composition = composition.WithTestHostParts(testHost);
 
-            var workspace = TestWorkspace.Create(workspaceElement, exportProvider: exportProvider);
+            var workspace = TestWorkspace.Create(workspaceElement, composition: composition);
             InitializeWorkspace(workspace);
             return workspace;
         }
@@ -142,9 +142,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             TestHost testHost,
             TestComposition composition)
         {
-            var exportProvider = composition.WithTestHostParts(testHost).ExportProviderFactory.CreateExportProvider();
+            composition = composition.WithTestHostParts(testHost);
 
-            var workspace = CreateWorkspace(content, exportProvider);
+            var workspace = CreateWorkspace(content, composition);
             InitializeWorkspace(workspace);
             return workspace;
         }

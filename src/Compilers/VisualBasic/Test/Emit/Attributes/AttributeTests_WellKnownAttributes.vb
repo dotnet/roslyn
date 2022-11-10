@@ -3609,7 +3609,7 @@ end structure
 
                     ' Get System.Security.Permissions.HostProtection
                     Dim emittedName = MetadataTypeName.FromNamespaceAndTypeName("System.Security.Permissions", "HostProtectionAttribute")
-                    Dim hostProtectionAttr As NamedTypeSymbol = sourceAssembly.CorLibrary.LookupTopLevelMetadataType(emittedName, True)
+                    Dim hostProtectionAttr As NamedTypeSymbol = sourceAssembly.CorLibrary.LookupDeclaredTopLevelMetadataType(emittedName)
                     Assert.NotNull(hostProtectionAttr)
 
                     ' Verify type security attributes

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
@@ -10,6 +11,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
     internal static partial class UseConditionalExpressionHelpers
     {
+        public const string CanSimplifyName = nameof(CanSimplifyName);
+
+        public static readonly ImmutableDictionary<string, string?> CanSimplifyProperties =
+            ImmutableDictionary<string, string?>.Empty.Add(CanSimplifyName, CanSimplifyName);
+
         public static bool CanConvert(
             ISyntaxFacts syntaxFacts, IConditionalOperation ifOperation,
             IOperation whenTrue, IOperation whenFalse)
@@ -55,11 +61,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 ? block.Operations[0]
                 : statement;
 
-        public static IOperation UnwrapImplicitConversion(IOperation value)
-            => value is IConversionOperation conversion && conversion.IsImplicit
-                ? conversion.Operand
-                : value;
-
         public static bool HasRegularComments(ISyntaxFacts syntaxFacts, SyntaxNode syntax)
             => HasRegularCommentTrivia(syntaxFacts, syntax.GetLeadingTrivia()) ||
                HasRegularCommentTrivia(syntaxFacts, syntax.GetTrailingTrivia());
@@ -69,9 +70,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             foreach (var trivia in triviaList)
             {
                 if (syntaxFacts.IsRegularComment(trivia))
-                {
                     return true;
-                }
             }
 
             return false;
@@ -99,6 +98,35 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                     return true;
             }
 
+            return false;
+        }
+
+        public static bool IsBooleanLiteral(IOperation trueValue, bool val)
+            => trueValue is ILiteralOperation { ConstantValue: { HasValue: true, Value: bool value } } && value == val;
+
+        public static bool CanSimplify(IOperation trueValue, IOperation falseValue, bool isRef, out bool negate)
+        {
+            // If we are going to generate "expr ? true : false" then just generate "expr"
+            // instead.
+            //
+            // If we are going to generate "expr ? false : true" then just generate "!expr"
+            // instead.
+            if (!isRef)
+            {
+                if (IsBooleanLiteral(trueValue, true) && IsBooleanLiteral(falseValue, false))
+                {
+                    negate = false;
+                    return true;
+                }
+
+                if (IsBooleanLiteral(trueValue, false) && IsBooleanLiteral(falseValue, true))
+                {
+                    negate = true;
+                    return true;
+                }
+            }
+
+            negate = false;
             return false;
         }
     }

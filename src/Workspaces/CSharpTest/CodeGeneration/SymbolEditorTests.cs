@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
                 DocumentInfo.Create(
                     DocumentId.CreateNewId(pid),
                     name: "code" + i,
-                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From(s), VersionStamp.Default)))).ToList();
+                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From(s, encoding: null, SourceHashAlgorithms.Default), VersionStamp.Default)))).ToList();
 
             var proj = ProjectInfo.Create(pid, VersionStamp.Default, "test", "test.dll", LanguageNames.CSharp, documents: docs,
                 metadataReferences: new[] { TestMetadata.Net451.mscorlib });
@@ -1009,8 +1009,7 @@ interface I
             Assert.Equal(expected, actual);
         }
 
-        [Fact]
-        [WorkItem(2650, "https://github.com/dotnet/roslyn/issues/2650")]
+        [Fact, WorkItem(2650, "https://github.com/dotnet/roslyn/issues/2650")]
         public async Task TestEditExplicitInterfaceIndexer()
         {
             var code =

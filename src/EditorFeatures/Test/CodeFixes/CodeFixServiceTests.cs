@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 document, TextSpan.FromBounds(0, 0), CodeActionRequestPriority.None, CodeActionOptions.DefaultProvider, isBlocking: false, CancellationToken.None);
 
             var fixer1 = (MockFixer)fixers.Single().Value;
-            var fixer2 = (MockFixer)reference.Fixer!;
+            var fixer2 = (MockFixer)reference.Fixers.Single();
 
             // check to make sure both of them are called.
             Assert.True(fixer1.Called);
@@ -301,9 +302,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
         private static (TestWorkspace workspace, DiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
             CodeFixProvider codefix,
             bool includeConfigurationFixProviders = false,
-            bool throwExceptionInFixerCreation = false)
+            bool throwExceptionInFixerCreation = false,
+            TestHostDocument? additionalDocument = null)
+            => ServiceSetup(ImmutableArray.Create(codefix), includeConfigurationFixProviders, throwExceptionInFixerCreation, additionalDocument);
+
+        private static (TestWorkspace workspace, DiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
+            ImmutableArray<CodeFixProvider> codefixers,
+            bool includeConfigurationFixProviders = false,
+            bool throwExceptionInFixerCreation = false,
+            TestHostDocument? additionalDocument = null)
         {
-            var fixers = SpecializedCollections.SingletonEnumerable(
+            var fixers = codefixers.Select(codefix =>
                 new Lazy<CodeFixProvider, CodeChangeProviderMetadata>(
                 () => throwExceptionInFixerCreation ? throw new Exception() : codefix,
                 new CodeChangeProviderMetadata("Test", languages: LanguageNames.CSharp)));
@@ -311,6 +320,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var code = @"class Program { }";
 
             var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments: true);
+            if (additionalDocument != null)
+            {
+                workspace.Projects.Single().AddAdditionalDocument(additionalDocument);
+                workspace.AdditionalDocuments.Add(additionalDocument);
+                workspace.OnAdditionalDocumentAdded(additionalDocument.ToDocumentInfo());
+            }
+
             var analyzerReference = new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
@@ -335,9 +351,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
         private static void GetDocumentAndExtensionManager(
             DiagnosticAnalyzerService diagnosticService,
             TestWorkspace workspace,
-            out Document document,
+            out TextDocument document,
             out EditorLayerExtensionManager.ExtensionManager extensionManager,
-            MockAnalyzerReference? analyzerReference = null)
+            MockAnalyzerReference? analyzerReference = null,
+            TextDocumentKind documentKind = TextDocumentKind.Document)
         {
             var incrementalAnalyzer = (IIncrementalAnalyzerProvider)diagnosticService;
 
@@ -346,7 +363,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             var reference = analyzerReference ?? new MockAnalyzerReference();
             var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
-            document = project.Documents.Single();
+            document = documentKind switch
+            {
+                TextDocumentKind.Document => project.Documents.Single(),
+                TextDocumentKind.AdditionalDocument => project.AdditionalDocuments.Single(),
+                TextDocumentKind.AnalyzerConfigDocument => project.AnalyzerConfigDocuments.Single(),
+                _ => throw new NotImplementedException(),
+            };
             extensionManager = (EditorLayerExtensionManager.ExtensionManager)document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
         }
 
@@ -377,20 +400,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
         private class MockAnalyzerReference : AnalyzerReference, ICodeFixProviderFactory
         {
-            public readonly CodeFixProvider? Fixer;
+            public readonly ImmutableArray<CodeFixProvider> Fixers;
             public readonly ImmutableArray<DiagnosticAnalyzer> Analyzers;
 
-            private static readonly CodeFixProvider s_defaultFixer = new MockFixer();
+            private static readonly ImmutableArray<CodeFixProvider> s_defaultFixers = ImmutableArray.Create<CodeFixProvider>(new MockFixer());
             private static readonly ImmutableArray<DiagnosticAnalyzer> s_defaultAnalyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new MockDiagnosticAnalyzer());
 
-            public MockAnalyzerReference(CodeFixProvider? fixer, ImmutableArray<DiagnosticAnalyzer> analyzers)
+            public MockAnalyzerReference(ImmutableArray<CodeFixProvider> fixers, ImmutableArray<DiagnosticAnalyzer> analyzers)
             {
-                Fixer = fixer;
+                Fixers = fixers;
                 Analyzers = analyzers;
             }
 
+            public MockAnalyzerReference(CodeFixProvider? fixer, ImmutableArray<DiagnosticAnalyzer> analyzers)
+                : this(fixer != null ? ImmutableArray.Create(fixer) : ImmutableArray<CodeFixProvider>.Empty,
+                       analyzers)
+            {
+            }
+
             public MockAnalyzerReference()
-                : this(s_defaultFixer, s_defaultAnalyzers)
+                : this(s_defaultFixers, s_defaultAnalyzers)
             {
             }
 
@@ -430,7 +459,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 => ImmutableArray<DiagnosticAnalyzer>.Empty;
 
             public ImmutableArray<CodeFixProvider> GetFixers()
-                => Fixer != null ? ImmutableArray.Create(Fixer) : ImmutableArray<CodeFixProvider>.Empty;
+                => Fixers;
 
             private static ImmutableArray<DiagnosticDescriptor> CreateSupportedDiagnostics(ImmutableArray<(string id, string category)> reportedDiagnosticIdsWithCategories)
             {
@@ -768,5 +797,132 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                     context.Diagnostics);
             }
         }
+
+        [Fact, WorkItem(62877, "https://github.com/dotnet/roslyn/issues/62877")]
+        public async Task TestAdditionalDocumentCodeFixAsync()
+        {
+            var analyzer = new AdditionalFileAnalyzer();
+            var fixer1 = new AdditionalFileFixerWithDocumentKindsAndExtensions();
+            var fixer2 = new AdditionalFileFixerWithDocumentKinds();
+            var fixer3 = new AdditionalFileFixerWithDocumentExtensions();
+            var fixer4 = new AdditionalFileFixerWithoutDocumentKindsAndExtensions();
+            var fixers = ImmutableArray.Create<CodeFixProvider>(fixer1, fixer2, fixer3, fixer4);
+            var analyzerReference = new MockAnalyzerReference(fixers, ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+
+            // Verify available code fixes for .txt additional document
+            var tuple = ServiceSetup(fixers, additionalDocument: new TestHostDocument("Additional Document", filePath: "test.txt"));
+            using var workspace = tuple.workspace;
+            GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var txtDocument, out var extensionManager, analyzerReference, documentKind: TextDocumentKind.AdditionalDocument);
+            var txtDocumentCodeFixes = await tuple.codeFixService.GetFixesAsync(txtDocument, TextSpan.FromBounds(0, 1), CodeActionOptions.DefaultProvider, isBlocking: false, CancellationToken.None);
+            Assert.Equal(2, txtDocumentCodeFixes.Length);
+            var txtDocumentCodeFixTitles = txtDocumentCodeFixes.Select(s => s.Fixes.Single().Action.Title).ToImmutableArray();
+            Assert.Contains(fixer1.Title, txtDocumentCodeFixTitles);
+            Assert.Contains(fixer2.Title, txtDocumentCodeFixTitles);
+
+            // Verify code fix application
+            var codeAction = txtDocumentCodeFixes.Single(s => s.Fixes.Single().Action.Title == fixer1.Title).Fixes.Single().Action;
+            var solution = await codeAction.GetChangedSolutionInternalAsync();
+            var changedtxtDocument = solution!.Projects.Single().AdditionalDocuments.Single(t => t.Id == txtDocument.Id);
+            Assert.Equal("Additional Document", txtDocument.GetTextSynchronously(CancellationToken.None).ToString());
+            Assert.Equal($"Additional Document{fixer1.Title}", changedtxtDocument.GetTextSynchronously(CancellationToken.None).ToString());
+
+            // Verify available code fixes for .log additional document
+            tuple = ServiceSetup(fixers, additionalDocument: new TestHostDocument("Additional Document", filePath: "test.log"));
+            using var workspace2 = tuple.workspace;
+            GetDocumentAndExtensionManager(tuple.analyzerService, workspace2, out var logDocument, out extensionManager, analyzerReference, documentKind: TextDocumentKind.AdditionalDocument);
+            var logDocumentCodeFixes = await tuple.codeFixService.GetFixesAsync(logDocument, TextSpan.FromBounds(0, 1), CodeActionOptions.DefaultProvider, isBlocking: false, CancellationToken.None);
+            var logDocumentCodeFix = Assert.Single(logDocumentCodeFixes);
+            var logDocumentCodeFixTitle = logDocumentCodeFix.Fixes.Single().Action.Title;
+            Assert.Equal(fixer2.Title, logDocumentCodeFixTitle);
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        internal sealed class AdditionalFileAnalyzer : DiagnosticAnalyzer
+        {
+            public const string DiagnosticId = "AFA0001";
+            private readonly DiagnosticDescriptor _descriptor = new(DiagnosticId, "AdditionalFileAnalyzer", "AdditionalFileAnalyzer", "AdditionalFileAnalyzer", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.EnableConcurrentExecution();
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
+                context.RegisterAdditionalFileAction(context =>
+                {
+                    var text = context.AdditionalFile.GetText(context.CancellationToken);
+                    if (text == null || text.Lines.Count == 0)
+                        return;
+                    var line = text.Lines[0];
+                    var span = new TextSpan(line.Start, line.End);
+                    var location = Location.Create(context.AdditionalFile.Path, span, text.Lines.GetLinePositionSpan(span));
+                    context.ReportDiagnostic(Diagnostic.Create(_descriptor, location));
+                });
+            }
+        }
+
+        internal abstract class AbstractAdditionalFileCodeFixProvider : CodeFixProvider
+        {
+            public string Title { get; }
+
+            protected AbstractAdditionalFileCodeFixProvider(string title)
+                => Title = title;
+
+            public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(AdditionalFileAnalyzer.DiagnosticId);
+
+            public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+            {
+                context.RegisterCodeFix(CodeAction.Create(Title,
+                    createChangedSolution: async ct =>
+                    {
+                        var document = context.TextDocument;
+                        var text = await document.GetTextAsync(ct).ConfigureAwait(false);
+                        var newText = SourceText.From(text.ToString() + Title);
+                        return document.Project.Solution.WithAdditionalDocumentText(document.Id, newText);
+                    },
+                    equivalenceKey: Title),
+                    context.Diagnostics[0]);
+
+                return Task.CompletedTask;
+            }
+        }
+
+#pragma warning disable RS0034 // Exported parts should be marked with 'ImportingConstructorAttribute'
+        [ExportCodeFixProvider(
+            LanguageNames.CSharp,
+            DocumentKinds = new[] { nameof(TextDocumentKind.AdditionalDocument) },
+            DocumentExtensions = new[] { ".txt" })]
+        [Shared]
+        internal sealed class AdditionalFileFixerWithDocumentKindsAndExtensions : AbstractAdditionalFileCodeFixProvider
+        {
+            public AdditionalFileFixerWithDocumentKindsAndExtensions() : base(nameof(AdditionalFileFixerWithDocumentKindsAndExtensions)) { }
+        }
+
+        [ExportCodeFixProvider(
+            LanguageNames.CSharp,
+            DocumentKinds = new[] { nameof(TextDocumentKind.AdditionalDocument) })]
+        [Shared]
+        internal sealed class AdditionalFileFixerWithDocumentKinds : AbstractAdditionalFileCodeFixProvider
+        {
+            public AdditionalFileFixerWithDocumentKinds() : base(nameof(AdditionalFileFixerWithDocumentKinds)) { }
+        }
+
+        [ExportCodeFixProvider(
+            LanguageNames.CSharp,
+            DocumentExtensions = new[] { ".txt" })]
+        [Shared]
+        internal sealed class AdditionalFileFixerWithDocumentExtensions : AbstractAdditionalFileCodeFixProvider
+        {
+            public AdditionalFileFixerWithDocumentExtensions() : base(nameof(AdditionalFileFixerWithDocumentExtensions)) { }
+        }
+
+        [ExportCodeFixProvider(LanguageNames.CSharp)]
+        [Shared]
+        internal sealed class AdditionalFileFixerWithoutDocumentKindsAndExtensions : AbstractAdditionalFileCodeFixProvider
+        {
+            public AdditionalFileFixerWithoutDocumentKindsAndExtensions() : base(nameof(AdditionalFileFixerWithoutDocumentKindsAndExtensions)) { }
+        }
+#pragma warning restore RS0034 // Exported parts should be marked with 'ImportingConstructorAttribute'
     }
 }

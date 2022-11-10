@@ -4,12 +4,17 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using static Roslyn.Test.Utilities.TestHelpers;
@@ -21,18 +26,112 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         public SyntaxTreeTests(ITestOutputHelper output) : base(output) { }
 
+        public enum SyntaxTreeFactoryKind
+        {
+            Create,
+            Subclass,
+            ParseText,
+            SynthesizedSyntaxTree,
+            ParsedTreeWithPath,
+            ParsedTreeWithRootAndOptions,
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void SyntaxTreeCreationAndDirectiveParsing(SyntaxTreeFactoryKind factoryKind)
+        {
+            var source = """
+                #define U
+
+                #if !Q
+                #undef U
+                #endif
+
+                #if U
+                #define X
+                #else
+                #define Y
+                #endif
+
+                using System.Diagnostics;
+
+                #if Y
+                class C
+                {
+                    [Conditional("Y")]
+                    public static void F1()
+                    {
+                    }
+
+                    [Conditional("U")]
+                    public static void F2()
+                    {
+                    }
+
+                    public static void Main()
+                    {
+                        F1();
+                        F2();
+                    }
+                }
+                #endif
+                """;
+
+            var parseOptions = CSharpParseOptions.Default;
+            var root = SyntaxFactory.ParseCompilationUnit(source, options: parseOptions);
+
+            var tree = factoryKind switch
+            {
+                SyntaxTreeFactoryKind.Create => CSharpSyntaxTree.Create(root, options: parseOptions, path: "", encoding: null),
+                SyntaxTreeFactoryKind.ParseText => CSharpSyntaxTree.ParseText(SourceText.From(source, Encoding.UTF8, SourceHashAlgorithm.Sha256), parseOptions),
+                SyntaxTreeFactoryKind.Subclass => new MockCSharpSyntaxTree(root, SourceText.From(source, Encoding.UTF8, SourceHashAlgorithm.Sha256), parseOptions),
+                SyntaxTreeFactoryKind.SynthesizedSyntaxTree => SyntaxNode.CloneNodeAsRoot(root, syntaxTree: null).SyntaxTree,
+                SyntaxTreeFactoryKind.ParsedTreeWithPath => WithInitializedDirectives(CSharpSyntaxTree.Create(root, options: parseOptions, path: "old path", Encoding.UTF8)).WithFilePath("new path"),
+                SyntaxTreeFactoryKind.ParsedTreeWithRootAndOptions => WithInitializedDirectives(SyntaxFactory.ParseSyntaxTree("", options: parseOptions)).WithRootAndOptions(root, parseOptions),
+                _ => throw ExceptionUtilities.UnexpectedValue(factoryKind)
+            };
+
+            Assert.Equal("#define U | #undef U | #define Y", ((CSharpSyntaxTree)tree).GetDirectives().GetDebuggerDisplay());
+
+            var compilation = CSharpCompilation.Create("test", new[] { tree }, TargetFrameworkUtil.GetReferences(TargetFramework.Standard), TestOptions.DebugDll);
+
+            CompileAndVerify(compilation).VerifyIL("C.Main", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  0
+  IL_0000:  nop
+  IL_0001:  call       ""void C.F1()""
+  IL_0006:  nop
+  IL_0007:  ret
+}
+");
+
+            static SyntaxTree WithInitializedDirectives(SyntaxTree tree)
+            {
+                _ = ((CSharpSyntaxTree)tree).GetDirectives();
+                return tree;
+            }
+        }
+
+        [Fact]
+        public void Create()
+        {
+            var root = SyntaxFactory.ParseCompilationUnit("");
+
+            var tree = CSharpSyntaxTree.Create(root);
+            Assert.Equal(SourceHashAlgorithm.Sha1, tree.GetText().ChecksumAlgorithm);
+        }
+
         // Diagnostic options on syntax trees are now obsolete
 #pragma warning disable CS0618
         [Fact]
-        public void CreateTreeWithDiagnostics()
+        public void Create_WithDiagnosticOptions()
         {
             var options = CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress));
-            var tree = CSharpSyntaxTree.Create(SyntaxFactory.ParseCompilationUnit(""),
-                options: null,
-                path: "",
-                encoding: null,
-                diagnosticOptions: options);
+            var tree = CSharpSyntaxTree.Create(SyntaxFactory.ParseCompilationUnit(""), options: null, path: null, encoding: null, diagnosticOptions: options);
+
             Assert.Same(options, tree.DiagnosticOptions);
+            Assert.Equal(SourceHashAlgorithm.Sha1, tree.GetText().ChecksumAlgorithm);
         }
 
         [Fact]
@@ -157,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void WithRootAndOptions_ParsedTreeWithText()
         {
-            var oldText = SourceText.From("class B {}", Encoding.Unicode, SourceHashAlgorithm.Sha256);
+            var oldText = SourceText.From("class B {}", Encoding.Unicode, SourceHashAlgorithms.Default);
             var oldTree = SyntaxFactory.ParseSyntaxTree(oldText);
 
             var newRoot = SyntaxFactory.ParseCompilationUnit("class C {}");
@@ -168,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(newRoot.ToString(), newTree.GetRoot().ToString());
             Assert.Same(newOptions, newTree.Options);
             Assert.Same(Encoding.Unicode, newText.Encoding);
-            Assert.Equal(SourceHashAlgorithm.Sha256, newText.ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithms.Default, newText.ChecksumAlgorithm);
         }
 
         [Fact]
@@ -199,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void WithFilePath_ParsedTreeWithText()
         {
-            var oldText = SourceText.From("class B {}", Encoding.Unicode, SourceHashAlgorithm.Sha256);
+            var oldText = SourceText.From("class B {}", Encoding.Unicode, SourceHashAlgorithms.Default);
             var oldTree = SyntaxFactory.ParseSyntaxTree(oldText, path: "old.cs");
 
             var newTree = oldTree.WithFilePath("new.cs");
@@ -209,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(oldTree.ToString(), newTree.ToString());
 
             Assert.Same(Encoding.Unicode, newText.Encoding);
-            Assert.Equal(SourceHashAlgorithm.Sha256, newText.ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithms.Default, newText.ChecksumAlgorithm);
         }
 
         [Fact]
@@ -230,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             oldTree = SyntaxFactory.ParseSyntaxTree("", path: "old.cs");
             Assert.Equal(string.Empty, oldTree.WithFilePath(null).FilePath);
             Assert.Equal(string.Empty, SyntaxFactory.ParseSyntaxTree("", path: null).FilePath);
-            Assert.Equal(string.Empty, CSharpSyntaxTree.Create((CSharpSyntaxNode)oldTree.GetRoot(), path: null).FilePath);
+            Assert.Equal(string.Empty, CSharpSyntaxTree.Create((CSharpSyntaxNode)oldTree.GetRoot()).FilePath);
         }
 
         [Fact]

@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.NumericLiteralExpression:
                 case SyntaxKind.StringLiteralExpression:
                 case SyntaxKind.Utf8StringLiteralExpression:
+                case SyntaxKind.InterpolatedStringExpression:
                 case SyntaxKind.CharacterLiteralExpression:
                 case SyntaxKind.TrueLiteralExpression:
                 case SyntaxKind.FalseLiteralExpression:

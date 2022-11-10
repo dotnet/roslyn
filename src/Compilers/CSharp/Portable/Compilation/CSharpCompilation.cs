@@ -12,7 +12,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
-using System.Text;
 using System.Threading;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
@@ -82,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_conversions == null)
                 {
-                    Interlocked.CompareExchange(ref _conversions, new BuckStopsHereBinder(this, associatedSyntaxTree: null).Conversions, null);
+                    Interlocked.CompareExchange(ref _conversions, new BuckStopsHereBinder(this, associatedFileIdentifier: null).Conversions, null);
                 }
 
                 return _conversions;
@@ -1014,7 +1013,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override int GetSyntaxTreeOrdinal(SyntaxTree tree)
         {
             Debug.Assert(this.ContainsSyntaxTree(tree));
-            return _syntaxAndDeclarations.GetLazyState().OrdinalMap[tree];
+            try
+            {
+                return _syntaxAndDeclarations.GetLazyState().OrdinalMap[tree];
+            }
+            catch (KeyNotFoundException)
+            {
+                // Explicitly catching and re-throwing exception so we don't send the syntax
+                // tree (potentially containing private user information) to telemetry.
+                throw new KeyNotFoundException($"Syntax tree not found with file path: {tree.FilePath}");
+            }
         }
 
         #endregion
@@ -1566,7 +1574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal TypeSymbol GetTypeByReflectionType(Type type, BindingDiagnosticBag diagnostics)
         {
-            var result = Assembly.GetTypeByReflectionType(type, includeReferences: true);
+            var result = Assembly.GetTypeByReflectionType(type);
             if (result is null)
             {
                 var errorType = new ExtendedErrorTypeSymbol(this, type.Name, 0, CreateReflectionTypeNotFoundError(type));
@@ -1595,7 +1603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (HostObjectType != null && _lazyHostObjectTypeSymbol is null)
             {
-                TypeSymbol? symbol = Assembly.GetTypeByReflectionType(HostObjectType, includeReferences: true);
+                TypeSymbol? symbol = Assembly.GetTypeByReflectionType(HostObjectType);
 
                 if (symbol is null)
                 {
@@ -1629,7 +1637,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal new NamedTypeSymbol? GetTypeByMetadataName(string fullyQualifiedMetadataName)
         {
-            return this.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences: true, isWellKnownType: false, conflicts: out var _);
+            var result = this.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences: true, isWellKnownType: false, conflicts: out var _);
+            Debug.Assert(result?.IsErrorType() != true);
+            return result;
         }
 
         /// <summary>
@@ -2503,7 +2513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _lazyImportInfos.TryUpdate(new ImportInfo(syntax.SyntaxTree, syntax.Kind(), syntax.Span), dependencies, default);
         }
 
-        private struct ImportInfo : IEquatable<ImportInfo>
+        private readonly struct ImportInfo : IEquatable<ImportInfo>
         {
             public readonly SyntaxTree Tree;
             public readonly SyntaxKind Kind;
@@ -3248,15 +3258,89 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GenerateModuleInitializer(moduleBeingBuilt, methodBodyDiagnosticBag);
                 }
 
+                bool hasDuplicateFilePaths = CheckDuplicateFilePaths(diagnostics);
+
                 bool hasMethodBodyError = !FilterAndAppendAndFreeDiagnostics(diagnostics, ref methodBodyDiagnosticBag, cancellationToken);
 
-                if (hasDeclarationErrors || hasMethodBodyError)
+                if (hasDeclarationErrors || hasMethodBodyError || hasDuplicateFilePaths)
                 {
                     return false;
                 }
             }
 
             return true;
+        }
+
+        private class DuplicateFilePathsVisitor : CSharpSymbolVisitor
+        {
+            // note: the default HashSet<string> uses an ordinal comparison
+            private readonly PooledHashSet<string> _duplicatePaths = PooledHashSet<string>.GetInstance();
+
+            private readonly DiagnosticBag _diagnostics;
+
+            private bool _hasDuplicateFilePaths;
+
+            public DuplicateFilePathsVisitor(DiagnosticBag diagnostics)
+            {
+                _diagnostics = diagnostics;
+            }
+
+            public bool CheckDuplicateFilePathsAndFree(ImmutableArray<SyntaxTree> syntaxTrees, NamespaceSymbol globalNamespace)
+            {
+                var paths = PooledHashSet<string>.GetInstance();
+                foreach (var tree in syntaxTrees)
+                {
+                    if (!paths.Add(tree.FilePath))
+                    {
+                        _duplicatePaths.Add(tree.FilePath);
+                    }
+                }
+                paths.Free();
+
+                if (_duplicatePaths.Any())
+                {
+                    VisitNamespace(globalNamespace);
+                }
+                _duplicatePaths.Free();
+                return _hasDuplicateFilePaths;
+            }
+
+            public override void VisitNamespace(NamespaceSymbol symbol)
+            {
+                foreach (var childSymbol in symbol.GetMembers())
+                {
+                    switch (childSymbol)
+                    {
+                        case NamespaceSymbol @namespace:
+                            VisitNamespace(@namespace);
+                            break;
+                        case NamedTypeSymbol namedType:
+                            VisitNamedType(namedType);
+                            break;
+                    }
+                }
+            }
+
+            public override void VisitNamedType(NamedTypeSymbol symbol)
+            {
+                Debug.Assert(symbol.ContainingSymbol.Kind == SymbolKind.Namespace); // avoid unnecessary traversal of nested types
+                if (symbol.AssociatedFileIdentifier is not null)
+                {
+                    var location = symbol.Locations[0];
+                    var filePath = location.SourceTree?.FilePath;
+                    if (_duplicatePaths.Contains(filePath!))
+                    {
+                        _diagnostics.Add(ErrorCode.ERR_FileTypeNonUniquePath, location, symbol, filePath);
+                        _hasDuplicateFilePaths = true;
+                    }
+                }
+            }
+        }
+
+        private bool CheckDuplicateFilePaths(DiagnosticBag diagnostics)
+        {
+            var visitor = new DuplicateFilePathsVisitor(diagnostics);
+            return visitor.CheckDuplicateFilePathsAndFree(SyntaxTrees, GlobalNamespace);
         }
 
         private void GenerateModuleInitializer(PEModuleBuilder moduleBeingBuilt, DiagnosticBag methodBodyDiagnosticBag)
@@ -3819,6 +3903,308 @@ namespace Microsoft.CodeAnalysis.CSharp
             var descriptor = new AnonymousTypeDescriptor(fields.ToImmutableAndFree(), Location.None);
 
             return this.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor).GetPublicSymbol();
+        }
+
+        protected override IMethodSymbol CommonCreateBuiltinOperator(
+            string name,
+            ITypeSymbol returnType,
+            ITypeSymbol leftType,
+            ITypeSymbol rightType)
+        {
+            var csharpReturnType = returnType.EnsureCSharpSymbolOrNull(nameof(returnType));
+            var csharpLeftType = leftType.EnsureCSharpSymbolOrNull(nameof(leftType));
+            var csharpRightType = rightType.EnsureCSharpSymbolOrNull(nameof(rightType));
+
+            // caller already checked all of these were not null.
+            Debug.Assert(csharpReturnType is not null);
+            Debug.Assert(csharpLeftType is not null);
+            Debug.Assert(csharpRightType is not null);
+
+            var syntaxKind = SyntaxFacts.GetOperatorKind(name);
+            if (syntaxKind == SyntaxKind.None)
+                throw new ArgumentException(string.Format(CodeAnalysisResources.BadBuiltInOps1, name), nameof(name));
+
+            var binaryOperatorName = OperatorFacts.BinaryOperatorNameFromSyntaxKindIfAny(syntaxKind, SyntaxFacts.IsCheckedOperator(name));
+            if (binaryOperatorName != name)
+                throw new ArgumentException(string.Format(CodeAnalysisResources.BadBuiltInOps3, name), nameof(name));
+
+            // Lang specific checks to ensure this is an acceptable operator.
+            validateSignature();
+
+            return new SynthesizedIntrinsicOperatorSymbol(csharpLeftType, name, csharpRightType, csharpReturnType).GetPublicSymbol();
+
+            void validateSignature()
+            {
+                // Dynamic built-in operators allow virtually all operations with all types.  So we do no further checking here.
+                if (csharpReturnType.TypeKind is TypeKind.Dynamic ||
+                    csharpLeftType.TypeKind is TypeKind.Dynamic ||
+                    csharpReturnType.TypeKind is TypeKind.Dynamic)
+                {
+                    return;
+                }
+
+                // Use fast-path check to see if this types are ok.
+                var binaryKind = Binder.SyntaxKindToBinaryOperatorKind(SyntaxFacts.GetBinaryExpression(syntaxKind));
+
+                if (csharpReturnType.SpecialType != SpecialType.None &&
+                    csharpLeftType.SpecialType != SpecialType.None &&
+                    csharpRightType.SpecialType != SpecialType.None)
+                {
+                    var easyOutBinaryKind = OverloadResolution.BinopEasyOut.OpKind(binaryKind, csharpLeftType, csharpRightType);
+
+                    if (easyOutBinaryKind != BinaryOperatorKind.Error)
+                    {
+                        var signature = this.builtInOperators.GetSignature(easyOutBinaryKind);
+                        if (csharpReturnType.SpecialType == signature.ReturnType.SpecialType &&
+                            csharpLeftType.SpecialType == signature.LeftType.SpecialType &&
+                            csharpRightType.SpecialType == signature.RightType.SpecialType)
+                        {
+                            return;
+                        }
+                    }
+                }
+
+                // bool operator ==(object, object) is legal.
+                // bool operator !=(object, object) is legal.
+                // bool operator ==(Delegate, Delegate) is legal.
+                // bool operator !=(Delegate, Delegate) is legal.
+                if (binaryKind is BinaryOperatorKind.Equal or BinaryOperatorKind.NotEqual &&
+                    csharpReturnType.SpecialType is SpecialType.System_Boolean)
+                {
+                    if ((csharpLeftType.SpecialType, csharpRightType.SpecialType) is
+                            (SpecialType.System_Object, SpecialType.System_Object) or
+                            (SpecialType.System_Delegate, SpecialType.System_Delegate))
+                    {
+                        return;
+                    }
+                }
+
+                // Actual delegates have several operators that can be used on them.
+                if (csharpLeftType.TypeKind is TypeKind.Delegate &&
+                    TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything))
+                {
+                    // bool operator ==(SomeDelegate, SomeDelegate) is legal.
+                    // bool operator !=(SomeDelegate, SomeDelegate) is legal.
+                    if (binaryKind is BinaryOperatorKind.Equal or BinaryOperatorKind.NotEqual &&
+                        csharpReturnType.SpecialType == SpecialType.System_Boolean)
+                    {
+                        return;
+                    }
+
+                    // SomeDelegate operator +(SomeDelegate, SomeDelegate) is legal.
+                    // SomeDelegate operator -(SomeDelegate, SomeDelegate) is legal.
+                    if (binaryKind is BinaryOperatorKind.Addition or BinaryOperatorKind.Subtraction &&
+                        TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                    {
+                        return;
+                    }
+                }
+
+                if (csharpLeftType.IsEnumType() || csharpRightType.IsEnumType())
+                {
+                    // bool operator ==(SomeEnum, SomeEnum) is legal.
+                    // bool operator !=(SomeEnum, SomeEnum) is legal.
+                    // bool operator >(SomeEnum, SomeEnum) is legal.
+                    // bool operator <(SomeEnum, SomeEnum) is legal.
+                    // bool operator >=(SomeEnum, SomeEnum) is legal.
+                    // bool operator <=(SomeEnum, SomeEnum) is legal.
+                    if (binaryKind is BinaryOperatorKind.Equal or
+                                      BinaryOperatorKind.NotEqual or
+                                      BinaryOperatorKind.GreaterThan or
+                                      BinaryOperatorKind.LessThan or
+                                      BinaryOperatorKind.GreaterThanOrEqual or
+                                      BinaryOperatorKind.LessThanOrEqual &&
+                        csharpReturnType.SpecialType is SpecialType.System_Boolean &&
+                        TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything))
+                    {
+                        return;
+                    }
+
+                    // SomeEnum operator &(SomeEnum, SomeEnum) is legal.
+                    // SomeEnum operator |(SomeEnum, SomeEnum) is legal.
+                    // SomeEnum operator ^(SomeEnum, SomeEnum) is legal.
+                    if (binaryKind is BinaryOperatorKind.And or
+                                      BinaryOperatorKind.Or or
+                                      BinaryOperatorKind.Xor &&
+                        TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything) &&
+                        TypeSymbol.Equals(csharpReturnType, csharpRightType, TypeCompareKind.ConsiderEverything))
+                    {
+                        return;
+                    }
+
+                    // SomeEnum operator+(SomeEnum, EnumUnderlyingInt)
+                    // SomeEnum operator+(EnumUnderlyingInt, SomeEnum)
+                    // SomeEnum operator-(SomeEnum, EnumUnderlyingInt)
+                    // SomeEnum operator-(EnumUnderlyingInt, SomeEnum)
+                    if (binaryKind is BinaryOperatorKind.Addition or BinaryOperatorKind.Subtraction)
+                    {
+                        if (csharpLeftType.IsEnumType() &&
+                            csharpRightType.SpecialType == csharpLeftType.GetEnumUnderlyingType()?.SpecialType &&
+                            TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                        {
+                            return;
+                        }
+
+                        if (csharpRightType.IsEnumType() &&
+                            csharpLeftType.SpecialType == csharpRightType.GetEnumUnderlyingType()?.SpecialType &&
+                            TypeSymbol.Equals(csharpRightType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                        {
+                            return;
+                        }
+                    }
+
+                    // EnumUnderlyingInt operator-(SomeEnum, SomeEnum)
+                    if (binaryKind is BinaryOperatorKind.Subtraction &&
+                        csharpReturnType.SpecialType == csharpLeftType.GetEnumUnderlyingType()?.SpecialType &&
+                        TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything))
+                    {
+                        return;
+                    }
+                }
+
+                // void* has several comparison operators built in.
+                if (binaryKind is BinaryOperatorKind.Equal or
+                                  BinaryOperatorKind.NotEqual or
+                                  BinaryOperatorKind.GreaterThan or
+                                  BinaryOperatorKind.LessThan or
+                                  BinaryOperatorKind.GreaterThanOrEqual or
+                                  BinaryOperatorKind.LessThanOrEqual &&
+                    csharpReturnType.SpecialType is SpecialType.System_Boolean &&
+                    csharpLeftType is PointerTypeSymbol { PointedAtType.SpecialType: SpecialType.System_Void } &&
+                    csharpRightType is PointerTypeSymbol { PointedAtType.SpecialType: SpecialType.System_Void })
+                {
+                    return;
+                }
+
+                // T* operator+(T*, int/uint/long/ulong i)
+                if (binaryKind is BinaryOperatorKind.Addition &&
+                    csharpLeftType.IsPointerType() &&
+                    isAllowedPointerArithmeticIntegralType(csharpRightType) &&
+                    TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                {
+                    return;
+                }
+
+                // T* operator+(int/uint/long/ulong i, T*)
+                if (binaryKind is BinaryOperatorKind.Addition &&
+                    csharpRightType.IsPointerType() &&
+                    isAllowedPointerArithmeticIntegralType(csharpLeftType) &&
+                    TypeSymbol.Equals(csharpRightType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                {
+                    return;
+                }
+
+                // T* operator-(T*, int/uint/long/ulong i)
+                if (binaryKind is BinaryOperatorKind.Subtraction &&
+                    csharpLeftType.IsPointerType() &&
+                    isAllowedPointerArithmeticIntegralType(csharpRightType) &&
+                    TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                {
+                    return;
+                }
+
+                // long operator-(T*, T*)
+                if (binaryKind is BinaryOperatorKind.Subtraction &&
+                    csharpLeftType.IsPointerType() &&
+                    csharpReturnType.SpecialType is SpecialType.System_Int64 &&
+                    TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything))
+                {
+                    return;
+                }
+
+                // ROS<byte> operator+(ROS<byte>, ROS<byte>). Legal because of utf8 strings.
+                if (binaryKind is BinaryOperatorKind.Addition &&
+                    isReadOnlySpanOfByteType(csharpReturnType) &&
+                    isReadOnlySpanOfByteType(csharpLeftType) &&
+                    isReadOnlySpanOfByteType(csharpRightType))
+                {
+                    return;
+                }
+
+                throw new ArgumentException(string.Format(CodeAnalysisResources.BadBuiltInOps2, $"{csharpReturnType.ToDisplayString()} operator {name}({csharpLeftType.ToDisplayString()}, {csharpRightType.ToDisplayString()})"));
+            }
+
+            bool isAllowedPointerArithmeticIntegralType(TypeSymbol type)
+                => type.SpecialType is SpecialType.System_Int32 or SpecialType.System_UInt32 or SpecialType.System_Int64 or SpecialType.System_UInt64;
+
+            bool isReadOnlySpanOfByteType(TypeSymbol type)
+                => IsReadOnlySpanType(type) && ((NamedTypeSymbol)type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].SpecialType == SpecialType.System_Byte;
+        }
+
+        protected override IMethodSymbol CommonCreateBuiltinOperator(
+            string name,
+            ITypeSymbol returnType,
+            ITypeSymbol operandType)
+        {
+            var csharpReturnType = returnType.EnsureCSharpSymbolOrNull(nameof(returnType));
+            var csharpOperandType = operandType.EnsureCSharpSymbolOrNull(nameof(operandType));
+
+            // caller already checked all of these were not null.
+            Debug.Assert(csharpReturnType is not null);
+            Debug.Assert(csharpOperandType is not null);
+
+            var syntaxKind = SyntaxFacts.GetOperatorKind(name);
+
+            // Currently compiler does not generate built-ins for `operator true/false`.  If that changes, this check
+            // can be relaxed.
+            if (syntaxKind == SyntaxKind.None || name is WellKnownMemberNames.TrueOperatorName or WellKnownMemberNames.FalseOperatorName)
+                throw new ArgumentException(string.Format(CodeAnalysisResources.BadBuiltInOps1, name), nameof(name));
+
+            var unaryOperatorName = OperatorFacts.UnaryOperatorNameFromSyntaxKindIfAny(syntaxKind, SyntaxFacts.IsCheckedOperator(name));
+            if (unaryOperatorName != name)
+                throw new ArgumentException(string.Format(CodeAnalysisResources.BadBuiltInOps3, name), nameof(name));
+
+            // Lang specific checks to ensure this is an acceptable operator.
+            validateSignature();
+
+            return new SynthesizedIntrinsicOperatorSymbol(csharpOperandType, name, csharpReturnType).GetPublicSymbol();
+
+            void validateSignature()
+            {
+                // Dynamic built-in operators allow virtually all operations with all types.  So we do no further checking here.
+                if (csharpReturnType.TypeKind is TypeKind.Dynamic ||
+                    csharpOperandType.TypeKind is TypeKind.Dynamic)
+                {
+                    return;
+                }
+
+                var unaryKind = Binder.SyntaxKindToUnaryOperatorKind(SyntaxFacts.GetPrefixUnaryExpression(syntaxKind));
+
+                // Use fast-path check to see if this types are ok.
+                if (csharpReturnType.SpecialType != SpecialType.None && csharpOperandType.SpecialType != SpecialType.None)
+                {
+                    var easyOutUnaryKind = OverloadResolution.UnopEasyOut.OpKind(unaryKind, csharpOperandType);
+
+                    if (easyOutUnaryKind != UnaryOperatorKind.Error)
+                    {
+                        var signature = this.builtInOperators.GetSignature(easyOutUnaryKind);
+                        if (csharpReturnType.SpecialType == signature.ReturnType.SpecialType &&
+                            csharpOperandType.SpecialType == signature.OperandType.SpecialType)
+                        {
+                            return;
+                        }
+                    }
+                }
+
+                // EnumType operator++(EnumType)
+                // EnumType operator~(EnumType)
+                if (csharpOperandType.IsEnumType() &&
+                    unaryKind is UnaryOperatorKind.PrefixIncrement or UnaryOperatorKind.PrefixDecrement or UnaryOperatorKind.BitwiseComplement &&
+                    TypeSymbol.Equals(csharpOperandType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                {
+                    return;
+                }
+
+                // T* operator++(T*)
+                if (csharpOperandType.IsPointerType() &&
+                    unaryKind is UnaryOperatorKind.PrefixIncrement or UnaryOperatorKind.PrefixDecrement &&
+                    TypeSymbol.Equals(csharpOperandType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                {
+                    return;
+                }
+
+                throw new ArgumentException(string.Format(CodeAnalysisResources.BadBuiltInOps2, $"{csharpReturnType.ToDisplayString()} operator {name}({csharpOperandType.ToDisplayString()})"));
+            }
         }
 
         protected override ITypeSymbol CommonDynamicType

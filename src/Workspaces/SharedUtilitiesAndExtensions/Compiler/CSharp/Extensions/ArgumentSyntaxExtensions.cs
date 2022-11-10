@@ -77,7 +77,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     continue;
 
                 if (index < parameters.Length)
-                    return parameters[index];
+                {
+                    var parameter = parameters[index];
+                    if (argument.RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword &&
+                        parameter.RefKind != RefKind.Out)
+                    {
+                        continue;
+                    }
+
+                    if (argument.RefOrOutKeyword.Kind() == SyntaxKind.RefKeyword &&
+                        parameter.RefKind != RefKind.Ref)
+                    {
+                        continue;
+                    }
+
+                    return parameter;
+                }
 
                 if (allowParams)
                 {

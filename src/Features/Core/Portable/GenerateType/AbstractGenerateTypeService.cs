@@ -114,8 +114,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             var generateNewTypeInDialog = false;
             if (state.NamespaceToGenerateInOpt != null)
             {
-                var workspace = document.Project.Solution.Workspace;
-                if (workspace == null || workspace.CanApplyChange(ApplyChangesKind.AddDocument))
+                if (document.Project.Solution.CanApplyChange(ApplyChangesKind.AddDocument))
                 {
                     generateNewTypeInDialog = true;
                     result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, fallbackOptions, intoNamespace: true, inNewFile: true));

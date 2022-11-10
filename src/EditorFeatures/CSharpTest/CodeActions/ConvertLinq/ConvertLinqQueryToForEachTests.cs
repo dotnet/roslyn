@@ -14,6 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
     public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq
 
         #region Query Expressions
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task Select()
         {
             var source = @"
@@ -59,7 +60,7 @@ class Query
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task GroupBy01()
         {
             var source = @"
@@ -79,7 +80,7 @@ class Query
             await TestMissingAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task GroupBy02()
         {
             var source = @"
@@ -99,7 +100,7 @@ class Query
             await TestMissingAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task FromJoinSelect01()
         {
             var source = @"
@@ -147,7 +148,7 @@ class Query
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task FromJoinSelect02()
         {
             var source = @"
@@ -195,7 +196,7 @@ class Program
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task FromJoinSelect03()
         {
             var source = @"
@@ -251,7 +252,7 @@ class Program
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task OrderBy()
         {
             var source = @"
@@ -273,7 +274,7 @@ class Query
             await TestMissingAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task Let()
         {
             var source = @"
@@ -318,7 +319,7 @@ class Query
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task GroupJoin()
         {
             var source = @"
@@ -343,7 +344,7 @@ class Query
             await TestMissingAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task SelectFromType01()
         {
             var source = @"using System;
@@ -381,7 +382,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task SelectFromType02()
         {
             var source = @"using System;
@@ -419,7 +420,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task JoinClause()
         {
             var source = @"
@@ -474,7 +475,7 @@ class Program
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task WhereClause()
         {
             var source = @"
@@ -531,7 +532,7 @@ class Program
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task WhereDefinedInType()
         {
             var source = @"
@@ -561,7 +562,7 @@ class P
             await TestMissingAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task QueryContinuation()
         {
             var source = @"
@@ -601,7 +602,7 @@ public class Test
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task SelectInto()
         {
             var source = @"
@@ -641,7 +642,7 @@ public class Test
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task ComputeQueryVariableType()
         {
             var source = @"
@@ -677,7 +678,7 @@ public class Test
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task JoinIntoClause()
         {
             var source = @"
@@ -697,7 +698,7 @@ static class Test
             await TestMissingAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task SemanticErrorInQuery()
         {
             var source = @"
@@ -717,7 +718,7 @@ class Program
             await TestMissingAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task SelectFromVoid()
         {
             var source = @"
@@ -742,7 +743,7 @@ class Test
 
         #region Assignments, Declarations, Returns
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task AssignExpression()
         {
             var source = @"
@@ -796,7 +797,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task MultipleAssignments()
         {
             var source = @"
@@ -836,7 +837,7 @@ public class Test
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task PropertyAssignment()
         {
             var source = @"
@@ -886,7 +887,7 @@ public class Test
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task MultipleDeclarationsFirst()
         {
             var source = @"
@@ -924,7 +925,7 @@ public class Test
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task MultipleDeclarationsSecond()
         {
             var source = @"
@@ -963,7 +964,7 @@ public class Test
         }
 
         // TODO support tuples in the test class, follow CodeGenTupleTests
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25639"), Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25639")]
         public async Task TupleDeclaration()
         {
             var source = @"
@@ -1001,7 +1002,7 @@ public class Test
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task AssignAndReturnIEnumerable()
         {
             var source = @"
@@ -1046,7 +1047,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task BlockBodiedProperty()
         {
             var source = @"
@@ -1071,7 +1072,7 @@ public class Test
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task AnonymousType()
         {
             var source = @"
@@ -1089,7 +1090,7 @@ class C
             await TestMissingAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task AnonymousTypeInternally()
         {
             var source = @"
@@ -1107,7 +1108,7 @@ class C
             await TestMissingAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task DuplicateIdentifiers()
         {
             var source = @"
@@ -1125,7 +1126,7 @@ class C
             await TestMissingAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task ReturnIEnumerable()
         {
             var source = @"
@@ -1165,7 +1166,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task ReturnIEnumerablePartialMethod()
         {
             var source = @"
@@ -1213,7 +1214,7 @@ partial class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task ReturnIEnumerableExtendedPartialMethod()
         {
             var source = @"
@@ -1261,7 +1262,7 @@ partial class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task ReturnIEnumerableWithOtherReturn()
         {
             var source = @"
@@ -1318,7 +1319,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task ReturnObject()
         {
             var source = @"
@@ -1361,7 +1362,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task ExtraParenthesis()
         {
             var source = @"
@@ -1396,7 +1397,7 @@ public class Test
         }
 
         // TODO support tuples in the test class
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25639"), Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25639")]
         public async Task InReturningTuple()
         {
             var source = @"
@@ -1434,7 +1435,7 @@ public class Test
         }
 
         // TODO support tuples in the test class
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25639"), Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25639")]
         public async Task InInvocationReturningInTuple()
         {
             var source = @"
@@ -1472,7 +1473,7 @@ public class Test
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task RangeVariables()
         {
             var source = @"
@@ -1524,7 +1525,7 @@ class Query
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task CallingMethodWithIEnumerable()
         {
             var source = @"
@@ -1574,7 +1575,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task ReturnFirstOrDefault()
         {
             var source = @"
@@ -1617,7 +1618,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task IncompleteQueryWithSyntaxErrors()
         {
             var source = @"
@@ -1638,7 +1639,7 @@ class Program
             await TestMissingAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task ErrorNameDoesNotExistsInContext()
         {
             var source = @"
@@ -1656,7 +1657,7 @@ class C
             await TestMissingAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task InArrayInitialization()
         {
             var source = @"
@@ -1693,7 +1694,7 @@ public class Test
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task InCollectionInitialization()
         {
             var source = @"
@@ -1730,7 +1731,7 @@ public class Test
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task InStructInitialization()
         {
             var source = @"
@@ -1777,7 +1778,7 @@ public class Test
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task InClassInitialization()
         {
             var source = @"
@@ -1824,7 +1825,7 @@ public class Test
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task InConstructor()
         {
             var source = @"
@@ -1861,7 +1862,7 @@ public class Test
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task InInlineConstructor()
         {
             var source = @"
@@ -1878,7 +1879,7 @@ public class Test
             await TestMissingAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task IninlineIf()
         {
             var source = @"
@@ -1927,7 +1928,7 @@ public class Test
 
         #region In foreach
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task UsageInForEach()
         {
             var source = @"
@@ -1980,7 +1981,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task UsageInForEachSameVariableName()
         {
             var source = @"
@@ -2032,7 +2033,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task QueryInForEach()
         {
             var source = @"
@@ -2076,7 +2077,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task QueryInForEachSameVariableNameNoType()
         {
             var source = @"
@@ -2118,7 +2119,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task QueryInForEachWithExpressionBody()
         {
             var source = @"
@@ -2159,7 +2160,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task QueryInForEachWithSameVariableNameAndDifferentType()
         {
             var source = @"
@@ -2212,7 +2213,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task QueryInForEachWithSameVariableNameAndSameType()
         {
             var source = @"
@@ -2257,7 +2258,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task QueryInForEachVariableUsedInBody()
         {
             var source = @"
@@ -2310,7 +2311,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task QueryInForEachWithConvertedType()
         {
             var source = @"
@@ -2385,7 +2386,7 @@ class C
             await TestAsync(source, output, parseOptions: null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task QueryInForEachWithSelectIdentifierButNotVariable()
         {
             var source = @"
@@ -2454,7 +2455,7 @@ class C
             await TestAsync(source, output, parseOptions: null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task IQueryable()
         {
             var source = @"
@@ -2472,7 +2473,7 @@ class C
             await TestMissingAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task IQueryableConvertedToIEnumerableInReturn()
         {
             var source = @"
@@ -2506,7 +2507,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task IQueryableConvertedToIEnumerableInAssignment()
         {
             var source = @"
@@ -2544,7 +2545,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task IQueryableInInvocation()
         {
             var source = @"
@@ -2582,7 +2583,7 @@ class C
 
         #region In ToList
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task PropertyAssignmentInInvocation()
         {
             var source = @"
@@ -2630,7 +2631,7 @@ public class Test
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task NullablePropertyAssignmentInInvocation()
         {
             var source = @"
@@ -2678,7 +2679,7 @@ public class Test
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task AssignList()
         {
             var source = @"
@@ -2720,7 +2721,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task AssignToListToParameter()
         {
             var source = @"
@@ -2762,7 +2763,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task AssignToListToArrayElement()
         {
             var source = @"
@@ -2803,7 +2804,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task AssignListWithTypeArgument()
         {
             var source = @"
@@ -2845,7 +2846,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task AssignListToObject()
         {
             var source = @"
@@ -2888,7 +2889,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task AssignListWithNullableToList()
         {
             var source = @"
@@ -2933,7 +2934,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task ReturnList()
         {
             var source = @"
@@ -2974,7 +2975,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task ReturnListNameGeneration()
         {
             var source = @"
@@ -3017,7 +3018,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task ToListTypeReplacement01()
         {
             var source = @"
@@ -3075,7 +3076,7 @@ class Query
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task ToListTypeReplacement02()
         {
             var source = @"
@@ -3127,7 +3128,7 @@ class Query
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task ToListOverloadAssignTo()
         {
             var source = @"
@@ -3180,7 +3181,7 @@ namespace Test
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task ToListRefOverload()
         {
             var source = @"
@@ -3237,7 +3238,7 @@ namespace Test
 
         #region In Count
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task CountInMultipleDeclaration()
         {
             var source = @"
@@ -3282,7 +3283,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task CountInNonLocalDeclaration()
         {
             var source = @"
@@ -3333,7 +3334,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task CountInDeclaration()
         {
             var source = @"
@@ -3375,7 +3376,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task ReturnCount()
         {
             var source = @"
@@ -3416,7 +3417,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task ReturnCountExtraParethesis()
         {
             var source = @"
@@ -3457,7 +3458,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task CountAsArgument()
         {
             var source = @"
@@ -3502,7 +3503,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task CountAsArgumentExpressionBody()
         {
             var source = @"
@@ -3521,7 +3522,7 @@ class C
             await TestMissingAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task ReturnCountNameGeneration()
         {
             var source = @"
@@ -3564,7 +3565,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task CountNameUsedAfter()
         {
             var source = @"
@@ -3617,7 +3618,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task ReturnCountNameUsedBefore()
         {
             var source = @"
@@ -3668,7 +3669,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task CountOverload()
         {
             var source = @"
@@ -3712,7 +3713,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task CountOverloadAssignTo()
         {
             var source = @"
@@ -3765,7 +3766,7 @@ namespace Test
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task CountRefOverload()
         {
             var source = @"
@@ -3822,7 +3823,7 @@ namespace Test
 
         #region Expression Bodied
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task ExpressionBodiedProperty()
         {
             var source = @"
@@ -3838,7 +3839,7 @@ public class Test
             await TestMissingAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task ExpressionBodiedField()
         {
             var source = @"
@@ -3853,7 +3854,7 @@ public class Test
             await TestMissingAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task Field()
         {
             var source = @"
@@ -3868,7 +3869,7 @@ public class Test
             await TestMissingAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task ExpressionBodiedMethod()
         {
             var source = @"
@@ -3884,7 +3885,7 @@ public class Test
             await TestMissingAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task ExpressionBodiedMethodUnderInvocation()
         {
             var source = @"
@@ -3900,7 +3901,7 @@ public class Test
             await TestMissingAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task ExpressionBodiedenumerable()
         {
             var source = @"
@@ -3919,7 +3920,7 @@ public class Test
             await TestMissingAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task ExpressionBodiedAccessor()
         {
             var source = @"
@@ -3935,7 +3936,7 @@ public class Test
             await TestMissingAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task InInlineLambda()
         {
             var source = @"
@@ -3974,7 +3975,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task InParameterLambda()
         {
             var source = @"
@@ -4021,7 +4022,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task InParenthesizedLambdaWithBody()
         {
             var source = @"
@@ -4062,7 +4063,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task InSimplifiedLambdaWithBody()
         {
             var source = @"
@@ -4103,7 +4104,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task InAnonymousMethod()
         {
             var source = @"
@@ -4144,7 +4145,7 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task InWhen()
         {
             var source = @"
@@ -4172,7 +4173,7 @@ class C
 
         #region Comments and Preprocessor directives
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task InlineComments()
         {
             var source = @"
@@ -4191,7 +4192,7 @@ class C
             await TestMissingAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task Comments()
         {
             var source = @"
@@ -4210,7 +4211,7 @@ class C
             await TestMissingAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task PreprocessorDirectives()
         {
 
@@ -4237,7 +4238,7 @@ class C
 
         #region Name Generation
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task EnumerableFunctionDoesNotUseLocalFunctionName()
         {
             var source = @"
@@ -4279,7 +4280,7 @@ class Query
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task EnumerableFunctionCanUseLocalFunctionParameterName()
         {
             var source = @"
@@ -4321,7 +4322,7 @@ class Query
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task EnumerableFunctionDoesNotUseLambdaParameterNameWithCSharpLessThan8()
         {
             var source = @"
@@ -4363,7 +4364,7 @@ class Query
             await TestInRegularAndScriptAsync(source, output, parseOptions: new CSharpParseOptions(CodeAnalysis.CSharp.LanguageVersion.CSharp7_3));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        [Fact]
         public async Task EnumerableFunctionCanUseLambdaParameterNameInCSharp8()
         {
             var source = @"
@@ -4408,8 +4409,7 @@ class Query
         #endregion
 
         #region CaretSelection
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task DeclarationSelection()
         {
             var source = @"
@@ -4447,8 +4447,7 @@ class Query
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task LocalAssignmentSelection()
         {
             var source = @"

@@ -8,14 +8,14 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Commands
 {
-    internal abstract class AbstractExecuteWorkspaceCommandHandler : IRequestHandler<ExecuteCommandParams, object>
+    internal abstract class AbstractExecuteWorkspaceCommandHandler : ILspServiceDocumentRequestHandler<ExecuteCommandParams, object>
     {
         public abstract string Command { get; }
 
         public abstract bool MutatesSolutionState { get; }
         public abstract bool RequiresLSPSolution { get; }
 
-        public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(ExecuteCommandParams request);
+        public abstract TextDocumentIdentifier GetTextDocumentIdentifier(ExecuteCommandParams request);
 
         public abstract Task<object> HandleRequestAsync(ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken);
 

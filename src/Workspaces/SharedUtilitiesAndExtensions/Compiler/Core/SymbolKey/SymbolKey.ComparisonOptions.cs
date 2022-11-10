@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-        private struct ComparisonOptions
+        private readonly struct ComparisonOptions
         {
             [Flags]
             private enum Option : byte

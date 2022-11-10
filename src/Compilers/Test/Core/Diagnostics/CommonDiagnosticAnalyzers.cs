@@ -629,10 +629,16 @@ namespace Microsoft.CodeAnalysis
                 defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: false);
 
+            internal readonly ConcurrentSet<ISymbol> CallbackSymbols = new();
+
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
             public override void Initialize(AnalysisContext context)
             {
-                context.RegisterSymbolAction(_ => { }, SymbolKind.NamedType);
+                context.RegisterSymbolAction(context =>
+                {
+                    CallbackSymbols.Add(context.Symbol);
+                    context.ReportDiagnostic(Diagnostic.Create(Rule, context.Symbol.Locations[0]));
+                }, SymbolKind.NamedType);
             }
         }
 
@@ -1313,10 +1319,11 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-        public class GeneratedCodeAnalyzer : DiagnosticAnalyzer
+        public abstract class AbstractGeneratedCodeAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
+            where TSyntaxKind : struct
         {
             private readonly GeneratedCodeAnalysisFlags? _generatedCodeAnalysisFlagsOpt;
+            private readonly bool _testIsGeneratedCodeInCallbacks;
 
             public static readonly DiagnosticDescriptor Warning = new DiagnosticDescriptor(
                 "GeneratedCodeAnalyzerWarning",
@@ -1342,12 +1349,23 @@ namespace Microsoft.CodeAnalysis
                 DiagnosticSeverity.Warning,
                 true);
 
-            public GeneratedCodeAnalyzer(GeneratedCodeAnalysisFlags? generatedCodeAnalysisFlagsOpt)
+            public static readonly DiagnosticDescriptor Summary2 = new DiagnosticDescriptor(
+                "GeneratedCodeAnalyzerSummary",
+                "Title2",
+                "GeneratedCodeAnalyzer received callbacks for: '{0}' types and '{1}' files and '{2}' additional IsGeneratedCode callbacks",
+                "Category",
+                DiagnosticSeverity.Warning,
+                true);
+
+            protected AbstractGeneratedCodeAnalyzer(GeneratedCodeAnalysisFlags? generatedCodeAnalysisFlagsOpt, bool testIsGeneratedCodeInCallbacks)
             {
                 _generatedCodeAnalysisFlagsOpt = generatedCodeAnalysisFlagsOpt;
+                _testIsGeneratedCodeInCallbacks = testIsGeneratedCodeInCallbacks;
             }
 
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Warning, Error, Summary);
+            protected abstract TSyntaxKind ClassDeclarationSyntaxKind { get; }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Warning, Error, Summary, Summary2);
             public override void Initialize(AnalysisContext context)
             {
                 context.RegisterCompilationStartAction(this.OnCompilationStart);
@@ -1365,23 +1383,124 @@ namespace Microsoft.CodeAnalysis
                 var sortedCallbackTreePaths = new SortedSet<string>();
                 context.RegisterSymbolAction(symbolContext =>
                 {
-                    sortedCallbackSymbolNames.Add(symbolContext.Symbol.Name);
+                    sortedCallbackSymbolNames.Add($"{symbolContext.Symbol.Name}(IsGeneratedCode:{symbolContext.IsGeneratedCode})");
                     ReportSymbolDiagnostics(symbolContext.Symbol, symbolContext.ReportDiagnostic);
                 }, SymbolKind.NamedType);
 
                 context.RegisterSyntaxTreeAction(treeContext =>
                 {
-                    sortedCallbackTreePaths.Add(treeContext.Tree.FilePath);
+                    sortedCallbackTreePaths.Add($"{treeContext.Tree.FilePath}(IsGeneratedCode:{treeContext.IsGeneratedCode})");
                     ReportTreeDiagnostics(treeContext.Tree, treeContext.ReportDiagnostic);
                 });
+
+                var sortedCallbackSyntaxNodeNames = new SortedSet<string>();
+                var sortedCallbackOperationNames = new SortedSet<string>();
+                var sortedCallbackSemanticModelPaths = new SortedSet<string>();
+                var sortedCallbackSymbolStartNames = new SortedSet<string>();
+                var sortedCallbackSymbolEndNames = new SortedSet<string>();
+                var sortedCallbackOperationBlockStartNames = new SortedSet<string>();
+                var sortedCallbackOperationBlockEndNames = new SortedSet<string>();
+                var sortedCallbackOperationBlockNames = new SortedSet<string>();
+                var sortedCallbackCodeBlockStartNames = new SortedSet<string>();
+                var sortedCallbackCodeBlockEndNames = new SortedSet<string>();
+                var sortedCallbackCodeBlockNames = new SortedSet<string>();
+                if (_testIsGeneratedCodeInCallbacks)
+                {
+                    // Test all remaining analysis contexts that expose "IsGeneratdCode" flag
+                    context.RegisterSyntaxNodeAction(context =>
+                        sortedCallbackSyntaxNodeNames.Add($"{context.ContainingSymbol.Name}(IsGeneratedCode:{context.IsGeneratedCode})"),
+                        ImmutableArray.Create(ClassDeclarationSyntaxKind));
+
+                    context.RegisterSemanticModelAction(context =>
+                        sortedCallbackSemanticModelPaths.Add($"{context.SemanticModel.SyntaxTree.FilePath}(IsGeneratedCode:{context.IsGeneratedCode})"));
+
+                    context.RegisterSymbolStartAction(context =>
+                    {
+                        sortedCallbackSymbolStartNames.Add($"{context.Symbol.Name}(IsGeneratedCode:{context.IsGeneratedCode})");
+
+                        context.RegisterOperationBlockStartAction(context =>
+                        {
+                            if (context.OwningSymbol.Kind != SymbolKind.Method ||
+                                context.OperationBlocks.IsEmpty)
+                            {
+                                return;
+                            }
+
+                            sortedCallbackOperationBlockStartNames.Add($"{context.OwningSymbol.ContainingType.Name}(IsGeneratedCode:{context.IsGeneratedCode})");
+
+                            context.RegisterOperationAction(context =>
+                                sortedCallbackOperationNames.Add($"{context.ContainingSymbol.ContainingType.Name}(IsGeneratedCode:{context.IsGeneratedCode})"),
+                                OperationKind.Invocation);
+
+                            context.RegisterOperationBlockEndAction(context =>
+                                sortedCallbackOperationBlockEndNames.Add($"{context.OwningSymbol.ContainingType.Name}(IsGeneratedCode:{context.IsGeneratedCode})"));
+                        });
+
+                        context.RegisterOperationBlockAction(context =>
+                        {
+                            if (context.OwningSymbol.Kind != SymbolKind.Method ||
+                                context.OperationBlocks.IsEmpty)
+                            {
+                                return;
+                            }
+
+                            sortedCallbackOperationBlockNames.Add($"{context.OwningSymbol.ContainingType.Name}(IsGeneratedCode:{context.IsGeneratedCode})");
+                        });
+
+                        context.RegisterSymbolEndAction(context =>
+                            sortedCallbackSymbolEndNames.Add($"{context.Symbol.Name}(IsGeneratedCode:{context.IsGeneratedCode})"));
+                    }, SymbolKind.NamedType);
+
+                    context.RegisterCodeBlockStartAction<TSyntaxKind>(context =>
+                    {
+                        if (context.OwningSymbol.Kind != SymbolKind.Method)
+                        {
+                            return;
+                        }
+
+                        sortedCallbackCodeBlockStartNames.Add($"{context.OwningSymbol.ContainingType.Name}(IsGeneratedCode:{context.IsGeneratedCode})");
+
+                        context.RegisterCodeBlockEndAction(context =>
+                            sortedCallbackCodeBlockEndNames.Add($"{context.OwningSymbol.ContainingType.Name}(IsGeneratedCode:{context.IsGeneratedCode})"));
+                    });
+
+                    context.RegisterCodeBlockAction(context =>
+                    {
+                        if (context.OwningSymbol.Kind != SymbolKind.Method)
+                        {
+                            return;
+                        }
+
+                        sortedCallbackCodeBlockNames.Add($"{context.OwningSymbol.ContainingType.Name}(IsGeneratedCode:{context.IsGeneratedCode})");
+                    });
+                }
 
                 context.RegisterCompilationEndAction(endContext =>
                 {
                     var arg1 = sortedCallbackSymbolNames.Join(",");
                     var arg2 = sortedCallbackTreePaths.Join(",");
+                    var args = new object[] { arg1, arg2 };
+                    var rule = Summary;
+
+                    if (_testIsGeneratedCodeInCallbacks)
+                    {
+                        var arg3 = sortedCallbackSyntaxNodeNames.Join(",") + ";" +
+                            sortedCallbackOperationNames.Join(",") + ";" +
+                            sortedCallbackSemanticModelPaths.Join(",") + ";" +
+                            sortedCallbackSymbolStartNames.Join(",") + ";" +
+                            sortedCallbackSymbolEndNames.Join(",") + ";" +
+                            sortedCallbackOperationBlockStartNames.Join(",") + ";" +
+                            sortedCallbackOperationBlockEndNames.Join(",") + ";" +
+                            sortedCallbackOperationBlockNames.Join(",") + ";" +
+                            sortedCallbackCodeBlockStartNames.Join(",") + ";" +
+                            sortedCallbackCodeBlockEndNames.Join(",") + ";" +
+                            sortedCallbackCodeBlockNames.Join(",");
+                        args = new object[] { arg1, arg2, arg3 };
+                        rule = Summary2;
+                    }
 
                     // Summary diagnostics about received callbacks.
-                    var diagnostic = Diagnostic.Create(Summary, Location.None, arg1, arg2);
+                    var diagnostic = Diagnostic.Create(rule, Location.None, args);
                     endContext.ReportDiagnostic(diagnostic);
                 });
             }
@@ -1760,8 +1879,8 @@ namespace Microsoft.CodeAnalysis
                     if (!SymbolsStarted.SetEquals(symbolsEnded))
                     {
                         // Symbols Started: '{0}', Symbols Ended: '{1}', Analyzer: {2}
-                        var symbolsStartedStr = string.Join(", ", SymbolsStarted.Select(s => s.ToDisplayString()).Order());
-                        var symbolsEndedStr = string.Join(", ", symbolsEnded.Select(s => s.ToDisplayString()).Order());
+                        var symbolsStartedStr = string.Join(", ", Roslyn.Utilities.EnumerableExtensions.Order(SymbolsStarted.Select(s => s.ToDisplayString())));
+                        var symbolsEndedStr = string.Join(", ", Roslyn.Utilities.EnumerableExtensions.Order(symbolsEnded.Select(s => s.ToDisplayString())));
                         compilationEndContext.ReportDiagnostic(Diagnostic.Create(SymbolStartedEndedDifferRule, Location.None, symbolsStartedStr, symbolsEndedStr, _analyzerId));
                     }
 
@@ -2109,7 +2228,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_rule);
-            public string GetSortedSymbolCallbacksString() => string.Join(", ", _symbolCallbacks.Select(s => s.Name).Order());
+            public string GetSortedSymbolCallbacksString() => string.Join(", ", Roslyn.Utilities.EnumerableExtensions.Order(_symbolCallbacks.Select(s => s.Name)));
 
             public override void Initialize(AnalysisContext context)
             {
@@ -2361,7 +2480,7 @@ namespace Microsoft.CodeAnalysis
                             context.CancellationToken.ThrowIfCancellationRequested();
                         }
 
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
 
                     context.ReportDiagnostic(Diagnostic.Create(s_descriptor, context.Tree.GetRoot().GetLocation()));

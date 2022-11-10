@@ -179,6 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int WRN_UnableToLoadAnalyzer => (int)ErrorCode.WRN_UnableToLoadAnalyzer;
         public override int WRN_AnalyzerReferencesFramework => (int)ErrorCode.WRN_AnalyzerReferencesFramework;
         public override int WRN_AnalyzerReferencesNewerCompiler => (int)ErrorCode.WRN_AnalyzerReferencesNewerCompiler;
+        public override int WRN_DuplicateAnalyzerReference => (int)ErrorCode.WRN_DuplicateAnalyzerReference;
         public override int INF_UnableToLoadSomeTypesInAnalyzer => (int)ErrorCode.INF_UnableToLoadSomeTypesInAnalyzer;
         public override int ERR_CantReadRulesetFile => (int)ErrorCode.ERR_CantReadRulesetFile;
         public override int ERR_CompileCancelled => (int)ErrorCode.ERR_CompileCancelled;

@@ -18,6 +18,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 using static System.FormattableString;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
@@ -510,23 +511,22 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var resultOpt = await TryDownloadFileAsync(client, cancellationToken).ConfigureAwait(false);
-                    if (resultOpt == null)
+                    var (element, delay) = await TryDownloadFileAsync(client, cancellationToken).ConfigureAwait(false);
+                    if (element == null)
                     {
-                        var delay = _service._delayService.CachePollDelay;
                         await LogInfoAsync($"File not downloaded. Trying again in {delay}", cancellationToken).ConfigureAwait(false);
                         await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
                         // File was downloaded.  
-                        return resultOpt;
+                        return element;
                     }
                 }
             }
 
             /// <summary>Returns 'null' if download is not available and caller should keep polling.</summary>
-            private async Task<XElement> TryDownloadFileAsync(IFileDownloader fileDownloader, CancellationToken cancellationToken)
+            private async Task<(XElement element, TimeSpan delay)> TryDownloadFileAsync(IFileDownloader fileDownloader, CancellationToken cancellationToken)
             {
                 await LogInfoAsync("Read file from client", cancellationToken).ConfigureAwait(false);
 
@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 if (stream == null)
                 {
                     await LogInfoAsync("Read file completed. Client returned no data", cancellationToken).ConfigureAwait(false);
-                    return null;
+                    return (element: null, _service._delayService.CachePollDelay);
                 }
 
                 await LogInfoAsync("Read file completed. Client returned data", cancellationToken).ConfigureAwait(false);
@@ -551,11 +551,26 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     XmlResolver = null
                 };
 
-                using var reader = XmlReader.Create(stream, settings);
+                // This code must always succeed.  If it does not, that means that either the server reported bogus data
+                // to the file-downloader, or the file-downloader is serving us bogus data.  In other event, there is
+                // something wrong with those components, and we should both report the issue to Watson, and stop doing
+                // the update.
+                try
+                {
+                    using var reader = XmlReader.Create(stream, settings);
 
-                var result = XElement.Load(reader);
-                await LogInfoAsync("Converting data to XElement completed", cancellationToken).ConfigureAwait(false);
-                return result;
+                    var element = XElement.Load(reader);
+                    await LogInfoAsync("Converting data to XElement completed", cancellationToken).ConfigureAwait(false);
+                    return (element, delay: default);
+                }
+                catch (Exception e) when (_service._reportAndSwallowExceptionUnlessCanceled(e, cancellationToken))
+                {
+                    // We retrieved bytes from the server, but we couldn't make parse it an xml. out of it.  That's very
+                    // bad.  Just trying again one minute later isn't going to help.  We need to wait until there is
+                    // good data on the server for us to download.
+                    await LogInfoAsync($"Unable to parse file as XElement", cancellationToken).ConfigureAwait(false);
+                    return (element: null, _service._delayService.CatastrophicFailureDelay);
+                }
             }
 
             private async Task RepeatIOAsync(Func<CancellationToken, Task> action, CancellationToken cancellationToken)

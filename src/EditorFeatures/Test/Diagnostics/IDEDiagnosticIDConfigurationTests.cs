@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
                 return;
             }
 
-            if (helpLinkUri != $"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{diagnosticId.ToLowerInvariant()}")
+            if (helpLinkUri != $"https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{diagnosticId.ToLowerInvariant()}")
             {
                 Assert.True(false, $"Invalid help link for {diagnosticId}");
             }
@@ -439,6 +439,9 @@ dotnet_diagnostic.IDE0240.severity = %value%
 
 # IDE0241
 dotnet_diagnostic.IDE0241.severity = %value%
+
+# IDE0250
+dotnet_diagnostic.IDE0250.severity = %value%
 
 # IDE1005
 dotnet_diagnostic.IDE1005.severity = %value%
@@ -1062,6 +1065,9 @@ No editorconfig based code style option
 
 # IDE0241
 No editorconfig based code style option
+
+# IDE0250, PreferReadOnlyStruct
+csharp_style_prefer_readonly_struct = true
 
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true

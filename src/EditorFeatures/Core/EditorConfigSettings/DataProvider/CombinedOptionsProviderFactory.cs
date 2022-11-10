@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
 {
     internal class CombinedOptionsProviderFactory<T> : ISettingsProviderFactory<T>
     {
-        private ImmutableArray<ISettingsProviderFactory<T>> _factories;
+        private readonly ImmutableArray<ISettingsProviderFactory<T>> _factories;
 
         public CombinedOptionsProviderFactory(ImmutableArray<ISettingsProviderFactory<T>> factories)
         {

@@ -13,6 +13,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void CreateFrom_Errors()
         {
             Assert.Throws<ArgumentNullException>(() => MetadataReference.CreateFromImage(null));
-            Assert.Throws<ArgumentNullException>(() => MetadataReference.CreateFromImage(default(ImmutableArray<byte>)));
+            Assert.Throws<ArgumentNullException>(() => MetadataReference.CreateFromImage(default));
             Assert.Throws<ArgumentNullException>(() => MetadataReference.CreateFromFile(null));
             Assert.Throws<ArgumentNullException>(() => MetadataReference.CreateFromFile(null, default(MetadataReferenceProperties)));
             Assert.Throws<ArgumentNullException>(() => MetadataReference.CreateFromStream(null));
@@ -174,7 +175,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private class TestDocumentationProvider : DocumentationProvider
         {
-            protected internal override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default(CancellationToken))
+            protected internal override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default)
             {
                 return string.Format("<member name='{0}'><summary>{0}</summary></member>", documentationMemberID);
             }
@@ -405,7 +406,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             private readonly string _display;
 
             public MyReference(string fullPath, string display)
-                : base(default(MetadataReferenceProperties), fullPath)
+                : base(default, fullPath)
             {
                 _display = display;
             }
@@ -433,8 +434,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private class MyReference2 : PortableExecutableReference
         {
-            public MyReference2(string fullPath, string display)
-                : base(default(MetadataReferenceProperties), fullPath)
+            public MyReference2(string fullPath)
+                : base(properties: default, fullPath)
             {
             }
 
@@ -476,8 +477,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("m1b", m1b.Display);
             var m2 = new MyReference(@"c:\b\goo.dll", display: "m2");
             Assert.Equal("m2", m2.Display);
-            var m3 = new MyReference(null, display: "m3");
-            var m4 = new MyReference(null, display: "m4");
 
             var c1a = CS.CSharpCompilation.Create("goo").ToMetadataReference();
             var c1b = c1a.Compilation.ToMetadataReference();
@@ -505,19 +504,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void PortableReference_Display()
-        {
-            var comparer = CommonReferenceManager<CS.CSharpCompilation, IAssemblySymbolInternal>.MetadataReferenceEqualityComparer.Instance;
-
-            var f1 = MscorlibRef;
-            var f2 = SystemCoreRef;
-
-            var m1a = new MyReference2(@"c:\a\goo.dll", display: "m1a");
-            Assert.Equal(@"c:\a\goo.dll", m1a.Display);
-            Assert.Equal(@"c:\a\goo.dll", m1a.FilePath);
-        }
-
-        [Fact]
         public void DocCommentProvider()
         {
             var docProvider = new TestDocumentationProvider();
@@ -525,7 +511,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 GetReference(display: "corlib", documentation: docProvider);
 
             var comp = (Compilation)CS.CSharpCompilation.Create("goo",
-                syntaxTrees: new[] { CS.SyntaxFactory.ParseSyntaxTree("class C : System.Collections.ArrayList { }") },
+                syntaxTrees: new[] { CSharpTestSource.Parse("class C : System.Collections.ArrayList { }") },
                 references: new[] { corlib });
 
             var c = (ITypeSymbol)comp.GlobalNamespace.GetMembers("C").Single();

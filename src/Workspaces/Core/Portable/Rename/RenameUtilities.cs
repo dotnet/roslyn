@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
 
                 // Append the remaining of the sub-string within replaceInsideString after the last match. 
-                stringBuilder.Append(replaceInsideString.Substring(startOffset));
+                stringBuilder.Append(replaceInsideString[startOffset..]);
 
                 return stringBuilder.ToString();
             }

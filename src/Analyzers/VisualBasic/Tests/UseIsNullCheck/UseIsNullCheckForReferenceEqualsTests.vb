@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseIsNullCheck
+    <Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)>
     Partial Public Class UseIsNullCheckForReferenceEqualsTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -15,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseIsNullCheck
             Return (New VisualBasicUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer(), New VisualBasicUseIsNullCheckForReferenceEqualsCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)>
+        <Fact>
         Public Async Function TestIdentifierName() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -38,7 +39,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)>
+        <Fact>
         Public Async Function TestBuiltInType() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -61,7 +62,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)>
+        <Fact>
         Public Async Function TestNamedType() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -84,7 +85,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)>
+        <Fact>
         Public Async Function TestReversed() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -107,7 +108,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)>
+        <Fact>
         Public Async Function TestNegated() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -130,7 +131,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)>
+        <Fact>
         Public Async Function TestFixAll1() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -155,7 +156,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)>
+        <Fact>
         Public Async Function TestFixAll2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -180,8 +181,7 @@ class C
 end class")
         End Function
 
-        <WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)>
+        <Fact, WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")>
         Public Async Function TestValueParameterTypeIsValueConstraintGeneric() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System

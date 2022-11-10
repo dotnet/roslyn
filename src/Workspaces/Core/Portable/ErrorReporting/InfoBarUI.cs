@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ErrorReporting
 {
-    internal struct InfoBarUI
+    internal readonly struct InfoBarUI
     {
         public readonly string? Title;
         public readonly UIKind Kind;

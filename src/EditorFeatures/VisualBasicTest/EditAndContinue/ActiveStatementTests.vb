@@ -822,8 +822,7 @@ End Class
                                         Diagnostic(RudeEditKind.ActiveStatementUpdate, "f As Goo = New Goo(5*2)"))
         End Sub
 
-        <WorkItem(741249, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/741249")>
-        <Fact>
+        <Fact, WorkItem(741249, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/741249")>
         Public Sub Updated_Leaf_Constructor()
             Dim src1 = "
 Class Program
@@ -935,8 +934,7 @@ End Class
                 Diagnostic(RudeEditKind.InitializerUpdate, "Optional a As Integer = 42", FeaturesResources.parameter))
         End Sub
 
-        <WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")>
-        <Fact>
+        <Fact, WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")>
         Public Sub Updated_Leaf_ConstructorChaining1()
             Dim src1 = "
 Class B 
@@ -970,8 +968,7 @@ End Class
             edits.VerifySemanticDiagnostics(active)
         End Sub
 
-        <WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")>
-        <Fact>
+        <Fact, WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")>
         Public Sub Updated_Leaf_ConstructorChaining2()
             Dim src1 = "
 Class Test
@@ -2533,8 +2530,7 @@ End Class
 
 #Region "SyncLock"
 
-        <WorkItem(755749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755749")>
-        <Fact>
+        <Fact, WorkItem(755749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755749")>
         Public Sub SyncLock_Insert_Leaf()
             Dim src1 = "
 Class Test
@@ -2631,8 +2627,7 @@ End Class
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "SyncLock d", VBFeaturesResources.SyncLock_statement))
         End Sub
 
-        <WorkItem(755752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755752")>
-        <Fact>
+        <Fact, WorkItem(755752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755752")>
         Public Sub SyncLock_Update_Leaf()
             Dim src1 = "
 Class Test

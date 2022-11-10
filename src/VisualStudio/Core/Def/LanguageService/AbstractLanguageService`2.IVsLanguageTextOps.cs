@@ -80,9 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return VSConstants.S_OK;
             }
 
-            // create new formatted document
-            var formattedDocument = document.WithText(text.WithChanges(formattedChanges));
-            Workspace.ApplyDocumentChanges(formattedDocument, cancellationToken);
+            textBuffer.ApplyChanges(formattedChanges);
 
             return VSConstants.S_OK;
         }

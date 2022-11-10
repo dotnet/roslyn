@@ -14,6 +14,7 @@ using Xunit.Abstractions;
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.Classification)]
     public class BasicClassification : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
@@ -23,7 +24,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact]
         public void Verify_Color_Of_Some_Tokens()
         {
             VisualStudio.Editor.SetText(@"Imports System
@@ -69,7 +70,7 @@ End Namespace");
             VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "comment");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact]
         public void Semantic_Classification()
         {
             VisualStudio.Editor.SetText(@"

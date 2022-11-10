@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 Assert.Null(error);
 
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                AssertIsIntPtrPointer(((MethodSymbol)methodData.Method).ReturnType);
+                AssertIsStringPointer(((MethodSymbol)methodData.Method).ReturnType);
                 methodData.VerifyIL(@"
 {
   // Code size        4 (0x4)
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 Assert.Null(error);
 
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                AssertIsIntPtrPointer(((MethodSymbol)methodData.Method).ReturnType);
+                AssertIsStringPointer(((MethodSymbol)methodData.Method).ReturnType);
                 methodData.VerifyIL(@"
 {
   // Code size        4 (0x4)
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 Assert.Null(error);
 
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                AssertIsIntPtrPointer(((MethodSymbol)methodData.Method).ReturnType);
+                AssertIsStringPointer(((MethodSymbol)methodData.Method).ReturnType);
                 methodData.VerifyIL(@"
 {
   // Code size        8 (0x8)
@@ -119,13 +119,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             });
         }
 
-        /// <remarks>
-        /// It seems like we could make this work, but there are special cases for arrays
-        /// and interfaces and some of the checks would have to be recursive.  Furthermore,
-        /// dev12 didn't support it.
-        /// </remarks>
         [Fact]
-        public void DisallowSizeof()
+        public void Sizeof()
         {
             var source = @"
 class C
@@ -163,17 +158,30 @@ enum E
 
                 foreach (var type in types)
                 {
-                    string error;
                     CompilationTestData testData = new CompilationTestData();
-                    context.CompileExpression(string.Format("sizeof({0})", type), out error, testData);
-                    // CONSIDER: change error code to make text less confusing?
-                    Assert.Equal(string.Format("error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('{0}')", type), error);
+                    context.CompileExpression(string.Format("sizeof({0})", type), out var error, testData);
+                    Assert.Null(error);
+
+                    var expectedType = type switch
+                    {
+                        "dynamic" => "object",
+                        _ => type
+                    };
+
+                    testData.GetMethodData("<>x.<>m0<T>").VerifyIL($$"""
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  sizeof     "{{expectedType}}"
+  IL_0006:  ret
+}
+""");
                 }
             });
         }
 
         [Fact]
-        public void DisallowStackalloc()
+        public void Stackalloc()
         {
             var source =
 @"class C
@@ -188,15 +196,13 @@ enum E
             {
                 var context = CreateMethodContext(runtime, "C.M");
                 var testData = new CompilationTestData();
-                string error;
-                context.CompileAssignment("a", "() => { var s = stackalloc string[1]; }", out error, testData);
-                // CONSIDER: change error code to make text less confusing?
+                context.CompileAssignment("a", "() => { var s = stackalloc string[1]; }", out var error, testData);
                 Assert.Equal("error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')", error);
             });
         }
 
         [Fact]
-        public void DisallowPointerType()
+        public void PointerTypeOfManagedType()
         {
             var source =
 @"class C
@@ -212,16 +218,24 @@ enum E
                 var testData = new CompilationTestData();
                 string error;
                 context.CompileExpression("(string*)null", out error, testData);
-                // CONSIDER: change error code to make text less confusing?
-                Assert.Equal("error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')", error);
+                Assert.Null(error);
+
+                var methodData = testData.GetMethodData("<>x.<>m0");
+                AssertIsStringPointer(((MethodSymbol)methodData.Method).ReturnType);
+                methodData.VerifyIL(@"
+{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.u
+  IL_0002:  ret
+}
+");
             });
         }
 
-        /// <remarks>
-        /// This is not so much disallowed as not specifically enabled.
-        /// </remarks>
         [Fact]
-        public void DisallowFixedArray()
+        public void FixedArray()
         {
             var source =
 @"class C
@@ -236,17 +250,62 @@ enum E
             {
                 var context = CreateMethodContext(runtime, "C.M");
                 var testData = new CompilationTestData();
-                string error;
-                context.CompileAssignment("a", "() => { fixed (void* p = args) { } }", out error, testData);
-                // CONSIDER: change error code to make text less confusing?
-                Assert.Equal("error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')", error);
+                context.CompileAssignment("a", "() => { fixed (void* p = args) { } }", out var error, testData);
+                Assert.Null(error);
+
+                testData.GetMethodData("<>x.<>m0").VerifyIL(@"
+{
+  // Code size       25 (0x19)
+  .maxstack  3
+  .locals init (System.Action V_0) //a
+  IL_0000:  newobj     ""<>x.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldarg.1
+  IL_0007:  stfld      ""string[] <>x.<>c__DisplayClass0_0.args""
+  IL_000c:  ldftn      ""void <>x.<>c__DisplayClass0_0.<<>m0>b__0()""
+  IL_0012:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0017:  stloc.0
+  IL_0018:  ret
+}
+");
+
+                testData.GetMethodData("<>x.<>c__DisplayClass0_0.<<>m0>b__0").VerifyIL(@"
+{
+  // Code size       34 (0x22)
+  .maxstack  2
+  .locals init (void* V_0, //p
+                pinned string[] V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""string[] <>x.<>c__DisplayClass0_0.args""
+  IL_0006:  dup
+  IL_0007:  stloc.1
+  IL_0008:  brfalse.s  IL_000f
+  IL_000a:  ldloc.1
+  IL_000b:  ldlen
+  IL_000c:  conv.i4
+  IL_000d:  brtrue.s   IL_0014
+  IL_000f:  ldc.i4.0
+  IL_0010:  conv.u
+  IL_0011:  stloc.0
+  IL_0012:  br.s       IL_001f
+  IL_0014:  ldloc.1
+  IL_0015:  ldc.i4.0
+  IL_0016:  readonly.
+  IL_0018:  ldelema    ""string""
+  IL_001d:  conv.u
+  IL_001e:  stloc.0
+  IL_001f:  ldnull
+  IL_0020:  stloc.1
+  IL_0021:  ret
+}
+");
             });
         }
 
-        private static void AssertIsIntPtrPointer(TypeSymbol returnType)
+        private static void AssertIsStringPointer(TypeSymbol returnType)
         {
             Assert.Equal(TypeKind.Pointer, returnType.TypeKind);
-            Assert.Equal(SpecialType.System_IntPtr, ((PointerTypeSymbol)returnType).PointedAtType.SpecialType);
+            Assert.Equal(SpecialType.System_String, ((PointerTypeSymbol)returnType).PointedAtType.SpecialType);
         }
     }
 }

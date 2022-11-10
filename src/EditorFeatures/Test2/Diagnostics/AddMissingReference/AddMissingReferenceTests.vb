@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.AddMissingReference
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReference
+    <Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
     Public Class AddMissingReferenceTests
         Inherits AbstractCrossLanguageUserDiagnosticTest
 
@@ -34,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
             Return (Nothing, fixer)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        <Fact>
         Public Async Function AddProjectReferenceBetweenCSharpProjects() As Task
             Await TestAddProjectReferenceAsync(<Workspace>
                                                    <Project Language="C#" AssemblyName="ProjectA" CommonReferences="true">
@@ -52,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                                     "ProjectC", "ProjectA")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        <Fact>
         Public Async Function AddProjectReferenceBetweenVisualBasicProjects() As Task
             Await TestAddProjectReferenceAsync(<Workspace>
                                                    <Project Language="Visual Basic" AssemblyName="ProjectA" CommonReferences="true">
@@ -70,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                                     "ProjectC", "ProjectA")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        <Fact>
         Public Async Function AddProjectReferenceBetweenMixedLanguages1() As Task
             Await TestAddProjectReferenceAsync(<Workspace>
                                                    <Project Language="C#" AssemblyName="ProjectA" CommonReferences="true">
@@ -88,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                                     "ProjectC", "ProjectA")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        <Fact>
         Public Async Function AddProjectReferenceBetweenMixedLanguages2() As Task
             Await TestAddProjectReferenceAsync(<Workspace>
                                                    <Project Language="Visual Basic" AssemblyName="ProjectA" CommonReferences="true">
@@ -106,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                                     "ProjectC", "ProjectA")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        <Fact>
         Public Async Function AddMetadataReferenceToVisualBasicProjectErrorCode30005() As Task
             Await TestAddUnresolvedMetadataReferenceAsync(
                 <Workspace>
@@ -132,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                 "VBProject", s_windowsBaseAssembly.FullName)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        <Fact>
         Public Async Function AddMetadataReferenceToVisualBasicProjectErrorCode30007() As Task
             Await TestAddUnresolvedMetadataReferenceAsync(
                 <Workspace>
@@ -144,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                 "VBProject", s_windowsBaseAssembly.FullName)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        <Fact>
         Public Async Function AddMetadataReferenceToVisualBasicProjectErrorCode30652() As Task
             Await TestAddUnresolvedMetadataReferenceAsync(
                 <Workspace>
@@ -170,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                 "VBProject", s_windowsBaseAssembly.FullName)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        <Fact>
         Public Async Function AddMetadataReferenceToCSharpProject() As Task
             Await TestAddUnresolvedMetadataReferenceAsync(
                 <Workspace>

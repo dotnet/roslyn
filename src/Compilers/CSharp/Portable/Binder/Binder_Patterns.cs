@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundConstantPattern _:
                         case BoundITuplePattern _:
                             // these patterns can fail in practice
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
                         case BoundRelationalPattern _:
                         case BoundTypePattern _:
                         case BoundNegatedPattern _:
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool IsCountableAndIndexable(SyntaxNode node, TypeSymbol inputType, out PropertySymbol? lengthProperty)
         {
-            var success = BindLengthAndIndexerForListPattern(node, inputType, inputValEscape: ExternalScope, BindingDiagnosticBag.Discarded,
+            var success = BindLengthAndIndexerForListPattern(node, inputType, inputValEscape: CallingMethodScope, BindingDiagnosticBag.Discarded,
                 indexerAccess: out _, out var lengthAccess, receiverPlaceholder: out _, argumentPlaceholder: out _);
             lengthProperty = success ? GetPropertySymbol(lengthAccess, out _, out _) : null;
             return success;
@@ -595,7 +595,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         RoslynDebug.Assert(expression.Type is { });
-                        if (ExpressionOfTypeMatchesPatternType(Conversions, inputType, expression.Type, ref useSiteInfo, out _, operandConstantValue: null) == false)
+                        ConstantValue match = ExpressionOfTypeMatchesPatternType(Conversions, inputType, expression.Type, ref useSiteInfo, out _, operandConstantValue: null);
+                        if (match == ConstantValue.False || match == ConstantValue.Bad)
                         {
                             diagnostics.Add(ErrorCode.ERR_PatternWrongType, expression.Syntax.Location, inputType, expression.Display);
                             hasErrors = true;
@@ -739,10 +740,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                bool? matchPossible = ExpressionOfTypeMatchesPatternType(
+                ConstantValue matchPossible = ExpressionOfTypeMatchesPatternType(
                     Conversions, inputType, patternType, ref useSiteInfo, out Conversion conversion, operandConstantValue: null, operandCouldBeNull: true);
                 diagnostics.Add(typeSyntax, useSiteInfo);
-                if (matchPossible != false)
+                if (matchPossible != ConstantValue.False && matchPossible != ConstantValue.Bad)
                 {
                     if (!conversion.Exists && (inputType.ContainsTypeParameter() || patternType.ContainsTypeParameter()))
                     {
@@ -771,10 +772,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Does an expression of type <paramref name="expressionType"/> "match" a pattern that looks for
         /// type <paramref name="patternType"/>?
-        /// 'true' if the matched type catches all of them, 'false' if it catches none of them, and
-        /// 'null' if it might catch some of them.
+        ///  - <see cref="ConstantValue.True"/> if the matched type catches all of them
+        ///  - <see cref="ConstantValue.False"/> if it catches none of them
+        ///  - <see cref="ConstantValue.Bad"/> - compiler doesn't support the type check, i.e. cannot perform it, even at runtime
+        ///  - 'null' if it might catch some of them.
         /// </summary>
-        internal static bool? ExpressionOfTypeMatchesPatternType(
+        internal static ConstantValue ExpressionOfTypeMatchesPatternType(
             Conversions conversions,
             TypeSymbol expressionType,
             TypeSymbol patternType,
@@ -790,7 +793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expressionType.Equals(patternType, TypeCompareKind.AllIgnoreOptions))
             {
                 conversion = Conversion.Identity;
-                return true;
+                return ConstantValue.True;
             }
 
             if (expressionType.IsDynamic())
@@ -803,13 +806,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConstantValue result = Binder.GetIsOperatorConstantResult(expressionType, patternType, conversion.Kind, operandConstantValue, operandCouldBeNull);
 
             // Don't need to worry about checked user-defined operators
-            Debug.Assert(!conversion.IsUserDefined || result == ConstantValue.False);
+            Debug.Assert(!conversion.IsUserDefined || result == ConstantValue.False || result == ConstantValue.Bad);
 
-            return
-                (result == null) ? (bool?)null :
-                (result == ConstantValue.True) ? true :
-                (result == ConstantValue.False) ? false :
-                throw ExceptionUtilities.UnexpectedValue(result);
+            return result;
         }
 
         private BoundPattern BindDeclarationPattern(
@@ -909,11 +908,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Compute the val escape of an expression of the given <paramref name="type"/>, which is known to be derived
         /// from an expression whose escape scope is <paramref name="possibleValEscape"/>. By the language rules, the
-        /// result is either that same scope (if the type is a ref struct type) or <see cref="Binder.ExternalScope"/>.
+        /// result is either that same scope (if the type is a ref struct type) or <see cref="Binder.CallingMethodScope"/>.
         /// </summary>
         private static uint GetValEscape(TypeSymbol type, uint possibleValEscape)
         {
-            return type.IsRefLikeType ? possibleValEscape : Binder.ExternalScope;
+            return type.IsRefLikeType ? possibleValEscape : Binder.CallingMethodScope;
         }
 
         private TypeWithAnnotations BindRecursivePatternType(
@@ -1100,7 +1099,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             // Since the input has been cast to ITuple, it must be escapable.
-            const uint valEscape = Binder.ExternalScope;
+            const uint valEscape = Binder.CallingMethodScope;
             var objectType = Compilation.GetSpecialType(SpecialType.System_Object);
             foreach (var subpatternSyntax in node.Subpatterns)
             {
@@ -1129,7 +1128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             // Since the input has been cast to ITuple, it must be escapable.
-            const uint valEscape = Binder.ExternalScope;
+            const uint valEscape = Binder.CallingMethodScope;
             var objectType = Compilation.GetSpecialType(SpecialType.System_Object);
             foreach (var variable in node.Variables)
             {

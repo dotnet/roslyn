@@ -15,8 +15,9 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
     <UseExportProvider>
+    <Trait(Traits.Feature, Traits.Features.Diagnostics)>
     Public Class SourceGeneratorItemTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Sub SourceGeneratorsListed()
             Dim workspaceXml =
                 <Workspace>
@@ -36,7 +37,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Async Function PlaceholderItemCreateIfGeneratorProducesNoFiles() As Task
             Dim workspaceXml =
                 <Workspace>
@@ -60,7 +61,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Async Function SingleSourceGeneratedFileProducesItem() As Task
             Dim workspaceXml =
                 <Workspace>
@@ -89,7 +90,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Async Function MultipleSourceGeneratedFilesProducesSortedItem() As Task
             Dim workspaceXml =
                 <Workspace>
@@ -121,7 +122,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Async Function ChangeToRemoveAllGeneratedDocumentsUpdatesListCorrectly() As Task
             Dim workspaceXml =
                 <Workspace>
@@ -150,7 +151,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Async Function AddingAGeneratedDocumentUpdatesListCorrectly() As Task
             Dim workspaceXml =
                 <Workspace>
@@ -191,7 +192,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Async Function GeneratedDocumentsStayingTheSameWorksCorrectly() As Task
             Dim workspaceXml =
                 <Workspace>

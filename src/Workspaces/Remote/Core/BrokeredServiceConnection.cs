@@ -299,79 +299,26 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        // streaming
+        // multi-solution, no callback
 
-        /// <param name="service">The service instance.</param>
-        /// <param name="invocation">A callback to asynchronously write data. The callback is required to complete the
-        /// <see cref="PipeWriter"/> except in cases where the callback throws an exception.</param>
-        /// <param name="reader">A callback to asynchronously read data. The callback is allowed, but not required, to
-        /// complete the <see cref="PipeReader"/>.</param>
-        /// <param name="cancellationToken">A cancellation token the operation will observe.</param>
-        internal static async ValueTask<TResult> InvokeStreamingServiceAsync<TResult>(
-            TService service,
-            Func<TService, PipeWriter, CancellationToken, ValueTask> invocation,
-            Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
-            CancellationToken cancellationToken)
+        public override async ValueTask<bool> TryInvokeAsync(Solution solution1, Solution solution2, Func<TService, Checksum, Checksum, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
         {
-            // We can cancel at entry, but once the pipe operations are scheduled we rely on both operations running to
-            // avoid deadlocks (the exception handler in 'writerTask' ensures progress is made in 'readerTask').
-            cancellationToken.ThrowIfCancellationRequested();
-            var mustNotCancelToken = CancellationToken.None;
-
-            // After this point, the full cancellation sequence is as follows:
-            //  1. 'cancellationToken' indicates cancellation is requested
-            //  2. 'invocation' and 'readerTask' have cancellation requested
-            //  3. 'invocation' stops writing to 'pipe.Writer'
-            //  4. 'pipe.Writer' is completed
-            //  5. 'readerTask' continues reading until EndOfStreamException (workaround for https://github.com/AArnott/Nerdbank.Streams/issues/361)
-            //  6. 'pipe.Reader' is completed
-            //  7. OperationCanceledException is thrown back to the caller
-
-            var pipe = new Pipe();
-
-            // Create new tasks that both start executing, rather than invoking the delegates directly
-            // to make sure both invocation and reader start executing and transfering data.
-
-            var writerTask = Task.Run(async () =>
+            try
             {
-                try
-                {
-                    await invocation(service, pipe.Writer, cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception e)
-                {
-                    // Ensure that the writer is complete if an exception is thrown
-                    // before the writer is passed to the RPC proxy. Once it's passed to the proxy 
-                    // the proxy should complete it as soon as the remote side completes it.
-                    await pipe.Writer.CompleteAsync(e).ConfigureAwait(false);
-
-                    throw;
-                }
-            }, mustNotCancelToken);
-
-            var readerTask = Task.Run(
-                async () =>
-                {
-                    Exception? exception = null;
-
-                    try
-                    {
-                        return await reader(pipe.Reader, cancellationToken).ConfigureAwait(false);
-                    }
-                    catch (Exception e) when ((exception = e) == null)
-                    {
-                        throw ExceptionUtilities.Unreachable;
-                    }
-                    finally
-                    {
-                        await pipe.Reader.CompleteAsync(exception).ConfigureAwait(false);
-                    }
-                }, mustNotCancelToken);
-
-            await Task.WhenAll(writerTask, readerTask).ConfigureAwait(false);
-
-            return readerTask.Result;
+                using var scope1 = await _solutionAssetStorage.StoreAssetsAsync(solution1, cancellationToken).ConfigureAwait(false);
+                using var scope2 = await _solutionAssetStorage.StoreAssetsAsync(solution2, cancellationToken).ConfigureAwait(false);
+                using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
+                await invocation(rental.Service, scope1.SolutionChecksum, scope2.SolutionChecksum, cancellationToken).ConfigureAwait(false);
+                return true;
+            }
+            catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
+            {
+                OnUnexpectedException(exception, cancellationToken);
+                return false;
+            }
         }
+
+        // Exceptions
 
         private bool ReportUnexpectedException(Exception exception, CancellationToken cancellationToken)
         {

@@ -39,7 +39,6 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        protected abstract string GetLanguageName();
         protected abstract ImmutableArray<TSyntaxKind> SyntaxKindsOfInterest { get; }
         protected abstract bool IsPredefinedTypeReplaceableWithFrameworkType(TPredefinedTypeSyntax node);
         protected abstract bool IsInMemberAccessOrCrefReferenceContext(TExpressionSyntax node);

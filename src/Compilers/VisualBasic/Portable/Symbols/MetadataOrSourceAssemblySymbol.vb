@@ -50,7 +50,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Dim [module] As ModuleSymbol = Me.Modules(0)
                 Dim result As NamedTypeSymbol = [module].LookupTopLevelMetadataType(emittedName)
-                If result.TypeKind <> TypeKind.Error AndAlso result.DeclaredAccessibility <> Accessibility.Public Then
+                Debug.Assert(If(Not result?.IsErrorType(), True))
+
+                If result Is Nothing OrElse result.DeclaredAccessibility <> Accessibility.Public Then
                     result = New MissingMetadataTypeSymbol.TopLevel([module], emittedName, type)
                 End If
                 RegisterDeclaredSpecialType(result)

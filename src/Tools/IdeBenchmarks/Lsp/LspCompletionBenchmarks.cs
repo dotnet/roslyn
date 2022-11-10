@@ -5,7 +5,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -23,6 +22,10 @@ namespace IdeBenchmarks.Lsp
         private TestLspServer? _testServer;
         private IGlobalOptionService? _globalOptionService;
         private LSP.CompletionParams? _completionParams;
+
+        public LspCompletionBenchmarks() : base(null)
+        {
+        }
 
         [GlobalSetup]
         public void GlobalSetup()
@@ -103,9 +106,12 @@ class A
         }
 
         [IterationCleanup]
-        public void Cleanup()
+        public async Task CleanupAsync()
         {
-            _testServer?.Dispose();
+            if (_testServer is not null)
+            {
+                await _testServer.DisposeAsync();
+            }
             _useExportProviderAttribute.After(null);
         }
     }

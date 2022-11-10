@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
@@ -51,19 +50,65 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public DefinitionMap DefinitionMap => _definitionMap;
 
-        public ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> GetAllDeletedMethods()
+        public ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> GetAllDeletedMembers()
         {
             var builder = ImmutableDictionary.CreateBuilder<ISymbolInternal, ImmutableArray<ISymbolInternal>>();
 
-            foreach (var type in _deletedMembers)
+            foreach (var (type, deletedMembers) in _deletedMembers)
             {
-                if (GetISymbolInternalOrNull(type.Key) is { } typeSymbol)
+                if (GetISymbolInternalOrNull(type) is not { } typeSymbol)
                 {
-                    builder.Add(typeSymbol, ToInternalSymbolArray(type.Value));
+                    continue;
                 }
+
+                var internalSymbols = GetDeletedMemberInternalSymbols(deletedMembers, includeMethods: true, includeProperties: true, includeEvents: true);
+
+                builder.Add(typeSymbol, internalSymbols);
+
             }
 
             return builder.ToImmutable();
+        }
+
+        private ImmutableArray<ISymbolInternal> GetDeletedMemberInternalSymbols(ISet<ISymbol> deletedMembers, bool includeMethods, bool includeProperties, bool includeEvents)
+        {
+            var internalSymbols = ArrayBuilder<ISymbolInternal>.GetInstance();
+
+            foreach (var symbol in deletedMembers)
+            {
+                if (GetISymbolInternalOrNull(symbol) is { } internalSymbol)
+                {
+                    if (includeProperties &&
+                        symbol is IMethodSymbol { AssociatedSymbol: IPropertySymbol propertySymbol } &&
+                        (propertySymbol.GetMethod is null || propertySymbol.GetMethod == symbol))
+                    {
+                        var internalPropertySymbol = GetISymbolInternalOrNull(propertySymbol);
+                        if (internalPropertySymbol is not null)
+                        {
+                            internalSymbols.Add(internalPropertySymbol);
+                        }
+                    }
+
+                    if (includeEvents &&
+                        symbol is IMethodSymbol { AssociatedSymbol: IEventSymbol eventSymbol } &&
+                        eventSymbol.AddMethod == symbol)
+                    {
+                        var internalEventSymbol = GetISymbolInternalOrNull(eventSymbol);
+                        if (internalEventSymbol is not null)
+                        {
+                            internalSymbols.Add(internalEventSymbol);
+                        }
+                    }
+
+                    if (includeMethods &&
+                        symbol is IMethodSymbol)
+                    {
+                        internalSymbols.Add(internalSymbol);
+                    }
+                }
+            }
+
+            return internalSymbols.ToImmutableAndFree();
         }
 
         public ImmutableArray<ISymbolInternal> GetDeletedMethods(IDefinition containingType)
@@ -79,23 +124,39 @@ namespace Microsoft.CodeAnalysis.Emit
                 return ImmutableArray<ISymbolInternal>.Empty;
             }
 
-            return ToInternalSymbolArray(deleted);
+            return GetDeletedMemberInternalSymbols(deleted, includeMethods: true, includeProperties: false, includeEvents: false);
         }
 
-        private ImmutableArray<ISymbolInternal> ToInternalSymbolArray(ISet<ISymbol> symbols)
+        public ImmutableArray<ISymbolInternal> GetDeletedProperties(IDefinition containingType)
         {
-            var internalSymbols = ArrayBuilder<ISymbolInternal>.GetInstance();
-
-            foreach (var symbol in symbols)
+            var containingSymbol = containingType.GetInternalSymbol()?.GetISymbol();
+            if (containingSymbol is null)
             {
-                var internalSymbol = GetISymbolInternalOrNull(symbol);
-                if (internalSymbol is not null)
-                {
-                    internalSymbols.Add(internalSymbol);
-                }
+                return ImmutableArray<ISymbolInternal>.Empty;
             }
 
-            return internalSymbols.ToImmutableAndFree();
+            if (!_deletedMembers.TryGetValue(containingSymbol, out var deleted))
+            {
+                return ImmutableArray<ISymbolInternal>.Empty;
+            }
+
+            return GetDeletedMemberInternalSymbols(deleted, includeMethods: false, includeProperties: true, includeEvents: false);
+        }
+
+        public ImmutableArray<ISymbolInternal> GetDeletedEvents(IDefinition containingType)
+        {
+            var containingSymbol = containingType.GetInternalSymbol()?.GetISymbol();
+            if (containingSymbol is null)
+            {
+                return ImmutableArray<ISymbolInternal>.Empty;
+            }
+
+            if (!_deletedMembers.TryGetValue(containingSymbol, out var deleted))
+            {
+                return ImmutableArray<ISymbolInternal>.Empty;
+            }
+
+            return GetDeletedMemberInternalSymbols(deleted, includeMethods: false, includeProperties: false, includeEvents: true);
         }
 
         public bool IsReplaced(IDefinition definition, bool checkEnclosingTypes = false)
@@ -323,6 +384,45 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
+        public SymbolChange GetChangeForPossibleReAddedMember(IDefinition item, Func<IDefinition, bool> definitionExistsInAnyPreviousGeneration)
+        {
+            var change = GetChange(item);
+
+            return fixChangeIfMemberIsReAdded(item, change, definitionExistsInAnyPreviousGeneration);
+
+            SymbolChange fixChangeIfMemberIsReAdded(IDefinition item, SymbolChange change, Func<IDefinition, bool> definitionExistsInAnyPreviousGeneration)
+            {
+                // If this is a field that is being added, but it's part of a property or event that has been deleted
+                // and is now being re-added, we don't want to add the field twice, so we ignore the change.
+                // Unlike properties and methods, since we can't replace a field with a MissingMethodException
+                // we don't need to update it at all.
+                // This also makes sure to check that the field itself is being re-added, because it could be
+                // a property that is being re-added as an auto-prop, when it wasn't one before, for example.
+                if (item is IFieldDefinition fieldDefinition &&
+                    GetContainingDefinitionForBackingField(fieldDefinition) is IDefinition containingDef &&
+                    GetChange(containingDef) == SymbolChange.Added &&
+                    definitionExistsInAnyPreviousGeneration(item) &&
+                    fixChangeIfMemberIsReAdded(containingDef, SymbolChange.Added, definitionExistsInAnyPreviousGeneration) == SymbolChange.Updated)
+                {
+                    return SymbolChange.None;
+                }
+
+                // Otherwise if the item was added, and not replaced, but we can find an existing row id, then treat it
+                // as an update. This supercedes the other checks for edit types etc. because a method could be
+                // deleted in a generation, and then "added" in a subsequent one, but that is an update
+                // even if the previous generation doesn't know about it.
+                if (change == SymbolChange.Added &&
+                    item is ITypeDefinitionMember member &&
+                    !IsReplaced(member.ContainingTypeDefinition, checkEnclosingTypes: true) &&
+                    definitionExistsInAnyPreviousGeneration(item))
+                {
+                    return SymbolChange.Updated;
+                }
+
+                return change;
+            }
+        }
+
         protected abstract ISymbolInternal? GetISymbolInternalOrNull(ISymbol symbol);
 
         public IEnumerable<INamespaceTypeDefinition> GetTopLevelSourceTypeDefinitions(EmitContext context)
@@ -458,6 +558,29 @@ namespace Microsoft.CodeAnalysis.Emit
             // unreliable. It may be better to walk down using the usual
             // emit traversal, but prune the traversal to those types and
             // members that are known to contain changes.
+            var associated = GetAssociatedSymbol(symbol);
+            if (associated is not null)
+            {
+                return associated;
+            }
+
+            symbol = symbol.ContainingSymbol;
+            if (symbol != null)
+            {
+                switch (symbol.Kind)
+                {
+                    case SymbolKind.NetModule:
+                    case SymbolKind.Assembly:
+                        // These symbols are never part of the changes collection.
+                        return null;
+                }
+            }
+
+            return symbol;
+        }
+
+        private static ISymbol? GetAssociatedSymbol(ISymbol symbol)
+        {
             switch (symbol.Kind)
             {
                 case SymbolKind.Field:
@@ -481,19 +604,24 @@ namespace Microsoft.CodeAnalysis.Emit
                     break;
             }
 
-            symbol = symbol.ContainingSymbol;
-            if (symbol != null)
+            return null;
+        }
+
+        internal IDefinition? GetContainingDefinitionForBackingField(IFieldDefinition fieldDefinition)
+        {
+            var field = fieldDefinition.GetInternalSymbol()?.GetISymbol();
+            if (field is null)
             {
-                switch (symbol.Kind)
-                {
-                    case SymbolKind.NetModule:
-                    case SymbolKind.Assembly:
-                        // These symbols are never part of the changes collection.
-                        return null;
-                }
+                return null;
             }
 
-            return symbol;
+            var associatedSymbol = GetAssociatedSymbol(field);
+            if (associatedSymbol is not null)
+            {
+                return GetISymbolInternalOrNull(associatedSymbol)?.GetCciAdapter() as IDefinition;
+            }
+
+            return null;
         }
     }
 }

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
 
                 var node = targetToken.Parent;
-                if (!node.IsKind(SyntaxKind.ExplicitInterfaceSpecifier, out ExplicitInterfaceSpecifierSyntax? specifierNode))
+                if (node is not ExplicitInterfaceSpecifierSyntax specifierNode)
                     return;
 
                 // Bind the interface name which is to the left of the dot

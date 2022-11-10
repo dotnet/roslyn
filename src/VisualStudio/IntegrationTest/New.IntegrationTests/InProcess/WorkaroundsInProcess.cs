@@ -32,7 +32,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             // Wait for workspace (including project system, file change notifications, and EditorPackage operations),
             // as well as Roslyn's solution crawler and diagnostic service that report light bulb session changes.
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService },
+                new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService },
                 cancellationToken);
 
             // Wait for operations dispatched to the main thread without other tracking

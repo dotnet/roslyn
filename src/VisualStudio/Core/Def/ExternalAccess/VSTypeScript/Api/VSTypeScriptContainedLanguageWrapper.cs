@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api
 {
-    internal struct VSTypeScriptContainedLanguageWrapper
+    internal readonly struct VSTypeScriptContainedLanguageWrapper
     {
         private readonly ContainedLanguage _underlyingObject;
 

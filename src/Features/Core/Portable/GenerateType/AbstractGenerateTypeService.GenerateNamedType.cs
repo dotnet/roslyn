@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 }
 
                 // Empty Constructor for Struct is not allowed
-                if (!(parameters.Count == 0 && options != null && (options.TypeKind == TypeKind.Struct || options.TypeKind == TypeKind.Structure)))
+                if (!(parameters.Count == 0 && options is { TypeKind: TypeKind.Struct }))
                 {
                     members.AddRange(factory.CreateMemberDelegatingConstructor(
                         _semanticDocument.SemanticModel,

@@ -13,11 +13,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSetSources
 {
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class TupleNameCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType() => typeof(TupleNameCompletionProvider);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AfterOpenParen()
         {
             await VerifyItemExistsAsync(@"
@@ -30,7 +31,7 @@ class Program
 }", "word", displayTextSuffix: ":");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AfterOpenParenWithBraceCompletion()
         {
             await VerifyItemExistsAsync(@"
@@ -43,7 +44,7 @@ class Program
 }", "word", displayTextSuffix: ":");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AfterOpenParenInTupleExpression()
         {
             await VerifyItemExistsAsync(@"
@@ -56,7 +57,7 @@ class Program
 }", "word", displayTextSuffix: ":");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AfterOpenParenInTupleExpressionWithBraceCompletion()
         {
             await VerifyItemExistsAsync(@"
@@ -69,7 +70,7 @@ class Program
 }", "word", displayTextSuffix: ":");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AfterComma()
         {
             await VerifyItemExistsAsync(@"
@@ -82,7 +83,7 @@ class Program
 }", "zword", displayTextSuffix: ":");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AfterCommaWithBraceCompletion()
         {
             await VerifyItemExistsAsync(@"
@@ -95,7 +96,7 @@ class Program
 }", "zword", displayTextSuffix: ":");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InTupleAsArgument()
         {
             await VerifyItemExistsAsync(@"
@@ -108,7 +109,7 @@ class Program
 }", "word", displayTextSuffix: ":");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task MultiplePossibleTuples()
         {
             var markup = @"
@@ -123,7 +124,7 @@ class Program
             await VerifyItemExistsAsync(markup, "number", displayTextSuffix: ":");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task MultiplePossibleTuplesAfterComma()
         {
             var markup = @"
@@ -138,7 +139,7 @@ class Program
             await VerifyItemExistsAsync(markup, "znumber", displayTextSuffix: ":");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AtIndexGreaterThanNumberOfTupleElements()
         {
             var markup = @"
@@ -152,7 +153,7 @@ class Program
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ConvertCastToTupleExpression()
         {
             var markup = @"

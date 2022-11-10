@@ -51,11 +51,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         RefKind ILocalSymbol.RefKind => _underlying.RefKind;
 
+        ScopedKind ILocalSymbol.ScopedKind => _underlying.Scope.AsScopedKind();
+
         bool ILocalSymbol.HasConstantValue => _underlying.HasConstantValue;
 
         object ILocalSymbol.ConstantValue => _underlying.ConstantValue;
 
         bool ILocalSymbol.IsFixed => _underlying.IsFixed;
+
+        bool ILocalSymbol.IsForEach => _underlying.IsForEach;
+
+        bool ILocalSymbol.IsUsing => _underlying.IsUsing;
 
         #region ISymbol Members
 

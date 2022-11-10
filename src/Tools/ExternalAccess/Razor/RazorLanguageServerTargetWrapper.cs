@@ -3,19 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
     internal class RazorLanguageServerTargetWrapper : IRazorLanguageServerTarget
     {
-        private readonly ILanguageServerTarget _languageServer;
+        private readonly AbstractLanguageServer<RequestContext> _languageServer;
 
-        public RazorLanguageServerTargetWrapper(ILanguageServerTarget languageServer)
+        public RazorLanguageServerTargetWrapper(AbstractLanguageServer<RequestContext> languageServer)
         {
             _languageServer = languageServer;
         }
-
-        public ValueTask DisposeAsync() => _languageServer.DisposeAsync();
     }
 }

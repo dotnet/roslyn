@@ -13,6 +13,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 {
+    [Trait(Traits.Feature, Traits.Features.CodeModel)]
     public class FileCodeNamespaceTests : AbstractFileCodeElementTests
     {
         public FileCodeNamespaceTests()
@@ -52,7 +53,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Children()
         {
             var testObject = GetCodeNamespace("Goo");
@@ -61,7 +61,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Members()
         {
             var testObject = GetCodeNamespace("Goo");
@@ -70,7 +69,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Parent()
         {
             var outer = GetCodeNamespace("Goo");
@@ -80,7 +78,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Kind()
         {
             var testObject = GetCodeNamespace("Goo");
@@ -89,7 +86,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Name()
         {
             var testObject = GetCodeNamespace(2);
@@ -98,7 +94,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Name_Dotted()
         {
             var testObject = GetCodeNamespace(3);
@@ -107,7 +102,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Attributes()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -115,7 +109,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_AttributesWithDelimiter()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -123,7 +116,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Body()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -135,7 +127,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_BodyWithDelimiter()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -143,7 +134,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Header()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -151,7 +141,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_HeaderWithAttributes()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -159,7 +148,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Name()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -167,7 +155,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Navigate()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -179,7 +166,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Whole()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -187,7 +173,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_WholeWithAttributes()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -198,7 +183,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Attributes()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -206,7 +190,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_AttributesWithDelimiter()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -214,7 +197,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Body()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -226,7 +208,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_BodyWithDelimiter()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -234,7 +215,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Header()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -242,7 +222,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_HeaderWithAttributes()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -250,7 +229,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Name()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -258,7 +236,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Navigate()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -270,7 +247,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Whole()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -278,7 +254,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_WholeWithAttributes()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -290,7 +265,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void StartPoint()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -302,7 +276,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void EndPoint()
         {
             var testObject = GetCodeNamespace("A.B");
@@ -314,7 +287,6 @@ namespace A.B
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Language()
         {
             var testObject = GetCodeNamespace("A.B");

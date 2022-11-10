@@ -1792,8 +1792,8 @@ Dim q = From var1 In src Where var1 And True _ ' Test 1 space
                 Punctuation.CloseParen)
         End Function
 
-        <WorkItem(542387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542387")>
         <Theory, CombinatorialData>
+        <WorkItem(542387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542387")>
         Public Async Function TestFromInQuery(testHost As TestHost) As Task
             Dim code =
 "Dim From = New List(Of Integer)

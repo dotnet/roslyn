@@ -67,11 +67,6 @@
         <target state="translated">Eksik '{0}' öğesini ekleyin.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">Satır içi geçici değişken</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Conflict_s_detected">
         <source>Conflict(s) detected.</source>
         <target state="translated">Çakışmalar algılandı.</target>

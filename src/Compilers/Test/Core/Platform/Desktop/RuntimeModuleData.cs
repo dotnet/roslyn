@@ -25,7 +25,7 @@ using Roslyn.Utilities;
 namespace Roslyn.Test.Utilities.Desktop
 {
     [Serializable]
-    public struct RuntimeModuleDataId : ISerializable
+    public readonly struct RuntimeModuleDataId : ISerializable
     {
         public ModuleDataId Id { get; }
 

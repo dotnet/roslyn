@@ -4584,6 +4584,8 @@ class C
             var symbol = (ILocalSymbol)semanticInfo.Symbol;
             Assert.True(symbol.HasConstantValue);
             Assert.Equal(2, symbol.ConstantValue);
+            Assert.False(symbol.IsForEach);
+            Assert.False(symbol.IsUsing);
         }
 
         [Fact]

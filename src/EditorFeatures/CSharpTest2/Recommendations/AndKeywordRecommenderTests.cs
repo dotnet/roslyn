@@ -9,40 +9,41 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
+    [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public class AndKeywordRecommenderTests : KeywordRecommenderTests
     {
         private const string InitializeObjectE = @"var e = new object();
 ";
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterConstant()
         {
             await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
 @"if (e is 1 $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterMultipleConstants()
         {
             await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
 @"if (e is 1 or 2 $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterType()
         {
             await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
 @"if (e is int $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterRelationalOperator()
         {
             await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
 @"if (e is >= 0 $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterGenericType()
         {
             await VerifyKeywordAsync(
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         if (e is T $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterArrayType()
         {
             await VerifyKeywordAsync(
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         if (e is int[] $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterListType()
         {
             await VerifyKeywordAsync(
@@ -80,7 +81,7 @@ class C
         if (e is List<int> $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterListType_FullyQualified()
         {
             await VerifyKeywordAsync(
@@ -92,7 +93,7 @@ class C
         if (e is System.Collections.Generic.List<int> $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterRecursivePattern()
         {
             await VerifyKeywordAsync(
@@ -105,7 +106,7 @@ class C
         if (test is { P: 1 } $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInsideSubpattern()
         {
             await VerifyKeywordAsync(
@@ -118,7 +119,7 @@ class C
         if (test is { P: 1 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInsideSubpattern_ComplexConstant()
         {
             await VerifyKeywordAsync(
@@ -135,7 +136,7 @@ class C
             if (test is { Prop: N.C.P $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInsideSubpattern_AfterOpenParen()
         {
             await VerifyKeywordAsync(
@@ -149,7 +150,7 @@ class C
         if (C2 is { P: (1 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInsideSubpattern_AfterOpenParen_ComplexConstant()
         {
             await VerifyKeywordAsync(
@@ -166,7 +167,7 @@ class C
             if (test is { Prop: (N.C.P $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInsideSubpattern_AfterMultipleOpenParens()
         {
             await VerifyKeywordAsync(
@@ -180,7 +181,7 @@ class C
         if (C2 is { P: (((1 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInsideSubpattern_AfterMultipleOpenParens_ComplexConstant()
         {
             await VerifyKeywordAsync(
@@ -197,7 +198,7 @@ class C
             if (test is { Prop: (((N.C.P $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInsideSubpattern_AfterParenPair()
         {
             await VerifyKeywordAsync(
@@ -211,7 +212,7 @@ class C
         if (C2 is { P: (1) $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInsideSubpattern_AfterParenPair_ComplexConstant()
         {
             await VerifyKeywordAsync(
@@ -228,7 +229,7 @@ class C
             if (test is { Prop: (N.C.P + 1) $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInsideSubpattern_AfterMultipleParenPairs()
         {
             await VerifyKeywordAsync(
@@ -242,7 +243,7 @@ class C
         if (C2 is { P: (((1))) $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInsideSubpattern_AfterMultipleParenPairs_ComplexConstant()
         {
             await VerifyKeywordAsync(
@@ -259,7 +260,7 @@ class C
             if (test is { Prop: (((N.C.P))) $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterQualifiedName()
         {
             await VerifyKeywordAsync(
@@ -274,7 +275,7 @@ class C
         if (e is C2.P $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterQualifiedName2()
         {
             await VerifyKeywordAsync(
@@ -291,7 +292,7 @@ namespace N
             if (e is N.C.P $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAtBeginningOfSwitchExpression()
         {
             await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
@@ -300,7 +301,7 @@ namespace N
     1 $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAtBeginningOfSwitchExpression_Complex()
         {
             await VerifyKeywordAsync(
@@ -318,7 +319,7 @@ namespace N
                 N.C.P $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAtBeginningOfSwitchStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
@@ -327,7 +328,7 @@ namespace N
     case 1 $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAtBeginningOfSwitchExpression_AfterOpenParen()
         {
             await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
@@ -336,7 +337,7 @@ namespace N
     (1 $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAtBeginningOfSwitchExpression_AfterOpenParen_Complex()
         {
             await VerifyKeywordAsync(
@@ -354,7 +355,7 @@ namespace N
                 (N.C.P $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAtBeginningOfSwitchExpression_AfterMultipleOpenParens()
         {
             await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
@@ -363,7 +364,7 @@ namespace N
     (((1 $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAtBeginningOfSwitchExpression_AfterMultipleOpenParens_Complex()
         {
             await VerifyKeywordAsync(
@@ -381,7 +382,7 @@ namespace N
                 (((N.C.P $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAtBeginningOfSwitchStatement_AfterOpenParen()
         {
             await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
@@ -390,7 +391,7 @@ namespace N
     case (1 $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAtBeginningOfSwitchStatement_AfterMultipleOpenParens()
         {
             await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
@@ -399,7 +400,7 @@ namespace N
     case (((1 $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAtBeginningOfSwitchStatement_AfterMultipleOpenParens_MemberAccessExpression()
         {
             await VerifyKeywordAsync(
@@ -417,7 +418,7 @@ namespace N
                 case (((N.C.P $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAtBeginningOfSwitchStatement_AfterMultipleOpenParens_MemberAccessExpression2()
         {
             await VerifyKeywordAsync(
@@ -433,56 +434,56 @@ namespace N
                 case (((N.C $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestMissingAfterIsKeyword()
         {
             await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
 @"if (e is $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestMissingAfterNotKeyword()
         {
             await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
 @"if (e is not $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestMissingAfterVarKeyword()
         {
             await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
 @"if (e is var $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestMissingAfterAndKeyword()
         {
             await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
 @"if (e is 1 and $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestMissingAfterOrKeyword()
         {
             await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
 @"if (e is 1 or $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestMissingAfterOpenParen()
         {
             await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
 @"if (e is ($$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestMissingAfterOpenBracket()
         {
             await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
 @"if (e is { $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestMissingAtBeginningOfSwitchExpression()
         {
             await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
@@ -491,7 +492,7 @@ namespace N
     $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestMissingAtBeginningOfSwitchStatement()
         {
             await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
@@ -500,30 +501,28 @@ namespace N
     case $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestMissingAfterTypeAndOpenParen()
         {
             await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
 @"if (e is int ($$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestMissingAfterTypeAndCloseParen()
         {
             await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
 @"if (e is int)$$"));
         }
 
-        [WorkItem(44396, "https://github.com/dotnet/roslyn/issues/44396")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem(44396, "https://github.com/dotnet/roslyn/issues/44396")]
         public async Task TestMissingAfterColonColonPatternSyntax()
         {
             await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
 @"if (e is null or global::$$) { }"));
         }
 
-        [WorkItem(44396, "https://github.com/dotnet/roslyn/issues/44396")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem(44396, "https://github.com/dotnet/roslyn/issues/44396")]
         public async Task TestMissingAfterColonColonPatternSyntax_SwitchExpression()
         {
             await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
@@ -533,8 +532,7 @@ x = e switch
     global::$$"));
         }
 
-        [WorkItem(51431, "https://github.com/dotnet/roslyn/issues/51431")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem(51431, "https://github.com/dotnet/roslyn/issues/51431")]
         public async Task TestNotAtIncompleteSwitchPattern()
         {
             await VerifyAbsenceAsync(
@@ -552,7 +550,7 @@ public enum Goo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterParenthesizedPattern1()
         {
             await VerifyKeywordAsync(
@@ -560,7 +558,7 @@ public enum Goo
 expr is (not []) $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterParenthesizedPattern2()
         {
             // expr is (not []) and var x

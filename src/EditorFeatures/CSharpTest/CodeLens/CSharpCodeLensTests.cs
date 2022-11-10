@@ -12,9 +12,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeLens
 {
+    [Trait(Traits.Feature, Traits.Features.CodeLens)]
     public sealed class CSharpCodeLensTests : AbstractCodeLensTest
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
+        [Fact]
         public async Task TestCount()
         {
             const string input = @"<Workspace>
@@ -44,7 +45,7 @@ public class A
             await RunCountTest(input);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
+        [Fact]
         public async Task TestCapping()
         {
             const string input = @"<Workspace>
@@ -75,7 +76,7 @@ public class A
             await RunCountTest(input, 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
+        [Fact]
         public async Task TestLinkedFiles()
         {
             const string input = @"<Workspace>
@@ -121,7 +122,7 @@ class E
             await RunReferenceTest(input);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
+        [Fact]
         public async Task TestDisplay()
         {
             const string input = @"<Workspace>
@@ -152,7 +153,7 @@ public class A
             await RunReferenceTest(input);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
+        [Fact]
         public async Task TestMethodReferences()
         {
             const string input = @"<Workspace>
@@ -182,7 +183,7 @@ public class A
             await RunMethodReferenceTest(input);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
+        [Fact]
         public async Task TestMethodReferencesWithDocstrings()
         {
             const string input = @"<Workspace>
@@ -215,7 +216,7 @@ public class A
             await RunMethodReferenceTest(input);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeLens)]
+        [Theory]
         [InlineData("class")]
         [InlineData("record class")]
         [InlineData("record struct")]
@@ -254,8 +255,7 @@ public {typeKind} A
             await RunFullyQualifiedNameTest(input);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
-        [WorkItem(49636, "https://github.com/dotnet/roslyn/issues/49636")]
+        [Fact, WorkItem(49636, "https://github.com/dotnet/roslyn/issues/49636")]
         public async Task TestExplicitParameterlessConstructor()
         {
             const string input = @"<Workspace>
@@ -279,8 +279,7 @@ public class B
             await RunReferenceTest(input);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
-        [WorkItem(49636, "https://github.com/dotnet/roslyn/issues/49636")]
+        [Fact, WorkItem(49636, "https://github.com/dotnet/roslyn/issues/49636")]
         public async Task TestExplicitParameterlessConstructor_TwoCalls()
         {
             const string input = @"<Workspace>
@@ -305,8 +304,7 @@ public class B
             await RunReferenceTest(input);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
-        [WorkItem(49636, "https://github.com/dotnet/roslyn/issues/49636")]
+        [Fact, WorkItem(49636, "https://github.com/dotnet/roslyn/issues/49636")]
         public async Task TestImplicitParameterlessConstructor()
         {
             const string input = @"<Workspace>
@@ -329,8 +327,7 @@ public class B
             await RunReferenceTest(input);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
-        [WorkItem(49636, "https://github.com/dotnet/roslyn/issues/49636")]
+        [Fact, WorkItem(49636, "https://github.com/dotnet/roslyn/issues/49636")]
         public async Task TestImplicitParameterlessConstructor_TwoCalls()
         {
             const string input = @"<Workspace>
@@ -354,8 +351,7 @@ public class B
             await RunReferenceTest(input);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
-        [WorkItem(51633, "https://github.com/dotnet/roslyn/issues/51633")]
+        [Fact, WorkItem(51633, "https://github.com/dotnet/roslyn/issues/51633")]
         public async Task TestMethodRefSourceGeneratedDocument()
         {
             const string input = @"<Workspace>

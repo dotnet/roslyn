@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
 {
     public partial class AddUsingTests
     {
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
         public async Task TestWhereExtension()
         {
             await TestInRegularAndScriptAsync(
@@ -39,7 +39,7 @@ class Program
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
         public async Task TestSelectExtension()
         {
             await TestInRegularAndScriptAsync(
@@ -64,7 +64,7 @@ class Program
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
         public async Task TestGroupByExtension()
         {
             await TestInRegularAndScriptAsync(
@@ -89,7 +89,7 @@ class Program
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
         public async Task TestJoinExtension()
         {
             await TestInRegularAndScriptAsync(
@@ -114,7 +114,7 @@ class Program
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
         public async Task RegressionFor8455()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -127,8 +127,7 @@ class Program
 }");
         }
 
-        [WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")]
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")]
         public async Task TestExtensionWithThePresenceOfTheSameNameNonExtensionMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -190,9 +189,8 @@ namespace NS2
 }");
         }
 
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(920398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/920398")]
         [WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")]
-        [WorkItem(920398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/920398")]
-        [Fact]
         public async Task TestExtensionWithThePresenceOfTheSameNameNonExtensionPrivateMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -254,9 +252,8 @@ namespace NS2
 }");
         }
 
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(920398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/920398")]
         [WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")]
-        [WorkItem(920398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/920398")]
-        [Fact]
         public async Task TestExtensionWithThePresenceOfTheSameNameExtensionPrivateMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -335,8 +332,7 @@ namespace NS3
 }");
         }
 
-        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
         public async Task TestAddUsingForAddExtentionMethod()
         {
             await TestAsync(
@@ -386,8 +382,7 @@ namespace Ext
 parseOptions: null);
         }
 
-        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
         public async Task TestAddUsingForAddExtentionMethod2()
         {
             await TestAsync(
@@ -437,8 +432,7 @@ namespace Ext
 parseOptions: null);
         }
 
-        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
         public async Task TestAddUsingForAddExtentionMethod3()
         {
             await TestAsync(
@@ -488,8 +482,7 @@ namespace Ext
 parseOptions: null);
         }
 
-        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
         public async Task TestAddUsingForAddExtentionMethod4()
         {
             await TestAsync(
@@ -539,8 +532,7 @@ namespace Ext
 parseOptions: null);
         }
 
-        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
         public async Task TestAddUsingForAddExtentionMethod5()
         {
             await TestAsync(
@@ -590,8 +582,7 @@ namespace Ext
 parseOptions: null);
         }
 
-        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
         public async Task TestAddUsingForAddExtentionMethod6()
         {
             await TestAsync(
@@ -641,8 +632,7 @@ namespace Ext
 parseOptions: null);
         }
 
-        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
         public async Task TestAddUsingForAddExtentionMethod7()
         {
             await TestAsync(
@@ -692,8 +682,7 @@ namespace Ext
 parseOptions: null);
         }
 
-        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
         public async Task TestAddUsingForAddExtentionMethod8()
         {
             await TestAsync(
@@ -743,8 +732,7 @@ namespace Ext
 parseOptions: null);
         }
 
-        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
         public async Task TestAddUsingForAddExtentionMethod9()
         {
             await TestAsync(
@@ -794,8 +782,7 @@ namespace Ext
 parseOptions: null);
         }
 
-        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
         public async Task TestAddUsingForAddExtentionMethod10()
         {
             await TestAsync(
@@ -865,8 +852,7 @@ namespace Ext2
 parseOptions: null);
         }
 
-        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
         public async Task TestAddUsingForAddExtentionMethod11()
         {
             await TestAsync(
@@ -937,8 +923,7 @@ index: 1,
 parseOptions: null);
         }
 
-        [WorkItem(3818, "https://github.com/dotnet/roslyn/issues/3818")]
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(3818, "https://github.com/dotnet/roslyn/issues/3818")]
         public async Task InExtensionMethodUnderConditionalAccessExpression()
         {
             var initialText =
@@ -991,8 +976,7 @@ namespace Sample
             await TestInRegularAndScriptAsync(initialText, expectedText);
         }
 
-        [WorkItem(3818, "https://github.com/dotnet/roslyn/issues/3818")]
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(3818, "https://github.com/dotnet/roslyn/issues/3818")]
         public async Task InExtensionMethodUnderMultipleConditionalAccessExpressions()
         {
             var initialText =
@@ -1037,8 +1021,7 @@ public class C
             await TestInRegularAndScriptAsync(initialText, expectedText);
         }
 
-        [WorkItem(3818, "https://github.com/dotnet/roslyn/issues/3818")]
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(3818, "https://github.com/dotnet/roslyn/issues/3818")]
         public async Task InExtensionMethodUnderMultipleConditionalAccessExpressions2()
         {
             var initialText =
@@ -1083,7 +1066,7 @@ public class C
             await TestInRegularAndScriptAsync(initialText, expectedText);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
         public async Task TestDeconstructExtension()
         {
             await TestAsync(
@@ -1124,7 +1107,7 @@ namespace N
 parseOptions: null);
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
         [CombinatorialData]
         [WorkItem(16547, "https://github.com/dotnet/roslyn/issues/16547")]
         public async Task TestAddUsingForAddExtentionMethodWithSameNameAsProperty(TestHost testHost)
@@ -1188,7 +1171,7 @@ namespace A.Extensions
 }", testHost);
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
         [CombinatorialData]
         [WorkItem(39155, "https://github.com/dotnet/roslyn/issues/39155")]
         public async Task TestExtensionGetAwaiterOverload(TestHost testHost)
@@ -1279,7 +1262,7 @@ namespace A.Extension
 ", testHost);
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
         [CombinatorialData]
         [WorkItem(39155, "https://github.com/dotnet/roslyn/issues/39155")]
         public async Task TestExtensionSelectOverload(TestHost testHost)
@@ -1344,7 +1327,7 @@ namespace A.Extension
 ", testHost);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
         public async Task TestExtensionDeconstructOverload()
         {
             await TestAsync(
@@ -1408,8 +1391,7 @@ namespace A.Extension
 parseOptions: null);
         }
 
-        [Fact]
-        [WorkItem(55117, "https://github.com/dotnet/roslyn/issues/55117")]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(55117, "https://github.com/dotnet/roslyn/issues/55117")]
         public async Task TestMethodConflictWithGenericExtension()
         {
             await TestInRegularAndScriptAsync(
@@ -1467,8 +1449,7 @@ namespace A.Extensions
 }");
         }
 
-        [Fact]
-        [WorkItem(55117, "https://github.com/dotnet/roslyn/issues/55117")]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(55117, "https://github.com/dotnet/roslyn/issues/55117")]
         public async Task TestMethodConflictWithConditionalGenericExtension()
         {
             await TestInRegularAndScriptAsync(

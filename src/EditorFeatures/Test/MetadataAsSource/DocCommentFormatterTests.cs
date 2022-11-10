@@ -14,6 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 {
+    [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
     public class DocCommentFormatterTests
     {
         private readonly CSharpDocumentationCommentFormattingService _csharpService = new CSharpDocumentationCommentFormattingService();
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             Assert.Equal(expectedVB, vbFormattedComment);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact]
         public void Summary()
         {
             var comment = "<summary>This is a summary.</summary>";
@@ -45,7 +46,7 @@ $@"{FeaturesResources.Summary_colon}
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact]
         public void Wrapping1()
         {
             var comment = "<summary>I am the very model of a modern major general. This is a very long comment. And getting longer by the minute.</summary>";
@@ -58,7 +59,7 @@ $@"{FeaturesResources.Summary_colon}
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact]
         public void Wrapping2()
         {
             var comment = "<summary>I amtheverymodelofamodernmajorgeneral.Thisisaverylongcomment.Andgettinglongerbythe minute.</summary>";
@@ -70,7 +71,7 @@ $@"{FeaturesResources.Summary_colon}
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact]
         public void Exception()
         {
             var comment = @"<exception cref=""T:System.NotImplementedException"">throws NotImplementedException</exception>";
@@ -84,7 +85,6 @@ $@"{FeaturesResources.Exceptions_colon}
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void MultipleExceptionTags()
         {
             var comment =
@@ -103,7 +103,6 @@ $@"{FeaturesResources.Exceptions_colon}
         }
 
         [Fact, WorkItem(530760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530760")]
-        [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void MultipleExceptionTagsWithSameType()
         {
             var comment =
@@ -125,7 +124,7 @@ $@"{FeaturesResources.Exceptions_colon}
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact]
         public void Returns()
         {
             var comment = @"<returns>A string is returned</returns>";
@@ -137,7 +136,7 @@ $@"{FeaturesResources.Returns_colon}
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact]
         public void Value()
         {
             var comment = @"<value>A string value</value>";
@@ -149,7 +148,7 @@ $@"{FeaturesResources.Value_colon}
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact]
         public void SummaryAndParams()
         {
             var comment =
@@ -171,7 +170,7 @@ $@"{FeaturesResources.Summary_colon}
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact]
         public void TypeParameters()
         {
             var comment =
@@ -189,7 +188,7 @@ $@"{FeaturesResources.Type_parameters_colon}
             TestFormat(comment, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact]
         public void FormatEverything()
         {
             var comment =

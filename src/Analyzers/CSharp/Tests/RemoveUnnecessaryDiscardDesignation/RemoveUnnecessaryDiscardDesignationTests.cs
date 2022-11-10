@@ -17,9 +17,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryDiscar
         CSharpRemoveUnnecessaryDiscardDesignationDiagnosticAnalyzer,
         CSharpRemoveUnnecessaryDiscardDesignationCodeFixProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryDiscardDesignation)]
     public class RemoveUnnecessaryDiscardDesignationTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryDiscardDesignation)]
+        [Fact]
         public async Task TestDeclarationPatternInSwitchStatement()
         {
             await new VerifyCS.Test
@@ -52,7 +53,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryDiscardDesignation)]
+        [Fact]
         public async Task TestNotInCSharp8()
         {
             await new VerifyCS.Test
@@ -73,7 +74,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryDiscardDesignation)]
+        [Fact]
         public async Task TestDeclarationPatternInSwitchExpression()
         {
             await new VerifyCS.Test
@@ -104,7 +105,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryDiscardDesignation)]
+        [Fact]
         public async Task TestDeclarationPatternInIfStatement()
         {
             await new VerifyCS.Test
@@ -129,7 +130,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryDiscardDesignation)]
+        [Fact]
         public async Task TestRecursivePropertyPattern()
         {
             await new VerifyCS.Test
@@ -160,7 +161,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryDiscardDesignation)]
+        [Fact]
         public async Task TestEmptyRecursiveParameterPattern()
         {
             await new VerifyCS.Test
@@ -191,7 +192,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryDiscardDesignation)]
+        [Fact]
         public async Task TestTwoElementRecursiveParameterPattern()
         {
             await new VerifyCS.Test
@@ -222,7 +223,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryDiscardDesignation)]
+        [Fact]
         public async Task TestNotWithOneElementRecursiveParameterPattern()
         {
             await new VerifyCS.Test
@@ -242,7 +243,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryDiscardDesignation)]
+        [Fact]
         public async Task TestNestedFixAll()
         {
             await new VerifyCS.Test

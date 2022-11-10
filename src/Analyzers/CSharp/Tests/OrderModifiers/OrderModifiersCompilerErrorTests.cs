@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpOrderModifiersCodeFixProvider());
 
-        [WorkItem(30352, "https://github.com/dotnet/roslyn/issues/30352")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [WorkItem(30352, "https://github.com/dotnet/roslyn/issues/30352")]
         public async Task PartialAtTheEnd()
         {
             // Verify that the code fix claims it fixes the compiler error (CS0267) in addition to the analyzer diagnostic.

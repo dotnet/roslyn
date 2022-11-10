@@ -1376,7 +1376,7 @@ End Class
             Assert.Equal(TypeKind.Structure, semanticInfo.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
-            Assert.Equal("Function System.Int32.op_Multiply(left As System.Int32, right As System.Int32) As System.Int32",
+            Assert.Equal("Function System.Int32.op_CheckedMultiply(left As System.Int32, right As System.Int32) As System.Int32",
                          semanticInfo.Symbol.ToTestDisplayString())
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
@@ -5514,7 +5514,7 @@ End Class
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.WideningValue, semanticInfo.ImplicitConversion.Kind)
 
-            Assert.Equal("Function System.Int32.op_Addition(left As System.Int32, right As System.Int32) As System.Int32",
+            Assert.Equal("Function System.Int32.op_CheckedAddition(left As System.Int32, right As System.Int32) As System.Int32",
                          semanticInfo.Symbol.ToTestDisplayString())
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
@@ -5544,7 +5544,7 @@ End Class
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.WideningValue, semanticInfo.ImplicitConversion.Kind)
 
-            Assert.Equal("Function System.Int32.op_Addition(left As System.Int32, right As System.Int32) As System.Int32",
+            Assert.Equal("Function System.Int32.op_CheckedAddition(left As System.Int32, right As System.Int32) As System.Int32",
                          semanticInfo.Symbol.ToTestDisplayString())
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)

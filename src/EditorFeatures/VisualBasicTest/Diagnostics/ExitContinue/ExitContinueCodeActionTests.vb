@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.ExitContinue
-
+    <Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
     Public Class ExitContinueCodeActionTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.ExitCo
             Return (Nothing, New IncorrectExitContinueCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact>
         Public Async Function TestExpectedExitKind_Sub() As Task
             Dim code =
 <File>
@@ -38,7 +38,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact>
         Public Async Function TestExpectedExitKind_While() As Task
             Dim code =
     <File>
@@ -65,7 +65,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact>
         Public Async Function TestExpectedExitKind_For() As Task
             Dim code =
     <File>
@@ -92,7 +92,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact>
         Public Async Function TestExpectedExitKind_Do() As Task
             Dim code =
     <File>
@@ -119,7 +119,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact>
         Public Async Function TestExitPropNot() As Task
             Dim code =
     <File>
@@ -150,7 +150,7 @@ Exit Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact>
         Public Async Function TestExpectedExitKind_Try() As Task
             Dim code =
     <File>
@@ -181,7 +181,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact>
         Public Async Function TestExpectedExitKind_Function() As Task
             Dim code =
     <File>
@@ -204,7 +204,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact>
         Public Async Function TestExitSubOfFunc() As Task
             Dim code =
     <File>
@@ -227,7 +227,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact>
         Public Async Function TestExitFuncOfSub() As Task
             Dim code =
     <File>
@@ -250,7 +250,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact>
         Public Async Function TestExitDoNotWithinDo() As Task
             Dim code =
     <File>
@@ -277,7 +277,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact>
         Public Async Function TestExitDoNotWithinDo_For() As Task
             Dim code =
     <File>
@@ -304,7 +304,7 @@ End Class
             Await TestAsync(code, expected, index:=0)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact>
         Public Async Function TestExitWhileNotWithinWhile() As Task
             Dim code =
     <File>
@@ -331,7 +331,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact>
         Public Async Function TestExitDoNotWithinDo_Try() As Task
             Dim code =
     <File>
@@ -364,7 +364,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact>
         Public Async Function TestExitTryNotWithinTry() As Task
             Dim code =
     <File>
@@ -387,7 +387,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact>
         Public Async Function TestExitChangeToSelect() As Task
             Dim code =
     <File>
@@ -418,7 +418,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact>
         Public Async Function TestContinueDoNotWithinDo() As Task
             Dim code =
     <File>
@@ -448,7 +448,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact>
         Public Async Function TestContinueForNotWithinFor() As Task
             Dim code =
     <File>
@@ -478,7 +478,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact>
         Public Async Function TestContinueWhileNotWithinWhile() As Task
             Dim code =
     <File>
@@ -508,7 +508,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact>
         Public Async Function TestExpectedContinueKindWhile() As Task
             Dim code =
     <File>
@@ -535,7 +535,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact>
         Public Async Function TestExpectedContinueKindFor() As Task
             Dim code =
     <File>
@@ -562,7 +562,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact>
         Public Async Function TestExpectedContinueKindForEach() As Task
             Dim code =
     <File>
@@ -589,7 +589,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact>
         Public Async Function TestExpectedContinueKindDo() As Task
             Dim code =
     <File>
@@ -616,7 +616,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact>
         Public Async Function TestExpectedContinueKindDo_ReplaceFor() As Task
             Dim code =
     <File>
@@ -643,7 +643,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact>
         Public Async Function TestExpectedExitKindDo_UseSub() As Task
             Dim code =
     <File>
@@ -670,8 +670,7 @@ End Class
             Await TestAsync(code, expected, index:=1)
         End Function
 
-        <WorkItem(547094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547094")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact, WorkItem(547094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547094")>
         Public Async Function TestDoNotTryToExitFinally() As Task
             Dim code =
     <File>
@@ -706,8 +705,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <WorkItem(547110, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547110")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact, WorkItem(547110, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547110")>
         Public Async Function TestMissingExitTokenInNonExitableBlock() As Task
             Dim code =
     <File>
@@ -745,8 +743,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <WorkItem(547100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547100")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact, WorkItem(547100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547100")>
         Public Async Function TestNotInValidCaseElse() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System
@@ -764,8 +761,7 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(547099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547099")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact, WorkItem(547099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547099")>
         Public Async Function TestCollapseDuplicateBlockKinds() As Task
             Await TestActionCountAsync(
 "Imports System
@@ -783,8 +779,7 @@ End Module",
             3)
         End Function
 
-        <WorkItem(547092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547092")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact, WorkItem(547092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547092")>
         Public Async Function TestReplaceInvalidTokenExit() As Task
             Dim code =
     <File>
@@ -822,8 +817,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <WorkItem(547092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547092")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact, WorkItem(547092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547092")>
         Public Async Function TestReplaceInvalidTokenContinue() As Task
             Dim code =
     <File>
@@ -851,7 +845,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact>
         Public Async Function TestExpectedActionDescriptions1() As Task
             Dim code =
 <File>
@@ -865,8 +859,7 @@ End Class
             Await TestExactActionSetOfferedAsync(code.ConvertTestSourceTag(), {String.Format(FeaturesResources.Change_0_to_1, "Function", "Sub"), String.Format(VBFeaturesResources.Delete_the_0_statement1, "Exit Function")})
         End Function
 
-        <WorkItem(531354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531354")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <Fact, WorkItem(531354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531354")>
         Public Async Function TestExpectedActionDescriptions2() As Task
             Dim code =
 <File>

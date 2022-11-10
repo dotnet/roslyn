@@ -16,6 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNamedArguments
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
     public class UseNamedArgumentsTests : AbstractCSharpCodeActionTest
     {
         private static readonly ParseOptions CSharp72 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2);
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNamedArguments
                 initialMarkup, expectedMarkup, index: index, parseOptions: CSharp72);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact]
         public async Task TestFirstArgument()
         {
             await TestWithCSharp7(
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNamedArguments
 @"class C { void M(int arg1, int arg2) => M(arg1: 1, arg2: 2); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact]
         public async Task TestFirstArgument_CSharp7_2_FirstOption()
         {
             // First option only adds the named argument to the specific parameter you're on.
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNamedArguments
 @"class C { void M(int arg1, int arg2) => M(arg1: 1, 2); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact]
         public async Task TestFirstArgument_CSharp7_2_SecondOption()
         {
             // Second option only adds the named argument to parameter you're on and all trailing parameters.
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNamedArguments
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact]
         public async Task TestNonFirstArgument()
         {
             await TestWithCSharp7(
@@ -70,7 +71,7 @@ index: 1);
 @"class C { void M(int arg1, int arg2) => M(1, arg2: 2); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact]
         public async Task TestNonFirstArgument_CSharp_7_2()
         {
             // Because we're on the last argument, we should only offer one refactoring to the user.
@@ -82,7 +83,7 @@ initialMarkup,
 @"class C { void M(int arg1, int arg2) => M(1, arg2: 2); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact]
         public async Task TestDelegate()
         {
             await TestWithCSharp7(
@@ -90,7 +91,7 @@ initialMarkup,
 @"class C { void M(System.Action<int> f) => f(obj: 1); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact]
         public async Task TestConditionalMethod()
         {
             await TestWithCSharp7(
@@ -98,7 +99,7 @@ initialMarkup,
 @"class C { void M(int arg1, int arg2) => this?.M(arg1: 1, arg2: 2); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact]
         public async Task TestConditionalIndexer()
         {
             await TestWithCSharp7(
@@ -106,7 +107,7 @@ initialMarkup,
 @"class C { int? this[int arg1, int arg2] => this?[arg1: 1, arg2: 2]; }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact]
         public async Task TestThisConstructorInitializer()
         {
             await TestWithCSharp7(
@@ -114,7 +115,7 @@ initialMarkup,
 @"class C { C(int arg1, int arg2) {} C() : this(arg1: 1, arg2: 2) {} }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact]
         public async Task TestBaseConstructorInitializer()
         {
             await TestWithCSharp7(
@@ -122,7 +123,7 @@ initialMarkup,
 @"class C { public C(int arg1, int arg2) {} } class D : C { D() : base(arg1: 1, arg2: 2) {} }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact]
         public async Task TestConstructor()
         {
             await TestWithCSharp7(
@@ -130,7 +131,7 @@ initialMarkup,
 @"class C { C(int arg1, int arg2) { new C(arg1: 1, arg2: 2); } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact]
         public async Task TestIndexer()
         {
             await TestWithCSharp7(
@@ -138,35 +139,35 @@ initialMarkup,
 @"class C { char M(string arg1) => arg1[index: 0]; }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact]
         public async Task TestMissingOnArrayIndexer()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C { int M(int[] arg1) => arg1[[||]0]; }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact]
         public async Task TestMissingOnConditionalArrayIndexer()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C { int? M(int[] arg1) => arg1?[[||]0]; }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact]
         public async Task TestMissingOnEmptyArgumentList()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C { void M() => M([||]); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact]
         public async Task TestMissingOnExistingArgumentName()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C { void M(int arg) => M([||]arg: 1); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact]
         public async Task TestEmptyParams()
         {
             await TestWithCSharp7(
@@ -174,7 +175,7 @@ initialMarkup,
 @"class C { void M(int arg1, params int[] arg2) => M(arg1: 1); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact]
         public async Task TestSingleParams()
         {
             await TestWithCSharp7(
@@ -182,7 +183,7 @@ initialMarkup,
 @"class C { void M(int arg1, params int[] arg2) => M(arg1: 1, arg2: 2); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact]
         public async Task TestNamedParams()
         {
             await TestWithCSharp7(
@@ -190,7 +191,7 @@ initialMarkup,
 @"class C { void M(int arg1, params int[] arg2) => M(arg1: 1, arg2: new int[0]); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact]
         public async Task TestExistingArgumentNames()
         {
             await TestWithCSharp7(
@@ -198,7 +199,7 @@ initialMarkup,
 @"class C { void M(int arg1, int arg2) => M(arg1: 1, arg2: 2); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact]
         public async Task TestExistingUnorderedArgumentNames()
         {
             await TestWithCSharp7(
@@ -206,7 +207,7 @@ initialMarkup,
 @"class C { void M(int arg1, int arg2, int arg3) => M(arg1: 1, arg3: 3, arg2: 2); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact]
         public async Task TestPreserveTrivia()
         {
             await TestWithCSharp7(
@@ -226,14 +227,14 @@ initialMarkup,
     ); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact]
         public async Task TestMissingOnNameOf()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C { string M() => nameof([||]M); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact]
         public async Task TestAttribute()
         {
             await TestWithCSharp7(
@@ -243,7 +244,7 @@ class C : System.Attribute { public C(int arg1, int arg2) {} }",
 class C : System.Attribute { public C(int arg1, int arg2) {} }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact]
         public async Task TestAttributeWithNamedProperties()
         {
             await TestWithCSharp7(
@@ -253,8 +254,7 @@ class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }"
 class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }");
         }
 
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestAvailableOnSelectionOfArgument1()
         {
             await TestWithCSharp7(
@@ -270,8 +270,7 @@ class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }"
 }");
         }
 
-        [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact, WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestAvailableOnFirstTokenOfArgument1()
         {
             await TestWithCSharp7(
@@ -287,8 +286,7 @@ class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }"
 }");
         }
 
-        [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact, WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestAvailableOnFirstTokenOfArgument2()
         {
             await TestWithCSharp7(
@@ -304,8 +302,7 @@ class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }"
 }");
         }
 
-        [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact, WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestNotMissingWhenInsideSingleLineArgument1()
         {
             await TestWithCSharp7(
@@ -327,8 +324,7 @@ class C
 }");
         }
 
-        [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact, WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestNotMissingWhenInsideSingleLineArgument2_CSharp7()
         {
             await TestInRegularAndScript1Async(
@@ -345,8 +341,7 @@ class C
                 parameters: new TestParameters(parseOptions: TestOptions.Regular7));
         }
 
-        [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact, WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestNotMissingWhenInsideSingleLineArgument2()
         {
             await TestInRegularAndScript1Async(
@@ -362,8 +357,7 @@ class C
 }", parameters: new TestParameters(parseOptions: TestOptions.Regular7_3));
         }
 
-        [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact, WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestNotMissingWhenInsideSingleLineArgument3()
         {
             await TestWithCSharp7(
@@ -385,8 +379,7 @@ class C
 }");
         }
 
-        [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact, WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestNotMissingWhenInsideSingleLineArgument4()
         {
             await TestWithCSharp7(
@@ -402,8 +395,7 @@ class C
 }");
         }
 
-        [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact, WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestMissingNotOnStartingLineOfArgument1()
         {
             await TestMissingAsync(
@@ -419,8 +411,7 @@ class C
 }");
         }
 
-        [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact, WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         public async Task TestMissingWithSelection()
         {
             await TestMissingAsync(
@@ -434,8 +425,7 @@ class C
 }");
         }
 
-        [WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact, WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")]
         public async Task TestCaretPositionAtTheEnd1()
         {
             await TestWithCSharp7(
@@ -449,8 +439,7 @@ class C
 }");
         }
 
-        [WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact, WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")]
         public async Task TestCaretPositionAtTheEnd2()
         {
             await TestWithCSharp7(
@@ -464,8 +453,7 @@ class C
 }");
         }
 
-        [WorkItem(19758, "https://github.com/dotnet/roslyn/issues/19758")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact, WorkItem(19758, "https://github.com/dotnet/roslyn/issues/19758")]
         public async Task TestOnTuple()
         {
             await TestInRegularAndScript1Async(
@@ -483,8 +471,7 @@ class C
 ");
         }
 
-        [WorkItem(23269, "https://github.com/dotnet/roslyn/issues/23269")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact, WorkItem(23269, "https://github.com/dotnet/roslyn/issues/23269")]
         public async Task TestCharacterEscape1()
         {
             await TestWithCSharp7(
@@ -498,8 +485,7 @@ class C
 }");
         }
 
-        [WorkItem(23269, "https://github.com/dotnet/roslyn/issues/23269")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact, WorkItem(23269, "https://github.com/dotnet/roslyn/issues/23269")]
         public async Task TestCharacterEscape2()
         {
             await TestWithCSharp7(
@@ -561,7 +547,7 @@ class C {
 }" + TestSources.Index);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [Fact]
         public async Task TestNoTrailingArgumentsToName()
         {
             // Because we're on the last argument that doesn't have a name, we should only offer one refactoring to the user.

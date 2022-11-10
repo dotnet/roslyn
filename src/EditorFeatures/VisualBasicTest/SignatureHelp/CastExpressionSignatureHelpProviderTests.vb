@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
+    <Trait(Traits.Feature, Traits.Features.SignatureHelp)>
     Public Class CastExpressionSignatureHelpProviderTests
         Inherits AbstractVisualBasicSignatureHelpProviderTests
 
@@ -13,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
             Return GetType(CastExpressionSignatureHelpProvider)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestInvocationForCType() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -33,7 +34,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestInvocationForCTypeAfterComma() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -54,7 +55,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestInvocationForDirectCast() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -74,8 +75,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(530132, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530132")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact, WorkItem(530132, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530132")>
         Public Async Function TestInvocationForTryCast() As Task
             Dim markup = <a><![CDATA[
 Class C

@@ -201,22 +201,24 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         EnqueueFullSolutionEvent(args.NewSolution, InvocationReasons.DocumentAdded, eventName);
                         break;
 
+                    case WorkspaceChangeKind.SolutionRemoved:
+                    case WorkspaceChangeKind.SolutionCleared:
+                        EnqueueFullSolutionEvent(args.OldSolution, InvocationReasons.SolutionRemoved, eventName);
+                        break;
+
                     case WorkspaceChangeKind.SolutionChanged:
                     case WorkspaceChangeKind.SolutionReloaded:
                         EnqueueSolutionChangedEvent(args.OldSolution, args.NewSolution, eventName);
                         break;
 
-                    case WorkspaceChangeKind.SolutionRemoved:
-                        EnqueueFullSolutionEvent(args.OldSolution, InvocationReasons.SolutionRemoved, eventName);
-                        break;
-
-                    case WorkspaceChangeKind.SolutionCleared:
-                        EnqueueFullSolutionEvent(args.OldSolution, InvocationReasons.SolutionRemoved, eventName);
-                        break;
-
                     case WorkspaceChangeKind.ProjectAdded:
                         Contract.ThrowIfNull(args.ProjectId);
                         EnqueueFullProjectEvent(args.NewSolution, args.ProjectId, InvocationReasons.DocumentAdded, eventName);
+                        break;
+
+                    case WorkspaceChangeKind.ProjectRemoved:
+                        Contract.ThrowIfNull(args.ProjectId);
+                        EnqueueFullProjectEvent(args.OldSolution, args.ProjectId, InvocationReasons.DocumentRemoved, eventName);
                         break;
 
                     case WorkspaceChangeKind.ProjectChanged:
@@ -225,25 +227,20 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         EnqueueProjectChangedEvent(args.OldSolution, args.NewSolution, args.ProjectId, eventName);
                         break;
 
-                    case WorkspaceChangeKind.ProjectRemoved:
-                        Contract.ThrowIfNull(args.ProjectId);
-                        EnqueueFullProjectEvent(args.OldSolution, args.ProjectId, InvocationReasons.DocumentRemoved, eventName);
-                        break;
-
                     case WorkspaceChangeKind.DocumentAdded:
                         Contract.ThrowIfNull(args.DocumentId);
                         EnqueueFullDocumentEvent(args.NewSolution, args.DocumentId, InvocationReasons.DocumentAdded, eventName);
                         break;
 
-                    case WorkspaceChangeKind.DocumentReloaded:
-                    case WorkspaceChangeKind.DocumentChanged:
-                        Contract.ThrowIfNull(args.DocumentId);
-                        EnqueueDocumentChangedEvent(args.OldSolution, args.NewSolution, args.DocumentId, eventName);
-                        break;
-
                     case WorkspaceChangeKind.DocumentRemoved:
                         Contract.ThrowIfNull(args.DocumentId);
                         EnqueueFullDocumentEvent(args.OldSolution, args.DocumentId, InvocationReasons.DocumentRemoved, eventName);
+                        break;
+
+                    case WorkspaceChangeKind.DocumentChanged:
+                    case WorkspaceChangeKind.DocumentReloaded:
+                        Contract.ThrowIfNull(args.DocumentId);
+                        EnqueueDocumentChangedEvent(args.OldSolution, args.NewSolution, args.DocumentId, eventName);
                         break;
 
                     case WorkspaceChangeKind.AdditionalDocumentAdded:

@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
@@ -227,13 +227,13 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             public sealed override bool Equals(object obj)
             {
                 // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-                throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+                throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
             }
 
             public sealed override int GetHashCode()
             {
                 // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-                throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+                throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
             }
         }
     }

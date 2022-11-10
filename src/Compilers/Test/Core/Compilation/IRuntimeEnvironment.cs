@@ -40,7 +40,7 @@ namespace Roslyn.Test.Utilities
         }
     }
 
-    internal struct EmitOutput
+    internal readonly struct EmitOutput
     {
         internal ImmutableArray<byte> Assembly { get; }
         internal ImmutableArray<byte> Pdb { get; }

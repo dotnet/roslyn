@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// <summary>
     /// it holds onto space and wrapping operation need to run between two tokens.
     /// </summary>
-    internal struct TokenPairWithOperations
+    internal readonly struct TokenPairWithOperations
     {
         public TokenStream TokenStream { get; }
         public AdjustSpacesOperation? SpaceOperation { get; }

@@ -21,16 +21,17 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Diagnostics)]
     public class DiagnosticDataTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact]
         public async Task DiagnosticData_GetText()
         {
             var code = "";
             await VerifyTextSpanAsync(code, 10, 10, 20, 20, new TextSpan(0, 0));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact]
         public async Task DiagnosticData_GetText1()
         {
             var code = @"
@@ -39,34 +40,34 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await VerifyTextSpanAsync(code, 30, 30, 40, 40, new TextSpan(code.Length, 0));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact]
         public async Task DiagnosticData_GetText2()
         {
             var code = @"
 ";
 
-            await VerifyTextSpanAsync(code, -1, 30, 40, 40, new TextSpan(0, code.Length));
+            await VerifyTextSpanAsync(code, 0, 30, 40, 40, new TextSpan(code.Length, 0));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact]
         public async Task DiagnosticData_GetText3()
         {
             var code = @"
 ";
 
-            await VerifyTextSpanAsync(code, -1, 30, -1, 40, new TextSpan(0, 0));
+            await VerifyTextSpanAsync(code, 0, 30, 0, 40, new TextSpan(code.Length, 0));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact]
         public async Task DiagnosticData_GetText4()
         {
             var code = @"
 ";
 
-            await VerifyTextSpanAsync(code, 1, 30, -1, 40, new TextSpan(code.Length, 0));
+            await VerifyTextSpanAsync(code, 1, 30, 1, 40, new TextSpan(code.Length, 0));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact]
         public async Task DiagnosticData_GetText5()
         {
             var code = @"
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await VerifyTextSpanAsync(code, 1, 30, 1, 40, new TextSpan(code.Length, 0));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact]
         public async Task DiagnosticData_GetText6()
         {
             var code = @"
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await VerifyTextSpanAsync(code, 1, 30, 2, 40, new TextSpan(code.Length, 0));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact]
         public async Task DiagnosticData_GetText7()
         {
             var code = @"
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await VerifyTextSpanAsync(code, 1, 0, 1, 2, new TextSpan(code.Length, 0));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact]
         public async Task DiagnosticData_GetText8()
         {
             var code = @"
@@ -124,29 +125,27 @@ namespace B
                 projectId: document.Project.Id,
                 customTags: ImmutableArray<string>.Empty,
                 properties: ImmutableDictionary<string, string>.Empty,
-                location: new DiagnosticDataLocation(document.Id, null, "originalFile1", startLine, startColumn, endLine, endColumn),
+                location: new DiagnosticDataLocation(new("originalFile1", new(startLine, startColumn), new(endLine, endColumn)), document.Id),
                 language: document.Project.Language);
 
             var text = await document.GetTextAsync();
-            var actual = DiagnosticData.GetExistingOrCalculatedTextSpan(data.DataLocation, text);
+            var actual = data.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text);
 
             Assert.Equal(span, actual);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
-        [WorkItem(46377, "https://github.com/dotnet/roslyn/issues/46377")]
+        [Fact, WorkItem(46377, "https://github.com/dotnet/roslyn/issues/46377")]
         public async Task DiagnosticData_ExternalAdditionalLocationIsPreserved()
         {
             using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures);
 
             var additionalDocument = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp)
-                .AddDocument("test.cs", "")
+                .AddDocument("test.cs", "", filePath: "test.cs")
                 .Project.AddAdditionalDocument("AdditionalDocument.txt", "First line in file", filePath: "AdditionalDocument.txt");
             var document = additionalDocument.Project.Documents.Single();
 
             var externalAdditionalLocation = new DiagnosticDataLocation(
-                additionalDocument.Id, sourceSpan: new TextSpan(0, 1), originalFilePath: additionalDocument.Name,
-                originalStartLine: 0, originalStartColumn: 0, originalEndLine: 0, originalEndColumn: 1);
+                new(additionalDocument.Name, new(0, 0), new(0, 1)), additionalDocument.Id);
 
             var diagnosticData = new DiagnosticData(
                 id: "test1",
@@ -159,7 +158,7 @@ namespace B
                 projectId: document.Project.Id,
                 customTags: ImmutableArray<string>.Empty,
                 properties: ImmutableDictionary<string, string>.Empty,
-                location: new DiagnosticDataLocation(document.Id),
+                location: new DiagnosticDataLocation(new FileLinePositionSpan(document.FilePath, span: default), document.Id),
                 additionalLocations: ImmutableArray.Create(externalAdditionalLocation),
                 language: document.Project.Language);
 
@@ -168,15 +167,10 @@ namespace B
 
             var roundTripAdditionalLocation = Assert.Single(roundTripDiagnosticData.AdditionalLocations);
             Assert.Equal(externalAdditionalLocation.DocumentId, roundTripAdditionalLocation.DocumentId);
-            Assert.Equal(externalAdditionalLocation.SourceSpan, roundTripAdditionalLocation.SourceSpan);
-            Assert.Equal(externalAdditionalLocation.OriginalFilePath, roundTripAdditionalLocation.OriginalFilePath);
-            Assert.Equal(externalAdditionalLocation.OriginalStartLine, roundTripAdditionalLocation.OriginalStartLine);
-            Assert.Equal(externalAdditionalLocation.OriginalStartColumn, roundTripAdditionalLocation.OriginalStartColumn);
-            Assert.Equal(externalAdditionalLocation.OriginalEndLine, roundTripAdditionalLocation.OriginalEndLine);
-            Assert.Equal(externalAdditionalLocation.OriginalEndLine, roundTripAdditionalLocation.OriginalEndLine);
+            Assert.Equal(externalAdditionalLocation.UnmappedFileSpan, roundTripAdditionalLocation.UnmappedFileSpan);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact]
         public async Task DiagnosticData_SourceGeneratedDocumentLocationIsPreserved()
         {
             var content = @"
@@ -197,8 +191,7 @@ namespace B
 
             await VerifyTextSpanAsync(content, 3, 10, 3, 11, new TextSpan(28, 1));
             var location = new DiagnosticDataLocation(
-                documentId, sourceSpan: new TextSpan(28, 1), originalFilePath: document.FilePath,
-                originalStartLine: 3, originalStartColumn: 10, originalEndLine: 3, originalEndColumn: 11);
+                new(document.FilePath, new(3, 10), new(3, 11)), documentId);
 
             var diagnosticData = new DiagnosticData(
                 id: "test1",
@@ -221,12 +214,7 @@ namespace B
             var roundTripLocation = roundTripDiagnosticData.DataLocation;
             Assert.NotNull(roundTripDiagnosticData.DataLocation);
             Assert.Equal(location.DocumentId, roundTripLocation.DocumentId);
-            Assert.Equal(location.SourceSpan, roundTripLocation.SourceSpan);
-            Assert.Equal(location.OriginalFilePath, roundTripLocation.OriginalFilePath);
-            Assert.Equal(location.OriginalStartLine, roundTripLocation.OriginalStartLine);
-            Assert.Equal(location.OriginalStartColumn, roundTripLocation.OriginalStartColumn);
-            Assert.Equal(location.OriginalEndLine, roundTripLocation.OriginalEndLine);
-            Assert.Equal(location.OriginalEndLine, roundTripLocation.OriginalEndLine);
+            Assert.Equal(location.UnmappedFileSpan, roundTripLocation.UnmappedFileSpan);
         }
     }
 }

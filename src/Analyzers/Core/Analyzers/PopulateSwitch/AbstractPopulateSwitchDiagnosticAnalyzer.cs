@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -32,7 +33,9 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         protected abstract OperationKind OperationKind { get; }
 
         protected abstract bool IsSwitchTypeUnknown(TSwitchOperation operation);
+        protected abstract IOperation GetValueOfSwitchOperation(TSwitchOperation operation);
 
+        protected abstract bool HasConstantCase(TSwitchOperation operation, object? value);
         protected abstract ICollection<ISymbol> GetMissingEnumMembers(TSwitchOperation operation);
         protected abstract bool HasDefaultCase(TSwitchOperation operation);
         protected abstract Location GetDiagnosticLocation(TSwitchSyntax switchBlock);
@@ -72,13 +75,47 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             TSwitchOperation operation,
             out bool missingCases, out bool missingDefaultCase)
         {
-            var missingEnumMembers = GetMissingEnumMembers(operation);
+            if (!IsBooleanSwitch(operation, out missingCases, out missingDefaultCase))
+            {
+                var missingEnumMembers = GetMissingEnumMembers(operation);
 
-            missingCases = missingEnumMembers.Count > 0;
-            missingDefaultCase = !HasDefaultCase(operation);
+                missingCases = missingEnumMembers.Count > 0;
+                missingDefaultCase = !HasDefaultCase(operation);
+            }
 
             // The switch is incomplete if we're missing any cases or we're missing a default case.
             return missingDefaultCase || missingCases;
         }
+
+        private bool IsBooleanSwitch(TSwitchOperation operation, out bool missingCases, out bool missingDefaultCase)
+        {
+            missingCases = false;
+            missingDefaultCase = false;
+
+            var value = GetValueOfSwitchOperation(operation);
+            var type = value.Type.RemoveNullableIfPresent();
+            if (type is not { SpecialType: SpecialType.System_Boolean })
+                return false;
+
+            // If the switch already has a default case, then we don't have to offer the user anything.
+            if (HasDefaultCase(operation))
+            {
+                missingDefaultCase = false;
+            }
+            else
+            {
+                // Doesn't have a default.  We don't want to offer that if they're already complete.
+                var hasAllCases = HasConstantCase(operation, true) && HasConstantCase(operation, false);
+                if (value.Type.IsNullable())
+                    hasAllCases = hasAllCases && HasConstantCase(operation, null);
+
+                missingDefaultCase = !hasAllCases;
+            }
+
+            return true;
+        }
+
+        protected static bool ConstantValueEquals(Optional<object?> constantValue, object? value)
+            => constantValue.HasValue && Equals(constantValue.Value, value);
     }
 }

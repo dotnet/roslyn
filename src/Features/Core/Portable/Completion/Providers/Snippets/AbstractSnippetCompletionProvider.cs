@@ -3,13 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ConvertToInterpolatedString;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
@@ -19,6 +18,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 {
     internal abstract class AbstractSnippetCompletionProvider : CompletionProvider
     {
+        internal override bool IsSnippetProvider => true;
+
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
             // This retrieves the document without the text used to invoke completion
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             var snippetProvider = service.GetSnippetProvider(snippetIdentifier);
 
             // Logging for telemetry.
-            Logger.Log(FunctionId.Completion_SemanticSnippets, $"Name: {snippetIdentifier}");
+            Logger.Log(FunctionId.Completion_SemanticSnippets, $"Name: {snippetIdentifier}", LogLevel.Information);
 
             // This retrieves the generated Snippet
             var snippet = await snippetProvider.GetSnippetAsync(strippedDocument, position, cancellationToken).ConfigureAwait(false);
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            if (!context.CompletionOptions.ShouldShowNewSnippetExperience())
+            if (!context.CompletionOptions.ShouldShowNewSnippetExperience(context.Document))
             {
                 return;
             }
@@ -88,15 +89,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             foreach (var snippetData in snippets)
             {
                 var completionItem = SnippetCompletionItem.Create(
-                    displayText: snippetData.SnippetIdentifier,
+                    displayText: snippetData.Identifier,
                     displayTextSuffix: "",
                     position: position,
-                    snippetIdentifier: snippetData.SnippetIdentifier,
+                    snippetIdentifier: snippetData.Identifier,
                     glyph: Glyph.Snippet,
+                    description: (snippetData.Description + Environment.NewLine + string.Format(FeaturesResources.Code_snippet_for_0, snippetData.Description)).ToSymbolDisplayParts(),
                     inlineDescription: snippetData.Description,
                     additionalFilterTexts: snippetData.AdditionalFilterTexts);
                 context.AddItem(completionItem);
             }
+        }
+
+        internal override async Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+        {
+            return await Task.FromResult(CommonCompletionItem.GetDescription(item)).ConfigureAwait(false);
         }
 
         /// Gets the document without whatever text was used to invoke the completion.

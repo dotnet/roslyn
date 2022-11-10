@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal sealed override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             internal sealed override ImmutableArray<string> GetAppliedConditionalSymbols()
@@ -229,10 +229,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal sealed override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
-            protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
+            protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
         }
     }
 }

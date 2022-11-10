@@ -36,8 +36,16 @@ internal static class CodeGenerationOptionsStorage
         => languageServices.GetRequiredService<ICodeGenerationOptionsStorage>().GetOptions(globalOptions);
 
     public static CodeAndImportGenerationOptions GetCodeAndImportGenerationOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
-        => new(globalOptions.GetCodeGenerationOptions(languageServices), globalOptions.GetAddImportPlacementOptions(languageServices));
+        => new()
+        {
+            GenerationOptions = globalOptions.GetCodeGenerationOptions(languageServices),
+            AddImportOptions = globalOptions.GetAddImportPlacementOptions(languageServices)
+        };
 
     public static CleanCodeGenerationOptions GetCleanCodeGenerationOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
-        => new(globalOptions.GetCodeGenerationOptions(languageServices), globalOptions.GetCodeCleanupOptions(languageServices));
+        => new()
+        {
+            GenerationOptions = globalOptions.GetCodeGenerationOptions(languageServices),
+            CleanupOptions = globalOptions.GetCodeCleanupOptions(languageServices)
+        };
 }

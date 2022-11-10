@@ -252,8 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         /// <summary>
         /// Dev12 syntax "[0-9]+#" not supported.
         /// </summary>
-        [WorkItem(1071347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1071347")]
-        [Fact]
+        [Fact, WorkItem(1071347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1071347")]
         public void ObjectId_EarlierSyntax()
         {
             var source =
@@ -1094,8 +1093,7 @@ IL_0010:  ret
 }");
         }
 
-        [WorkItem(1140387, "DevDiv")]
-        [Fact]
+        [Fact, WorkItem(1140387, "DevDiv")]
         public void ReturnValueOfPointerType()
         {
             var source =

@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Utilities
 {
-    internal struct ParameterName : IEquatable<ParameterName>
+    internal readonly struct ParameterName : IEquatable<ParameterName>
     {
         /// <summary>
         /// The name the underlying naming system came up with based on the argument itself.

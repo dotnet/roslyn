@@ -507,7 +507,7 @@ class C
                 var experimental = TestOptions.Regular.WithFeatures(featuresToEnable);
 
                 using var workspace = TestWorkspace.CreateCSharp(
-                    source1, parseOptions: experimental, compilationOptions: null, exportProvider: null);
+                    source1, parseOptions: experimental, compilationOptions: null);
 
                 var oldSolution = workspace.CurrentSolution;
                 var oldProject = oldSolution.Projects.Single();

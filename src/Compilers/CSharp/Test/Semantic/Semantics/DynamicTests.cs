@@ -593,8 +593,8 @@ class C
 }
 ";
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (9,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&d").WithArguments("dynamic"),
+                // (9,30): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('dynamic')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&d").WithArguments("dynamic"),
                 // (10,15): error CS0193: The * or -> operator must be applied to a pointer
                 Diagnostic(ErrorCode.ERR_PtrExpected, "*d"),
                 // (11,15): error CS0193: The * or -> operator must be applied to a pointer
@@ -1406,7 +1406,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
       IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.Goo(int, int)'
+                // CS7036: There is no argument given that corresponds to the required parameter 'y' of 'C.Goo(int, int)'
                 //         /*<bind>*/c.Goo(d)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Goo").WithArguments("y", "C.Goo(int, int)").WithLocation(8, 21)
             };
@@ -3142,7 +3142,7 @@ class C : B
 
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (16,5): error CS7036: There is no argument given that corresponds to the required formal parameter 'c' of 'C.this[int, Func<int, int>, object]'
+                // (16,5): error CS7036: There is no argument given that corresponds to the required parameter 'c' of 'C.this[int, Func<int, int>, object]'
                 //     c[d, d] = 1; 
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c[d, d]").WithArguments("c", "C.this[int, System.Func<int, int>, object]").WithLocation(16, 5),
                 // (22,10): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
@@ -3378,7 +3378,7 @@ class C
             TestOperatorKinds(source);
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (8,16): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.C(string, string)'
+                // (8,16): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'C.C(string, string)'
                 //     return new C(d);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("y", "C.C(string, string)").WithLocation(8, 16));
         }

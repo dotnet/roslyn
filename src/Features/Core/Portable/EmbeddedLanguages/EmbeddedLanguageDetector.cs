@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
                 return HasMatchingStringSyntaxAttribute(fieldOrProperty, out identifier);
 
             // Otherwise, see if it's a normal named/position argument to the attribute.
-            var parameter = Info.SemanticFacts.FindParameterForAttributeArgument(semanticModel, argument, allowUncertainCandidates: true, cancellationToken);
+            var parameter = Info.SemanticFacts.FindParameterForAttributeArgument(semanticModel, argument, allowUncertainCandidates: true, allowParams: true, cancellationToken);
             return HasMatchingStringSyntaxAttribute(parameter, out identifier);
         }
 
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
             if (fieldOrProperty != null)
                 return HasMatchingStringSyntaxAttribute(fieldOrProperty, out identifier);
 
-            var parameter = Info.SemanticFacts.FindParameterForArgument(semanticModel, argument, allowUncertainCandidates: true, cancellationToken);
+            var parameter = Info.SemanticFacts.FindParameterForArgument(semanticModel, argument, allowUncertainCandidates: true, allowParams: true, cancellationToken);
             return HasMatchingStringSyntaxAttribute(parameter, out identifier);
         }
 

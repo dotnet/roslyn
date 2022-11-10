@@ -14,13 +14,14 @@ using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeF
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritable
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
     public class MakeStructFieldsWritableTests
     {
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        [Theory, CombinatorialData]
         public void TestStandardProperty(AnalyzerProperty property)
             => VerifyCS.VerifyStandardProperty(property);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        [Fact]
         public async Task SingleReadonlyField_ThisAssigmentInMethod()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        [Fact]
         public async Task SingleReadonlyField_ThisAssigmentInMultipleMethods()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -98,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        [Fact]
         public async Task SingleNonReadonlyField_ThisAssigmentInMethod()
         {
             var code = @"struct MyStruct
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        [Fact]
         public async Task MultipleMixedFields_ThisAssigmentInMethod()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -161,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        [Fact]
         public async Task SingleReadonlyField_ThisAssigmentInCtor()
         {
             var code = @"struct MyStruct
@@ -182,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        [Fact]
         public async Task SingleReadonlyField_NoThisAssigment()
         {
             var code = @"struct MyStruct
@@ -198,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        [Fact]
         public async Task SingleReadonlyField_ThisAssigmentInMethod_ReportDiagnostic()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -232,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        [Fact]
         public async Task SingleReadonlyField_InClass()
         {
             var code = @"class MyClass
@@ -254,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        [Fact]
         public async Task StructWithoutField()
         {
             var code = @"struct MyStruct
@@ -268,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        [Fact]
         public async Task SingleProperty_ThisAssigmentInMethod()
         {
             var code = @"struct MyStruct
@@ -289,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        [Fact]
         public async Task SingleGetterProperty_ThisAssigmentInMethod()
         {
             var code = @"struct MyStruct
@@ -310,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        [Fact]
         public async Task MultipleStructDeclaration_SingleReadonlyField_ThisAssigmentInMethod()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -374,7 +375,7 @@ struct MyStruct2
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        [Fact]
         public async Task MultipleStructDeclaration_SingleReadonlyField_ThisAssigmentInMethod_ShouldNotReportDiagnostic()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -438,7 +439,7 @@ struct MyStruct2
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        [Fact]
         public async Task NestedStructDeclaration_SingleNestedReadonlyField_ThisAssigmentInMethod()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -502,7 +503,7 @@ struct MyStruct2
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        [Fact]
         public async Task NestedStructDeclaration_SingleReadonlyField_ThisAssigmentInMethod()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -566,7 +567,7 @@ struct MyStruct2
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        [Fact]
         public async Task StructDeclaration_MixedFields_MixedAssigmentsInMethods()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -614,7 +615,7 @@ struct MyStruct2
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        [Fact]
         public async Task StructDeclaration_ChangedOrderOfConstructorDeclaration()
         {
             await VerifyCS.VerifyCodeFixAsync(

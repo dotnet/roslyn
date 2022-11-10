@@ -22,8 +22,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        [IdeFact]
-        [WorkItem(54391, "https://github.com/dotnet/roslyn/issues/54391")]
+        [IdeFact, WorkItem(54391, "https://github.com/dotnet/roslyn/issues/54391")]
         public async Task TypingCharacter_MultiCaret()
         {
             var code =
@@ -38,7 +37,7 @@ class C2 { }
 class C3 { }
 ";
             await SetUpEditorAsync(code, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync('/');
+            await TestServices.Input.SendAsync('/', HangMitigatingCancellationToken);
             var expected =
 @"
 /// <summary>

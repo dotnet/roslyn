@@ -714,17 +714,21 @@ class C
             Assert.Equal("M0", attrs.Single().ConstructorArguments.Single().Value);
 
             var operation = semanticModel.GetOperation(attrSyntax);
-            // note: this operation tree should contain a constant string "M0" instead of null.
-            // this should ideally be fixed as part of https://github.com/dotnet/roslyn/issues/53618.
             VerifyOperationTree(comp, operation, @"
-IOperation:  (OperationKind.None, Type: Attr) (Syntax: 'Attr()')
-  Children(1):
-      IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Attr()')
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
+  IObjectCreationOperation (Constructor: Attr..ctor([System.String s = null])) (OperationKind.ObjectCreation, Type: Attr, IsImplicit) (Syntax: 'Attr()')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Attr()')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""M0"", IsImplicit) (Syntax: 'Attr()')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
 ");
         }
 
         [Fact]
-        public void TestAttributeCallerInfoSemanticModel_Speculative()
+        public void TestAttributeCallerInfoSemanticModel_Method_Speculative()
         {
             var source = @"
 using System;
@@ -752,12 +756,182 @@ class C
             Assert.True(semanticModel.TryGetSpeculativeSemanticModel(attrSyntax.ArgumentList.Position, newAttrSyntax, out var speculativeModel));
 
             var speculativeOperation = speculativeModel.GetOperation(newAttrSyntax);
-            // note: this operation tree should contain a constant string "M0" instead of null.
-            // this should ideally be fixed as part of https://github.com/dotnet/roslyn/issues/53618.
             VerifyOperationTree(comp, speculativeOperation, @"
-IOperation:  (OperationKind.None, Type: Attr) (Syntax: 'Attr()')
-  Children(1):
-      IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Attr()')
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
+  IObjectCreationOperation (Constructor: Attr..ctor([System.String s = null])) (OperationKind.ObjectCreation, Type: Attr, IsImplicit) (Syntax: 'Attr()')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Attr()')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""M0"", IsImplicit) (Syntax: 'Attr()')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+");
+        }
+
+        [Fact]
+        public void TestAttributeCallerInfoSemanticModel_Method_Speculative2()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Attr : Attribute { public Attr([CallerMemberName] string s = null) { } }
+
+class C
+{
+    private const string World = ""World"";
+
+    [Attr($""Hello {World}"")]
+    void M0() { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var root = tree.GetRoot();
+            var attrSyntax = root.DescendantNodes().OfType<AttributeSyntax>().Last();
+            var interpolationSyntax = root.DescendantNodes().OfType<InterpolationSyntax>().Single();
+
+            var semanticModel = comp.GetSemanticModel(tree);
+            var newRoot = root.ReplaceNode(attrSyntax, attrSyntax.WithArgumentList(SyntaxFactory.ParseAttributeArgumentList("()")));
+            var newAttrSyntax = newRoot.DescendantNodes().OfType<AttributeSyntax>().Last();
+
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(interpolationSyntax.Position, newAttrSyntax, out var speculativeModel));
+
+            var speculativeOperation = speculativeModel.GetOperation(newAttrSyntax);
+            VerifyOperationTree(comp, speculativeOperation, @"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
+  IObjectCreationOperation (Constructor: Attr..ctor([System.String s = null])) (OperationKind.ObjectCreation, Type: Attr, IsImplicit) (Syntax: 'Attr()')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Attr()')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""M0"", IsImplicit) (Syntax: 'Attr()')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+");
+        }
+
+        [Fact]
+        public void TestAttributeCallerInfoSemanticModel_Parameter_Speculative()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Attr : Attribute { public Attr([CallerMemberName] string s = null) { } }
+
+class C
+{
+    void M0([Attr(""a"")] int x) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var root = tree.GetRoot();
+            var attrSyntax = root.DescendantNodes().OfType<AttributeSyntax>().Last();
+
+            var semanticModel = comp.GetSemanticModel(tree);
+            var newRoot = root.ReplaceNode(attrSyntax, attrSyntax.WithArgumentList(SyntaxFactory.ParseAttributeArgumentList("()")));
+            var newAttrSyntax = newRoot.DescendantNodes().OfType<AttributeSyntax>().Last();
+
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(attrSyntax.ArgumentList.Position, newAttrSyntax, out var speculativeModel));
+
+            var speculativeOperation = speculativeModel.GetOperation(newAttrSyntax);
+            VerifyOperationTree(comp, speculativeOperation, @"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
+  IObjectCreationOperation (Constructor: Attr..ctor([System.String s = null])) (OperationKind.ObjectCreation, Type: Attr, IsImplicit) (Syntax: 'Attr()')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Attr()')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""M0"", IsImplicit) (Syntax: 'Attr()')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+");
+        }
+
+        [Fact]
+        public void TestAttributeCallerInfoSemanticModel_Class_Speculative()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Attr : Attribute { public Attr([CallerMemberName] string s = null) { } }
+
+[Attr(""a"")]
+class C
+{
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var root = tree.GetRoot();
+            var attrSyntax = root.DescendantNodes().OfType<AttributeSyntax>().Last();
+
+            var semanticModel = comp.GetSemanticModel(tree);
+            var newRoot = root.ReplaceNode(attrSyntax, attrSyntax.WithArgumentList(SyntaxFactory.ParseAttributeArgumentList("()")));
+            var newAttrSyntax = newRoot.DescendantNodes().OfType<AttributeSyntax>().Last();
+
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(attrSyntax.ArgumentList.Position, newAttrSyntax, out var speculativeModel));
+
+            var speculativeOperation = speculativeModel.GetOperation(newAttrSyntax);
+            VerifyOperationTree(comp, speculativeOperation, @"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
+  IObjectCreationOperation (Constructor: Attr..ctor([System.String s = null])) (OperationKind.ObjectCreation, Type: Attr, IsImplicit) (Syntax: 'Attr()')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Attr()')
+          IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Attr()')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+");
+        }
+
+        [Fact]
+        public void TestAttributeCallerInfoSemanticModel_Speculative_AssemblyTarget()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[assembly: Attr(""a"")]
+
+class Attr : Attribute { public Attr([CallerMemberName] string s = ""default_value"") { } }
+
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var root = tree.GetRoot();
+            var attrSyntax = root.DescendantNodes().OfType<AttributeSyntax>().First();
+
+            var semanticModel = comp.GetSemanticModel(tree);
+            var newRoot = root.ReplaceNode(attrSyntax, attrSyntax.WithArgumentList(SyntaxFactory.ParseAttributeArgumentList("()")));
+            var newAttrSyntax = newRoot.DescendantNodes().OfType<AttributeSyntax>().First();
+
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(attrSyntax.Position, newAttrSyntax, out var speculativeModel));
+
+            var speculativeOperation = speculativeModel.GetOperation(newAttrSyntax);
+            VerifyOperationTree(comp, speculativeOperation, @"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
+    IObjectCreationOperation (Constructor: Attr..ctor([System.String s = ""default_value""])) (OperationKind.ObjectCreation, Type: Attr, IsImplicit) (Syntax: 'Attr()')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Attr()')
+            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""default_value"", IsImplicit) (Syntax: 'Attr()')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+        null
 ");
         }
 
@@ -5756,7 +5930,7 @@ public class Test
                 // (3,39): error CS0643: 'AllowMultiple' duplicate named attribute argument
                 // [AttributeUsage(AllowMultiple = true, AllowMultiple = false)]
                 Diagnostic(ErrorCode.ERR_DuplicateNamedAttributeArgument, "AllowMultiple = false").WithArguments("AllowMultiple").WithLocation(3, 39),
-                // (3,2): error CS7036: There is no argument given that corresponds to the required formal parameter 'validOn' of 'AttributeUsageAttribute.AttributeUsageAttribute(AttributeTargets)'
+                // (3,2): error CS7036: There is no argument given that corresponds to the required parameter 'validOn' of 'AttributeUsageAttribute.AttributeUsageAttribute(AttributeTargets)'
                 // [AttributeUsage(AllowMultiple = true, AllowMultiple = false)]
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AttributeUsage(AllowMultiple = true, AllowMultiple = false)").WithArguments("validOn", "System.AttributeUsageAttribute.AttributeUsageAttribute(System.AttributeTargets)").WithLocation(3, 2)
                 );
@@ -7482,12 +7656,12 @@ public class Test<U>
                 // (8,2): error CS0305: Using the generic type 'Gen2<T>' requires 1 type arguments
                 // [Gen2()]
                 Diagnostic(ErrorCode.ERR_BadArity, "Gen2").WithArguments("Gen2<T>", "type", "1").WithLocation(8, 2),
-                // (9,2): error CS8958: 'U': an attribute type argument cannot use type parameters
+                // (9,2): error CS8968: 'U': an attribute type argument cannot use type parameters
                 // [Gen2<U>]
                 Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Gen2<U>").WithArguments("U").WithLocation(9, 2),
-                // (10,2): error CS8958: 'System.Collections.Generic.List<U>': an attribute type argument cannot use type parameters
+                // (10,2): error CS8968: 'U': an attribute type argument cannot use type parameters
                 // [Gen2<System.Collections.Generic.List<U>>]
-                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Gen2<System.Collections.Generic.List<U>>").WithArguments("System.Collections.Generic.List<U>").WithLocation(10, 2),
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Gen2<System.Collections.Generic.List<U>>").WithArguments("U").WithLocation(10, 2),
                 // (10,2): error CS0579: Duplicate 'Gen2<>' attribute
                 // [Gen2<System.Collections.Generic.List<U>>]
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Gen2<System.Collections.Generic.List<U>>").WithArguments("Gen2<>").WithLocation(10, 2),
@@ -10303,31 +10477,31 @@ class C { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (10,2): error CS8960: Type 'dynamic' cannot be used in this context because it cannot be represented in metadata.
+                // (10,2): error CS8970: Type 'dynamic' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<dynamic>] // 1
                 Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<dynamic>").WithArguments("dynamic").WithLocation(10, 2),
-                // (11,2): error CS8960: Type 'List<dynamic>' cannot be used in this context because it cannot be represented in metadata.
+                // (11,2): error CS8970: Type 'dynamic' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<List<dynamic>>] // 2
-                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<List<dynamic>>").WithArguments("List<dynamic>").WithLocation(11, 2),
-                // (12,2): error CS8960: Type 'nint' cannot be used in this context because it cannot be represented in metadata.
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<List<dynamic>>").WithArguments("dynamic").WithLocation(11, 2),
+                // (12,2): error CS8970: Type 'nint' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<nint>] // 3
                 Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<nint>").WithArguments("nint").WithLocation(12, 2),
-                // (13,2): error CS8960: Type 'List<nint>' cannot be used in this context because it cannot be represented in metadata.
+                // (13,2): error CS8970: Type 'nint' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<List<nint>>] // 4
-                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<List<nint>>").WithArguments("List<nint>").WithLocation(13, 2),
-                // (14,2): error CS8960: Type 'string?' cannot be used in this context because it cannot be represented in metadata.
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<List<nint>>").WithArguments("nint").WithLocation(13, 2),
+                // (14,2): error CS8970: Type 'string' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<string?>] // 5
-                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<string?>").WithArguments("string?").WithLocation(14, 2),
-                // (15,2): error CS8960: Type 'List<string?>' cannot be used in this context because it cannot be represented in metadata.
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<string?>").WithArguments("string").WithLocation(14, 2),
+                // (15,2): error CS8970: Type 'string' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<List<string?>>] // 6
-                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<List<string?>>").WithArguments("List<string?>").WithLocation(15, 2),
-                // (16,2): error CS8960: Type '(int a, int b)' cannot be used in this context because it cannot be represented in metadata.
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<List<string?>>").WithArguments("string").WithLocation(15, 2),
+                // (16,2): error CS8970: Type '(int a, int b)' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<(int a, int b)>] // 7
                 Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<(int a, int b)>").WithArguments("(int a, int b)").WithLocation(16, 2),
-                // (17,2): error CS8960: Type 'List<(int a, int b)>' cannot be used in this context because it cannot be represented in metadata.
+                // (17,2): error CS8970: Type '(int a, int b)' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<List<(int a, int b)>>] // 8
-                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<List<(int a, int b)>>").WithArguments("List<(int a, int b)>").WithLocation(17, 2),
-                // (18,2): error CS8960: Type '(int a, string? b)' cannot be used in this context because it cannot be represented in metadata.
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<List<(int a, int b)>>").WithArguments("(int a, int b)").WithLocation(17, 2),
+                // (18,2): error CS8970: Type '(int a, string? b)' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<(int a, string? b)>] // 9
                 Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<(int a, string? b)>").WithArguments("(int a, string? b)").WithLocation(18, 2));
         }
@@ -10593,7 +10767,7 @@ class Outer<T2>
                 // (7,26): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Attr<object>(Prop = default(T2))] // 1
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(7, 26),
-                // (10,6): error CS8967: 'T2': an attribute type argument cannot use type parameters
+                // (10,6): error CS8968: 'T2': an attribute type argument cannot use type parameters
                 //     [Attr<T2>(Prop = default(T2))] // 2, 3
                 Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Attr<T2>").WithArguments("T2").WithLocation(10, 6),
                 // (10,22): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
@@ -10635,7 +10809,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verifyMetadata, expectedOutput: "a");
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), sourceSymbolValidator: verify, symbolValidator: verifyMetadata, expectedOutput: "a");
 
             verifier.VerifyTypeIL("Holder", @"
 .class private auto ansi beforefieldinit Holder
@@ -10697,7 +10871,7 @@ class Outer<T2>
                 // (7,19): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Attr<object>(default(T2))] // 1
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(7, 19),
-                // (10,6): error CS8967: 'T2': an attribute type argument cannot use type parameters
+                // (10,6): error CS8968: 'T2': an attribute type argument cannot use type parameters
                 //     [Attr<T2>(default(T2))] // 2, 3
                 Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Attr<T2>").WithArguments("T2").WithLocation(10, 6),
                 // (10,15): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
@@ -10799,6 +10973,192 @@ class C { }
             }
         }
 
+        [Fact, WorkItem(58837, "https://github.com/dotnet/roslyn/issues/58837")]
+        public void GenericAttribute_NestedType01()
+        {
+            var source = @"
+using System;
+
+class Container<T>
+{
+    [Attr<T>]
+    class C1
+    {
+    }
+    
+    [AttrContainer<T>.Attr]
+    class C2
+    {
+    }
+    
+    [AttrContainer<T>.B.Attr]
+    class C3
+    {
+    }
+
+    [Attr<T[]>]
+    class C4
+    {
+    }
+}
+
+class Attr<T> : Attribute { }
+
+class AttrContainer<T>
+{  
+    public class Attr : Attribute
+    {
+        public T Value { get; set; }
+    }
+    
+    public class B
+    {
+        public class Attr : Attribute
+        {
+        }
+    }
+}
+
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,6): error CS8968: 'T': an attribute type argument cannot use type parameters
+                //     [Attr<T>]
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Attr<T>").WithArguments("T").WithLocation(6, 6),
+                // (11,6): error CS8968: 'T': an attribute type argument cannot use type parameters
+                //     [AttrContainer<T>.Attr]
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "AttrContainer<T>.Attr").WithArguments("T").WithLocation(11, 6),
+                // (16,6): error CS8968: 'T': an attribute type argument cannot use type parameters
+                //     [AttrContainer<T>.B.Attr]
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "AttrContainer<T>.B.Attr").WithArguments("T").WithLocation(16, 6),
+                // (21,6): error CS8968: 'T': an attribute type argument cannot use type parameters
+                //     [Attr<T[]>]
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Attr<T[]>").WithArguments("T").WithLocation(21, 6));
+        }
+
+        [Fact, WorkItem(58837, "https://github.com/dotnet/roslyn/issues/58837")]
+        public void GenericAttribute_NestedType02()
+        {
+            var source = @"
+using System;
+
+[A<(int A, int B)>.B]
+class C1
+{
+}
+
+[global::A<(int A, int B)>.B]
+class C2
+{
+}
+
+[A<(int A, int B)[]>.B]
+class C3
+{
+}
+
+class A<T>
+{  
+    public class B : Attribute
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
+                // [A<(int A, int B)>.B]
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "A<(int A, int B)>.B").WithArguments("(int A, int B)").WithLocation(4, 2),
+                // (9,2): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
+                // [global::A<(int A, int B)>.B]
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "global::A<(int A, int B)>.B").WithArguments("(int A, int B)").WithLocation(9, 2),
+                // (14,2): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
+                // [A<(int A, int B)[]>.B]
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "A<(int A, int B)[]>.B").WithArguments("(int A, int B)").WithLocation(14, 2));
+        }
+
+        [Fact, WorkItem(58837, "https://github.com/dotnet/roslyn/issues/58837")]
+        public void GenericAttribute_NestedType03()
+        {
+            var source = @"
+using System;
+
+[A<(int A, int B)>.B]
+class C1
+{
+}
+
+[global::A<(int A, int B)>.B]
+class C2
+{
+}
+
+class A<T>
+{  
+    public class BAttribute : Attribute
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
+                // [A<(int A, int B)>.B]
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "A<(int A, int B)>.B").WithArguments("(int A, int B)").WithLocation(4, 2),
+                // (9,2): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
+                // [global::A<(int A, int B)>.B]
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "global::A<(int A, int B)>.B").WithArguments("(int A, int B)").WithLocation(9, 2));
+        }
+
+        [Fact, WorkItem(58837, "https://github.com/dotnet/roslyn/issues/58837")]
+        public void GenericAttribute_NestedType04()
+        {
+            var source = @"
+using System;
+using N2 = N1;
+[N2::A<(int A, int B)>.B]
+class C
+{
+}
+namespace N1
+{
+    class A<T>
+    {
+        public class BAttribute : Attribute { }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
+                // [N2::A<(int A, int B)>.B]
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "N2::A<(int A, int B)>.B").WithArguments("(int A, int B)").WithLocation(4, 2));
+        }
+
+        [Fact, WorkItem(58837, "https://github.com/dotnet/roslyn/issues/58837")]
+        public void GenericAttribute_NestedType05()
+        {
+            var source = @"
+using AB = A<(int A, int B)>.B;
+
+[AB]
+class C
+{
+}
+
+class A<T>
+{  
+    public class B : System.Attribute
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
+                // [AB]
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "AB").WithArguments("(int A, int B)").WithLocation(4, 2));
+        }
         #endregion
     }
 }

@@ -8,6 +8,7 @@ using System.Linq;
 using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
@@ -465,7 +466,7 @@ public class Analyzer : DiagnosticAnalyzer
 
             var analyzerDependencyCompilation = CSharpCompilation.Create(
                 assemblyName: assemblyName,
-                syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(csSource) },
+                syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(SourceText.From(csSource, encoding: null, SourceHashAlgorithms.Default)) },
                 references: (new MetadataReference[]
                 {
                     NetStandard20.mscorlib,

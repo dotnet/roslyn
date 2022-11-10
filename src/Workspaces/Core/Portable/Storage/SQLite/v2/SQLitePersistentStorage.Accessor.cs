@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 // passed in, we need to validate that the checksums match.  This is
                 // only safe if we are in a transaction and no-one else can race with
                 // us.
-                return connection.RunInTransaction(
+                var (stream, exception) = connection.RunInTransaction(
                     static t =>
                     {
                         // If we were passed a checksum, make sure it matches what we have
@@ -246,7 +246,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
                         return t.connection.ReadDataBlob_MustRunInTransaction(t.database, t.self.Table, t.rowId);
                     },
-                    (self: this, connection, database, checksum, rowId));
+                    (self: this, connection, database, checksum, rowId),
+                    throwOnSqlException: true);
+
+                // we should never have gotten a SqlException while reading since we passed throwOnSqlException: true above.
+                Contract.ThrowIfTrue(exception != null);
+
+                return stream;
             }
 
             private Optional<Checksum.HashData> ReadChecksum(
@@ -255,9 +261,15 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 // Have to run the checksum reading in a transaction.  This is necessary as blob reading outside a
                 // transaction is not safe to do with the sqlite API.  It may produce corrupt bits if another thread is
                 // writing to the blob.
-                return connection.RunInTransaction(
+                var (stream, exception) = connection.RunInTransaction(
                     static t => t.connection.ReadChecksum_MustRunInTransaction(t.database, t.self.Table, t.rowId),
-                    (self: this, connection, database, rowId));
+                    (self: this, connection, database, rowId),
+                    throwOnSqlException: true);
+
+                // we should never have gotten a SqlException while reading since we passed throwOnSqlException: true above.
+                Contract.ThrowIfTrue(exception != null);
+
+                return stream;
             }
 
             private bool ChecksumsMatch_MustRunInTransaction(SqlConnection connection, Database database, long rowId, Checksum checksum)

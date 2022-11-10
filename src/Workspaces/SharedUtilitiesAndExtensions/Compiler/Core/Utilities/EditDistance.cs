@@ -189,14 +189,14 @@ namespace Roslyn.Utilities
             // consider them as they won't add anything to the edit cost.
             while (source.Length > 0 && source[source.Length - 1] == target[target.Length - 1])
             {
-                source = source.Slice(0, source.Length - 1);
-                target = target.Slice(0, target.Length - 1);
+                source = source[..^1];
+                target = target[..^1];
             }
 
             while (source.Length > 0 && source[0] == target[0])
             {
-                source = source.Slice(1);
-                target = target.Slice(1);
+                source = source[1..];
+                target = target[1..];
             }
 
             // 'sourceLength' and 'targetLength' are now the lengths of the substrings of our strings that we

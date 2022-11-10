@@ -16,6 +16,7 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
 
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
     Public Class DataTipInfoGetterTests
 
         Private Shared Async Function TestNoDataTipAsync(input As XElement) As Task
@@ -54,12 +55,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact>
         Public Async Function TestVisualBasicLanguageDebugInfoGetDataTipSpanAndText() As Task
             Await TestAsync(<text>Module [|$$M|] : End Module</text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact>
         Public Async Function Test1() As Task
             Await TestAsync(<text>
 class C
@@ -69,7 +70,7 @@ class C
 end class</text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact>
         Public Async Function Test2() As Task
             Await TestAsync(<text>
 class C
@@ -79,7 +80,7 @@ class C
 end class</text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact>
         Public Async Function Test3() As Task
             Await TestAsync(<text>
 class C
@@ -89,7 +90,7 @@ class C
 end class</text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact>
         Public Async Function Test4() As Task
             Await TestAsync(<text>
 class C
@@ -99,7 +100,7 @@ class C
 end class</text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact>
         Public Async Function Test5() As Task
             Await TestAsync(<text>
 class C
@@ -109,7 +110,7 @@ class C
 end class</text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact>
         Public Async Function Test6() As Task
             Await TestNoDataTipAsync(<text>
 class C
@@ -119,7 +120,7 @@ class C
 end class</text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact>
         Public Async Function Test7() As Task
             Await TestAsync(<text>
 class C
@@ -129,7 +130,7 @@ class C
 end class</text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact>
         Public Async Function Test8() As Task
             Await TestNoDataTipAsync(<text>
 class C
@@ -139,7 +140,7 @@ class C
 end class</text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact>
         Public Async Function Test9() As Task
             Await TestAsync(<text>
 class C
@@ -149,7 +150,7 @@ class C
 end class</text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact>
         Public Async Function TestLiterals() As Task
             Await TestNoDataTipAsync(<text>
 class C
@@ -159,7 +160,7 @@ class C
 end class</text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact>
         Public Async Function TestNonExpressions() As Task
             Await TestNoDataTipAsync(<text>
 class C
@@ -169,8 +170,7 @@ class C
 end class</text>)
         End Function
 
-        <WorkItem(538152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538152")>
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact, WorkItem(538152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538152")>
         Public Async Function TestOnComma() As Task
             Await TestNoDataTipAsync(<text>
 class C
@@ -181,8 +181,7 @@ class C
 end class</text>)
         End Function
 
-        <WorkItem(546280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546280")>
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact, WorkItem(546280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546280")>
         Public Async Function TestOnParameter() As Task
             Await TestAsync(<text>
 Module Module1
@@ -197,8 +196,7 @@ End Module
 </text>)
         End Function
 
-        <WorkItem(942699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942699")>
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact, WorkItem(942699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942699")>
         Public Async Function TestOnCatchVariable() As Task
             Await TestAsync(<text>
 Module Module1
@@ -213,7 +211,7 @@ End Module
 </text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact>
         Public Async Function TestOnTypeDeclaration() As Task
             Await TestAsync(<text>
 Module [|$$M|]
@@ -241,7 +239,7 @@ Delegate Sub [|$$M|] ()
 </text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact>
         Public Async Function TestOnEnumMember() As Task
             Await TestAsync(<text>
 Enum E
@@ -250,7 +248,7 @@ End Enum
 </text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact>
         Public Async Function TestOnTypeParameter() As Task
             Await TestAsync(<text>
 Class C(Of [|$$T|])
@@ -264,7 +262,7 @@ End Class
 </text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact>
         Public Async Function TestOnProperty() As Task
             Await TestAsync(<text>
 Class C
@@ -273,7 +271,7 @@ End Class
 </text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact>
         Public Async Function TestOnEvent() As Task
             Await TestAsync(<text>
 Class C
@@ -282,7 +280,7 @@ End Class
 </text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact>
         Public Async Function TestOnMethod() As Task
             Await TestAsync(<text>
 Class C
@@ -292,7 +290,7 @@ End Class
 </text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact>
         Public Async Function TestInQuery() As Task
             Await TestAsync(<text>
 Class C
@@ -311,7 +309,7 @@ End Class
 </text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077843")>
+        <Fact, WorkItem(1077843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077843")>
         Public Async Function TestConditionalAccessExpression() As Task
             Const sourceTemplate = "
 Class A
@@ -377,7 +375,7 @@ End Class
             Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?.B?.C?.$$D|]") %></text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077843")>
+        <Fact, WorkItem(1077843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077843")>
         Public Async Function TestConditionalAccessExpression_Dictionary() As Task
             Const sourceTemplate = "
 Class A
@@ -407,7 +405,7 @@ End Class
             Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?!B?!$$C|]") %></text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(2602, "https://github.com/dotnet/roslyn/issues/2602")>
+        <Fact, WorkItem(2602, "https://github.com/dotnet/roslyn/issues/2602")>
         Public Async Function TestParameterizedProperty() As Task
             Const sourceTemplate = "
 Class Class1

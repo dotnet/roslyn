@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.InvertLogical
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InvertLogical
+    <Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)>
     Partial Public Class InvertLogicalTests
         Inherits AbstractVisualBasicCodeActionTest
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InvertLogical
             Return New VisualBasicInvertLogicalCodeRefactoringProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)>
+        <Fact>
         Public Async Function InvertLogical1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -29,7 +30,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)>
+        <Fact>
         Public Async Function InvertLogical2() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -44,7 +45,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)>
+        <Fact>
         Public Async Function TestTrivia() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -61,7 +62,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)>
+        <Fact>
         Public Async Function InvertMultiConditional1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -76,7 +77,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)>
+        <Fact>
         Public Async Function InvertMultiConditional2() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -91,7 +92,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)>
+        <Fact>
         Public Async Function InvertMultiConditional3() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -106,7 +107,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)>
+        <Fact>
         Public Async Function InvertMultiConditional4() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -121,7 +122,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)>
+        <Fact>
         Public Async Function TestMissingOnSimpleOr() As Task
             Await TestMissingAsync(
 "class C
@@ -131,7 +132,7 @@ end class")
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)>
+        <Fact>
         Public Async Function TestMissingOnSimpleAnd() As Task
             Await TestMissingAsync(
 "class C
@@ -141,7 +142,7 @@ end class")
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)>
+        <Fact>
         Public Async Function TestSelectedOperator() As Task
             Await TestInRegularAndScriptAsync(
 "class C

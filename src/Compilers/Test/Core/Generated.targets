@@ -124,34 +124,6 @@
           <LogicalName>net451.System.Threading.Tasks.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\net451\System.Threading.Tasks.dll</Link>
         </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net461)\build\.NETFramework\v4.6.1\mscorlib.dll">
-          <LogicalName>net461.mscorlib.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\net461\mscorlib.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net461)\build\.NETFramework\v4.6.1\System.dll">
-          <LogicalName>net461.System.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\net461\System.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net461)\build\.NETFramework\v4.6.1\System.Core.dll">
-          <LogicalName>net461.System.Core.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\net461\System.Core.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net461)\build\.NETFramework\v4.6.1\Facades\System.Runtime.dll">
-          <LogicalName>net461.System.Runtime.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\net461\System.Runtime.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net461)\build\.NETFramework\v4.6.1\Facades\System.Threading.Tasks.dll">
-          <LogicalName>net461.System.Threading.Tasks.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\net461\System.Threading.Tasks.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net461)\build\.NETFramework\v4.6.1\Microsoft.CSharp.dll">
-          <LogicalName>net461.Microsoft.CSharp.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\net461\Microsoft.CSharp.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net461)\build\.NETFramework\v4.6.1\Microsoft.VisualBasic.dll">
-          <LogicalName>net461.Microsoft.VisualBasic.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\net461\Microsoft.VisualBasic.dll</Link>
-        </EmbeddedResource>
         <EmbeddedResource Include="$(NuGetPackageRoot)\microsoft.csharp\$(MicrosoftCSharpVersion)\ref\netstandard1.0\Microsoft.CSharp.dll">
           <LogicalName>netstandard10.microsoftcsharp.Microsoft.CSharp.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\microsoftcsharp\Microsoft.CSharp.dll</Link>

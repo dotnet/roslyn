@@ -251,8 +251,7 @@ End Namespace
             Assert.Equal("@" & methodToken1, importStrings.Single())
         End Sub
 
-        <WorkItem(999086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/999086")>
-        <Fact>
+        <Fact, WorkItem(999086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/999086")>
         Public Sub BadPdb_InvalidAliasTarget()
             Const source = "
 Public Class C
@@ -287,8 +286,7 @@ End Class
             Assert.Equal("SC", aliases.Keys.Single())
         End Sub
 
-        <WorkItem(999086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/999086")>
-        <Fact>
+        <Fact, WorkItem(999086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/999086")>
         Public Sub BadPdb_InvalidAliasName()
             Const source = "
 Public Class C
@@ -593,8 +591,7 @@ End Namespace
                 End Sub)
         End Sub
 
-        <WorkItem(2441, "https://github.com/dotnet/roslyn/issues/2441")>
-        <Fact>
+        <Fact, WorkItem(2441, "https://github.com/dotnet/roslyn/issues/2441")>
         Public Sub AssemblyQualifiedNameResolutionWithUnification()
             Const source1 = "
 Imports SI = System.Int32

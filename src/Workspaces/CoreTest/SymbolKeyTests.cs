@@ -114,7 +114,176 @@ public class C
         }
 
         [Fact]
-        [WorkItem(14364, "https://github.com/dotnet/roslyn/issues/14364")]
+        public void TestMissingField1_CSharp()
+        {
+            var source = @"
+
+public class C
+{
+    const int;
+}
+";
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
+            var symbols = GetDeclaredSymbols(compilation);
+            Assert.True(symbols.Any(s => s is IFieldSymbol { MetadataName: "" }));
+            TestRoundTrip(symbols, compilation);
+        }
+
+        [Fact]
+        public void TestMissingField2_CSharp()
+        {
+            var source = @"
+
+public class C
+{
+    int a,;
+}
+";
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
+            var symbols = GetDeclaredSymbols(compilation);
+            Assert.True(symbols.Any(s => s is IFieldSymbol { MetadataName: "" }));
+            TestRoundTrip(symbols, compilation);
+        }
+
+        [Fact]
+        public void TestMissingField3_CSharp()
+        {
+            var source = @"
+
+public class C
+{
+    const;
+}
+";
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
+            var symbols = GetDeclaredSymbols(compilation);
+            Assert.True(symbols.Any(s => s is IFieldSymbol { MetadataName: "" }));
+            TestRoundTrip(symbols, compilation);
+        }
+
+        [Fact]
+        public void TestMissingField1_VisualBasic()
+        {
+            var source = @"
+
+public class C
+    constant as integer
+end class
+";
+            var compilation = GetCompilation(source, LanguageNames.VisualBasic);
+            var symbols = GetDeclaredSymbols(compilation);
+            Assert.False(symbols.Any(s => s is IFieldSymbol { MetadataName: "" }));
+            TestRoundTrip(symbols, compilation);
+        }
+
+        [Fact]
+        public void TestMissingField2_VisualBasic()
+        {
+            var source = @"
+
+public class C
+    dim a, 
+end class
+";
+            var compilation = GetCompilation(source, LanguageNames.VisualBasic);
+            var symbols = GetDeclaredSymbols(compilation);
+            Assert.True(symbols.Any(s => s is IFieldSymbol { MetadataName: "" }));
+            TestRoundTrip(symbols, compilation);
+        }
+
+        [Fact]
+        public void TestMissingField3_VisualBasic()
+        {
+            var source = @"
+
+public class C
+    dim a, as integer
+end class
+";
+            var compilation = GetCompilation(source, LanguageNames.VisualBasic);
+            var symbols = GetDeclaredSymbols(compilation);
+            Assert.False(symbols.Any(s => s is IFieldSymbol { MetadataName: "" }));
+            TestRoundTrip(symbols, compilation);
+        }
+
+        [Fact]
+        public void TestMissingField4_VisualBasic()
+        {
+            var source = @"
+
+public class C
+    dim a as integer, 
+end class
+";
+            var compilation = GetCompilation(source, LanguageNames.VisualBasic);
+            var symbols = GetDeclaredSymbols(compilation);
+            Assert.True(symbols.Any(s => s is IFieldSymbol { MetadataName: "" }));
+            TestRoundTrip(symbols, compilation);
+        }
+
+        [Fact]
+        public void TestMissingField5_VisualBasic()
+        {
+            var source = @"
+
+public class C
+    constant
+end class
+";
+            var compilation = GetCompilation(source, LanguageNames.VisualBasic);
+            var symbols = GetDeclaredSymbols(compilation);
+            Assert.False(symbols.Any(s => s is IFieldSymbol { MetadataName: "" }));
+            TestRoundTrip(symbols, compilation);
+        }
+
+        [Fact]
+        public void TestMissingField6_VisualBasic()
+        {
+            var source = @"
+
+public class C
+    constant a,
+end class
+";
+            var compilation = GetCompilation(source, LanguageNames.VisualBasic);
+            var symbols = GetDeclaredSymbols(compilation);
+            Assert.True(symbols.Any(s => s is IFieldSymbol { MetadataName: "" }));
+            TestRoundTrip(symbols, compilation);
+        }
+
+        [Fact]
+        public void TestMissingEvent1_CSharp()
+        {
+            var source = @"
+
+public class C
+{
+    event System.Action;
+}
+";
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
+            var symbols = GetDeclaredSymbols(compilation);
+            Assert.True(symbols.Any(s => s is IEventSymbol { MetadataName: "" }));
+            TestRoundTrip(symbols, compilation);
+        }
+
+        [Fact]
+        public void TestMissingEvent2_CSharp()
+        {
+            var source = @"
+
+public class C
+{
+    event System.Action a,;
+}
+";
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
+            var symbols = GetDeclaredSymbols(compilation);
+            Assert.True(symbols.Any(s => s is IEventSymbol { MetadataName: "" }));
+            TestRoundTrip(symbols, compilation);
+        }
+
+        [Fact, WorkItem(14364, "https://github.com/dotnet/roslyn/issues/14364")]
         public void TestVBParameterizedEvent()
         {
             var source = @"
@@ -1062,6 +1231,23 @@ public class C
                 Assert.Equal(symbol.Name, found.Name);
                 Assert.Equal(symbol.Kind, found.Kind);
             }
+        }
+
+        [Fact]
+        public void TestCrossLanguageEquality1()
+        {
+            var compilation1 = GetCompilation("", LanguageNames.CSharp);
+            var compilation2 = GetCompilation("", LanguageNames.VisualBasic);
+
+            var symbolKey1 = SymbolKey.Create(compilation1.GetSpecialType(SpecialType.System_Int32));
+            var symbolKey2 = SymbolKey.Create(compilation2.GetSpecialType(SpecialType.System_Int32));
+
+            Assert.NotEqual(symbolKey1.ToString(), symbolKey2.ToString());
+
+            Assert.True(symbolKey1.Equals(symbolKey2));
+            Assert.True(SymbolKey.GetComparer(ignoreCase: true).Equals(symbolKey1, symbolKey2));
+            Assert.True(SymbolKey.GetComparer(ignoreAssemblyKeys: true).Equals(symbolKey1, symbolKey2));
+            Assert.True(SymbolKey.GetComparer(ignoreCase: true, ignoreAssemblyKeys: true).Equals(symbolKey1, symbolKey2));
         }
 
         private static void TestRoundTrip(IEnumerable<ISymbol> symbols, Compilation compilation, Func<ISymbol, object> fnId = null)

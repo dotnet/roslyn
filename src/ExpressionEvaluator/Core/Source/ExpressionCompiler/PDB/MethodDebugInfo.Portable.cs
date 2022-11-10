@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
@@ -64,6 +63,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             ReadMethodCustomDebugInformation(reader, methodHandle, out var hoistedLocalScopes, out var defaultNamespace);
 
+            var documentHandle = reader.GetMethodDebugInformation(methodHandle).Document;
+            var document = reader.GetDocument(documentHandle);
+            var documentName = reader.GetString(document.Name);
+
             return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
                 hoistedLocalScopes,
                 importGroups,
@@ -73,7 +76,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 defaultNamespace,
                 localVariableNames,
                 localConstants,
-                reuseSpan);
+                reuseSpan,
+                documentName);
         }
 
         /// <summary>

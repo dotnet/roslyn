@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis
     /// Describes a source file specification stored on command line arguments.
     /// </summary>
     [DebuggerDisplay("{Path,nq}")]
-    public struct CommandLineSourceFile
+    public readonly struct CommandLineSourceFile
     {
         public CommandLineSourceFile(string path, bool isScript) :
             this(path, isScript, false)

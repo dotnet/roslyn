@@ -123,8 +123,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
                 context.AddTag(new TagSpan<InlineHintDataTag>(
                     hint.Span.ToSnapshotSpan(snapshotSpan.Snapshot),
-                    new InlineHintDataTag(hint)));
+                    new InlineHintDataTag(this, snapshotSpan.Snapshot, hint)));
             }
         }
+
+        protected override bool TagEquals(InlineHintDataTag tag1, InlineHintDataTag tag2)
+            => tag1.Equals(tag2);
     }
 }

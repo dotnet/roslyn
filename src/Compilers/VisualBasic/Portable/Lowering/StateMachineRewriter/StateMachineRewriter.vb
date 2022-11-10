@@ -342,9 +342,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Select Case local.SynthesizedKind
                 Case SynthesizedLocalKind.LambdaDisplayClass
-                    proxyName = GeneratedNameConstants.StateMachineHoistedUserVariablePrefix & GeneratedNameConstants.ClosureVariablePrefix & "$" & slotIndex
+                    proxyName = GeneratedNameConstants.StateMachineHoistedUserVariableOrDisplayClassPrefix & GeneratedNameConstants.ClosureVariablePrefix & "$" & slotIndex
                 Case SynthesizedLocalKind.UserDefined
-                    proxyName = GeneratedNameConstants.StateMachineHoistedUserVariablePrefix & local.Name & "$" & slotIndex
+                    proxyName = GeneratedNameConstants.StateMachineHoistedUserVariableOrDisplayClassPrefix & local.Name & "$" & slotIndex
                 Case SynthesizedLocalKind.With
                     proxyName = GeneratedNameConstants.HoistedWithLocalPrefix & slotIndex
                 Case Else

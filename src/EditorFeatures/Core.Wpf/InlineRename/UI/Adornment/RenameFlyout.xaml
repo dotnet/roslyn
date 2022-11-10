@@ -7,6 +7,8 @@
              xmlns:rename="clr-namespace:Microsoft.CodeAnalysis.Editor.Implementation.InlineRename"
              xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+             xmlns:imageutils="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:utils="clr-namespace:Microsoft.CodeAnalysis.Utilities"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              MinWidth="200"
@@ -16,31 +18,18 @@
              GotKeyboardFocus="Adornment_GotKeyboardFocus"
              Focusable="False"
              UseLayoutRounding="True"
-             x:Name="control"
-             Background="{DynamicResource {x:Static rename:InlineRenameColors.BackgroundBrushKey}}">
+             x:Name="control">
 
     <UserControl.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="../InlineRenameColors.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
-
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-
-            <Style TargetType="CheckBox">
-                <Setter Property="Foreground" Value="{DynamicResource {x:Static rename:InlineRenameColors.CheckBoxTextBrushKey}}"/>
-            </Style>
-
-            <Style TargetType="TextBlock">
-                <Setter Property="Foreground" Value="{DynamicResource {x:Static rename:InlineRenameColors.CheckBoxTextBrushKey}}"/>
-            </Style>
+            <utils:BrushToColorConverter x:Key="BrushToColorConverter"/>
         </ResourceDictionary>
     </UserControl.Resources>
 
     <Border 
-        Background="{DynamicResource {x:Static rename:InlineRenameColors.BackgroundBrushKey}}" 
-        BorderThickness="1" 
-        BorderBrush="{DynamicResource {x:Static rename:InlineRenameColors.ButtonBorderBrush}}" >
+        BorderThickness="1"
+        x:Name="Outline">
         <StackPanel Orientation="Vertical" Margin="5" >
             <Grid Margin="0 0 0 10">
                 <Grid.ColumnDefinitions>
@@ -57,7 +46,12 @@
                     HorizontalAlignment="Stretch" />
 
                 <!-- Expand/Collapse button and glyph -->
-                <Button x:Name="ToggleExpandButton" Grid.Column="1" Click="ToggleExpand" Background="Transparent">
+                <Button 
+                    x:Name="ToggleExpandButton" 
+                    Grid.Column="1" 
+                    Click="ToggleExpand" 
+                    Background="Transparent"
+                    imageutils:ImageThemingUtilities.ImageBackgroundColor="{Binding Path=Parent.Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}">
                     <Button.Style>
                         <Style TargetType="Button">
                             <Setter Property="Template">
@@ -65,15 +59,9 @@
                                     <ControlTemplate TargetType="Button">
                                         <Border Name="border" 
                                         BorderThickness="1"
-                                        BorderBrush="{DynamicResource {x:Static rename:InlineRenameColors.BackgroundBrushKey}}"
                                         Background="{TemplateBinding Background}">
                                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                                         </Border>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static rename:InlineRenameColors.ButtonBorderBrush}}" />
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
                                     </ControlTemplate>
                                 </Setter.Value>
                             </Setter>
@@ -96,7 +84,23 @@
                     </imaging:CrispImage>
                 </Button>
             </Grid>
+
+            <Grid Visibility="{Binding ShowStatusText, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,0,5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="22" />
+                    <ColumnDefinition Width="*"  />
+                </Grid.ColumnDefinitions>
+
+                <imaging:CrispImage Grid.Column="0" Moniker="{Binding StatusImageMoniker}" />
+                <TextBlock Grid.Column="1" Text="{Binding StatusText}" />
+            </Grid>
             
+            <TextBlock 
+                Text="{Binding SearchText}" 
+                Visibility="{Binding ShowSearchText, Converter={StaticResource BooleanToVisibilityConverter}}"
+                FontWeight="Light"
+                Margin="0,0,0,5" />
+
             <StackPanel Orientation="Vertical" Visibility="{Binding IsExpanded, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <CheckBox Content="{Binding ElementName=control, Path=RenameOverloads}" Margin="0,5,0,0" IsChecked="{Binding Path=RenameOverloadFlag, Mode=TwoWay}"
                       Name="OverloadsCheckbox" Visibility="{Binding IsRenameOverloadsVisible, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}" IsEnabled="{Binding IsRenameOverloadsEditable}" />
@@ -111,10 +115,10 @@
             </StackPanel>
 
             <TextBlock 
+                x:Name="SubmitTextBlock"
                 Text="{Binding ElementName=control, Path=SubmitText}" 
                 Margin="5, 5, 0, 0" 
                 FontStyle="Italic"
-                Foreground="{DynamicResource {x:Static rename:InlineRenameColors.GrayTextKey}}"
                 />
     </StackPanel>
     </Border>

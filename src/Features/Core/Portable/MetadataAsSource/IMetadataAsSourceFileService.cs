@@ -11,19 +11,18 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
     internal interface IMetadataAsSourceFileService
     {
         /// <summary>
-        /// Generates a file on disk containing general information about the symbol's containing
-        /// assembly, and the formatted source code for the public, protected, and
-        /// protected-or-internal interface of which the given ISymbol is or is a part of.
+        /// Generates a file on disk containing general information about the symbol's containing assembly, and the
+        /// formatted source code for the public, protected, and protected-or-internal interface of which the given
+        /// ISymbol is or is a part of.
         /// </summary>
-        /// <param name="project">The project from which the symbol to generate source for came
-        /// from.</param>
+        /// <param name="sourceWorkspace">The workspace that <paramref name="sourceProject"/> came from.</param>
+        /// <param name="sourceProject">The project from which the symbol to generate source for came from.</param>
         /// <param name="symbol">The symbol whose interface to generate source for</param>
         /// <param name="signaturesOnly"><see langword="false"/> to allow a decompiler or other technology to show a
         /// representation of the original sources; otherwise <see langword="true"/> to only show member
         /// signatures.</param>
         /// <param name="options">Options to use when navigating. See <see cref="MetadataAsSourceOptions"/> for details.</param>
-        /// <param name="cancellationToken">To cancel project and document operations</param>
-        Task<MetadataAsSourceFile> GetGeneratedFileAsync(Project project, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, CancellationToken cancellationToken = default);
+        Task<MetadataAsSourceFile> GetGeneratedFileAsync(Workspace sourceWorkspace, Project sourceProject, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, CancellationToken cancellationToken = default);
 
         bool TryAddDocumentToWorkspace(string filePath, SourceTextContainer buffer);
 

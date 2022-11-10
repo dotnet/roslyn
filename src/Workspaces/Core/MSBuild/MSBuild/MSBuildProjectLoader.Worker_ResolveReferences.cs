@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 // First, gather all of the metadata references from the command-line arguments.
                 var resolvedMetadataReferences = commandLineArgs.ResolveMetadataReferences(
                     new WorkspaceMetadataFileReferenceResolver(
-                        metadataService: GetWorkspaceService<IMetadataService>(),
+                        metadataService: _workspaceServices.GetRequiredService<IMetadataService>(),
                         pathResolver: new RelativePathResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory)));
 
                 var builder = new ResolvedReferencesBuilder(resolvedMetadataReferences);

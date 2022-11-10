@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseConditionalExpression
+    <Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
     Partial Public Class UseConditionalExpressionForAssignmentTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -16,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseConditionalExpr
                 New VisualBasicUseConditionalExpressionForAssignmentCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestOnSimpleAssignment() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -37,8 +38,7 @@ class C
 end class")
         End Function
 
-        <WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")>
         Public Async Function TestNotWithThrow1() As Task
             Await TestMissingAsync(
 "
@@ -53,7 +53,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestNotWithThrow2() As Task
             Await TestMissingAsync(
 "
@@ -68,7 +68,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestOnSimpleAssignmentNoBlocks() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -89,7 +89,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestOnSimpleAssignmentNoBlocks_NotInBlock() As Task
 
             Await TestInRegularAndScriptAsync(
@@ -115,7 +115,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestNotOnSimpleAssignmentToDifferentTargets() As Task
             Await TestMissingAsync(
 "
@@ -130,7 +130,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestOnAssignmentToUndefinedField() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -151,7 +151,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestOnNonUniformTargetSyntax() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -172,7 +172,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestOnAssignmentToDefinedField() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -197,7 +197,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestOnAssignmentToAboveLocalNoInitializer() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -219,7 +219,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestOnAssignmentToAboveLocalLiteralInitializer() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -241,7 +241,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestOnAssignmentToAboveLocalDefaultExpressionInitializer() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -263,7 +263,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestDoNotMergeAssignmentToAboveLocalWithComplexInitializer() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -286,7 +286,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestDoNotMergeAssignmentToAboveLocalIfIntermediaryStatement() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -311,7 +311,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestDoNotMergeAssignmentToAboveIfLocalUsedInIfCondition() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -334,7 +334,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestDoNotMergeAssignmentToAboveIfMultiDecl() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -357,7 +357,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestMissingWithoutElse() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -370,7 +370,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestMissingWithoutElseWithStatementAfterwards() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -385,7 +385,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestConversionWithUseDimForAll_CannotUseDimBecauseTypeWouldChange() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -409,7 +409,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestConversionWithUseDimForAll_CanUseDimBecauseConditionalTypeMatches() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -431,7 +431,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestConversionWithUseDimForAll_CanUseDimButRequiresCastOfConditionalBranch() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -453,7 +453,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestKeepTriviaAroundIf() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -476,7 +476,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestFixAll1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -506,7 +506,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestMultiLine1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -531,7 +531,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestMultiLine2() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -556,7 +556,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact>
         Public Async Function TestMultiLine3() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -583,8 +583,7 @@ class C
 end class")
         End Function
 
-        <WorkItem(29376, "https://github.com/dotnet/roslyn/issues/29376")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact, WorkItem(29376, "https://github.com/dotnet/roslyn/issues/29376")>
         Public Async Function TestOnAssignmentToImplicitLocalInContainingProperty() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -613,8 +612,7 @@ class C
 end class")
         End Function
 
-        <WorkItem(29376, "https://github.com/dotnet/roslyn/issues/29376")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact, WorkItem(29376, "https://github.com/dotnet/roslyn/issues/29376")>
         Public Async Function TestOnAssignmentToImplicitLocalInContainingFunction() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -639,8 +637,7 @@ class C
 end class")
         End Function
 
-        <WorkItem(29376, "https://github.com/dotnet/roslyn/issues/29376")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact, WorkItem(29376, "https://github.com/dotnet/roslyn/issues/29376")>
         Public Async Function TestOnAssignmentToImplicitLocalInContainingSub1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -669,8 +666,7 @@ class C
 end class")
         End Function
 
-        <WorkItem(29376, "https://github.com/dotnet/roslyn/issues/29376")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <Fact, WorkItem(29376, "https://github.com/dotnet/roslyn/issues/29376")>
         Public Async Function TestOnAssignmentToImplicitLocalInContainingSub2() As Task
             Await TestInRegularAndScriptAsync(
 "

@@ -407,15 +407,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // We store an index in SymbolTreeInfo of the *simple* metadata type name
-            // to the names of the all the types that either immediately derive or 
-            // implement that type.  Because the mapping is from the simple name
-            // we might get false positives.  But that's fine as we still use 
-            // 'tpeMatches' to make sure the match is correct.
+            // We store an index in SymbolTreeInfo of the *simple* metadata type name to the names of the all the types
+            // that either immediately derive or implement that type.  Because the mapping is from the simple name we
+            // might get false positives.  But that's fine as we still use 'tpeMatches' to make sure the match is
+            // correct.
             var symbolTreeInfo = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
-                project.Solution, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                project.Solution, reference, checksum: null, cancellationToken).ConfigureAwait(false);
 
-            // This will always be non-null since we pass loadOnly: false above.
             Contract.ThrowIfNull(symbolTreeInfo);
 
             // For each type we care about, see if we can find any derived types

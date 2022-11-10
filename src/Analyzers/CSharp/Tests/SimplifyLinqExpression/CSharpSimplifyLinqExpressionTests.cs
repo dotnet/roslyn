@@ -14,9 +14,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.SimplifyLinqExpressi
         CSharpSimplifyLinqExpressionDiagnosticAnalyzer,
         CSharpSimplifyLinqExpressionCodeFixProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
     public partial class CSharpSimplifyLinqExpressionTests
     {
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [Theory, CombinatorialData]
         public static async Task TestAllowedMethodTypes(
             [CombinatorialValues(
                 "x => x==1",
@@ -76,7 +77,7 @@ class Test
             }.RunAsync();
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [Theory, CombinatorialData]
         public static async Task TestWhereWithIndexMethodTypes(
             [CombinatorialValues(
                 "(x, index) => x==index",
@@ -114,7 +115,7 @@ class Test
             await VerifyCS.VerifyAnalyzerAsync(testCode);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [Theory, CombinatorialData]
         public async Task TestQueryComprehensionSyntax(
             [CombinatorialValues(
                 "x => x==1",
@@ -156,7 +157,7 @@ class Test
             }.RunAsync();
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [Theory]
         [InlineData("First")]
         [InlineData("Last")]
         [InlineData("Single")]
@@ -216,7 +217,7 @@ class Test
             }.RunAsync();
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [Theory]
         [InlineData("First", "string")]
         [InlineData("Last", "string")]
         [InlineData("Single", "string")]
@@ -262,7 +263,7 @@ class Test
             }.RunAsync();
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [Theory]
         [InlineData("First")]
         [InlineData("Last")]
         [InlineData("Single")]
@@ -292,7 +293,7 @@ namespace demo
             await VerifyCS.VerifyAnalyzerAsync(source);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [Theory, CombinatorialData]
         public async Task TestNestedLambda(
             [CombinatorialValues(
                 "First",
@@ -346,7 +347,7 @@ class Test
                 fixedCode);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [Theory]
         [InlineData("First")]
         [InlineData("Last")]
         [InlineData("Single")]
@@ -390,7 +391,7 @@ class Test
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [Fact]
         public async Task TestUserDefinedWhere()
         {
             var source = @"
@@ -426,7 +427,7 @@ namespace demo
             await VerifyCS.VerifyAnalyzerAsync(source);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [Theory]
         [InlineData("First")]
         [InlineData("Last")]
         [InlineData("Single")]
@@ -453,7 +454,7 @@ class Test
             await VerifyCS.VerifyAnalyzerAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [Fact]
         public async Task TestUnsupportedFunction()
         {
             var source = @"
@@ -471,7 +472,7 @@ namespace demo
             await VerifyCS.VerifyAnalyzerAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [Fact]
         public async Task TestExpressionTreeInput()
         {
             var source = @"

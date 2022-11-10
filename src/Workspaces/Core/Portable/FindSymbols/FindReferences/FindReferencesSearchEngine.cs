@@ -159,6 +159,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     foreach (var groupSymbol in group.Symbols)
                         _symbolToGroup.TryAdd(groupSymbol, group);
 
+                    // Since "symbol" was in group.Symbols, and we just added links from all of group.Symbols to that group, then "symbol" 
+                    // better now be in _symbolToGroup.
+                    Contract.ThrowIfFalse(_symbolToGroup.ContainsKey(symbol));
+
                     await _progress.OnDefinitionFoundAsync(group, cancellationToken).ConfigureAwait(false);
                 }
             }

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class TypeCompilationState
     {
         /// <summary> Synthesized method info </summary>
-        internal struct MethodWithBody
+        internal readonly struct MethodWithBody
         {
             public readonly MethodSymbol Method;
             public readonly BoundStatement Body;
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (method1 == method2)
             {
                 // direct recursion is diagnosed elsewhere
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             if (_constructorInitializers == null)

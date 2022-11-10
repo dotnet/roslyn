@@ -58,29 +58,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 => RuntimeHelpers.GetHashCode(this);
         }
 
-        public static TestWorkspace Create(string xmlDefinition, bool openDocuments = false, ExportProvider exportProvider = null, TestComposition composition = null)
-            => Create(XElement.Parse(xmlDefinition), openDocuments, exportProvider, composition);
+        public static TestWorkspace Create(string xmlDefinition, bool openDocuments = false, TestComposition composition = null)
+            => Create(XElement.Parse(xmlDefinition), openDocuments, composition);
 
         public static TestWorkspace CreateWorkspace(
             XElement workspaceElement,
             bool openDocuments = true,
-            ExportProvider exportProvider = null,
             TestComposition composition = null,
             string workspaceKind = null)
         {
-            return Create(workspaceElement, openDocuments, exportProvider, composition, workspaceKind);
+            return Create(workspaceElement, openDocuments, composition, workspaceKind);
         }
 
         internal static TestWorkspace Create(
             XElement workspaceElement,
             bool openDocuments = true,
-            ExportProvider exportProvider = null,
             TestComposition composition = null,
             string workspaceKind = null,
             IDocumentServiceProvider documentServiceProvider = null,
             bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
         {
-            var workspace = new TestWorkspace(exportProvider, composition, workspaceKind, ignoreUnchangeableDocumentsWhenApplyingChanges: ignoreUnchangeableDocumentsWhenApplyingChanges);
+            var workspace = new TestWorkspace(composition, workspaceKind, ignoreUnchangeableDocumentsWhenApplyingChanges: ignoreUnchangeableDocumentsWhenApplyingChanges);
             workspace.InitializeDocuments(workspaceElement, openDocuments, documentServiceProvider);
             return workspace;
         }
@@ -983,13 +981,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private static SyntaxTree CreateSyntaxTree(ParseOptions options, string referencedCode)
         {
+            var sourceText = SourceText.From(referencedCode, encoding: null, SourceHashAlgorithms.Default);
+
             if (LanguageNames.CSharp == options.Language)
             {
-                return Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(referencedCode, options);
+                return Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(sourceText, options);
             }
             else
             {
-                return Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseSyntaxTree(referencedCode, options);
+                return Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseSyntaxTree(sourceText, options);
             }
         }
 
@@ -1098,7 +1098,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 ((bool?)netcore30).HasValue &&
                 ((bool?)netcore30).Value)
             {
-                references = NetCoreApp.StandardReferences.ToList();
+                references = NetCoreApp.References.ToList();
             }
 
             var netstandard20 = element.Attribute(CommonReferencesNetStandard20Name);

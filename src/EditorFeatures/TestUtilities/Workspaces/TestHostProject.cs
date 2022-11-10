@@ -344,24 +344,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public ProjectInfo ToProjectInfo()
         {
             return ProjectInfo.Create(
-                Id,
-                Version,
-                Name,
-                AssemblyName,
-                Language,
-                FilePath,
-                OutputFilePath,
+                new ProjectInfo.ProjectAttributes(
+                    Id,
+                    Version,
+                    name: Name,
+                    assemblyName: AssemblyName,
+                    language: Language,
+                    compilationOutputFilePaths: default,
+                    checksumAlgorithm: Text.SourceHashAlgorithms.Default,
+                    defaultNamespace: DefaultNamespace,
+                    filePath: FilePath,
+                    outputFilePath: OutputFilePath,
+                    isSubmission: IsSubmission),
                 CompilationOptions,
                 ParseOptions,
-                Documents.Where(d => !d.IsSourceGenerated).Select(d => d.ToDocumentInfo()),
+                documents: Documents.Where(d => !d.IsSourceGenerated).Select(d => d.ToDocumentInfo()),
                 ProjectReferences,
                 MetadataReferences,
                 AnalyzerReferences,
-                AdditionalDocuments.Select(d => d.ToDocumentInfo()),
-                IsSubmission,
-                HostObjectType)
-                .WithAnalyzerConfigDocuments(AnalyzerConfigDocuments.Select(d => d.ToDocumentInfo()))
-                .WithDefaultNamespace(DefaultNamespace);
+                additionalDocuments: AdditionalDocuments.Select(d => d.ToDocumentInfo()),
+                analyzerConfigDocuments: AnalyzerConfigDocuments.Select(d => d.ToDocumentInfo()),
+                HostObjectType);
         }
 
         // It is identical with the internal extension method 'GetDefaultExtension' defined in OutputKind.cs.

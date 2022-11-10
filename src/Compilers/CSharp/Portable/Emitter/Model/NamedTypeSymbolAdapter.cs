@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
             //We've not yet discovered a scenario in which we need this.
             //If you're hitting this exception. Uncomment the code below
             //and add a unit test.
@@ -761,7 +761,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return AdaptedNamedTypeSymbol.AssociatedFileIdentifier();
+                return AdaptedNamedTypeSymbol.GetFileLocalTypeMetadataNamePrefix();
             }
         }
 #nullable disable
@@ -1044,7 +1044,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (underlyingNamedTypeSymbol is NativeIntegerTypeSymbol)
             {
                 // Emit should use underlying symbol only.
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

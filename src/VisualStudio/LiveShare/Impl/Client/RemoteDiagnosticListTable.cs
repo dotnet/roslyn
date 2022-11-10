@@ -32,6 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]
         public RemoteDiagnosticListTable(
+            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider,
             RemoteLanguageServiceWorkspace workspace,
@@ -39,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             ITableManagerProvider provider)
             : base(workspace, provider)
         {
-            _source = new LiveTableDataSource(workspace, threadingContext, diagnosticService, IdentifierString);
+            _source = new LiveTableDataSource(workspace, globalOptions, threadingContext, diagnosticService, IdentifierString);
             AddInitialTableSource(workspace.CurrentSolution, _source);
 
             ConnectWorkspaceEvents();

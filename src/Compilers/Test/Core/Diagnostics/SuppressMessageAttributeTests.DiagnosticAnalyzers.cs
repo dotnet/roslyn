@@ -301,12 +301,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 get
                 {
                     ExceptionDispatchInfo.Capture(_exception).Throw();
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
             public override void Initialize(AnalysisContext analysisContext)
-                => throw ExceptionUtilities.Unreachable;
+                => throw ExceptionUtilities.Unreachable();
         }
 
         protected static DiagnosticDescriptor GetRule(string id)

@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             // var (x, y) = e;
             // foreach (var (x, y) in e) ...
-            if (typeName.IsParentKind(SyntaxKind.DeclarationExpression, out DeclarationExpressionSyntax? declExpression) &&
+            if (typeName.Parent is DeclarationExpressionSyntax declExpression &&
                 declExpression.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation))
             {
                 return true;
@@ -82,8 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return false;
             }
 
-            if (typeName.Parent.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax? variableDeclaration) &&
-                typeName.Parent.Parent.IsKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement))
+            if (typeName.Parent is VariableDeclarationSyntax variableDeclaration &&
+                typeName.Parent.Parent is (kind: SyntaxKind.LocalDeclarationStatement or SyntaxKind.ForStatement or SyntaxKind.UsingStatement))
             {
                 // check assignment for variable declarations.
                 var variable = variableDeclaration.Variables.First();

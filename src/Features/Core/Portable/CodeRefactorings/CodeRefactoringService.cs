@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -17,7 +16,6 @@ using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -68,19 +66,31 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         private ImmutableDictionary<CodeRefactoringProvider, CodeChangeProviderMetadata> RefactoringToMetadataMap
             => _lazyRefactoringToMetadataMap.Value;
 
-        private ConcatImmutableArray<CodeRefactoringProvider> GetProviders(Document document)
+        private ConcatImmutableArray<CodeRefactoringProvider> GetProviders(TextDocument document)
         {
             var allRefactorings = ImmutableArray<CodeRefactoringProvider>.Empty;
             if (LanguageToProvidersMap.TryGetValue(document.Project.Language, out var lazyProviders))
             {
-                allRefactorings = lazyProviders.Value;
+                allRefactorings = ProjectCodeRefactoringProvider.FilterExtensions(document, lazyProviders.Value, GetExtensionInfo);
             }
 
-            return allRefactorings.ConcatFast(GetProjectRefactorings(document.Project));
+            return allRefactorings.ConcatFast(GetProjectRefactorings(document));
+
+            static ImmutableArray<CodeRefactoringProvider> GetProjectRefactorings(TextDocument document)
+            {
+                // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict refactorings in Interactive
+                if (document.Project.Solution.WorkspaceKind == WorkspaceKind.Interactive)
+                    return ImmutableArray<CodeRefactoringProvider>.Empty;
+
+                return ProjectCodeRefactoringProvider.GetExtensions(document, GetExtensionInfo);
+            }
+
+            static ProjectCodeRefactoringProvider.ExtensionInfo GetExtensionInfo(ExportCodeRefactoringProviderAttribute attribute)
+                => new(attribute.DocumentKinds, attribute.DocumentExtensions);
         }
 
         public async Task<bool> HasRefactoringsAsync(
-            Document document,
+            TextDocument document,
             TextSpan state,
             CodeActionOptionsProvider options,
             CancellationToken cancellationToken)
@@ -105,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         }
 
         public async Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(
-            Document document,
+            TextDocument document,
             TextSpan state,
             CodeActionRequestPriority priority,
             CodeActionOptionsProvider options,
@@ -144,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         }
 
         private async Task<CodeRefactoring?> GetRefactoringFromProviderAsync(
-            Document document,
+            TextDocument textDocument,
             TextSpan state,
             CodeRefactoringProvider provider,
             CodeChangeProviderMetadata? providerMetadata,
@@ -162,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             try
             {
                 using var _ = ArrayBuilder<(CodeAction action, TextSpan? applicableToSpan)>.GetInstance(out var actions);
-                var context = new CodeRefactoringContext(document, state,
+                var context = new CodeRefactoringContext(textDocument, state,
 
                     // TODO: Can we share code between similar lambdas that we pass to this API in BatchFixAllProvider.cs, CodeFixService.cs and CodeRefactoringService.cs?
                     (action, applicableToSpan) =>
@@ -206,15 +216,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
 
             return null;
-        }
-
-        private static ImmutableArray<CodeRefactoringProvider> GetProjectRefactorings(Project project)
-        {
-            // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict refactorings in Interactive
-            if (project.Solution.WorkspaceKind == WorkspaceKind.Interactive)
-                return ImmutableArray<CodeRefactoringProvider>.Empty;
-
-            return ProjectCodeRefactoringProvider.GetExtensions(project);
         }
 
         private class ProjectCodeRefactoringProvider

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var nullIndex = identifier.IndexOf('\0');
             if (nullIndex >= 0)
             {
-                identifier = identifier.Substring(0, nullIndex);
+                identifier = identifier[..nullIndex];
             }
 
             var needsEscaping = SyntaxFacts.GetKeywordKind(identifier) != SyntaxKind.None;
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             var unescaped = identifier.StartsWith("@", StringComparison.Ordinal)
-                ? identifier.Substring(1)
+                ? identifier[1..]
                 : identifier;
 
             var token = SyntaxFactory.Identifier(

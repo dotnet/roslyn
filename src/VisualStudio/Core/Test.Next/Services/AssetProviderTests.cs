@@ -22,18 +22,19 @@ using Xunit;
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.RemoteHost)]
     public class AssetProviderTests
     {
         private static Workspace CreateRemoteWorkspace()
             => new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact]
         public async Task TestCSharpParseOptionsSynchronization()
         {
             await TestAssetAsync(Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.Default);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact]
         public async Task TestVisualBasicParseOptionsSynchronization()
         {
             await TestAssetAsync(Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.Default);
@@ -62,7 +63,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(data, stored2[0].Item2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact]
         public async Task TestAssetSynchronization()
         {
             var code = @"class Test { void Method() { } }";
@@ -90,7 +91,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact]
         public async Task TestSolutionSynchronization()
         {
             var code = @"class Test { void Method() { } }";
@@ -115,7 +116,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             TestUtils.VerifyAssetStorage(map, storage);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact]
         public async Task TestProjectSynchronization()
         {
             var code = @"class Test { void Method() { } }";

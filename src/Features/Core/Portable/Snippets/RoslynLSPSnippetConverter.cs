@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Snippets
                     lspSnippetString.Append("$0");
                 }
 
-                //Tries to see if a value exists at that position in the map, and if so it
+                // Tries to see if a value exists at that position in the map, and if so it
                 // generates a string that is LSP formatted.
                 if (dictionary.TryGetValue(i, out var placeholderInfo))
                 {

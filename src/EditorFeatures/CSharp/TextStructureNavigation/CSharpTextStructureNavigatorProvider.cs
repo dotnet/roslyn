@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.TextStructureNavigation
             var start = 0;
             var end = text.Length;
 
-            if (token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken, SyntaxKind.Utf8SingleLineRawStringLiteralToken))
+            if (token.Kind() is SyntaxKind.Utf8MultiLineRawStringLiteralToken or SyntaxKind.Utf8SingleLineRawStringLiteralToken)
             {
                 // Skip past the u8 suffix
                 end -= "u8".Length;
@@ -91,12 +91,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.TextStructureNavigation
             {
                 SyntaxKind.StringLiteralToken => position == token.Span.End - 1 && token.Text[^1] == '"',
                 SyntaxKind.Utf8StringLiteralToken => position == token.Span.End - 3 && token.Text is [.., '"', 'u' or 'U', '8'],
-                _ => throw ExceptionUtilities.Unreachable
+                _ => throw ExceptionUtilities.Unreachable()
             };
 
         protected override TextExtent GetExtentOfWordFromToken(SyntaxToken token, SnapshotPoint position)
         {
-            if (token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.Utf8StringLiteralToken) && IsAtClosingQuote(token, position.Position))
+            if (token.Kind() is SyntaxKind.StringLiteralToken or SyntaxKind.Utf8StringLiteralToken &&
+                IsAtClosingQuote(token, position.Position))
             {
                 // Special case to treat the closing quote of a string literal as a separate token.  This allows the
                 // cursor to stop during word navigation (Ctrl+LeftArrow, etc.) immediately before AND after the
@@ -104,10 +105,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.TextStructureNavigation
                 var span = new Span(position.Position, token.Span.End - position.Position);
                 return new TextExtent(new SnapshotSpan(position.Snapshot, span), isSignificant: true);
             }
-            else if (token.IsKind(SyntaxKind.SingleLineRawStringLiteralToken,
-                SyntaxKind.MultiLineRawStringLiteralToken,
-                SyntaxKind.Utf8SingleLineRawStringLiteralToken,
-                SyntaxKind.Utf8MultiLineRawStringLiteralToken))
+            else if (token.Kind() is
+                SyntaxKind.SingleLineRawStringLiteralToken or
+                SyntaxKind.MultiLineRawStringLiteralToken or
+                SyntaxKind.Utf8SingleLineRawStringLiteralToken or
+                SyntaxKind.Utf8MultiLineRawStringLiteralToken)
             {
                 var delimiterStart = GetStartOfRawStringLiteralEndDelimiter(token);
                 return new TextExtent(new SnapshotSpan(position.Snapshot, Span.FromBounds(delimiterStart, token.Span.End)), isSignificant: true);

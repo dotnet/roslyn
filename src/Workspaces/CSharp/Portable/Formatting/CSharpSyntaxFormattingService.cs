@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var token = documentSyntax.Root.FindToken(Math.Max(0, caretPosition - 1), findInsideTrivia: true);
             if (token.IsMissing ||
                 !ValidSingleOrMultiCharactersTokenKind(typedChar, token.Kind()) ||
-                token.IsKind(SyntaxKind.EndOfFileToken, SyntaxKind.None) ||
+                token.Kind() is SyntaxKind.EndOfFileToken or SyntaxKind.None ||
                 documentSyntax.SyntaxTree.IsInNonUserCode(caretPosition, cancellationToken))
             {
                 return false;

@@ -1149,10 +1149,11 @@ class C
         d(null);
     }
 }";
-            var comp = CreateEmptyCompilation(source0);
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var comp = CreateEmptyCompilation(source0, parseOptions: parseOptions);
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0, SystemCoreRef });
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0, SystemCoreRef }, parseOptions: parseOptions);
             comp.VerifyDiagnostics();
             // Make sure we emit without errors when System.Boolean is missing.
             // PEVerify: Type load failed.
@@ -1185,10 +1186,11 @@ class C
         D d = () => { dynamic y = x; };
     }
 }";
-            var comp = CreateEmptyCompilation(source0);
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var comp = CreateEmptyCompilation(source0, parseOptions: parseOptions);
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0, SystemCoreRef });
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0, SystemCoreRef }, parseOptions: parseOptions);
             comp.VerifyDiagnostics();
             // Make sure we emit without errors when System.Boolean is missing.
             // PEVerify: Type load failed.

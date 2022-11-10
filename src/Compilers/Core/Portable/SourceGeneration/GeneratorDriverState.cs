@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis
                                       SyntaxStore syntaxStore,
                                       IncrementalGeneratorOutputKind disabledOutputs,
                                       TimeSpan runtime,
-                                      bool trackIncrementalGeneratorSteps)
+                                      bool trackIncrementalGeneratorSteps,
+                                      bool parseOptionsChanged)
         {
             Generators = sourceGenerators;
             IncrementalGenerators = incrementalGenerators;
@@ -34,6 +35,7 @@ namespace Microsoft.CodeAnalysis
             DisabledOutputs = disabledOutputs;
             RunTime = runtime;
             TrackIncrementalSteps = trackIncrementalGeneratorSteps;
+            ParseOptionsChanged = parseOptionsChanged;
             Debug.Assert(Generators.Length == GeneratorStates.Length);
             Debug.Assert(IncrementalGenerators.Length == GeneratorStates.Length);
         }
@@ -93,6 +95,11 @@ namespace Microsoft.CodeAnalysis
 
         internal readonly bool TrackIncrementalSteps;
 
+        /// <summary>
+        /// Tracks if the <see cref="ParseOptions"/> have been changed meaning post init trees will need to be re-parsed.
+        /// </summary>
+        internal readonly bool ParseOptionsChanged;
+
         internal GeneratorDriverState With(
             ImmutableArray<ISourceGenerator>? sourceGenerators = null,
             ImmutableArray<IIncrementalGenerator>? incrementalGenerators = null,
@@ -103,7 +110,8 @@ namespace Microsoft.CodeAnalysis
             ParseOptions? parseOptions = null,
             AnalyzerConfigOptionsProvider? optionsProvider = null,
             IncrementalGeneratorOutputKind? disabledOutputs = null,
-            TimeSpan? runTime = null)
+            TimeSpan? runTime = null,
+            bool? parseOptionsChanged = null)
         {
             return new GeneratorDriverState(
                 parseOptions ?? this.ParseOptions,
@@ -116,7 +124,8 @@ namespace Microsoft.CodeAnalysis
                 syntaxStore ?? this.SyntaxStore,
                 disabledOutputs ?? this.DisabledOutputs,
                 runTime ?? this.RunTime,
-                this.TrackIncrementalSteps
+                this.TrackIncrementalSteps,
+                parseOptionsChanged ?? this.ParseOptionsChanged
                 );
         }
     }

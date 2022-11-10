@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.MetadataAsSource
+    <Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
     Public Class EnumDeclarationStructureProviderTests
         Inherits AbstractVisualBasicSyntaxNodeStructureProviderTests(Of EnumStatementSyntax)
 
@@ -20,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
             Return New EnumDeclarationStructureProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact>
         Public Async Function NoCommentsOrAttributes() As Task
             Dim code = "
 {|hint:{|textspan:Enum $$Goo
@@ -33,7 +34,7 @@ End Enum|}|}
                 Region("textspan", "hint", "Enum Goo " & Ellipsis, autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact>
         Public Async Function WithAttributes() As Task
             Dim code = "
 {|textspan2:{|hint:{|textspan:<Goo>
@@ -48,7 +49,7 @@ End Enum|#0}|}
                 Region("textspan2", "#0", "<Goo> Enum Goo " & VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact>
         Public Async Function WithCommentsAndAttributes() As Task
             Dim code = "
 {|hint:{|textspan:' Summary:
@@ -65,7 +66,7 @@ End Enum|#0}|#1}
                 Region("#1", "#0", "<Goo> Enum Goo " & VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact>
         Public Async Function WithCommentsAttributesAndModifiers() As Task
             Dim code = "
 {|hint:{|textspan:' Summary:

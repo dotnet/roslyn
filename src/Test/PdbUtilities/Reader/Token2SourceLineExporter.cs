@@ -311,7 +311,7 @@ namespace Roslyn.Test.PdbUtilities
             }
         }
 
-        private struct BitSet
+        private readonly struct BitSet
         {
             internal BitSet(BitAccess bits)
             {
@@ -651,7 +651,7 @@ namespace Roslyn.Test.PdbUtilities
             }
         }
 
-        private struct DbiSecCon
+        private readonly struct DbiSecCon
         {
             internal DbiSecCon(BitAccess bits)
             {
@@ -721,7 +721,7 @@ namespace Roslyn.Test.PdbUtilities
             internal readonly string objectName;
         }
 
-        private struct DbiHeader
+        private readonly struct DbiHeader
         {
             internal DbiHeader(BitAccess bits)
             {
@@ -769,7 +769,7 @@ namespace Roslyn.Test.PdbUtilities
             internal readonly int reserved;                   // 60..63
         }
 
-        private struct DbiDbgHdr
+        private readonly struct DbiDbgHdr
         {
             internal DbiDbgHdr(BitAccess bits)
             {
@@ -1188,7 +1188,7 @@ namespace Roslyn.Test.PdbUtilities
         {
             string result = token.ToString("X8");
             if (maskToken)
-                result = result.Substring(0, 2) + "xxxxxx";
+                result = result[..2] + "xxxxxx";
             return "0x" + result;
         }
 

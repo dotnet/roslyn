@@ -253,15 +253,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' compared case-sensitively.
         ''' </summary>
         ''' <param name="emittedName">
-        ''' Full type name with generic name mangling.
+        ''' Full type name, possibly with generic name mangling.
         ''' </param>
-        ''' <param name="digThroughForwardedTypes">
-        ''' Take forwarded types into account.
-        ''' </param>
-        ''' <remarks></remarks>
-        Friend Function LookupTopLevelMetadataType(ByRef emittedName As MetadataTypeName, digThroughForwardedTypes As Boolean) As NamedTypeSymbol
-            Return LookupTopLevelMetadataTypeWithCycleDetection(emittedName, visitedAssemblies:=Nothing, digThroughForwardedTypes:=digThroughForwardedTypes)
-        End Function
+        Friend MustOverride Function LookupDeclaredTopLevelMetadataType(ByRef emittedName As MetadataTypeName) As NamedTypeSymbol
 
         ''' <summary>
         ''' Lookup a top level type referenced from metadata, names should be
@@ -273,10 +267,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="visitedAssemblies">
         ''' List of assemblies lookup has already visited (since type forwarding can introduce cycles).
         ''' </param>
-        ''' <param name="digThroughForwardedTypes">
-        ''' Take forwarded types into account.
-        ''' </param>
-        Friend MustOverride Function LookupTopLevelMetadataTypeWithCycleDetection(ByRef emittedName As MetadataTypeName, visitedAssemblies As ConsList(Of AssemblySymbol), digThroughForwardedTypes As Boolean) As NamedTypeSymbol
+        Friend MustOverride Function LookupDeclaredOrForwardedTopLevelMetadataType(ByRef emittedName As MetadataTypeName, visitedAssemblies As ConsList(Of AssemblySymbol)) As NamedTypeSymbol
 
         ''' <summary>
         ''' Returns the type symbol for a forwarded type based its canonical CLR metadata name.
@@ -496,12 +487,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 mdName = MetadataTypeName.FromFullName(parts(0), useCLSCompliantNameArityEncoding)
                 type = GetTopLevelTypeByMetadataName(mdName, includeReferences, isWellKnownType, conflicts)
 
+                If type Is Nothing Then
+                    Return Nothing
+                End If
+
+                Debug.Assert(Not type.IsErrorType())
+
                 Dim i As Integer = 1
 
-                While type IsNot Nothing AndAlso Not type.IsErrorType() AndAlso i < parts.Length
+                While i < parts.Length
                     mdName = MetadataTypeName.FromTypeName(parts(i))
-                    Dim temp = type.LookupMetadataType(mdName)
-                    type = If(Not isWellKnownType OrElse IsValidWellKnownType(temp), temp, Nothing)
+                    type = type.LookupMetadataType(mdName)
+
+                    If type Is Nothing Then
+                        Return Nothing
+                    End If
+
+                    Debug.Assert(Not type.IsErrorType())
+
+                    If isWellKnownType AndAlso Not IsValidWellKnownType(type) Then
+                        Return Nothing
+                    End If
+
                     i += 1
                 End While
             Else
@@ -510,7 +517,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                      ignoreCorLibraryDuplicatedTypes:=ignoreCorLibraryDuplicatedTypes)
             End If
 
-            Return If(type Is Nothing OrElse type.IsErrorType(), Nothing, type)
+            Debug.Assert(If(Not type?.IsErrorType(), True))
+            Return type
         End Function
 
 
@@ -528,7 +536,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim result As NamedTypeSymbol
 
             ' First try this assembly
-            result = Me.LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
+            result = Me.LookupDeclaredTopLevelMetadataType(metadataName)
+            Debug.Assert(If(Not result?.IsErrorType(), True))
 
             If isWellKnownType AndAlso Not IsValidWellKnownType(result) Then
                 result = Nothing
@@ -551,7 +560,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Not CorLibrary.IsMissing AndAlso
                 Not ignoreCorLibraryDuplicatedTypes Then
 
-                Dim corLibCandidate As NamedTypeSymbol = CorLibrary.LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
+                Dim corLibCandidate As NamedTypeSymbol = CorLibrary.LookupDeclaredTopLevelMetadataType(metadataName)
+                Debug.Assert(If(Not corLibCandidate?.IsErrorType(), True))
                 skipCorLibrary = True
 
                 If IsValidCandidate(corLibCandidate, isWellKnownType) Then
@@ -570,7 +580,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Continue For
                 End If
 
-                Dim candidate As NamedTypeSymbol = reference.LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
+                Dim candidate As NamedTypeSymbol = reference.LookupDeclaredTopLevelMetadataType(metadataName)
+                Debug.Assert(If(Not candidate?.IsErrorType(), True))
 
                 If Not IsValidCandidate(candidate, isWellKnownType) OrElse
                         TypeSymbol.Equals(candidate, result, TypeCompareKind.ConsiderEverything) Then
@@ -599,6 +610,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 result = candidate
             Next
 
+            Debug.Assert(If(Not result?.IsErrorType(), True))
             Return result
         End Function
 

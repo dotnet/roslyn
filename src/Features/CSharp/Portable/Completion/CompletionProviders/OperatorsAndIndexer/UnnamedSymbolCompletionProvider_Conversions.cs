@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static readonly ImmutableDictionary<string, string> s_conversionProperties =
             ImmutableDictionary<string, string>.Empty.Add(KindName, ConversionKindName);
 
-        // We set conversion items' match priority to lower than default so completion selects other symbols over it when user starts typing.
+        // We set conversion items' match priority to "Deprioritize" so completion selects other symbols over it when user starts typing.
         // e.g. method symbol `Should` should be selected over `(short)` when "sh" is typed.
-        private static readonly CompletionItemRules s_conversionRules = CompletionItemRules.Default.WithMatchPriority(MatchPriority.Default - 1);
+        private static readonly CompletionItemRules s_conversionRules = CompletionItemRules.Default.WithMatchPriority(MatchPriority.Deprioritize);
 
         private static void AddConversion(CompletionContext context, SemanticModel semanticModel, int position, IMethodSymbol conversion)
         {

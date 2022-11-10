@@ -2382,5 +2382,75 @@ End Class
             Dim verifier = CompileAndVerify(compilation, expectedOutput:="22")
         End Sub
 
+        <WorkItem(64392, "https://github.com/dotnet/roslyn/issues/64392")>
+        <Fact()>
+        Public Sub ReferToFieldWithinLambdaInTypeAttribute_01()
+
+            Dim compilationDef =
+"
+<Display(Function() $""{Name}"")>
+public class Test
+    <Display(Name:=""Name"")>
+    public readonly property Name As String
+end class
+
+public class DisplayAttribute
+    Inherits System.Attribute
+
+    public Sub New()
+    end Sub
+End Class
+"
+            Dim compilation = CompilationUtils.CreateCompilation(compilationDef)
+            compilation.AssertTheseEmitDiagnostics(
+<expected><![CDATA[
+BC30057: Too many arguments to 'Public Sub New()'.
+<Display(Function() $"{Name}")>
+         ~~~~~~~~~~~~~~~~~~~~
+BC30059: Constant expression is required.
+<Display(Function() $"{Name}")>
+         ~~~~~~~~~~~~~~~~~~~~
+BC30661: Field or property 'Name' is not found.
+    <Display(Name:="Name")>
+             ~~~~
+]]></expected>
+            )
+        End Sub
+
+        <WorkItem(64392, "https://github.com/dotnet/roslyn/issues/64392")>
+        <Fact()>
+        Public Sub ReferToFieldWithinLambdaInTypeAttribute_02()
+
+            Dim compilationDef =
+"
+<Display(Function() Name)>
+public class Test
+    <Display(Name:=""Name"")>
+    public readonly property Name As String
+end class
+
+public class DisplayAttribute
+    Inherits System.Attribute
+
+    public Sub New()
+    end Sub
+End Class
+"
+            Dim compilation = CompilationUtils.CreateCompilation(compilationDef)
+            compilation.AssertTheseEmitDiagnostics(
+<expected><![CDATA[
+BC30057: Too many arguments to 'Public Sub New()'.
+<Display(Function() Name)>
+         ~~~~~~~~~~~~~~~
+BC30059: Constant expression is required.
+<Display(Function() Name)>
+         ~~~~~~~~~~~~~~~
+BC30661: Field or property 'Name' is not found.
+    <Display(Name:="Name")>
+             ~~~~
+]]></expected>
+            )
+        End Sub
+
     End Class
 End Namespace

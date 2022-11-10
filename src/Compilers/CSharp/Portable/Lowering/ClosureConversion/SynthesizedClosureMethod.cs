@@ -39,7 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                    originalMethod is LocalFunctionSymbol
                     ? MakeName(topLevelMethod.Name, originalMethod.Name, topLevelMethodId, closureKind, lambdaId)
                     : MakeName(topLevelMethod.Name, topLevelMethodId, closureKind, lambdaId),
-                   MakeDeclarationModifiers(closureKind, originalMethod))
+                   MakeDeclarationModifiers(closureKind, originalMethod),
+                   isIterator: originalMethod.IsIterator)
         {
             Debug.Assert(containingType.DeclaringCompilation is not null);
 

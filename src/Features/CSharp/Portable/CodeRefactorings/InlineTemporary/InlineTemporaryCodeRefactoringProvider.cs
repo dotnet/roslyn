@@ -92,9 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             context.RegisterRefactoring(
                 CodeAction.Create(
-                    CSharpFeaturesResources.Inline_temporary_variable,
+                    FeaturesResources.Inline_temporary_variable,
                     c => InlineTemporaryAsync(document, variableDeclarator, c),
-                    nameof(CSharpFeaturesResources.Inline_temporary_variable)),
+                    nameof(FeaturesResources.Inline_temporary_variable)),
                 variableDeclarator.Span);
         }
 
@@ -108,17 +108,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             if (IsInDeconstructionAssignmentLeft(identifierNode))
                 return true;
 
-            if (identifierNode.IsParentKind(SyntaxKind.Argument, out ArgumentSyntax argument))
+            if (identifierNode?.Parent is ArgumentSyntax argument)
             {
                 if (argument.RefOrOutKeyword.Kind() != SyntaxKind.None)
                     return true;
             }
-            else if (identifierNode.Parent.IsKind(
-                SyntaxKind.PreDecrementExpression,
-                SyntaxKind.PreIncrementExpression,
-                SyntaxKind.PostDecrementExpression,
-                SyntaxKind.PostIncrementExpression,
-                SyntaxKind.AddressOfExpression))
+            else if (identifierNode.Parent.Kind() is
+                SyntaxKind.PreDecrementExpression or
+                SyntaxKind.PreIncrementExpression or
+                SyntaxKind.PostDecrementExpression or
+                SyntaxKind.PostIncrementExpression or
+                SyntaxKind.AddressOfExpression)
             {
                 return true;
             }
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
         {
             // Create the expression that we're actually going to inline.
             var expressionToInline = await CreateExpressionToInlineAsync(document, declarator, cancellationToken).ConfigureAwait(false);
-            expressionToInline = expressionToInline.Parenthesize().WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation, ExpressionAnnotation);
+            expressionToInline = expressionToInline.WithoutTrivia().Parenthesize().WithAdditionalAnnotations(Simplifier.Annotation, ExpressionAnnotation);
 
             // Annotate the variable declarator so that we can get back to it later.
             document = await document.ReplaceNodeAsync(declarator, declarator.WithAdditionalAnnotations(DefinitionAnnotation), cancellationToken).ConfigureAwait(false);
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             // After refactoring:
             //     M().P = 0;
             //     var x = M();
-            if (descendantNodesAndSelf.Any(n => n.IsKind(SyntaxKind.ObjectCreationExpression, SyntaxKind.InvocationExpression)))
+            if (descendantNodesAndSelf.Any(n => n.Kind() is SyntaxKind.ObjectCreationExpression or SyntaxKind.InvocationExpression))
             {
                 return true;
             }
@@ -328,13 +328,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             var leadingTrivia = localDeclaration
                 .GetLeadingTrivia()
                 .Reverse()
-                .SkipWhile(t => t.MatchesKind(SyntaxKind.WhitespaceTrivia))
+                .SkipWhile(t => t.IsKind(SyntaxKind.WhitespaceTrivia))
                 .Reverse()
                 .ToSyntaxTriviaList();
 
             var trailingTrivia = localDeclaration
                 .GetTrailingTrivia()
-                .SkipWhile(t => t.MatchesKind(SyntaxKind.WhitespaceTrivia, SyntaxKind.EndOfLineTrivia))
+                .SkipWhile(t => t is (kind: SyntaxKind.WhitespaceTrivia or SyntaxKind.EndOfLineTrivia))
                 .ToSyntaxTriviaList();
 
             var newLeadingTrivia = leadingTrivia.Concat(trailingTrivia);
@@ -349,14 +349,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             // If the local is parented by a label statement, we can't remove this statement. Instead,
             // we'll replace the local declaration with an empty expression statement.
-            if (newLocalDeclaration.IsParentKind(SyntaxKind.LabeledStatement, out LabeledStatementSyntax labeledStatement))
+            if (newLocalDeclaration?.Parent is LabeledStatementSyntax labeledStatement)
             {
                 var newLabeledStatement = labeledStatement.ReplaceNode(newLocalDeclaration, SyntaxFactory.ParseStatement(""));
                 return newScope.ReplaceNode(labeledStatement, newLabeledStatement);
             }
 
             // If the local is parented by a global statement, we need to remove the parent global statement.
-            if (newLocalDeclaration.IsParentKind(SyntaxKind.GlobalStatement, out GlobalStatementSyntax globalStatement))
+            if (newLocalDeclaration?.Parent is GlobalStatementSyntax globalStatement)
             {
                 return newScope.RemoveNode(globalStatement, SyntaxRemoveOptions.KeepNoTrivia);
             }
@@ -369,51 +369,64 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             VariableDeclaratorSyntax variableDeclarator,
             CancellationToken cancellationToken)
         {
-            var isVar = ((VariableDeclarationSyntax)variableDeclarator.Parent).Type.IsVar;
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var expression = variableDeclarator.Initializer.Value.WalkDownParentheses();
 
-            var localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
+            var expressionToInline = CreateExpressionToInline();
 
-            if (expression is ImplicitObjectCreationExpressionSyntax implicitCreation)
+            // If we are moving something multiline to a new location, add the formatter annotation to it so we can
+            // attempt to ensure it gets properly indented/dedented there.
+            if (!text.AreOnSameLine(expression.SpanStart, expression.Span.End))
+                expressionToInline = expressionToInline.WithAdditionalAnnotations(Formatter.Annotation);
+
+            return expressionToInline;
+
+            ExpressionSyntax CreateExpressionToInline()
             {
-                // Consider: C c = new(); Console.WriteLine(c.ToString());
-                // Inlining result should be: Console.WriteLine(new C().ToString()); instead of Console.WriteLine(new().ToString());
-                // This condition converts implicit object creation expression to normal object creation expression.
+                var isVar = ((VariableDeclarationSyntax)variableDeclarator.Parent).Type.IsVar;
+                var localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
 
-                var type = localSymbol.Type.GenerateTypeSyntax();
-                return SyntaxFactory.ObjectCreationExpression(implicitCreation.NewKeyword, type, implicitCreation.ArgumentList, implicitCreation.Initializer);
-            }
-            else if (expression.IsKind(SyntaxKind.ArrayInitializerExpression, out InitializerExpressionSyntax arrayInitializer))
-            {
-                // If this is an array initializer, we need to transform it into an array creation
-                // expression for inlining.
-
-                var arrayType = (ArrayTypeSyntax)localSymbol.Type.GenerateTypeSyntax();
-
-                // Add any non-whitespace trailing trivia from the equals clause to the type.
-                var equalsToken = variableDeclarator.Initializer.EqualsToken;
-                if (equalsToken.HasTrailingTrivia)
+                if (expression is ImplicitObjectCreationExpressionSyntax implicitCreation)
                 {
-                    var trailingTrivia = equalsToken.TrailingTrivia.SkipInitialWhitespace();
-                    if (trailingTrivia.Any())
-                        arrayType = arrayType.WithTrailingTrivia(trailingTrivia);
+                    // Consider: C c = new(); Console.WriteLine(c.ToString());
+                    // Inlining result should be: Console.WriteLine(new C().ToString()); instead of Console.WriteLine(new().ToString());
+                    // This condition converts implicit object creation expression to normal object creation expression.
+
+                    var type = localSymbol.Type.GenerateTypeSyntax();
+                    return SyntaxFactory.ObjectCreationExpression(implicitCreation.NewKeyword, type, implicitCreation.ArgumentList, implicitCreation.Initializer);
                 }
+                else if (expression is InitializerExpressionSyntax(SyntaxKind.ArrayInitializerExpression) arrayInitializer)
+                {
+                    // If this is an array initializer, we need to transform it into an array creation
+                    // expression for inlining.
 
-                return SyntaxFactory.ArrayCreationExpression(arrayType, arrayInitializer);
-            }
-            else if (isVar && expression is ObjectCreationExpressionSyntax or ArrayCreationExpressionSyntax or CastExpressionSyntax)
-            {
-                // if we have `var x = new Y();` there's no need to do any casting as the type is indicated
-                // directly in the existing code.  The same holds for `new Y[]` or `(Y)...`
-                return expression;
-            }
-            else
-            {
-                if (localSymbol.Type.ContainsAnonymousType() || localSymbol.Type is IErrorTypeSymbol { Name: null or "" })
+                    var arrayType = (ArrayTypeSyntax)localSymbol.Type.GenerateTypeSyntax();
+
+                    // Add any non-whitespace trailing trivia from the equals clause to the type.
+                    var equalsToken = variableDeclarator.Initializer.EqualsToken;
+                    if (equalsToken.HasTrailingTrivia)
+                    {
+                        var trailingTrivia = equalsToken.TrailingTrivia.SkipInitialWhitespace();
+                        if (trailingTrivia.Any())
+                            arrayType = arrayType.WithTrailingTrivia(trailingTrivia);
+                    }
+
+                    return SyntaxFactory.ArrayCreationExpression(arrayType, arrayInitializer);
+                }
+                else if (isVar && expression is ObjectCreationExpressionSyntax or ArrayCreationExpressionSyntax or CastExpressionSyntax)
+                {
+                    // if we have `var x = new Y();` there's no need to do any casting as the type is indicated
+                    // directly in the existing code.  The same holds for `new Y[]` or `(Y)...`
                     return expression;
+                }
+                else
+                {
+                    if (localSymbol.Type.ContainsAnonymousType() || localSymbol.Type is IErrorTypeSymbol { Name: null or "" })
+                        return expression;
 
-                return expression.Cast(localSymbol.Type);
+                    return expression.Cast(localSymbol.Type);
+                }
             }
         }
 
@@ -423,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
         private static bool IsInDeconstructionAssignmentLeft(ExpressionSyntax node)
         {
             var parent = node.Parent;
-            while (parent.IsKind(SyntaxKind.ParenthesizedExpression, SyntaxKind.CastExpression))
+            while (parent.Kind() is SyntaxKind.ParenthesizedExpression or SyntaxKind.CastExpression)
                 parent = parent.Parent;
 
             while (parent.IsKind(SyntaxKind.Argument))
@@ -433,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 {
                     return false;
                 }
-                else if (parent.IsParentKind(SyntaxKind.SimpleAssignmentExpression, out AssignmentExpressionSyntax assignment))
+                else if (parent?.Parent is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) assignment)
                 {
                     return assignment.Left == parent;
                 }

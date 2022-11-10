@@ -118,9 +118,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (!boundInitializer.Value.HasAnyErrors)
                                 {
                                     var field = boundInitializer.Field;
-                                    if (field.Type.IsRefLikeType)
+                                    bool isByRef = field.RefKind != RefKind.None;
+                                    if (isByRef || field.Type.IsRefLikeType)
                                     {
-                                        BoundExpression value = parentBinder.ValidateEscape(boundInitializer.Value, ExternalScope, isByRef: false, diagnostics);
+                                        BoundExpression value = parentBinder.ValidateEscape(boundInitializer.Value, CallingMethodScope, isByRef: isByRef, diagnostics);
                                         boundInitializer = boundInitializer.Update(field, boundInitializer.Locals, value);
                                     }
                                 }
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
 
                             default:
-                                throw ExceptionUtilities.Unreachable;
+                                throw ExceptionUtilities.Unreachable();
                         }
                     }
                 }

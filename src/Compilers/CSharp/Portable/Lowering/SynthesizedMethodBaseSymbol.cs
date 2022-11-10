@@ -28,15 +28,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         private ImmutableArray<TypeParameterSymbol> _typeParameters;
         private ImmutableArray<ParameterSymbol> _parameters;
-        private TypeWithAnnotations.Boxed _iteratorElementType;
 
         protected SynthesizedMethodBaseSymbol(NamedTypeSymbol containingType,
                                               MethodSymbol baseMethod,
                                               SyntaxReference syntaxReference,
                                               Location location,
                                               string name,
-                                              DeclarationModifiers declarationModifiers)
-            : base(containingType, syntaxReference, location, isIterator: false)
+                                              DeclarationModifiers declarationModifiers,
+                                              bool isIterator)
+            : base(containingType, syntaxReference, location, isIterator)
         {
             Debug.Assert((object)containingType != null);
             Debug.Assert((object)baseMethod != null);
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ordinal++,
                     p.RefKind,
                     p.Name,
-                    p.DeclaredScope,
+                    p.EffectiveScope,
                     // the synthesized parameter doesn't need to have the same ref custom modifiers as the base
                     refCustomModifiers: default,
                     inheritAttributes ? p as SourceComplexParameterSymbolBase : null));
@@ -230,27 +230,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return false; }
         }
-
-        internal override TypeWithAnnotations IteratorElementTypeWithAnnotations
-        {
-            get
-            {
-                if (_iteratorElementType is null)
-                {
-                    Interlocked.CompareExchange(ref _iteratorElementType,
-                                                new TypeWithAnnotations.Boxed(TypeMap.SubstituteType(BaseMethod.IteratorElementTypeWithAnnotations.Type)),
-                                                null);
-                }
-
-                return _iteratorElementType.Value;
-            }
-            set
-            {
-                Debug.Assert(!value.IsDefault);
-                Interlocked.Exchange(ref _iteratorElementType, new TypeWithAnnotations.Boxed(value));
-            }
-        }
-
-        internal override bool IsIterator => BaseMethod.IsIterator;
     }
 }

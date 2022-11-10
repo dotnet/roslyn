@@ -3,17 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.ArrayStatements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class EraseKeywordRecommenderTests
         Inherits RecommenderTests
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EraseInMethodBodyTest()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Erase")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EraseAfterStatementTest()
             VerifyRecommendationsContain(<MethodBody>
 Dim x 
@@ -21,19 +20,16 @@ Dim x
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EraseMissingInClassBlockTest()
             VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "Erase")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EraseInSingleLineLambdaTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = Sub() |</MethodBody>, "Erase")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EraseNotInSingleLineFunctionLambdaTest()
             VerifyRecommendationsMissing(<MethodBody>Dim x = Function() |</MethodBody>, "Erase")
         End Sub

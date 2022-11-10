@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.VisualBasic.Wrapping
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
+    <Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
     Public Class BinaryExpressionWrappingTests
         Inherits AbstractWrappingTests
 
@@ -21,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
         Private ReadOnly Property BeginningOfLine As TestParameters =
             New TestParameters(options:=[Option](CodeStyleOptions2.OperatorPlacementWhenWrapping, OperatorPlacementWhenWrappingPreference.BeginningOfLine))
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestMissingWithSyntaxError() As Task
             Await TestMissingAsync(
 "class C
@@ -31,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestMissingWithSelection() As Task
             Await TestMissingAsync(
 "class C
@@ -42,7 +43,7 @@ end class")
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestMissingBeforeExpr() As Task
             Await TestMissingAsync(
 "class C
@@ -53,7 +54,7 @@ end class")
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestMissingWithSingleExpr() As Task
             Await TestMissingAsync(
 "class C
@@ -64,7 +65,7 @@ end class")
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestMissingWithMultiLineExpression() As Task
             Await TestMissingAsync(
 "class C
@@ -76,7 +77,7 @@ end class")
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestMissingWithMultiLineExpr2() As Task
             Await TestMissingAsync(
 "class C
@@ -88,7 +89,7 @@ end class")
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestInIf() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -114,7 +115,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestInIf_IncludingOp() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -140,7 +141,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestInIf2() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -166,7 +167,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestInIf3() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -192,7 +193,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestInIf4() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -218,7 +219,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestInIf5() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -244,7 +245,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestTwoExprWrappingCases_End() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -270,7 +271,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestTwoExprWrappingCases_Beginning() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -296,7 +297,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestThreeExprWrappingCases_End() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -324,7 +325,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestThreeExprWrappingCases_Beginning() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -352,7 +353,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function Test_AllOptions_NoInitialMatches_End() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -383,7 +384,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function Test_AllOptions_NoInitialMatches_Beginning() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -414,7 +415,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function Test_DoNotOfferExistingOption1() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -446,7 +447,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function Test_DoNotOfferExistingOption2_End() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -472,7 +473,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function Test_DoNotOfferExistingOption2_Beginning() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -491,7 +492,7 @@ BeginningOfLine,
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestInLocalInitializer() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -516,7 +517,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestInField_Beginning() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -535,7 +536,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestInField_End() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -554,7 +555,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestAddition_End() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -581,7 +582,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestAddition_Beginning() As Task
             Await TestAllWrappingCasesAsync(
 "class C
@@ -607,8 +608,7 @@ end class",
 end class")
         End Function
 
-        <WorkItem(34127, "https://github.com/dotnet/roslyn/issues/34127")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact, WorkItem(34127, "https://github.com/dotnet/roslyn/issues/34127")>
         Public Async Function TestWrapLowerPrecedenceInLargeBinary() As Task
             Await TestAllWrappingCasesAsync(
 "class C

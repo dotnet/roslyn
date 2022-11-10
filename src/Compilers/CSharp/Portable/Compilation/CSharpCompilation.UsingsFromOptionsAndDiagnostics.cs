@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var diagnostics = new DiagnosticBag();
-                var usingsBinder = new InContainerBinder(compilation.GlobalNamespace, new BuckStopsHereBinder(compilation, associatedSyntaxTree: null));
+                var usingsBinder = new InContainerBinder(compilation.GlobalNamespace, new BuckStopsHereBinder(compilation, associatedFileIdentifier: null));
                 var boundUsings = ArrayBuilder<NamespaceOrTypeAndUsingDirective>.GetInstance();
                 var uniqueUsings = PooledHashSet<NamespaceOrTypeSymbol>.GetInstance();
 

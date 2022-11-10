@@ -4,6 +4,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.GoToBase)>
     Public Class VisualBasicGoToBaseTests
         Inherits GoToBaseTestsBase
         Private Overloads Shared Async Function TestAsync(source As String, Optional shouldSucceed As Boolean = True,
@@ -11,21 +12,21 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
             Await GoToBaseTestsBase.TestAsync(source, LanguageNames.VisualBasic, shouldSucceed, metadataDefinitions)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestEmptyFile() As Task
             Await TestAsync("$$", shouldSucceed:=False)
         End Function
 
 #Region "Classes And Interfaces"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithSingleClass() As Task
             Await TestAsync(
 "class $$C
 end class", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithAbstractClass() As Task
             Await TestAsync(
 "mustinherit class [|C|]
@@ -36,7 +37,7 @@ class $$D
 end class", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithAbstractClassFromInterface() As Task
             Await TestAsync(
 "interface [|I|]
@@ -49,7 +50,7 @@ class $$D
 end class", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithSealedClass() As Task
             Await TestAsync(
 "class [|D|]
@@ -59,14 +60,14 @@ NotInheritable class $$C
 end class", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithEnum() As Task
             Await TestAsync(
 "enum $$C
 end enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithNonAbstractClass() As Task
             Await TestAsync(
 "class [|C|]
@@ -77,7 +78,7 @@ class $$D
 end class", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithSingleClassImplementation() As Task
             Await TestAsync(
 "class $$C 
@@ -87,7 +88,7 @@ interface [|I|]
 end interface", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithTwoClassImplementations() As Task
             Await TestAsync(
 "class $$C 
@@ -100,7 +101,7 @@ interface [|I|]
 end interface", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestClassHierarchyWithParentSiblings() As Task
             Await TestAsync(
 "class E 
@@ -137,14 +138,14 @@ end interface", metadataDefinitions:={"mscorlib:Object"})
 
 #Region "Structures"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithStruct() As Task
             Await TestAsync(
 "structure $$S
 end structure", metadataDefinitions:={"mscorlib:Object", "mscorlib:ValueType"})
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithSingleStructImplementation() As Task
             Await TestAsync(
 "structure $$S
@@ -154,7 +155,7 @@ interface [|I|]
 end interface", metadataDefinitions:={"mscorlib:Object", "mscorlib:ValueType"})
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestStructWithInterfaceHierarchy() As Task
             Await TestAsync(
 "structure $$S 
@@ -179,7 +180,7 @@ end interface", metadataDefinitions:={"mscorlib:Object", "mscorlib:ValueType"})
 
 #Region "Methods"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithOneMethodImplementation_01() As Task
             Await TestAsync(
 "class C
@@ -218,7 +219,7 @@ interface I
 end interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestInterfaceWithOneMethodOverload() As Task
             Await TestAsync(
 "interface J
@@ -230,7 +231,7 @@ interface I
 end interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithOneMethodImplementationInStruct() As Task
             Await TestAsync(
 "structure S
@@ -243,7 +244,7 @@ interface I
 end interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithTwoMethodImplementations() As Task
             Await TestAsync(
 "class C
@@ -261,7 +262,7 @@ interface I
 end interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestOverrideWithOverloads_01() As Task
             Await TestAsync(
 "class C
@@ -277,7 +278,7 @@ class D
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestOverrideWithOverloads_02() As Task
             Await TestAsync(
 "class C
@@ -293,7 +294,7 @@ class D
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestImplementWithOverloads_01() As Task
             Await TestAsync(
 "Class C
@@ -309,7 +310,7 @@ Interface I
 End Interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestImplementWithOverloads_02() As Task
             Await TestAsync(
 "Class C
@@ -325,7 +326,7 @@ Interface I
 End Interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithVirtualMethodImplementationWithInterfaceOnBaseClass() As Task
             Await TestAsync(
 "Class C
@@ -343,7 +344,7 @@ Interface I
 End Interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithVirtualMethodHiddenWithInterfaceOnBaseClass() As Task
             ' We should not find hidden methods 
             ' and methods in interfaces if hidden below but the nested class does not implement the interface.
@@ -363,7 +364,7 @@ Interface I
 End Interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithVirtualMethodImplementationWithInterfaceOnDerivedClass() As Task
             Await TestAsync(
 "Class C
@@ -381,7 +382,7 @@ Interface I
 End Interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithVirtualMethodHiddenWithInterfaceOnDerivedClass() As Task
             ' We should not find a hidden method.
             Await TestAsync(
@@ -400,7 +401,7 @@ Interface I
 End Interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithVirtualMethodImplementationAndInterfaceImplementedOnDerivedType() As Task
             Await TestAsync(
 "Class C
@@ -419,7 +420,7 @@ Interface I
 End Interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithVirtualMethodHiddenAndInterfaceImplementedOnDerivedType() As Task
             ' We should not find hidden methods.
             ' We should not find methods of interfaces not implemented by the method symbol.
@@ -444,7 +445,7 @@ Interface I
 End Interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithVirtualMethodHiddenAndInterfaceAndMethodImplementedOnDerivedType() As Task
             ' We should not find hidden methods but should find the interface method.
             Await TestAsync(
@@ -464,7 +465,7 @@ Interface I
 End Interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithAbstractMethodImplementation() As Task
             Await TestAsync(
 "MustInherit Class C
@@ -481,7 +482,7 @@ Interface I
 End Interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithSimpleMethod() As Task
             Await TestAsync(
 "class C 
@@ -490,7 +491,7 @@ End Interface")
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithOverridableMethodOnBase() As Task
             Await TestAsync(
 "class C 
@@ -505,7 +506,7 @@ class D
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithOverridableMethodOnImplementation() As Task
             Await TestAsync(
 "class C 
@@ -520,7 +521,7 @@ class D
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithIntermediateAbstractOverrides() As Task
             Await TestAsync(
 "MustInherit Class A
@@ -544,7 +545,7 @@ NotInheritable Class C2
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithOverloadsOverrdiesAndInterfaceImplementation_01() As Task
             Await TestAsync(
 "Class C
@@ -567,7 +568,7 @@ Interface I
 End Interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithOverloadsOverrdiesAndInterfaceImplementation_02() As Task
             Await TestAsync(
 "Class C
@@ -590,7 +591,7 @@ Interface I
 End Interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestOverrideOfMethodFromMetadata() As Task
             Await TestAsync(
 "Imports System
@@ -605,7 +606,7 @@ End Class
 #End Region
 
 #Region "Properties and Events"
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithOneEventImplementation() As Task
             Await TestAsync(
 "Class C
@@ -617,7 +618,7 @@ Interface I
 End Interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithOneEventImplementationInStruct() As Task
             Await TestAsync(
 "Structure C
@@ -629,7 +630,7 @@ Interface I
 End Interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithOnePropertyImplementation() As Task
             Await TestAsync(
 "Class C
@@ -647,7 +648,7 @@ Interface I
 End Interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        <Fact>
         Public Async Function TestWithOnePropertyImplementationInStruct() As Task
             Await TestAsync(
 "Structure C

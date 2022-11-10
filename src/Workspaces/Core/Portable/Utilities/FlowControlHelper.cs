@@ -12,7 +12,7 @@ namespace Roslyn.Utilities
         public static AsyncFlowControlHelper TrySuppressFlow()
             => new(ExecutionContext.IsFlowSuppressed() ? default : ExecutionContext.SuppressFlow());
 
-        public struct AsyncFlowControlHelper : IDisposable
+        public readonly struct AsyncFlowControlHelper : IDisposable
         {
             private readonly AsyncFlowControl _asyncFlowControl;
 

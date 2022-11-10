@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private void OnProgressChanged(ProgressData progressData)
                 => ProgressChanged?.Invoke(this, progressData);
 
-            private struct ProgressStatusRAII : IDisposable
+            private readonly struct ProgressStatusRAII : IDisposable
             {
                 private readonly SolutionCrawlerProgressReporter _owner;
 

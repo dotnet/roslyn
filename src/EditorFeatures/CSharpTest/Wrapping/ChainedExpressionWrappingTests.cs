@@ -12,12 +12,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
     public class ChainedExpressionWrappingTests : AbstractWrappingTests
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpWrappingCodeRefactoringProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestMissingWithSyntaxError()
         {
             await TestMissingAsync(
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestMissingWithoutEnoughChunks()
         {
             await TestMissingAsync(
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestWithEnoughChunks()
         {
             await TestAllWrappingCasesAsync(
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestGenericNames()
         {
             await TestAllWrappingCasesAsync(
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestElementAccess()
         {
             await TestAllWrappingCasesAsync(
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestUnwrap()
         {
             await TestAllWrappingCasesAsync(
@@ -131,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestWrapAndUnwrap()
         {
             await TestAllWrappingCasesAsync(
@@ -161,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestChunkMustHaveDottedSection()
         {
             await TestAllWrappingCasesAsync(
@@ -184,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TrailingNonCallIsNotWrapped()
         {
             await TestAllWrappingCasesAsync(
@@ -207,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TrailingLongWrapping1()
         {
             await TestAllWrappingCasesAsync(
@@ -252,7 +253,7 @@ GetIndentionColumn(35),
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TrailingLongWrapping2()
         {
             await TestAllWrappingCasesAsync(
@@ -296,7 +297,7 @@ GetIndentionColumn(40),
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TrailingLongWrapping3()
         {
             await TestAllWrappingCasesAsync(
@@ -338,7 +339,7 @@ GetIndentionColumn(60),
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestInConditionalAccess()
         {
             await TestAllWrappingCasesAsync(
@@ -361,7 +362,7 @@ GetIndentionColumn(60),
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestInConditionalAccess2()
         {
             await TestAllWrappingCasesAsync(
@@ -384,7 +385,7 @@ GetIndentionColumn(60),
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestInConditionalAccess3()
         {
             await TestAllWrappingCasesAsync(
@@ -407,7 +408,7 @@ GetIndentionColumn(60),
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestInConditionalAccess4()
         {
             await TestAllWrappingCasesAsync(

@@ -51,15 +51,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             {
                 AnalyzeMembers(context, namespaceDeclaration.Members, analysisResults);
             }
-            else if (member.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax? typeDeclaration) ||
-                member.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration) ||
-                member.IsKind(SyntaxKind.RecordDeclaration, out typeDeclaration) ||
-                member.IsKind(SyntaxKind.RecordStructDeclaration, out typeDeclaration))
+            else if (member is TypeDeclarationSyntax(
+                SyntaxKind.ClassDeclaration or
+                SyntaxKind.StructDeclaration or
+                SyntaxKind.RecordDeclaration or
+                SyntaxKind.RecordStructDeclaration) typeDeclaration)
             {
                 // If we have a class or struct, recurse inwards.
                 AnalyzeMembers(context, typeDeclaration.Members, analysisResults);
             }
-            else if (member.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax? propertyDeclaration))
+            else if (member is PropertyDeclarationSyntax propertyDeclaration)
             {
                 AnalyzeProperty(context, propertyDeclaration, analysisResults);
             }
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
 
         private static bool CheckExpressionSyntactically(ExpressionSyntax expression)
         {
-            if (expression.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax? memberAccessExpression))
+            if (expression is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccessExpression)
             {
                 return memberAccessExpression.Expression.Kind() == SyntaxKind.ThisExpression &&
                     memberAccessExpression.Name.Kind() == SyntaxKind.IdentifierName;
@@ -166,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
                 case ArrowExpressionClauseSyntax arrowExpression:
                     return arrowExpression.Expression;
                 case null: return null;
-                default: throw ExceptionUtilities.Unreachable;
+                default: throw ExceptionUtilities.Unreachable();
             }
         }
 

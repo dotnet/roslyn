@@ -188,8 +188,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedVariable
 }");
         }
 
-        [WorkItem(20466, "https://github.com/dotnet/roslyn/issues/20466")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        [WorkItem(20466, "https://github.com/dotnet/roslyn/issues/20466")]
         public async Task RemoveUnusedCatchVariable()
         {
             await TestInRegularAndScriptAsync(
@@ -219,8 +219,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedVariable
 }");
         }
 
-        [WorkItem(20987, "https://github.com/dotnet/roslyn/issues/20987")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        [WorkItem(20987, "https://github.com/dotnet/roslyn/issues/20987")]
         public async Task LeadingDirectives()
         {
             await TestInRegularAndScriptAsync(
@@ -269,8 +269,8 @@ namespace ClassLibrary
 }");
         }
 
-        [WorkItem(20942, "https://github.com/dotnet/roslyn/issues/20942")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        [WorkItem(20942, "https://github.com/dotnet/roslyn/issues/20942")]
         public async Task TestWhitespaceBetweenStatements1()
         {
             await TestInRegularAndScriptAsync(
@@ -297,8 +297,8 @@ class Test
 }");
         }
 
-        [WorkItem(20942, "https://github.com/dotnet/roslyn/issues/20942")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        [WorkItem(20942, "https://github.com/dotnet/roslyn/issues/20942")]
         public async Task TestWhitespaceBetweenStatements2()
         {
             await TestInRegularAndScriptAsync(
@@ -660,8 +660,8 @@ class C
             await TestInRegularAndScriptAsync(input, expected);
         }
 
-        [WorkItem(40336, "https://github.com/dotnet/roslyn/issues/40336")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        [WorkItem(40336, "https://github.com/dotnet/roslyn/issues/40336")]
         public async Task RemoveUnusedVariableDeclaredInForStatement()
         {
             await TestInRegularAndScriptAsync(
@@ -687,8 +687,8 @@ class C
 }");
         }
 
-        [WorkItem(40336, "https://github.com/dotnet/roslyn/issues/40336")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        [WorkItem(40336, "https://github.com/dotnet/roslyn/issues/40336")]
         public async Task RemoveUnusedVariableJointDeclaredInForStatement()
         {
             await TestInRegularAndScriptAsync(
@@ -714,8 +714,8 @@ class C
 }");
         }
 
-        [WorkItem(44273, "https://github.com/dotnet/roslyn/issues/44273")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        [WorkItem(44273, "https://github.com/dotnet/roslyn/issues/44273")]
         public async Task TopLevelStatement()
         {
             await TestAsync(@"
@@ -725,8 +725,8 @@ class C
 ", TestOptions.Regular);
         }
 
-        [WorkItem(49827, "https://github.com/dotnet/roslyn/issues/49827")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        [WorkItem(49827, "https://github.com/dotnet/roslyn/issues/49827")]
         public async Task RemoveUnusedVariableJointDeclaredInForStatementInsideIfStatement()
         {
             await TestInRegularAndScriptAsync(
@@ -754,8 +754,8 @@ class C
 }");
         }
 
-        [WorkItem(49827, "https://github.com/dotnet/roslyn/issues/49827")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        [WorkItem(49827, "https://github.com/dotnet/roslyn/issues/49827")]
         public async Task DontCrashOnDeclarationInsideIfStatement()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -771,8 +771,8 @@ class C
 }");
         }
 
-        [WorkItem(56924, "https://github.com/dotnet/roslyn/issues/56924")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        [WorkItem(56924, "https://github.com/dotnet/roslyn/issues/56924")]
         public async Task RemoveUnusedVariableInCatchInsideBadLocalDeclaration()
         {
             await TestInRegularAndScriptAsync(
@@ -798,8 +798,8 @@ class C
 }");
         }
 
-        [WorkItem(51737, "https://github.com/dotnet/roslyn/issues/51737")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [WorkItem(51737, "https://github.com/dotnet/roslyn/issues/51737")]
         public async Task RemoveUnusedVariableTopLevel()
         {
             await TestAsync(

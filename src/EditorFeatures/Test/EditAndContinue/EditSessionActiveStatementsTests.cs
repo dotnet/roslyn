@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 solution,
                 mockDebuggerService,
                 mockCompilationOutputsProvider,
+                NullPdbMatchingSourceTextProvider.Instance,
                 SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>(),
                 reportDiagnostics: true);
 

@@ -364,8 +364,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")>
+        <Fact, WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")>
         Public Async Function ExpandsToIncludeSurroundedVariableDeclarations() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.IO
@@ -392,8 +391,7 @@ Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")>
+        <Fact, WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")>
         Public Async Function ExpandsToIncludeSurroundedMultiVariableDeclarations() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.IO
@@ -422,8 +420,7 @@ Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(43373, "https://github.com/dotnet/roslyn/issues/43373")>
+        <Fact, WorkItem(43373, "https://github.com/dotnet/roslyn/issues/43373")>
         Public Async Function HandleTrailingComma() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -465,6 +462,290 @@ Module Program
         End Using
     End Sub
 End Module")
+        End Function
+
+        <Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")>
+        Public Async Function ConsumeFollowingTryStatement1() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Imports System.IO
+
+Class C
+    Sub M()
+        Dim reader = New MemoryStream()[||]
+        Try
+            Dim buffer = reader.GetBuffer()
+            buffer.Clone()
+            Dim a = 1
+        Finally
+            reader.Dispose()
+        End Try
+    End Sub
+End Class",
+"Imports System
+Imports System.IO
+
+Class C
+    Sub M()
+        Using reader = New MemoryStream()
+            Dim buffer = reader.GetBuffer()
+            buffer.Clone()
+            Dim a = 1
+        End Using
+    End Sub
+End Class")
+        End Function
+
+        <Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")>
+        Public Async Function ConsumeFollowingTryStatement2() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Imports System.IO
+
+Class C
+    Sub M()
+        Dim reader = New MemoryStream()[||]
+        Try
+            Dim buffer = reader.GetBuffer()
+            buffer.Clone()
+            Dim a = 1
+        Catch ex As Exception
+        Finally
+            reader.Dispose()
+        End Try
+    End Sub
+End Class",
+"Imports System
+Imports System.IO
+
+Class C
+    Sub M()
+        Using reader = New MemoryStream()
+            Try
+                Dim buffer = reader.GetBuffer()
+                buffer.Clone()
+                Dim a = 1
+            Catch ex As Exception
+            Finally
+                reader.Dispose()
+            End Try
+        End Using
+    End Sub
+End Class")
+        End Function
+
+        <Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")>
+        Public Async Function ConsumeFollowingTryStatement3() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Imports System.IO
+
+Class C
+    Sub M()
+        Dim reader = New MemoryStream()[||]
+        Try
+            Dim buffer = reader.GetBuffer()
+            buffer.Clone()
+            Dim a = 1
+        Finally
+        End Try
+    End Sub
+End Class",
+"Imports System
+Imports System.IO
+
+Class C
+    Sub M()
+        Using reader = New MemoryStream()
+            Try
+                Dim buffer = reader.GetBuffer()
+                buffer.Clone()
+                Dim a = 1
+            Finally
+            End Try
+        End Using
+    End Sub
+End Class")
+        End Function
+
+        <Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")>
+        Public Async Function ConsumeFollowingTryStatement4() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Imports System.IO
+
+Class C
+    Sub M()
+        Dim reader = New MemoryStream()[||]
+        Try
+            Dim buffer = reader.GetBuffer()
+            buffer.Clone()
+            Dim a = 1
+        Finally
+            Return
+        End Try
+    End Sub
+End Class",
+"Imports System
+Imports System.IO
+
+Class C
+    Sub M()
+        Using reader = New MemoryStream()
+            Try
+                Dim buffer = reader.GetBuffer()
+                buffer.Clone()
+                Dim a = 1
+            Finally
+                Return
+            End Try
+        End Using
+    End Sub
+End Class")
+        End Function
+
+        <Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")>
+        Public Async Function ConsumeFollowingTryStatement5() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Imports System.IO
+
+Class C
+    Sub M()
+        Dim reader = New MemoryStream()[||]
+        Try
+            Dim buffer = reader.GetBuffer()
+            buffer.Clone()
+            Dim a = 1
+        Finally
+            reader = nothing
+        End Try
+    End Sub
+End Class",
+"Imports System
+Imports System.IO
+
+Class C
+    Sub M()
+        Using reader = New MemoryStream()
+            Try
+                Dim buffer = reader.GetBuffer()
+                buffer.Clone()
+                Dim a = 1
+            Finally
+                reader = nothing
+            End Try
+        End Using
+    End Sub
+End Class")
+        End Function
+
+        <Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")>
+        Public Async Function ConsumeFollowingTryStatement6() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Imports System.IO
+
+Class C
+    Sub M()
+        Dim reader = New MemoryStream()[||]
+        Try
+            Dim buffer = reader.GetBuffer()
+            buffer.Clone()
+            Dim a = 1
+        Finally
+            Dispose()
+        End Try
+    End Sub
+End Class",
+"Imports System
+Imports System.IO
+
+Class C
+    Sub M()
+        Using reader = New MemoryStream()
+            Try
+                Dim buffer = reader.GetBuffer()
+                buffer.Clone()
+                Dim a = 1
+            Finally
+                Dispose()
+            End Try
+        End Using
+    End Sub
+End Class")
+        End Function
+
+        <Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")>
+        Public Async Function ConsumeFollowingTryStatement7() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Imports System.IO
+
+Class C
+    Sub M()
+        Dim reader = New MemoryStream()[||]
+        Try
+            Dim buffer = reader.GetBuffer()
+            buffer.Clone()
+            Dim a = 1
+        Finally
+            reader.X()
+        End Try
+    End Sub
+End Class",
+"Imports System
+Imports System.IO
+
+Class C
+    Sub M()
+        Using reader = New MemoryStream()
+            Try
+                Dim buffer = reader.GetBuffer()
+                buffer.Clone()
+                Dim a = 1
+            Finally
+                reader.X()
+            End Try
+        End Using
+    End Sub
+End Class")
+        End Function
+
+        <Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")>
+        Public Async Function ConsumeFollowingTryStatement8() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Imports System.IO
+
+Class C
+    Sub M()
+        Dim reader = New MemoryStream()[||]
+        Try
+            Dim buffer = reader.GetBuffer()
+            buffer.Clone()
+            Dim a = 1
+        Finally
+            other.Dispose()
+        End Try
+    End Sub
+End Class",
+"Imports System
+Imports System.IO
+
+Class C
+    Sub M()
+        Using reader = New MemoryStream()
+            Try
+                Dim buffer = reader.GetBuffer()
+                buffer.Clone()
+                Dim a = 1
+            Finally
+                other.Dispose()
+            End Try
+        End Using
+    End Sub
+End Class")
         End Function
     End Class
 End Namespace

@@ -174,5 +174,9 @@ namespace Microsoft.CodeAnalysis.BraceMatching
                 context.AddTag(snapshot.GetTagSpan(braces.Value.RightSpan.ToSpan(), BraceHighlightTag.EndTag));
             }
         }
+
+        // Safe to directly compare as BraceHighlightTag uses singleton instances.
+        protected override bool TagEquals(BraceHighlightTag tag1, BraceHighlightTag tag2)
+            => tag1 == tag2;
     }
 }

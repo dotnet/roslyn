@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Fetch the first additional file that matches diagnostic location.
                 if (diagnostic.Location is ExternalFileLocation externalFileLocation)
                 {
-                    if (_pathToAdditionalTextMap.TryGetValue(externalFileLocation.FilePath, out var additionalTexts))
+                    if (_pathToAdditionalTextMap.TryGetValue(externalFileLocation.GetLineSpan().Path, out var additionalTexts))
                     {
                         foreach (var additionalText in additionalTexts)
                         {

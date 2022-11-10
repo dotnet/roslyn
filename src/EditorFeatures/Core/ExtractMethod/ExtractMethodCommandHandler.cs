@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -22,6 +24,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -189,10 +192,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             var cleanupOptions = await document.GetCodeCleanupOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
             var (formattedDocument, methodNameAtInvocation) = await result.GetFormattedDocumentAsync(cleanupOptions, cancellationToken).ConfigureAwait(false);
+            var changes = await formattedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            ApplyChange_OnUIThread(formattedDocument, textBuffer, waitContext);
+            ApplyChange_OnUIThread(textBuffer, changes, waitContext);
 
             // start inline rename to allow the user to change the name if they want.
             var textSnapshot = textBuffer.CurrentSnapshot;
@@ -206,17 +210,15 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         }
 
         private void ApplyChange_OnUIThread(
-            Document formattedDocument, ITextBuffer textBuffer, IBackgroundWorkIndicatorContext waitContext)
+            ITextBuffer textBuffer, IEnumerable<TextChange> changes, IBackgroundWorkIndicatorContext waitContext)
         {
             _threadingContext.ThrowIfNotOnUIThread();
-
-            var cancellationToken = waitContext.UserCancellationToken;
 
             using var undoTransaction = _undoManager.GetTextBufferUndoManager(textBuffer).TextBufferUndoHistory.CreateTransaction("Extract Method");
 
             // We're about to make an edit ourselves.  so disable the cancellation that happens on editing.
             waitContext.CancelOnEdit = false;
-            formattedDocument.Project.Solution.Workspace.ApplyDocumentChanges(formattedDocument, cancellationToken);
+            textBuffer.ApplyChanges(changes);
 
             // apply changes
             undoTransaction.Complete();
@@ -281,7 +283,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             var reason = result.Reasons.FirstOrDefault();
             var length = FeaturesResources.Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket.IndexOf(':');
-            if (reason != null && length > 0 && reason.IndexOf(FeaturesResources.Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket.Substring(0, length), 0, length, StringComparison.Ordinal) >= 0)
+            if (reason != null && length > 0 && reason.IndexOf(FeaturesResources.Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket[..length], 0, length, StringComparison.Ordinal) >= 0)
             {
                 var newResult = await ExtractMethodService.ExtractMethodAsync(
                     document,

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
         public const char MangledNameRegionStartChar = '<';
         public const char MangledNameRegionEndChar = '>';
 
-        internal struct AssemblyQualifiedTypeName
+        internal readonly struct AssemblyQualifiedTypeName
         {
             internal readonly string TopLevelType;
             internal readonly string[] NestedTypes;

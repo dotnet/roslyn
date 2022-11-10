@@ -44,11 +44,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
             using (Logger.LogBlock(FunctionId.AssetService_GetAssetAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
             {
-                // TODO: what happen if service doesn't come back. timeout?
                 var value = await RequestAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
 
-                _assetCache.TryAddAsset(checksum, value);
-                return (T)value;
+                // Attempt to add the value to the cache.  If someone else beat us, we'll return their value.
+                return (T)_assetCache.GetOrAdd(checksum, value);
             }
         }
 
@@ -133,9 +132,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var assets = await RequestAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
 
                 foreach (var (checksum, value) in assets)
-                {
-                    _assetCache.TryAddAsset(checksum, value);
-                }
+                    _assetCache.GetOrAdd(checksum, value);
             }
         }
 

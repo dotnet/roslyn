@@ -146,8 +146,7 @@ class C
                 "Windows.Storage");
         }
 
-        [WorkItem(1108135, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108135")]
-        [Fact]
+        [Fact, WorkItem(1108135, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108135")]
         public void Win10OnWin10()
         {
             CompileTimeAndRuntimeAssemblies(
@@ -295,8 +294,7 @@ class C
             });
         }
 
-        [WorkItem(1117084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1117084")]
-        [Fact]
+        [Fact, WorkItem(1117084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1117084")]
         public void OtherFrameworkAssembly()
         {
             var source =
@@ -357,7 +355,7 @@ class C
                     {
                         // Compilation should succeed without retry if we redirect assembly refs correctly.
                         // Throwing so that we don't loop forever (as we did before fix)...
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     },
                     out errorMessage,
                     out testData);

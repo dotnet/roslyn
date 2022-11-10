@@ -33,7 +33,15 @@ class Test
     }
 }";
             var comp = CreateCompilation(text);
+
+            var i = comp.GetMember<MethodSymbol>("Test.I");
+            Assert.True(i.IsIterator);
+            Assert.Equal("System.Int32", i.IteratorElementTypeWithAnnotations.ToTestDisplayString());
+
             comp.VerifyDiagnostics();
+
+            Assert.True(i.IsIterator);
+            Assert.Equal("System.Int32", i.IteratorElementTypeWithAnnotations.ToTestDisplayString());
         }
 
         [Fact]

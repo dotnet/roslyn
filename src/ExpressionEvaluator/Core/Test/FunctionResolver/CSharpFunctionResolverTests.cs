@@ -224,8 +224,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         /// Should only handle requests with expected language id or
         /// default language id or causality breakpoints.
         /// </summary>
-        [WorkItem(15119, "https://github.com/dotnet/roslyn/issues/15119")]
-        [Fact]
+        [Fact, WorkItem(15119, "https://github.com/dotnet/roslyn/issues/15119")]
         public void LanguageId()
         {
             var source =
@@ -452,8 +451,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             }
         }
 
-        [Fact]
-        [WorkItem(55475, "https://github.com/dotnet/roslyn/issues/55475")]
+        [Fact, WorkItem(55475, "https://github.com/dotnet/roslyn/issues/55475")]
         public void BadMetadata()
         {
             var source = "class A { static void F() {} }";
@@ -607,8 +605,7 @@ interface I
             Resolve(process, resolver, "C.F", "C.F()");
         }
 
-        [Fact]
-        [WorkItem(4351, "https://github.com/MicrosoftDocs/visualstudio-docs/issues/4351")]
+        [Fact, WorkItem(4351, "https://github.com/MicrosoftDocs/visualstudio-docs/issues/4351")]
         [WorkItem(1303056, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1303056")]
         public void Methods_ExplicitInterfaceImplementation()
         {
@@ -682,8 +679,7 @@ interface I
             Resolve(process, resolver, "B.set_P", "B.set_P(System.Object)");
         }
 
-        [Fact]
-        [WorkItem(4351, "https://github.com/MicrosoftDocs/visualstudio-docs/issues/4351")]
+        [Fact, WorkItem(4351, "https://github.com/MicrosoftDocs/visualstudio-docs/issues/4351")]
         [WorkItem(1303056, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1303056")]
         public void Properties_ExplicitInterfaceImplementation()
         {
@@ -767,8 +763,7 @@ interface I
             Resolve(process, resolver, "B.remove_E", "B.remove_E(System.Action)");
         }
 
-        [Fact]
-        [WorkItem(4351, "https://github.com/MicrosoftDocs/visualstudio-docs/issues/4351")]
+        [Fact, WorkItem(4351, "https://github.com/MicrosoftDocs/visualstudio-docs/issues/4351")]
         [WorkItem(1303056, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1303056")]
         public void Events_ExplicitInterfaceImplementation()
         {
@@ -1468,8 +1463,7 @@ class C
             }
         }
 
-        [Fact]
-        [WorkItem(55242, "https://github.com/dotnet/roslyn/issues/55242")]
+        [Fact, WorkItem(55242, "https://github.com/dotnet/roslyn/issues/55242")]
         public void LocalFunctions()
         {
             var source = @"

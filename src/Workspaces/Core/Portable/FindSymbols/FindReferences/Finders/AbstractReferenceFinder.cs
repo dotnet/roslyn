@@ -160,6 +160,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesDocumentState state,
             CancellationToken cancellationToken)
         {
+            if (symbol.IsAnonymousType())
+            {
+                // Anonymous types don't have a name, so we return without further searching since the text-based index
+                // and lookup never terminates if searching for an empty string.
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1655431
+                return ImmutableArray<FinderLocation>.Empty;
+            }
+
             var tokens = await FindMatchingIdentifierTokensAsync(state, identifier, cancellationToken).ConfigureAwait(false);
             return await FindReferencesInTokensAsync(symbol, state, tokens, cancellationToken).ConfigureAwait(false);
         }

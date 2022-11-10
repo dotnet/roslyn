@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Remote
             protected abstract TService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<TCallback> callback);
 
             protected sealed override TService CreateService(in ServiceConstructionArguments arguments)
-                => throw ExceptionUtilities.Unreachable;
+                => throw ExceptionUtilities.Unreachable();
 
             protected sealed override TService CreateService(
                 in ServiceConstructionArguments arguments,

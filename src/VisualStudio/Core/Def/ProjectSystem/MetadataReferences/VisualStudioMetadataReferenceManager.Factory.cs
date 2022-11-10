@@ -30,7 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 // If we're in VS we know we must be able to get a TemporaryStorageService
                 var temporaryStorage = (TemporaryStorageService)workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>();
-                Interlocked.CompareExchange(ref _singleton, new VisualStudioMetadataReferenceManager(_serviceProvider, temporaryStorage), null);
+                var configurationService = workspaceServices.GetRequiredService<IWorkspaceConfigurationService>();
+                Interlocked.CompareExchange(ref _singleton, new VisualStudioMetadataReferenceManager(_serviceProvider, temporaryStorage, configurationService), null);
             }
 
             return _singleton;

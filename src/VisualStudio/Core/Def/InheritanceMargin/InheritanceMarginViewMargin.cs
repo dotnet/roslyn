@@ -32,7 +32,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly IGlobalOptionService _globalOptions;
         private readonly InheritanceGlyphManager _glyphManager;
         private readonly string _languageName;
-        private readonly Grid _grid;
         private readonly Canvas _mainCanvas;
 
         /// <summary>
@@ -61,8 +60,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _globalOptions = globalOptions;
             _languageName = languageName;
             _mainCanvas = new Canvas { ClipToBounds = true, Width = HeightAndWidthOfMargin };
-            _grid = new Grid();
-            _grid.Children.Add(_mainCanvas);
             _glyphManager = new InheritanceGlyphManager(
                 workspace,
                 textView,
@@ -83,10 +80,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _textView.ZoomLevelChanged += OnZoomLevelChanged;
             _globalOptions.OptionChanged += OnGlobalOptionChanged;
 
-            _grid.LayoutTransform = new ScaleTransform(
-                scaleX: _textView.ZoomLevel / 100,
-                scaleY: _textView.ZoomLevel / 100);
-            _grid.LayoutTransform.Freeze();
             UpdateMarginVisibility();
         }
 
@@ -107,7 +100,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         private void OnZoomLevelChanged(object sender, ZoomLevelChangedEventArgs e)
         {
-            _grid.LayoutTransform = e.ZoomTransform;
             _refreshAllGlyphs = true;
         }
 
@@ -212,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             get
             {
                 ThrowIfDisposed();
-                return _grid;
+                return _mainCanvas;
             }
         }
 
@@ -221,7 +213,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             get
             {
                 ThrowIfDisposed();
-                return _grid.ActualWidth;
+                return _mainCanvas.ActualWidth;
             }
         }
 

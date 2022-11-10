@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
         End Property
 
         Protected Overrides Function GetCustomAttributesToEmit(moduleBuilder As PEModuleBuilder) As IEnumerable(Of VisualBasicAttributeData)
-            Return UnderlyingMethod.AdaptedMethodSymbol.GetCustomAttributesToEmit(moduleBuilder.CompilationState)
+            Return UnderlyingMethod.AdaptedMethodSymbol.GetCustomAttributesToEmit(moduleBuilder)
         End Function
 
         Protected Overrides Function GetParameters() As ImmutableArray(Of EmbeddedParameter)

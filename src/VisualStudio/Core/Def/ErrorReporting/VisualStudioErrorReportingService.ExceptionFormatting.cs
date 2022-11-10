@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 var end = fullName.LastIndexOf('>');
                 if (start >= 0 && end >= 0)
                 {
-                    stringBuilder.Append(fullName.Remove(start, 1).Substring(0, end - 1));
+                    stringBuilder.Append(fullName.Remove(start, 1)[..(end - 1)]);
                 }
                 else
                 {

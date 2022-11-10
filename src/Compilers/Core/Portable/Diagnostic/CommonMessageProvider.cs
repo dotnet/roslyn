@@ -176,6 +176,7 @@ namespace Microsoft.CodeAnalysis
         public abstract int WRN_NoAnalyzerInAssembly { get; }
         public abstract int WRN_AnalyzerReferencesFramework { get; }
         public abstract int WRN_AnalyzerReferencesNewerCompiler { get; }
+        public abstract int WRN_DuplicateAnalyzerReference { get; }
         public abstract int ERR_CantReadRulesetFile { get; }
         public abstract int ERR_CompileCancelled { get; }
 

@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
+    <Trait(Traits.Feature, Traits.Features.Simplification)>
     Public Class ParameterSimplificationTests
         Inherits AbstractSimplificationTests
 
@@ -31,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function CSharp_ParameterCanBeSimplified() As System.Threading.Tasks.Task
             Dim code = <![CDATA[
 using System;
@@ -57,7 +58,7 @@ class C
             Await TestDocumentSimplificationAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function CSharp_ParameterCannotBeSimplified() As System.Threading.Tasks.Task
             Dim code = <![CDATA[
 using System;

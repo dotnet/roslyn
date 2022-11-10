@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return Label.IndexerDeclaration;
 
                 case SyntaxKind.ArrowExpressionClause:
-                    if (node.IsParentKind(SyntaxKind.PropertyDeclaration, SyntaxKind.IndexerDeclaration))
+                    if (node?.Parent is (kind: SyntaxKind.PropertyDeclaration or SyntaxKind.IndexerDeclaration))
                         return Label.ArrowExpressionClause;
 
                     break;
@@ -1244,7 +1244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             foreach (var child in block.ChildNodes())
             {
-                if (child.IsKind(SyntaxKind.LocalDeclarationStatement, out LocalDeclarationStatementSyntax? localDecl))
+                if (child is LocalDeclarationStatementSyntax localDecl)
                 {
                     GetLocalNames(localDecl.Declaration, ref result);
                 }

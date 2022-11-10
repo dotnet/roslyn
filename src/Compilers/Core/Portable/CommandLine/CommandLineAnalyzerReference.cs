@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     /// Describes a command line analyzer assembly specification.
     /// </summary>
     [DebuggerDisplay("{FilePath,nq}")]
-    public struct CommandLineAnalyzerReference : IEquatable<CommandLineAnalyzerReference>
+    public readonly struct CommandLineAnalyzerReference : IEquatable<CommandLineAnalyzerReference>
     {
         private readonly string _path;
 

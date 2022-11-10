@@ -126,7 +126,6 @@ namespace Microsoft.CodeAnalysis.ForEachCast
             var isFixable = collectionType.Equals(ienumerableType) || collectionType.AllInterfaces.Any(static (i, ienumerableType) => i.Equals(ienumerableType), ienumerableType) &&
                 semanticModel.Compilation.GetBestTypeByMetadataName(typeof(Enumerable).FullName!) != null;
 
-            var options = semanticModel.Compilation.Options;
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 node.GetFirstToken().GetLocation(),

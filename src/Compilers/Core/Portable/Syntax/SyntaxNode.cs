@@ -71,8 +71,7 @@ namespace Microsoft.CodeAnalysis
         internal int EndPosition => Position + Green.FullWidth;
 
         /// <summary>
-        /// Returns SyntaxTree that owns the node or null if node does not belong to a
-        /// SyntaxTree
+        /// Returns <see cref="SyntaxTree"/> that owns the node.
         /// </summary>
         public SyntaxTree SyntaxTree => this.SyntaxTreeCore;
 

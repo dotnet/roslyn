@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Options
             }
         }
 
-        public EditorConfigStorageLocation(string keyName, Func<string, Optional<T>> parseValue, Func<T, OptionSet, string> getEditorConfigStringForValue)
+        private EditorConfigStorageLocation(string keyName, Func<string, Optional<T>> parseValue, Func<T, OptionSet, string> getEditorConfigStringForValue)
         {
             if (parseValue == null)
             {

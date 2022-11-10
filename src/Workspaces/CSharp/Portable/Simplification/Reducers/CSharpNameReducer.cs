@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
             SyntaxNode replacementNode;
 
-            if (node.IsKind(SyntaxKind.QualifiedCref, out QualifiedCrefSyntax crefSyntax))
+            if (node is QualifiedCrefSyntax crefSyntax)
             {
                 if (!QualifiedCrefSimplifier.Instance.TrySimplify(
                         crefSyntax, semanticModel, options,

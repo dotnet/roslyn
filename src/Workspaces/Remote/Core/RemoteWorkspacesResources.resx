@@ -177,8 +177,8 @@
   <data name="FeatureName_SymbolSearchUpdate" xml:space="preserve">
     <value>Symbol search</value>
   </data>
-  <data name="FeatureName_TodoCommentsDiscovery" xml:space="preserve">
-    <value>TODO comments discovery</value>
+  <data name="FeatureName_TaskList" xml:space="preserve">
+    <value>Task list</value>
   </data>
   <data name="FeatureName_AsynchronousOperationListener" xml:space="preserve">
     <value>Asynchronous operation listener</value>
@@ -212,5 +212,11 @@
   </data>
   <data name="FeatureName_StackTraceExplorer" xml:space="preserve">
     <value>Stack Trace Explorer</value>
+  </data>
+  <data name="FeatureName_LegacySolutionEventsAggregation" xml:space="preserve">
+    <value>Solution Events</value>
+  </data>
+  <data name="FeatureName_UnitTestingSearch" xml:space="preserve">
+    <value>Unit testing search</value>
   </data>
 </root>

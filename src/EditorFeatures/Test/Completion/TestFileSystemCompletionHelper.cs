@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return from d in entries
                    where d.StartsWith(withTrailingSeparator)
                    let nextSeparator = d.IndexOf(PathUtilities.DirectorySeparatorChar, withTrailingSeparator.Length)
-                   select d.Substring(0, (nextSeparator >= 0) ? nextSeparator : d.Length);
+                   select d[..((nextSeparator >= 0) ? nextSeparator : d.Length)];
         }
     }
 }

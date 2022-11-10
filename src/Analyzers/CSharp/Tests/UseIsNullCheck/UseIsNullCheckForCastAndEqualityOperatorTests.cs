@@ -17,6 +17,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIsNullCheck
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
     public partial class UseIsNullCheckForCastAndEqualityOperatorTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public UseIsNullCheckForCastAndEqualityOperatorTests(ITestOutputHelper logger)
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIsNullCheck
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAnalyzer(), new CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        [Fact]
         public async Task TestEquality()
         {
             await TestInRegularAndScriptAsync(
@@ -53,8 +54,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
-        [WorkItem(58483, "https://github.com/dotnet/roslyn/issues/58483")]
+        [Fact, WorkItem(58483, "https://github.com/dotnet/roslyn/issues/58483")]
         public async Task TestIsNullTitle()
         {
             await TestExactActionSetOfferedAsync(
@@ -71,8 +71,7 @@ class C
 new[] { CSharpAnalyzersResources.Use_is_null_check });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
-        [WorkItem(58483, "https://github.com/dotnet/roslyn/issues/58483")]
+        [Fact, WorkItem(58483, "https://github.com/dotnet/roslyn/issues/58483")]
         public async Task TestIsObjectTitle()
         {
             await TestExactActionSetOfferedAsync(
@@ -90,8 +89,7 @@ new[] { CSharpAnalyzersResources.Use_is_object_check },
 new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
-        [WorkItem(58483, "https://github.com/dotnet/roslyn/issues/58483")]
+        [Fact, WorkItem(58483, "https://github.com/dotnet/roslyn/issues/58483")]
         public async Task TestIsNotNullTitle()
         {
             await TestExactActionSetOfferedAsync(
@@ -109,7 +107,7 @@ new[] { CSharpAnalyzersResources.Use_is_not_null_check },
 new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        [Fact]
         public async Task TestEqualitySwapped()
         {
             await TestInRegularAndScriptAsync(
@@ -135,7 +133,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        [Fact]
         public async Task TestNotEquality_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -161,7 +159,7 @@ class C
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        [Fact]
         public async Task TestNotEquality_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -187,7 +185,7 @@ class C
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        [Fact]
         public async Task TestNotEqualitySwapped_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -213,7 +211,7 @@ class C
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        [Fact]
         public async Task TestNotEqualitySwapped_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -239,7 +237,7 @@ class C
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        [Fact]
         public async Task TestMissingPreCSharp7()
         {
             await TestMissingAsync(
@@ -255,7 +253,7 @@ class C
 }", parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        [Fact]
         public async Task TestOnlyForObjectCast()
         {
             await TestMissingAsync(
@@ -271,7 +269,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        [Fact]
         public async Task TestFixAll1()
         {
             await TestInRegularAndScriptAsync(
@@ -303,7 +301,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        [Fact]
         public async Task TestFixAllNested1()
         {
             await TestInRegularAndScriptAsync(
@@ -329,7 +327,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        [Fact]
         public async Task TestTrivia1()
         {
             await TestInRegularAndScriptAsync(
@@ -355,7 +353,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        [Fact]
         public async Task TestTrivia2()
         {
             await TestInRegularAndScriptAsync(
@@ -381,7 +379,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        [Fact]
         public async Task TestConstrainedTypeParameter()
         {
             await TestInRegularAndScriptAsync(
@@ -407,7 +405,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        [Fact]
         public async Task TestUnconstrainedTypeParameter()
         {
             await TestMissingAsync(
@@ -423,7 +421,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        [Fact]
         public async Task TestComplexExpr()
         {
             await TestInRegularAndScriptAsync(
@@ -449,7 +447,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        [Fact]
         public async Task TestNotOnDefault()
         {
             await TestMissingAsync(

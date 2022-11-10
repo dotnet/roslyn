@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -97,78 +98,82 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ImmutableArray<ISymbol>> FindImplementedInterfaceMembersArrayAsync(
             ISymbol symbol, Solution solution, IImmutableSet<Project>? projects, CancellationToken cancellationToken)
         {
-            // Member can only implement interface members if it is an explicit member, or if it is
-            // public
-            if (symbol != null)
+            try
             {
-                var explicitImplementations = symbol.ExplicitInterfaceImplementations();
-                if (explicitImplementations.Length > 0)
+                // Member can only implement interface members if it is an explicit member, or if it is public
+                if (symbol is IMethodSymbol or IPropertySymbol or IEventSymbol)
                 {
-                    return explicitImplementations;
-                }
-                else if (
-                    symbol.DeclaredAccessibility == Accessibility.Public &&
-                    (symbol.ContainingType.TypeKind == TypeKind.Class || symbol.ContainingType.TypeKind == TypeKind.Struct))
-                {
-                    // Interface implementation is a tricky thing.  A method may implement an interface
-                    // method, even if its containing type doesn't state that it implements the
-                    // interface.  For example:
-                    //
-                    //  interface IGoo { void Goo(); }
-                    //
-                    //  class Base { public void Goo(); }
-                    //
-                    //  class Derived : Base, IGoo { }
-                    //
-                    // In this case, Base.Goo *does* implement IGoo.Goo in the context of the type
-                    // Derived.
-                    var containingType = symbol.ContainingType.OriginalDefinition;
-                    var derivedClasses = await SymbolFinder.FindDerivedClassesAsync(
-                        containingType, solution, projects, cancellationToken).ConfigureAwait(false);
-                    var allTypes = derivedClasses.Concat(containingType);
+                    var explicitImplementations = symbol.ExplicitInterfaceImplementations();
+                    if (explicitImplementations.Length > 0)
+                        return explicitImplementations;
 
-                    using var _ = ArrayBuilder<ISymbol>.GetInstance(out var builder);
-
-                    foreach (var type in allTypes)
+                    if (symbol is { DeclaredAccessibility: Accessibility.Public, ContainingType.TypeKind: TypeKind.Class or TypeKind.Struct })
                     {
-                        foreach (var interfaceType in type.AllInterfaces)
+                        // Interface implementation is a tricky thing.  A method may implement an interface
+                        // method, even if its containing type doesn't state that it implements the
+                        // interface.  For example:
+                        //
+                        //  interface IGoo { void Goo(); }
+                        //
+                        //  class Base { public void Goo(); }
+                        //
+                        //  class Derived : Base, IGoo { }
+                        //
+                        // In this case, Base.Goo *does* implement IGoo.Goo in the context of the type
+                        // Derived.
+                        var containingType = symbol.ContainingType.OriginalDefinition;
+                        var derivedClasses = await SymbolFinder.FindDerivedClassesAsync(
+                            containingType, solution, projects, cancellationToken).ConfigureAwait(false);
+                        var allTypes = derivedClasses.Concat(containingType);
+
+                        using var _ = ArrayBuilder<ISymbol>.GetInstance(out var builder);
+
+                        foreach (var type in allTypes)
                         {
-                            // We don't want to look inside this type if we can avoid it. So first
-                            // make sure that the interface even contains a symbol with the same
-                            // name as the symbol we're looking for.
-                            var nameToLookFor = symbol.IsPropertyAccessor()
-                                ? ((IMethodSymbol)symbol).AssociatedSymbol?.Name
-                                : symbol.Name;
-
-                            if (nameToLookFor == null)
-                                continue;
-
-                            if (interfaceType.MemberNames.Contains(nameToLookFor))
+                            foreach (var interfaceType in type.AllInterfaces)
                             {
-                                foreach (var m in interfaceType.GetMembers(symbol.Name))
-                                {
-                                    var sourceMethod = await FindSourceDefinitionAsync(m, solution, cancellationToken).ConfigureAwait(false);
-                                    var bestMethod = sourceMethod ?? m;
+                                // We don't want to look inside this type if we can avoid it. So first
+                                // make sure that the interface even contains a symbol with the same
+                                // name as the symbol we're looking for.
+                                var nameToLookFor = symbol.IsPropertyAccessor()
+                                    ? ((IMethodSymbol)symbol).AssociatedSymbol?.Name
+                                    : symbol.Name;
 
-                                    var implementations = await type.FindImplementationsForInterfaceMemberAsync(bestMethod, solution, cancellationToken).ConfigureAwait(false);
-                                    foreach (var implementation in implementations)
+                                if (nameToLookFor == null)
+                                    continue;
+
+                                if (interfaceType.MemberNames.Contains(nameToLookFor))
+                                {
+                                    foreach (var m in interfaceType.GetMembers(symbol.Name))
                                     {
-                                        if (implementation != null &&
-                                            SymbolEquivalenceComparer.Instance.Equals(implementation.OriginalDefinition, symbol.OriginalDefinition))
+                                        var sourceMethod = await FindSourceDefinitionAsync(m, solution, cancellationToken).ConfigureAwait(false);
+                                        var bestMethod = sourceMethod ?? m;
+
+                                        var implementations = await type.FindImplementationsForInterfaceMemberAsync(bestMethod, solution, cancellationToken).ConfigureAwait(false);
+                                        foreach (var implementation in implementations)
                                         {
-                                            builder.Add(bestMethod);
+                                            if (implementation != null &&
+                                                SymbolEquivalenceComparer.Instance.Equals(implementation.OriginalDefinition, symbol.OriginalDefinition))
+                                            {
+                                                builder.Add(bestMethod);
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
+
+                        return builder.Distinct(SymbolEquivalenceComparer.Instance).ToImmutableArray();
                     }
-
-                    return builder.Distinct(SymbolEquivalenceComparer.Instance).ToImmutableArray();
                 }
-            }
 
-            return ImmutableArray<ISymbol>.Empty;
+                return ImmutableArray<ISymbol>.Empty;
+            }
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken, ErrorSeverity.Diagnostic))
+            {
+                // For help tracking down https://devdiv.visualstudio.com/DevDiv/_queries/edit/1598801
+                throw;
+            }
         }
 
         #region derived classes

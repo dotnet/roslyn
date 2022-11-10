@@ -18,8 +18,9 @@ Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CommonControls
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
     Public Class MemberSelectionViewModelTests
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
+        <Fact>
         Public Async Function SelectPublicMembers() As Task
             Dim markUp = <Text><![CDATA[
         interface Level2Interface
@@ -59,7 +60,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CommonControls
             Next
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
+        <Fact>
         Public Async Function TestMemberSelectionViewModelDont_PullDisableItem() As Task
             Dim markUp = <Text><![CDATA[
         interface Level2Interface
@@ -101,7 +102,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CommonControls
             Assert.Empty(checkedMembers.WhereAsArray(Function(analysisResult) analysisResult.Symbol.IsKind(SymbolKind.Field)))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
+        <Fact>
         Public Async Function SelectDependents() As Task
             Dim markUp = <Text><![CDATA[
         using System;

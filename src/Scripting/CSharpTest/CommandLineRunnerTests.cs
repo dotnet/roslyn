@@ -228,8 +228,7 @@ $@"{LogoAndHelpPrompt}
 > ", runner.Console.Out.ToString());
         }
 
-        [Fact]
-        [WorkItem(18479, "https://github.com/dotnet/roslyn/issues/18479")]
+        [Fact, WorkItem(18479, "https://github.com/dotnet/roslyn/issues/18479")]
         public void Tuples()
         {
             var runner = CreateRunner(input: "(1,2)");

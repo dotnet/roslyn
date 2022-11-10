@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 {
     internal abstract partial class AbstractNavigateToSearchService
     {
-        private static ImmutableArray<(PatternMatchKind roslynKind, NavigateToMatchKind vsKind)> s_kindPairs =
+        private static readonly ImmutableArray<(PatternMatchKind roslynKind, NavigateToMatchKind vsKind)> s_kindPairs =
             ImmutableArray.Create(
                 (PatternMatchKind.Exact, NavigateToMatchKind.Exact),
                 (PatternMatchKind.Prefix, NavigateToMatchKind.Prefix),
@@ -60,8 +60,13 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         private static async Task ProcessDocumentsAsync(
-            Document? searchDocument, string patternName, string? patternContainer, DeclaredSymbolInfoKindSet kinds,
-            Func<RoslynNavigateToItem, Task> onResultFound, ISet<Document> documents, CancellationToken cancellationToken)
+            Document? searchDocument,
+            string patternName,
+            string? patternContainer,
+            DeclaredSymbolInfoKindSet kinds,
+            Func<RoslynNavigateToItem, Task> onResultFound,
+            ISet<Document> documents,
+            CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
 
@@ -79,8 +84,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         private static async Task ProcessDocumentAsync(
-            Document document, string patternName, string? patternContainer, DeclaredSymbolInfoKindSet kinds,
-            Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
+            Document document,
+            string patternName,
+            string? patternContainer,
+            DeclaredSymbolInfoKindSet kinds,
+            Func<RoslynNavigateToItem, Task> onResultFound,
+            CancellationToken cancellationToken)
         {
             var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
 
@@ -89,8 +98,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         private static async Task ProcessIndexAsync(
-            DocumentId documentId, Document? document,
-            string patternName, string? patternContainer,
+            DocumentId documentId,
+            Document? document,
+            string patternName,
+            string? patternContainer,
             DeclaredSymbolInfoKindSet kinds,
             Func<RoslynNavigateToItem, Task> onResultFound,
             TopLevelSyntaxTreeIndex index,
@@ -113,17 +124,19 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     documentId, document,
                     declaredSymbolInfo,
                     nameMatcher, containerMatcher,
-                    kinds,
-                    onResultFound, cancellationToken).ConfigureAwait(false);
+                    kinds, onResultFound, cancellationToken).ConfigureAwait(false);
             }
         }
 
         private static async Task AddResultIfMatchAsync(
-            DocumentId documentId, Document? document,
+            DocumentId documentId,
+            Document? document,
             DeclaredSymbolInfo declaredSymbolInfo,
-            PatternMatcher nameMatcher, PatternMatcher? containerMatcher,
+            PatternMatcher nameMatcher,
+            PatternMatcher? containerMatcher,
             DeclaredSymbolInfoKindSet kinds,
-            Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
+            Func<RoslynNavigateToItem, Task> onResultFound,
+            CancellationToken cancellationToken)
         {
             using var nameMatches = TemporaryArray<PatternMatch>.Empty;
             using var containerMatches = TemporaryArray<PatternMatch>.Empty;

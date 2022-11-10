@@ -16,42 +16,26 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
     ''' Binding info for expressions and statements that are part of a member declaration.
+    ''' Instances of this class should not be exposed to external consumers.
     ''' </summary>
     Partial Friend MustInherit Class MemberSemanticModel
         Inherits VBSemanticModel
 
         Private ReadOnly _root As SyntaxNode
         Private ReadOnly _rootBinder As Binder
-
-        ''' <summary>
-        ''' Field specific to non-speculative MemberSemanticModel
-        ''' </summary>
-        Private ReadOnly _containingSemanticModelOpt As SyntaxTreeSemanticModel
-
-        ' Fields specific to speculative MemberSemanticModel
-        Private ReadOnly _parentSemanticModelOpt As SyntaxTreeSemanticModel
-        Private ReadOnly _speculatedPosition As Integer
-
-        Private ReadOnly _ignoresAccessibility As Boolean
+        Private ReadOnly _containingPublicSemanticModel As PublicSemanticModel
 
         Private ReadOnly _operationFactory As Lazy(Of VisualBasicOperationFactory)
 
         Friend Sub New(root As SyntaxNode,
                        rootBinder As Binder,
-                       containingSemanticModelOpt As SyntaxTreeSemanticModel,
-                       parentSemanticModelOpt As SyntaxTreeSemanticModel,
-                       speculatedPosition As Integer,
-                       Optional ignoreAccessibility As Boolean = False)
-            Debug.Assert(containingSemanticModelOpt IsNot Nothing Xor parentSemanticModelOpt IsNot Nothing)
-            Debug.Assert(containingSemanticModelOpt Is Nothing OrElse Not containingSemanticModelOpt.IsSpeculativeSemanticModel)
-            Debug.Assert(parentSemanticModelOpt Is Nothing OrElse Not parentSemanticModelOpt.IsSpeculativeSemanticModel, VBResources.ChainingSpeculativeModelIsNotSupported)
+                       containingPublicSemanticModel As PublicSemanticModel)
+
+            Debug.Assert(containingPublicSemanticModel IsNot Nothing)
 
             _root = root
-            _ignoresAccessibility = ignoreAccessibility
-            _rootBinder = SemanticModelBinder.Mark(rootBinder, ignoreAccessibility)
-            _containingSemanticModelOpt = containingSemanticModelOpt
-            _parentSemanticModelOpt = parentSemanticModelOpt
-            _speculatedPosition = speculatedPosition
+            _rootBinder = SemanticModelBinder.Mark(rootBinder, containingPublicSemanticModel.IgnoresAccessibility)
+            _containingPublicSemanticModel = containingPublicSemanticModel
 
             _operationFactory = New Lazy(Of VisualBasicOperationFactory)(Function() New VisualBasicOperationFactory(Me))
         End Sub
@@ -70,31 +54,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public NotOverridable Overrides ReadOnly Property IsSpeculativeSemanticModel As Boolean
             Get
-                Return _parentSemanticModelOpt IsNot Nothing
+                Return _containingPublicSemanticModel.IsSpeculativeSemanticModel
             End Get
         End Property
 
         Public NotOverridable Overrides ReadOnly Property OriginalPositionForSpeculation As Integer
             Get
-                Return Me._speculatedPosition
+                ' This property is not meaningful for member semantic models.
+                ' An external consumer should never be able to access them directly.
+                Throw ExceptionUtilities.Unreachable()
             End Get
         End Property
 
         Public NotOverridable Overrides ReadOnly Property ParentModel As SemanticModel
             Get
-                Return Me._parentSemanticModelOpt
+                ' This property is not meaningful for member semantic models.
+                ' An external consumer should never be able to access them directly.
+                Throw ExceptionUtilities.Unreachable()
             End Get
         End Property
 
-        Friend NotOverridable Overrides ReadOnly Property ContainingModelOrSelf As SemanticModel
+        Friend NotOverridable Overrides ReadOnly Property ContainingPublicModelOrSelf As SemanticModel
             Get
-                Return If(Me._containingSemanticModelOpt, DirectCast(Me, SemanticModel))
+                Return _containingPublicSemanticModel
             End Get
         End Property
 
         Public NotOverridable Overrides ReadOnly Property IgnoresAccessibility As Boolean
             Get
-                Return Me._ignoresAccessibility
+                Return _containingPublicSemanticModel.IgnoresAccessibility
             End Get
         End Property
 
@@ -422,7 +410,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' If no argument is specified, then diagnostics for the entire tree are returned.</param>
         ''' <param name="cancellationToken">A cancellation token that can be used to cancel the
         ''' process of obtaining the diagnostics.</param>
-        Public Overrides Function GetSyntaxDiagnostics(Optional span As TextSpan? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
+        Public NotOverridable Overrides Function GetSyntaxDiagnostics(Optional span As TextSpan? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
             Throw New NotSupportedException()
         End Function
 
@@ -438,7 +426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <remarks>The declaration errors for a syntax tree are cached. The first time this method is called, a ll
         ''' declarations are analyzed for diagnostics. Calling this a second time will return the cached diagnostics.
         ''' </remarks>
-        Public Overrides Function GetDeclarationDiagnostics(Optional span As TextSpan? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
+        Public NotOverridable Overrides Function GetDeclarationDiagnostics(Optional span As TextSpan? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
             Throw New NotSupportedException()
         End Function
 
@@ -453,7 +441,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <remarks>The declaration errors for a syntax tree are cached. The first time this method is called, a ll
         ''' declarations are analyzed for diagnostics. Calling this a second time will return the cached diagnostics.
         ''' </remarks>
-        Public Overrides Function GetMethodBodyDiagnostics(Optional span As TextSpan? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
+        Public NotOverridable Overrides Function GetMethodBodyDiagnostics(Optional span As TextSpan? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
             Throw New NotSupportedException()
         End Function
 
@@ -470,7 +458,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' take a significant amount of time. Unlike GetDeclarationDiagnostics, diagnostics for method bodies and
         ''' initializers are not cached, the any semantic information used to obtain the diagnostics is discarded.
         ''' </remarks>
-        Public Overrides Function GetDiagnostics(Optional span As TextSpan? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
+        Public NotOverridable Overrides Function GetDiagnostics(Optional span As TextSpan? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
             Throw New NotSupportedException()
         End Function
 
@@ -1111,18 +1099,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New CollectionRangeVariableSymbolInfo(toQueryableCollectionConversion, asClauseConversion, selectMany)
         End Function
 
-        Friend NotOverridable Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, type As TypeSyntax, bindingOption As SpeculativeBindingOption, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend NotOverridable Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, type As TypeSyntax, bindingOption As SpeculativeBindingOption, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
             Dim binder As Binder = Me.GetSpeculativeBinderForExpression(position, type, bindingOption)
             If binder Is Nothing Then
                 speculativeModel = Nothing
                 Return False
             End If
 
-            speculativeModel = New SpeculativeMemberSemanticModel(parentModel, type, binder, position)
+            speculativeModel = New SpeculativeSemanticModelWithMemberModel(parentModel, position, type, binder)
             Return True
         End Function
 
-        Friend NotOverridable Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, rangeArgument As RangeArgumentSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend NotOverridable Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, rangeArgument As RangeArgumentSyntax, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
             Dim binder = Me.GetEnclosingBinder(position)
             If binder Is Nothing Then
                 speculativeModel = Nothing
@@ -1132,7 +1120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Add speculative binder to bind speculatively.
             binder = SpeculativeBinder.Create(binder)
 
-            speculativeModel = New SpeculativeMemberSemanticModel(parentModel, rangeArgument, binder, position)
+            speculativeModel = New SpeculativeSemanticModelWithMemberModel(parentModel, position, rangeArgument, binder)
             Return True
         End Function
 

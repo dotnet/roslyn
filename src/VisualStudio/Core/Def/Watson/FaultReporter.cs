@@ -85,6 +85,12 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         {
             try
             {
+                if (exception is OperationCanceledException { InnerException: { } oceInnerException })
+                {
+                    ReportFault(oceInnerException, severity, forceDump);
+                    return;
+                }
+
                 if (exception is AggregateException aggregateException)
                 {
                     // We (potentially) have multiple exceptions; let's just report each of them

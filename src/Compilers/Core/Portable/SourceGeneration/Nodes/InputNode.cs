@@ -34,11 +34,11 @@ namespace Microsoft.CodeAnalysis
             _getInput = getInput;
             _comparer = comparer ?? EqualityComparer<T>.Default;
             _inputComparer = inputComparer ?? EqualityComparer<T>.Default;
-            _registerOutput = registerOutput ?? (o => throw ExceptionUtilities.Unreachable);
+            _registerOutput = registerOutput ?? (o => throw ExceptionUtilities.Unreachable());
             _name = name;
         }
 
-        public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken)
+        public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T>? previousTable, CancellationToken cancellationToken)
         {
             var stopwatch = SharedStopwatch.StartNew();
             var inputItems = _getInput(graphState);
@@ -57,32 +57,35 @@ namespace Microsoft.CodeAnalysis
             // We always have no inputs steps into an InputNode, but we track the difference between "no inputs" (empty collection) and "no step information" (default value)
             var noInputStepsStepInfo = builder.TrackIncrementalSteps ? ImmutableArray<(IncrementalGeneratorRunStep, int)>.Empty : default;
 
-            // for each item in the previous table, check if its still in the new items
-            int itemIndex = 0;
-            foreach (var (oldItem, _, _, _) in previousTable)
+            if (previousTable is not null)
             {
-                if (itemsSet.Remove(oldItem))
+                // for each item in the previous table, check if its still in the new items
+                int itemIndex = 0;
+                foreach (var (oldItem, _, _, _) in previousTable)
                 {
-                    // we're iterating the table, so know that it has entries
-                    var usedCache = builder.TryUseCachedEntries(elapsedTime, noInputStepsStepInfo);
-                    Debug.Assert(usedCache);
+                    if (itemsSet.Remove(oldItem))
+                    {
+                        // we're iterating the table, so know that it has entries
+                        var usedCache = builder.TryUseCachedEntries(elapsedTime, noInputStepsStepInfo);
+                        Debug.Assert(usedCache);
+                    }
+                    else if (inputItems.Length == previousTable.Count)
+                    {
+                        // When the number of items matches the previous iteration, we use a heuristic to mark the input as modified
+                        // This allows us to correctly 'replace' items even when they aren't actually the same. In the case that the
+                        // item really isn't modified, but a new item, we still function correctly as we mostly treat them the same,
+                        // but will perform an extra comparison that is omitted in the pure 'added' case.
+                        var modified = builder.TryModifyEntry(inputItems[itemIndex], _comparer, elapsedTime, noInputStepsStepInfo, EntryState.Modified);
+                        Debug.Assert(modified);
+                        itemsSet.Remove(inputItems[itemIndex]);
+                    }
+                    else
+                    {
+                        var removed = builder.TryRemoveEntries(elapsedTime, noInputStepsStepInfo);
+                        Debug.Assert(removed);
+                    }
+                    itemIndex++;
                 }
-                else if (inputItems.Length == previousTable.Count)
-                {
-                    // When the number of items matches the previous iteration, we use a heuristic to mark the input as modified
-                    // This allows us to correctly 'replace' items even when they aren't actually the same. In the case that the
-                    // item really isn't modified, but a new item, we still function correctly as we mostly treat them the same,
-                    // but will perform an extra comparison that is omitted in the pure 'added' case.
-                    var modified = builder.TryModifyEntry(inputItems[itemIndex], _comparer, elapsedTime, noInputStepsStepInfo, EntryState.Modified);
-                    Debug.Assert(modified);
-                    itemsSet.Remove(inputItems[itemIndex]);
-                }
-                else
-                {
-                    var removed = builder.TryRemoveEntries(elapsedTime, noInputStepsStepInfo);
-                    Debug.Assert(removed);
-                }
-                itemIndex++;
             }
 
             // any remaining new items are added

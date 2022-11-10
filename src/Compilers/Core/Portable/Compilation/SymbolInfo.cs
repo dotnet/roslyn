@@ -10,51 +10,38 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
-    public struct SymbolInfo : IEquatable<SymbolInfo>
+    public readonly struct SymbolInfo : IEquatable<SymbolInfo>
     {
-        internal static readonly SymbolInfo None = new SymbolInfo(null, ImmutableArray<ISymbol>.Empty, CandidateReason.None);
-
-        private ImmutableArray<ISymbol> _candidateSymbols;
+        internal static readonly SymbolInfo None = default;
 
         /// <summary>
-        /// The symbol that was referred to by the syntax node, if any. Returns null if the given
-        /// expression did not bind successfully to a single symbol. If null is returned, it may
-        /// still be that case that we have one or more "best guesses" as to what symbol was
-        /// intended. These best guesses are available via the CandidateSymbols property.
+        /// Array of potential candidate symbols if <see cref="Symbol"/> did not bind successfully.  Note: all code in
+        /// this type should prefer referencing <see cref="CandidateSymbols"/> instead of this so that they uniformly
+        /// only see an non-<see langword="default"/> array.
+        /// </summary>
+        private readonly ImmutableArray<ISymbol> _candidateSymbols;
+
+        /// <summary>
+        /// The symbol that was referred to by the syntax node, if any. Returns null if the given expression did not
+        /// bind successfully to a single symbol. If null is returned, it may still be that case that we have one or
+        /// more "best guesses" as to what symbol was intended. These best guesses are available via the <see
+        /// cref="CandidateSymbols"/> property.
         /// </summary>
         public ISymbol? Symbol { get; }
 
         /// <summary>
-        /// If the expression did not successfully resolve to a symbol, but there were one or more
-        /// symbols that may have been considered but discarded, this property returns those
-        /// symbols. The reason that the symbols did not successfully resolve to a symbol are
-        /// available in the CandidateReason property. For example, if the symbol was inaccessible,
-        /// ambiguous, or used in the wrong context.
+        /// If the expression did not successfully resolve to a symbol, but there were one or more symbols that may have
+        /// been considered but discarded, this property returns those symbols. The reason that the symbols did not
+        /// successfully resolve to a symbol are available in the <see cref="CandidateReason"/> property. For example,
+        /// if the symbol was inaccessible, ambiguous, or used in the wrong context.
         /// </summary>
-        public ImmutableArray<ISymbol> CandidateSymbols
-        {
-            get
-            {
-                return _candidateSymbols.NullToEmpty();
-            }
-        }
-
-        internal ImmutableArray<ISymbol> GetAllSymbols()
-        {
-            if (this.Symbol != null)
-            {
-                return ImmutableArray.Create<ISymbol>(this.Symbol);
-            }
-            else
-            {
-                return _candidateSymbols;
-            }
-        }
+        /// <remarks>Will never return a <see langword="default"/> array.</remarks>
+        public ImmutableArray<ISymbol> CandidateSymbols => _candidateSymbols.NullToEmpty();
 
         ///<summary>
-        /// If the expression did not successfully resolve to a symbol, but there were one or more
-        /// symbols that may have been considered but discarded, this property describes why those
-        /// symbol or symbols were not considered suitable.
+        /// If the expression did not successfully resolve to a symbol, but there were one or more symbols that may have
+        /// been considered but discarded, this property describes why those symbol or symbols were not considered
+        /// suitable.
         /// </summary>
         public CandidateReason CandidateReason { get; }
 
@@ -69,18 +56,17 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal SymbolInfo(ImmutableArray<ISymbol> candidateSymbols, CandidateReason candidateReason)
-            : this(null, candidateSymbols, candidateReason)
+            : this(symbol: null, candidateSymbols, candidateReason)
         {
         }
 
-        internal SymbolInfo(ISymbol? symbol, ImmutableArray<ISymbol> candidateSymbols, CandidateReason candidateReason)
-            : this()
+        private SymbolInfo(ISymbol? symbol, ImmutableArray<ISymbol> candidateSymbols, CandidateReason candidateReason)
         {
             this.Symbol = symbol;
-            _candidateSymbols = candidateSymbols.IsDefault ? ImmutableArray.Create<ISymbol>() : candidateSymbols;
+            _candidateSymbols = candidateSymbols;
 
 #if DEBUG
-            const NamespaceKind NamespaceKindNamespaceGroup = (NamespaceKind)0;
+            const NamespaceKind NamespaceKindNamespaceGroup = 0;
             Debug.Assert(symbol is null || symbol.Kind != SymbolKind.Namespace || ((INamespaceSymbol)symbol).NamespaceKind != NamespaceKindNamespaceGroup);
             foreach (var item in _candidateSymbols)
             {
@@ -91,35 +77,20 @@ namespace Microsoft.CodeAnalysis
             this.CandidateReason = candidateReason;
         }
 
+        internal ImmutableArray<ISymbol> GetAllSymbols()
+            => this.Symbol == null ? CandidateSymbols : ImmutableArray.Create(this.Symbol);
+
         public override bool Equals(object? obj)
-        {
-            return obj is SymbolInfo && Equals((SymbolInfo)obj);
-        }
+            => obj is SymbolInfo info && Equals(info);
 
         public bool Equals(SymbolInfo other)
-        {
-            if (!object.Equals(this.Symbol, other.Symbol) ||
-                _candidateSymbols.IsDefault != other._candidateSymbols.IsDefault ||
-                this.CandidateReason != other.CandidateReason)
-            {
-                return false;
-            }
-
-            return _candidateSymbols.IsDefault || _candidateSymbols.SequenceEqual(other._candidateSymbols);
-        }
+            => this.CandidateReason == other.CandidateReason &&
+               object.Equals(this.Symbol, other.Symbol) &&
+               CandidateSymbols.SequenceEqual(other.CandidateSymbols);
 
         public override int GetHashCode()
-        {
-            return Hash.Combine(this.Symbol, Hash.Combine(Hash.CombineValues(_candidateSymbols, 4), (int)this.CandidateReason));
-        }
+            => Hash.Combine(this.Symbol, Hash.Combine(Hash.CombineValues(this.CandidateSymbols, 4), (int)this.CandidateReason));
 
-        internal bool IsEmpty
-        {
-            get
-            {
-                return this.Symbol == null
-                    && this.CandidateSymbols.Length == 0;
-            }
-        }
+        internal bool IsEmpty => this.Symbol == null && this.CandidateSymbols.Length == 0;
     }
 }

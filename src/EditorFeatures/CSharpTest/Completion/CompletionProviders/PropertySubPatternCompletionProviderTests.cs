@@ -669,8 +669,7 @@ class Program
             await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: "");
         }
 
-        [Fact]
-        [WorkItem(33250, "https://github.com/dotnet/roslyn/issues/33250")]
+        [Fact, WorkItem(33250, "https://github.com/dotnet/roslyn/issues/33250")]
         public async Task StaticProperties_NotSuggested()
         {
             var markup =
@@ -686,8 +685,7 @@ class Program
             await VerifyItemIsAbsentAsync(markup, "Empty");
         }
 
-        [Fact]
-        [WorkItem(33250, "https://github.com/dotnet/roslyn/issues/33250")]
+        [Fact, WorkItem(33250, "https://github.com/dotnet/roslyn/issues/33250")]
         public async Task StaticFields_NotSuggested()
         {
             var markup =
@@ -705,8 +703,7 @@ class Program
             await VerifyItemIsAbsentAsync(markup, "x");
         }
 
-        [Fact]
-        [WorkItem(33250, "https://github.com/dotnet/roslyn/issues/33250")]
+        [Fact, WorkItem(33250, "https://github.com/dotnet/roslyn/issues/33250")]
         public async Task ConstFields_NotSuggested()
         {
             var markup =

@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var trailingTrivia = SyntaxFactory.ParseTrailingTrivia(text);
 
             var width = trailingTrivia.GetFullWidth();
-            var leadingTrivia = SyntaxFactory.ParseLeadingTrivia(text.Substring(width));
+            var leadingTrivia = SyntaxFactory.ParseLeadingTrivia(text[width..]);
 
             return (trailingTrivia, leadingTrivia);
         }

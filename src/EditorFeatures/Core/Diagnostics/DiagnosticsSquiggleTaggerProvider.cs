@@ -15,9 +15,11 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -37,10 +39,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DiagnosticsSquiggleTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
+            IDiagnosticAnalyzerService analyzerService,
             IGlobalOptionService globalOptions,
             [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, diagnosticService, globalOptions, visibilityTracker, listenerProvider)
+            : base(threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listenerProvider)
         {
         }
 
@@ -72,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return null;
             }
 
-            return new ErrorTag(errorType, CreateToolTipContent(workspace, diagnostic));
+            return new RoslynErrorTag(errorType, workspace, diagnostic);
         }
 
         private static string? GetErrorTypeFromDiagnostic(DiagnosticData diagnostic)
@@ -124,6 +127,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 default:
                     return PredefinedErrorTypeNames.OtherError;
             }
+        }
+
+        protected override bool TagEquals(IErrorTag tag1, IErrorTag tag2)
+        {
+            Contract.ThrowIfFalse(tag1 is RoslynErrorTag);
+            Contract.ThrowIfFalse(tag2 is RoslynErrorTag);
+            return tag1.Equals(tag2);
         }
     }
 }

@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class AccessibilityTests : CSharpResultProviderTestBase
     {
-        [WorkItem(889710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889710")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21084")]
+        [WorkItem(889710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889710")]
         public void HideNonPublicMembersBaseClass()
         {
             var sourceA =
@@ -179,8 +179,8 @@ class C
                 EvalResult("PAD", "null", "object", "(new C()).a.PAD"));
         }
 
-        [WorkItem(889710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889710")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21084")]
+        [WorkItem(889710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889710")]
         public void HideNonPublicMembersDerivedClass()
         {
             var sourceA =

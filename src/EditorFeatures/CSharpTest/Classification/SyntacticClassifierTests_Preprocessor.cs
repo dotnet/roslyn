@@ -421,8 +421,7 @@ aeu";
                 Identifier("aeu"));
         }
 
-        [Theory]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Theory, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
         public async Task PP_If8(bool script, TestHost testHost)
         {
@@ -454,8 +453,7 @@ aeu";
                 script ? Field("aeu") : Identifier("aeu"));
         }
 
-        [Theory]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Theory, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
         public async Task PP_If9(bool script, TestHost testHost)
         {

@@ -564,7 +564,7 @@ class C
         }
 
         [Fact]
-        public void UsingVariableInSwitchCase()
+        public void UsingVariableInSwitchCase_01()
         {
             var source = @"
 using System;
@@ -590,6 +590,180 @@ class C2
                 //                     using C1 o1 = new C1();
                 Diagnostic(ErrorCode.ERR_UsingVarInSwitchCase, "using C1 o1 = new C1();").WithLocation(15, 17)
             );
+        }
+
+        [Fact, WorkItem(63570, "https://github.com/dotnet/roslyn/issues/63570")]
+        public void UsingVariableInSwitchCase_02()
+        {
+            var source = """
+                using System;
+                StringSplitOptions temp = StringSplitOptions.RemoveEmptyEntries;
+                switch (temp)
+                {
+                    case StringSplitOptions.None:
+                        Console.WriteLine("None");
+                        break;
+                
+                    case StringSplitOptions.RemoveEmptyEntries:
+                    {
+                        using var streamReader = new C1();
+                        goto case StringSplitOptions.None;
+                    }
+                
+                    default:
+                        break;
+                }
+                
+                class C1 : IDisposable
+                {
+                    public void Dispose()
+                    {
+                        Console.WriteLine("Disposed");
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                Disposed
+                None
+                """);
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       39 (0x27)
+                  .maxstack  2
+                  .locals init (System.StringSplitOptions V_0, //temp
+                                C1 V_1) //streamReader
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloc.0
+                  IL_0003:  brfalse.s  IL_000a
+                  IL_0005:  ldloc.0
+                  IL_0006:  ldc.i4.1
+                  IL_0007:  beq.s      IL_0015
+                  IL_0009:  ret
+                  IL_000a:  ldstr      "None"
+                  IL_000f:  call       "void System.Console.WriteLine(string)"
+                  IL_0014:  ret
+                  IL_0015:  newobj     "C1..ctor()"
+                  IL_001a:  stloc.1
+                  .try
+                  {
+                    IL_001b:  leave.s    IL_000a
+                  }
+                  finally
+                  {
+                    IL_001d:  ldloc.1
+                    IL_001e:  brfalse.s  IL_0026
+                    IL_0020:  ldloc.1
+                    IL_0021:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0026:  endfinally
+                  }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(63570, "https://github.com/dotnet/roslyn/issues/63570")]
+        public void UsingVariableInSwitchCase_03()
+        {
+            var source = """
+                using System;
+                StringSplitOptions temp = StringSplitOptions.RemoveEmptyEntries;
+                switch (temp)
+                {
+                    case StringSplitOptions.None:
+                        goto case StringSplitOptions.RemoveEmptyEntries;
+                
+                    case StringSplitOptions.RemoveEmptyEntries:
+                    {
+                        using var streamReader = new C1();
+                        goto case StringSplitOptions.None;
+                    }
+                }
+                
+                class C1 : IDisposable
+                {
+                    public void Dispose()
+                    {
+                        Console.WriteLine("Disposed");
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(63570, "https://github.com/dotnet/roslyn/issues/63570")]
+        public void UsingVariableInSwitchCase_04()
+        {
+            var source = """
+                using System;
+                StringSplitOptions temp = StringSplitOptions.RemoveEmptyEntries;
+                switch (temp)
+                {
+                    case StringSplitOptions.RemoveEmptyEntries:
+                    {
+                        using var streamReader = new C1();
+                        goto default;
+                    }
+
+                    default:
+                        Console.WriteLine("Default");
+                        break;
+                }
+                
+                class C1 : IDisposable
+                {
+                    public void Dispose()
+                    {
+                        Console.WriteLine("Disposed");
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                Disposed
+                Default
+                """);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(63570, "https://github.com/dotnet/roslyn/issues/63570")]
+        public void UsingVariableInSwitchCase_05()
+        {
+            var source = """
+                using System;
+                StringSplitOptions temp = StringSplitOptions.RemoveEmptyEntries;
+                switch (temp)
+                {
+                    default:
+                        Console.WriteLine("Default");
+                        break;
+
+                    case StringSplitOptions.RemoveEmptyEntries:
+                    {
+                        using var streamReader = new C1();
+                        goto default;
+                    }
+                }
+                
+                class C1 : IDisposable
+                {
+                    public void Dispose()
+                    {
+                        Console.WriteLine("Disposed");
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                Disposed
+                Default
+                """);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]

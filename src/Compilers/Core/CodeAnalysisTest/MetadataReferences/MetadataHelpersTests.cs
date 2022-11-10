@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Jagged
         };
 
-        private struct TypeNameConfig
+        private readonly struct TypeNameConfig
         {
             public readonly int NestingLevel;
             public readonly TypeNameConfig[] GenericParamsConfig;

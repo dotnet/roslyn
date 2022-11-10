@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 }
                 else
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 // Namespace can't be changed if we can't construct a valid qualified identifier from folder names.

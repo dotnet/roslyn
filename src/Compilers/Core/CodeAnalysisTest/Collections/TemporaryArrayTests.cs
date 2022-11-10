@@ -186,5 +186,23 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 initialItems > TemporaryArray<int>.TestAccessor.InlineCapacity,
                 TemporaryArray<int>.TestAccessor.HasDynamicStorage(in array));
         }
+
+        [Theory]
+        [CombinatorialData]
+        public void TestReverseContents([CombinatorialRange(0, 6)] int initialItems)
+        {
+            using var array = TemporaryArray<int>.Empty;
+            for (var i = 0; i < initialItems; i++)
+                array.Add(i);
+
+            Assert.Equal(initialItems, array.Count);
+
+            array.ReverseContents();
+
+            Assert.Equal(initialItems, array.Count);
+
+            for (var i = 0; i < initialItems; i++)
+                Assert.Equal(array[i], initialItems - 1 - i);
+        }
     }
 }

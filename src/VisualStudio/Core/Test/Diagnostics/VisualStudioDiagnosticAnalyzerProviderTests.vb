@@ -15,7 +15,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         <Fact>
         Public Sub GetAnalyzerReferencesInExtensions_Substitution()
             Dim extensionManager = New VisualStudioDiagnosticAnalyzerProvider(
-                New MockExtensionManager("Microsoft.VisualStudio.Analyzer", "$RootFolder$\test\test.dll", "$ShellFolder$\test\test.dll", "test\test.dll"),
+                New MockExtensionManager({({"$RootFolder$\test\test.dll", "$ShellFolder$\test\test.dll", "test\test.dll"}, "Vsix")}),
                 GetType(MockExtensionManager.MockContent))
 
             Dim references = extensionManager.GetAnalyzerReferencesInExtensions()
@@ -26,13 +26,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Path.Combine(TempRoot.Root, "ResolvedShellFolder\test\test.dll"),
                 Path.Combine(TempRoot.Root, "InstallPath\test\test.dll")
             },
-            references.Select(Function(reference) reference.FullPath))
+            references.Select(Function(referenceAndId) referenceAndId.reference.FullPath))
         End Sub
 
         <Fact>
         Public Sub GetAnalyzerReferencesInExtensions()
             Dim extensionManager = New VisualStudioDiagnosticAnalyzerProvider(
-                New MockExtensionManager("Microsoft.VisualStudio.Analyzer", "installPath1", "installPath2", "installPath3"),
+                New MockExtensionManager({({"installPath1", "installPath2", "installPath3"}, "Vsix")}),
                 GetType(MockExtensionManager.MockContent))
 
             Dim references = extensionManager.GetAnalyzerReferencesInExtensions()
@@ -43,7 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Path.Combine(TempRoot.Root, "InstallPath\installPath2"),
                 Path.Combine(TempRoot.Root, "InstallPath\installPath3")
             },
-            references.Select(Function(reference) reference.FullPath))
+            references.Select(Function(referenceAndId) referenceAndId.reference.FullPath))
         End Sub
 
         <Fact, WorkItem(6285, "https://github.com/dotnet/roslyn/issues/6285")>

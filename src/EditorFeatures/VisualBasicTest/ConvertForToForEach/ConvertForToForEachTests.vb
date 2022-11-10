@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.ConvertForToForEach
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertForToForEach
+    <Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
     Public Class ConvertForToForEachTests
         Inherits AbstractVisualBasicCodeActionTest
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertForToForEac
             Return New VisualBasicConvertForToForEachCodeRefactoringProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        <Fact>
         Public Async Function TestArray1() As Task
             Await TestInRegularAndScript1Async(
 "imports System
@@ -37,7 +38,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        <Fact>
         Public Async Function TestForSelected() As Task
             Await TestInRegularAndScript1Async(
 "imports System
@@ -60,7 +61,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        <Fact>
         Public Async Function TestAtEndOfFor() As Task
             Await TestInRegularAndScript1Async(
 "imports System
@@ -83,8 +84,7 @@ class C
 end class")
         End Function
 
-        <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        <Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         Public Async Function TestBeforeFor() As Task
             Await TestInRegularAndScript1Async(
 "imports System
@@ -107,7 +107,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        <Fact>
         Public Async Function TestMissingAfterFor() As Task
             Await TestMissingInRegularAndScriptAsync(
 "imports System
@@ -121,7 +121,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        <Fact>
         Public Async Function TestArrayPlusStep1() As Task
             Await TestInRegularAndScript1Async(
 "imports System
@@ -144,7 +144,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        <Fact>
         Public Async Function TestMissingWithWrongStep() As Task
             Await TestMissingInRegularAndScriptAsync(
 "imports System
@@ -158,7 +158,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        <Fact>
         Public Async Function TestMissingIfReferencingNotDeclaringVariable() As Task
             Await TestMissingInRegularAndScriptAsync(
 "imports System
@@ -173,7 +173,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        <Fact>
         Public Async Function TestMissingWithIncorrectCondition1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "imports System
@@ -188,7 +188,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        <Fact>
         Public Async Function TestMissingWithIncorrectCondition2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "imports System
@@ -203,7 +203,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        <Fact>
         Public Async Function TestMissingWithIncorrectCondition3() As Task
             Await TestMissingInRegularAndScriptAsync(
 "imports System
@@ -218,7 +218,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        <Fact>
         Public Async Function TestNotStartingAtZero() As Task
             Await TestMissingInRegularAndScriptAsync(
 "imports System
@@ -233,7 +233,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        <Fact>
         Public Async Function TestList1() As Task
             Await TestInRegularAndScript1Async(
 "imports System
@@ -258,7 +258,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        <Fact>
         Public Async Function TestChooseNameFromDeclarationStatement() As Task
             Await TestInRegularAndScript1Async(
 "imports System
@@ -284,7 +284,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        <Fact>
         Public Async Function TestChooseNameAndTypeFromDeclarationStatement() As Task
             Await TestInRegularAndScript1Async(
 "imports System
@@ -310,7 +310,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        <Fact>
         Public Async Function TestChooseNameFromDeclarationStatement_PreserveComments() As Task
             Await TestInRegularAndScript1Async(
 "imports System
@@ -340,7 +340,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        <Fact>
         Public Async Function TestChooseNameFromDeclarationStatement_PreserveDirectives() As Task
             Await TestInRegularAndScript1Async(
 "imports System
@@ -374,7 +374,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        <Fact>
         Public Async Function TestMissingIfVariableUsedNotForIndexing() As Task
             Await TestMissingInRegularAndScriptAsync(
 "imports System
@@ -388,7 +388,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        <Fact>
         Public Async Function TestMissingIfVariableUsedForIndexingNonCollection() As Task
             Await TestMissingInRegularAndScriptAsync(
 "imports System
@@ -402,7 +402,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        <Fact>
         Public Async Function TestWarningIfCollectionWrittenTo() As Task
             Await TestInRegularAndScript1Async(
 "imports System
@@ -425,7 +425,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        <Fact>
         Public Async Function TestDifferentIndexerAndEnumeratorType() As Task
             Await TestInRegularAndScriptAsync(
 "imports System
@@ -472,7 +472,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        <Fact>
         Public Async Function TestSameIndexerAndEnumeratorType() As Task
             Await TestInRegularAndScriptAsync(
 "imports System
@@ -519,7 +519,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        <Fact>
         Public Async Function TestTrivia() As Task
             Await TestInRegularAndScript1Async(
 "imports System
@@ -544,8 +544,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
-        <WorkItem(32822, "https://github.com/dotnet/roslyn/issues/32822")>
+        <Fact, WorkItem(32822, "https://github.com/dotnet/roslyn/issues/32822")>
         Public Async Function DoNotCrashOnInvalidCode() As Task
             Await TestMissingInRegularAndScriptAsync(
 "

@@ -164,53 +164,53 @@
     <value>Warning: Moving using directives may change code meaning.</value>
     <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
   </data>
-  <data name="Use_expression_body_for_methods" xml:space="preserve">
-    <value>Use expression body for methods</value>
+  <data name="Use_expression_body_for_method" xml:space="preserve">
+    <value>Use expression body for method</value>
   </data>
-  <data name="Use_block_body_for_methods" xml:space="preserve">
-    <value>Use block body for methods</value>
+  <data name="Use_block_body_for_method" xml:space="preserve">
+    <value>Use block body for method</value>
   </data>
-  <data name="Use_block_body_for_accessors" xml:space="preserve">
-    <value>Use block body for accessors</value>
+  <data name="Use_block_body_for_accessor" xml:space="preserve">
+    <value>Use block body for accessor</value>
   </data>
-  <data name="Use_block_body_for_constructors" xml:space="preserve">
-    <value>Use block body for constructors</value>
+  <data name="Use_block_body_for_constructor" xml:space="preserve">
+    <value>Use block body for constructor</value>
   </data>
-  <data name="Use_block_body_for_indexers" xml:space="preserve">
-    <value>Use block body for indexers</value>
+  <data name="Use_block_body_for_indexer" xml:space="preserve">
+    <value>Use block body for indexer</value>
   </data>
-  <data name="Use_block_body_for_operators" xml:space="preserve">
-    <value>Use block body for operators</value>
+  <data name="Use_block_body_for_operator" xml:space="preserve">
+    <value>Use block body for operator</value>
   </data>
-  <data name="Use_block_body_for_conversion_operators" xml:space="preserve">
-    <value>Use block body for conversion operators</value>
+  <data name="Use_block_body_for_conversion_operator" xml:space="preserve">
+    <value>Use block body for conversion operator</value>
   </data>
-  <data name="Use_block_body_for_properties" xml:space="preserve">
-    <value>Use block body for properties</value>
+  <data name="Use_block_body_for_property" xml:space="preserve">
+    <value>Use block body for property</value>
   </data>
-  <data name="Use_expression_body_for_accessors" xml:space="preserve">
-    <value>Use expression body for accessors</value>
+  <data name="Use_expression_body_for_accessor" xml:space="preserve">
+    <value>Use expression body for accessor</value>
   </data>
-  <data name="Use_expression_body_for_constructors" xml:space="preserve">
-    <value>Use expression body for constructors</value>
+  <data name="Use_expression_body_for_constructor" xml:space="preserve">
+    <value>Use expression body for constructor</value>
   </data>
-  <data name="Use_expression_body_for_indexers" xml:space="preserve">
-    <value>Use expression body for indexers</value>
+  <data name="Use_expression_body_for_indexer" xml:space="preserve">
+    <value>Use expression body for indexer</value>
   </data>
-  <data name="Use_expression_body_for_operators" xml:space="preserve">
-    <value>Use expression body for operators</value>
+  <data name="Use_expression_body_for_operator" xml:space="preserve">
+    <value>Use expression body for operator</value>
   </data>
-  <data name="Use_expression_body_for_conversion_operators" xml:space="preserve">
-    <value>Use expression body for conversion operators</value>
+  <data name="Use_expression_body_for_conversion_operator" xml:space="preserve">
+    <value>Use expression body for conversion operator</value>
   </data>
-  <data name="Use_expression_body_for_properties" xml:space="preserve">
-    <value>Use expression body for properties</value>
+  <data name="Use_expression_body_for_property" xml:space="preserve">
+    <value>Use expression body for property</value>
   </data>
-  <data name="Use_block_body_for_local_functions" xml:space="preserve">
-    <value>Use block body for local functions</value>
+  <data name="Use_block_body_for_local_function" xml:space="preserve">
+    <value>Use block body for local function</value>
   </data>
-  <data name="Use_expression_body_for_local_functions" xml:space="preserve">
-    <value>Use expression body for local functions</value>
+  <data name="Use_expression_body_for_local_function" xml:space="preserve">
+    <value>Use expression body for local function</value>
   </data>
   <data name="Unreachable_code_detected" xml:space="preserve">
     <value>Unreachable code detected</value>
@@ -383,10 +383,16 @@
   <data name="Remove_redundant_nullable_directive" xml:space="preserve">
     <value>Remove redundant nullable directive</value>
   </data>
-  <data name="Use_expression_body_for_lambda_expressions" xml:space="preserve">
-    <value>Use expression body for lambda expressions</value>
+  <data name="Use_expression_body_for_lambda_expression" xml:space="preserve">
+    <value>Use expression body for lambda expression</value>
   </data>
-  <data name="Use_block_body_for_lambda_expressions" xml:space="preserve">
-    <value>Use block body for lambda expressions</value>
+  <data name="Use_block_body_for_lambda_expression" xml:space="preserve">
+    <value>Use block body for lambda expression</value>
+  </data>
+  <data name="Make_struct_readonly" xml:space="preserve">
+    <value>Make struct 'readonly'</value>
+  </data>
+  <data name="Struct_can_be_made_readonly" xml:space="preserve">
+    <value>Struct can be made 'readonly'</value>
   </data>
 </root>

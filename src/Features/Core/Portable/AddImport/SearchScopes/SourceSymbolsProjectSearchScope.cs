@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 SymbolFilter filter, SearchQuery searchQuery)
             {
                 var service = _project.Solution.Services.GetService<ISymbolTreeInfoCacheService>();
-                var info = await service.TryGetSourceSymbolTreeInfoAsync(_project, CancellationToken).ConfigureAwait(false);
+                var info = await service.TryGetPotentiallyStaleSourceSymbolTreeInfoAsync(_project, CancellationToken).ConfigureAwait(false);
                 if (info == null)
                 {
                     // Looks like there was nothing in the cache.  Return no results for now.

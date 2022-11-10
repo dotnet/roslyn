@@ -8,7 +8,7 @@ using System.IO;
 
 namespace Roslyn.Utilities
 {
-    internal struct FileKey : IEquatable<FileKey>
+    internal readonly struct FileKey : IEquatable<FileKey>
     {
         /// <summary>
         /// Full case-insensitive path.

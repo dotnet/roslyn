@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             var builder = ImmutableDictionary.CreateBuilder<int, ImmutableArray<AbstractSyntaxStructureProvider>>();
 
             builder.Add((int)SyntaxKind.DisabledTextTrivia, ImmutableArray.Create<AbstractSyntaxStructureProvider>(new DisabledTextTriviaStructureProvider()));
+            builder.Add((int)SyntaxKind.MultiLineCommentTrivia, ImmutableArray.Create<AbstractSyntaxStructureProvider>(new MultilineCommentBlockStructureProvider()));
 
             return builder.ToImmutable();
         }

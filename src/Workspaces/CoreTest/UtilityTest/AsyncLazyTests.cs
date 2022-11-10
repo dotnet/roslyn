@@ -14,10 +14,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
     public partial class AsyncLazyTests
     {
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void GetValueAsyncReturnsCompletedTaskIfAsyncComputationCompletesImmediately()
         {
             // Note, this test may pass even if GetValueAsync posted a task to the threadpool, since the 
@@ -30,17 +30,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void SynchronousContinuationsDoNotRunWithinGetValueCallForCompletedTask()
             => SynchronousContinuationsDoNotRunWithinGetValueCallCore(TaskStatus.RanToCompletion);
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void SynchronousContinuationsDoNotRunWithinGetValueCallForCancelledTask()
             => SynchronousContinuationsDoNotRunWithinGetValueCallCore(TaskStatus.Canceled);
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void SynchronousContinuationsDoNotRunWithinGetValueCallForFaultedTask()
             => SynchronousContinuationsDoNotRunWithinGetValueCallCore(TaskStatus.Faulted);
 
@@ -125,17 +122,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void GetValueThrowsCorrectExceptionDuringCancellation()
             => GetValueOrGetValueAsyncThrowsCorrectExceptionDuringCancellation((lazy, ct) => lazy.GetValue(ct), includeSynchronousComputation: false);
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void GetValueThrowsCorrectExceptionDuringCancellationWithSynchronousComputation()
             => GetValueOrGetValueAsyncThrowsCorrectExceptionDuringCancellation((lazy, ct) => lazy.GetValue(ct), includeSynchronousComputation: true);
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void GetValueAsyncThrowsCorrectExceptionDuringCancellation()
         {
             // NOTE: since GetValueAsync inlines the call to the async computation, the GetValueAsync call will throw
@@ -144,7 +138,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void GetValueAsyncThrowsCorrectExceptionDuringCancellationWithSynchronousComputation()
         {
             // In theory the synchronous computation isn't used during GetValueAsync, but just in case...
@@ -204,7 +197,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void GetValueAsyncThatIsCancelledReturnsTaskCancelledWithCorrectToken()
         {
             var cancellationTokenSource = new CancellationTokenSource();

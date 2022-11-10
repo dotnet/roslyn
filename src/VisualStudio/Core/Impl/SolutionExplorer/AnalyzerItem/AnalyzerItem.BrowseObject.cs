@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.ComponentModel;
+using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {

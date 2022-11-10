@@ -46,32 +46,24 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 // Members normally conflict if they have the same name.  The exceptions are methods
                 // and parameterized properties (which conflict if they have the same signature).
                 if (!IdentifiersMatch(member1.Name, member2.Name))
-                {
                     return false;
-                }
 
                 // If they differ in type, then it's almost always a conflict.  There may be
                 // exceptions to this, but i don't know of any.
                 if (member1.Kind != member2.Kind)
-                {
                     return true;
-                }
 
                 // At this point, we have two members of the same type with the same name.  If they
                 // have a different signature (for example, methods, or parameterized properties),
                 // then they do not conflict.
                 if (!SignatureComparer.Instance.HaveSameSignature(member1, member2, IsCaseSensitive))
-                {
                     return false;
-                }
 
                 // Now we have to members with the same name, type and signature. If the language
                 // doesn't support implicit implementation, then these members are definitely in
                 // conflict.
                 if (!Service.CanImplementImplicitly)
-                {
                     return true;
-                }
 
                 // two members conflict if they have the same signature and have
                 //

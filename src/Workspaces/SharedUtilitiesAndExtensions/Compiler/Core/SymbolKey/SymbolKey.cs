@@ -99,6 +99,12 @@ namespace Microsoft.CodeAnalysis
     /// versions may change the encoded format and may no longer be able to <see cref="Resolve"/> previous keys.  As
     /// such, only persist if using for a cache that can be regenerated if necessary.
     /// </para>
+    /// <para>
+    /// The string values produced by <see cref="CreateString"/> (or <see cref="SymbolKey.ToString"/>) should not be
+    /// directly compared for equality or used in hashing scenarios.  Specifically, two symbol keys which represent the
+    /// 'same' symbol might produce different strings.  Instead, to compare keys use <see cref="SymbolKey.GetComparer"/>
+    /// to get a suitable comparer that exposes the desired semantics.
+    /// </para>
     /// </summary>
     [DataContract]
     internal partial struct SymbolKey : IEquatable<SymbolKey>
@@ -109,7 +115,7 @@ namespace Microsoft.CodeAnalysis
         /// out a SymbolKey from a previous version of Roslyn and then attempt to use it in a 
         /// newer version where the encoding has changed.
         /// </summary>
-        internal const int FormatVersion = 4;
+        internal const int FormatVersion = 5;
 
         [DataMember(Order = 0)]
         private readonly string _symbolKeyData;
@@ -120,7 +126,7 @@ namespace Microsoft.CodeAnalysis
         /// from any other source is not supported.
         /// </summary>
         public SymbolKey(string data)
-            => _symbolKeyData = data ?? throw new ArgumentNullException();
+            => _symbolKeyData = data ?? throw new ArgumentNullException(nameof(data));
 
         /// <summary>
         /// Constructs a new <see cref="SymbolKey"/> representing the provided <paramref name="symbol"/>.
@@ -188,6 +194,9 @@ namespace Microsoft.CodeAnalysis
                 return default;
             }
 
+            // Read out the language info which was included just for diagnostic purposes.
+            var language = reader.ReadString();
+
             // Initial entrypoint.  No contextual symbol to pass along.
             var result = reader.ReadSymbolKey(contextualSymbol: null, out failureReason);
             Debug.Assert(reader.Position == symbolKey.Length);
@@ -202,6 +211,12 @@ namespace Microsoft.CodeAnalysis
         {
             using var writer = SymbolKeyWriter.GetWriter(cancellationToken);
             writer.WriteFormatVersion(version);
+
+            // include the language just for help diagnosing issues.  Note: the language is not considered part of the
+            // 'value' of the key.  In other words two keys that represent the same symbol (like 'System.Int32'), but
+            // which differ on language, will still be considered equal. to each other.
+            writer.WriteString(symbol?.Language);
+
             writer.WriteSymbolKey(symbol);
             return writer.CreateKey();
         }
@@ -265,9 +280,7 @@ namespace Microsoft.CodeAnalysis
             PooledArrayBuilder<RefKind> refKinds)
         {
             if (parameters.Length != refKinds.Count)
-            {
                 return false;
-            }
 
             for (var i = 0; i < refKinds.Count; i++)
             {
@@ -297,9 +310,7 @@ namespace Microsoft.CodeAnalysis
                 foreach (var member in members)
                 {
                     if (member is TSymbol symbol)
-                    {
                         result.AddIfNotNull(symbol);
-                    }
                 }
             }
 
@@ -309,20 +320,55 @@ namespace Microsoft.CodeAnalysis
         public static bool IsBodyLevelSymbol(ISymbol symbol)
             => symbol switch
             {
-                ILabelSymbol _ => true,
-                IRangeVariableSymbol _ => true,
-                ILocalSymbol _ => true,
-                IMethodSymbol { MethodKind: MethodKind.LocalFunction } _ => true,
+                ILabelSymbol => true,
+                IRangeVariableSymbol => true,
+                ILocalSymbol => true,
+                IMethodSymbol { MethodKind: MethodKind.LocalFunction } => true,
                 _ => false,
             };
 
+        private static int GetDataStartPosition(string key)
+        {
+            if (string.IsNullOrEmpty(key))
+                return 0;
+
+            using var reader = SymbolKeyReader.GetReader(key, compilation: null!, ignoreAssemblyKey: false, CancellationToken.None);
+            _ = reader.ReadFormatVersion();
+            _ = reader.ReadString();
+            return reader.Position;
+        }
+
         public override int GetHashCode()
-            => _symbolKeyData.GetHashCode();
+        {
+            var position = GetDataStartPosition(_symbolKeyData);
+
+#if NETSTANDARD
+            var hashCode = 0;
+            foreach (var ch in _symbolKeyData[position..])
+                hashCode = Hash.Combine(ch, hashCode);
+
+            return hashCode;
+#else
+            return string.GetHashCode(_symbolKeyData.AsSpan(position));
+#endif
+        }
 
         public override bool Equals(object? obj)
             => obj is SymbolKey symbolKey && this.Equals(symbolKey);
 
         public bool Equals(SymbolKey other)
-            => _symbolKeyData == other._symbolKeyData;
+            => Equals(other, ignoreCase: false);
+
+        private bool Equals(SymbolKey other, bool ignoreCase)
+        {
+            var position1 = GetDataStartPosition(_symbolKeyData);
+            var position2 = GetDataStartPosition(other._symbolKeyData);
+
+            var keySpan1 = _symbolKeyData.AsSpan(position1);
+            var keySpan2 = other._symbolKeyData.AsSpan(position2);
+
+            var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+            return keySpan1.Equals(keySpan2, comparison);
+        }
     }
 }

@@ -301,6 +301,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property ILocalSymbol_ScopedKind As ScopedKind Implements ILocalSymbol.ScopedKind
+            Get
+                Return ScopedKind.None
+            End Get
+        End Property
+
         Public MustOverride ReadOnly Property IsFunctionValue As Boolean Implements ILocalSymbol.IsFunctionValue
 
         Friend ReadOnly Property IsCompilerGenerated As Boolean
@@ -401,6 +407,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property ILocalSymbol_IsConst As Boolean Implements ILocalSymbol.IsConst
             Get
                 Return Me.IsConst
+            End Get
+        End Property
+
+        Private ReadOnly Property ILocalSymbol_IsForEach As Boolean Implements ILocalSymbol.IsForEach
+            Get
+                Return Me.IsForEach
+            End Get
+        End Property
+
+        Private ReadOnly Property ILocalSymbol_IsUsing As Boolean Implements ILocalSymbol.IsUsing
+            Get
+                Return Me.IsUsing
             End Get
         End Property
 

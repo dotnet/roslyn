@@ -734,4 +734,13 @@
   <data name="GeneratorTotalExecutionTime" xml:space="preserve">
     <value>Total generator execution time: {0} seconds.</value>
   </data>
+  <data name="BadBuiltInOps1" xml:space="preserve">
+    <value>Illegal built-in operator name '{0}'</value>
+  </data>
+  <data name="BadBuiltInOps2" xml:space="preserve">
+    <value>Unsupported built-in operator: {0}</value>
+  </data>
+  <data name="BadBuiltInOps3" xml:space="preserve">
+    <value>'{0}' was not a valid built-in operator name</value>
+  </data>
 </root>

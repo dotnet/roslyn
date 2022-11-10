@@ -38,10 +38,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
 
         private IEnumerable<WhitespaceSetting> GetSpacingOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updaterService)
         {
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpacingAfterMethodDeclarationName, CSharpVSResources.Insert_space_between_method_name_and_its_opening_parenthesis2, editorConfigOptions, visualStudioOptions, updaterService, FileName);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpacingAfterMethodDeclarationName, CSharpVSResources.Insert_space_between_method_name_and_its_opening_parenthesis, editorConfigOptions, visualStudioOptions, updaterService, FileName);
             yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceWithinMethodDeclarationParenthesis, CSharpVSResources.Insert_space_within_parameter_list_parentheses, editorConfigOptions, visualStudioOptions, updaterService, FileName);
             yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceBetweenEmptyMethodDeclarationParentheses, CSharpVSResources.Insert_space_within_empty_parameter_list_parentheses, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceAfterMethodCallName, CSharpVSResources.Insert_space_between_method_name_and_its_opening_parenthesis1, editorConfigOptions, visualStudioOptions, updaterService, FileName);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceAfterMethodCallName, CSharpVSResources.Insert_space_between_called_method_name_and_its_opening_parenthesis, editorConfigOptions, visualStudioOptions, updaterService, FileName);
             yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceWithinMethodCallParentheses, CSharpVSResources.Insert_space_within_argument_list_parentheses, editorConfigOptions, visualStudioOptions, updaterService, FileName);
             yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceBetweenEmptyMethodCallParentheses, CSharpVSResources.Insert_space_within_empty_argument_list_parentheses, editorConfigOptions, visualStudioOptions, updaterService, FileName);
 

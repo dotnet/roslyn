@@ -238,7 +238,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // we have computed the new diagnostics just for the edited member span.
                 Debug.Assert(executor.AnalysisScope.Span.HasValue);
                 Debug.Assert(executor.AnalysisScope.Span.Value == changedMember.FullSpan);
-                Debug.Assert(diagnostics.All(d => !d.HasTextSpan || changedMember.FullSpan.IntersectsWith(d.GetTextSpan())));
 
                 // We now try to get the new document diagnostics by performing an incremental update:
                 //   1. Re-using all the old cached diagnostics outside the edited member node from a prior
@@ -248,7 +247,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 //      with the new diagnostics for this member node in the latest document snaphot.
                 // If we are unable to perform this incremental diagnostics update,
                 // we fallback to computing the diagnostics for the entire document.
-                if (TryGetUpdatedDocumentDiagnostics(existingData, oldMemberSpans, diagnostics, changedMember.SyntaxTree, changedMember, changedMemberId, out var updatedDiagnostics))
+                var tree = changedMember.SyntaxTree;
+                var text = tree.GetText(cancellationToken);
+                if (TryGetUpdatedDocumentDiagnostics(existingData, oldMemberSpans, diagnostics, tree, text, changedMember, changedMemberId, out var updatedDiagnostics))
                 {
 #if DEBUG_INCREMENTAL_ANALYSIS
                     await ValidateMemberDiagnosticsAsync(executor, analyzer, updatedDiagnostics, cancellationToken).ConfigureAwait(false);
@@ -274,8 +275,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private static bool TryGetUpdatedDocumentDiagnostics(
-                DocumentAnalysisData existingData, ImmutableArray<TextSpan> oldMemberSpans, ImmutableArray<DiagnosticData> memberDiagnostics,
-                SyntaxTree tree, SyntaxNode member, int memberId, out ImmutableArray<DiagnosticData> updatedDiagnostics)
+                DocumentAnalysisData existingData,
+                ImmutableArray<TextSpan> oldMemberSpans,
+                ImmutableArray<DiagnosticData> memberDiagnostics,
+                SyntaxTree tree,
+                SourceText text,
+                SyntaxNode member,
+                int memberId,
+                out ImmutableArray<DiagnosticData> updatedDiagnostics)
             {
                 // get old span
                 var oldSpan = oldMemberSpans[memberId];
@@ -307,17 +314,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var replaced = false;
                 foreach (var diagnostic in diagnostics)
                 {
-                    if (!diagnostic.HasTextSpan)
+                    if (diagnostic.DocumentId is null)
                     {
                         resultBuilder.Add(diagnostic);
                         continue;
                     }
 
-                    var diagnosticSpan = diagnostic.GetTextSpan();
+                    var diagnosticSpan = diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text);
                     if (diagnosticSpan.Start < oldSpan.Start)
                     {
                         // Bail out if the diagnostic has any additional locations that we don't know how to handle.
-                        if (diagnostic.AdditionalLocations.Any(l => l.SourceSpan.HasValue && l.SourceSpan.Value.Start >= oldSpan.Start))
+                        if (diagnostic.AdditionalLocations.Any(l => l.DocumentId != null && l.UnmappedFileSpan.GetClampedTextSpan(text).Start >= oldSpan.Start))
                         {
                             updatedDiagnostics = default;
                             return false;
@@ -336,13 +343,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     if (oldSpan.End <= diagnosticSpan.Start)
                     {
                         // Bail out if the diagnostic has any additional locations that we don't know how to handle.
-                        if (diagnostic.AdditionalLocations.Any(l => l.SourceSpan.HasValue && oldSpan.End > l.SourceSpan.Value.Start))
+                        if (diagnostic.AdditionalLocations.Any(l => l.DocumentId != null && oldSpan.End > l.UnmappedFileSpan.GetClampedTextSpan(text).Start))
                         {
                             updatedDiagnostics = default;
                             return false;
                         }
 
-                        resultBuilder.Add(UpdateLocations(diagnostic, tree, delta));
+                        resultBuilder.Add(UpdateLocations(diagnostic, tree, text, delta));
                         continue;
                     }
                 }
@@ -356,7 +363,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 updatedDiagnostics = resultBuilder.ToImmutableArray();
                 return true;
 
-                static DiagnosticData UpdateLocations(DiagnosticData diagnostic, SyntaxTree tree, int delta)
+                static DiagnosticData UpdateLocations(DiagnosticData diagnostic, SyntaxTree tree, SourceText text, int delta)
                 {
                     Debug.Assert(diagnostic.DataLocation != null);
                     var location = UpdateLocation(diagnostic.DataLocation);
@@ -365,11 +372,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     DiagnosticDataLocation UpdateLocation(DiagnosticDataLocation location)
                     {
-                        // Do not need to update additional locations without source span
-                        if (!location.SourceSpan.HasValue)
-                            return location;
-
-                        var diagnosticSpan = location.SourceSpan.Value;
+                        var diagnosticSpan = location.UnmappedFileSpan.GetClampedTextSpan(text);
                         var start = Math.Min(Math.Max(diagnosticSpan.Start + delta, 0), tree.Length);
                         var newSpan = new TextSpan(start, start >= tree.Length ? 0 : diagnosticSpan.Length);
                         return location.WithSpan(newSpan, tree);

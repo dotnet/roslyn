@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Represents a constant value used as an argument to a custom attribute.
     /// </summary>
-    public struct TypedConstant : IEquatable<TypedConstant>
+    public readonly struct TypedConstant : IEquatable<TypedConstant>
     {
         private readonly TypedConstantKind _kind;
         private readonly ITypeSymbolInternal? _type;

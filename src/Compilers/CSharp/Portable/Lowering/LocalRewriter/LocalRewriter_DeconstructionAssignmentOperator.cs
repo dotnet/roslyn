@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return AccessTupleFields(VisitExpression(right), temps, effects.deconstructions);
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private static bool IsTupleExpression(BoundKind kind)

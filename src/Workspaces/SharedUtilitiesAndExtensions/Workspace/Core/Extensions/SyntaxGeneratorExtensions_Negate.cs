@@ -49,6 +49,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             bool negateBinary,
             CancellationToken cancellationToken)
         {
+            return Negate(generator, generatorInternal, expressionOrPattern, semanticModel, negateBinary, patternValueType: null, cancellationToken);
+        }
+
+        public static SyntaxNode Negate(
+            this SyntaxGenerator generator,
+            SyntaxGeneratorInternal generatorInternal,
+            SyntaxNode expressionOrPattern,
+            SemanticModel semanticModel,
+            bool negateBinary,
+            SpecialType? patternValueType,
+            CancellationToken cancellationToken)
+        {
             var options = semanticModel.SyntaxTree.Options;
             var syntaxFacts = generatorInternal.SyntaxFacts;
 
@@ -93,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return GetNegationOfBinaryPattern(expressionOrPattern, generator, generatorInternal, semanticModel, cancellationToken);
 
             if (syntaxFacts.IsConstantPattern(expressionOrPattern))
-                return GetNegationOfConstantPattern(expressionOrPattern, generator, generatorInternal);
+                return GetNegationOfConstantPattern(expressionOrPattern, generator, generatorInternal, patternValueType);
 
             if (syntaxFacts.IsUnaryPattern(expressionOrPattern))
                 return GetNegationOfUnaryPattern(expressionOrPattern, generator, generatorInternal, syntaxFacts);
@@ -114,9 +126,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return generator.IsTypeExpression(expression, type);
             }
 
-            // TODO(cyrusn): We could support negating relational patterns in the future.  i.e.
-            //
-            //      not >= 0   ->    < 0
+            if (syntaxFacts.IsRelationalPattern(expressionOrPattern))
+            {
+                return GetNegationOfRelationalPattern(expressionOrPattern, generatorInternal, patternValueType);
+            }
 
             return syntaxFacts.IsAnyPattern(expressionOrPattern)
                 ? generatorInternal.NotPattern(expressionOrPattern)
@@ -157,6 +170,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (!s_negatedBinaryMap.TryGetValue(binaryOperation.OperatorKind, out var negatedKind))
                 return generator.LogicalNotExpression(expressionNode);
 
+            // Lifted relational operators return false if either operand is null.
+            // Inverting the operator fails to invert the behavior when an operand is null.
+            if (binaryOperation.IsLifted
+                && binaryOperation.OperatorKind is BinaryOperatorKind.LessThan or
+                                                   BinaryOperatorKind.LessThanOrEqual or
+                                                   BinaryOperatorKind.GreaterThan or
+                                                   BinaryOperatorKind.GreaterThanOrEqual)
+            {
+                return generator.LogicalNotExpression(expressionNode);
+            }
+
             if (binaryOperation.OperatorKind is BinaryOperatorKind.Or or
                                                 BinaryOperatorKind.And or
                                                 BinaryOperatorKind.ConditionalAnd or
@@ -184,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            // Apply demorgans's law here.
+            // Apply De Morgan's laws here.
             //
             //  not (a and b)   ->   not a or not b
             //  not (a or b)    ->   not a and not b
@@ -218,7 +242,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (syntaxFacts.SupportsNotPattern(semanticModel.SyntaxTree.Options))
             {
                 // We do support 'not' patterns.  So attempt to push a 'not' pattern into the current is-pattern RHS.
-                negatedPattern = generator.Negate(generatorInternal, pattern, semanticModel, cancellationToken);
+                // We include the type of the value when negating the pattern, since it allows for nicer negations of
+                // `is true/false` for Boolean values and relational patterns for numeric values.
+                var operation = semanticModel.GetOperation(isExpression, cancellationToken);
+                var valueType = (operation as IIsPatternOperation)?.Value.Type?.SpecialType;
+                negatedPattern = generator.Negate(generatorInternal, pattern, semanticModel, negateBinary: true, valueType, cancellationToken);
             }
             else if (syntaxFacts.IsNotPattern(pattern))
             {
@@ -243,6 +271,33 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return generator.LogicalNotExpression(isExpression);
+        }
+
+        private static SyntaxNode GetNegationOfRelationalPattern(
+            SyntaxNode expressionNode,
+            SyntaxGeneratorInternal generatorInternal,
+            SpecialType? patternValueType)
+        {
+            if (patternValueType is SpecialType specialType && specialType.IsNumericType())
+            {
+                // If we know the value is numeric, we can negate the relational operator.
+                // This is not valid for non-numeric value since they never match a relational pattern.
+                // Similarly, it's not valid for nullable values, since null never matches a relational pattern.
+                // As an example, `!(new object() is < 1)` is equivalent to `new object() is not < 1` but not `new object() is >= 1`.
+                var syntaxFacts = generatorInternal.SyntaxFacts;
+                syntaxFacts.GetPartsOfRelationalPattern(expressionNode, out var operatorToken, out var expression);
+                syntaxFacts.TryGetPredefinedOperator(operatorToken, out var predefinedOperator);
+                return predefinedOperator switch
+                {
+                    PredefinedOperator.LessThan => generatorInternal.GreaterThanEqualsRelationalPattern(expression),
+                    PredefinedOperator.LessThanOrEqual => generatorInternal.GreaterThanRelationalPattern(expression),
+                    PredefinedOperator.GreaterThan => generatorInternal.LessThanEqualsRelationalPattern(expression),
+                    PredefinedOperator.GreaterThanOrEqual => generatorInternal.LessThanRelationalPattern(expression),
+                    _ => generatorInternal.NotPattern(expressionNode)
+                };
+            }
+
+            return generatorInternal.NotPattern(expressionNode);
         }
 
         private static bool IsLegalPattern(ISyntaxFacts syntaxFacts, SyntaxNode pattern, bool designatorsLegal)
@@ -412,18 +467,23 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private static SyntaxNode GetNegationOfConstantPattern(
             SyntaxNode pattern,
             SyntaxGenerator generator,
-            SyntaxGeneratorInternal generatorInternal)
+            SyntaxGeneratorInternal generatorInternal,
+            SpecialType? patternValueType)
         {
             var syntaxFacts = generatorInternal.SyntaxFacts;
 
-            // If we have `is true/false` just swap that to be `is false/true`.
+            // If we have `is true/false` and a Boolean value, just swap that to be `is false/true`.
+            // If the value isn't a Boolean, swapping to `is false/true` is incorrect since non-Booleans match neither.
+            // As an example, `!(new object() is true)` is equivalent to `new object() is not true` but not `new object() is false`.
+            if (patternValueType == SpecialType.System_Boolean)
+            {
+                var expression = syntaxFacts.GetExpressionOfConstantPattern(pattern);
+                if (syntaxFacts.IsTrueLiteralExpression(expression))
+                    return generatorInternal.ConstantPattern(generator.FalseLiteralExpression());
 
-            var expression = syntaxFacts.GetExpressionOfConstantPattern(pattern);
-            if (syntaxFacts.IsTrueLiteralExpression(expression))
-                return generatorInternal.ConstantPattern(generator.FalseLiteralExpression());
-
-            if (syntaxFacts.IsFalseLiteralExpression(expression))
-                return generatorInternal.ConstantPattern(generator.TrueLiteralExpression());
+                if (syntaxFacts.IsFalseLiteralExpression(expression))
+                    return generatorInternal.ConstantPattern(generator.TrueLiteralExpression());
+            }
 
             // Otherwise, just negate the entire pattern, we don't have anything else special we can do here.
             return generatorInternal.NotPattern(pattern);

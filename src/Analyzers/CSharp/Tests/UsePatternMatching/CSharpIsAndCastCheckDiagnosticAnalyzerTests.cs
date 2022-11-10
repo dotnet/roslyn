@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -21,6 +19,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
     public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public CSharpIsAndCastCheckDiagnosticAnalyzerTests(ITestOutputHelper logger)
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpIsAndCastCheckDiagnosticAnalyzer(), new CSharpIsAndCastCheckCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task InlineTypeCheck1()
         {
             await TestInRegularAndScript1Async(
@@ -56,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestMissingInCSharp6()
         {
             await TestMissingAsync(
@@ -72,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }", new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestMissingInWrongName()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -88,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestMissingInWrongType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -104,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestMissingOnMultiVar()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -120,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestMissingOnNonDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -136,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestMissingOnAsExpression()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -152,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task InlineTypeCheckComplexExpression1()
         {
             await TestInRegularAndScript1Async(
@@ -177,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestInlineTypeCheckWithElse()
         {
             await TestInRegularAndScript1Async(
@@ -208,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestComments1()
         {
             await TestInRegularAndScript1Async(
@@ -235,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestComments2()
         {
             await TestInRegularAndScript1Async(
@@ -261,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestComments3()
         {
             await TestInRegularAndScript1Async(
@@ -289,8 +288,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [WorkItem(17126, "https://github.com/dotnet/roslyn/issues/17126")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact, WorkItem(17126, "https://github.com/dotnet/roslyn/issues/17126")]
         public async Task TestComments4()
         {
             await TestInRegularAndScript1Async(
@@ -328,7 +326,7 @@ namespace N {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task InlineTypeCheckParenthesized1()
         {
             await TestInRegularAndScript1Async(
@@ -353,7 +351,7 @@ namespace N {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task InlineTypeCheckParenthesized2()
         {
             await TestInRegularAndScript1Async(
@@ -378,7 +376,7 @@ namespace N {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task InlineTypeCheckParenthesized3()
         {
             await TestInRegularAndScript1Async(
@@ -403,7 +401,7 @@ namespace N {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task InlineTypeCheckScopeConflict1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -423,7 +421,7 @@ namespace N {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task InlineTypeCheckScopeConflict2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -444,7 +442,7 @@ namespace N {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task InlineTypeCheckScopeConflict3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -465,7 +463,7 @@ namespace N {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task InlineTypeCheckScopeNonConflict1()
         {
             await TestInRegularAndScript1Async(
@@ -502,8 +500,7 @@ namespace N {
 }");
         }
 
-        [WorkItem(18053, "https://github.com/dotnet/roslyn/issues/18053")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact, WorkItem(18053, "https://github.com/dotnet/roslyn/issues/18053")]
         public async Task TestMissingWhenTypesDoNotMatch()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -534,8 +531,7 @@ public static class C
 }");
         }
 
-        [WorkItem(429612, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/429612")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact, WorkItem(429612, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/429612")]
         public async Task TestMissingWithNullableType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -554,8 +550,7 @@ class C
 }");
         }
 
-        [WorkItem(21172, "https://github.com/dotnet/roslyn/issues/21172")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact, WorkItem(21172, "https://github.com/dotnet/roslyn/issues/21172")]
         public async Task TestMissingWithDynamic()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -574,7 +569,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestSeverity()
         {
             var source =
@@ -597,7 +592,131 @@ class C
             var diag = (await GetDiagnosticsAsync(workspace, testParameters)).Single();
             Assert.Equal(DiagnosticSeverity.Warning, diag.Severity);
             Assert.Equal(IDEDiagnosticIds.InlineIsTypeCheckId, diag.Id);
+        }
 
+        [Fact, WorkItem(24287, "https://github.com/dotnet/roslyn/issues/24287")]
+        public async Task TestWithVariableDesignation1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+public class Test
+{
+    public void TestIt(object o)
+    {
+        if (o is int)
+        {
+            [|var|] value = (int)o;
+        }
+        else if (o is Guid value1)
+        {
+        }
+    }
+}",
+@"
+public class Test
+{
+    public void TestIt(object o)
+    {
+        if (o is int value)
+        {
+        }
+        else if (o is Guid value1)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(24287, "https://github.com/dotnet/roslyn/issues/24287")]
+        public async Task TestWithVariableDesignation2()
+        {
+            await TestMissingAsync(
+@"
+public class Test
+{
+    public void TestIt(object o)
+    {
+        if (o is int)
+        {
+            [|var|] value = (int)o;
+        }
+        else if (o is Guid value)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(24287, "https://github.com/dotnet/roslyn/issues/24287")]
+        public async Task TestWithVariableDesignation3()
+        {
+            await TestMissingAsync(
+@"
+public class Test
+{
+    public void TestIt(object o)
+    {
+        if (o is int)
+        {
+            [|var|] value = (int)o;
+        }
+        else if (TryGetValue(o, out var value))
+        }
+    }
+
+    private bool TryGetValue(object o, out string result)
+    {
+        result = """";
+        return true;
+    }
+}");
+        }
+
+        [Fact, WorkItem(42462, "https://github.com/dotnet/roslyn/issues/42462")]
+        public async Task TestWithLocalInsideTryBlock()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        object value = null;
+
+        if (value is string)
+        {
+            try
+            {
+                [|var|] stringValue = (string)value;
+            }
+            finally
+            {
+
+            }
+        }
+    }
+}
+",
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        object value = null;
+
+        if (value is string stringValue)
+        {
+            try
+            {
+            }
+            finally
+            {
+
+            }
+        }
+    }
+}
+");
         }
     }
 }

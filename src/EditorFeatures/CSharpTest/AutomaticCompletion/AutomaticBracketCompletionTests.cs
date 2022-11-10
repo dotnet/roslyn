@@ -14,16 +14,17 @@ using static Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionServi
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
+    [Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
     public class AutomaticBracketCompletionTests : AbstractAutomaticBraceCompletionTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Creation()
         {
             using var session = CreateSession("$$");
             Assert.NotNull(session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Attribute_TopLevel()
         {
             using var session = CreateSession("$$");
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Attribute_TopLevel2()
         {
             using var session = CreateSession("using System;$$");
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void InvalidLocation_String()
         {
             var code = @"class C
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             Assert.Null(session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void InvalidLocation_String2()
         {
             var code = @"class C
@@ -64,7 +65,7 @@ $$
             Assert.Null(session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void InvalidLocation_Comment()
         {
             var code = @"class C
@@ -75,7 +76,7 @@ $$
             Assert.Null(session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void InvalidLocation_Comment2()
         {
             var code = @"class C
@@ -86,7 +87,7 @@ $$
             Assert.Null(session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void InvalidLocation_Comment3()
         {
             var code = @"class C
@@ -97,7 +98,7 @@ $$
             Assert.Null(session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void InvalidLocation_Comment4()
         {
             var code = @"class C
@@ -108,7 +109,7 @@ $$
             Assert.Null(session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void MultiLine_Comment()
         {
             var code = @"class C
@@ -124,7 +125,7 @@ $$
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void MultiLine_DocComment()
         {
             var code = @"class C
@@ -140,7 +141,7 @@ $$
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void String1()
         {
             var code = @"class C
@@ -156,7 +157,7 @@ $$
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void String2()
         {
             var code = @"class C
@@ -172,7 +173,7 @@ $$
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Attribute_OpenBracket()
         {
             var code = @"$$
@@ -184,7 +185,7 @@ class C { }";
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Attribute_OpenBracket_Delete()
         {
             var code = @"$$
@@ -197,7 +198,7 @@ class C { }";
             CheckBackspace(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Attribute_OpenBracket_Tab()
         {
             var code = @"$$
@@ -210,7 +211,7 @@ class C { }";
             CheckTab(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Attribute_OpenBracket_CloseBracket()
         {
             var code = @"$$
@@ -223,7 +224,7 @@ class C { }";
             CheckOverType(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Array_Multiple_Invalid()
         {
             var code = @"class C 
@@ -237,7 +238,7 @@ class C { }";
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Array_Nested()
         {
             var code = @"class C
@@ -250,7 +251,7 @@ class C { }";
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void ListPattern()
         {
             var code = @"

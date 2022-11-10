@@ -695,7 +695,7 @@ class C
             }
         }
 
-        [Fact, WorkItem(45955, "https://github.com/dotnet/roslyn/issues/45955")]
+        [ConditionalFact(typeof(NoIOperationValidation)), WorkItem(45955, "https://github.com/dotnet/roslyn/issues/45955")]
         public void SemanticModelFieldInitializerRace()
         {
             var source = $@"

@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
+    <Trait(Traits.Feature, Traits.Features.Outlining)>
     Public Class RegionDirectiveStructureProviderTests
         Inherits AbstractVisualBasicSyntaxNodeStructureProviderTests(Of RegionDirectiveTriviaSyntax)
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return New RegionDirectiveStructureProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function BrokenRegion() As Task
             Const code = "
 $$#Region ""Goo""
@@ -23,7 +24,7 @@ $$#Region ""Goo""
             Await VerifyNoBlockSpansAsync(code)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function SimpleRegion() As Task
             Const code = "
 {|span:$$#Region ""Goo""
@@ -34,7 +35,7 @@ $$#Region ""Goo""
                 Region("span", "Goo", autoCollapse:=False, isDefaultCollapsed:=True))
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Theory, CombinatorialData>
         Public Async Function RegionsShouldBeCollapsedByDefault(collapseRegionsByDefault As Boolean) As Task
             Const code = "
 {|span:$$#Region ""Goo""
@@ -47,7 +48,7 @@ $$#Region ""Goo""
                 Region("span", "Goo", autoCollapse:=False, isDefaultCollapsed:=collapseRegionsByDefault))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function RegionWithNoBanner1() As Task
             Const code = "
 {|span:$$#Region
@@ -58,7 +59,7 @@ $$#Region ""Goo""
                 Region("span", "#Region", autoCollapse:=False, isDefaultCollapsed:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function RegionWithNoBanner2() As Task
             Const code = "
 {|span:$$#Region """"
@@ -69,8 +70,7 @@ $$#Region ""Goo""
                 Region("span", "#Region", autoCollapse:=False, isDefaultCollapsed:=True))
         End Function
 
-        <WorkItem(537984, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537984")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, WorkItem(537984, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537984")>
         Public Async Function RegionEndOfFile() As Task
             Const code = "
 Class C

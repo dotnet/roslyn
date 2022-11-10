@@ -331,7 +331,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             if (CodeAnalysis.Workspace.TryGetWorkspace(document.GetTextSynchronously(cancellationToken).Container, out var workspace))
             {
-                var newName = newFullyQualifiedName.Substring(newFullyQualifiedName.LastIndexOf('.') + 1);
+                var newName = newFullyQualifiedName[(newFullyQualifiedName.LastIndexOf('.') + 1)..];
                 var options = new SymbolRenameOptions();
                 var newSolution = Renamer.RenameSymbolAsync(document.Project.Solution, symbol, options, newName, cancellationToken).WaitAndGetResult_Venus(cancellationToken);
                 var changedDocuments = newSolution.GetChangedDocuments(document.Project.Solution);
@@ -424,7 +424,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
                 case ContainedLanguageRenameType.CLRT_CLASSMEMBER:
                     var lastDot = fullyQualifiedName.LastIndexOf('.');
-                    var typeName = fullyQualifiedName.Substring(0, lastDot);
+                    var typeName = fullyQualifiedName[..lastDot];
                     var memberName = fullyQualifiedName.Substring(lastDot + 1, fullyQualifiedName.Length - lastDot - 1);
                     var type = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetTypeByMetadataName(typeName);
                     var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
@@ -467,7 +467,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         internal static ISymbol LookupMemberId(INamedTypeSymbol type, string uniqueMemberID)
         {
-            var memberName = uniqueMemberID.Substring(0, uniqueMemberID.IndexOf('('));
+            var memberName = uniqueMemberID[..uniqueMemberID.IndexOf('(')];
             var members = type.GetMembers(memberName).Where(m => m.Kind == SymbolKind.Method);
 
             foreach (var m in members)

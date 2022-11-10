@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Interlocked.CompareExchange(
                             ref _mergedRoot,
-                            MergedNamespaceDeclaration.Create(_table._allOlderRootDeclarations.InInsertionOrder.AsImmutable<SingleNamespaceDeclaration>()),
+                            MergedNamespaceDeclaration.Create(_table._allOlderRootDeclarations.InInsertionOrder.Select(static lazyRoot => lazyRoot.Value).AsImmutable<SingleNamespaceDeclaration>()),
                             comparand: null);
                     }
 

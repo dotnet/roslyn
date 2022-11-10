@@ -61,9 +61,9 @@ namespace Microsoft.CodeAnalysis.Rebuild
             return null;
         }
 
-        public override Stream OpenRead(string resolvedPath) => throw ExceptionUtilities.Unreachable;
+        public override Stream OpenRead(string resolvedPath) => throw ExceptionUtilities.Unreachable();
 
-        public override string? ResolveReference(string path, string? baseFilePath) => throw ExceptionUtilities.Unreachable;
+        public override string? ResolveReference(string path, string? baseFilePath) => throw ExceptionUtilities.Unreachable();
     }
 
 }

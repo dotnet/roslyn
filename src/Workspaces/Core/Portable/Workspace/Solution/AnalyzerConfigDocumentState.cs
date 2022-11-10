@@ -20,17 +20,18 @@ namespace Microsoft.CodeAnalysis
             HostWorkspaceServices solutionServices,
             IDocumentServiceProvider documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
-            SourceText sourceTextOpt,
-            ValueSource<TextAndVersion> textAndVersionSource)
-            : base(solutionServices, documentServiceProvider, attributes, sourceTextOpt, textAndVersionSource)
+            ITextAndVersionSource textAndVersionSource,
+            LoadTextOptions loadTextOptions)
+            : base(solutionServices, documentServiceProvider, attributes, textAndVersionSource, loadTextOptions)
         {
             _analyzerConfigValueSource = CreateAnalyzerConfigValueSource();
         }
 
         public AnalyzerConfigDocumentState(
             DocumentInfo documentInfo,
+            LoadTextOptions loadTextOptions,
             HostWorkspaceServices solutionServices)
-            : base(documentInfo, solutionServices)
+            : base(documentInfo, loadTextOptions, solutionServices)
         {
             _analyzerConfigValueSource = CreateAnalyzerConfigValueSource();
         }
@@ -55,14 +56,14 @@ namespace Microsoft.CodeAnalysis
         public new AnalyzerConfigDocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
             => (AnalyzerConfigDocumentState)base.UpdateText(newTextAndVersion, mode);
 
-        protected override TextDocumentState UpdateText(ValueSource<TextAndVersion> newTextSource, PreservationMode mode, bool incremental)
+        protected override TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
         {
             return new AnalyzerConfigDocumentState(
                 this.solutionServices,
                 this.Services,
                 this.Attributes,
-                this.sourceText,
-                newTextSource);
+                newTextSource,
+                this.LoadTextOptions);
         }
     }
 }

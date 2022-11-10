@@ -210,8 +210,7 @@ namespace A
             });
         }
 
-        [Fact]
-        [WorkItem(30030, "https://github.com/dotnet/roslyn/issues/30030")]
+        [Fact, WorkItem(30030, "https://github.com/dotnet/roslyn/issues/30030")]
         public void ImportKinds()
         {
             var source = @"
@@ -231,8 +230,9 @@ namespace B
     }
 }
 ";
-            var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib").EmitToImageReference(aliases: ImmutableArray.Create("A"));
-            var comp = CreateCompilation(source, new[] { aliasedRef });
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib", parseOptions: parseOptions).EmitToImageReference(aliases: ImmutableArray.Create("A"));
+            var comp = CreateCompilation(source, new[] { aliasedRef }, parseOptions: parseOptions);
             WithRuntimeInstance(comp, runtime =>
             {
                 var info = GetMethodDebugInfo(runtime, "B.C.M");
@@ -252,8 +252,7 @@ namespace B
             });
         }
 
-        [WorkItem(1084059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
-        [Fact]
+        [Fact, WorkItem(1084059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
         public void ImportKinds_StaticType()
         {
             var libSource = @"
@@ -281,8 +280,9 @@ namespace B
     }
 }
 ";
-            var aliasedRef = CreateCompilation(libSource, assemblyName: "Lib").EmitToImageReference(aliases: ImmutableArray.Create("A"));
-            var comp = CreateCompilation(source, new[] { aliasedRef });
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var aliasedRef = CreateCompilation(libSource, assemblyName: "Lib", parseOptions: parseOptions).EmitToImageReference(aliases: ImmutableArray.Create("A"));
+            var comp = CreateCompilation(source, new[] { aliasedRef }, parseOptions: parseOptions);
 
             WithRuntimeInstance(comp, runtime =>
             {
@@ -302,8 +302,7 @@ namespace B
             });
         }
 
-        [Fact]
-        [WorkItem(30030, "https://github.com/dotnet/roslyn/issues/30030")]
+        [Fact, WorkItem(30030, "https://github.com/dotnet/roslyn/issues/30030")]
         public void ForwardToModule()
         {
             var source = @"
@@ -333,8 +332,9 @@ namespace D
     }
 }
 ";
-            var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib").EmitToImageReference(aliases: ImmutableArray.Create("A"));
-            var comp = CreateCompilation(source, new[] { aliasedRef });
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib", parseOptions: parseOptions).EmitToImageReference(aliases: ImmutableArray.Create("A"));
+            var comp = CreateCompilation(source, new[] { aliasedRef }, parseOptions: parseOptions);
 
             WithRuntimeInstance(comp, runtime =>
             {
@@ -437,8 +437,7 @@ namespace D
             Assert.True(externAliasStrings.IsDefault);
         }
 
-        [WorkItem(999086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/999086")]
-        [Fact]
+        [Fact, WorkItem(999086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/999086")]
         public void BadPdb_InvalidAliasSyntax()
         {
             var source = @"
@@ -469,8 +468,7 @@ public class C
             Assert.Equal(0, imports.ExternAliases.Length);
         }
 
-        [WorkItem(999086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/999086")]
-        [Fact]
+        [Fact, WorkItem(999086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/999086")]
         public void BadPdb_DotInAlias()
         {
             var source = @"
@@ -501,8 +499,7 @@ public class C
             Assert.Equal(0, imports.ExternAliases.Length);
         }
 
-        [WorkItem(1007917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1007917")]
-        [Fact]
+        [Fact, WorkItem(1007917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1007917")]
         public void BadPdb_NestingLevel_TooMany()
         {
             var source = @"
@@ -539,8 +536,7 @@ public class C
             Assert.Equal(0, imports.ExternAliases.Length);
         }
 
-        [WorkItem(1007917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1007917")]
-        [Fact]
+        [Fact, WorkItem(1007917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1007917")]
         public void BadPdb_NestingLevel_TooFew()
         {
             var source = @"
@@ -580,8 +576,7 @@ namespace N
             Assert.Equal(0, imports.ExternAliases.Length);
         }
 
-        [WorkItem(1084059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
-        [Fact]
+        [Fact, WorkItem(1084059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
         public void BadPdb_NonStaticTypeImport()
         {
             var source = @"
@@ -784,8 +779,7 @@ class C
             });
         }
 
-        [WorkItem(1084059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
-        [Fact]
+        [Fact, WorkItem(1084059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
         public void ImportsForStaticType()
         {
             var source = @"
@@ -1170,8 +1164,7 @@ namespace N
             Assert.Null(error);
         }
 
-        [WorkItem(2441, "https://github.com/dotnet/roslyn/issues/2441")]
-        [Fact]
+        [Fact, WorkItem(2441, "https://github.com/dotnet/roslyn/issues/2441")]
         public void AssemblyQualifiedNameResolutionWithUnification()
         {
             var source1 = @"

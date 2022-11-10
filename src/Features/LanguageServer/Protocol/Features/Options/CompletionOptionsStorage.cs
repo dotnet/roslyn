@@ -23,28 +23,23 @@ internal static class CompletionOptionsStorage
             ShowNameSuggestions = options.GetOption(ShowNameSuggestions, language),
             ShowItemsFromUnimportedNamespaces = options.GetOption(ShowItemsFromUnimportedNamespaces, language),
             UnnamedSymbolCompletionDisabled = options.GetOption(UnnamedSymbolCompletionDisabledFeatureFlag),
-            TypeImportCompletion = options.GetOption(TypeImportCompletionFeatureFlag),
             ProvideDateAndTimeCompletions = options.GetOption(ProvideDateAndTimeCompletions, language),
             ProvideRegexCompletions = options.GetOption(ProvideRegexCompletions, language),
             ForceExpandedCompletionIndexCreation = options.GetOption(ForceExpandedCompletionIndexCreation),
             UpdateImportCompletionCacheInBackground = options.GetOption(UpdateImportCompletionCacheInBackground),
             NamingStyleFallbackOptions = options.GetNamingStylePreferences(language),
-            ShowNewSnippetExperience = options.GetOption(ShowNewSnippetExperience, language),
-            SnippetCompletion = options.GetOption(ShowNewSnippetExperienceFeatureFlag)
+            ShowNewSnippetExperienceUserOption = options.GetOption(ShowNewSnippetExperienceUserOption, language),
+            ShowNewSnippetExperienceFeatureFlag = options.GetOption(ShowNewSnippetExperienceFeatureFlag)
         };
 
     // feature flags
-
-    public static readonly Option2<bool> TypeImportCompletionFeatureFlag = new(nameof(CompletionOptions), nameof(TypeImportCompletionFeatureFlag),
-        CompletionOptions.Default.TypeImportCompletion,
-        new FeatureFlagStorageLocation("Roslyn.TypeImportCompletion"));
 
     public static readonly Option2<bool> UnnamedSymbolCompletionDisabledFeatureFlag = new(nameof(CompletionOptions), nameof(UnnamedSymbolCompletionDisabledFeatureFlag),
         CompletionOptions.Default.UnnamedSymbolCompletionDisabled,
         new FeatureFlagStorageLocation("Roslyn.UnnamedSymbolCompletionDisabled"));
 
     public static readonly Option2<bool> ShowNewSnippetExperienceFeatureFlag = new(nameof(CompletionOptions), nameof(ShowNewSnippetExperienceFeatureFlag),
-        CompletionOptions.Default.SnippetCompletion,
+        CompletionOptions.Default.ShowNewSnippetExperienceFeatureFlag,
         new FeatureFlagStorageLocation("Roslyn.SnippetCompletion"));
 
     public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new(
@@ -109,7 +104,7 @@ internal static class CompletionOptionsStorage
             CompletionOptions.Default.ProvideDateAndTimeCompletions,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ProvideDateAndTimeCompletions"));
 
-    public static readonly PerLanguageOption2<bool?> ShowNewSnippetExperience
-        = new(nameof(CompletionOptions), nameof(ShowNewSnippetExperience), CompletionOptions.Default.ShowNewSnippetExperience,
+    public static readonly PerLanguageOption2<bool?> ShowNewSnippetExperienceUserOption
+        = new(nameof(CompletionOptions), nameof(ShowNewSnippetExperienceUserOption), CompletionOptions.Default.ShowNewSnippetExperienceUserOption,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowNewSnippetExperience"));
 }

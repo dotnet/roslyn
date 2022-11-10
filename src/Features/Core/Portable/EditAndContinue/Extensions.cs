@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -76,9 +77,47 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             => project.Services.GetService<IEditAndContinueAnalyzer>() != null;
 
         // Note: source generated files have relative paths: https://github.com/dotnet/roslyn/issues/51998
-        public static bool SupportsEditAndContinue(this TextDocumentState documentState)
-            => !documentState.Attributes.DesignTimeOnly &&
-               documentState is not DocumentState or DocumentState { SupportsSyntaxTree: true } &&
-               (PathUtilities.IsAbsolute(documentState.FilePath) || documentState is SourceGeneratedDocumentState { FilePath: not null });
+        public static bool SupportsEditAndContinue(this TextDocumentState textDocumentState)
+        {
+            if (textDocumentState.Attributes.DesignTimeOnly)
+            {
+                return false;
+            }
+
+            if (textDocumentState is SourceGeneratedDocumentState { FilePath: not null })
+            {
+                return true;
+            }
+
+            if (!PathUtilities.IsAbsolute(textDocumentState.FilePath))
+            {
+                return false;
+            }
+
+            if (textDocumentState is DocumentState documentState)
+            {
+                if (!documentState.SupportsSyntaxTree)
+                {
+                    return false;
+                }
+
+                // WPF design time documents are added to the Workspace by the Project System as regular documents,
+                // although they are not compiled into the binary.
+                if (IsWpfDesignTimeOnlyDocument(textDocumentState.FilePath, documentState.LanguageServices.Language))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool IsWpfDesignTimeOnlyDocument(string filePath, string language)
+            => language switch
+            {
+                LanguageNames.CSharp => filePath.EndsWith(".g.i.cs", StringComparison.OrdinalIgnoreCase),
+                LanguageNames.VisualBasic => filePath.EndsWith(".g.i.vb", StringComparison.OrdinalIgnoreCase),
+                _ => false
+            };
     }
 }

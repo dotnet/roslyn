@@ -63,11 +63,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return new DefaultRemoteHostClientProvider();
                 }
 
-                return new VisualStudioRemoteHostClientProvider(workspaceServices, _globalOptions, _vsServiceProvider, _threadingContext, _listenerProvider, _callbackDispatchers);
+                return new VisualStudioRemoteHostClientProvider(workspaceServices.SolutionServices, _globalOptions, _vsServiceProvider, _threadingContext, _listenerProvider, _callbackDispatchers);
             }
         }
 
-        private readonly HostWorkspaceServices _services;
+        private readonly SolutionServices _services;
         private readonly IGlobalOptionService _globalOptions;
         private readonly VSThreading.AsyncLazy<RemoteHostClient?> _lazyClient;
         private readonly IAsyncServiceProvider _vsServiceProvider;
@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
 
         private VisualStudioRemoteHostClientProvider(
-            HostWorkspaceServices services,
+            SolutionServices services,
             IGlobalOptionService globalOptions,
             IAsyncServiceProvider vsServiceProvider,
             IThreadingContext threadingContext,

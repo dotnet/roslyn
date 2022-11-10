@@ -17,6 +17,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
     public class UseDeconstructionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public UseDeconstructionTests(ITestOutputHelper logger)
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseDeconstructionDiagnosticAnalyzer(), new CSharpUseDeconstructionCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestVar()
         {
             await TestInRegularAndScript1Async(
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestNotIfNameInInnerScope()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestNotIfNameInOuterScope()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestUpdateReference()
         {
             await TestInRegularAndScript1Async(
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestTupleType()
         {
             await TestInRegularAndScript1Async(
@@ -138,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestVarInForEach()
         {
             await TestInRegularAndScript1Async(
@@ -168,7 +169,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestTupleTypeInForEach()
         {
             await TestInRegularAndScript1Async(
@@ -198,7 +199,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestFixAll1()
         {
             await TestInRegularAndScript1Async(
@@ -224,7 +225,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestFixAll2()
         {
             await TestInRegularAndScript1Async(
@@ -258,7 +259,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestFixAll3()
         {
             await TestInRegularAndScript1Async(
@@ -284,7 +285,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestFixAll4()
         {
             await TestInRegularAndScript1Async(
@@ -310,7 +311,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestNotIfDefaultTupleNameWithVar()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -325,7 +326,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestWithUserNamesThatMatchDefaultTupleNameWithVar1()
         {
             await TestInRegularAndScript1Async(
@@ -349,7 +350,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestWithUserNamesThatMatchDefaultTupleNameWithVar2()
         {
             await TestInRegularAndScript1Async(
@@ -375,7 +376,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestNotIfDefaultTupleNameWithTupleType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -390,7 +391,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestNotIfTupleIsUsed()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -406,7 +407,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestNotIfTupleMethodIsUsed()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -422,7 +423,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestNotIfTupleDefaultElementNameUsed()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -438,7 +439,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestNotIfTupleRandomNameUsed()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -454,7 +455,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestTrivia1()
         {
             await TestInRegularAndScript1Async(
@@ -480,8 +481,7 @@ class C
 }");
         }
 
-        [WorkItem(25260, "https://github.com/dotnet/roslyn/issues/25260")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact, WorkItem(25260, "https://github.com/dotnet/roslyn/issues/25260")]
         public async Task TestNotWithDefaultLiteralInitializer()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -495,7 +495,7 @@ class C
 }", new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestWithDefaultExpressionInitializer()
         {
             await TestInRegularAndScript1Async(
@@ -517,7 +517,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestNotWithImplicitConversionFromNonTuple()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -536,7 +536,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestWithExplicitImplicitConversionFromNonTuple()
         {
             await TestInRegularAndScript1Async(
@@ -568,7 +568,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestNotWithImplicitConversionFromNonTupleInForEach()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -587,7 +587,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestWithExplicitImplicitConversionFromNonTupleInForEach()
         {
             await TestInRegularAndScript1Async(
@@ -621,7 +621,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestWithTupleLiteralConversion()
         {
             await TestInRegularAndScript1Async(
@@ -643,7 +643,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestWithImplicitTupleConversion()
         {
             await TestInRegularAndScript1Async(
@@ -669,7 +669,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact]
         public async Task TestWithImplicitTupleConversionInForEach()
         {
             await TestInRegularAndScript1Async(
@@ -697,8 +697,7 @@ class C
 }");
         }
 
-        [WorkItem(27251, "https://github.com/dotnet/roslyn/issues/27251")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact, WorkItem(27251, "https://github.com/dotnet/roslyn/issues/27251")]
         public async Task TestEscapedContextualKeywordAsTupleName()
         {
             await TestInRegularAndScript1Async(
@@ -732,9 +731,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(42770, "https://github.com/dotnet/roslyn/issues/42770")]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact, WorkItem(42770, "https://github.com/dotnet/roslyn/issues/42770")]
         public async Task TestPreserveAwait()
         {
             await TestInRegularAndScript1Async(

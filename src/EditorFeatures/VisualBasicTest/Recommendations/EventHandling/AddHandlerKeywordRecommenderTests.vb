@@ -3,11 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.EventHandling
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class AddHandlerKeywordRecommenderTests
         Inherits RecommenderTests
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AddHandlerHelpTextTest()
             VerifyRecommendationDescriptionTextIs(<MethodBody>|</MethodBody>, "AddHandler",
 $"{VBFeaturesResources.AddHandler_statement}
@@ -16,13 +16,11 @@ AddHandler {VBWorkspaceResources.event_}, {VBWorkspaceResources.handler}")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AddHandlerInMethodBodyTest()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "AddHandler")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AddHandlerAfterStatementTest()
             VerifyRecommendationsContain(<MethodBody>
 Dim x 
@@ -30,26 +28,21 @@ Dim x
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AddHandlerMissingInClassBlockTest()
             VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "AddHandler")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AddHandlerInSingleLineLambdaTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = Sub() |</MethodBody>, "AddHandler")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AddHandlerInSingleLineFunctionLambdaTest()
             VerifyRecommendationsMissing(<MethodBody>Dim x = Function() |</MethodBody>, "AddHandler")
         End Sub
 
-        <Fact>
-        <WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
         Public Sub AddHandlerInCustomEventTest()
             Dim code = <File>
 Public Class Z
@@ -61,9 +54,7 @@ End Class</File>
             VerifyRecommendationsContain(code, "AddHandler")
         End Sub
 
-        <Fact>
-        <WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
         Public Sub NotAddHandlerInCustomEventWithAddHandlerTest()
             Dim code = <File>
 Public Class Z

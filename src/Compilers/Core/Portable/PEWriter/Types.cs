@@ -339,7 +339,7 @@ namespace Microsoft.Cci
     /// <summary>
     /// Models an explicit implementation or override of a base class virtual method or an explicit implementation of an interface method.
     /// </summary>
-    internal struct MethodImplementation
+    internal readonly struct MethodImplementation
     {
         /// <summary>
         /// The type that is explicitly implementing or overriding the base class virtual method or explicitly implementing an interface method.
@@ -417,7 +417,7 @@ namespace Microsoft.Cci
     // be unnecessary if we added a GetAttributes method onto IDefinition and
     // properly segregated attributes that are on type references and attributes
     // that are on underlying type definitions.
-    internal struct TypeReferenceWithAttributes
+    internal readonly struct TypeReferenceWithAttributes
     {
         /// <summary>
         /// The type reference.

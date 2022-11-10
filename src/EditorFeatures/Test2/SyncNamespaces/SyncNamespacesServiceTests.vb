@@ -12,8 +12,9 @@ Imports Microsoft.CodeAnalysis.SyncNamespaces
 Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.SyncNamespaces)>
     Public Class SyncNamespacesServiceTests
-        <Fact, Trait(Traits.Feature, Traits.Features.SyncNamespaces)>
+        <Fact>
         Public Async Function SingleProject_MatchingNamespace_NoChanges() As Task
             Dim test =
 <Workspace>
@@ -48,7 +49,7 @@ namespace Test.Namespace.App
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SyncNamespaces)>
+        <Fact>
         Public Async Function SingleProject_MismatchedNamespace_HasChanges() As Task
             Dim test =
 <Workspace>
@@ -91,7 +92,7 @@ namespace Test
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SyncNamespaces)>
+        <Fact>
         Public Async Function MultipleProjects_MatchingNamespaces_NoChanges() As Task
             Dim test =
 <Workspace>
@@ -141,7 +142,7 @@ namespace Test2.Namespace.App
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SyncNamespaces)>
+        <Fact>
         Public Async Function MultipleProjects_OneMismatchedNamespace_HasChanges() As Task
             Dim test =
 <Workspace>
@@ -202,7 +203,7 @@ namespace Test2.Namespace.App
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SyncNamespaces)>
+        <Fact>
         Public Async Function MultipleProjects_MultipleMismatchedNamespaces_HasChanges() As Task
             Dim test =
 <Workspace>

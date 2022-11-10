@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis
         RefKind RefKind { get; }
 
         /// <summary>
+        /// Returns the scoped kind of the parameter.
+        /// </summary>
+        ScopedKind ScopedKind { get; }
+
+        /// <summary>
         /// Returns true if the parameter was declared as a parameter array. 
         /// </summary>
         bool IsParams { get; }

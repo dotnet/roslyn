@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ConcurrentDictionary<MetadataTypeName.Key, NamedTypeSymbol> _emittedNameToTypeMap =
             new ConcurrentDictionary<MetadataTypeName.Key, NamedTypeSymbol>();
 
-        private NamespaceSymbol _globalNamespace;
+        private NamespaceSymbol? _globalNamespace;
 
         /// <summary>
         /// Does this symbol represent a missing assembly.
@@ -56,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if ((object)_globalNamespace == null)
+                if ((object?)_globalNamespace == null)
                 {
                     // Get the root namespace from each module, and merge them all together. If there is only one, 
                     // then MergedNamespaceSymbol.Create will just return that one.
@@ -79,15 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="emittedName">
         /// Full type name, possibly with generic name mangling.
         /// </param>
-        /// <param name="visitedAssemblies">
-        /// List of assemblies lookup has already visited (since type forwarding can introduce cycles).
-        /// </param>
-        /// <param name="digThroughForwardedTypes">
-        /// Take forwarded types into account.
-        /// </param>
-        internal sealed override NamedTypeSymbol LookupTopLevelMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies, bool digThroughForwardedTypes)
+        internal sealed override NamedTypeSymbol? LookupDeclaredTopLevelMetadataType(ref MetadataTypeName emittedName)
         {
-            NamedTypeSymbol result = null;
+            NamedTypeSymbol? result = null;
 
             // This is a cache similar to the one used by MetaImport::GetTypeByName in native
             // compiler. The difference is that native compiler pre-populates the cache when it
@@ -109,78 +101,93 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // 4) Multitargeting - retargeting the type to a different version of assembly
             result = LookupTopLevelMetadataTypeInCache(ref emittedName);
 
-            if ((object)result != null)
+            if ((object?)result != null)
             {
-                // We only cache result equivalent to digging through type forwarders, which
+                // We cache result equivalent to digging through type forwarders, which
                 // might produce a forwarder specific ErrorTypeSymbol. We don't want to 
-                // return that error symbol, unless digThroughForwardedTypes is true.
-                if (digThroughForwardedTypes || (!result.IsErrorType() && (object)result.ContainingAssembly == (object)this))
+                // return that error symbol.
+                if (!result.IsErrorType() && (object)result.ContainingAssembly == (object)this)
                 {
                     return result;
                 }
 
                 // According to the cache, the type wasn't found, or isn't declared in this assembly (forwarded).
-                return new MissingMetadataTypeSymbol.TopLevel(this.Modules[0], ref emittedName);
+                return null;
             }
             else
             {
-                // Now we will look for the type in each module of the assembly and pick the first type
-                // we find, this is what native VB compiler does.
+                result = LookupDeclaredTopLevelMetadataTypeInModules(ref emittedName);
 
-                var modules = this.Modules;
-                var count = modules.Length;
-                var i = 0;
+                Debug.Assert(result is null || ((object)result.ContainingAssembly == (object)this && !result.IsErrorType()));
 
-                result = modules[i].LookupTopLevelMetadataType(ref emittedName);
-
-                if (result is MissingMetadataTypeSymbol)
+                if (result is null)
                 {
-                    for (i = 1; i < count; i++)
-                    {
-                        var newResult = modules[i].LookupTopLevelMetadataType(ref emittedName);
-
-                        // Hold on to the first missing type result, unless we found the type.
-                        if (!(newResult is MissingMetadataTypeSymbol))
-                        {
-                            result = newResult;
-                            break;
-                        }
-                    }
+                    return null;
                 }
-
-                bool foundMatchInThisAssembly = (i < count);
-
-                Debug.Assert(!foundMatchInThisAssembly || (object)result.ContainingAssembly == (object)this);
-
-                if (!foundMatchInThisAssembly && digThroughForwardedTypes)
-                {
-                    // We didn't find the type
-                    System.Diagnostics.Debug.Assert(result is MissingMetadataTypeSymbol);
-
-                    NamedTypeSymbol forwarded = TryLookupForwardedMetadataTypeWithCycleDetection(ref emittedName, visitedAssemblies);
-                    if ((object)forwarded != null)
-                    {
-                        result = forwarded;
-                    }
-                }
-
-                System.Diagnostics.Debug.Assert((object)result != null);
 
                 // Add result of the lookup into the cache
-                if (digThroughForwardedTypes || foundMatchInThisAssembly)
-                {
-                    CacheTopLevelMetadataType(ref emittedName, result);
-                }
-
-                return result;
+                return CacheTopLevelMetadataType(ref emittedName, result);
             }
         }
 
-        internal abstract override NamedTypeSymbol TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies);
-
-        private NamedTypeSymbol LookupTopLevelMetadataTypeInCache(ref MetadataTypeName emittedName)
+        private NamedTypeSymbol? LookupDeclaredTopLevelMetadataTypeInModules(ref MetadataTypeName emittedName)
         {
-            NamedTypeSymbol result = null;
+            // Now we will look for the type in each module of the assembly and pick the first type
+            // we find, this is what native VB compiler does.
+
+            foreach (var module in this.Modules)
+            {
+                NamedTypeSymbol? result = module.LookupTopLevelMetadataType(ref emittedName);
+
+                if (result is not null)
+                {
+                    return result;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Lookup a top level type referenced from metadata, names should be
+        /// compared case-sensitively.  Detect cycles during lookup.
+        /// </summary>
+        /// <param name="emittedName">
+        /// Full type name, possibly with generic name mangling.
+        /// </param>
+        /// <param name="visitedAssemblies">
+        /// List of assemblies lookup has already visited (since type forwarding can introduce cycles).
+        /// </param>
+        internal sealed override NamedTypeSymbol LookupDeclaredOrForwardedTopLevelMetadataType(ref MetadataTypeName emittedName, ConsList<AssemblySymbol>? visitedAssemblies)
+        {
+            NamedTypeSymbol? result = LookupTopLevelMetadataTypeInCache(ref emittedName);
+
+            if ((object?)result != null)
+            {
+                return result;
+            }
+            else
+            {
+                result = LookupDeclaredTopLevelMetadataTypeInModules(ref emittedName);
+
+                Debug.Assert(result is null || ((object)result.ContainingAssembly == (object)this && !result.IsErrorType()));
+
+                if (result is null)
+                {
+                    // We didn't find the type
+                    result = TryLookupForwardedMetadataTypeWithCycleDetection(ref emittedName, visitedAssemblies);
+                }
+
+                // Add result of the lookup into the cache
+                return CacheTopLevelMetadataType(ref emittedName, result ?? new MissingMetadataTypeSymbol.TopLevel(this.Modules[0], ref emittedName));
+            }
+        }
+
+        internal abstract override NamedTypeSymbol? TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol>? visitedAssemblies);
+
+        private NamedTypeSymbol? LookupTopLevelMetadataTypeInCache(ref MetadataTypeName emittedName)
+        {
+            NamedTypeSymbol? result;
             if (_emittedNameToTypeMap.TryGetValue(emittedName.ToKey(), out result))
             {
                 return result;
@@ -209,13 +216,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CacheTopLevelMetadataType(
+        private NamedTypeSymbol CacheTopLevelMetadataType(
             ref MetadataTypeName emittedName,
             NamedTypeSymbol result)
         {
-            NamedTypeSymbol result1 = null;
+            NamedTypeSymbol result1;
             result1 = _emittedNameToTypeMap.GetOrAdd(emittedName.ToKey(), result);
             System.Diagnostics.Debug.Assert(TypeSymbol.Equals(result1, result, TypeCompareKind.ConsiderEverything2)); // object identity may differ in error cases
+            return result1;
         }
     }
 }

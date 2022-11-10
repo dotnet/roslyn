@@ -49,8 +49,8 @@ class C
 }", new[] { "Equals", "GetHashCode", "ToString" });
         }
 
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestAtEndOfFile()
         {
             await TestWithPickMembersDialogAsync(
@@ -77,8 +77,8 @@ class C
 ", new[] { "Equals", "GetHashCode", "ToString" });
         }
 
-        [WorkItem(48295, "https://github.com/dotnet/roslyn/issues/48295")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
+        [WorkItem(48295, "https://github.com/dotnet/roslyn/issues/48295")]
         public async Task TestOnRecordWithSemiColon()
         {
             await TestWithPickMembersDialogAsync(@"
@@ -99,8 +99,8 @@ record C
 ", new[] { "GetHashCode", "ToString" });
         }
 
-        [WorkItem(17698, "https://github.com/dotnet/roslyn/issues/17698")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
+        [WorkItem(17698, "https://github.com/dotnet/roslyn/issues/17698")]
         public async Task TestRefReturns()
         {
             await TestWithPickMembersDialogAsync(
@@ -197,8 +197,8 @@ class Derived : Base
 }", new[] { "this[]" });
         }
 
-        [WorkItem(21601, "https://github.com/dotnet/roslyn/issues/21601")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
+        [WorkItem(21601, "https://github.com/dotnet/roslyn/issues/21601")]
         public async Task TestMissingInStaticClass1()
         {
             await TestMissingAsync(
@@ -209,8 +209,8 @@ static class C
 }");
         }
 
-        [WorkItem(21601, "https://github.com/dotnet/roslyn/issues/21601")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
+        [WorkItem(21601, "https://github.com/dotnet/roslyn/issues/21601")]
         public async Task TestMissingInStaticClass2()
         {
             await TestMissingAsync(
@@ -221,8 +221,8 @@ static class [||]C
 }");
         }
 
-        [WorkItem(53012, "https://github.com/dotnet/roslyn/issues/53012")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(53012, "https://github.com/dotnet/roslyn/issues/53012")]
         public async Task TestNullableTypeParameter()
         {
             await TestWithPickMembersDialogAsync(

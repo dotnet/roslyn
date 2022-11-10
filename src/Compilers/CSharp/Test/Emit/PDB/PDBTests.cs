@@ -119,6 +119,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 </symbols>", options: PdbValidationOptions.ExcludeMethods);
         }
 
+        [Fact]
+        public void EmitDebugInfoForSynthesizedSyntaxTree()
+        {
+            var tree1 = SyntaxFactory.ParseCompilationUnit(@"
+#line 1 ""test.cs""
+class C { void M() {} }
+").SyntaxTree;
+            var tree2 = SyntaxFactory.ParseCompilationUnit(@"
+class D { void M() {} }
+").SyntaxTree;
+
+            var comp = CSharpCompilation.Create("test", new[] { tree1, tree2 }, TargetFrameworkUtil.StandardReferences, TestOptions.DebugDll);
+
+            var result = comp.Emit(new MemoryStream(), pdbStream: new MemoryStream());
+            result.Diagnostics.Verify();
+
+            comp.VerifyPdb(@"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+    <file id=""2"" name=""test.cs"" language=""C#"" />
+  </files>
+</symbols>
+", format: DebugInformationFormat.PortablePdb, options: PdbValidationOptions.ExcludeMethods);
+        }
+
         [WorkItem(846584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846584")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void RelativePathForExternalSource_Sha1_Windows()
@@ -9891,7 +9917,7 @@ class C
         };
     }
 }");
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             verifier.VerifyTypeIL("C",
 @".class private auto ansi beforefieldinit C
 	extends [netstandard]System.Object
@@ -10100,7 +10126,7 @@ class C
         };
     }
 }");
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             verifier.VerifyTypeIL("C",
 @".class private auto ansi beforefieldinit C
 	extends [netstandard]System.Object

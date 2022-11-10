@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 get;
             }
 
-            private void MainThreadStart() => throw ExceptionUtilities.Unreachable;
+            private void MainThreadStart() => throw ExceptionUtilities.Unreachable();
 
             /// <summary>
             /// Verifies that the current synchronization context has not been used for scheduling work. If the

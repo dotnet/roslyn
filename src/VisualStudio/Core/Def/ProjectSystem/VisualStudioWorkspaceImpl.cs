@@ -461,7 +461,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return true;
         }
 
-        protected override bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, CodeAnalysis.Project project)
+        public override bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, CodeAnalysis.Project project)
             => project.Services.GetRequiredService<ICompilationOptionsChangingService>().CanApplyChange(oldOptions, newOptions);
 
         public override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, CodeAnalysis.Project project)
@@ -1627,28 +1627,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
-            var oldSolution = this.CurrentSolution;
-
             if (!solutionChanges.HasChange)
-            {
                 return;
-            }
 
-            foreach (var documentId in solutionChanges.DocumentIdsRemoved)
-            {
-                this.ClearDocumentData(documentId);
-            }
-
-            SetCurrentSolution(solutionChanges.Solution);
-
-            // This method returns the task that could be used to wait for the workspace changed event; we don't want
-            // to do that.
-            _ = RaiseWorkspaceChangedEventAsync(
+            this.SetCurrentSolution(
+                _ => solutionChanges.Solution,
                 solutionChanges.WorkspaceChangeKind,
-                oldSolution,
-                solutionChanges.Solution,
                 solutionChanges.WorkspaceChangeProjectId,
-                solutionChanges.WorkspaceChangeDocumentId);
+                solutionChanges.WorkspaceChangeDocumentId,
+                onBeforeUpdate: (_, _) =>
+                {
+                    // Clear out mutable state not associated with the solution snapshot (for example, which documents are
+                    // currently open).
+                    foreach (var documentId in solutionChanges.DocumentIdsRemoved)
+                        this.ClearDocumentData(documentId);
+                });
         }
 
         private readonly Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new();
@@ -1660,7 +1653,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return _projectReferenceInfoMap.GetOrAdd(projectId, _ => new ProjectReferenceInformation());
         }
 
-        protected internal override void OnProjectRemoved(ProjectId projectId)
+        /// <summary>
+        /// Removes the project from the various maps this type maintains; it's still up to the caller to actually remove
+        /// the project in one way or another.
+        /// </summary>
+        internal void RemoveProjectFromTrackingMaps_NoLock(ProjectId projectId)
         {
             string? languageName;
 
@@ -1704,14 +1701,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            base.OnProjectRemoved(projectId);
-
             // Try to update the UI context info.  But cancel that work if we're shutting down.
             _threadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
             {
                 using var asyncToken = _workspaceListener.BeginAsyncOperation(nameof(RefreshProjectExistsUIContextForLanguageAsync));
                 await RefreshProjectExistsUIContextForLanguageAsync(languageName, cancellationToken).ConfigureAwait(false);
             });
+        }
+
+        internal void RemoveSolution_NoLock()
+        {
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+
+            // At this point, we should have had RemoveProjectFromTrackingMaps_NoLock called for everything else, so it's just the solution itself
+            // to clean up
+            Contract.ThrowIfFalse(_projectReferenceInfoMap.Count == 0);
+            Contract.ThrowIfFalse(_projectToHierarchyMap.Count == 0);
+            Contract.ThrowIfFalse(_projectToGuidMap.Count == 0);
+            Contract.ThrowIfFalse(_projectToMaxSupportedLangVersionMap.Count == 0);
+            Contract.ThrowIfFalse(_projectToDependencyNodeTargetIdentifier.Count == 0);
+            Contract.ThrowIfFalse(_projectToRuleSetFilePath.Count == 0);
+            Contract.ThrowIfFalse(_projectSystemNameToProjectsMap.Count == 0);
+
+            // Create a new empty solution and set this; we will reuse the same SolutionId and path since components still may have persistence information they still need
+            // to look up by that location; we also keep the existing analyzer references around since those are host-level analyzers that were loaded asynchronously.
+            ClearOpenDocuments();
+
+            SetCurrentSolution(
+                solution => CreateSolution(
+                    SolutionInfo.Create(
+                        SolutionId.CreateNewId(),
+                        VersionStamp.Create(),
+                        analyzerReferences: solution.AnalyzerReferences)),
+                WorkspaceChangeKind.SolutionRemoved);
         }
 
         private sealed class ProjectReferenceInformation

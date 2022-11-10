@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.InvertConditional
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InvertConditional
+    <Trait(Traits.Feature, Traits.Features.CodeActionsInvertConditional)>
     Partial Public Class InvertConditionalTests
         Inherits AbstractVisualBasicCodeActionTest
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InvertConditional
             Return New VisualBasicInvertConditionalCodeRefactoringProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertConditional)>
+        <Fact>
         Public Async Function InvertConditional1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -29,7 +30,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertConditional)>
+        <Fact>
         Public Async Function InvertConditional2() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -44,7 +45,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertConditional)>
+        <Fact>
         Public Async Function TestTrivia() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -63,7 +64,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertConditional)>
+        <Fact>
         Public Async Function MissingOnBinaryIf() As Task
             Await TestMissingAsync(
 "class C

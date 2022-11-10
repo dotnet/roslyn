@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
@@ -17,6 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AttributeTests_CallerInfoAttributes : WellKnownAttributesTestBase
     {
+        public static IEnumerable<MetadataReference> GetReferencesWithoutInteropServices() =>
+            TargetFrameworkUtil.GetReferencesWithout(TargetFramework.Net50, "System.Runtime.InteropServices.dll");
+
         [ConditionalFact(typeof(CoreClrOnly))]
         public void TestBeginInvoke()
         {
@@ -64,7 +69,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            var compilation = CreateEmptyCompilation(source, GetReferencesWithoutInteropServices(), options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             // Begin/EndInvoke are not currently supported.
             CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
 {
@@ -130,7 +135,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            var compilation = CreateEmptyCompilation(source, GetReferencesWithoutInteropServices(), options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             // Begin/EndInvoke are not currently supported.
             CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
 {
@@ -195,12 +200,12 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            var compilation = CreateEmptyCompilation(source, GetReferencesWithoutInteropServices(), options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             compilation.VerifyDiagnostics(
                 // (29,22): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
                 //     delegate void D([CallerArgumentExpression(s5)] [Optional] [DefaultParameterValue("default")] ref string s1, string s2, string s3, string s4, string s5);
                 Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(29, 22),
-                // (38,11): error CS7036: There is no argument given that corresponds to the required formal parameter 's1' of 'Program.D.EndInvoke(ref string, IAsyncResult)'
+                // (38,11): error CS7036: There is no argument given that corresponds to the required parameter 's1' of 'Program.D.EndInvoke(ref string, IAsyncResult)'
                 //         d.EndInvoke(result: null);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "EndInvoke").WithArguments("s1", "Program.D.EndInvoke(ref string, System.IAsyncResult)").WithLocation(38, 11)
                 );
@@ -259,7 +264,7 @@ class Program
                 // (28,63): error CS1741: A ref or out parameter cannot have a default value
                 //     delegate void D(string s1, [CallerArgumentExpression(s1)] ref string s2 = "default");
                 Diagnostic(ErrorCode.ERR_RefOutDefaultValue, "ref").WithLocation(28, 63),
-                // (38,11): error CS7036: There is no argument given that corresponds to the required formal parameter 's2' of 'Program.D.EndInvoke(ref string, IAsyncResult)'
+                // (38,11): error CS7036: There is no argument given that corresponds to the required parameter 's2' of 'Program.D.EndInvoke(ref string, IAsyncResult)'
                 //         d.EndInvoke(result: null);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "EndInvoke").WithArguments("s2", "Program.D.EndInvoke(ref string, System.IAsyncResult)").WithLocation(38, 11));
         }
@@ -310,12 +315,12 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            var compilation = CreateEmptyCompilation(source, GetReferencesWithoutInteropServices(), options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             compilation.VerifyDiagnostics(
                 // (29,33): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
                 //     delegate void D(string s1, [CallerArgumentExpression(s1)] [Optional] [DefaultParameterValue("default")] ref string s2);
                 Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(29, 33),
-                // (39,11): error CS7036: There is no argument given that corresponds to the required formal parameter 's2' of 'Program.D.EndInvoke(ref string, IAsyncResult)'
+                // (39,11): error CS7036: There is no argument given that corresponds to the required parameter 's2' of 'Program.D.EndInvoke(ref string, IAsyncResult)'
                 //         d.EndInvoke(result: null);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "EndInvoke").WithArguments("s2", "Program.D.EndInvoke(ref string, System.IAsyncResult)").WithLocation(39, 11));
         }
@@ -367,7 +372,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            var compilation = CreateEmptyCompilation(source, GetReferencesWithoutInteropServices(), options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation).VerifyDiagnostics(
                 // (29,33): warning CS8963: The CallerArgumentExpressionAttribute applied to parameter 's2' will have no effect. It is applied with an invalid parameter name.
                 //     delegate void D(string s1, [CallerArgumentExpression(callback)] [Optional] [DefaultParameterValue("default")] string s2);
@@ -976,7 +981,7 @@ class Program
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             compilation.VerifyDiagnostics(
-                // (9,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'arg' of 'Program.Log(int, string)'
+                // (9,9): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of 'Program.Log(int, string)'
                 //         Log(default(int));
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Log").WithArguments("arg", "Program.Log(int, string)").WithLocation(9, 9),
                 // (12,29): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
@@ -1008,7 +1013,7 @@ class Program
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
-                // (9,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'arg' of 'Program.Log(int, string)'
+                // (9,9): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of 'Program.Log(int, string)'
                 //         Log(default(int));
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Log").WithArguments("arg", "Program.Log(int, string)").WithLocation(9, 9),
                 // (12,29): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
@@ -1436,7 +1441,7 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net50, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "1 + /**/ 1").VerifyDiagnostics();
         }
         #endregion
@@ -2436,7 +2441,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net50, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
 {
   // Code size       29 (0x1d)
@@ -2487,7 +2492,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net50, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
 {
   // Code size       29 (0x1d)

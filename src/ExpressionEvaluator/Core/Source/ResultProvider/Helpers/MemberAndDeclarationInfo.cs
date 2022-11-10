@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
     }
 
-    internal struct MemberAndDeclarationInfo
+    internal readonly struct MemberAndDeclarationInfo
     {
         public static readonly IComparer<MemberAndDeclarationInfo> Comparer = new MemberNameComparer();
 

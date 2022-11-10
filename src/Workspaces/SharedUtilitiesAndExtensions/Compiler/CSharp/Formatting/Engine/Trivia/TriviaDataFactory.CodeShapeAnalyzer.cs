@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return false;
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             private bool OnRegion(SyntaxTrivia trivia, int currentIndex)

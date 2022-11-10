@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.FindUsages
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Remote.Testing
@@ -273,8 +274,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 uiVisibleOnly As Boolean,
                 options As FindReferencesSearchOptions) As Task
 
-            Using workspace = TestWorkspace.Create(definition, composition:=s_composition.WithTestHostParts(host))
-                workspace.SetTestLogger(AddressOf _outputHelper.WriteLine)
+            Using workspace = TestWorkspace.Create(definition, composition:=s_composition.WithTestHostParts(host).AddParts(GetType(WorkspaceTestLogger)))
+                workspace.Services.SolutionServices.SetWorkspaceTestOutput(_outputHelper)
 
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
                     Dim cursorPosition = cursorDocument.CursorPosition.Value

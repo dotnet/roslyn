@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.AddRequiredParentheses
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddRequiredParentheses
+    <Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
     Partial Public Class AddRequiredParenthesesTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -16,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddRequiredParenth
             Return (New VisualBasicAddRequiredParenthesesForBinaryLikeExpressionDiagnosticAnalyzer(), New AddRequiredParenthesesCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
+        <Fact>
         Public Async Function TestArithmeticPrecedence() As Task
             Await TestInRegularAndScript1Async(
 "class C
@@ -31,7 +32,7 @@ end class",
 end class", parameters:=New TestParameters(options:=RequireAllParenthesesForClarity))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
+        <Fact>
         Public Async Function TestNoArithmeticOnLowerPrecedence() As Task
             Await TestMissingAsync(
 "class C
@@ -41,7 +42,7 @@ end class", parameters:=New TestParameters(options:=RequireAllParenthesesForClar
 end class", parameters:=New TestParameters(options:=RequireAllParenthesesForClarity))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
+        <Fact>
         Public Async Function TestNotIfArithmeticPrecedenceStaysTheSame() As Task
             Await TestMissingAsync(
 "class C
@@ -51,7 +52,7 @@ end class", parameters:=New TestParameters(options:=RequireAllParenthesesForClar
 end class", parameters:=New TestParameters(options:=RequireAllParenthesesForClarity))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
+        <Fact>
         Public Async Function TestNotIfArithmeticPrecedenceIsNotEnforced1() As Task
             Await TestMissingAsync(
 "class C
@@ -61,7 +62,7 @@ end class", parameters:=New TestParameters(options:=RequireAllParenthesesForClar
 end class", parameters:=New TestParameters(options:=RequireOtherBinaryParenthesesForClarity))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
+        <Fact>
         Public Async Function TestNotIfArithmeticPrecedenceIsNotEnforced2() As Task
             Await TestMissingAsync(
 "class C
@@ -71,7 +72,7 @@ end class", parameters:=New TestParameters(options:=RequireOtherBinaryParenthese
 end class", parameters:=New TestParameters(options:=RequireOtherBinaryParenthesesForClarity))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
+        <Fact>
         Public Async Function TestLogicalPrecedence() As Task
             Await TestInRegularAndScript1Async(
 "class C
@@ -86,7 +87,7 @@ end class",
 end class", parameters:=New TestParameters(options:=RequireAllParenthesesForClarity))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
+        <Fact>
         Public Async Function TestNoLogicalOnLowerPrecedence() As Task
             Await TestMissingAsync(
 "class C
@@ -96,7 +97,7 @@ end class", parameters:=New TestParameters(options:=RequireAllParenthesesForClar
 end class", parameters:=New TestParameters(options:=RequireAllParenthesesForClarity))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
+        <Fact>
         Public Async Function TestNotIfLogicalPrecedenceStaysTheSame() As Task
             Await TestMissingAsync(
 "class C
@@ -106,7 +107,7 @@ end class", parameters:=New TestParameters(options:=RequireAllParenthesesForClar
 end class", parameters:=New TestParameters(options:=RequireAllParenthesesForClarity))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
+        <Fact>
         Public Async Function TestNotIfLogicalPrecedenceIsNotEnforced() As Task
             Await TestMissingAsync(
 "class C
@@ -116,7 +117,7 @@ end class", parameters:=New TestParameters(options:=RequireAllParenthesesForClar
 end class", parameters:=New TestParameters(options:=RequireArithmeticBinaryParenthesesForClarity))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
+        <Fact>
         Public Async Function TestMixedArithmeticAndLogical() As Task
             Await TestMissingAsync(
 "class C
@@ -126,7 +127,7 @@ end class", parameters:=New TestParameters(options:=RequireArithmeticBinaryParen
 end class", New TestParameters(options:=RequireAllParenthesesForClarity))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
+        <Fact>
         Public Async Function TestShiftPrecedence1() As Task
             Await TestInRegularAndScript1Async(
 "class C
@@ -141,7 +142,7 @@ end class",
 end class", parameters:=New TestParameters(options:=RequireAllParenthesesForClarity))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
+        <Fact>
         Public Async Function TestShiftPrecedence2() As Task
             Await TestInRegularAndScript1Async(
 "class C
@@ -156,7 +157,7 @@ end class",
 end class", parameters:=New TestParameters(options:=RequireArithmeticBinaryParenthesesForClarity))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
+        <Fact>
         Public Async Function TestShiftPrecedence3() As Task
             Await TestMissingAsync(
 "class C

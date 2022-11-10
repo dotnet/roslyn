@@ -26,7 +26,7 @@ namespace Roslyn.Utilities
         // segment contains the index of the node in its parent, as well as the kind of the node.
         // The latter is not strictly necessary.  However, it ensures that resolving the path against
         // a different tree will either return the same type of node as the original, or will fail.  
-        protected struct PathSegment
+        protected readonly struct PathSegment
         {
             public int Ordinal { get; }
             public int Kind { get; }
@@ -80,7 +80,7 @@ namespace Roslyn.Utilities
                     }
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

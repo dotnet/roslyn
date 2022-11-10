@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Emit
     // changes to the set of implemented methods for a particular MethodDef,
     // and that we do not use the implementing methods anywhere, it's
     // sufficient to track a pair of implementing method and index.
-    internal struct MethodImplKey : IEquatable<MethodImplKey>
+    internal readonly struct MethodImplKey : IEquatable<MethodImplKey>
     {
         internal MethodImplKey(int implementingMethod, int index)
         {

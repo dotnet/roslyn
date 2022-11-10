@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         protected override bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found)
         {
             if (token.IsKind(SyntaxKind.EqualsGreaterThanToken)
-                && token.Parent.IsKind(SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression))
+                && token.Parent is (kind: SyntaxKind.ParenthesizedLambdaExpression or SyntaxKind.SimpleLambdaExpression))
             {
                 // () =>
                 found = token.Parent;
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 
         protected override bool GetBindableNodeForTokenIndicatingPossibleIndexerAccess(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found)
         {
-            if (token.IsKind(SyntaxKind.CloseBracketToken, SyntaxKind.OpenBracketToken) &&
+            if (token.Kind() is SyntaxKind.CloseBracketToken or SyntaxKind.OpenBracketToken &&
                 token.Parent?.Parent.IsKind(SyntaxKind.ElementAccessExpression) == true)
             {
                 found = token.Parent.Parent;

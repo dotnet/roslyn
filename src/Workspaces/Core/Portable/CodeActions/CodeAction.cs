@@ -34,6 +34,23 @@ namespace Microsoft.CodeAnalysis.CodeActions
     public abstract class CodeAction
     {
         /// <summary>
+        /// Tag we use to convey that this code action should only be shown if it's in a host that allows for
+        /// non-document changes.  For example if it needs to make project changes, or if will show host-specific UI.
+        /// <para>
+        /// Note: if the bulk of code action is just document changes, and it does some optional things beyond that
+        /// (like navigating the user somewhere) this should not be set.  Such a code action is still usable in all
+        /// hosts and should be shown to the user.  It's only if the code action can truly not function should this
+        /// tag be provided.
+        /// </para>
+        /// <para>
+        /// Currently, this also means that we presume that all 3rd party code actions do not require non-document
+        /// changes and we will show them all in all hosts.
+        /// </para>
+        /// </summary>
+        internal const string RequiresNonDocumentChange = nameof(RequiresNonDocumentChange);
+        private protected static ImmutableArray<string> RequiresNonDocumentChangeTags = ImmutableArray.Create(RequiresNonDocumentChange);
+
+        /// <summary>
         /// A short title describing the action that may appear in a menu.
         /// </summary>
         public abstract string Title { get; }

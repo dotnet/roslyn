@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.UseCompoundAssignment
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseCompoundAssignment
+    <Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
     Public Class UseCompoundAssignmentTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -15,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseCompoundAssignm
             Return (New VisualBasicUseCompoundAssignmentDiagnosticAnalyzer(), New VisualBasicUseCompoundAssignmentCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        <Fact>
         Public Async Function TestAddExpression() As Task
             Await TestInRegularAndScriptAsync(
 "public class C
@@ -30,7 +31,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        <Fact>
         Public Async Function TestSubtractExpression() As Task
             Await TestInRegularAndScriptAsync(
 "public class C
@@ -45,7 +46,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        <Fact>
         Public Async Function TestMultiplyExpression() As Task
             Await TestInRegularAndScriptAsync(
 "public class C
@@ -60,7 +61,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        <Fact>
         Public Async Function TestDivideExpression() As Task
             Await TestInRegularAndScriptAsync(
 "public class C
@@ -75,7 +76,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        <Fact>
         Public Async Function TestConcatenateExpression() As Task
             Await TestInRegularAndScriptAsync(
 "public class C
@@ -90,7 +91,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        <Fact>
         Public Async Function TestExponentiationExpression() As Task
             Await TestInRegularAndScriptAsync(
 "public class C
@@ -105,7 +106,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        <Fact>
         Public Async Function TestLeftShiftExpression() As Task
             Await TestInRegularAndScriptAsync(
 "public class C
@@ -120,7 +121,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        <Fact>
         Public Async Function TestRightShiftExpression() As Task
             Await TestInRegularAndScriptAsync(
 "public class C
@@ -135,7 +136,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        <Fact>
         Public Async Function TestField() As Task
             Await TestInRegularAndScriptAsync(
 "public class C
@@ -154,7 +155,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        <Fact>
         Public Async Function TestFieldWithThis() As Task
             Await TestInRegularAndScriptAsync(
 "public class C
@@ -173,7 +174,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        <Fact>
         Public Async Function TestStaticFieldThroughType() As Task
             Await TestInRegularAndScriptAsync(
 "public class C
@@ -192,7 +193,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        <Fact>
         Public Async Function TestStaticFieldThroughNamespaceAndType() As Task
             Await TestInRegularAndScriptAsync(
 "namespace NS
@@ -215,7 +216,7 @@ end namespace",
 end namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        <Fact>
         Public Async Function TestThroughBase() As Task
             Await TestInRegularAndScriptAsync(
 "public class C
@@ -240,7 +241,7 @@ public class D
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        <Fact>
         Public Async Function TestMultiAccess() As Task
             Await TestInRegularAndScriptAsync(
 "public class C
@@ -267,7 +268,7 @@ public class D
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        <Fact>
         Public Async Function TestOnTopLevelProp() As Task
             Await TestInRegularAndScript1Async(
 "public class C
@@ -288,7 +289,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        <Fact>
         Public Async Function TestNotOnNestedProp1() As Task
             Await TestMissingAsync(
 "
@@ -305,7 +306,7 @@ public class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        <Fact>
         Public Async Function TestNotOnUnboundSymbol() As Task
             Await TestMissingAsync(
 "public class C
@@ -315,7 +316,7 @@ end class")
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        <Fact>
         Public Async Function TestNotWithSideEffects() As Task
             Await TestMissingAsync(
 "public class C
@@ -331,8 +332,7 @@ end class")
 end class")
         End Function
 
-        <WorkItem(35870, "https://github.com/dotnet/roslyn/issues/35870")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        <Fact, WorkItem(35870, "https://github.com/dotnet/roslyn/issues/35870")>
         Public Async Function TestRightExpressionOnNextLine() As Task
             Await TestInRegularAndScriptAsync(
 "public class C
@@ -348,7 +348,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        <Fact>
         Public Async Function TestTrivia() As Task
             Await TestInRegularAndScriptAsync(
 "public class C
@@ -365,7 +365,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        <Fact>
         Public Async Function TestFixAll() As Task
             Await TestInRegularAndScriptAsync(
 "public class C
@@ -382,8 +382,7 @@ end class",
 end class")
         End Function
 
-        <WorkItem(38137, "https://github.com/dotnet/roslyn/issues/38137")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        <Fact, WorkItem(38137, "https://github.com/dotnet/roslyn/issues/38137")>
         Public Async Function TestParenthesizedExpression() As Task
             Await TestInRegularAndScriptAsync(
 "public class C
@@ -398,8 +397,7 @@ end class",
 end class")
         End Function
 
-        <WorkItem(38137, "https://github.com/dotnet/roslyn/issues/38137")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        <Fact, WorkItem(38137, "https://github.com/dotnet/roslyn/issues/38137")>
         Public Async Function TestParenthesizedExpressionTrailingTrivia() As Task
             Await TestInRegularAndScriptAsync(
 "public class C

@@ -25,6 +25,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
     public partial class SettingsUpdaterTests : TestBase
     {
         private const string EditorconfigPath = "/a/b/config";
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             Assert.Equal(updatedEditorConfig, result?.ToString());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public async Task TestAddNewWhitespaceOptionAsync()
         {
             await TestAsync(
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 (CSharpFormattingOptions2.NewLineForElse, true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public async Task TestAddNewBoolCodeStyleOptionWithSeverityAsync()
         {
             ICodeStyleOption option = CSharpCodeStyleOptions.PreferThrowExpression.DefaultValue;
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 (CSharpCodeStyleOptions.PreferThrowExpression, option));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public async Task TestAddNewEnumCodeStyleOptionWithSeverityAsync()
         {
             ICodeStyleOption option = CSharpCodeStyleOptions.PreferredUsingDirectivePlacement.DefaultValue;
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 (CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, option));
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Theory, CombinatorialData]
         internal async Task TestAddNewAnalyzerOptionOptionAsync(
             [CombinatorialValues(Language.CSharp, Language.VisualBasic, (Language.CSharp | Language.VisualBasic))]
             Language language,
@@ -138,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 (analyzerSetting, severity));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public async Task TestUpdateExistingWhitespaceOptionAsync()
         {
             await TestAsync(
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 (CSharpFormattingOptions2.NewLineForElse, false));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public async Task TestAddNewWhitespaceOptionToExistingFileAsync()
         {
             var initialEditorConfig = @"
@@ -173,7 +174,7 @@ csharp_new_line_before_else = true";
                 (CSharpFormattingOptions2.NewLineForElse, true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public async Task TestAddNewWhitespaceOptionToWithNonMathcingGroupsAsync()
         {
             var initialEditorConfig = @"
@@ -197,7 +198,7 @@ csharp_new_line_before_else = true";
                 (CSharpFormattingOptions2.NewLineForElse, true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public async Task TestAddNewWhitespaceOptionWithStarGroup()
         {
             var initialEditorConfig = @"
@@ -233,7 +234,7 @@ csharp_new_line_before_else = true";
                 (CSharpFormattingOptions2.NewLineForElse, true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public async Task TestAddMultimpleNewWhitespaceOptions()
         {
             await TestAsync(
@@ -244,7 +245,7 @@ csharp_new_line_before_else = true";
                 (CSharpFormattingOptions2.NewLineForFinally, true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public async Task TestAddOptionThatAppliesToBothLanguages()
         {
             var initialEditorConfig = @"
@@ -280,7 +281,7 @@ dotnet_sort_system_directives_first = true
                 (GenerationOptions.PlaceSystemNamespaceFirst, true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public async Task TestAddOptionWithRelativePathGroupingPresent()
         {
             var initialEditorConfig = @"
@@ -322,7 +323,7 @@ csharp_new_line_before_else = true";
                 (CSharpFormattingOptions2.NewLineForElse, true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public async Task TestAnalyzerSettingsUpdaterService()
         {
             var workspace = CreateWorkspaceWithProjectAndDocuments();
@@ -336,7 +337,7 @@ csharp_new_line_before_else = true";
             Assert.Equal($"[*.cs]\r\ndotnet_diagnostic.{id}.severity = error", update.NewText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public async Task TestCodeStyleSettingUpdaterService()
         {
             var workspace = CreateWorkspaceWithProjectAndDocuments();
@@ -364,7 +365,7 @@ csharp_new_line_before_else = true";
             Assert.Equal("[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true:error", update.NewText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public async Task TestWhitespaceSettingUpdaterService()
         {
             var workspace = CreateWorkspaceWithProjectAndDocuments();
@@ -376,7 +377,7 @@ csharp_new_line_before_else = true";
             Assert.Equal("[*.cs]\r\ncsharp_new_line_before_else = false", update.NewText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public async Task TestNamingStyleSettingsUpdater()
         {
             var workspace = CreateWorkspaceWithProjectAndDocuments();

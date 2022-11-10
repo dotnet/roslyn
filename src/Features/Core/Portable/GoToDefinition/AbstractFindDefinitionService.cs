@@ -18,13 +18,13 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             Document document, int position, CancellationToken cancellationToken)
         {
             var symbolService = document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
-            var (symbol, _) = await symbolService.GetSymbolAndBoundSpanAsync(document, position, includeType: true, cancellationToken).ConfigureAwait(false);
+            var (symbol, project, _) = await symbolService.GetSymbolProjectAndBoundSpanAsync(document, position, includeType: true, cancellationToken).ConfigureAwait(false);
 
-            symbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, document.Project.Solution, cancellationToken).ConfigureAwait(false) ?? symbol;
+            symbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, project.Solution, cancellationToken).ConfigureAwait(false) ?? symbol;
 
             // Try to compute source definitions from symbol.
             return symbol != null
-                ? NavigableItemFactory.GetItemsFromPreferredSourceLocations(document.Project.Solution, symbol, displayTaggedParts: FindUsagesHelpers.GetDisplayParts(symbol), cancellationToken: cancellationToken)
+                ? NavigableItemFactory.GetItemsFromPreferredSourceLocations(project.Solution, symbol, displayTaggedParts: FindUsagesHelpers.GetDisplayParts(symbol), cancellationToken: cancellationToken)
                 : ImmutableArray<INavigableItem>.Empty;
         }
     }

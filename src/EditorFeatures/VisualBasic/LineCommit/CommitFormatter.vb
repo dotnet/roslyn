@@ -76,16 +76,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 End If
 
                 ' create commit formatting cleanup provider that has line commit specific behavior
-                Dim formattingOptions = buffer.GetSyntaxFormattingOptions(_editorOptionsService, document.Project.Services, isExplicitFormat)
+                Dim cleanupOptions = buffer.GetCodeCleanupOptions(_editorOptionsService, document.Project.Services, isExplicitFormat, allowImportsInHiddenRegions:=document.AllowImportsInHiddenRegions())
                 Dim commitFormattingCleanup = GetCommitFormattingCleanupProvider(
                     document.Id,
                     document.Project.Services,
-                    formattingOptions,
+                    cleanupOptions.FormattingOptions,
                     spanToFormat,
                     baseSnapshot,
                     baseTree,
                     dirtyRegion,
-                    document.GetSyntaxTreeSynchronously(cancellationToken),
+                    tree,
                     cancellationToken)
 
                 Dim codeCleanups = CodeCleaner.GetDefaultProviders(document).
@@ -93,7 +93,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                                Concat(commitFormattingCleanup)
 
                 Dim cleanupService = document.GetRequiredLanguageService(Of ICodeCleanerService)
-                Dim cleanupOptions = document.GetCodeCleanupOptionsAsync(_editorOptionsService.GlobalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken)
 
                 Dim finalDocument As Document
                 If useSemantics OrElse isExplicitFormat Then
@@ -109,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Dim newRoot = cleanupService.CleanupAsync(
                         root,
                         ImmutableArray.Create(textSpanToFormat),
-                        formattingOptions,
+                        cleanupOptions.FormattingOptions,
                         document.Project.Solution.Services,
                         codeCleanups,
                         cancellationToken).WaitAndGetResult(cancellationToken)
@@ -126,7 +125,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     End If
                 End If
 
-                finalDocument.Project.Solution.Workspace.ApplyDocumentChanges(finalDocument, cancellationToken)
+                Dim changes = finalDocument.GetTextChangesAsync(document, cancellationToken).WaitAndGetResult(cancellationToken)
+                buffer.ApplyChanges(changes)
             End Using
         End Sub
 

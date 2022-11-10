@@ -13,8 +13,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal partial class PreviewUpdater
     {
         // internal for testing
@@ -45,17 +43,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 }
             }
 
-            private class PreviewTextLoader : TextLoader
+            private sealed class PreviewTextLoader : TextLoader
             {
                 private readonly SourceText _text;
 
                 internal PreviewTextLoader(SourceText documentText)
                     => _text = documentText;
 
-                public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
-                    => Task.FromResult(LoadTextAndVersionSynchronously(workspace, documentId, cancellationToken));
+                internal override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+                    => Task.FromResult(LoadTextAndVersionSynchronously(options, cancellationToken));
 
-                internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+                internal override TextAndVersion LoadTextAndVersionSynchronously(LoadTextOptions options, CancellationToken cancellationToken)
                     => TextAndVersion.Create(_text, VersionStamp.Create());
             }
         }

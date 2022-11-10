@@ -266,7 +266,7 @@ internal partial class XmlSnippetParser
             // do we have any remaining text to be copied?
             if (sps == SnippetParseState.Code && (currentCharIndex > currentTokenCharIndex))
             {
-                var remaining = _code.Substring(currentTokenCharIndex, currentCharIndex - currentTokenCharIndex);
+                var remaining = _code[currentTokenCharIndex..currentCharIndex];
                 snippetParts.Add(new SnippetStringPart(remaining));
             }
 

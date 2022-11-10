@@ -4600,7 +4600,7 @@ class UsePia5
             var compilation1 = CreateCompilationWithMscorlib40(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2, embedInteropTypes: true) });
 
-            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(compilation1.SourceModule.GetReferencedAssemblySymbols()[1].Modules[0].LookupTopLevelMetadataType(ref fullName));
+            Assert.Null(compilation1.SourceModule.GetReferencedAssemblySymbols()[1].Modules[0].LookupTopLevelMetadataType(ref fullName));
             Assert.Null(compilation1.SourceModule.GetReferencedAssemblySymbols()[1].GetTypeByMetadataName(fullName.FullName));
 
             VerifyEmitDiagnostics(compilation1, false, expected);
@@ -4608,9 +4608,9 @@ class UsePia5
             var compilation2 = CreateCompilationWithMscorlib40(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaCompilation2.EmitToImageReference(embedInteropTypes: true) });
 
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(((PEModuleSymbol)compilation2.SourceModule.GetReferencedAssemblySymbols()[1].Modules[0]).LookupTopLevelMetadataType(ref fullName, out isNoPiaLocalType));
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(((PEModuleSymbol)compilation2.SourceModule.GetReferencedAssemblySymbols()[1].Modules[0]).LookupTopLevelMetadataTypeWithNoPiaLocalTypeUnification(ref fullName, out isNoPiaLocalType));
             Assert.True(isNoPiaLocalType);
-            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(compilation2.SourceModule.GetReferencedAssemblySymbols()[1].Modules[0].LookupTopLevelMetadataType(ref fullName));
+            Assert.Null(compilation2.SourceModule.GetReferencedAssemblySymbols()[1].Modules[0].LookupTopLevelMetadataType(ref fullName));
             Assert.Null(compilation2.SourceModule.GetReferencedAssemblySymbols()[1].GetTypeByMetadataName(fullName.FullName));
 
             VerifyEmitDiagnostics(compilation2, false, expected);
@@ -4618,7 +4618,7 @@ class UsePia5
             var compilation3 = CreateCompilationWithMscorlib40(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2) });
 
-            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(compilation3.SourceModule.GetReferencedAssemblySymbols()[1].Modules[0].LookupTopLevelMetadataType(ref fullName));
+            Assert.Null(compilation3.SourceModule.GetReferencedAssemblySymbols()[1].Modules[0].LookupTopLevelMetadataType(ref fullName));
             Assert.Null(compilation3.SourceModule.GetReferencedAssemblySymbols()[1].GetTypeByMetadataName(fullName.FullName));
 
             CompileAndVerify(compilation3);
@@ -4626,9 +4626,9 @@ class UsePia5
             var compilation4 = CreateCompilationWithMscorlib40(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
 
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(((PEModuleSymbol)compilation4.SourceModule.GetReferencedAssemblySymbols()[1].Modules[0]).LookupTopLevelMetadataType(ref fullName, out isNoPiaLocalType));
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(((PEModuleSymbol)compilation4.SourceModule.GetReferencedAssemblySymbols()[1].Modules[0]).LookupTopLevelMetadataTypeWithNoPiaLocalTypeUnification(ref fullName, out isNoPiaLocalType));
             Assert.True(isNoPiaLocalType);
-            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(compilation4.SourceModule.GetReferencedAssemblySymbols()[1].Modules[0].LookupTopLevelMetadataType(ref fullName));
+            Assert.Null(compilation4.SourceModule.GetReferencedAssemblySymbols()[1].Modules[0].LookupTopLevelMetadataType(ref fullName));
             Assert.Null(compilation4.SourceModule.GetReferencedAssemblySymbols()[1].GetTypeByMetadataName(fullName.FullName));
 
             CompileAndVerify(compilation4);

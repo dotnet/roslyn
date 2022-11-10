@@ -8217,6 +8217,227 @@ End Class")
 
         End Sub
 
+        <Fact>
+        Public Sub LiftedClosure()
+            Dim source0 = MarkedSource("
+Imports System
+Imports System.Threading.Tasks
+Class C
+    <N:0>Shared Async Function M() As Task 
+        Dim <N:1>num</N:1> As Integer = 1
+                        
+        <N:2>Await Task.Delay(1)</N:2>
+                        
+        G(<N:3>Function() num</N:3>)
+    End Function</N:0>
+
+    Shared Sub G(f As Func(Of Integer))
+    End Sub
+End Class")
+
+            Dim source1 = MarkedSource("
+Imports System
+Imports System.Threading.Tasks
+Class C
+    <N:0>Shared Async Function M() As Task 
+        Dim <N:1>num</N:1> As Integer = 1
+                        
+        <N:2>Await Task.Delay(2)</N:2>
+                        
+        G(<N:3>Function() num</N:3>)
+    End Function</N:0>
+    
+    Shared Sub G(f As Func(Of Integer))
+    End Sub
+End Class")
+            Dim compilation0 = CreateCompilationWithMscorlib45AndVBRuntime({source0.Tree}, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim m0 = compilation0.GetMember(Of MethodSymbol)("C.M")
+            Dim m1 = compilation1.GetMember(Of MethodSymbol)("C.M")
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+                Dim reader0 = md0.MetadataReader
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+
+                ' Notice encLocalSlotMap CDI on both M and MoveNext methods.
+                ' The former is used to calculate mapping for variables lifted to fields of the state machine,
+                ' the latter is used to map local variable slots in the MoveNext method.
+                ' Here, the variable lifted to the state machine field is the closure pointer storage.
+                v0.VerifyPdb("
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <forwardIterator name=""VB$StateMachine_1_M"" />
+        <encLocalSlotMap>
+          <slot kind=""30"" offset=""-1"" />
+        </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>1</methodOrdinal>
+          <closure offset=""-1"" />
+          <lambda offset=""142"" closure=""0"" />
+        </encLambdaMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""74"" />
+        </encStateMachineStateMap>
+      </customDebugInfo>
+    </method>
+    <method containingType=""C+VB$StateMachine_1_M"" name=""MoveNext"">
+      <customDebugInfo>
+        <hoistedLocalScopes>
+          <slot startOffset=""0x0"" endOffset=""0xe3"" />
+        </hoistedLocalScopes>
+        <encLocalSlotMap>
+          <slot kind=""27"" offset=""-1"" />
+          <slot kind=""33"" offset=""74"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <asyncInfo>
+        <kickoffMethod declaringType=""C"" methodName=""M"" />
+        <await yield=""0x44"" resume=""0x62"" declaringType=""C+VB$StateMachine_1_M"" methodName=""MoveNext"" />
+      </asyncInfo>
+    </method>
+    <method containingType=""C+_Closure$__1-0"" name=""_Lambda$__0"">
+      <customDebugInfo>
+        <encLocalSlotMap>
+          <slot kind=""21"" offset=""142"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+    </method>
+  </methods>
+</symbols>
+", options:=PdbValidationOptions.ExcludeDocuments Or PdbValidationOptions.ExcludeSequencePoints Or PdbValidationOptions.ExcludeNamespaces Or PdbValidationOptions.ExcludeScopes,
+   format:=DebugInformationFormat.PortablePdb)
+
+                CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "VB$StateMachine_1_M", "_Closure$__1-0")
+
+                Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Update, m0, m1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+                ' Notice that we reused field "$VB$ResumableLocal_$VB$Closure_$0" (there is no "$VB$ResumableLocal_$VB$Closure_$1"), which stores the closure pointer.
+                diff1.VerifySynthesizedMembers(
+                    "C: {VB$StateMachine_1_M, _Closure$__1-0}",
+                    "C.VB$StateMachine_1_M: {$State, $Builder, $VB$ResumableLocal_$VB$Closure_$0, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}",
+                    "C._Closure$__1-0: {_Lambda$__0}")
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub LiftedWithStatementVariable()
+            Dim source0 = MarkedSource("
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Private X As Integer = 1
+    Private Y As Integer = 2
+
+    Shared Async Function M() As Task
+        <N:0>With New C()</N:0>
+            <N:1>Await G()</N:1>
+            Console.Write(.X)
+        End With
+    End Function
+
+    Shared Function G() As Task(Of Integer)
+        Return Task.FromResult(1)
+    End Function
+End Class")
+
+            Dim source1 = MarkedSource("
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Private X As Integer = 1
+    Private Y As Integer = 2
+
+    Shared Async Function M() As Task
+        <N:0>With New C()</N:0>
+            <N:1>Await G()</N:1>
+            Console.Write(.Y)
+        End With
+    End Function
+
+    Shared Function G() As Task(Of Integer)
+        Return Task.FromResult(1)
+    End Function
+End Class")
+            Dim compilation0 = CreateCompilationWithMscorlib45AndVBRuntime({source0.Tree}, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim m0 = compilation0.GetMember(Of MethodSymbol)("C.M")
+            Dim m1 = compilation1.GetMember(Of MethodSymbol)("C.M")
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+                Dim reader0 = md0.MetadataReader
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+
+                ' Notice encLocalSlotMap CDI on both M and MoveNext methods.
+                ' The former is used to calculate mapping for variables lifted to fields of the state machine,
+                ' the latter is used to map local variable slots in the MoveNext method.
+                ' Here, the variable lifted to the state machine field is the With statement storage.
+                v0.VerifyPdb("
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <encLocalSlotMap>
+          <slot kind=""10"" offset=""0"" />
+        </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""37"" />
+        </encStateMachineStateMap>
+      </customDebugInfo>
+    </method>
+    <method containingType=""C"" name=""G"">
+      <customDebugInfo>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""-1"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+    </method>
+    <method containingType=""C+VB$StateMachine_3_M"" name=""MoveNext"">
+      <customDebugInfo>
+        <encLocalSlotMap>
+          <slot kind=""27"" offset=""-1"" />
+          <slot kind=""33"" offset=""37"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <asyncInfo>
+        <kickoffMethod declaringType=""C"" methodName=""M"" />
+        <await yield=""0x38"" resume=""0x56"" declaringType=""C+VB$StateMachine_3_M"" methodName=""MoveNext"" />
+      </asyncInfo>
+    </method>
+  </methods>
+</symbols>
+", options:=PdbValidationOptions.ExcludeDocuments Or PdbValidationOptions.ExcludeSequencePoints Or PdbValidationOptions.ExcludeNamespaces Or PdbValidationOptions.ExcludeScopes,
+   format:=DebugInformationFormat.PortablePdb)
+
+                CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "VB$StateMachine_3_M")
+                CheckNames(reader0, reader0.GetFieldDefNames(), "X", "Y", "$State", "$Builder", "$W0", "$A0")
+
+                Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Update, m0, m1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+                ' Notice that we reused field "$W0" (there is no "$W1"), which stores the closure pointer.
+                diff1.VerifySynthesizedMembers(
+                    "C: {VB$StateMachine_3_M}",
+                    "C.VB$StateMachine_3_M: {$State, $Builder, $W0, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}")
+            End Using
+        End Sub
+
         <Fact, WorkItem(1170899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170899")>
         Public Sub HoistedAnonymousTypes1()
             Dim source0 = MarkedSource("

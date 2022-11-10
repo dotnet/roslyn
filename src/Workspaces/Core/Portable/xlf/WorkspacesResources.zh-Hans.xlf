@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Failed_to_resolve_rename_conflicts">
         <source>Failed to resolve rename conflicts</source>
-        <target state="new">Failed to resolve rename conflicts</target>
+        <target state="translated">未能解决重命名冲突</target>
         <note />
       </trans-unit>
       <trans-unit id="FixAllScope_ContainingType_and_FixAllScope_ContainingMember_are_not_supported_with_this_constructor">
@@ -237,9 +237,19 @@
         <target state="translated">解决方案已包含指定的引用。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unexpected_value_0_in_DocumentKinds_array">
+        <source>Unexpected value '{0}' in DocumentKinds array.</source>
+        <target state="new">Unexpected value '{0}' in DocumentKinds array.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unknown">
         <source>Unknown</source>
         <target state="translated">未知</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_TextDocument_property_instead_of_Document_property_as_the_provider_supports_non_source_text_documents">
+        <source>Use 'TextDocument' property instead of 'Document' property as the provider supports non-source text documents.</source>
+        <target state="new">Use 'TextDocument' property instead of 'Document' property as the provider supports non-source text documents.</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_files">

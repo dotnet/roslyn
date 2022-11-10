@@ -43,11 +43,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public override ProjectId? ProjectId
             => Data.ProjectId;
 
+        // TODO: use of OriginalFileSpan seems very suspect here.  It is used for navigation.  But we should likely
+        // navigate to the remapped position. (Unless navigation already handles that?  Unclear what the
+        // invariants/expectations are between these two components).
         public override LinePosition GetOriginalPosition()
-            => new(Data.DataLocation?.OriginalStartLine ?? 0, Data.DataLocation?.OriginalStartColumn ?? 0);
+            => Data.DataLocation.UnmappedFileSpan.StartLinePosition;
 
-        public override string? GetOriginalFilePath()
-            => Data.DataLocation?.OriginalFilePath;
+        public override string GetOriginalFilePath()
+            => Data.DataLocation.UnmappedFileSpan.Path;
 
         public override bool EqualsIgnoringLocation(TableItem other)
         {
@@ -83,39 +86,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public bool Equals(DiagnosticData left, DiagnosticData right)
             {
                 if (ReferenceEquals(left, right))
-                {
                     return true;
-                }
 
                 if (left is null || right is null)
-                {
                     return false;
-                }
 
                 var leftLocation = left.DataLocation;
                 var rightLocation = right.DataLocation;
 
                 // location-less or project level diagnostic:
-                if (leftLocation == null ||
-                    rightLocation == null ||
-                    leftLocation.OriginalFilePath == null ||
-                    rightLocation.OriginalFilePath == null ||
-                    left.DocumentId == null ||
-                    right.DocumentId == null)
-                {
+                if (left.DocumentId == null || right.DocumentId == null)
                     return left.Equals(right);
-                }
 
                 return
-                    leftLocation.OriginalStartLine == rightLocation.OriginalStartLine &&
-                    leftLocation.OriginalStartColumn == rightLocation.OriginalStartColumn &&
-                    leftLocation.OriginalEndLine == rightLocation.OriginalEndLine &&
-                    leftLocation.OriginalEndColumn == rightLocation.OriginalEndColumn &&
+                    leftLocation.UnmappedFileSpan == rightLocation.UnmappedFileSpan &&
                     left.Severity == right.Severity &&
                     left.IsSuppressed == right.IsSuppressed &&
                     left.Id == right.Id &&
-                    left.Message == right.Message &&
-                    leftLocation.OriginalFilePath == rightLocation.OriginalFilePath;
+                    left.Message == right.Message;
             }
 
             public int GetHashCode(DiagnosticData data)
@@ -123,21 +111,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 var location = data.DataLocation;
 
                 // location-less or project level diagnostic:
-                if (location == null ||
-                    location.OriginalFilePath == null ||
-                    data.DocumentId == null)
-                {
+                if (data.DocumentId == null)
                     return data.GetHashCode();
-                }
 
                 return
-                    Hash.Combine(location.OriginalStartColumn,
-                    Hash.Combine(location.OriginalStartLine,
-                    Hash.Combine(location.OriginalEndColumn,
-                    Hash.Combine(location.OriginalEndLine,
-                    Hash.Combine(location.OriginalFilePath,
+                    Hash.Combine(location.UnmappedFileSpan.GetHashCode(),
                     Hash.Combine(data.IsSuppressed,
-                    Hash.Combine(data.Id, data.Severity.GetHashCode())))))));
+                    Hash.Combine(data.Id, data.Severity.GetHashCode())));
             }
 
             public bool Equals(DiagnosticTableItem left, DiagnosticTableItem right)

@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             // Is our expression a valid term?
             AddIfValidTerm(prefixUnaryExpression.Operand, flags, terms);
 
-            if (prefixUnaryExpression.IsKind(SyntaxKind.LogicalNotExpression, SyntaxKind.BitwiseNotExpression, SyntaxKind.UnaryMinusExpression, SyntaxKind.UnaryPlusExpression))
+            if (prefixUnaryExpression.Kind() is SyntaxKind.LogicalNotExpression or SyntaxKind.BitwiseNotExpression or SyntaxKind.UnaryMinusExpression or SyntaxKind.UnaryPlusExpression)
             {
                 // We're a valid expression if our subexpression is...
                 expressionType = flags & ExpressionType.ValidExpression;

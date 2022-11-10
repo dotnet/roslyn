@@ -372,9 +372,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
             // retargeting symbols refer to a symbol from another compilation, they don't define locals in the current compilation
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
-        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
+        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable();
     }
 }

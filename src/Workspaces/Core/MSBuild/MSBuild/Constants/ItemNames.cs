@@ -17,5 +17,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public const string Reference = nameof(Reference);
         public const string ReferencePath = nameof(ReferencePath);
         public const string VbcCommandLineArgs = nameof(VbcCommandLineArgs);
+        public const string IntermediateAssembly = nameof(IntermediateAssembly);
     }
 }

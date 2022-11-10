@@ -187,8 +187,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
             await TestAsync(initial, expected);
         }
 
-        [WorkItem(13436, "https://github.com/dotnet/roslyn/issues/13436")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
+        [WorkItem(13436, "https://github.com/dotnet/roslyn/issues/13436")]
         public async Task RemovesTag_BothParamTagsOnSameLine_NothingBetweenThem2()
         {
             var initial =
@@ -215,8 +215,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
             await TestAsync(initial, expected);
         }
 
-        [WorkItem(13436, "https://github.com/dotnet/roslyn/issues/13436")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
+        [WorkItem(13436, "https://github.com/dotnet/roslyn/issues/13436")]
         public async Task RemovesTag_TrailingTextAfterTag()
         {
             var initial =

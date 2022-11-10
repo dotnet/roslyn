@@ -9,7 +9,9 @@ Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
@@ -2466,8 +2468,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(compilationState, attributes)
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             Dim compilation = Me.DeclaringCompilation
 
@@ -2530,6 +2532,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If baseType.ContainsTupleNames() Then
                     AddSynthesizedAttribute(attributes, compilation.SynthesizeTupleNamesAttribute(baseType))
                 End If
+            End If
+
+            ' Add MetadataUpdateOriginalTypeAttribute when a reloadable type is emitted to EnC delta
+            If moduleBuilder.EncSymbolChanges?.IsReplaced(CType(Me, ISymbolInternal).GetISymbol()) = True Then
+                ' Note that we use this source named type symbol in the attribute argument (of System.Type).
+                ' We do not have access to the original symbol from this compilation. However, System.Type
+                ' is encoded in the attribute as a string containing a fully qualified type name.
+                ' The name of the current type symbol as provided by ISymbol.Name is the same as the name of
+                ' the original type symbol that is being replaced by this type symbol.
+                ' The "#{generation}" suffix is appended to the TypeDef name in the metadata writer,
+                ' but not to the attribute value.
+                Dim originalType = Me
+
+                AddSynthesizedAttribute(
+                    attributes,
+                    compilation.TrySynthesizeAttribute(
+                        WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
+                        ImmutableArray.Create(New TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type), TypedConstantKind.Type, originalType)),
+                        isOptionalUse:=True))
             End If
         End Sub
 

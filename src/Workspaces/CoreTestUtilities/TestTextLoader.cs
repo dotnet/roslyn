@@ -13,12 +13,14 @@ namespace Roslyn.Test.Utilities
 {
     internal class TestTextLoader : TextLoader
     {
-        private readonly string _text;
+        private readonly TextAndVersion _textAndVersion;
 
-        public TestTextLoader(string text = "test")
-            => _text = text;
+        public TestTextLoader(string text = "test", SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default)
+        {
+            _textAndVersion = TextAndVersion.Create(SourceText.From(text, encoding: null, checksumAlgorithm), VersionStamp.Create());
+        }
 
-        public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
-            => Task.FromResult(TextAndVersion.Create(SourceText.From(_text), VersionStamp.Create()));
+        internal override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+            => Task.FromResult(_textAndVersion);
     }
 }

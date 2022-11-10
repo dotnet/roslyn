@@ -3,47 +3,43 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Queries
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class WhereKeywordRecommenderTests
         Inherits RecommenderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub WhereNotInStatementTest()
             VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Where")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub WhereInQueryTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = From y In z |</MethodBody>, "Where")
         End Sub
 
-        <WorkItem(543173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543173")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543173")>
         Public Sub WhereAfterMultiLineFunctionLambdaExprTest()
             VerifyRecommendationsContain(<MethodBody>Dim q2 = From i1 In arr Order By Function()
                                              Return 5
                                          End Function |</MethodBody>, "Where")
         End Sub
 
-        <WorkItem(543174, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543174")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543174, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543174")>
         Public Sub WhereAnonymousObjectCreationExprTest()
             VerifyRecommendationsContain(<MethodBody>Dim q2 = From i1 In arr Order By New With {.Key = 10} |</MethodBody>, "Where")
         End Sub
 
-        <WorkItem(543219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543219")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543219")>
         Public Sub WhereAfterIntoClauseTest()
             VerifyRecommendationsContain(<MethodBody>Dim q1 = From i1 In arr Group By i1 Into Count |</MethodBody>, "Where")
         End Sub
 
-        <WorkItem(543232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543232")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543232")>
         Public Sub WhereAfterNestedAggregateFromClauseTest()
             VerifyRecommendationsContain(<MethodBody>Dim q1 = Aggregate i1 In arr From i4 In arr |</MethodBody>, "Where")
         End Sub
 
-        <WorkItem(531545, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531545")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(531545, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531545")>
         Public Sub WhereAfterEOLTest()
             VerifyRecommendationsContain(
 <MethodBody>
@@ -51,8 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Qu
 |</MethodBody>, "Where")
         End Sub
 
-        <WorkItem(531545, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531545")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(531545, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531545")>
         Public Sub WhereMissingAfterTwoEOLTest()
             VerifyRecommendationsMissing(
 <MethodBody>
@@ -61,8 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Qu
 |</MethodBody>, "Where")
         End Sub
 
-        <WorkItem(531545, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531545")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(531545, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531545")>
         Public Sub WhereMissingAfterTwoEOLWithLineContinuationTest()
             VerifyRecommendationsMissing(
 <MethodBody>

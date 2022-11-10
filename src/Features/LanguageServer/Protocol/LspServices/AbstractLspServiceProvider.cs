@@ -5,25 +5,27 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
+
 internal class AbstractLspServiceProvider
 {
     private readonly ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> _lspServices;
     private readonly ImmutableArray<Lazy<ILspServiceFactory, LspServiceMetadataView>> _lspServiceFactories;
 
     public AbstractLspServiceProvider(
-        IEnumerable<Lazy<ILspService, LspServiceMetadataView>> lspServices,
-        IEnumerable<Lazy<ILspServiceFactory, LspServiceMetadataView>> lspServiceFactories)
+        IEnumerable<Lazy<ILspService, LspServiceMetadataView>> specificLspServices,
+        IEnumerable<Lazy<ILspServiceFactory, LspServiceMetadataView>> specificLspServiceFactories)
     {
-        _lspServices = lspServices.ToImmutableArray();
-        _lspServiceFactories = lspServiceFactories.ToImmutableArray();
+        _lspServices = specificLspServices.ToImmutableArray();
+        _lspServiceFactories = specificLspServiceFactories.ToImmutableArray();
     }
 
-    public LspServices CreateServices(WellKnownLspServerKinds serverKind, ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> baseServices)
+    public LspServices CreateServices(WellKnownLspServerKinds serverKind, ImmutableDictionary<Type, ImmutableArray<Func<ILspServices, object>>> baseServices)
     {
-        return new LspServices(_lspServices, _lspServiceFactories, serverKind, baseServices);
+        var lspServices = new LspServices(_lspServices, _lspServiceFactories, serverKind, baseServices);
+
+        return lspServices;
     }
 }

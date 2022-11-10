@@ -109,12 +109,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isAutoProperty: isAutoProperty,
                 isExpressionBodied: isExpressionBodied,
                 isInitOnly: isInitOnly,
-                syntax.Type.GetRefKind(),
+                syntax.Type.SkipScoped(out _).GetRefKind(),
                 memberName,
                 syntax.AttributeLists,
                 location,
                 diagnostics)
         {
+            Debug.Assert(syntax.Type is not ScopedTypeSyntax);
+
             if (IsAutoProperty)
             {
                 Binder.CheckFeatureAvailability(
@@ -241,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private static AccessorDeclarationSyntax GetSetAccessorDeclaration(BasePropertyDeclarationSyntax syntax)
@@ -256,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private static DeclarationModifiers MakeModifiers(
@@ -440,7 +442,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private TypeWithAnnotations ComputeType(Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
-            var typeSyntax = GetTypeSyntax(syntax).SkipRef(out _);
+            var typeSyntax = GetTypeSyntax(syntax);
+            Debug.Assert(typeSyntax is not ScopedTypeSyntax);
+
+            typeSyntax = typeSyntax.SkipScoped(out _).SkipRef(out _);
             var type = binder.BindType(typeSyntax, diagnostics);
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
 
@@ -492,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowRefOrOut: false,
                 allowThis: false,
                 addRefReadOnlyModifier: addRefReadOnlyModifier,
-                diagnostics: diagnostics);
+                diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
 
             if (arglistToken.Kind() != SyntaxKind.None)
             {
@@ -550,7 +555,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var typeSyntax = GetTypeSyntax(CSharpSyntaxNode).SkipRef(out _);
+                var typeSyntax = GetTypeSyntax(CSharpSyntaxNode);
+                Debug.Assert(typeSyntax is not ScopedTypeSyntax);
+                typeSyntax = typeSyntax.SkipScoped(out _).SkipRef(out _);
                 return typeSyntax.Kind() switch { SyntaxKind.PointerType => true, SyntaxKind.FunctionPointerType => true, _ => false };
             }
         }

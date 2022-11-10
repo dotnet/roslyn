@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' Allows asking semantic questions about any node in a SyntaxTree within a Compilation.
     ''' </summary>
     Friend Class SyntaxTreeSemanticModel
-        Inherits VBSemanticModel
+        Inherits PublicSemanticModel
 
         Private ReadOnly _compilation As VisualBasicCompilation
         Private ReadOnly _sourceModule As SourceModuleSymbol
@@ -31,9 +31,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _ignoresAccessibility As Boolean
 
         ' maps from a higher-level binder to an appropriate SemanticModel for the construct (such as a method, or initializer).
-        Private ReadOnly _semanticModelCache As New ConcurrentDictionary(Of (binder As Binder, ignoresAccessibility As Boolean), MemberSemanticModel)()
+        Private ReadOnly _semanticModelCache As New ConcurrentDictionary(Of Binder, MemberSemanticModel)()
 
-        Friend Sub New(compilation As VisualBasicCompilation, sourceModule As SourceModuleSymbol, syntaxTree As SyntaxTree, Optional ignoreAccessibility As Boolean = False)
+        Friend Sub New(compilation As VisualBasicCompilation, sourceModule As SourceModuleSymbol, syntaxTree As SyntaxTree, ignoreAccessibility As Boolean)
             _compilation = compilation
             _sourceModule = sourceModule
             _syntaxTree = syntaxTree
@@ -137,26 +137,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' PERF: These variables avoid repeated allocation of Func(Of Binder, MemberSemanticModel) in GetMemberSemanticModel
-        Private ReadOnly _methodBodySemanticModelCreator As Func(Of (binder As Binder, ignoresAccessibility As Boolean), MemberSemanticModel) = Function(key As (binder As Binder, ignoresAccessibility As Boolean)) MethodBodySemanticModel.Create(Me, DirectCast(key.binder, SubOrFunctionBodyBinder), key.ignoresAccessibility)
-        Private ReadOnly _initializerSemanticModelCreator As Func(Of (binder As Binder, ignoresAccessibility As Boolean), MemberSemanticModel) = Function(key As (binder As Binder, ignoresAccessibility As Boolean)) InitializerSemanticModel.Create(Me, DirectCast(key.binder, DeclarationInitializerBinder), key.ignoresAccessibility)
-        Private ReadOnly _attributeSemanticModelCreator As Func(Of (binder As Binder, ignoresAccessibility As Boolean), MemberSemanticModel) = Function(key As (binder As Binder, ignoresAccessibility As Boolean)) AttributeSemanticModel.Create(Me, DirectCast(key.binder, AttributeBinder), key.ignoresAccessibility)
+        Private ReadOnly _methodBodySemanticModelCreator As Func(Of Binder, MemberSemanticModel) = Function(key As Binder) MethodBodySemanticModel.Create(Me, DirectCast(key, SubOrFunctionBodyBinder))
+        Private ReadOnly _initializerSemanticModelCreator As Func(Of Binder, MemberSemanticModel) = Function(key As Binder) InitializerSemanticModel.Create(Me, DirectCast(key, DeclarationInitializerBinder))
+        Private ReadOnly _attributeSemanticModelCreator As Func(Of Binder, MemberSemanticModel) = Function(key As Binder) AttributeSemanticModel.Create(Me, DirectCast(key, AttributeBinder))
 
         Public Function GetMemberSemanticModel(binder As Binder) As MemberSemanticModel
 
             If TypeOf binder Is MethodBodyBinder Then
-                Return _semanticModelCache.GetOrAdd((binder, IgnoresAccessibility), _methodBodySemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd(binder, _methodBodySemanticModelCreator)
             End If
 
             If TypeOf binder Is DeclarationInitializerBinder Then
-                Return _semanticModelCache.GetOrAdd((binder, IgnoresAccessibility), _initializerSemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd(binder, _initializerSemanticModelCreator)
             End If
 
             If TypeOf binder Is AttributeBinder Then
-                Return _semanticModelCache.GetOrAdd((binder, IgnoresAccessibility), _attributeSemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd(binder, _attributeSemanticModelCreator)
             End If
 
             If TypeOf binder Is TopLevelCodeBinder Then
-                Return _semanticModelCache.GetOrAdd((binder, IgnoresAccessibility), _methodBodySemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd(binder, _methodBodySemanticModelCreator)
             End If
 
             Return Nothing
@@ -275,8 +275,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim newSymbolInfo = GetSymbolInfoForNode(options, New BoundNodeSummary(bound, bound, Nothing), binderOpt:=Nothing)
 
-                If Not newSymbolInfo.GetAllSymbols().IsDefaultOrEmpty Then
-                    Return SymbolInfoFactory.Create(newSymbolInfo.GetAllSymbols(), LookupResultKind.NotATypeOrNamespace)
+                Dim allSymbols = newSymbolInfo.GetAllSymbols()
+                If Not allSymbols.IsDefaultOrEmpty Then
+                    Return SymbolInfoFactory.Create(allSymbols, LookupResultKind.NotATypeOrNamespace)
                 End If
             End If
 
@@ -1422,13 +1423,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property ContainingModelOrSelf As SemanticModel
-            Get
-                Return Me
-            End Get
-        End Property
-
-        Friend Overrides Function TryGetSpeculativeSemanticModelForMethodBodyCore(parentModel As SyntaxTreeSemanticModel, position As Integer, method As MethodBlockBaseSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend Overrides Function TryGetSpeculativeSemanticModelForMethodBodyCore(parentModel As SyntaxTreeSemanticModel, position As Integer, method As MethodBlockBaseSyntax, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
             Dim memberModel = Me.GetMemberSemanticModel(position)
             If memberModel IsNot Nothing Then
                 Return memberModel.TryGetSpeculativeSemanticModelForMethodBodyCore(parentModel, position, method, speculativeModel)
@@ -1438,7 +1433,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, type As TypeSyntax, bindingOption As SpeculativeBindingOption, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, type As TypeSyntax, bindingOption As SpeculativeBindingOption, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
             Dim memberModel = Me.GetMemberSemanticModel(position)
             If memberModel IsNot Nothing Then
                 Return memberModel.TryGetSpeculativeSemanticModelCore(parentModel, position, type, bindingOption, speculativeModel)
@@ -1454,7 +1449,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, rangeArgument As RangeArgumentSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, rangeArgument As RangeArgumentSyntax, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
             Dim memberModel = Me.GetMemberSemanticModel(position)
             If memberModel IsNot Nothing Then
                 Return memberModel.TryGetSpeculativeSemanticModelCore(parentModel, position, rangeArgument, speculativeModel)
@@ -1464,7 +1459,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, statement As ExecutableStatementSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, statement As ExecutableStatementSyntax, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
             Dim memberModel = Me.GetMemberSemanticModel(position)
             If memberModel IsNot Nothing Then
                 Return memberModel.TryGetSpeculativeSemanticModelCore(parentModel, position, statement, speculativeModel)
@@ -1474,7 +1469,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, initializer As EqualsValueSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, initializer As EqualsValueSyntax, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
             Dim memberModel = Me.GetMemberSemanticModel(position)
             If memberModel IsNot Nothing Then
                 Return memberModel.TryGetSpeculativeSemanticModelCore(parentModel, position, initializer, speculativeModel)

@@ -15,6 +15,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.GraphModel;
 using Microsoft.VisualStudio.GraphModel.CodeSchema;
 using Microsoft.VisualStudio.GraphModel.Schemas;
+using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.GoToDefinition;
+using Microsoft.CodeAnalysis.Editor.Host;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 {
@@ -23,11 +26,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
     internal sealed class GraphNavigatorExtension : ForegroundThreadAffinitizedObject, IGraphNavigateToItem
     {
         private readonly Workspace _workspace;
+        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
-        public GraphNavigatorExtension(IThreadingContext threadingContext, Workspace workspace)
+        public GraphNavigatorExtension(
+            IThreadingContext threadingContext,
+            Workspace workspace,
+            Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
             : base(threadingContext)
         {
             _workspace = workspace;
+            _streamingPresenter = streamingPresenter;
         }
 
         public void NavigateTo(GraphObject graphObject)
@@ -48,11 +56,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 {
                     var solution = _workspace.CurrentSolution;
                     var project = solution.GetProject(projectId);
-
                     if (project == null)
-                    {
                         return;
-                    }
 
                     var document = project.Documents.FirstOrDefault(
                         d => string.Equals(
@@ -61,9 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                             StringComparison.OrdinalIgnoreCase));
 
                     if (document == null)
-                    {
                         return;
-                    }
 
                     this.ThreadingContext.JoinableTaskFactory.Run(() =>
                         NavigateToAsync(sourceLocation, symbolId, project, document, CancellationToken.None));
@@ -77,17 +80,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             // Notify of navigation so third parties can intercept the navigation
             if (symbolId != null)
             {
-                var symbolNavigationService = _workspace.Services.GetService<ISymbolNavigationService>();
                 var symbol = symbolId.Value.Resolve(await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false), cancellationToken: cancellationToken).Symbol;
-
-                // Do not allow third party navigation to types or constructors
-                if (symbol != null &&
-                    symbol is not ITypeSymbol &&
-                    !symbol.IsConstructor() &&
-                    await symbolNavigationService.TrySymbolNavigationNotifyAsync(symbol, project, cancellationToken).ConfigureAwait(false))
-                {
-                    return;
-                }
+                await GoToDefinitionHelpers.TryNavigateToLocationAsync(
+                    symbol, project.Solution, this.ThreadingContext, _streamingPresenter.Value, cancellationToken).ConfigureAwait(false);
+                return;
             }
 
             if (sourceLocation.IsValid)

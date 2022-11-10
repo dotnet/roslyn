@@ -35,7 +35,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SymbolExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxKindExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxListExtensions.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTriviaListExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeBlockSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeSyntaxGeneratorVisitor.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\SpecialFormattingOperation.vb" />
@@ -45,7 +44,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicFileBannerFactsService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicHeaderFactsService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicMoveDeclarationNearReferenceService.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicRemoveUnnecessaryImportsService.Rewriter.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicRemoveUnnecessaryImportsService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicAddImportsService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicGeneratedCodeRecognitionService.vb" />

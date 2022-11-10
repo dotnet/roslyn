@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 return true;
             }
 
-            if (type.IsKind(SyntaxKind.TupleType, out TupleTypeSyntax? tupleType))
+            if (type is TupleTypeSyntax tupleType)
             {
                 // '(int x, int y) t' can be convered to '(int x, int y)'.  So all the elements
                 // need names.

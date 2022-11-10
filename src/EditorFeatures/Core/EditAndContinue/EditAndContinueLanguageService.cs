@@ -5,14 +5,12 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 using Roslyn.Utilities;
@@ -26,6 +24,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
     internal sealed class EditAndContinueLanguageService : IManagedHotReloadLanguageService, IEditAndContinueSolutionProvider
     {
+        private readonly PdbMatchingSourceTextProvider _sourceTextProvider;
         private readonly Lazy<IManagedHotReloadService> _debuggerService;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
@@ -52,12 +51,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Lazy<IHostWorkspaceProvider> workspaceProvider,
             Lazy<IManagedHotReloadService> debuggerService,
             IDiagnosticAnalyzerService diagnosticService,
-            EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource)
+            EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
+            PdbMatchingSourceTextProvider sourceTextProvider)
         {
             WorkspaceProvider = workspaceProvider;
             _debuggerService = debuggerService;
             _diagnosticService = diagnosticService;
             _diagnosticUpdateSource = diagnosticUpdateSource;
+            _sourceTextProvider = sourceTextProvider;
         }
 
         private Solution GetCurrentCompileTimeSolution(Solution? currentDesignTimeSolution = null)
@@ -93,15 +94,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             try
             {
+                // Activate listener before capturing the current solution snapshot,
+                // so that we don't miss any pertinent workspace update events.
+                _sourceTextProvider.Activate();
+
                 var workspace = WorkspaceProvider.Value.Workspace;
-                var solution = GetCurrentCompileTimeSolution(_committedDesignTimeSolution = workspace.CurrentSolution);
-                var openedDocumentIds = workspace.GetOpenDocumentIds().ToImmutableArray();
+                var currentSolution = workspace.CurrentSolution;
+                _committedDesignTimeSolution = currentSolution;
+                var solution = GetCurrentCompileTimeSolution(currentSolution);
+
+                _sourceTextProvider.SetBaseline(currentSolution);
+
                 var proxy = new RemoteEditAndContinueServiceProxy(workspace);
 
                 _debuggingSession = await proxy.StartDebuggingSessionAsync(
                     solution,
                     new ManagedHotReloadServiceImpl(_debuggerService.Value),
-                    captureMatchingDocuments: openedDocumentIds,
+                    _sourceTextProvider,
+                    captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
                     captureAllMatchingDocuments: false,
                     reportDiagnostics: true,
                     cancellationToken).ConfigureAwait(false);
@@ -228,24 +238,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             IsSessionActive = false;
 
-            if (_disabled)
+            if (!_disabled)
             {
-                return;
+                try
+                {
+                    var solution = GetCurrentCompileTimeSolution();
+                    await GetDebuggingSession().EndDebuggingSessionAsync(solution, _diagnosticUpdateSource, _diagnosticService, cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+                {
+                    _disabled = true;
+                }
             }
 
-            try
-            {
-                var solution = GetCurrentCompileTimeSolution();
-                await GetDebuggingSession().EndDebuggingSessionAsync(solution, _diagnosticUpdateSource, _diagnosticService, cancellationToken).ConfigureAwait(false);
-
-                _debuggingSession = null;
-                _committedDesignTimeSolution = null;
-                _pendingUpdatedDesignTimeSolution = null;
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-            {
-                _disabled = true;
-            }
+            _sourceTextProvider.Deactivate();
+            _debuggingSession = null;
+            _committedDesignTimeSolution = null;
+            _pendingUpdatedDesignTimeSolution = null;
         }
 
         private ActiveStatementSpanProvider GetActiveStatementSpanProvider(Solution solution)

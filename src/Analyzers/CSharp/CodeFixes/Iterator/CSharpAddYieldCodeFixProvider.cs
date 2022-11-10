@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
         protected override async Task<CodeAction?> GetCodeFixAsync(SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostics, CancellationToken cancellationToken)
         {
             // Check if node is return statement
-            if (!node.IsKind(SyntaxKind.ReturnStatement, out ReturnStatementSyntax? returnStatement))
+            if (node is not ReturnStatementSyntax returnStatement)
             {
                 return null;
             }

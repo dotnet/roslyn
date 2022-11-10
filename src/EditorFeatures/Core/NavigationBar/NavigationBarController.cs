@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             StartModelUpdateAndSelectedItemUpdateTasks();
         }
 
-        public struct TestAccessor
+        public readonly struct TestAccessor
         {
             private readonly NavigationBarController _navigationBarController;
 

@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static bool AreBracesMissing<TDeclaration>(TDeclaration declaration) where TDeclaration : SyntaxNode
-            => declaration.ChildTokens().Where(t => t.IsKind(SyntaxKind.OpenBraceToken, SyntaxKind.CloseBraceToken) && t.IsMissing).Any();
+            => declaration.ChildTokens().Where(t => t.Kind() is SyntaxKind.OpenBraceToken or SyntaxKind.CloseBraceToken && t.IsMissing).Any();
 
         public static SyntaxNode? GetContextNode(
             Location location, CancellationToken cancellationToken)

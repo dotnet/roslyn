@@ -61,15 +61,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective
             // Avoid analysis of compilation units and types in AnalyzeCodeBlock. These nodes appear in code block
             // callbacks when they include attributes, but analysis of the node at this level would block more efficient
             // analysis of descendant members.
-            return codeBlock.IsKind(
-                SyntaxKind.CompilationUnit,
-                SyntaxKind.ClassDeclaration,
-                SyntaxKind.RecordDeclaration,
-                SyntaxKind.StructDeclaration,
-                SyntaxKind.RecordStructDeclaration,
-                SyntaxKind.InterfaceDeclaration,
-                SyntaxKind.DelegateDeclaration,
-                SyntaxKind.EnumDeclaration);
+            return codeBlock.Kind() is
+                SyntaxKind.CompilationUnit or
+                SyntaxKind.ClassDeclaration or
+                SyntaxKind.RecordDeclaration or
+                SyntaxKind.StructDeclaration or
+                SyntaxKind.RecordStructDeclaration or
+                SyntaxKind.InterfaceDeclaration or
+                SyntaxKind.DelegateDeclaration or
+                SyntaxKind.EnumDeclaration;
         }
 
         private static bool IsReducing([NotNullWhen(true)] NullableContextOptions? oldOptions, [NotNullWhen(true)] NullableContextOptions? newOptions)
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective
             {
                 context.CancellationToken.ThrowIfCancellationRequested();
 
-                if (directive.IsKind(SyntaxKind.NullableDirectiveTrivia, out NullableDirectiveTriviaSyntax? nullableDirectiveTrivia))
+                if (directive is NullableDirectiveTriviaSyntax nullableDirectiveTrivia)
                 {
                     // Once we reach a new directive, check to see if we can remove the previous directive
                     var removedCurrent = false;
@@ -140,7 +140,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective
                     currentOptionsDirective = nullableDirectiveTrivia;
                     currentOptions = CSharpRemoveRedundantNullableDirectiveDiagnosticAnalyzer.GetNullableContextOptions(compilationOptions, currentOptions, nullableDirectiveTrivia);
                 }
-                else if (directive.IsKind(SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElifDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia))
+                else if (directive.Kind() is
+                    SyntaxKind.IfDirectiveTrivia or
+                    SyntaxKind.ElifDirectiveTrivia or
+                    SyntaxKind.ElseDirectiveTrivia)
                 {
                     possibleNullableImpactIntervalTree ??= new SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>(new TextSpanIntervalIntrospector(), values: null);
                     possibleNullableImpactIntervalTree.AddIntervalInPlace(directive.Span);
@@ -195,7 +198,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (directive.IsKind(SyntaxKind.NullableDirectiveTrivia, out NullableDirectiveTriviaSyntax? nullableDirectiveTrivia))
+                    if (directive is NullableDirectiveTriviaSyntax nullableDirectiveTrivia)
                     {
                         var newOptions = CSharpRemoveRedundantNullableDirectiveDiagnosticAnalyzer.GetNullableContextOptions(compilationOptions, currentOptions, nullableDirectiveTrivia);
                         if (IsReducing(currentOptions, newOptions))

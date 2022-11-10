@@ -590,35 +590,35 @@ End Class
             Dim asm As AssemblySymbol = i2.ContainingAssembly
 
             mdName = MetadataTypeName.FromFullName("I3`1", False, -1)
-            t = asm.LookupTopLevelMetadataType(mdName, True)
+            t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(mdName, visitedAssemblies:=Nothing)
             Assert.False(t.IsErrorType())
             Assert.Equal("I3", t.Name)
             Assert.True(t.MangleName)
             Assert.Equal(1, t.Arity)
 
             mdName = MetadataTypeName.FromFullName("I3`1", False, 0)
-            t = asm.LookupTopLevelMetadataType(mdName, True)
+            t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(mdName, visitedAssemblies:=Nothing)
             Assert.True(t.IsErrorType())
             Assert.Equal("I3`1", t.Name)
             Assert.False(t.MangleName)
             Assert.Equal(0, t.Arity)
 
             mdName = MetadataTypeName.FromFullName("I3`1", False, 1)
-            t = asm.LookupTopLevelMetadataType(mdName, True)
+            t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(mdName, visitedAssemblies:=Nothing)
             Assert.False(t.IsErrorType())
             Assert.Equal("I3", t.Name)
             Assert.True(t.MangleName)
             Assert.Equal(1, t.Arity)
 
             mdName = MetadataTypeName.FromFullName("I3`1", False, 2)
-            t = asm.LookupTopLevelMetadataType(mdName, True)
+            t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(mdName, visitedAssemblies:=Nothing)
             Assert.True(t.IsErrorType())
             Assert.Equal("I3`1", t.Name)
             Assert.False(t.MangleName)
             Assert.Equal(2, t.Arity)
 
             mdName = MetadataTypeName.FromFullName("I3`1", True, -1)
-            t = asm.LookupTopLevelMetadataType(mdName, True)
+            t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(mdName, visitedAssemblies:=Nothing)
             Assert.False(t.IsErrorType())
             Assert.Equal("I3", t.Name)
             Assert.True(t.MangleName)
@@ -632,7 +632,7 @@ End Class
             'Assert.Equal(0, t.Arity)
 
             mdName = MetadataTypeName.FromFullName("I3`1", True, 1)
-            t = asm.LookupTopLevelMetadataType(mdName, True)
+            t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(mdName, visitedAssemblies:=Nothing)
             Assert.False(t.IsErrorType())
             Assert.Equal("I3", t.Name)
             Assert.True(t.MangleName)
@@ -647,35 +647,35 @@ End Class
 
 
             mdName = MetadataTypeName.FromFullName("I", False, -1)
-            t = asm.LookupTopLevelMetadataType(mdName, True)
+            t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(mdName, visitedAssemblies:=Nothing)
             Assert.False(t.IsErrorType())
             Assert.Equal("I", t.Name)
             Assert.False(t.MangleName)
             Assert.Equal(0, t.Arity)
 
             mdName = MetadataTypeName.FromFullName("I", False, 0)
-            t = asm.LookupTopLevelMetadataType(mdName, True)
+            t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(mdName, visitedAssemblies:=Nothing)
             Assert.False(t.IsErrorType())
             Assert.Equal("I", t.Name)
             Assert.False(t.MangleName)
             Assert.Equal(0, t.Arity)
 
             mdName = MetadataTypeName.FromFullName("I", False, 1)
-            t = asm.LookupTopLevelMetadataType(mdName, True)
+            t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(mdName, visitedAssemblies:=Nothing)
             Assert.True(t.IsErrorType())
             Assert.Equal("I", t.Name)
             Assert.False(t.MangleName)
             Assert.Equal(1, t.Arity)
 
             mdName = MetadataTypeName.FromFullName("I", True, -1)
-            t = asm.LookupTopLevelMetadataType(mdName, True)
+            t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(mdName, visitedAssemblies:=Nothing)
             Assert.False(t.IsErrorType())
             Assert.Equal("I", t.Name)
             Assert.False(t.MangleName)
             Assert.Equal(0, t.Arity)
 
             mdName = MetadataTypeName.FromFullName("I", True, 0)
-            t = asm.LookupTopLevelMetadataType(mdName, True)
+            t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(mdName, visitedAssemblies:=Nothing)
             Assert.False(t.IsErrorType())
             Assert.Equal("I", t.Name)
             Assert.False(t.MangleName)
@@ -690,35 +690,35 @@ End Class
 
 
             mdName = MetadataTypeName.FromFullName("I2`1", False, -1)
-            t = asm.LookupTopLevelMetadataType(mdName, True)
+            t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(mdName, visitedAssemblies:=Nothing)
             Assert.False(t.IsErrorType())
             Assert.Equal("I2`1", t.Name)
             Assert.False(t.MangleName)
             Assert.Equal(0, t.Arity)
 
             mdName = MetadataTypeName.FromFullName("I2`1", False, 0)
-            t = asm.LookupTopLevelMetadataType(mdName, True)
+            t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(mdName, visitedAssemblies:=Nothing)
             Assert.False(t.IsErrorType())
             Assert.Equal("I2`1", t.Name)
             Assert.False(t.MangleName)
             Assert.Equal(0, t.Arity)
 
             mdName = MetadataTypeName.FromFullName("I2`1", False, 1)
-            t = asm.LookupTopLevelMetadataType(mdName, True)
+            t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(mdName, visitedAssemblies:=Nothing)
             Assert.True(t.IsErrorType())
             Assert.Equal("I2", t.Name)
             Assert.True(t.MangleName)
             Assert.Equal(1, t.Arity)
 
             mdName = MetadataTypeName.FromFullName("I2`1", False, 2)
-            t = asm.LookupTopLevelMetadataType(mdName, True)
+            t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(mdName, visitedAssemblies:=Nothing)
             Assert.True(t.IsErrorType())
             Assert.Equal("I2`1", t.Name)
             Assert.False(t.MangleName)
             Assert.Equal(2, t.Arity)
 
             mdName = MetadataTypeName.FromFullName("I2`1", True, -1)
-            t = asm.LookupTopLevelMetadataType(mdName, True)
+            t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(mdName, visitedAssemblies:=Nothing)
             Assert.True(t.IsErrorType())
             Assert.Equal("I2", t.Name)
             Assert.True(t.MangleName)
@@ -732,7 +732,7 @@ End Class
             'Assert.Equal(0, t.Arity)
 
             mdName = MetadataTypeName.FromFullName("I2`1", True, 1)
-            t = asm.LookupTopLevelMetadataType(mdName, True)
+            t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(mdName, visitedAssemblies:=Nothing)
             Assert.True(t.IsErrorType())
             Assert.Equal("I2", t.Name)
             Assert.True(t.MangleName)
@@ -747,35 +747,35 @@ End Class
 
 
             mdName = MetadataTypeName.FromFullName("I4`2", False, -1)
-            t = asm.LookupTopLevelMetadataType(mdName, True)
+            t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(mdName, visitedAssemblies:=Nothing)
             Assert.False(t.IsErrorType())
             Assert.Equal("I4`2", t.Name)
             Assert.False(t.MangleName)
             Assert.Equal(1, t.Arity)
 
             mdName = MetadataTypeName.FromFullName("I4`2", False, 0)
-            t = asm.LookupTopLevelMetadataType(mdName, True)
+            t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(mdName, visitedAssemblies:=Nothing)
             Assert.True(t.IsErrorType())
             Assert.Equal("I4`2", t.Name)
             Assert.False(t.MangleName)
             Assert.Equal(0, t.Arity)
 
             mdName = MetadataTypeName.FromFullName("I4`2", False, 1)
-            t = asm.LookupTopLevelMetadataType(mdName, True)
+            t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(mdName, visitedAssemblies:=Nothing)
             Assert.False(t.IsErrorType())
             Assert.Equal("I4`2", t.Name)
             Assert.False(t.MangleName)
             Assert.Equal(1, t.Arity)
 
             mdName = MetadataTypeName.FromFullName("I4`2", False, 2)
-            t = asm.LookupTopLevelMetadataType(mdName, True)
+            t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(mdName, visitedAssemblies:=Nothing)
             Assert.True(t.IsErrorType())
             Assert.Equal("I4", t.Name)
             Assert.True(t.MangleName)
             Assert.Equal(2, t.Arity)
 
             mdName = MetadataTypeName.FromFullName("I4`2", True, -1)
-            t = asm.LookupTopLevelMetadataType(mdName, True)
+            t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(mdName, visitedAssemblies:=Nothing)
             Assert.True(t.IsErrorType())
             Assert.Equal("I4", t.Name)
             Assert.True(t.MangleName)
@@ -796,7 +796,7 @@ End Class
             'Assert.Equal(1, t.Arity)
 
             mdName = MetadataTypeName.FromFullName("I4`2", True, 2)
-            t = asm.LookupTopLevelMetadataType(mdName, True)
+            t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(mdName, visitedAssemblies:=Nothing)
             Assert.True(t.IsErrorType())
             Assert.Equal("I4", t.Name)
             Assert.True(t.MangleName)
@@ -813,10 +813,7 @@ End Class
 
             mdName = MetadataTypeName.FromFullName("I3`1", False, 0)
             t = containingType.LookupMetadataType(mdName)
-            Assert.True(t.IsErrorType())
-            Assert.Equal("I3`1", t.Name)
-            Assert.False(t.MangleName)
-            Assert.Equal(0, t.Arity)
+            Assert.Null(t)
 
             mdName = MetadataTypeName.FromFullName("I3`1", False, 1)
             t = containingType.LookupMetadataType(mdName)
@@ -827,10 +824,7 @@ End Class
 
             mdName = MetadataTypeName.FromFullName("I3`1", False, 2)
             t = containingType.LookupMetadataType(mdName)
-            Assert.True(t.IsErrorType())
-            Assert.Equal("I3`1", t.Name)
-            Assert.False(t.MangleName)
-            Assert.Equal(2, t.Arity)
+            Assert.Null(t)
 
             mdName = MetadataTypeName.FromFullName("I3`1", True, -1)
             t = containingType.LookupMetadataType(mdName)
@@ -877,10 +871,7 @@ End Class
 
             mdName = MetadataTypeName.FromFullName("I", False, 1)
             t = containingType.LookupMetadataType(mdName)
-            Assert.True(t.IsErrorType())
-            Assert.Equal("I", t.Name)
-            Assert.False(t.MangleName)
-            Assert.Equal(1, t.Arity)
+            Assert.Null(t)
 
             mdName = MetadataTypeName.FromFullName("I", True, -1)
             t = containingType.LookupMetadataType(mdName)
@@ -920,24 +911,15 @@ End Class
 
             mdName = MetadataTypeName.FromFullName("I2`1", False, 1)
             t = containingType.LookupMetadataType(mdName)
-            Assert.True(t.IsErrorType())
-            Assert.Equal("I2", t.Name)
-            Assert.True(t.MangleName)
-            Assert.Equal(1, t.Arity)
+            Assert.Null(t)
 
             mdName = MetadataTypeName.FromFullName("I2`1", False, 2)
             t = containingType.LookupMetadataType(mdName)
-            Assert.True(t.IsErrorType())
-            Assert.Equal("I2`1", t.Name)
-            Assert.False(t.MangleName)
-            Assert.Equal(2, t.Arity)
+            Assert.Null(t)
 
             mdName = MetadataTypeName.FromFullName("I2`1", True, -1)
             t = containingType.LookupMetadataType(mdName)
-            Assert.True(t.IsErrorType())
-            Assert.Equal("I2", t.Name)
-            Assert.True(t.MangleName)
-            Assert.Equal(1, t.Arity)
+            Assert.Null(t)
 
             'mdName = MetadataTypeName.FromFullName("I2`1", True, 0)
             't = containingType.LookupMetadataType(mdName)
@@ -948,10 +930,7 @@ End Class
 
             mdName = MetadataTypeName.FromFullName("I2`1", True, 1)
             t = containingType.LookupMetadataType(mdName)
-            Assert.True(t.IsErrorType())
-            Assert.Equal("I2", t.Name)
-            Assert.True(t.MangleName)
-            Assert.Equal(1, t.Arity)
+            Assert.Null(t)
 
             'mdName = MetadataTypeName.FromFullName("I2`1", True, 2)
             't = containingType.LookupMetadataType(mdName)
@@ -970,10 +949,7 @@ End Class
 
             mdName = MetadataTypeName.FromFullName("I4`2", False, 0)
             t = containingType.LookupMetadataType(mdName)
-            Assert.True(t.IsErrorType())
-            Assert.Equal("I4`2", t.Name)
-            Assert.False(t.MangleName)
-            Assert.Equal(0, t.Arity)
+            Assert.Null(t)
 
             mdName = MetadataTypeName.FromFullName("I4`2", False, 1)
             t = containingType.LookupMetadataType(mdName)
@@ -984,17 +960,11 @@ End Class
 
             mdName = MetadataTypeName.FromFullName("I4`2", False, 2)
             t = containingType.LookupMetadataType(mdName)
-            Assert.True(t.IsErrorType())
-            Assert.Equal("I4", t.Name)
-            Assert.True(t.MangleName)
-            Assert.Equal(2, t.Arity)
+            Assert.Null(t)
 
             mdName = MetadataTypeName.FromFullName("I4`2", True, -1)
             t = containingType.LookupMetadataType(mdName)
-            Assert.True(t.IsErrorType())
-            Assert.Equal("I4", t.Name)
-            Assert.True(t.MangleName)
-            Assert.Equal(2, t.Arity)
+            Assert.Null(t)
 
             'mdName = MetadataTypeName.FromFullName("I4`2", True, 0)
             't = containingType.LookupMetadataType(mdName)
@@ -1012,10 +982,7 @@ End Class
 
             mdName = MetadataTypeName.FromFullName("I4`2", True, 2)
             t = containingType.LookupMetadataType(mdName)
-            Assert.True(t.IsErrorType())
-            Assert.Equal("I4", t.Name)
-            Assert.True(t.MangleName)
-            Assert.Equal(2, t.Arity)
+            Assert.Null(t)
 
             CompileAndVerify(compilation)
         End Sub

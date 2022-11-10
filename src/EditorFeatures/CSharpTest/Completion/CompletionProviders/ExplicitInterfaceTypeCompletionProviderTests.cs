@@ -13,12 +13,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class ExplicitInterfaceTypeCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType()
             => typeof(ExplicitInterfaceTypeCompletionProvider);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestAtStartOfClass()
         {
             var markup = @"
@@ -35,7 +36,7 @@ class C : IList
             await VerifyItemExistsAsync(markup, "IList");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData("record")]
         [InlineData("record class")]
         [InlineData("record struct")]
@@ -61,8 +62,7 @@ using System.Collections;
             await VerifyItemExistsAsync(markup, "IList");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(459044, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=459044")]
+        [Fact, WorkItem(459044, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=459044")]
         public async Task TestInMisplacedUsing()
         {
             var markup = @"
@@ -74,7 +74,7 @@ class C
             await VerifyNoItemsExistAsync(markup); // no crash
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestAtStartOfStruct()
         {
             var markup = @"
@@ -92,7 +92,7 @@ struct C : IList
             await VerifyItemExistsAsync(markup, "IList");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestAfterField()
         {
             var markup = @"
@@ -111,7 +111,7 @@ class C : IList
             await VerifyItemExistsAsync(markup, "IList");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestAfterMethod_01()
         {
             var markup = @"
@@ -130,7 +130,7 @@ class C : IList
             await VerifyItemExistsAsync(markup, "IList");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestAfterMethod_02()
         {
             var markup = @"
@@ -149,7 +149,7 @@ interface C : IList
             await VerifyItemExistsAsync(markup, "IList");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestAfterExpressionBody()
         {
             var markup = @"
@@ -168,7 +168,7 @@ class C : IList
             await VerifyItemExistsAsync(markup, "IList");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestWithAttributeFollowing()
         {
             var markup = @"
@@ -190,7 +190,7 @@ class C : IList
             await VerifyItemExistsAsync(markup, "IList");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestWithModifierFollowing()
         {
             var markup = @"
@@ -211,7 +211,7 @@ class C : IList
             await VerifyItemExistsAsync(markup, "IList");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestWithTypeFollowing()
         {
             var markup = @"
@@ -232,7 +232,7 @@ class C : IList
             await VerifyItemExistsAsync(markup, "IList");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestWithTypeFollowing2()
         {
             var markup = @"
@@ -253,7 +253,7 @@ class C : IList
             await VerifyItemExistsAsync(markup, "IList");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NotInMember()
         {
             var markup = @"
@@ -271,7 +271,7 @@ class C : IList
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NotWithAccessibility()
         {
             var markup = @"
@@ -286,7 +286,7 @@ class C : IList
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestInInterface()
         {
             var markup = @"
@@ -304,7 +304,7 @@ interface I : IList
             await VerifyItemExistsAsync(markup, "IList");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestImplementedAsAsync()
         {
             var markup = @"

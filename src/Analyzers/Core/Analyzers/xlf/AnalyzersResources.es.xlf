@@ -169,7 +169,7 @@
       </trans-unit>
       <trans-unit id="Name_can_be_simplified">
         <source>Name can be simplified</source>
-        <target state="new">Name can be simplified</target>
+        <target state="translated">El nombre se puede simplificar</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace_0_does_not_match_folder_structure_expected_1">
@@ -262,6 +262,11 @@
         <target state="translated">Quitar conversión innecesaria</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_accessibility_modifiers">
+        <source>Remove accessibility modifiers</source>
+        <target state="new">Remove accessibility modifiers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_redundant_equality">
         <source>Remove redundant equality</source>
         <target state="translated">Quitar la igualdad redundante</target>
@@ -314,12 +319,17 @@
       </trans-unit>
       <trans-unit id="Simplify_Member_Access">
         <source>Simplify Member Access</source>
-        <target state="new">Simplify Member Access</target>
+        <target state="translated">Simplificar acceso de miembros</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_Names">
         <source>Simplify Names</source>
-        <target state="new">Simplify Names</target>
+        <target state="translated">Simplificar nombres</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_check">
+        <source>Simplify check</source>
+        <target state="new">Simplify check</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">
@@ -372,9 +382,14 @@
         <target state="translated">Usar propiedad automática</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_coalesce_expression">
-        <source>Use coalesce expression</source>
-        <target state="translated">Usar expresión coalesce</target>
+      <trans-unit id="Use_coalesce_expression_for_non_nullable_types">
+        <source>Use coalesce expression for non-nullable types</source>
+        <target state="new">Use coalesce expression for non-nullable types</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_coalesce_expression_for_nullable_types">
+        <source>Use coalesce expression for nullable types</source>
+        <target state="new">Use coalesce expression for nullable types</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_compound_assignment">

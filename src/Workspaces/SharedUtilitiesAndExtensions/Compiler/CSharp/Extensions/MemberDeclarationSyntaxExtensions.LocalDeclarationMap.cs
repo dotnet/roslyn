@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal partial class MemberDeclarationSyntaxExtensions
     {
-        public struct LocalDeclarationMap
+        public readonly struct LocalDeclarationMap
         {
             private readonly Dictionary<string, ImmutableArray<SyntaxToken>> _dictionary;
 

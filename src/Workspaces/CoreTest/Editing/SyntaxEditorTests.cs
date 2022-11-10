@@ -527,6 +527,50 @@ public class C
         }
 
         [Fact]
+        public void TestAddGenericAttribute()
+        {
+            var code = """
+using System;
+using System.CodeAnalysis;
+
+public class C
+{
+    Type Main<T>()
+    {
+    }
+}
+""";
+            var fixedCode = """
+using System;
+using System.CodeAnalysis;
+
+public class C
+{
+    Type Main<[Example(Sample.Attribute)] T>()
+    {
+    }
+}
+""";
+
+            var cu = SyntaxFactory.ParseCompilationUnit(code);
+            var cls = cu.Members[0];
+
+            var editor = GetEditor(cu);
+            var methodX = (MethodDeclarationSyntax)editor.Generator.GetMembers(cls)[0];
+
+            var typeParam = methodX.TypeParameterList.Parameters[0];
+
+            var syntaxGenerator = editor.Generator;
+            var args = new[] { syntaxGenerator.AttributeArgument(syntaxGenerator.MemberAccessExpression(syntaxGenerator.DottedName("Sample"), "Attribute")) };
+            var attribute = syntaxGenerator.Attribute("Example", args);
+            editor.AddAttribute(typeParam, attribute);
+            var newRoot = editor.GetChangedRoot();
+
+            VerifySyntax<CompilationUnitSyntax>(
+                newRoot, fixedCode);
+        }
+
+        [Fact]
         public void TestAddReturnAttribute()
         {
             var code = """

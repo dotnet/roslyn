@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
                         new CustomDiagnosticAnalyzer(), new ConfigureSeverityLevelCodeFixProvider());
         }
 
+        [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
         public sealed class SilentConfigurationTests : AllAnalyzersSeverityConfigurationTests
         {
             /// <summary>
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
             /// </summary>
             protected override int CodeActionIndex => 11;
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_Empty()
             {
                 var input = @"
@@ -91,7 +92,7 @@ dotnet_analyzer_diagnostic.severity = silent
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [Fact]
             public async Task ConfigureEditorconfig_RuleExists()
             {
                 var input = @"
@@ -121,7 +122,7 @@ dotnet_analyzer_diagnostic.severity = silent   # Comment
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [Fact]
             public async Task ConfigureEditorconfig_RuleIdEntryExists()
             {
                 var input = @"
@@ -156,7 +157,7 @@ dotnet_analyzer_diagnostic.severity = silent
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_InvalidHeader()
             {
                 var input = @"
@@ -191,7 +192,7 @@ dotnet_analyzer_diagnostic.severity = silent
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [Fact]
             public async Task ConfigureEditorconfig_MaintainExistingEntry()
             {
                 var input = @"
@@ -209,7 +210,7 @@ dotnet_analyzer_diagnostic.severity = silent
                 await TestInRegularAndScriptAsync(input, input, CodeActionIndex);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [Fact]
             public async Task ConfigureEditorconfig_DiagnosticsSuppressed()
             {
                 var input = @"
@@ -227,7 +228,7 @@ dotnet_analyzer_diagnostic.severity = none
                 await TestMissingInRegularAndScriptAsync(input);
             }
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_InvalidRule()
             {
                 var input = @"
@@ -260,7 +261,7 @@ dotnet_analyzer_diagnostic.severity = silent
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_RegexHeaderMatch()
             {
                 // NOTE: Even though we have a regex match, bulk configuration code fix is always applied to all files
@@ -299,7 +300,7 @@ dotnet_analyzer_diagnostic.severity = silent
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_RegexHeaderNonMatch()
             {
                 var input = @"

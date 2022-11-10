@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // we have this immutable struct which maintains the map. If the mapping is
         // trivial then no array is ever allocated.
 
-        private struct ParameterMap
+        private readonly struct ParameterMap
         {
             private readonly int[] _parameters;
             private readonly int _length;

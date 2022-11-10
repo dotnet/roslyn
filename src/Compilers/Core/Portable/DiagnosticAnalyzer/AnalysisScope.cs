@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             else if (diagnostic.Location is ExternalFileLocation externalFileLocation)
             {
                 if (FilterFileOpt.Value.AdditionalFile == null ||
-                    !PathUtilities.Comparer.Equals(externalFileLocation.FilePath, FilterFileOpt.Value.AdditionalFile.Path))
+                    !PathUtilities.Comparer.Equals(externalFileLocation.GetLineSpan().Path, FilterFileOpt.Value.AdditionalFile.Path))
                 {
                     return false;
                 }

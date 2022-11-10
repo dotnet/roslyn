@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override SyntaxToken IdentifierToken
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         public override TypeWithAnnotations TypeWithAnnotations
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             // Placeholders should be rewritten (as method calls)
             // rather than copied as locals to the target method.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         /// <summary>

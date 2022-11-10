@@ -85,14 +85,14 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                             else
                             {
                                 // non local diagnostics without location
-                                AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
+                                AddOtherDiagnostic(DiagnosticData.Create(Project.Solution, diagnostic, Project));
                             }
 
                             break;
                         }
 
                     case LocationKind.None:
-                        AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
+                        AddOtherDiagnostic(DiagnosticData.Create(Project.Solution, diagnostic, Project));
                         break;
 
                     case LocationKind.SourceFile:
@@ -159,13 +159,13 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                     }
                     else
                     {
-                        AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
+                        AddOtherDiagnostic(DiagnosticData.Create(Project.Solution, diagnostic, Project));
                     }
 
                     break;
 
                 case LocationKind.None:
-                    AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
+                    AddOtherDiagnostic(DiagnosticData.Create(Project.Solution, diagnostic, Project));
                     break;
 
                 case LocationKind.SourceFile:
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                     else
                     {
                         // non local diagnostics without location
-                        AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
+                        AddOtherDiagnostic(DiagnosticData.Create(Project.Solution, diagnostic, Project));
                     }
 
                     break;

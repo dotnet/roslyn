@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ptr = runtime.GetIntrinsicAssemblyMetaDataBytesPtr(out size);
             if (!TryGetMetadataBlock(previousMetadataBlocks, index, ptr, size, out var intrinsicsBlock))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             builder.Add(intrinsicsBlock);

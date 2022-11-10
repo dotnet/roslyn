@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -38,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         private BitVector32 _vector;
         private static readonly int s_expanderMask;
+        private readonly bool _supportExpander;
 
         public static readonly CompletionFilter NamespaceFilter;
         public static readonly CompletionFilter ClassFilter;
@@ -45,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         public static readonly CompletionFilter StructureFilter;
         public static readonly CompletionFilter InterfaceFilter;
         public static readonly CompletionFilter EnumFilter;
+        public static readonly CompletionFilter EnumMemberFilter;
         public static readonly CompletionFilter DelegateFilter;
         public static readonly CompletionFilter ConstantFilter;
         public static readonly CompletionFilter FieldFilter;
@@ -67,12 +70,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var previousMask = 0;
 
+            // Filters will show up in the VS completion list in the same order. 'a' is used as access key for expander button.
             NamespaceFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.Namespaces, 'n', WellKnownTags.Namespace);
             ClassFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.Classes, 'c', WellKnownTags.Class);
             ModuleFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.Modules, 'u', WellKnownTags.Module);
             StructureFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.Structures, 's', WellKnownTags.Structure);
             InterfaceFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.Interfaces, 'i', WellKnownTags.Interface);
             EnumFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.Enums, 'e', WellKnownTags.Enum);
+            EnumMemberFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.Enum_members, 'b', WellKnownTags.EnumMember);
             DelegateFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.Delegates, 'd', WellKnownTags.Delegate);
             ConstantFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.Constants, 'o', WellKnownTags.Constant);
             FieldFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.Fields, 'f', WellKnownTags.Field);
@@ -92,7 +97,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             s_expanderMask = BitVector32.CreateMask(previousMask);
 
             var addImageId = Shared.Extensions.GlyphExtensions.GetImageCatalogImageId(KnownImageIds.ExpandScope);
-
             Expander = new CompletionExpander(
                 EditorFeaturesResources.Expander_display_text,
                 accessKey: "a",
@@ -125,8 +129,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 new ImageElement(new ImageId(imageId.Guid, imageId.Id), EditorFeaturesResources.Filter_image_element));
         }
 
-        public FilterSet()
-            => _vector = new BitVector32();
+        public FilterSet(bool supportExpander)
+        {
+            _supportExpander = supportExpander;
+            _vector = new BitVector32();
+        }
 
         public (ImmutableArray<CompletionFilter> filters, int data) GetFiltersAndAddToSet(RoslynCompletionItem item)
         {
@@ -135,6 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             if (item.Flags.IsExpanded())
             {
+                Debug.Assert(_supportExpander);
                 listBuilder.Add(Expander);
                 vectorForSingleItem[s_expanderMask] = _vector[s_expanderMask] = true;
             }
@@ -168,14 +176,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         public void CombineData(int filterSetData)
-            => _vector[filterSetData] = true;
+        {
+            _vector[filterSetData] = true;
+            Debug.Assert(!_vector[s_expanderMask] || (_supportExpander && _vector[s_expanderMask]));
+        }
 
         public ImmutableArray<CompletionFilterWithState> GetFilterStatesInSet()
         {
             using var _ = ArrayBuilder<CompletionFilterWithState>.GetInstance(out var builder);
 
-            // We always show expander but its selection state depends on whether it is in the set.
-            builder.Add(new CompletionFilterWithState(Expander, isAvailable: true, isSelected: _vector[s_expanderMask]));
+            // We always show expander if supported but its selection state depends on whether it is in the set.
+            if (_supportExpander)
+                builder.Add(new CompletionFilterWithState(Expander, isAvailable: true, isSelected: _vector[s_expanderMask]));
 
             foreach (var filterWithMask in s_filters)
             {

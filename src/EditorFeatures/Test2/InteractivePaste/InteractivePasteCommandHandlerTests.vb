@@ -15,6 +15,7 @@ Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Interactive)>
     Public Class InteractivePasteCommandhandlerTests
         Private Const ClipboardLineBasedCutCopyTag As String = "VisualStudioEditorOperationsLineCutCopyClipboardTag"
         Private Const BoxSelectionCutCopyTag As String = "MSDEVColumnSelect"
@@ -26,7 +27,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
         End Function
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub PasteCommandWithInteractiveFormat()
             Using workspace = TestWorkspace.Create(
                     <Workspace>
@@ -61,7 +61,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub PasteCommandWithOutInteractiveFormat()
             Using workspace = TestWorkspace.Create(
                     <Workspace>
@@ -98,7 +97,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub PasteCommandWithInteractiveFormatAsLineCopy()
             Using workspace = TestWorkspace.Create(
                     <Workspace>
@@ -139,7 +137,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub PasteCommandWithInteractiveFormatAsBoxCopy()
             Using workspace = TestWorkspace.Create(
                     <Workspace>
@@ -184,7 +181,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub PasteCommandWithInteractiveFormatAsBoxCopyOnBlankLine()
             Using workspace = TestWorkspace.Create(
                     <Workspace>

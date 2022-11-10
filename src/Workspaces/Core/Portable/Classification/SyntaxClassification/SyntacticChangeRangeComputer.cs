@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 // We consumed both stacks entirely.  That means the trees were identical (though the root was
                 // different). We should never get here.  If we were the same, then walking from the left should have
                 // consumed everything and already bailed out.
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }

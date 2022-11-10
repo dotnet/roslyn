@@ -25,83 +25,107 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             EqualityTesting.AssertEqual(
                 new QueryClauseInfo(
-                    new SymbolInfo(obj, ImmutableArray.Create<ISymbol>(obj, int32), CandidateReason.Inaccessible),
-                    new SymbolInfo(obj, ImmutableArray.Create<ISymbol>(obj, int32), CandidateReason.Inaccessible)),
+                    new SymbolInfo(obj),
+                    new SymbolInfo(obj)),
                 new QueryClauseInfo(
-                    new SymbolInfo(obj, ImmutableArray.Create<ISymbol>(obj, int32), CandidateReason.Inaccessible),
-                    new SymbolInfo(obj, ImmutableArray.Create<ISymbol>(obj, int32), CandidateReason.Inaccessible)));
+                    new SymbolInfo(obj),
+                    new SymbolInfo(obj)));
+
+            EqualityTesting.AssertEqual(
+                new QueryClauseInfo(
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(obj, int32), CandidateReason.Inaccessible),
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(obj, int32), CandidateReason.Inaccessible)),
+                new QueryClauseInfo(
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(obj, int32), CandidateReason.Inaccessible),
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(obj, int32), CandidateReason.Inaccessible)));
+
+            EqualityTesting.AssertEqual(
+                new QueryClauseInfo(
+                    new SymbolInfo(int32),
+                    new SymbolInfo(int32)),
+                new QueryClauseInfo(
+                    new SymbolInfo(int32),
+                    new SymbolInfo(int32)));
 
             EqualityTesting.AssertNotEqual(
                 new QueryClauseInfo(
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible)),
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible)),
                 new QueryClauseInfo(
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(obj, int32), CandidateReason.Inaccessible)));
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(obj, int32), CandidateReason.Inaccessible)));
 
             EqualityTesting.AssertNotEqual(
                 new QueryClauseInfo(
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
-                    new SymbolInfo(obj, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible)),
+                    new SymbolInfo(int32),
+                    new SymbolInfo(obj)),
                 new QueryClauseInfo(
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible)));
+                    new SymbolInfo(int32),
+                    new SymbolInfo(int32)));
+
+            EqualityTesting.AssertEqual(
+                new QueryClauseInfo(
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible)),
+                new QueryClauseInfo(
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible)));
 
             EqualityTesting.AssertNotEqual(
                 new QueryClauseInfo(
-                    new SymbolInfo(obj, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible)),
+                    new SymbolInfo(obj),
+                    new SymbolInfo(int32)),
                 new QueryClauseInfo(
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible)));
+                    new SymbolInfo(int32),
+                    new SymbolInfo(int32)));
 
             EqualityTesting.AssertNotEqual(
                 new QueryClauseInfo(
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(obj, int32), CandidateReason.Inaccessible),
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible)),
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(obj, int32), CandidateReason.Inaccessible),
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible)),
                 new QueryClauseInfo(
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible)));
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible)));
 
             EqualityTesting.AssertNotEqual(
                 new QueryClauseInfo(
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, obj), CandidateReason.Inaccessible),
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible)),
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, obj), CandidateReason.Inaccessible),
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible)),
                 new QueryClauseInfo(
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible)));
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible)));
 
             EqualityTesting.AssertNotEqual(
                 new QueryClauseInfo(
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(obj, int32), CandidateReason.Inaccessible)),
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(obj, int32), CandidateReason.Inaccessible)),
                 new QueryClauseInfo(
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible)));
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible)));
 
             EqualityTesting.AssertNotEqual(
                 new QueryClauseInfo(
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, obj), CandidateReason.Inaccessible)),
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, obj), CandidateReason.Inaccessible)),
                 new QueryClauseInfo(
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible)));
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible)));
 
             EqualityTesting.AssertNotEqual(
                 new QueryClauseInfo(
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Ambiguous),
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible)),
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Ambiguous),
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible)),
                 new QueryClauseInfo(
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible)));
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible)));
 
             EqualityTesting.AssertNotEqual(
                 new QueryClauseInfo(
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Ambiguous)),
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Ambiguous)),
                 new QueryClauseInfo(
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
-                    new SymbolInfo(int32, ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible)));
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible),
+                    new SymbolInfo(ImmutableArray.Create<ISymbol>(int32, int32), CandidateReason.Inaccessible)));
         }
     }
 }

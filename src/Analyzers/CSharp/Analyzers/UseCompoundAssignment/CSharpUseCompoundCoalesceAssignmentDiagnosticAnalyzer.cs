@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -152,7 +153,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
                 return;
             }
 
-            if (semanticModel.GetTypeInfo(testedExpression, cancellationToken).Type.IsPointerType())
+            if (ifStatement.Statement is BlockSyntax block)
+            {
+                // Single is safe here as GetWhenTrueAssignment will return null if we have a block without a single
+                // statement in it.
+                var firstStatement = block.Statements.Single();
+
+                // Don't want to offer anything if our if-statement body has any conditional directives in it.  That
+                // means there's some other code that may run under some other conditions, that we do not want to now
+                // run conditionally outside of the 'if' statement itself.
+                if (firstStatement.GetLeadingTrivia().Any(t => t.HasStructure && t.GetStructure() is ConditionalDirectiveTriviaSyntax))
+                    return;
+            }
+
+            if (semanticModel.GetTypeInfo(testedExpression, cancellationToken).Type is IPointerTypeSymbol or IFunctionPointerTypeSymbol)
             {
                 // pointers cannot use ??=
                 return;

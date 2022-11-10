@@ -340,24 +340,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     type = unboundLambda.ParameterTypeWithAnnotations(p);
                     refKind = unboundLambda.RefKind(p);
-                    scope = unboundLambda.Scope(p);
+                    scope = unboundLambda.DeclaredScope(p);
                 }
                 else if (p < numDelegateParameters)
                 {
                     type = parameterTypes[p];
                     refKind = parameterRefKinds[p];
-                    scope = DeclarationScope.Unscoped; // https://github.com/dotnet/roslyn/issues/62080: DeclarationScope should be taken from delegate signature.
+                    scope = DeclarationScope.Unscoped;
                 }
                 else
                 {
                     type = TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(compilation, name: string.Empty, arity: 0, errorInfo: null));
                     refKind = RefKind.None;
                     scope = DeclarationScope.Unscoped;
-                }
-
-                if (refKind == RefKind.Out && scope == DeclarationScope.Unscoped)
-                {
-                    scope = DeclarationScope.RefScoped;
                 }
 
                 var attributeLists = unboundLambda.ParameterAttributes(p);
@@ -415,10 +410,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
-        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
+        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable();
 
         protected override void NoteAttributesComplete(bool forReturnType)
         {

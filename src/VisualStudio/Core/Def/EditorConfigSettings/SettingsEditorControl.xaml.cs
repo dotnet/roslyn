@@ -150,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                     return AnalyzersFrame;
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }

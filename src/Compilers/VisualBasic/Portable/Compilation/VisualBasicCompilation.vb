@@ -5,6 +5,7 @@
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.IO
+Imports System.Reflection.Emit
 Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
 Imports System.Threading
@@ -261,7 +262,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' taken to ensure these are compatible with 2.0 runtimes so there is no danger
                             ' with allowing the newer syntax here.
                             Dim options = parseOptions.WithLanguageVersion(LanguageVersion.Default)
-                            tree = VisualBasicSyntaxTree.ParseText(text, options:=options, isMyTemplate:=True)
+                            tree = VisualBasicSyntaxTree.ParseText(
+                                SourceText.From(text, encoding:=Nothing, SourceHashAlgorithms.Default),
+                                isMyTemplate:=True,
+                                options,
+                                path:=Nothing)
 
                             If tree.GetDiagnostics().Any() Then
                                 Throw ExceptionUtilities.Unreachable
@@ -1222,7 +1227,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' We are explicitly ignoring scenario where the type might be defined in an added module.
             For Each reference As AssemblySymbol In sourceAssembly.SourceModule.GetReferencedAssemblySymbols()
                 Debug.Assert(Not reference.IsMissing)
-                Dim candidate As NamedTypeSymbol = reference.LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
+                Dim candidate As NamedTypeSymbol = reference.LookupDeclaredTopLevelMetadataType(metadataName)
+                Debug.Assert(If(Not candidate?.IsErrorType(), True))
 
                 If sourceAssembly.IsValidWellKnownType(candidate) AndAlso AssemblySymbol.IsAcceptableMatchForGetTypeByNameAndArity(candidate) Then
                     Return True
@@ -2908,6 +2914,142 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 fields.ToImmutableAndFree(), Location.None, isImplicitlyDeclared:=False)
             Return Me.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor)
         End Function
+
+        Protected Overrides Function CommonCreateBuiltinOperator(
+                name As String,
+                returnType As ITypeSymbol,
+                leftType As ITypeSymbol,
+                rightType As ITypeSymbol) As IMethodSymbol
+
+            Dim vbReturnType = returnType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(returnType))
+            Dim vbLeftType = leftType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(leftType))
+            Dim vbRightType = rightType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(rightType))
+
+            Dim nameToCheck = name
+            Select Case name
+                Case WellKnownMemberNames.CheckedAdditionOperatorName
+                    nameToCheck = WellKnownMemberNames.AdditionOperatorName
+                Case WellKnownMemberNames.CheckedDivisionOperatorName
+                    nameToCheck = WellKnownMemberNames.IntegerDivisionOperatorName
+                Case WellKnownMemberNames.CheckedMultiplyOperatorName
+                    nameToCheck = WellKnownMemberNames.MultiplyOperatorName
+                Case WellKnownMemberNames.CheckedSubtractionOperatorName
+                    nameToCheck = WellKnownMemberNames.SubtractionOperatorName
+            End Select
+
+            Dim opInfo = OverloadResolution.GetOperatorInfo(nameToCheck)
+            If Not opInfo.IsBinary Then
+                Throw New ArgumentException(String.Format(CodeAnalysisResources.BadBuiltInOps1, name), NameOf(name))
+            End If
+
+            CheckBinaryBuiltInOperator(name, vbReturnType, vbLeftType, vbRightType, opInfo)
+
+            Return New SynthesizedIntrinsicOperatorSymbol(vbLeftType, name, vbRightType, vbReturnType)
+        End Function
+
+        Private Shared Sub CheckBinaryBuiltInOperator(
+                name As String,
+                returnType As TypeSymbol,
+                leftType As NamedTypeSymbol,
+                rightType As TypeSymbol,
+                opInfo As OverloadResolution.OperatorInfo)
+
+            ' Built in enum binary operators
+            If leftType.IsEnumType() AndAlso
+               leftType.Equals(rightType, TypeCompareKind.ConsiderEverything) AndAlso
+               leftType.Equals(returnType, TypeCompareKind.ConsiderEverything) Then
+                If opInfo.BinaryOperatorKind = BinaryOperatorKind.Xor OrElse
+                   opInfo.BinaryOperatorKind = BinaryOperatorKind.And OrElse
+                   opInfo.BinaryOperatorKind = BinaryOperatorKind.Or Then
+                    Return
+                End If
+            End If
+
+            ' Quick table access to determine if these types are legal.
+            If returnType.SpecialType <> SpecialType.None AndAlso
+               leftType.SpecialType <> SpecialType.None AndAlso
+               rightType.SpecialType <> SpecialType.None Then
+
+                Dim resolved = OverloadResolution.ResolveNotLiftedIntrinsicBinaryOperator(opInfo.BinaryOperatorKind, leftType.SpecialType, rightType.SpecialType)
+                If resolved <> SpecialType.None Then
+                    ' Quick access table strangely maps `string Like string` to the `string` return type. remap it to 'bool'
+                    ' here as that's what the operator actually is.
+                    '
+                    ' Similarly, the relations table doesn't include useful info.  it always has the original type,
+                    ' not the expected 'bool' return type.
+                    If resolved <> SpecialType.System_Object Then
+                        If opInfo.BinaryOperatorKind = BinaryOperatorKind.Equals OrElse
+                           opInfo.BinaryOperatorKind = BinaryOperatorKind.NotEquals OrElse
+                           opInfo.BinaryOperatorKind = BinaryOperatorKind.LessThanOrEqual OrElse
+                           opInfo.BinaryOperatorKind = BinaryOperatorKind.GreaterThanOrEqual OrElse
+                           opInfo.BinaryOperatorKind = BinaryOperatorKind.LessThan OrElse
+                           opInfo.BinaryOperatorKind = BinaryOperatorKind.GreaterThan OrElse
+                           opInfo.BinaryOperatorKind = BinaryOperatorKind.Like Then
+
+                            resolved = SpecialType.System_Boolean
+                        End If
+                    End If
+
+                    If returnType.SpecialType = resolved Then
+                        Return
+                    End If
+                End If
+            End If
+
+            Throw New ArgumentException(String.Format(CodeAnalysisResources.BadBuiltInOps3, $"{returnType.ToDisplayString()} operator {name}({leftType.ToDisplayString()}, {rightType.ToDisplayString()})"))
+        End Sub
+
+        Protected Overrides Function CommonCreateBuiltinOperator(
+                name As String,
+                returnType As ITypeSymbol,
+                operandType As ITypeSymbol) As IMethodSymbol
+
+            Dim vbReturnType = returnType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(returnType))
+            Dim vbOperandType = returnType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(operandType))
+
+            Dim nameToCheck = If(name = WellKnownMemberNames.CheckedUnaryNegationOperatorName, WellKnownMemberNames.UnaryNegationOperatorName, name)
+
+            Dim opInfo = OverloadResolution.GetOperatorInfo(nameToCheck)
+            If Not opInfo.IsUnary Then
+                Throw New ArgumentException(String.Format(CodeAnalysisResources.BadBuiltInOps1, name), NameOf(name))
+            End If
+
+            CheckUnaryBuiltInOperator(name, vbReturnType, vbOperandType, opInfo)
+
+            Return New SynthesizedIntrinsicOperatorSymbol(vbOperandType, name, vbReturnType)
+        End Function
+
+        Private Shared Sub CheckUnaryBuiltInOperator(
+                name As String,
+                returnType As TypeSymbol,
+                operandType As NamedTypeSymbol,
+                opInfo As OverloadResolution.OperatorInfo)
+
+            ' Enums support the `Not` operator.
+            If operandType.IsEnumType() AndAlso
+               opInfo.UnaryOperatorKind = UnaryOperatorKind.Not AndAlso
+               returnType.Equals(operandType, TypeCompareKind.ConsiderEverything) Then
+                Return
+            End If
+
+            ' Quick table access to determine if these types are legal.
+            If returnType.SpecialType <> SpecialType.None AndAlso
+               operandType.SpecialType <> SpecialType.None Then
+
+                If opInfo.UnaryOperatorKind = UnaryOperatorKind.Not OrElse
+                   opInfo.UnaryOperatorKind = UnaryOperatorKind.Plus OrElse
+                   opInfo.UnaryOperatorKind = UnaryOperatorKind.Minus Then
+
+                    Dim resolved = OverloadResolution.ResolveNotLiftedIntrinsicUnaryOperator(opInfo.UnaryOperatorKind, operandType.SpecialType)
+                    If resolved <> SpecialType.None AndAlso
+                       returnType.SpecialType = resolved Then
+                        Return
+                    End If
+                End If
+            End If
+
+            Throw New ArgumentException(String.Format(CodeAnalysisResources.BadBuiltInOps3, $"{returnType.ToDisplayString()} operator {name}({operandType.ToDisplayString()})"))
+        End Sub
 
         Protected Overrides ReadOnly Property CommonDynamicType As ITypeSymbol
             Get

@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             Document document,
             string searchPattern,
             IImmutableSet<string> kinds,
+            Document? activeDocument,
             Func<INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {
@@ -55,6 +56,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             ImmutableArray<Document> priorityDocuments,
             string searchPattern,
             IImmutableSet<string> kinds,
+            Document? activeDocument,
             Func<INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {
@@ -71,6 +73,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             ImmutableArray<Document> priorityDocuments,
             string searchPattern,
             IImmutableSet<string> kinds,
+            Document? activeDocument,
             Func<INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {
@@ -82,6 +85,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             Project project,
             string searchPattern,
             IImmutableSet<string> kinds,
+            Document? activeDocument,
             Func<INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {

@@ -14,12 +14,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertConditional
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsInvertConditional)]
     public class InvertConditionalTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpInvertConditionalCodeRefactoringProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertConditional)]
+        [Fact]
         public async Task InvertConditional1()
         {
             await TestInRegularAndScriptAsync(
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertConditional
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertConditional)]
+        [Fact]
         public async Task InvertConditional2()
         {
             await TestInRegularAndScriptAsync(
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertConditional
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertConditional)]
+        [Fact]
         public async Task TestTrivia()
         {
             await TestInRegularAndScriptAsync(
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertConditional
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertConditional)]
+        [Fact]
         public async Task TestTrivia1()
         {
             await TestInRegularAndScriptAsync(
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertConditional
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertConditional)]
+        [Fact]
         public async Task TestTrivia2()
         {
             // We currently do not move trivia along with the true/false parts.  We could consider
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertConditional
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertConditional)]
+        [Fact]
         public async Task TestStartOfConditional()
         {
             await TestInRegularAndScriptAsync(
@@ -154,8 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertConditional
 }");
         }
 
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertConditional)]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestAfterCondition()
         {
             await TestInRegularAndScriptAsync(

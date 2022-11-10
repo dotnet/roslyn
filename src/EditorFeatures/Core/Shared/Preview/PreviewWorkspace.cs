@@ -27,8 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
         public PreviewWorkspace(Solution solution)
             : base(solution.Workspace.Services.HostServices, WorkspaceKind.Preview)
         {
-            var oldSolution = this.CurrentSolution;
-            var newSolution = this.SetCurrentSolution(solution);
+            var (oldSolution, newSolution) = this.SetCurrentSolutionEx(solution);
 
             this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
         }

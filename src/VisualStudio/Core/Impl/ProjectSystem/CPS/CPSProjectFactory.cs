@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -14,6 +16,7 @@ using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
 {
@@ -24,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         private readonly VisualStudioProjectFactory _projectFactory;
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IProjectCodeModelFactory _projectCodeModelFactory;
-        private readonly Shell.IAsyncServiceProvider _serviceProvider;
+        private readonly IAsyncServiceProvider _serviceProvider;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -39,20 +42,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             _projectFactory = projectFactory;
             _workspace = workspace;
             _projectCodeModelFactory = projectCodeModelFactory;
-            _serviceProvider = (Shell.IAsyncServiceProvider)serviceProvider;
+            _serviceProvider = (IAsyncServiceProvider)serviceProvider;
         }
 
-        IWorkspaceProjectContext IWorkspaceProjectContextFactory.CreateProjectContext(string languageName, string projectUniqueName, string projectFilePath, Guid projectGuid, object? hierarchy, string? binOutputPath)
-        {
-            return _threadingContext.JoinableTaskFactory.Run(() =>
-                this.CreateProjectContextAsync(languageName, projectUniqueName, projectFilePath, projectGuid, hierarchy, binOutputPath, assemblyName: null, CancellationToken.None));
-        }
+        public ImmutableArray<string> EvaluationPropertyNames
+            => BuildPropertyNames.InitialEvaluationPropertyNames;
 
-        IWorkspaceProjectContext IWorkspaceProjectContextFactory.CreateProjectContext(string languageName, string projectUniqueName, string projectFilePath, Guid projectGuid, object? hierarchy, string? binOutputPath, string? assemblyName)
-        {
-            return _threadingContext.JoinableTaskFactory.Run(() =>
-                this.CreateProjectContextAsync(languageName, projectUniqueName, projectFilePath, projectGuid, hierarchy, binOutputPath, assemblyName, CancellationToken.None));
-        }
+        public ImmutableArray<string> EvaluationItemNames
+            => BuildPropertyNames.InitialEvaluationItemNames;
+
+        public Task<IWorkspaceProjectContext> CreateProjectContextAsync(Guid id, string uniqueName, string languageName, EvaluationData data, object? hostObject, CancellationToken cancellationToken)
+            => CreateProjectContextAsync(
+                languageName: languageName,
+                projectUniqueName: uniqueName,
+                projectFilePath: data.GetRequiredPropertyAbsolutePathValue(BuildPropertyNames.MSBuildProjectFullPath),
+                projectGuid: id,
+                hierarchy: hostObject,
+                binOutputPath: (languageName is LanguageNames.CSharp or LanguageNames.VisualBasic) ?
+                    data.GetRequiredPropertyAbsolutePathValue(BuildPropertyNames.TargetPath) :
+                    data.GetPropertyValue(BuildPropertyNames.TargetPath),
+                assemblyName: data.GetPropertyValue(BuildPropertyNames.AssemblyName),
+                cancellationToken);
 
         public async Task<IWorkspaceProjectContext> CreateProjectContextAsync(
             string languageName,
@@ -75,10 +85,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             var visualStudioProject = await _projectFactory.CreateAndAddToWorkspaceAsync(
                 projectUniqueName, languageName, creationInfo, cancellationToken).ConfigureAwait(false);
 
-#pragma warning disable IDE0059 // Unnecessary assignment of a value
             // At this point we've mutated the workspace.  So we're no longer cancellable.
             cancellationToken = CancellationToken.None;
-#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
             if (languageName == LanguageNames.FSharp)
             {

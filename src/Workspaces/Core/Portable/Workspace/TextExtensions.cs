@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
 {
@@ -44,10 +45,20 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Gets the document from the corresponding workspace's current solution that is associated with the source text's container 
+        /// Gets the <see cref="Document"/> from the corresponding workspace's current solution that is associated with the source text's container 
         /// in its current project context, updated to contain the same text as the source if necessary.
         /// </summary>
         public static Document? GetOpenDocumentInCurrentContextWithChanges(this SourceText text)
+            => (Document?)text.GetOpenTextDocumentInCurrentContextWithChanges(sourceDocumentOnly: true);
+
+        /// <summary>
+        /// Gets the <see cref="TextDocument"/> from the corresponding workspace's current solution that is associated with the source text's container 
+        /// in its current project context, updated to contain the same text as the source if necessary.
+        /// </summary>
+        public static TextDocument? GetOpenTextDocumentInCurrentContextWithChanges(this SourceText text)
+            => text.GetOpenTextDocumentInCurrentContextWithChanges(sourceDocumentOnly: false);
+
+        private static TextDocument? GetOpenTextDocumentInCurrentContextWithChanges(this SourceText text, bool sourceDocumentOnly)
         {
             if (Workspace.TryGetWorkspace(text.Container, out var workspace))
             {
@@ -63,11 +74,33 @@ namespace Microsoft.CodeAnalysis.Text
                     return solution.WithFrozenSourceGeneratedDocument(documentIdentity, text);
                 }
 
-                // We update all linked files to ensure they are all in sync. Otherwise code might try to jump from
-                // one linked file to another and be surprised if the text is entirely different.
-                var allIds = solution.GetRelatedDocumentIds(id);
-                return solution.WithDocumentText(allIds, text, PreservationMode.PreserveIdentity)
-                               .GetDocument(id);
+                if (solution.ContainsDocument(id))
+                {
+                    // We update all linked files to ensure they are all in sync. Otherwise code might try to jump from
+                    // one linked file to another and be surprised if the text is entirely different.
+                    var allIds = solution.GetRelatedDocumentIds(id);
+                    return solution.WithDocumentText(allIds, text, PreservationMode.PreserveIdentity)
+                                   .GetDocument(id);
+                }
+                else if (!sourceDocumentOnly)
+                {
+                    if (solution.ContainsAdditionalDocument(id))
+                    {
+                        // TODO: Update all linked files using GetRelatedDocumentIds instead of single document ID.
+                        // Tracked with https://github.com/dotnet/roslyn/issues/64701.
+                        return solution.WithAdditionalDocumentText(id, text, PreservationMode.PreserveIdentity)
+                            .GetRequiredAdditionalDocument(id);
+                    }
+                    else
+                    {
+                        Contract.ThrowIfFalse(solution.ContainsAnalyzerConfigDocument(id));
+
+                        // TODO: Update all linked files using GetRelatedDocumentIds instead of single document ID.
+                        // Tracked with https://github.com/dotnet/roslyn/issues/64701.
+                        return solution.WithAnalyzerConfigDocumentText(id, text, PreservationMode.PreserveIdentity)
+                            .GetRequiredAnalyzerConfigDocument(id);
+                    }
+                }
             }
 
             return null;

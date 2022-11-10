@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                         if (syntaxRef != null)
                         {
                             var declIdentifier = ((UsingDirectiveSyntax)syntaxRef.GetSyntax(cancellationToken)).Alias.Name.Identifier;
-                            text = declIdentifier.IsVerbatimIdentifier() ? declIdentifier.ToString().Substring(1) : declIdentifier.ToString();
+                            text = declIdentifier.IsVerbatimIdentifier() ? declIdentifier.ToString()[1..] : declIdentifier.ToString();
                         }
 
                         var identifierToken = SyntaxFactory.Identifier(
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     {
                         // weird. the semantic model is able to bind attribute syntax like "[as()]" although it's not valid code.
                         // so we need another check for keywords manually.
-                        var newAttributeName = identifierToken.ValueText.Substring(0, identifierToken.ValueText.Length - 9);
+                        var newAttributeName = identifierToken.ValueText[..^9];
                         if (SyntaxFacts.GetKeywordKind(newAttributeName) != SyntaxKind.None)
                         {
                             return false;
@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
         private static bool IsNotNullableReplaceable(NameSyntax name, TypeSyntax reducedName)
         {
-            if (reducedName.IsKind(SyntaxKind.NullableType, out NullableTypeSyntax nullableType))
+            if (reducedName is NullableTypeSyntax nullableType)
             {
                 if (nullableType.ElementType.Kind() == SyntaxKind.OmittedTypeArgument)
                     return true;
@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // Can't simplify a type name in a cast expression if it would then cause the cast to be
             // parsed differently.  For example:  (Goo::Bar)+1  is a cast.  But if that simplifies to
             // (Bar)+1  then that's an arithmetic expression.
-            if (expression.IsParentKind(SyntaxKind.CastExpression, out CastExpressionSyntax castExpression) &&
+            if (expression?.Parent is CastExpressionSyntax castExpression &&
                 castExpression.Type == expression)
             {
                 var newCastExpression = castExpression.ReplaceNode(castExpression.Type, simplifiedNode);
@@ -675,7 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 name = (NameSyntax)name.Parent;
             }
 
-            if (name.IsParentKind(SyntaxKind.UsingDirective, out UsingDirectiveSyntax usingDirective) &&
+            if (name?.Parent is UsingDirectiveSyntax usingDirective &&
                 usingDirective.Alias == null)
             {
                 // We're a qualified name in a using.  We don't want to reduce this name as people like

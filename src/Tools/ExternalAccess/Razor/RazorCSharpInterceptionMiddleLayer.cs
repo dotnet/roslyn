@@ -6,7 +6,7 @@ using System;
 using System.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor

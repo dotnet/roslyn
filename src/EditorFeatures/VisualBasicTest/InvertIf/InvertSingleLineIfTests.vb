@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.InvertIf
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InvertIf
+    <Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
     Public Class InvertSingleLineIfTests
         Inherits AbstractVisualBasicCodeActionTest
 
@@ -51,7 +52,7 @@ End Module
 "
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestAnd() As Task
             Await TestFixOneAsync(
 "
@@ -62,8 +63,7 @@ End Module
 ")
         End Function
 
-        <WorkItem(545700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545700")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact, WorkItem(545700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545700")>
         Public Async Function TestAddEmptyArgumentListIfNeeded() As Task
             Dim markup =
 <File>
@@ -81,7 +81,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestAndAlso() As Task
             Await TestFixOneAsync(
 "
@@ -92,7 +92,7 @@ End Module
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestCall() As Task
             Await TestFixOneAsync(
 "
@@ -103,7 +103,7 @@ End Module
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestNotIdentifier() As Task
             Await TestFixOneAsync(
 "
@@ -114,7 +114,7 @@ End Module
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestTrueLiteral() As Task
             Await TestFixOneAsync(
 "
@@ -125,7 +125,7 @@ End Module
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestFalseLiteral() As Task
             Await TestFixOneAsync(
 "
@@ -136,7 +136,7 @@ End Module
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestEquals() As Task
             Await TestFixOneAsync(
 "
@@ -147,7 +147,7 @@ End Module
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestNotEquals() As Task
             Await TestFixOneAsync(
 "
@@ -158,7 +158,7 @@ End Module
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestLessThan() As Task
             Await TestFixOneAsync(
 "
@@ -169,7 +169,7 @@ End Module
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestLessThanOrEqual() As Task
             Await TestFixOneAsync(
 "
@@ -180,7 +180,7 @@ End Module
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestGreaterThan() As Task
             Await TestFixOneAsync(
 "
@@ -191,7 +191,7 @@ End Module
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestGreaterThanOrEqual() As Task
             Await TestFixOneAsync(
 "
@@ -202,7 +202,7 @@ End Module
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestIs() As Task
             Await TestFixOneAsync(
 "
@@ -219,7 +219,7 @@ End Module
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestIsNot() As Task
             Await TestFixOneAsync(
 "
@@ -236,7 +236,7 @@ End Module
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestOr() As Task
             Await TestFixOneAsync(
 "
@@ -247,7 +247,7 @@ End Module
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestOrElse() As Task
             Await TestFixOneAsync(
 "
@@ -258,7 +258,7 @@ End Module
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestOr2() As Task
             Await TestFixOneAsync(
 "
@@ -269,7 +269,7 @@ End Module
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestOrElse2() As Task
             Await TestFixOneAsync(
 "
@@ -280,7 +280,7 @@ End Module
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestAnd2() As Task
             Await TestFixOneAsync(
 "
@@ -291,7 +291,7 @@ End Module
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestAndAlso2() As Task
             Await TestFixOneAsync(
 "
@@ -302,7 +302,7 @@ End Module
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestXor() As Task
             Await TestFixOneAsync(
 "
@@ -314,7 +314,7 @@ End Module
         End Function
 
         <WorkItem(545411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545411")>
-        <WpfFact(Skip:="545411"), Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WpfFact(Skip:="545411")>
         Public Async Function TestXor2() As Task
             Await TestFixOneAsync(
 "
@@ -325,7 +325,7 @@ End Module
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestNested() As Task
             Await TestFixOneAsync(
 "
@@ -336,8 +336,7 @@ End Module
 ")
         End Function
 
-        <WorkItem(529746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529746")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact, WorkItem(529746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529746")>
         Public Async Function TestEscapeKeywordsIfNeeded1() As Task
             Dim markup =
 <File>
@@ -355,8 +354,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <WorkItem(531471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531471")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact, WorkItem(531471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531471")>
         Public Async Function TestEscapeKeywordsIfNeeded2() As Task
             Dim markup =
 <File>
@@ -374,8 +372,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <WorkItem(531471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531471")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact, WorkItem(531471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531471")>
         Public Async Function TestEscapeKeywordsIfNeeded3() As Task
             Dim markup =
 <File>
@@ -393,8 +390,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <WorkItem(531472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531472")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact, WorkItem(531472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531472")>
         Public Async Function TestEscapeKeywordsIfNeeded4() As Task
             Dim markup =
 <File>
@@ -421,8 +417,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <WorkItem(531475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531475")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact, WorkItem(531475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531475")>
         Public Async Function TestEscapeKeywordsIfNeeded5() As Task
             Dim markup =
 <File>
@@ -440,8 +435,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         Public Async Function TestSelection() As Task
             Await TestFixOneAsync(
 "
@@ -452,7 +446,7 @@ End Module
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestMultipleStatementsSingleLineIfStatement() As Task
             Await TestFixOneAsync(
 "
@@ -463,7 +457,7 @@ End Module
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestTriviaAfterSingleLineIfStatement() As Task
             Await TestFixOneAsync(
 "
@@ -473,7 +467,7 @@ End Module
         If Not a Then bMethod() Else aMethod() ' I will stay put 
 ")
         End Function
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestParenthesizeForLogicalExpressionPrecedence() As Task
             Await TestInRegularAndScriptAsync(
 "Sub Main()
@@ -486,7 +480,7 @@ End Sub
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestParenthesizeComparisonOperands() As Task
             Await TestFixOneAsync(
 "
@@ -499,7 +493,7 @@ End Module")
 
         <WorkItem(529749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529749")>
         <WorkItem(530593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530593")>
-        <WpfFact(Skip:="Bug 530593"), Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WpfFact(Skip:="Bug 530593")>
         Public Async Function TestNestedSingleLineIfs() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -516,8 +510,7 @@ End Module",
 End Module")
         End Function
 
-        <WorkItem(529747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529747")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact, WorkItem(529747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529747")>
         Public Async Function TestTryToParenthesizeAwkwardSyntaxInsideSingleLineLambdaMethod() As Task
             Await TestMissingAsync(
 "Module Program
@@ -528,8 +521,7 @@ End Module")
 End Module")
         End Function
 
-        <WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact, WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
         Public Async Function TestOnConditionOfSingleLineIf() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -545,7 +537,7 @@ End Module")
         End Function
 
         <WorkItem(531101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531101")>
-        <WpfFact(Skip:="531101"), Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WpfFact(Skip:="531101")>
         Public Async Function TestImplicitLineContinuationBeforeClosingParenIsRemoved() As Task
             Dim markup =
 <MethodBody>
@@ -565,8 +557,7 @@ End If
             Await TestAsync(markup, expected)
         End Function
 
-        <WorkItem(530758, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530758")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact, WorkItem(530758, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530758")>
         Public Async Function TestParenthesizeToKeepParseTheSame1() As Task
             Dim markup =
 <File>
@@ -589,8 +580,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <WorkItem(607862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607862")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact, WorkItem(607862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607862")>
         Public Async Function TestParenthesizeToKeepParseTheSame2() As Task
             Dim markup =
 <File>
@@ -606,7 +596,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestSingleLineIdentifier() As Task
             Await TestFixOneAsync(
 "
@@ -617,8 +607,7 @@ End Module
 ")
         End Function
 
-        <WorkItem(45177, "https://github.com/dotnet/roslyn/issues/45177")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact, WorkItem(45177, "https://github.com/dotnet/roslyn/issues/45177")>
         Public Async Function TestWithMissingTrueStatementWithinUsing() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program

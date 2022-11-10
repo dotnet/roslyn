@@ -6,9 +6,6 @@ parameters:
 - name: jobName
   type: string
   default: ''
-- name: buildJobName
-  type: string
-  default: ''
 - name: testArtifactName
   type: string
   default: ''
@@ -21,7 +18,6 @@ parameters:
 
 jobs:
 - job: ${{ parameters.jobName }}
-  dependsOn: ${{ parameters.buildJobName }}
   pool:
     # Note that when helix is enabled, the agent running this job is essentially
     # a thin client that kicks off a helix job and waits for it to complete.
@@ -40,7 +36,7 @@ jobs:
     - task: BatchScript@1
       displayName: Rehydrate RunTests
       inputs:
-        filename: ./artifacts/bin/RunTests/${{ parameters.configuration }}/net6.0/rehydrate.cmd
+        filename: ./artifacts/bin/RunTests/${{ parameters.configuration }}/net7.0/rehydrate.cmd
       env:
         HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
 

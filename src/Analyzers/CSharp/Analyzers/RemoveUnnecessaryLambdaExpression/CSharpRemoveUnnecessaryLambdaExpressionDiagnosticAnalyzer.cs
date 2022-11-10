@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -132,6 +131,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
 
             var invokedSymbolInfo = semanticModel.GetSymbolInfo(invokedExpression, cancellationToken);
             if (invokedSymbolInfo.Symbol is not IMethodSymbol invokedMethod)
+                return;
+
+            // cannot convert a partial-definition to a delegate (unless there's an existing implementation part that can be used).
+            if (invokedMethod.IsPartialDefinition && invokedMethod.PartialImplementationPart is null)
                 return;
 
             // If we're calling a generic method, we have to have supplied type arguments.  They cannot be inferred once

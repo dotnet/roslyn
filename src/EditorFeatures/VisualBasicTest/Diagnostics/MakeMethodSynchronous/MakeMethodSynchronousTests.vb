@@ -8,9 +8,10 @@ Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBas
     Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous.VisualBasicMakeMethodSynchronousCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.MakeMethodSynchronous
+    <Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
     Public Class MakeMethodSynchronousTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
+        <Fact>
         Public Async Function TestTaskReturnType() As Task
             Await VerifyVB.VerifyCodeFixAsync(
 "Imports System.Threading.Tasks
@@ -27,7 +28,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
+        <Fact>
         Public Async Function TestTaskOfTReturnType() As Task
             Await VerifyVB.VerifyCodeFixAsync(
 "Imports System.Threading.Tasks
@@ -44,7 +45,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
+        <Fact>
         Public Async Function TestSecondModifier() As Task
             Await VerifyVB.VerifyCodeFixAsync(
 "Imports System.Threading.Tasks
@@ -61,7 +62,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
+        <Fact>
         Public Async Function TestFirstModifier() As Task
             Await VerifyVB.VerifyCodeFixAsync(
 "Imports System.Threading.Tasks
@@ -78,7 +79,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
+        <Fact>
         Public Async Function TestRenameMethod() As Task
             Await VerifyVB.VerifyCodeFixAsync(
 "Imports System.Threading.Tasks
@@ -95,7 +96,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
+        <Fact>
         Public Async Function TestRenameMethod1() As Task
             Await VerifyVB.VerifyCodeFixAsync(
 "Imports System.Threading.Tasks
@@ -120,7 +121,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
+        <Fact>
         Public Async Function TestSingleLineSubLambda() As Task
             Await VerifyVB.VerifyCodeFixAsync(
 "Imports System
@@ -143,7 +144,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
+        <Fact>
         Public Async Function TestSingleLineFunctionLambda() As Task
             Dim source =
 "Imports System
@@ -174,7 +175,7 @@ End Class"
             Await test.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
+        <Fact>
         Public Async Function TestMultiLineSubLambda() As Task
             Await VerifyVB.VerifyCodeFixAsync(
 "Imports System
@@ -201,7 +202,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
+        <Fact>
         Public Async Function TestMultiLineFunctionLambda() As Task
             Dim source =
 "Imports System
@@ -236,8 +237,7 @@ End Class"
             Await test.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
-        <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
+        <Fact, WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCaller1() As Task
             Dim source =
 "Imports System.Threading.Tasks
@@ -270,8 +270,7 @@ End Class"
             Await test.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
-        <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
+        <Fact, WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCaller2() As Task
             Dim source =
 "Imports System.Threading.Tasks
@@ -304,8 +303,7 @@ End Class"
             Await test.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
-        <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
+        <Fact, WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCaller3() As Task
             Dim source =
 "Imports System.Threading.Tasks
@@ -338,8 +336,7 @@ End Class"
             Await test.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
-        <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
+        <Fact, WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCaller4() As Task
             Dim source =
 "Imports System.Threading.Tasks
@@ -372,8 +369,7 @@ End Class"
             Await test.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
-        <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
+        <Fact, WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCallerNested1() As Task
             Dim source =
 "Imports System.Threading.Tasks
@@ -406,8 +402,7 @@ End Class"
             Await test.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
-        <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
+        <Fact, WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCallerNested2() As Task
             Dim source =
 "Imports System.Threading.Tasks

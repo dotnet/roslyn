@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
@@ -54,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Inherits CompletionService
 
             Public Sub New(services As SolutionServices)
-                MyBase.New(services)
+                MyBase.New(services, AsynchronousOperationListenerProvider.NullProvider)
             End Sub
 
             Public Overrides ReadOnly Property Language As String

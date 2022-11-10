@@ -1021,7 +1021,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                     SyntaxStore.Empty,
                     disabledOutputs: IncrementalGeneratorOutputKind.None,
                     runtime: TimeSpan.Zero,
-                    trackIncrementalGeneratorSteps: trackIncrementalGeneratorSteps);
+                    trackIncrementalGeneratorSteps: trackIncrementalGeneratorSteps,
+                    parseOptionsChanged: false);
 
             return new DriverStateTable.Builder(c, state, SyntaxStore.Empty.ToBuilder(c, ImmutableArray<SyntaxInputNode>.Empty, trackIncrementalGeneratorSteps, cancellationToken: default));
         }
@@ -1035,8 +1036,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                 _callback = callback;
             }
 
-            public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken)
+            public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T>? previousTable, CancellationToken cancellationToken)
             {
+                previousTable ??= NodeStateTable<T>.Empty;
                 return _callback(graphState, previousTable);
             }
 

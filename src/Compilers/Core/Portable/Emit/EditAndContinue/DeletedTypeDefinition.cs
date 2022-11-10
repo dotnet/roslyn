@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Microsoft.Cci;
@@ -12,32 +11,14 @@ using Microsoft.CodeAnalysis.Symbols;
 namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 {
     /// <summary>
-    /// Represents a type referenced from a deleted member (as distinct from a type that has been deleted)
+    /// Represents a type referenced from a deleted member (as distinct from a type that has been deleted). This is also
+    /// why it doesn't inherit from <see cref="DeletedDefinition{T}"/>
     /// </summary>
     internal sealed class DeletedTypeDefinition : ITypeDefinition
     {
-        [return: NotNullIfNotNull("typeReference")]
-        public static ITypeReference? TryCreate(ITypeReference? typeReference, Dictionary<ITypeDefinition, DeletedTypeDefinition> cache)
-        {
-            if (typeReference is ITypeDefinition typeDef)
-            {
-                if (!cache.TryGetValue(typeDef, out var deletedType))
-                {
-                    deletedType = new DeletedTypeDefinition(typeDef);
-                    cache.Add(typeDef, deletedType);
-                }
-
-                return deletedType;
-            }
-
-            return typeReference;
-        }
-
         private readonly ITypeDefinition _oldTypeReference;
 
-        public ITypeDefinition Original => _oldTypeReference;
-
-        private DeletedTypeDefinition(ITypeDefinition typeReference)
+        public DeletedTypeDefinition(ITypeDefinition typeReference)
         {
             _oldTypeReference = typeReference;
         }

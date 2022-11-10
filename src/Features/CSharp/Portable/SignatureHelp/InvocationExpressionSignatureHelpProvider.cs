@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
             else
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             if (currentSymbol is null)

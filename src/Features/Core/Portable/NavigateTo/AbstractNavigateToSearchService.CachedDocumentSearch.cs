@@ -57,15 +57,17 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             ImmutableArray<Document> priorityDocuments,
             string searchPattern,
             IImmutableSet<string> kinds,
+            Document? activeDocument,
             Func<INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {
             var solution = project.Solution;
-            var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
-            var onItemFound = GetOnItemFoundCallback(solution, onResultFound, cancellationToken);
+            var onItemFound = GetOnItemFoundCallback(solution, activeDocument, onResultFound, cancellationToken);
 
             var documentKeys = project.Documents.SelectAsArray(DocumentKey.ToDocumentKey);
             var priorityDocumentKeys = priorityDocuments.SelectAsArray(DocumentKey.ToDocumentKey);
+
+            var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
                 var callback = new NavigateToSearchServiceCallback(onItemFound);

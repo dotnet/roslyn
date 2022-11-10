@@ -59,8 +59,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             private void AddValueExpression()
             {
                 // If we're in a setter/adder/remover then add "value".
-                if (_parentStatement.GetAncestorOrThis<AccessorDeclarationSyntax>().IsKind(
-                    SyntaxKind.SetAccessorDeclaration, SyntaxKind.InitAccessorDeclaration, SyntaxKind.AddAccessorDeclaration, SyntaxKind.RemoveAccessorDeclaration))
+                if (_parentStatement.GetAncestorOrThis<AccessorDeclarationSyntax>() is (kind:
+                        SyntaxKind.SetAccessorDeclaration or
+                        SyntaxKind.InitAccessorDeclaration or
+                        SyntaxKind.AddAccessorDeclaration or
+                        SyntaxKind.RemoveAccessorDeclaration))
                 {
                     _expressions.Add("value");
                 }
@@ -81,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
                 var block = GetImmediatelyContainingBlock();
 
                 // if we're the start of a "catch(Goo e)" clause, then add "e".
-                if (block != null && block.IsParentKind(SyntaxKind.CatchClause, out CatchClauseSyntax catchClause) &&
+                if (block != null && block?.Parent is CatchClauseSyntax catchClause &&
                     catchClause.Declaration != null && catchClause.Declaration.Identifier.Kind() != SyntaxKind.None)
                 {
                     _expressions.Add(catchClause.Declaration.Identifier.ValueText);
@@ -114,9 +117,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
                 // the proximity expressions.
                 var block = GetImmediatelyContainingBlock();
 
-                if (block != null && block.Parent is MemberDeclarationSyntax)
+                if (block != null && block.Parent is MemberDeclarationSyntax memberDeclaration)
                 {
-                    var parameterList = ((MemberDeclarationSyntax)block.Parent).GetParameterList();
+                    var parameterList = memberDeclaration.GetParameterList();
                     AddParameters(parameterList);
                 }
                 else if (block is null
@@ -136,9 +139,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
                 if (block != null &&
                     block.Parent is AccessorDeclarationSyntax &&
                     block.Parent.Parent is AccessorListSyntax &&
-                    block.Parent.Parent.Parent is IndexerDeclarationSyntax)
+                    block.Parent.Parent.Parent is IndexerDeclarationSyntax indexerDeclaration)
                 {
-                    var parameterList = ((IndexerDeclarationSyntax)block.Parent.Parent.Parent).ParameterList;
+                    var parameterList = indexerDeclaration.ParameterList;
                     AddParameters(parameterList);
                 }
             }

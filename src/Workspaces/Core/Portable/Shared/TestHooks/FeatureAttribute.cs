@@ -6,13 +6,14 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
     internal static class FeatureAttribute
     {
+        public const string AddImportsOnPaste = nameof(AddImportsOnPaste);
         public const string AutomaticEndConstructCorrection = nameof(AutomaticEndConstructCorrection);
         public const string AutomaticPairCompletion = nameof(AutomaticPairCompletion);
         public const string BraceHighlighting = nameof(BraceHighlighting);
         public const string CallHierarchy = nameof(CallHierarchy);
         public const string Classification = nameof(Classification);
-        public const string CodeModel = nameof(CodeModel);
         public const string CodeDefinitionWindow = nameof(CodeDefinitionWindow);
+        public const string CodeModel = nameof(CodeModel);
         public const string CompletionSet = nameof(CompletionSet);
         public const string DesignerAttributes = nameof(DesignerAttributes);
         public const string DiagnosticService = nameof(DiagnosticService);
@@ -29,11 +30,13 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string GoToImplementation = nameof(GoToImplementation);
         public const string GraphProvider = nameof(GraphProvider);
         public const string InfoBar = nameof(InfoBar);
-        public const string InlineDiagnostics = nameof(InlineDiagnostics);
         public const string InheritanceMargin = nameof(InheritanceMargin);
+        public const string InlineDiagnostics = nameof(InlineDiagnostics);
         public const string InlineHints = nameof(InlineHints);
+        public const string InlineRenameFlyout = nameof(InlineRenameFlyout);
         public const string InteractiveEvaluator = nameof(InteractiveEvaluator);
         public const string KeywordHighlighting = nameof(KeywordHighlighting);
+        public const string LanguageServer = nameof(LanguageServer);
         public const string LibraryManager = nameof(LibraryManager);
         public const string LightBulb = nameof(LightBulb);
         public const string LineSeparators = nameof(LineSeparators);
@@ -47,18 +50,17 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string ReferenceHighlighting = nameof(ReferenceHighlighting);
         public const string Rename = nameof(Rename);
         public const string RenameTracking = nameof(RenameTracking);
-        public const string SolutionChecksumUpdater = nameof(SolutionChecksumUpdater);
-        public const string SourceGenerators = nameof(SourceGenerators);
         public const string RuleSetEditor = nameof(RuleSetEditor);
         public const string SignatureHelp = nameof(SignatureHelp);
         public const string Snippets = nameof(Snippets);
-        public const string SolutionCrawler = nameof(SolutionCrawler);
+        public const string SolutionChecksumUpdater = nameof(SolutionChecksumUpdater);
+        public const string SolutionCrawlerLegacy = nameof(SolutionCrawlerLegacy);
+        public const string SolutionCrawlerUnitTesting = nameof(SolutionCrawlerUnitTesting);
+        public const string SourceGenerators = nameof(SourceGenerators);
         public const string StringIndentation = nameof(StringIndentation);
+        public const string TaskList = nameof(TaskList);
         public const string Telemetry = nameof(Telemetry);
-        public const string TodoCommentList = nameof(TodoCommentList);
-        public const string LanguageServer = nameof(LanguageServer);
         public const string ValueTracking = nameof(ValueTracking);
         public const string Workspace = nameof(Workspace);
-        public const string AddImportsOnPaste = nameof(AddImportsOnPaste);
     }
 }

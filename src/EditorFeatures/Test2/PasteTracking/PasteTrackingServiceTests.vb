@@ -5,6 +5,7 @@
 Namespace Microsoft.CodeAnalysis.PasteTracking
 
     <UseExportProvider>
+    <Trait(Traits.Feature, Traits.Features.PasteTracking)>
     Public Class PasteTrackingServiceTests
 
         Private Const Project1Name = "Proj1"
@@ -58,7 +59,6 @@ $$
             </Workspace>
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.PasteTracking)>
         Public Sub PasteTracking_MissingTextSpan_WhenNothingPasted()
             Using testState = New PasteTrackingTestState(SingleFileCode)
                 Dim class1Document = testState.OpenDocument(Project1Name, Class1Name)
@@ -68,7 +68,6 @@ $$
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.PasteTracking)>
         Public Async Function PasteTracking_HasTextSpan_AfterPaste() As Task
             Using testState = New PasteTrackingTestState(SingleFileCode)
                 Dim class1Document = testState.OpenDocument(Project1Name, Class1Name)
@@ -80,7 +79,6 @@ $$
         End Function
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.PasteTracking)>
         Public Async Function PasteTracking_HasTextSpan_AfterFormattingPaste() As Task
             Using testState = New PasteTrackingTestState(SingleFileCode)
                 Dim class1Document = testState.OpenDocument(Project1Name, Class1Name)
@@ -92,7 +90,6 @@ $$
         End Function
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.PasteTracking)>
         Public Async Function PasteTracking_HasTextSpan_AfterMultiplePastes() As Task
             Using testState = New PasteTrackingTestState(SingleFileCode)
                 Dim class1Document = testState.OpenDocument(Project1Name, Class1Name)
@@ -107,7 +104,6 @@ $$
         End Function
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.PasteTracking)>
         Public Sub PasteTracking_MissingTextSpan_AfterPasteThenEdit()
             Using testState = New PasteTrackingTestState(SingleFileCode)
                 Dim class1Document = testState.OpenDocument(Project1Name, Class1Name)
@@ -121,7 +117,6 @@ $$
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.PasteTracking)>
         Public Async Function PasteTracking_HasTextSpan_AfterPasteThenCloseThenOpenThenPaste() As Task
             Using testState = New PasteTrackingTestState(SingleFileCode)
                 Dim class1Document = testState.OpenDocument(Project1Name, Class1Name)
@@ -137,7 +132,6 @@ $$
         End Function
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.PasteTracking)>
         Public Async Function PasteTracking_HasMultipleTextSpan_AfterPasteInMultipleFiles() As Task
             Using testState = New PasteTrackingTestState(MultiFileCode)
                 Dim class1Document = testState.OpenDocument(Project1Name, Class1Name)
@@ -154,7 +148,6 @@ $$
         End Function
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.PasteTracking)>
         Public Async Function PasteTracking_HasSingleTextSpan_AfterPasteInMultipleFilesThenOneClosed() As Task
             Using testState = New PasteTrackingTestState(MultiFileCode)
                 Dim class1Document = testState.OpenDocument(Project1Name, Class1Name)
@@ -168,7 +161,6 @@ $$
         End Function
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.PasteTracking)>
         Public Async Function PasteTracking_HasTextSpanInLinkedFile_AfterPaste() As Task
             Using testState = New PasteTrackingTestState(MultiFileCode)
                 Dim class1Document = testState.OpenDocument(Project1Name, Class1Name)
@@ -181,7 +173,6 @@ $$
         End Function
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.PasteTracking)>
         Public Async Function PasteTracking_HasTextSpanInLinkedFile_AfterPasteThenClose() As Task
             Using testState = New PasteTrackingTestState(MultiFileCode)
                 Dim class1Document = testState.OpenDocument(Project1Name, Class1Name)
@@ -196,7 +187,6 @@ $$
         End Function
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.PasteTracking)>
         Public Sub PasteTracking_MissingTextSpan_AfterPasteThenLinkedFileEdited()
             Using testState = New PasteTrackingTestState(MultiFileCode)
                 Dim class1Document = testState.OpenDocument(Project1Name, Class1Name)
@@ -211,7 +201,6 @@ $$
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.PasteTracking)>
         Public Async Function PasteTracking_HasTextSpanForLinkedFile_AfterPasteThenCloseAllThenOpenThenPaste() As Task
             Using testState = New PasteTrackingTestState(MultiFileCode)
                 Dim class1Document = testState.OpenDocument(Project1Name, Class1Name)

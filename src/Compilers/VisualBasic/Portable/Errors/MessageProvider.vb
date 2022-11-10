@@ -252,6 +252,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property WRN_DuplicateAnalyzerReference As Integer
+            Get
+                Return ERRID.WRN_DuplicateAnalyzerReference
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property INF_UnableToLoadSomeTypesInAnalyzer As Integer
             Get
                 Return ERRID.INF_UnableToLoadSomeTypesInAnalyzer

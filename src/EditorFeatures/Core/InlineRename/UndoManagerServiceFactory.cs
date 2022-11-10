@@ -11,6 +11,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
@@ -21,14 +22,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     internal class UndoManagerServiceFactory : IWorkspaceServiceFactory
     {
         private readonly InlineRenameService _inlineRenameService;
+        private readonly IGlobalOptionService _globalOptionService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public UndoManagerServiceFactory(InlineRenameService inlineRenameService)
-            => _inlineRenameService = inlineRenameService;
+        public UndoManagerServiceFactory(InlineRenameService inlineRenameService, IGlobalOptionService globalOptionService)
+        {
+            _inlineRenameService = inlineRenameService;
+            _globalOptionService = globalOptionService;
+        }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new InlineRenameUndoManager(_inlineRenameService);
+            => new InlineRenameUndoManager(_inlineRenameService, _globalOptionService);
 
         internal class InlineRenameUndoManager : AbstractInlineRenameUndoManager<InlineRenameUndoManager.BufferUndoState>, IInlineRenameUndoManager
         {
@@ -39,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 public ITextUndoTransaction ConflictResolutionUndoTransaction { get; set; }
             }
 
-            public InlineRenameUndoManager(InlineRenameService inlineRenameService) : base(inlineRenameService)
+            public InlineRenameUndoManager(InlineRenameService inlineRenameService, IGlobalOptionService globalOptionService) : base(inlineRenameService, globalOptionService)
             {
             }
 

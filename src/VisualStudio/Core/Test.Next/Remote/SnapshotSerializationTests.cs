@@ -468,8 +468,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             _ = CloneAsset(serializer, assetFromFile);
         }
 
-        [Fact]
-        [WorkItem(1107294, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107294")]
+        [Fact, WorkItem(1107294, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107294")]
         public async Task SnapshotWithIdenticalAnalyzerFiles()
         {
             using var workspace = CreateWorkspace();

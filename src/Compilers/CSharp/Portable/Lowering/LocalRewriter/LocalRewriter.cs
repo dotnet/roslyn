@@ -374,12 +374,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDefaultLiteral(BoundDefaultLiteral node)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode VisitValuePlaceholder(BoundValuePlaceholder node)
@@ -471,13 +471,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public sealed override BoundNode VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node)
         {
             // OutDeconstructVarPendingInference nodes are only used within initial binding, but don't survive past that stage
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode VisitDeconstructionVariablePendingInference(DeconstructionVariablePendingInference node)
         {
             // DeconstructionVariablePendingInference nodes are only used within initial binding, but don't survive past that stage
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode VisitBadExpression(BoundBadExpression node)
@@ -914,7 +914,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return true;
 
                         Debug.Assert(eventAccess.ReceiverOpt is { });
-                        return CanBePassedByReference(eventAccess.ReceiverOpt);
+                        Debug.Assert(eventAccess.ReceiverOpt.Type is { });
+                        return !eventAccess.ReceiverOpt.Type.IsValueType || CanBePassedByReference(eventAccess.ReceiverOpt);
                     }
 
                     return false;
@@ -924,7 +925,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!fieldAccess.FieldSymbol.IsStatic)
                     {
                         Debug.Assert(fieldAccess.ReceiverOpt is { });
-                        return CanBePassedByReference(fieldAccess.ReceiverOpt);
+                        Debug.Assert(fieldAccess.ReceiverOpt.Type is { });
+                        return !fieldAccess.ReceiverOpt.Type.IsValueType || CanBePassedByReference(fieldAccess.ReceiverOpt);
                     }
 
                     return true;

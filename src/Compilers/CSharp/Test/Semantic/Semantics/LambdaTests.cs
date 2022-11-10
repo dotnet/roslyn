@@ -3913,10 +3913,8 @@ class Program
             a = (IdentifierNameSyntax)newTree.GetRoot().DescendantNodes().OfType<AttributeSyntax>().Single().Name;
             Assert.Equal("A", a.Identifier.Text);
 
-            // If we aren't using the right binder here, the compiler crashes going through the binder factory
             var info = model.GetSymbolInfo(a);
-            // This behavior is wrong. See https://github.com/dotnet/roslyn/issues/24135
-            Assert.Equal(attrType, info.Symbol);
+            Assert.Equal(attrCtor, info.Symbol);
         }
 
         [Fact]
@@ -6893,6 +6891,113 @@ class Program
             var action = syntaxTree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().First(id => id.Identifier.ValueText == "Action");
             var model = comp.GetSemanticModel(syntaxTree);
             AssertEx.Equal("System.Action", model.GetTypeInfo(action).Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(64392, "https://github.com/dotnet/roslyn/issues/64392")]
+        public void ReferToFieldWithinLambdaInTypeAttribute_01()
+        {
+            var source = @"
+[Display(x => $""{Name}"")]
+public class Test
+{
+    [Display(Name = ""Name"")]
+    public string Name { get; }
+}
+
+public class DisplayAttribute : System.Attribute
+{
+    public DisplayAttribute() { }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,2): error CS1729: 'DisplayAttribute' does not contain a constructor that takes 1 arguments
+                // [Display(x => $"{Name}")]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"Display(x => $""{Name}"")").WithArguments("DisplayAttribute", "1").WithLocation(2, 2),
+                // (5,14): error CS0246: The type or namespace name 'Name' could not be found (are you missing a using directive or an assembly reference?)
+                //     [Display(Name = "Name")]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Name").WithArguments("Name").WithLocation(5, 14)
+                );
+        }
+
+        [Fact]
+        [WorkItem(64392, "https://github.com/dotnet/roslyn/issues/64392")]
+        public void ReferToFieldWithinLambdaInTypeAttribute_02()
+        {
+            var source = @"
+[Display(x => Name)]
+public class Test
+{
+    [Display(Name = ""Name"")]
+    public string Name { get; }
+}
+
+public class DisplayAttribute : System.Attribute
+{
+    public DisplayAttribute() { }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,2): error CS1729: 'DisplayAttribute' does not contain a constructor that takes 1 arguments
+                // [Display(x => Name)]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Display(x => Name)").WithArguments("DisplayAttribute", "1").WithLocation(2, 2),
+                // (5,14): error CS0246: The type or namespace name 'Name' could not be found (are you missing a using directive or an assembly reference?)
+                //     [Display(Name = "Name")]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Name").WithArguments("Name").WithLocation(5, 14)
+                );
+        }
+
+        [Fact]
+        public void DelegateConversions_ImplicitlyTypedParameter_RefParameter()
+        {
+            var source = """
+                struct R { }
+
+                delegate R D1(ref R r);
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        D1 d1 = r1 => r1; // 1
+                        M(r2 => r2); // 2
+                    }
+
+                    static void M(D1 d1) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (9,17): error CS1676: Parameter 1 must be declared with the 'ref' keyword
+                //         D1 d1 = r1 => r1; // 1
+                Diagnostic(ErrorCode.ERR_BadParamRef, "r1").WithArguments("1", "ref").WithLocation(9, 17),
+                // (10,11): error CS1676: Parameter 1 must be declared with the 'ref' keyword
+                //         M(r2 => r2); // 2
+                Diagnostic(ErrorCode.ERR_BadParamRef, "r2").WithArguments("1", "ref").WithLocation(10, 11)
+                );
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambdas = root.DescendantNodes().OfType<LambdaExpressionSyntax>().ToArray();
+
+            Assert.Equal("r1 => r1", lambdas[0].ToString());
+            var lambdaParameter1 = model.GetSymbolInfo(lambdas[0]).Symbol.GetParameters()[0];
+            Assert.Equal("? r1", lambdaParameter1.ToTestDisplayString());
+            Assert.Equal(RefKind.None, lambdaParameter1.RefKind);
+
+            // Implicitly-typed lambda parameters can get a type, but they cannot get a different ref-kind (or scoped-ness) during anonymous function conversion
+            // Tracked by https://github.com/dotnet/roslyn/issues/64985
+            Assert.Equal("r2 => r2", lambdas[1].ToString());
+            var lambdaParameter2 = model.GetSymbolInfo(lambdas[1]).Symbol.GetParameters()[0];
+            Assert.Equal("ref R r2", lambdaParameter2.ToTestDisplayString());
+            Assert.Equal(RefKind.Ref, lambdaParameter2.RefKind);
         }
     }
 }

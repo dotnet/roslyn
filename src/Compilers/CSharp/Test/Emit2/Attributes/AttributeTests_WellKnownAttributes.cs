@@ -567,7 +567,7 @@ public class Consumer
 
             var comp2 = CreateCompilation(source2, new[] { libCompRef });
             comp2.VerifyDiagnostics(
-                // (6,19): error CS7036: There is no argument given that corresponds to the required formal parameter 'p1' of 'Bar.Method(DateTime)'
+                // (6,19): error CS7036: There is no argument given that corresponds to the required parameter 'p1' of 'Bar.Method(DateTime)'
                 //         new Bar().Method();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Method").WithArguments("p1", "Bar.Method(System.DateTime)").WithLocation(6, 19)
                 );
@@ -576,7 +576,7 @@ public class Consumer
             var libAssemblyRef = libComp.EmitToImageReference();
             var comp3 = CreateCompilation(source2, new[] { libAssemblyRef });
             comp3.VerifyDiagnostics(
-                // (6,19): error CS7036: There is no argument given that corresponds to the required formal parameter 'p1' of 'Bar.Method(DateTime)'
+                // (6,19): error CS7036: There is no argument given that corresponds to the required parameter 'p1' of 'Bar.Method(DateTime)'
                 //         new Bar().Method();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Method").WithArguments("p1", "Bar.Method(System.DateTime)").WithLocation(6, 19)
                 );
@@ -1438,7 +1438,7 @@ public class Goo: Attribute
                 // (15,17): warning CS0436: The type 'System.Runtime.InteropServices.OptionalAttribute' in '' conflicts with the imported type 'System.Runtime.InteropServices.OptionalAttribute' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     public Goo([Optional(isOpt: false)][Goo]int y) {}
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Optional").WithArguments("", "System.Runtime.InteropServices.OptionalAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Runtime.InteropServices.OptionalAttribute").WithLocation(15, 17),
-                // (15,41): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'Goo.Goo(int)'
+                // (15,41): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'Goo.Goo(int)'
                 //     public Goo([Optional(isOpt: false)][Goo]int y) {}
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Goo").WithArguments("y", "Goo.Goo(int)").WithLocation(15, 41));
         }
@@ -1500,10 +1500,10 @@ public class Goo: Attribute
                 // (16,17): warning CS0436: The type 'System.Runtime.InteropServices.OptionalAttribute' in '' conflicts with the imported type 'System.Runtime.InteropServices.OptionalAttribute' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     public Goo([Optional(new Goo())][Goo]int y) {}
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Optional").WithArguments("", "System.Runtime.InteropServices.OptionalAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Runtime.InteropServices.OptionalAttribute").WithLocation(16, 17),
-                // (16,30): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'Goo.Goo(int)'
+                // (16,30): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'Goo.Goo(int)'
                 //     public Goo([Optional(new Goo())][Goo]int y) {}
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Goo").WithArguments("y", "Goo.Goo(int)").WithLocation(16, 30),
-                // (16,38): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'Goo.Goo(int)'
+                // (16,38): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'Goo.Goo(int)'
                 //     public Goo([Optional(new Goo())][Goo]int y) {}
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Goo").WithArguments("y", "Goo.Goo(int)").WithLocation(16, 38));
         }
@@ -2606,7 +2606,7 @@ public class C
     public static extern void M();
 }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -2722,7 +2722,7 @@ public class C
     public extern static event System.Action G;
 }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -3196,7 +3196,7 @@ abstract class C
     public extern static void f21();
 }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyValidator: (assembly) =>
             {
                 var peReader = assembly.GetMetadataReader();
                 foreach (var methodHandle in peReader.MethodDefinitions)
@@ -3374,7 +3374,7 @@ abstract class C
 }
 ";
             // Ref.Emit doesn't implement custom attributes yet
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -4620,7 +4620,7 @@ enum En
 [SpecialName]
 struct S { }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -4729,7 +4729,7 @@ enum E
 [Serializable]
 delegate void D();
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -5050,7 +5050,8 @@ namespace System
         }
     }
 }";
-            var syntaxTree = Parse(source, filename: "test.cs");
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var syntaxTree = Parse(source, filename: "test.cs", options: parseOptions);
             var compilation = CreateCompilation(syntaxTree, options: TestOptions.ReleaseDll);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
@@ -5082,7 +5083,7 @@ namespace System
             };
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            CompileAndVerify(source, sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator);
+            CompileAndVerify(source, parseOptions: parseOptions, sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator);
         }
 
         [WorkItem(546102, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546102")]
@@ -5112,7 +5113,7 @@ namespace System
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 class A: Attribute {}
 ";
-            CompileAndVerify(source);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
         }
 
         [WorkItem(546056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546056")]
@@ -5508,7 +5509,7 @@ using System.Runtime.InteropServices;
 [assembly: ComCompatibleVersionAttribute(""str"", 0)]
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (4,12): error CS7036: There is no argument given that corresponds to the required formal parameter 'build' of 'System.Runtime.InteropServices.ComCompatibleVersionAttribute.ComCompatibleVersionAttribute(int, int, int, int)'
+                // (4,12): error CS7036: There is no argument given that corresponds to the required parameter 'build' of 'System.Runtime.InteropServices.ComCompatibleVersionAttribute.ComCompatibleVersionAttribute(int, int, int, int)'
                 // [assembly: ComCompatibleVersionAttribute("str", 0)]
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, @"ComCompatibleVersionAttribute(""str"", 0)").WithArguments("build", "System.Runtime.InteropServices.ComCompatibleVersionAttribute.ComCompatibleVersionAttribute(int, int, int, int)").WithLocation(4, 12));
         }
@@ -13801,6 +13802,68 @@ public struct S2 { }
                 // [StructLayout(LayoutKind.Sequential, CharSet=0)]
                 Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "CharSet=0").WithArguments("CharSet").WithLocation(7, 38)
                 );
+        }
+
+        [Fact, WorkItem(64605, "https://github.com/dotnet/roslyn/issues/64605")]
+        public void ObsoleteWithInterpolation()
+        {
+            var source = """
+using System;
+
+internal class Program
+{
+    static void Main(string[] args)
+    {
+        var object1 = new LegacyObject1();
+        var object2 = new LegacyObject2();
+    }
+}
+
+[Obsolete($"Do not use {nameof(LegacyObject1)}")]
+public class LegacyObject1
+{
+}
+
+[Obsolete("Do not use" + nameof(LegacyObject2))]
+public class LegacyObject2
+{
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,27): warning CS0618: 'LegacyObject1' is obsolete: 'Do not use LegacyObject1'
+                //         var object1 = new LegacyObject1();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "LegacyObject1").WithArguments("LegacyObject1", "Do not use LegacyObject1").WithLocation(7, 27),
+                // (8,27): warning CS0618: 'LegacyObject2' is obsolete: 'Do not useLegacyObject2'
+                //         var object2 = new LegacyObject2();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "LegacyObject2").WithArguments("LegacyObject2", "Do not useLegacyObject2").WithLocation(8, 27)
+                );
+        }
+
+        [Fact, WorkItem(64605, "https://github.com/dotnet/roslyn/issues/64605")]
+        public void ObsoleteWithInterpolationWithNonConstant()
+        {
+            var source = """
+using System;
+
+internal class Program
+{
+    static void Main(string[] args)
+    {
+        var object1 = new LegacyObject();
+    }
+}
+
+[Obsolete($"Do not use {nameof(LegacyObject)}{string.Empty}")]
+public class LegacyObject
+{
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [Obsolete($"Do not use {nameof(LegacyObject)}{string.Empty}")]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"$""Do not use {nameof(LegacyObject)}{string.Empty}""").WithLocation(11, 11));
         }
     }
 }

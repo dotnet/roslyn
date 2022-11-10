@@ -172,14 +172,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasInterpolatedStringHandlerArgumentError => false;
 
-        internal override DeclarationScope DeclaredScope
-            => _containingType.IsStructType() ? DeclarationScope.RefScoped : DeclarationScope.Unscoped;
-
         internal override DeclarationScope EffectiveScope
         {
             get
             {
-                var scope = DeclaredScope;
+                var scope = _containingType.IsStructType() ? DeclarationScope.RefScoped : DeclarationScope.Unscoped;
+
                 if (scope != DeclarationScope.Unscoped &&
                     hasUnscopedRefAttribute(_containingMethod))
                 {
@@ -204,5 +202,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
+
+        internal sealed override bool UseUpdatedEscapeRules
+            => _containingMethod?.UseUpdatedEscapeRules ?? _containingType.ContainingModule.UseUpdatedEscapeRules;
     }
 }

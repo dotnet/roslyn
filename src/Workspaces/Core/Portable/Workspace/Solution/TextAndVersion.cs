@@ -37,10 +37,11 @@ namespace Microsoft.CodeAnalysis
         {
             Text = text;
             Version = version;
+            LoadDiagnostic = loadDiagnostic;
+
 #pragma warning disable CS0618 // Type or member is obsolete
             FilePath = filePath ?? string.Empty;
 #pragma warning restore
-            LoadDiagnostic = loadDiagnostic;
         }
 
         /// <summary>
@@ -51,24 +52,16 @@ namespace Microsoft.CodeAnalysis
         /// <param name="filePath">Obsolete.</param>
         /// <returns></returns>
         public static TextAndVersion Create(SourceText text, VersionStamp version, string? filePath = null)
-            => Create(text, version, filePath, loadDiagnostic: null);
+            => new(text ?? throw new ArgumentNullException(nameof(text)), version, filePath, loadDiagnostic: null);
 
         /// <summary>
         /// Create a new <see cref="TextAndVersion"/> instance.
         /// </summary>
         /// <param name="text">The text</param>
         /// <param name="version">The version</param>
-        /// <param name="filePath">Obsolete.</param>
         /// <param name="loadDiagnostic">Diagnostic describing failure to load the source text.</param>
         /// <returns></returns>
-        internal static TextAndVersion Create(SourceText text, VersionStamp version, string? filePath, Diagnostic? loadDiagnostic)
-        {
-            if (text == null)
-            {
-                throw new ArgumentNullException(nameof(text));
-            }
-
-            return new TextAndVersion(text, version, filePath, loadDiagnostic);
-        }
+        internal static TextAndVersion Create(SourceText text, VersionStamp version, Diagnostic? loadDiagnostic)
+            => new(text, version, filePath: null, loadDiagnostic);
     }
 }

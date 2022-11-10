@@ -5,13 +5,17 @@
 Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection
+Imports System.Reflection.Emit
 Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.InteropServices
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -1231,8 +1235,10 @@ End Class
         ' We should get only unique netmodule/assembly attributes here, duplicate ones should not be emitted.
         Dim expectedEmittedAttrsCount As Integer = expectedSrcAttrCount - expectedDuplicateAttrCount
 
+        Dim moduleBuilder = CreateTestModuleBuilder(compilation)
+
         Dim allEmittedAttrs = DirectCast(assembly, SourceAssemblySymbol).
-            GetAssemblyCustomAttributesToEmit(New ModuleCompilationState, emittingRefAssembly:=False, emittingAssemblyAttributesInNetModule:=False).
+            GetAssemblyCustomAttributesToEmit(moduleBuilder, emittingRefAssembly:=False, emittingAssemblyAttributesInNetModule:=False).
             Cast(Of VisualBasicAttributeData)()
 
         Dim emittedAttrs = allEmittedAttrs.Where(Function(a) a.AttributeClass.Name.Equals(attrTypeName)).AsImmutable()
@@ -1243,6 +1249,18 @@ End Class
             Assert.True(uniqueAttributes.Add(attr))
         Next
     End Sub
+
+    Private Shared Function CreateTestModuleBuilder(compilation As Compilation) As PEModuleBuilder
+        Return DirectCast(compilation.CheckOptionsAndCreateModuleBuilder(
+            New DiagnosticBag(),
+            manifestResources:=Nothing,
+            EmitOptions.Default,
+            debugEntryPoint:=Nothing,
+            sourceLinkStream:=Nothing,
+            embeddedTexts:=Nothing,
+            testData:=Nothing,
+            CancellationToken.None), PEModuleBuilder)
+    End Function
 #End Region
 
     <Fact()>
@@ -1516,8 +1534,9 @@ End Class
             expectedDuplicateAttrCount:=1,
             attrTypeName:="AssemblyTitleAttribute")
 
+        Dim moduleBuilder = CreateTestModuleBuilder(consoleappCompilation)
         Dim attrs = DirectCast(consoleappCompilation.Assembly, SourceAssemblySymbol).
-            GetAssemblyCustomAttributesToEmit(New ModuleCompilationState, emittingRefAssembly:=False, emittingAssemblyAttributesInNetModule:=False).
+            GetAssemblyCustomAttributesToEmit(moduleBuilder, emittingRefAssembly:=False, emittingAssemblyAttributesInNetModule:=False).
             Cast(Of VisualBasicAttributeData)()
 
         For Each a In attrs

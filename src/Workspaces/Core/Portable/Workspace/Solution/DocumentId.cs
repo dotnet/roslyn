@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -15,11 +16,14 @@ namespace Microsoft.CodeAnalysis
     /// workspace.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
+    [DataContract]
     public sealed class DocumentId : IEquatable<DocumentId>, IObjectWritable
     {
+        [DataMember(Order = 0)]
         public ProjectId ProjectId { get; }
+        [DataMember(Order = 1)]
         public Guid Id { get; }
-
+        [DataMember(Order = 2)]
         private readonly string? _debugName;
 
         private DocumentId(ProjectId projectId, Guid guid, string? debugName)

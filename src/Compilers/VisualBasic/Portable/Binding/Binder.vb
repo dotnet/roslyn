@@ -503,7 +503,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim emittedName = MetadataTypeName.FromFullName(metadataName, useCLSCompliantNameArityEncoding:=True)
-            Return Me.ContainingModule.LookupTopLevelMetadataType(emittedName)
+            Dim result As NamedTypeSymbol = Me.ContainingModule.LookupTopLevelMetadataType(emittedName)
+            Debug.Assert(If(Not result?.IsErrorType(), True))
+
+            Return If(result, New MissingMetadataTypeSymbol.TopLevel(Me.ContainingModule, emittedName))
         End Function
 
         ''' <summary>

@@ -10,7 +10,7 @@ using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal struct TypeWalker
+    internal readonly struct TypeWalker
     {
         private readonly Type _type;
 

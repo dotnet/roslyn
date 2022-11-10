@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             ExtensionMethodCompletionMethodsProvided,
             ExtensionMethodCompletionGetSymbolsTicks,
             ExtensionMethodCompletionCreateItemsTicks,
+            ExtensionMethodCompletionRemoteAssetSyncTicks,
             ExtensionMethodCompletionRemoteTicks,
             CommitsOfExtensionMethodImportCompletionItem,
             ExtensionMethodCompletionPartialResultCount,
@@ -52,14 +53,15 @@ namespace Microsoft.CodeAnalysis.Completion.Log
         internal static void LogCommitOfTypeImportCompletionItem() =>
             s_countLogAggregator.IncreaseCount(ActionInfo.CommitsOfTypeImportCompletionItem);
 
-        internal static void LogExtensionMethodCompletionTicksDataPoint(TimeSpan total, TimeSpan getSymbols, TimeSpan createItems, bool isRemote)
+        internal static void LogExtensionMethodCompletionTicksDataPoint(TimeSpan total, TimeSpan getSymbols, TimeSpan createItems, TimeSpan? remoteAssetSync)
         {
             s_histogramLogAggregator.LogTime(ActionInfo.ExtensionMethodCompletionTicks, total);
             s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionTicks, total);
 
-            if (isRemote)
+            if (remoteAssetSync.HasValue)
             {
-                s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionRemoteTicks, total - getSymbols - createItems);
+                s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionRemoteAssetSyncTicks, remoteAssetSync.Value);
+                s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionRemoteTicks, total - remoteAssetSync.Value - getSymbols - createItems);
             }
 
             s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionGetSymbolsTicks, getSymbols);

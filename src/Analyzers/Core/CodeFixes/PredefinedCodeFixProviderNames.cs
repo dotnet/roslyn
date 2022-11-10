@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string ConvertSwitchStatementToExpression = nameof(ConvertSwitchStatementToExpression);
         public const string ConvertToAsync = nameof(ConvertToAsync);
         public const string ConvertToIterator = nameof(ConvertToIterator);
+        public const string ConvertToRecord = nameof(ConvertToRecord);
         public const string ConvertToTopLevelStatements = nameof(ConvertToTopLevelStatements);
         public const string ConvertTypeOfToNameOf = nameof(ConvertTypeOfToNameOf);
         public const string CorrectNextControlVariable = nameof(CorrectNextControlVariable);
@@ -74,6 +75,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string MakeRefStruct = nameof(MakeRefStruct);
         public const string MakeStatementAsynchronous = nameof(MakeStatementAsynchronous);
         public const string MakeStructFieldsWritable = nameof(MakeStructFieldsWritable);
+        public const string MakeStructReadOnly = nameof(MakeStructReadOnly);
         public const string MakeTypeAbstract = nameof(MakeTypeAbstract);
         public const string MoveMisplacedUsingDirectives = nameof(MoveMisplacedUsingDirectives);
         public const string MoveToTopOfFile = nameof(MoveToTopOfFile);

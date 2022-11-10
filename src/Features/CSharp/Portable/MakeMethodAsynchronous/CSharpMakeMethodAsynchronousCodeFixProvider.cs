@@ -4,10 +4,12 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -52,39 +54,51 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
         }
 
         protected override SyntaxNode AddAsyncTokenAndFixReturnType(
-            bool keepVoid, IMethodSymbol methodSymbolOpt, SyntaxNode node,
-            KnownTypes knownTypes)
+            bool keepVoid,
+            IMethodSymbol methodSymbolOpt,
+            SyntaxNode node,
+            KnownTypes knownTypes,
+            CancellationToken cancellationToken)
         {
             switch (node)
             {
-                case MethodDeclarationSyntax method: return FixMethod(keepVoid, methodSymbolOpt, method, knownTypes);
-                case LocalFunctionStatementSyntax localFunction: return FixLocalFunction(keepVoid, methodSymbolOpt, localFunction, knownTypes);
+                case MethodDeclarationSyntax method: return FixMethod(keepVoid, methodSymbolOpt, method, knownTypes, cancellationToken);
+                case LocalFunctionStatementSyntax localFunction: return FixLocalFunction(keepVoid, methodSymbolOpt, localFunction, knownTypes, cancellationToken);
                 case AnonymousFunctionExpressionSyntax anonymous: return FixAnonymousFunction(anonymous);
                 default: return node;
             }
         }
 
         private static SyntaxNode FixMethod(
-            bool keepVoid, IMethodSymbol methodSymbol, MethodDeclarationSyntax method,
-            KnownTypes knownTypes)
+            bool keepVoid,
+            IMethodSymbol methodSymbol,
+            MethodDeclarationSyntax method,
+            KnownTypes knownTypes,
+            CancellationToken cancellationToken)
         {
-            var newReturnType = FixMethodReturnType(keepVoid, methodSymbol, method.ReturnType, knownTypes);
+            var newReturnType = FixMethodReturnType(keepVoid, methodSymbol, method.ReturnType, knownTypes, cancellationToken);
             var newModifiers = AddAsyncModifierWithCorrectedTrivia(method.Modifiers, ref newReturnType);
             return method.WithReturnType(newReturnType).WithModifiers(newModifiers);
         }
 
         private static SyntaxNode FixLocalFunction(
-            bool keepVoid, IMethodSymbol methodSymbol, LocalFunctionStatementSyntax localFunction,
-            KnownTypes knownTypes)
+            bool keepVoid,
+            IMethodSymbol methodSymbol,
+            LocalFunctionStatementSyntax localFunction,
+            KnownTypes knownTypes,
+            CancellationToken cancellationToken)
         {
-            var newReturnType = FixMethodReturnType(keepVoid, methodSymbol, localFunction.ReturnType, knownTypes);
+            var newReturnType = FixMethodReturnType(keepVoid, methodSymbol, localFunction.ReturnType, knownTypes, cancellationToken);
             var newModifiers = AddAsyncModifierWithCorrectedTrivia(localFunction.Modifiers, ref newReturnType);
             return localFunction.WithReturnType(newReturnType).WithModifiers(newModifiers);
         }
 
         private static TypeSyntax FixMethodReturnType(
-            bool keepVoid, IMethodSymbol methodSymbol, TypeSyntax returnTypeSyntax,
-            KnownTypes knownTypes)
+            bool keepVoid,
+            IMethodSymbol methodSymbol,
+            TypeSyntax returnTypeSyntax,
+            KnownTypes knownTypes,
+            CancellationToken cancellationToken)
         {
             var newReturnType = returnTypeSyntax.WithAdditionalAnnotations(Formatter.Annotation);
 
@@ -98,16 +112,16 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             else
             {
                 var returnType = methodSymbol.ReturnType;
-                if (IsIEnumerable(returnType, knownTypes) && IsIterator(methodSymbol))
+                if (IsIEnumerable(returnType, knownTypes) && IsIterator(methodSymbol, cancellationToken))
                 {
                     newReturnType = knownTypes._iAsyncEnumerableOfTTypeOpt is null
-                        ? MakeGenericType("IAsyncEnumerable", methodSymbol.ReturnType)
+                        ? MakeGenericType(nameof(IAsyncEnumerable<int>), methodSymbol.ReturnType)
                         : knownTypes._iAsyncEnumerableOfTTypeOpt.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
                 }
-                else if (IsIEnumerator(returnType, knownTypes) && IsIterator(methodSymbol))
+                else if (IsIEnumerator(returnType, knownTypes) && IsIterator(methodSymbol, cancellationToken))
                 {
                     newReturnType = knownTypes._iAsyncEnumeratorOfTTypeOpt is null
-                        ? MakeGenericType("IAsyncEnumerator", methodSymbol.ReturnType)
+                        ? MakeGenericType(nameof(IAsyncEnumerator<int>), methodSymbol.ReturnType)
                         : knownTypes._iAsyncEnumeratorOfTTypeOpt.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
                 }
                 else if (IsIAsyncEnumerableOrEnumerator(returnType, knownTypes))
@@ -133,16 +147,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             }
         }
 
-        private static bool IsIterator(IMethodSymbol x)
-        {
-            return x.Locations.Any(static l => ContainsYield(l.FindNode(cancellationToken: default)));
-
-            static bool ContainsYield(SyntaxNode node)
-                => node.DescendantNodes(n => n == node || !n.IsReturnableConstruct()).Any(n => IsYield(n));
-
-            static bool IsYield(SyntaxNode node)
-                => node.IsKind(SyntaxKind.YieldBreakStatement, SyntaxKind.YieldReturnStatement);
-        }
+        private static bool IsIterator(IMethodSymbol method, CancellationToken cancellationToken)
+            => method.Locations.Any(static (loc, cancellationToken) => loc.FindNode(cancellationToken).ContainsYield(), cancellationToken);
 
         private static bool IsIAsyncEnumerableOrEnumerator(ITypeSymbol returnType, KnownTypes knownTypes)
             => returnType.OriginalDefinition.Equals(knownTypes._iAsyncEnumerableOfTTypeOpt) ||

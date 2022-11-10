@@ -897,36 +897,6 @@
         <target state="translated">工作區未包含此語彙基元。</target>
         <note />
       </trans-unit>
-      <trans-unit id="You_must_rename_an_identifier">
-        <source>You must rename an identifier.</source>
-        <target state="translated">您必須重新命名識別項。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="You_cannot_rename_this_element">
-        <source>You cannot rename this element.</source>
-        <target state="translated">您無法重新命名此元素。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Please_resolve_errors_in_your_code_before_renaming_this_element">
-        <source>Please resolve errors in your code before renaming this element.</source>
-        <target state="translated">請先解決程式碼中的錯誤，再重新命名此元素。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="You_cannot_rename_operators">
-        <source>You cannot rename operators.</source>
-        <target state="translated">您無法重新命名運算子。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="You_cannot_rename_elements_that_are_defined_in_metadata">
-        <source>You cannot rename elements that are defined in metadata.</source>
-        <target state="translated">您無法重新命名中繼資料中所定義的元素。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="You_cannot_rename_elements_from_previous_submissions">
-        <source>You cannot rename elements from previous submissions.</source>
-        <target state="translated">您無法重新命名上次提交的元素。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Navigation_Bars">
         <source>Navigation Bars</source>
         <target state="translated">導覽列</target>
@@ -1135,11 +1105,6 @@
       <trans-unit id="Automatic_Pair_Completion_End_Point_Marker_Color">
         <source>Automatic Pair Completion End Point Marker Color</source>
         <target state="translated">自動配對完成端點標記色彩</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
-        <source>Renaming anonymous type members is not yet supported.</source>
-        <target state="translated">目前尚不支援重新命名匿名類型成員。</target>
         <note />
       </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">

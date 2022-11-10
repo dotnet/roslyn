@@ -30,12 +30,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
                         new CSharpUseInferredMemberNameDiagnosticAnalyzer(), new ConfigureSeverityLevelCodeFixProvider());
         }
 
+        [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
         public class ErrorConfigurationTests : MultipleCodeStyleOptionBasedSeverityConfigurationTests
         {
             protected override int CodeActionIndex => 4;
 
             [WorkItem(39664, "https://github.com/dotnet/roslyn/issues/39664")]
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_Empty_Error()
             {
                 var input = @"
@@ -106,7 +107,7 @@ dotnet_diagnostic.IDE0037.severity = error
             }
 
             [WorkItem(39664, "https://github.com/dotnet/roslyn/issues/39664")]
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_BothRulesExist_Error()
             {
                 var input = @"
@@ -190,7 +191,7 @@ dotnet_diagnostic.IDE0037.severity = error
             }
 
             [WorkItem(39664, "https://github.com/dotnet/roslyn/issues/39664")]
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_OneRuleExists_Error()
             {
                 var input = @"
@@ -268,7 +269,7 @@ dotnet_diagnostic.IDE0037.severity = error
             }
 
             [WorkItem(39664, "https://github.com/dotnet/roslyn/issues/39664")]
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_AllPossibleEntriesExist_Error()
             {
                 var input = @"

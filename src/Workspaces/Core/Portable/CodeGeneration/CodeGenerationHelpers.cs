@@ -396,5 +396,25 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             // Couldn't find anything with our name.  Just place us at the end of this group.
             return desiredGroupIndex;
         }
+
+        // from https://github.com/dotnet/roslyn/blob/main/docs/features/nullable-metadata.md
+        public static bool IsCompilerInternalAttribute(AttributeData attribute)
+            => attribute.AttributeClass is
+            {
+                Name: "NullableAttribute" or "NullableContextAttribute" or "NativeIntegerAttribute" or "DynamicAttribute",
+                ContainingNamespace:
+                {
+                    Name: nameof(System.Runtime.CompilerServices),
+                    ContainingNamespace:
+                    {
+                        Name: nameof(System.Runtime),
+                        ContainingNamespace:
+                        {
+                            Name: nameof(System),
+                            ContainingNamespace.IsGlobalNamespace: true,
+                        },
+                    },
+                },
+            };
     }
 }

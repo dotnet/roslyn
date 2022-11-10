@@ -20,6 +20,7 @@ using Xunit;
 namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Options)]
     public class OptionViewModelTests
     {
         private class MockServiceProvider : IServiceProvider
@@ -47,7 +48,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
             WpfTestRunner.RequireWpfFact("Tests create WPF ViewModels and updates previews with them");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Options)]
+        [WpfFact]
         public void TestCheckBox()
         {
             using var workspace = TestWorkspace.CreateCSharp("");
@@ -70,7 +71,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
             Assert.Equal(originalPreview, viewModel.TextViewHost.TextView.TextBuffer.CurrentSnapshot.GetText().ToString());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Options)]
+        [WpfFact]
         public void TestOptionLoading()
         {
             using var workspace = TestWorkspace.CreateCSharp("");
@@ -84,7 +85,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
             Assert.True(checkbox.IsChecked);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Options)]
+        [WpfFact]
         public void TestOptionSaving()
         {
             using var workspace = TestWorkspace.CreateCSharp("");

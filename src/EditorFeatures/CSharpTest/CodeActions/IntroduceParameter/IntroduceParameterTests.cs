@@ -16,6 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroduceParameter
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
     public class IntroduceParameterTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroducePa
         private OptionsCollection UseExpressionBody =>
             Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionWithNoMethodCallsCase()
         {
             var code =
@@ -52,7 +53,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionCaseWithLocal()
         {
             var code =
@@ -69,7 +70,7 @@ class TestClass
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestBasicComplexExpressionCase()
         {
             var code =
@@ -104,7 +105,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionCaseWithSingleMethodCall()
         {
             var code =
@@ -139,7 +140,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestLocalDeclarationMultipleDeclarators()
         {
             var code =
@@ -175,7 +176,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestDeclarationInForLoop()
         {
             var code =
@@ -194,7 +195,7 @@ class TestClass
             await TestMissingAsync(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionCaseWithSingleMethodCallInLocalFunction()
         {
             var code =
@@ -231,7 +232,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionCaseWithSingleMethodCallInStaticLocalFunction()
         {
             var code =
@@ -268,7 +269,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestHighlightIncompleteExpressionCaseWithSingleMethodCall()
         {
             var code =
@@ -289,7 +290,7 @@ class TestClass
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionCaseWithMultipleMethodCall()
         {
             var code =
@@ -326,7 +327,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionAllOccurrences()
         {
             var code =
@@ -363,7 +364,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 3);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestxpressionWithNoMethodCallTrampoline()
         {
             var code =
@@ -393,7 +394,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionWithSingleMethodCallTrampoline()
         {
             var code =
@@ -433,7 +434,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionWithSingleMethodCallAndAccessorsTrampoline()
         {
             var code =
@@ -473,7 +474,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionWithSingleMethodCallAndAccessorsConditionalTrampoline()
         {
             var code =
@@ -513,7 +514,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionWithSingleMethodCallMultipleAccessorsTrampoline()
         {
             var code =
@@ -571,7 +572,7 @@ class B
             await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionWithSingleMethodCallMultipleAccessorsConditionalTrampoline()
         {
             var code =
@@ -629,7 +630,7 @@ class B
             await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionWithSingleMethodCallAccessorsMixedConditionalTrampoline()
         {
             var code =
@@ -687,7 +688,7 @@ class B
             await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionWithSingleMethodCallTrampolineAllOccurrences()
         {
             var code =
@@ -728,7 +729,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 4, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionWithNoMethodCallOverload()
         {
             var code =
@@ -758,7 +759,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 2, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionWithSingleMethodCallOverload()
         {
             var code =
@@ -797,7 +798,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 2, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionBodiedMemberOverload()
         {
             var code =
@@ -828,7 +829,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 2, options: UseExpressionBody, parseOptions: CSharpParseOptions.Default);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionBodiedMemberTrampoline()
         {
             var code =
@@ -863,7 +864,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionCaseWithRecursiveCall()
         {
             var code =
@@ -889,7 +890,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionCaseWithNestedRecursiveCall()
         {
             var code =
@@ -915,7 +916,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionCaseWithParamsArg()
         {
             var code =
@@ -936,7 +937,7 @@ class TestClass
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionCaseWithOptionalParameters()
         {
             var code =
@@ -972,7 +973,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionCaseWithOptionalParametersUsed()
         {
             var code =
@@ -1008,7 +1009,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionCaseWithOptionalParametersUsedOverload()
         {
             var code =
@@ -1049,7 +1050,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionCaseWithOptionalParametersUsedTrampoline()
         {
             var code =
@@ -1090,7 +1091,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionCaseWithOptionalParametersUnusedTrampoline()
         {
             var code =
@@ -1131,7 +1132,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionCaseWithCancellationToken()
         {
             var code =
@@ -1169,7 +1170,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionCaseWithRecursiveCallTrampoline()
         {
             var code =
@@ -1200,7 +1201,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionCaseWithNestedRecursiveCallTrampoline()
         {
             var code =
@@ -1231,7 +1232,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionCaseInConstructor()
         {
             var code =
@@ -1266,7 +1267,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestLambdaCaseNormal()
         {
             var code =
@@ -1279,7 +1280,7 @@ class TestClass
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestLambdaCaseTrampoline()
         {
             var code =
@@ -1292,7 +1293,7 @@ class TestClass
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestLambdaCaseOverload()
         {
             var code =
@@ -1305,7 +1306,7 @@ class TestClass
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestTopLevelStatements()
         {
             var code =
@@ -1315,7 +1316,7 @@ Math.Max(5 + 5, [|6 + 7|]);";
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestFieldInitializer()
         {
             var code =
@@ -1327,7 +1328,7 @@ class TestClass
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestIndexer()
         {
             var code =
@@ -1341,7 +1342,7 @@ class SampleCollection<T>
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestPropertyGetter()
         {
             var code =
@@ -1359,7 +1360,7 @@ class TimePeriod
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestPropertySetter()
         {
             var code =
@@ -1379,7 +1380,7 @@ class TimePeriod
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestDestructor()
         {
             var code =
@@ -1394,7 +1395,7 @@ class TestClass
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestExpressionInParameter()
         {
             var code =
@@ -1408,7 +1409,7 @@ class TestClass
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestCrossLanguageInvocations()
         {
             var code =
@@ -1484,7 +1485,7 @@ End Class
             await TestInRegularAndScriptAsync(code, expected, 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestConvertedTypeInExpression()
         {
             var code =
@@ -1509,7 +1510,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestConvertedTypeInExpressionTrampoline()
         {
             var code =
@@ -1539,7 +1540,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestThisKeywordInExpression()
         {
             var code =
@@ -1581,7 +1582,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestThisImplicitInExpression()
         {
             var code =
@@ -1623,7 +1624,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestStaticMethodCallInExpression()
         {
             var code =
@@ -1660,7 +1661,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestBaseKeywordInExpression()
         {
             var code =
@@ -1704,7 +1705,7 @@ class Perl : Net
             await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestFieldReferenceInOptionalParameter()
         {
             var code =
@@ -1740,7 +1741,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestNamedParameterNecessary()
         {
             var code =
@@ -1776,7 +1777,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestHighlightReturnType()
         {
             var code =
@@ -1796,7 +1797,7 @@ class TestClass
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestTypeOfOnString()
         {
             var code =
@@ -1821,7 +1822,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestClassObject()
         {
             var code =
@@ -1855,7 +1856,7 @@ class TestClass
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestReferenceInDifferentDocumentWithUsings()
         {
             var code =
@@ -1933,7 +1934,7 @@ namespace Refactorings
             await TestInRegularAndScriptAsync(code, expected, 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestIntroduceParameterOnParameter()
         {
             var code =
@@ -1952,7 +1953,7 @@ class Program
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        [Fact]
         public async Task TestIntroduceParameterOnExpressionContainingParameter()
         {
             var code =

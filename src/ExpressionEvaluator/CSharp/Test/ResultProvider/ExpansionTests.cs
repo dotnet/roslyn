@@ -710,8 +710,7 @@ class C
         /// doesn't have a representation for reference types) and the IntPtr is a pointer
         /// to the actual string object on the heap.
         /// </summary>
-        [WorkItem(1022632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022632")]
-        [Fact]
+        [Fact, WorkItem(1022632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022632")]
         public void IntPtrPointer()
         {
             var source = @"
@@ -791,8 +790,7 @@ unsafe class C
             }
         }
 
-        [WorkItem(1154608, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1154608")]
-        [Fact]
+        [Fact, WorkItem(1154608, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1154608")]
         public void VoidPointer()
         {
             var source = @"
@@ -834,8 +832,7 @@ unsafe class C
             }
         }
 
-        [WorkItem(1064176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064176")]
-        [Fact]
+        [Fact, WorkItem(1064176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064176")]
         public void NullPointer()
         {
             /*
@@ -1118,8 +1115,7 @@ internal class P
             }
         }
 
-        [WorkItem(933845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933845")]
-        [Fact]
+        [Fact, WorkItem(933845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933845")]
         public void StaticMemberOfBaseType()
         {
             var source =
@@ -1387,8 +1383,7 @@ class C
                 EvalResult("Static members", null, "", "System.Collections.Immutable.ImmutableArray<int>", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class));
         }
 
-        [WorkItem(933845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933845")]
-        [Fact]
+        [Fact, WorkItem(933845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933845")]
         public void DeclaredTypeObject()
         {
             var source = @"
@@ -1434,8 +1429,7 @@ class C
                 EvalResult("P", "3", "object {int}", "((B)c.o).P", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
         }
 
-        [WorkItem(933845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933845")]
-        [Fact]
+        [Fact, WorkItem(933845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933845")]
         public void DeclaredTypeObject_Array()
         {
             var source = @"
@@ -1496,8 +1490,7 @@ class C
                 EvalResult("P", "4", "object {int}", "((B)c.o[0]).P", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
         }
 
-        [WorkItem(933845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933845")]
-        [Fact]
+        [Fact, WorkItem(933845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933845")]
         public void DeclaredTypeObject_Static()
         {
             var source = @"
@@ -1535,8 +1528,7 @@ class C
                 EvalResult("G", "1", "object {int}", "((B)A.F).G", DkmEvaluationResultFlags.CanFavorite));
         }
 
-        [WorkItem(933845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933845")]
-        [Fact]
+        [Fact, WorkItem(933845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933845")]
         public void ExceptionThrownFlag()
         {
             var source = @"
@@ -1563,8 +1555,7 @@ struct S
                 EvalResult("x", "0", "int", "s.x", DkmEvaluationResultFlags.CanFavorite));
         }
 
-        [WorkItem(933845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933845")]
-        [Fact]
+        [Fact, WorkItem(933845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933845")]
         public void ExceptionThrownFlag_ProxyType()
         {
             var source = @"
@@ -1612,9 +1603,8 @@ class EProxy
                 EvalResult("Raw View", null, "", "s.This, raw", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown, DkmEvaluationResultCategory.Data));
         }
 
+        [Fact, WorkItem(967366, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/967366")]
         [WorkItem(933845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933845")]
-        [WorkItem(967366, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/967366")]
-        [Fact]
         public void ExceptionThrownFlag_DerivedExceptionType()
         {
             var source = @"
@@ -1656,8 +1646,7 @@ struct S
             }
         }
 
-        [WorkItem(933845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933845")]
-        [Fact]
+        [Fact, WorkItem(933845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933845")]
         public void ExceptionThrownFlag_DebuggerDisplay()
         {
             var source = @"
@@ -1712,8 +1701,7 @@ class E : System.Exception
                     DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ExceptionThrown));
         }
 
-        [WorkItem(1043730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043730")]
-        [Fact]
+        [Fact, WorkItem(1043730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043730")]
         public void ExceptionThrownFlag_Nullable()
         {
             /*
@@ -1750,8 +1738,7 @@ class E : System.Exception
             }
         }
 
-        [WorkItem(1043730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043730")]
-        [Fact]
+        [Fact, WorkItem(1043730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043730")]
         public void ExceptionThrownFlag_NullableMember()
         {
             var source =
@@ -1809,8 +1796,7 @@ class E : System.Exception
                 EvalResult("c", "0x0007 '\\a'", "char", "c", editableValue: "'\\a'"));
         }
 
-        [WorkItem(1138095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1138095")]
-        [Fact]
+        [Fact, WorkItem(1138095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1138095")]
         public void UnicodeString()
         {
             var value = CreateDkmClrValue("\u1234\u001f\u0007");
@@ -1819,8 +1805,7 @@ class E : System.Exception
                 EvalResult("s", $"\"{'\u1234'}\\u001f\\a\"", "string", "s", editableValue: $"\"{'\u1234'}\\u001f\\a\"", flags: DkmEvaluationResultFlags.RawString));
         }
 
-        [WorkItem(1002381, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002381")]
-        [Fact]
+        [Fact, WorkItem(1002381, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002381")]
         public void BaseTypeEditableValue()
         {
             var source =
@@ -1846,8 +1831,7 @@ class C
                 EvalResult("s", "\"\"", "System.Collections.Generic.IEnumerable<char> {string}", "o.s", DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.CanFavorite, editableValue: "\"\""));
         }
 
-        [WorkItem(965892, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965892")]
-        [Fact]
+        [Fact, WorkItem(965892, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965892")]
         public void DeclaredTypeAndRuntimeTypeDifferent()
         {
             var source =
@@ -1884,8 +1868,7 @@ class B : A { }
         /// Full name should be null for members of thrown
         /// exception since there's no valid expression.
         /// </summary>
-        [WorkItem(1003260, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003260")]
-        [Fact]
+        [Fact, WorkItem(1003260, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003260")]
         public void ExceptionThrown_Member()
         {
             var source =
@@ -1926,8 +1909,7 @@ class C
             }
         }
 
-        [WorkItem(1026721, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1026721")]
-        [Fact]
+        [Fact, WorkItem(1026721, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1026721")]
         public void ExceptionThrown_ReadOnly()
         {
             var source =
@@ -2262,8 +2244,7 @@ class D : C
         /// <summary>
         /// Do not copy state from parent.
         /// </summary>
-        [WorkItem(1028624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1028624")]
-        [Fact]
+        [Fact, WorkItem(1028624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1028624")]
         public void DoNotCopyParentState()
         {
             var sourceA =
@@ -2324,8 +2305,7 @@ class D : C
             }
         }
 
-        [WorkItem(1130978, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130978")]
-        [Fact]
+        [Fact, WorkItem(1130978, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130978")]
         public void NullableValue_Error()
         {
             var source =
@@ -2556,8 +2536,8 @@ class C
                 EvalResult(rootExpr, message, "", rootExpr));
         }
 
-        [WorkItem(62156, "https://github.com/dotnet/roslyn/issues/62156")]
         [Fact(Skip = "62156")]
+        [WorkItem(62156, "https://github.com/dotnet/roslyn/issues/62156")]
         public void RefField()
         {
             var source =

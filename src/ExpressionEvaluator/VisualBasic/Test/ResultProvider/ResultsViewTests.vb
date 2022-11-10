@@ -112,8 +112,7 @@ End Class"
             End Using
         End Sub
 
-        <WorkItem(1043746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043746")>
-        <Fact>
+        <Fact, WorkItem(1043746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043746")>
         Public Sub GetProxyPropertyValueError()
             Const source =
 "Imports System.Collections

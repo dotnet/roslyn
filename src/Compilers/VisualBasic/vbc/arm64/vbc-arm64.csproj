@@ -9,6 +9,7 @@
     <PlatformTarget>ARM64</PlatformTarget>
     <AssemblyName>vbc</AssemblyName>
     <DisableNullableWarnings>true</DisableNullableWarnings>
+    <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
   </PropertyGroup>
   
   <!-- Can't put this in shared project due to https://github.com/dotnet/project-system/issues/8157 -->

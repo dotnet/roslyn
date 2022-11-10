@@ -8042,10 +8042,10 @@ public class Derived : Base2
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (14,15): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (14,15): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         M(ref P); // CS0206
                 Diagnostic(ErrorCode.ERR_RefProperty, "P").WithLocation(14, 15),
-                // (15,15): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (15,15): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         M(out this.Q); // CS0206
                 Diagnostic(ErrorCode.ERR_RefProperty, "this.Q").WithLocation(15, 15));
         }
@@ -8072,18 +8072,19 @@ public class Derived : Base2
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (13,15): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (13,15): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         R(ref this[0]); // CS0206
                 Diagnostic(ErrorCode.ERR_RefProperty, "this[0]").WithLocation(13, 15),
-                // (14,15): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (14,15): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         O(out this[0]); // CS0206
                 Diagnostic(ErrorCode.ERR_RefProperty, "this[0]").WithLocation(14, 15));
         }
 
         [Fact]
-        public void CS0208ERR_ManagedAddr01()
+        public void CS8500WRN_ManagedAddr01()
         {
             var text = @"
+#pragma warning disable CS0169 // unused field
 class myClass
 {
     public int a = 98;
@@ -8107,10 +8108,10 @@ public class MyClass
     {
         // myClass is a class, a managed type.
         myClass s = new myClass();  
-        myClass* s2 = &s;    // CS0208
+        myClass* s2 = &s;    // CS8500
 
         // The struct contains a string, a managed type.
-        int i = sizeof(myProblemStruct); //CS0208
+        int i = sizeof(myProblemStruct); //CS8500
         
         // The struct contains only value types.
         i = sizeof(myGoodStruct); //OK
@@ -8120,35 +8121,23 @@ public class MyClass
 
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (25,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('myClass')
-                //         myClass* s2 = &s;    // CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "myClass*").WithArguments("myClass"),
-                // (25,23): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('myClass')
-                //         myClass* s2 = &s;    // CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&s").WithArguments("myClass"),
-                // (28,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('myProblemStruct')
-                //         int i = sizeof(myProblemStruct); //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "sizeof(myProblemStruct)").WithArguments("myProblemStruct"),
-
-                // (9,12): warning CS0169: The field 'myProblemStruct.s' is never used
-                //     string s;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "s").WithArguments("myProblemStruct.s"),
-                // (10,11): warning CS0169: The field 'myProblemStruct.f' is never used
-                //     float f;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "f").WithArguments("myProblemStruct.f"),
-                // (15,9): warning CS0169: The field 'myGoodStruct.i' is never used
-                //     int i;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("myGoodStruct.i"),
-                // (16,11): warning CS0169: The field 'myGoodStruct.f' is never used
-                //     float f;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "f").WithArguments("myGoodStruct.f"));
+                // (26,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('myClass')
+                //         myClass* s2 = &s;    // CS8500
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "myClass*").WithArguments("myClass").WithLocation(26, 9),
+                // (26,23): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('myClass')
+                //         myClass* s2 = &s;    // CS8500
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("myClass").WithLocation(26, 23),
+                // (29,17): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('myProblemStruct')
+                //         int i = sizeof(myProblemStruct); //CS8500
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "sizeof(myProblemStruct)").WithArguments("myProblemStruct").WithLocation(29, 17));
         }
 
         [Fact]
-        public void CS0208ERR_ManagedAddr02()
+        public void CS8500WRN_ManagedAddr02()
         {
-            var source =
-@"enum E { }
+            var source = @"
+#pragma warning disable CS0169 // unused field
+enum E { }
 delegate void D();
 struct S { }
 interface I { }
@@ -8181,28 +8170,26 @@ unsafe class C
     I* i;
     C* c;
 }";
-            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll)
-                .GetDiagnostics()
-                .Where(d => d.Severity == DiagnosticSeverity.Error)
-                .Verify(
-                    // (22,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
-                    //     string* _string;
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "_string").WithArguments("string").WithLocation(22, 13),
-                    // (27,14): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
-                    //     dynamic* _dynamic;
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "_dynamic").WithArguments("dynamic").WithLocation(27, 14),
-                    // (29,8): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('D')
-                    //     D* d;
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "d").WithArguments("D").WithLocation(29, 8),
-                    // (31,8): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('I')
-                    //     I* i;
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "i").WithArguments("I").WithLocation(31, 8),
-                    // (32,8): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
-                    //     C* c;
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "c").WithArguments("C").WithLocation(32, 8),
-                    // (7,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('object')
-                    //     object* _object;
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "_object").WithArguments("object").WithLocation(7, 13));
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (9,13): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('object')
+                //     object* _object;
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "_object").WithArguments("object").WithLocation(9, 13),
+                // (24,13): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+                //     string* _string;
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "_string").WithArguments("string").WithLocation(24, 13),
+                // (29,14): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('dynamic')
+                //     dynamic* _dynamic;
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "_dynamic").WithArguments("dynamic").WithLocation(29, 14),
+                // (31,8): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('D')
+                //     D* d;
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "d").WithArguments("D").WithLocation(31, 8),
+                // (33,8): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('I')
+                //     I* i;
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "i").WithArguments("I").WithLocation(33, 8),
+                // (34,8): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                //     C* c;
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "c").WithArguments("C").WithLocation(34, 8)
+                );
         }
 
         [Fact]
@@ -9927,7 +9914,7 @@ struct S
 }";
 
             // Note that none of these errors except the first one are reported by the native compiler, because
-            // it does not report additional errors after an error is found in a formal parameter of a method.
+            // it does not report additional errors after an error is found in a parameter of a method.
 
             CreateCompilationWithMscorlib40(text, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
                 // (9,36): error CS0310: 'U' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'D<T>'
@@ -9967,8 +9954,8 @@ struct S
                 // But what about the overload resolution problem in error recovery? Even though the argument is bad we still
                 // might want to try to get an overload resolution result. Thus we must infer a type for T in E.F<T>(D<T>). 
                 // We must do overload resolution on an invocation S.F<C<B>>(). Overload resolution succeeds; it has no reason
-                // to fail. (Overload resolution would fail if a formal parameter type of S.F<C<B>>() did not satisfy one of its
-                // constraints, but there are no formal parameters. Also, there are no constraints at all on T in S.F<T>.)
+                // to fail. (Overload resolution would fail if a parameter type of S.F<C<B>>() did not satisfy one of its
+                // constraints, but there are no parameters. Also, there are no constraints at all on T in S.F<T>.)
                 //
                 // Thus T in D<T> is inferred to be C<B>, and thus T in E.F<T> is inferred to be C<B>. 
                 //
@@ -9982,12 +9969,12 @@ struct S
                 //
                 // This is arguably a "cascading" error; we have already reported an error for C<B> when the 
                 // argument was bound. Normally we avoid reporting "cascading" errors in overload resolution by
-                // saying that an erroneous argument is implicitly convertible to any formal parameter type;
+                // saying that an erroneous argument is implicitly convertible to any parameter type;
                 // thus we avoid an erroneous expression from causing overload resolution to make every
                 // candidate method inapplicable. (Though it might cause overload resolution to fail by making
                 // every candidate method applicable, causing an ambiguity!)  But the overload resolution 
                 // error here is not caused by an argument *conversion* in the first place; the overload
-                // resolution error is caused because *the deduced formal parameter type is illegal.*
+                // resolution error is caused because *the deduced parameter type is illegal.*
                 //
                 // We might want to put some gear in place to suppress this cascading error. It is not
                 // entirely clear what that machinery might look like.
@@ -13267,7 +13254,7 @@ End Interface";
             compilation2.VerifyDiagnostics(
                 // (8,9): error CS0856: Indexed property 'I.R' has non-optional arguments which must be provided
                 Diagnostic(ErrorCode.ERR_IndexedPropertyRequiresParams, "i.R").WithArguments("I.R").WithLocation(8, 9),
-                // (9,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'I.R[int, int, int]'
+                // (9,9): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'I.R[int, int, int]'
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "i.R[1]").WithArguments("y", "I.R[int, int, int]").WithLocation(9, 9));
 
             var tree = compilation2.SyntaxTrees.Single();
@@ -14773,7 +14760,7 @@ class Program
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (11,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'MyDelegate1'
+                // (11,9): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'MyDelegate1'
                 //         md1(1);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "md1").WithArguments("y", "MyDelegate1").WithLocation(11, 9));
         }
@@ -16569,7 +16556,7 @@ public class Child2 : Parent
             var compilation = CreateCompilation(text);
 
             DiagnosticDescription[] expected = {
-                // (21,14): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'Parent.Parent(int, int)'
+                // (21,14): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'Parent.Parent(int, int)'
                 // public class Child : Parent { } // CS1729
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Child").WithArguments("i", "Parent.Parent(int, int)").WithLocation(21, 14),
                 // (6,24): error CS1729: 'double' does not contain a constructor that takes 1 arguments
@@ -16578,7 +16565,7 @@ public class Child2 : Parent
                 // (7,26): error CS1729: 'Test' does not contain a constructor that takes 1 arguments
                 //         Test test1 = new Test(2); // CS1729
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test").WithArguments("Test", "1").WithLocation(7, 26),
-                // (9,37): error CS7036: There is no argument given that corresponds to the required formal parameter 'j' of 'Parent.Parent(int, int)'
+                // (9,37): error CS7036: There is no argument given that corresponds to the required parameter 'j' of 'Parent.Parent(int, int)'
                 //         Parent exampleParent1 = new Parent(10); // CS1729
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Parent").WithArguments("j", "Parent.Parent(int, int)").WithLocation(9, 37)
             };
@@ -22869,13 +22856,13 @@ public class Program
                 // (17,47): error CS1510: A ref or out argument must be an assignable variable
                 //         var z5 = new Func<string, string>(ref Goo<string>(x => x));
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Goo<string>(x => x)").WithLocation(17, 47),
-                // (18,43): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (18,43): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         var z6 = new Func<string, string>(ref BarP); 
                 Diagnostic(ErrorCode.ERR_RefProperty, "ref BarP").WithLocation(18, 43),
                 // (19,47): error CS1510: A ref or out argument must be an assignable variable
                 //         var z7 = new Func<string, string>(ref new Func<string, string>(x => x));
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new Func<string, string>(x => x)").WithLocation(19, 47),
-                // (20,43): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (20,43): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         var z8 = new Func<string, string>(ref Program.BarP); 
                 Diagnostic(ErrorCode.ERR_RefProperty, "ref Program.BarP").WithLocation(20, 43),
                 // (21,47): error CS1510: A ref or out argument must be an assignable variable
@@ -22902,13 +22889,13 @@ public class Program
                 // (17,47): error CS1510: A ref or out argument must be an assignable variable
                 //         var z5 = new Func<string, string>(ref Goo<string>(x => x));
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Goo<string>(x => x)").WithLocation(17, 47),
-                // (18,47): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (18,47): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         var z6 = new Func<string, string>(ref BarP); 
                 Diagnostic(ErrorCode.ERR_RefProperty, "BarP").WithLocation(18, 47),
                 // (19,47): error CS1510: A ref or out argument must be an assignable variable
                 //         var z7 = new Func<string, string>(ref new Func<string, string>(x => x));
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new Func<string, string>(x => x)").WithLocation(19, 47),
-                // (20,47): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (20,47): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         var z8 = new Func<string, string>(ref Program.BarP); 
                 Diagnostic(ErrorCode.ERR_RefProperty, "Program.BarP").WithLocation(20, 47),
                 // (21,47): error CS1510: A ref or out argument must be an assignable variable
@@ -23020,7 +23007,7 @@ public class Program
                 // (10,46): error CS0149: Method name expected
                 //         var c = new Func<string, string>(ref Baz, ref Baz.Invoke);
                 Diagnostic(ErrorCode.ERR_MethodNameExpected, "Baz, ref Baz.Invoke").WithLocation(10, 46),
-                // (11,42): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (11,42): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         var d = new Func<string, string>(ref BarP, BarP.Invoke);
                 Diagnostic(ErrorCode.ERR_RefProperty, "ref BarP").WithLocation(11, 42),
                 // (11,46): error CS0149: Method name expected
@@ -23029,7 +23016,7 @@ public class Program
                 // (12,42): error CS0149: Method name expected
                 //         var e = new Func<string, string>(BarP, ref BarP.Invoke);
                 Diagnostic(ErrorCode.ERR_MethodNameExpected, "BarP, ref BarP.Invoke").WithLocation(12, 42),
-                // (13,42): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (13,42): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         var f = new Func<string, string>(ref BarP, ref BarP.Invoke);
                 Diagnostic(ErrorCode.ERR_RefProperty, "ref BarP").WithLocation(13, 42),
                 // (13,46): error CS0149: Method name expected

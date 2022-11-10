@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -21,23 +22,28 @@ namespace Microsoft.CodeAnalysis
     {
         public bool ShouldReuseInSerialization => true;
 
-        public static SourceGeneratedDocumentIdentity Generate(ProjectId projectId, string hintName, ISourceGenerator generator, string filePath)
+        public static SourceGeneratedDocumentIdentity Generate(ProjectId projectId, string hintName, ISourceGenerator generator, string filePath, AnalyzerReference analyzerReference)
         {
             // We want the DocumentId generated for a generated output to be stable between Compilations; this is so features that track
             // a document by DocumentId can find it after some change has happened that requires generators to run again.
             // To achieve this we'll just do a crytographic hash of the generator name and hint name; the choice of a cryptographic hash
             // as opposed to a more generic string hash is we actually want to ensure we don't have collisions.
-            var generatorIdentity = new SourceGeneratorIdentity(generator);
+            var generatorIdentity = new SourceGeneratorIdentity(generator, analyzerReference);
 
             // Combine the strings together; we'll use Encoding.Unicode since that'll match the underlying format; this can be made much
             // faster once we're on .NET Core since we could directly treat the strings as ReadOnlySpan<char>.
             var projectIdBytes = projectId.Id.ToByteArray();
-            using var _ = ArrayBuilder<byte>.GetInstance(capacity: (generatorIdentity.AssemblyName.Length + 1 + generatorIdentity.TypeName.Length + 1 + hintName.Length) * 2 + projectIdBytes.Length, out var hashInput);
+
+            // The assembly path should exist in any normal scenario; the hashing of the name only would apply if the user loaded a
+            // dynamic assembly they produced at runtime and passed us that via a custom AnalyzerReference.
+            var assemblyNameToHash = generatorIdentity.AssemblyPath ?? generatorIdentity.AssemblyName;
+
+            using var _ = ArrayBuilder<byte>.GetInstance(capacity: (assemblyNameToHash.Length + 1 + generatorIdentity.TypeName.Length + 1 + hintName.Length) * 2 + projectIdBytes.Length, out var hashInput);
             hashInput.AddRange(projectIdBytes);
 
             // Add a null to separate the generator name and hint name; since this is effectively a joining of UTF-16 bytes
             // we'll use a UTF-16 null just to make sure there's absolutely no risk of collision.
-            hashInput.AddRange(Encoding.Unicode.GetBytes(generatorIdentity.AssemblyName));
+            hashInput.AddRange(Encoding.Unicode.GetBytes(assemblyNameToHash));
             hashInput.AddRange(0, 0);
             hashInput.AddRange(Encoding.Unicode.GetBytes(generatorIdentity.TypeName));
             hashInput.AddRange(0, 0);
@@ -61,6 +67,8 @@ namespace Microsoft.CodeAnalysis
 
             writer.WriteString(HintName);
             writer.WriteString(Generator.AssemblyName);
+            writer.WriteString(Generator.AssemblyPath);
+            writer.WriteString(Generator.AssemblyVersion.ToString());
             writer.WriteString(Generator.TypeName);
             writer.WriteString(FilePath);
         }
@@ -71,10 +79,22 @@ namespace Microsoft.CodeAnalysis
 
             var hintName = reader.ReadString();
             var generatorAssemblyName = reader.ReadString();
+            var generatorAssemblyPath = reader.ReadString();
+            var generatorAssemblyVersion = Version.Parse(reader.ReadString());
             var generatorTypeName = reader.ReadString();
             var filePath = reader.ReadString();
 
-            return new SourceGeneratedDocumentIdentity(documentId, hintName, new SourceGeneratorIdentity(generatorAssemblyName, generatorTypeName), filePath);
+            return new SourceGeneratedDocumentIdentity(
+                documentId,
+                hintName,
+                new SourceGeneratorIdentity
+                {
+                    AssemblyName = generatorAssemblyName,
+                    AssemblyPath = generatorAssemblyPath,
+                    AssemblyVersion = generatorAssemblyVersion,
+                    TypeName = generatorTypeName
+                },
+                filePath);
         }
     }
 }

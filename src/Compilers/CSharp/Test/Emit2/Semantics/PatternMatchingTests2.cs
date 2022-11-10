@@ -2093,7 +2093,7 @@ class Point
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
-                // (6,23): error CS7036: There is no argument given that corresponds to the required formal parameter 'X' of 'Point.Deconstruct(out int, out int)'
+                // (6,23): error CS7036: There is no argument given that corresponds to the required parameter 'X' of 'Point.Deconstruct(out int, out int)'
                 //         if (p is Point())
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "()").WithArguments("X", "Point.Deconstruct(out int, out int)").WithLocation(6, 23),
                 // (6,23): error CS8129: No suitable Deconstruct instance or extension method was found for type 'Point', with 0 out parameters and a void return type.
@@ -3284,6 +3284,8 @@ class C
             var comp = CreateCompilation(source);
             comp.MakeTypeMissing(SpecialType.System_Int32);
             comp.VerifyEmitDiagnostics(
+                // error CS0518: Predefined type 'System.Int32' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Int32").WithLocation(1, 1),
                 // (6,9): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //         switch (s)
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"switch (s)

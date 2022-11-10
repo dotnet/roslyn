@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 bool containsQueryExpression,
                 bool containsThisConstructorInitializer,
                 bool containsBaseConstructorInitializer,
-                bool containsElementAccessExpression,
+                bool containsExplicitOrImplicitElementAccessExpression,
                 bool containsIndexerMemberCref,
                 bool containsDeconstruction,
                 bool containsAwait,
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                          containsQueryExpression,
                          containsThisConstructorInitializer,
                          containsBaseConstructorInitializer,
-                         containsElementAccessExpression,
+                         containsExplicitOrImplicitElementAccessExpression,
                          containsIndexerMemberCref,
                          containsDeconstruction,
                          containsAwait,
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 bool containsQueryExpression,
                 bool containsThisConstructorInitializer,
                 bool containsBaseConstructorInitializer,
-                bool containsElementAccessExpression,
+                bool containsExplicitOrImplicitElementAccessExpression,
                 bool containsIndexerMemberCref,
                 bool containsDeconstruction,
                 bool containsAwait,
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 containingNodes |= containsQueryExpression ? ContainingNodes.ContainsQueryExpression : 0;
                 containingNodes |= containsThisConstructorInitializer ? ContainingNodes.ContainsThisConstructorInitializer : 0;
                 containingNodes |= containsBaseConstructorInitializer ? ContainingNodes.ContainsBaseConstructorInitializer : 0;
-                containingNodes |= containsElementAccessExpression ? ContainingNodes.ContainsElementAccessExpression : 0;
+                containingNodes |= containsExplicitOrImplicitElementAccessExpression ? ContainingNodes.ContainsExplicitOrImplicitElementAccessExpression : 0;
                 containingNodes |= containsIndexerMemberCref ? ContainingNodes.ContainsIndexerMemberCref : 0;
                 containingNodes |= containsDeconstruction ? ContainingNodes.ContainsDeconstruction : 0;
                 containingNodes |= containsAwait ? ContainingNodes.ContainsAwait : 0;
@@ -132,8 +132,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public bool ContainsBaseConstructorInitializer
                 => (_containingNodes & ContainingNodes.ContainsBaseConstructorInitializer) == ContainingNodes.ContainsBaseConstructorInitializer;
 
-            public bool ContainsElementAccessExpression
-                => (_containingNodes & ContainingNodes.ContainsElementAccessExpression) == ContainingNodes.ContainsElementAccessExpression;
+            public bool ContainsExplicitOrImplicitElementAccessExpression
+                => (_containingNodes & ContainingNodes.ContainsExplicitOrImplicitElementAccessExpression) == ContainingNodes.ContainsExplicitOrImplicitElementAccessExpression;
 
             public bool ContainsIndexerMemberCref
                 => (_containingNodes & ContainingNodes.ContainsIndexerMemberCref) == ContainingNodes.ContainsIndexerMemberCref;
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 ContainsQueryExpression = 1 << 3,
                 ContainsThisConstructorInitializer = 1 << 4,
                 ContainsBaseConstructorInitializer = 1 << 5,
-                ContainsElementAccessExpression = 1 << 6,
+                ContainsExplicitOrImplicitElementAccessExpression = 1 << 6,
                 ContainsIndexerMemberCref = 1 << 7,
                 ContainsDeconstruction = 1 << 8,
                 ContainsAwait = 1 << 9,

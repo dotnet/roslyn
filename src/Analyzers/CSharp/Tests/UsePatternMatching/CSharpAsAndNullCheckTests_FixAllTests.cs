@@ -12,9 +12,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
     public partial class CSharpAsAndNullCheckTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task FixAllInDocument1()
         {
             await TestInRegularAndScriptAsync(
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task FixAllInDocument1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task FixAllInDocument2()
         {
             await TestInRegularAndScriptAsync(
@@ -171,8 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [WorkItem(26679, "https://github.com/dotnet/roslyn/issues/26679")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact, WorkItem(26679, "https://github.com/dotnet/roslyn/issues/26679")]
         public async Task FixAllInDocument3()
         {
             await TestInRegularAndScriptAsync(
@@ -237,8 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [WorkItem(26680, "https://github.com/dotnet/roslyn/issues/26680")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact, WorkItem(26680, "https://github.com/dotnet/roslyn/issues/26680")]
         public async Task FixAllInDocument4()
         {
             await TestInRegularAndScriptAsync(
