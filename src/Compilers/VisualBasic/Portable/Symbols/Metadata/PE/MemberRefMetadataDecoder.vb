@@ -131,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         End If
 
                         Dim fieldInfo As FieldInfo(Of TypeSymbol) = Me.DecodeFieldSignature(signaturePointer)
-                        Return FindFieldBySignature(_containingType, memberName, fieldInfo.CustomModifiers, fieldInfo.Type)
+                        Return FindFieldBySignature(_containingType, memberName, fieldInfo)
 
                     Case Else
                         ' error
@@ -142,12 +142,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Try
         End Function
 
-        Private Shared Function FindFieldBySignature(targetTypeSymbol As TypeSymbol, targetMemberName As String, customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol)), type As TypeSymbol) As FieldSymbol
+        Private Shared Function FindFieldBySignature(targetTypeSymbol As TypeSymbol, targetMemberName As String, fieldInfo As FieldInfo(Of TypeSymbol)) As FieldSymbol
+
+            Dim type As TypeSymbol = Nothing
+            Dim customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol)) = Nothing
+            PEFieldSymbol.GetSignatureParts(fieldInfo, type, customModifiers)
+
             For Each member In targetTypeSymbol.GetMembers(targetMemberName)
                 Dim field = TryCast(member, FieldSymbol)
-                ' https://github.com/dotnet/roslyn/issues/62121: Record RefKind and RefCustomModifiers on
-                ' PEFieldSymbol to differentiate fields that differ by RefKind or RefCustomModifiers here.
-                ' See RefFieldTests.MemberRefMetadataDecoder_FindFieldBySignature().
                 If field IsNot Nothing AndAlso
                    TypeSymbol.Equals(field.Type, type, TypeCompareKind.AllIgnoreOptionsForVB) AndAlso
                    CustomModifiersMatch(field.CustomModifiers, customModifiers) Then

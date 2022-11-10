@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
@@ -429,8 +429,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
+        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
 
         internal sealed override bool HasUnscopedRefAttribute => false;
+
+        internal sealed override bool UseUpdatedEscapeRules => false;
     }
 }

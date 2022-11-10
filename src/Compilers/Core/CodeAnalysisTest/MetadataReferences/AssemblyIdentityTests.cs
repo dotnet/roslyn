@@ -89,7 +89,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             name.CultureInfo = new CultureInfo("en-US", useUserOverride: false);
             name.ContentType = AssemblyContentType.Default;
             name.Version = new Version(1, 2, 3, 4);
+#pragma warning disable SYSLIB0037
+            // warning SYSLIB0037: 'AssemblyName.ProcessorArchitecture' is obsolete: 'AssemblyName members HashAlgorithm, ProcessorArchitecture, and VersionCompatibility are obsolete and not supported.'
             name.ProcessorArchitecture = ProcessorArchitecture.X86;
+#pragma warning restore SYSLIB0037
 
             var id = AssemblyIdentity.FromAssemblyDefinition(name);
             Assert.Equal("goo", id.Name);
@@ -128,7 +131,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             name.CultureInfo = CultureInfo.InvariantCulture;
             name.ContentType = AssemblyContentType.Default;
             name.Version = new Version(1, 2, 3, 4);
+#pragma warning disable SYSLIB0037
             name.ProcessorArchitecture = ProcessorArchitecture.X86;
+#pragma warning restore SYSLIB0037
 
             var id = AssemblyIdentity.FromAssemblyDefinition(name);
             Assert.Equal("", id.CultureName);
@@ -311,7 +316,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AssertEx.Equal(new byte[0], an.GetPublicKeyToken());
             AssertEx.Equal(null, an.GetPublicKey());
             Assert.Equal(AssemblyNameFlags.None, an.Flags);
+#pragma warning disable SYSLIB0044
+            // warning SYSLIB0044: 'AssemblyName.CodeBase' is obsolete: 'AssemblyName.CodeBase and AssemblyName.EscapedCodeBase are obsolete. Using them for loading an assembly is not supported.'
             Assert.Null(an.CodeBase);
+#pragma warning restore SYSLIB0044
 
             ai = new AssemblyIdentity("goo", new Version(1, 2, 3, 4), "en-US", RoPublicKey1,
                 hasPublicKey: true,
@@ -324,7 +332,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AssertEx.Equal(PublicKeyToken1, an.GetPublicKeyToken());
             AssertEx.Equal(PublicKey1, an.GetPublicKey());
             Assert.Equal(AssemblyNameFlags.PublicKey | AssemblyNameFlags.Retargetable, an.Flags);
+#pragma warning disable SYSLIB0044
             Assert.Null(an.CodeBase);
+#pragma warning restore SYSLIB0044
 
             // invalid characters are ok in the name, the FullName can't be built though:
             foreach (char c in ClrInvalidCharacters)
@@ -338,7 +348,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 AssertEx.Equal(new byte[0], an.GetPublicKeyToken());
                 AssertEx.Equal(null, an.GetPublicKey());
                 Assert.Equal(AssemblyNameFlags.None, an.Flags);
+#pragma warning disable SYSLIB0044
                 AssertEx.Equal(null, an.CodeBase);
+#pragma warning restore SYSLIB0044
             }
         }
 

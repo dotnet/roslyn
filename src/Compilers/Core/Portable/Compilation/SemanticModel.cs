@@ -270,10 +270,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// If this is a non-speculative member semantic model, then returns the containing semantic model for the entire tree.
+        /// If this is an instance of semantic model that cannot be exposed to external consumers, then returns the containing public semantic model.
         /// Otherwise, returns this instance of the semantic model.
         /// </summary>
-        internal abstract SemanticModel ContainingModelOrSelf
+        internal abstract SemanticModel ContainingPublicModelOrSelf
         {
             get;
         }

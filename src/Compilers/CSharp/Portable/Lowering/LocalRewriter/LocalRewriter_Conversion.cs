@@ -1489,7 +1489,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         // https://github.com/dotnet/roslyn/issues/42452: Test with native integers and expression trees.

@@ -25,12 +25,17 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
 {
     public class CodeActionsTests : AbstractLanguageServerProtocolTests
     {
+        public CodeActionsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         [WpfFact]
         public async Task TestCodeActionHandlerAsync()
         {
@@ -42,7 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         {|caret:|}int i = 1;
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var caretLocation = testLspServer.GetLocations("caret").Single();
             var expected = CreateCodeAction(
@@ -75,7 +80,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         int {|caret:|}i = 1;
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
 
             var caretLocation = testLspServer.GetLocations("caret").Single();
             var expected = CreateCodeAction(
@@ -111,7 +116,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         {|caret:|}int i = 1;
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
             var cache = GetCodeActionsCache(testLspServer);
             var testAccessor = cache.GetTestAccessor();
 
@@ -201,7 +206,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         {|caret:|}Task.Delay(1);
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var caret = testLspServer.GetLocations("caret").Single();
             var codeActionParams = new LSP.CodeActionParams

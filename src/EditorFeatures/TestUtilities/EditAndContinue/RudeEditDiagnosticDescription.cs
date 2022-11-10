@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
-    internal struct RudeEditDiagnosticDescription : IEquatable<RudeEditDiagnosticDescription>
+    internal readonly struct RudeEditDiagnosticDescription : IEquatable<RudeEditDiagnosticDescription>
     {
         private readonly RudeEditKind _rudeEditKind;
         private readonly string _firstLine;

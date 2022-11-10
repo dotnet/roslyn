@@ -13,12 +13,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
 {
+    [Trait(Traits.Feature, Traits.Features.Outlining)]
     public class StringLiteralExpressionStructureTests : AbstractCSharpSyntaxNodeStructureTests<LiteralExpressionSyntax>
     {
         internal override AbstractSyntaxStructureProvider CreateProvider()
             => new StringLiteralExpressionStructureProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestMultiLineStringLiteral()
         {
             await VerifyBlockSpansAsync(
@@ -38,7 +39,7 @@ class
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestMissingOnIncompleteStringLiteral()
         {
             await VerifyNoBlockSpansAsync(

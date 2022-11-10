@@ -10,9 +10,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDelegateWithConditionalAccess
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
     public partial class InvokeDelegateWithConditionalAccessTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [Fact]
         public async Task TestFixAllInDocument1()
         {
             await TestInRegularAndScriptAsync(
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [Fact]
         public async Task TestFixAllInDocument2()
         {
             await TestInRegularAndScriptAsync(
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [Fact]
         public async Task TestFixAllInDocument3()
         {
             await TestInRegularAndScriptAsync(
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [Fact]
         public async Task TestFixAllInDocument4()
         {
             await TestInRegularAndScriptAsync(
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [Fact]
         public async Task TestFixAllInDocument5()
         {
             await TestInRegularAndScriptAsync(
@@ -192,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [Fact]
         public async Task TestFixAllInDocument6()
         {
             await TestInRegularAndScriptAsync(

@@ -40,13 +40,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
                 return;
             }
 
-            var workspace = document.Project.Solution.Workspace;
-            if (workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            var solution = document.Project.Solution;
+            if (solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
 
-            var activeInlineRenameSession = workspace.Services.GetService<ICodeRefactoringHelpersService>().ActiveInlineRenameSession;
+            var activeInlineRenameSession = solution.Services.GetService<ICodeRefactoringHelpersService>().ActiveInlineRenameSession;
             if (activeInlineRenameSession)
             {
                 return;

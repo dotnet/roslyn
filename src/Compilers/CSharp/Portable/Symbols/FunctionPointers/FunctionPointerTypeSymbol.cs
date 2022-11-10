@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation)
             => new FunctionPointerTypeSymbol(FunctionPointerMethodSymbol.CreateFromParts(callingConvention, callingConventionModifiers, returnType, returnRefKind, parameterTypes, parameterRefKinds, compilation));
 
-        public static FunctionPointerTypeSymbol CreateFromMetadata(Cci.CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes)
+        public static FunctionPointerTypeSymbol CreateFromMetadata(ModuleSymbol containingModule, Cci.CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes)
             => new FunctionPointerTypeSymbol(
-                FunctionPointerMethodSymbol.CreateFromMetadata(callingConvention, retAndParamTypes));
+                FunctionPointerMethodSymbol.CreateFromMetadata(containingModule, callingConvention, retAndParamTypes));
 
         public FunctionPointerTypeSymbol SubstituteTypeSymbol(
             TypeWithAnnotations substitutedReturnType,

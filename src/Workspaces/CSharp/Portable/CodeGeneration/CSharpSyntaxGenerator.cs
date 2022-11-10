@@ -557,7 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private SyntaxNode WithoutConstraints(SyntaxNode declaration)
         {
-            if (declaration.IsKind(SyntaxKind.MethodDeclaration, out MethodDeclarationSyntax? method))
+            if (declaration is MethodDeclarationSyntax method)
             {
                 if (method.ConstraintClauses.Count > 0)
                 {
@@ -763,6 +763,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 Accessibility acc;
                 DeclarationModifiers modifiers;
+
+                // return any nested member "as is" without any additional changes
+                if (member is BaseTypeDeclarationSyntax)
+                    return member;
 
                 switch (member.Kind())
                 {
@@ -1178,6 +1182,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 ParameterSyntax parameter => parameter.WithAttributeLists(attributeLists),
                 CompilationUnitSyntax compilationUnit => compilationUnit.WithAttributeLists(AsAssemblyAttributes(attributeLists)),
                 StatementSyntax statement => statement.WithAttributeLists(attributeLists),
+                TypeParameterSyntax typeParameter => typeParameter.WithAttributeLists(attributeLists),
+                LambdaExpressionSyntax lambdaExpression => lambdaExpression.WithAttributeLists(attributeLists),
                 _ => declaration,
             };
 
@@ -1600,6 +1606,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                             accessibility = Accessibility.NotApplicable;
                         }
                     }
+
                     var newTokens = Merge(tokens, AsModifierList(accessibility, modifiers));
                     return SetModifierTokens(d, newTokens);
                 });
@@ -3196,7 +3203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // this counts for actual reference type, or a type parameter with a 'class' constraint.
             // Also, if it's a nullable type, then we can use "null".
             if (type.IsReferenceType ||
-                type.IsPointerType() ||
+                type is IPointerTypeSymbol ||
                 type.IsNullable())
             {
                 return SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);

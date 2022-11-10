@@ -414,6 +414,16 @@
     </Field>
     <Field Name="Type" Type="TypeSyntax"/>
   </Node>
+  <Node Name="ScopedTypeSyntax" Base="TypeSyntax">
+    <TypeComment>
+      <summary>The 'scoped' modifier of a local.</summary>
+    </TypeComment>
+    <Kind Name="ScopedType"/>
+    <Field Name="ScopedKeyword" Type="SyntaxToken">
+      <Kind Name="ScopedKeyword"/>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax"/>
+  </Node>
   <!-- Expressions -->
   <AbstractNode Name="ExpressionOrPatternSyntax" Base="CSharpSyntaxNode" />
   <AbstractNode Name="ExpressionSyntax" Base="ExpressionOrPatternSyntax">
@@ -4247,7 +4257,7 @@
     <Field Name="Type" Type="TypeSyntax" Optional="false" Override="true"/>
   </Node>
   <Node Name="IncompleteMemberSyntax" Base="MemberDeclarationSyntax">
-    <Kind Name="IncompleteMember"/>n
+    <Kind Name="IncompleteMember"/>
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
     <Field Name="Type" Type="TypeSyntax" Optional="true"/>

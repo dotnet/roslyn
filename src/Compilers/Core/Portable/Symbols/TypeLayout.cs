@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Type layout information.
     /// </summary>
-    internal struct TypeLayout : IEquatable<TypeLayout>
+    internal readonly struct TypeLayout : IEquatable<TypeLayout>
     {
         private readonly byte _kind;
         private readonly short _alignment;

@@ -9,14 +9,15 @@ Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBas
     Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers.VisualBasicAddAccessibilityModifiersCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddAccessibilityModifiers
-    Public Class AddAccessibilityModifiersTests
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)>
+    <Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)>
+    Public Class AddAccessibilityModifiersTests
+        <Theory, CombinatorialData>
         Public Sub TestStandardProperty([property] As AnalyzerProperty)
             VerifyVB.VerifyStandardProperty([property])
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)>
+        <Fact>
         Public Async Function TestAllConstructs() As Task
             Await VerifyVB.VerifyCodeFixAsync(
 "
@@ -205,7 +206,7 @@ namespace N
 end namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)>
+        <Fact>
         Public Async Function TestAllConstructsWithOmit() As Task
             Dim source = "
 namespace N
@@ -424,8 +425,7 @@ end namespace"
             Await test.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)>
-        <WorkItem(44076, "https://github.com/dotnet/roslyn/issues/44076")>
+        <Fact, WorkItem(44076, "https://github.com/dotnet/roslyn/issues/44076")>
         Public Async Function TestModuleConstructor() As Task
             Dim source = "
 Friend Module Example
@@ -436,8 +436,7 @@ End Module
             Await VerifyVB.VerifyCodeFixAsync(source, source)
         End Function
 
-        <WorkItem(48899, "https://github.com/dotnet/roslyn/issues/48899")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)>
+        <Fact, WorkItem(48899, "https://github.com/dotnet/roslyn/issues/48899")>
         Public Async Function TestAbstractMethod() As Task
             Await VerifyVB.VerifyCodeFixAsync("
 public mustinherit class TestClass
@@ -451,8 +450,7 @@ end class
 ")
         End Function
 
-        <WorkItem(48899, "https://github.com/dotnet/roslyn/issues/48899")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)>
+        <Fact, WorkItem(48899, "https://github.com/dotnet/roslyn/issues/48899")>
         Public Async Function TestOverriddenMethod() As Task
             Await VerifyVB.VerifyCodeFixAsync("
 public mustinherit class TestClass
@@ -478,6 +476,47 @@ public class Derived
     end sub
 end class
 ")
+        End Function
+
+        <Fact, WorkItem(29633, "https://github.com/dotnet/roslyn/issues/29633")>
+        Public Async Function TestTitle1() As Task
+            Dim test As New VerifyVB.Test With {
+                .TestCode = "
+public mustinherit class TestClass
+    mustoverride sub [|Test|]()
+end class
+",
+                .FixedCode = "
+public mustinherit class TestClass
+    Protected mustoverride sub Test()
+end class
+",
+                .CodeActionEquivalenceKey = NameOf(AnalyzersResources.Add_accessibility_modifiers)
+            }
+
+            Await test.RunAsync()
+        End Function
+
+        <Fact, WorkItem(29633, "https://github.com/dotnet/roslyn/issues/29633")>
+        Public Async Function TestTitle2() As Task
+            Dim test As New VerifyVB.Test With {
+                .TestCode = "
+public class TestClass
+    public sub [|Test|]()
+    end sub
+end class
+",
+                .FixedCode = "
+public class TestClass
+    sub Test()
+    end sub
+end class
+",
+                .CodeActionEquivalenceKey = NameOf(AnalyzersResources.Remove_accessibility_modifiers)
+            }
+            test.Options.Add(CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault)
+
+            Await test.RunAsync()
         End Function
     End Class
 End Namespace

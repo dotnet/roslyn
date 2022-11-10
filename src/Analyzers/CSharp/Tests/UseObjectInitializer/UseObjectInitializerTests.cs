@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         CSharpUseObjectInitializerDiagnosticAnalyzer,
         CSharpUseObjectInitializerCodeFixProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
     public partial class UseObjectInitializerTests
     {
         private static async Task TestInRegularAndScriptAsync(string testCode, string fixedCode, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
             await test.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact]
         public async Task TestOnVariableDeclarator()
         {
             await TestInRegularAndScriptAsync(
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact]
         public async Task TestDoNotUpdateAssignmentThatReferencesInitializedValue1Async()
         {
             await TestInRegularAndScriptAsync(
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact]
         public async Task TestDoNotUpdateAssignmentThatReferencesInitializedValue2Async()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact]
         public async Task TestDoNotUpdateAssignmentThatReferencesInitializedValue3Async()
         {
             await TestInRegularAndScriptAsync(
@@ -149,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact]
         public async Task TestDoNotUpdateAssignmentThatReferencesInitializedValue4Async()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -166,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact]
         public async Task TestOnAssignmentExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -196,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact]
         public async Task TestStopOnDuplicateMember()
         {
             await TestInRegularAndScriptAsync(
@@ -226,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact]
         public async Task TestComplexInitializer()
         {
             await TestInRegularAndScriptAsync(
@@ -258,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact]
         public async Task TestNotOnCompoundAssignment()
         {
             await TestInRegularAndScriptAsync(
@@ -290,8 +291,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
-        [WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
+        [Fact, WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
         public async Task TestWithExistingInitializer()
         {
             await TestInRegularAndScriptAsync(
@@ -322,8 +322,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
-        [WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
+        [Fact, WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
         public async Task TestWithExistingInitializerComma()
         {
             await TestInRegularAndScriptAsync(
@@ -357,8 +356,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
-        [WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
+        [Fact, WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
         public async Task TestWithExistingInitializerNotIfAlreadyInitialized()
         {
             await TestInRegularAndScriptAsync(
@@ -394,7 +392,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact]
         public async Task TestMissingBeforeCSharp3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -411,7 +409,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 }", LanguageVersion.CSharp2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact]
         public async Task TestFixAllInDocument1()
         {
             await TestInRegularAndScriptAsync(
@@ -456,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact]
         public async Task TestFixAllInDocument2()
         {
             await TestInRegularAndScriptAsync(
@@ -495,7 +493,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact]
         public async Task TestFixAllInDocument3()
         {
             await TestInRegularAndScriptAsync(
@@ -535,7 +533,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact]
         public async Task TestTrivia1()
         {
             await TestInRegularAndScriptAsync(
@@ -567,8 +565,7 @@ class C
 }");
         }
 
-        [WorkItem(46670, "https://github.com/dotnet/roslyn/issues/46670")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact, WorkItem(46670, "https://github.com/dotnet/roslyn/issues/46670")]
         public async Task TestTriviaRemoveLeadingBlankLinesForFirstProperty()
         {
             await TestInRegularAndScriptAsync(
@@ -607,8 +604,7 @@ class C
 }");
         }
 
-        [WorkItem(15459, "https://github.com/dotnet/roslyn/issues/15459")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact, WorkItem(15459, "https://github.com/dotnet/roslyn/issues/15459")]
         public async Task TestMissingInNonTopLevelObjectInitializer()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -622,8 +618,7 @@ class C
 }");
         }
 
-        [WorkItem(17853, "https://github.com/dotnet/roslyn/issues/17853")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact, WorkItem(17853, "https://github.com/dotnet/roslyn/issues/17853")]
         public async Task TestMissingForDynamic()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -639,8 +634,7 @@ class C
 }");
         }
 
-        [WorkItem(17953, "https://github.com/dotnet/roslyn/issues/17953")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact, WorkItem(17953, "https://github.com/dotnet/roslyn/issues/17953")]
         public async Task TestMissingAcrossPreprocessorDirective()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -659,8 +653,7 @@ public class Goo
 }");
         }
 
-        [WorkItem(17953, "https://github.com/dotnet/roslyn/issues/17953")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact, WorkItem(17953, "https://github.com/dotnet/roslyn/issues/17953")]
         public async Task TestAvailableInsidePreprocessorDirective()
         {
             await TestInRegularAndScriptAsync(
@@ -694,8 +687,7 @@ public class Goo
 }");
         }
 
-        [WorkItem(19253, "https://github.com/dotnet/roslyn/issues/19253")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact, WorkItem(19253, "https://github.com/dotnet/roslyn/issues/19253")]
         public async Task TestKeepBlankLinesAfter()
         {
             await TestInRegularAndScriptAsync(
@@ -735,8 +727,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact, WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")]
         public async Task TestWithExplicitImplementedInterfaceMembers1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -759,8 +750,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact, WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")]
         public async Task TestWithExplicitImplementedInterfaceMembers2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -786,8 +776,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact, WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")]
         public async Task TestWithExplicitImplementedInterfaceMembers3()
         {
             await TestInRegularAndScriptAsync(
@@ -835,8 +824,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(37675, "https://github.com/dotnet/roslyn/issues/37675")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact, WorkItem(37675, "https://github.com/dotnet/roslyn/issues/37675")]
         public async Task TestDoNotOfferForUsingDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -856,7 +844,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact]
         public async Task TestImplicitObject()
         {
             await TestInRegularAndScriptAsync(
@@ -884,8 +872,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(61066, "https://github.com/dotnet/roslyn/issues/61066")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact, WorkItem(61066, "https://github.com/dotnet/roslyn/issues/61066")]
         public async Task TestInTopLevelStatements()
         {
             await TestInRegularAndScriptAsync(

@@ -22,9 +22,10 @@ using CS = Microsoft.CodeAnalysis.CSharp;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Workspace)]
     public partial class AdhocWorkspaceTests : TestBase
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestAddProject_ProjectInfo()
         {
             var info = ProjectInfo.Create(
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(info.Language, project.Language);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestAddProject_NameAndLanguage()
         {
             using var ws = new AdhocWorkspace();
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(LanguageNames.CSharp, project.Language);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestAddDocument_DocumentInfo()
         {
             using var ws = new AdhocWorkspace();
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(info.Name, doc.Name);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async Task TestAddDocument_NameAndTextAsync()
         {
             using var ws = new AdhocWorkspace();
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(source, (await doc.GetTextAsync()).ToString());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestAddSolution_SolutionInfo()
         {
             using var ws = new AdhocWorkspace();
@@ -105,7 +106,7 @@ language: LanguageNames.CSharp);
             Assert.Equal(pinfo.Language, project.Language);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestAddProjects()
         {
             var id1 = ProjectId.CreateNewId();
@@ -145,7 +146,7 @@ language: LanguageNames.CSharp);
             Assert.Equal(id1, project2.ProjectReferences.First().ProjectId);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestAddProject_TryApplyChanges()
         {
             using var ws = new AdhocWorkspace();
@@ -183,7 +184,7 @@ language: LanguageNames.CSharp);
             Assert.Equal("MyDoc.cs", doc.Name);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestRemoveProject_TryApplyChanges()
         {
             var pid = ProjectId.CreateNewId();
@@ -393,8 +394,7 @@ language: LanguageNames.CSharp);
             Assert.Equal(currentVersion, actualVersion);
         }
 
-        [WorkItem(1174396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174396")]
-        [Fact]
+        [Fact, WorkItem(1174396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174396")]
         public async Task TestUpdateCSharpLanguageVersionAsync()
         {
             using var ws = new AdhocWorkspace();
@@ -419,7 +419,7 @@ language: LanguageNames.CSharp);
             public WorkspaceWithPartialSemantics(Solution solution)
                 : base(solution.Workspace.Services.HostServices, solution.Workspace.Kind)
             {
-                this.SetCurrentSolution(solution);
+                this.SetCurrentSolutionEx(solution);
             }
 
             protected internal override bool PartialSemanticsEnabled
@@ -431,7 +431,7 @@ language: LanguageNames.CSharp);
                 => base.OnParseOptionsChanged(id, options);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async Task TestChangeDocumentName_TryApplyChanges()
         {
             using var ws = new AdhocWorkspace();
@@ -462,7 +462,7 @@ language: LanguageNames.CSharp);
             Assert.True(tcs.Task.IsCompleted && tcs.Task.Result);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async Task TestChangeDocumentFolders_TryApplyChanges()
         {
             using var ws = new AdhocWorkspace();
@@ -497,7 +497,7 @@ language: LanguageNames.CSharp);
             Assert.True(tcs.Task.IsCompleted && tcs.Task.Result);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async Task TestChangeDocumentFilePath_TryApplyChanges()
         {
             using var ws = new AdhocWorkspace();
@@ -529,7 +529,7 @@ language: LanguageNames.CSharp);
             Assert.True(tcs.Task.IsCompleted && tcs.Task.Result);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async Task TestChangeDocumentSourceCodeKind_TryApplyChanges()
         {
             using var ws = new AdhocWorkspace();
@@ -560,7 +560,7 @@ language: LanguageNames.CSharp);
             Assert.True(tcs.Task.IsCompleted && tcs.Task.Result);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestChangeDocumentInfo_TryApplyChanges()
         {
             using var ws = new AdhocWorkspace();
@@ -591,7 +591,7 @@ language: LanguageNames.CSharp);
             Assert.Equal(newPath, appliedDoc.FilePath);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestDefaultDocumentTextDifferencingService()
         {
             using var ws = new AdhocWorkspace();

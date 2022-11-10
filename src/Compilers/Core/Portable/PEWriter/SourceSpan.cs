@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 {
     [SuppressMessage("Performance", "RS0008", Justification = "Equality not actually implemented")]
     [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
-    internal struct SourceSpan
+    internal readonly struct SourceSpan
     {
         public readonly int StartLine;
         public readonly int StartColumn;
@@ -36,12 +36,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public override int GetHashCode()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override bool Equals(object? obj)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private string GetDebuggerDisplay()

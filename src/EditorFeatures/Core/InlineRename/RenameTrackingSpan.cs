@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
-    internal struct RenameTrackingSpan
+    internal readonly struct RenameTrackingSpan
     {
         public readonly ITrackingSpan TrackingSpan;
         public readonly RenameSpanKind Type;
