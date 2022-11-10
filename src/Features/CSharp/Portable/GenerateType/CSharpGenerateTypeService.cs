@@ -666,7 +666,7 @@ internal class CSharpGenerateTypeService :
 
         if (expression.Parent is BaseTypeSyntax { Parent: BaseListSyntax baseList })
         {
-            if (baseList.Parent.IsKind(SyntaxKind.InterfaceDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.RecordStructDeclaration))
+            if (baseList.Parent.Kind() is SyntaxKind.InterfaceDeclaration or SyntaxKind.StructDeclaration or SyntaxKind.RecordStructDeclaration)
             {
                 typeKindValue = TypeKindOptions.Interface;
                 return true;
