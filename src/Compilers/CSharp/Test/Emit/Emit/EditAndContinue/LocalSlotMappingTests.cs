@@ -4289,12 +4289,12 @@ class C
                 [int] V_3,
                 int V_4)
  -IL_0000:  nop
- -IL_0001:  ldc.i4.3
-  IL_0002:  stloc.2
+ -IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
   IL_0003:  ldc.i4.2
   IL_0004:  stloc.1
-  IL_0005:  ldc.i4.1
-  IL_0006:  stloc.0
+  IL_0005:  ldc.i4.3
+  IL_0006:  stloc.2
  -IL_0007:  ldloc.0
   IL_0008:  ldloc.1
   IL_0009:  add

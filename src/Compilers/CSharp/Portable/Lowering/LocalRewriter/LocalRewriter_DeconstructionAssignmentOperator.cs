@@ -112,7 +112,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The list of deconstruction targets is usually small. Prefer a temporary array which is stack-bound for small numbers of elements.
                 var visitedSymbols = TemporaryArray<Symbol>.Empty;
 
-                if (right is BoundConvertedTupleLiteral or BoundConversion { Operand.Kind: BoundKind.TupleLiteral or BoundKind.ConvertedTupleLiteral } && canReorderTargetAssignments(lhsTargets, ref visitedSymbols))
+                if (right is BoundConvertedTupleLiteral or BoundConversion { Operand.Kind: BoundKind.TupleLiteral or BoundKind.ConvertedTupleLiteral }
+                    && effects.init.Any()
+                    && canReorderTargetAssignments(lhsTargets, ref visitedSymbols))
                 {
                     // Consider a deconstruction assignment like the following
                     // (a, b, c) = (x, y, z);
@@ -126,6 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // c = temp3;
 
                     // In this code path, we have found a case where a, b, and c are non-side-effecting expressions which refer to unique/non-aliased variables.
+                    // In addition, at least one of the expressions x, y, or z actually needed to be evaluated into temps (versus being a constant value where the temp was elided at an earlier phase).
                     // As an optimization, ensure that assignments from temps to targets happen in the reverse order of effects:
                     // temp1 = x;
                     // temp2 = y;
@@ -135,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // a = temp1;
 
                     // This makes it more likely that the stack optimizer pass will be able to eliminate the temps and replace them with stack push/pops.
-                    // Note also that no optimization can occur if the expression being converted is not a literal, e.g. `(a, b, c) = M()`. We will always need the temps in that case.
+                    // Note also that no optimization can occur if the expression being converted is not a literal, e.g. `(a, b, c) = M()`. Order of access won't affect our ability to eliminate temps in that case.
                     effects.assignments.ReverseContents();
                 }
 
@@ -148,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We avoid doing this in any cases where aliasing could occur, e.g.:
                 // var y = 1;
                 // ref var x = ref y;
-                // (x, y) = (2, 3);
+                // (x, y) = (a, b);
 
                 foreach (var target in targets)
                 {
@@ -169,7 +172,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if ((object)visitedSymbol == expressionSymbol)
                             {
-                                // This deconstruction writes to the same target multiple times.
+                                // This deconstruction writes to the same target multiple times, e.g:
+                                // (x, x) = (a, b);
                                 return false;
                             }
                         }
