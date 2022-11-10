@@ -24310,7 +24310,7 @@ class Program
 
         [Theory]
         [CombinatorialData]
-        public void RefSafetyRulesAttribute_13(
+        public void UnscopedRefAttribute_Overrides_04(
             [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionA,
             bool useCompilationReference)
         {
@@ -24425,7 +24425,7 @@ class Program
 
         [Theory]
         [CombinatorialData]
-        public void RefSafetyRulesAttribute_14(
+        public void UnscopedRefAttribute_Overrides_05(
             [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionB,
             bool useCompilationReference)
         {
@@ -24479,7 +24479,7 @@ class Program
 
         [Theory]
         [CombinatorialData]
-        public void RefSafetyRulesAttribute_15(
+        public void UnscopedRefAttribute_Overrides_06(
             [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionB,
             bool useCompilationReference)
         {
