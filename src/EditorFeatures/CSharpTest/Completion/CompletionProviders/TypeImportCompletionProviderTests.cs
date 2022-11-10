@@ -1796,6 +1796,49 @@ global using global::System.Threading.Tasks;
             await VerifyTypeImportItemIsAbsentAsync(markup, "Console", inlineDescription: "System");
         }
 
+        [Theory]
+        [InlineData(null)]
+        [InlineData(true)]
+        [InlineData(false)]
+        [WorkItem(65339, "https://github.com/dotnet/roslyn/issues/65339")]
+        public async Task TestFileScopedType(bool? isProjectReference)
+        {
+            var srcDoc = @"
+class Program
+{
+    void M()
+    {
+        $$goo
+    }
+}";
+
+            var refDoc = @"
+namespace Foo
+{
+    file class Goo
+    {
+    }
+}";
+
+            string markup;
+            if (isProjectReference.HasValue)
+            {
+                markup = isProjectReference switch
+                {
+                    true => CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                    false => CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp)
+                };
+            }
+            else
+            {
+                markup = CreateMarkupForSingleProject(srcDoc, refDoc, LanguageNames.CSharp);
+            }
+            await VerifyTypeImportItemIsAbsentAsync(
+                    markup,
+                    "Goo",
+                    inlineDescription: "Foo");
+        }
+
         private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null, CompletionItemFlags? flags = null)
             => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull, isComplexTextEdit: true, flags: flags);
 
