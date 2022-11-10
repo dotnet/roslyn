@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -22,7 +23,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             return context.IsCatchFilterContext ||
-                IsAfterCompleteExpressionOrPatternInCaseLabel(context);
+                IsAfterCompleteExpressionOrPatternInCaseLabel(context) ||
+                IsAtEndOfPatternInSwitchExpression(position, context, cancellationToken);
+        }
+
+        private static bool IsAtEndOfPatternInSwitchExpression(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        {
+            if (!context.IsAtEndOfPattern)
+                return false;
+
+            // have to make sure the pattern we're after is actually one in a switch-statement/expression.
+            if (!context.SyntaxTree.IsAtEndOfPattern(position, out var parent, cancellationToken))
+                return false;
+
+            // `x switch { SomePattern $$
+            if (parent.Parent is SwitchExpressionArmSyntax)
+                return true;
+
+            return false;
         }
 
         private static bool IsAfterCompleteExpressionOrPatternInCaseLabel(CSharpSyntaxContext context)

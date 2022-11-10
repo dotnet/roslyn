@@ -1409,45 +1409,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
-        public static bool IsAtEndOfPattern(this SyntaxTree syntaxTree, SyntaxToken leftToken, int position)
+        /// <returns>The parent node that this position is at the end of.  This node may be a <see
+        /// cref="PatternSyntax"/> for normal complete code.  But it may also be a <see cref="TypeSyntax"/> or <see
+        /// cref="ExpressionSyntax"/> in the case of incomplete constructs.</returns>
+        public static bool IsAtEndOfPattern(
+            this SyntaxTree syntaxTree,
+            int position,
+            CancellationToken cancellationToken)
         {
-            var originalLeftToken = leftToken;
-            leftToken = leftToken.GetPreviousTokenIfTouchingWord(position);
+            parent = null;
+
+            var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            var targetToken = leftToken.GetPreviousTokenIfTouchingWord(position);
 
             // For instance:
             // e is { A.$$ }
-            if (leftToken.IsKind(SyntaxKind.DotToken))
-            {
+            if (targetToken.IsKind(SyntaxKind.DotToken))
                 return false;
-            }
 
-            var patternSyntax = leftToken.GetAncestor<PatternSyntax>();
+            var patternSyntax = targetToken.GetAncestor<PatternSyntax>();
             if (patternSyntax != null)
             {
                 var lastTokenInPattern = patternSyntax.GetLastToken();
+                parent = patternSyntax;
 
                 // This check should cover the majority of cases, e.g.:
                 // e is 1 $$
                 // e is >= 0 $$
                 // e is { P: (1 $$
                 // e is { P: (1) $$
-                if (leftToken == lastTokenInPattern)
+                if (targetToken == lastTokenInPattern)
                 {
                     // Patterns such as 'e is not $$', 'e is 1 or $$', 'e is ($$', and 'e is null or global::$$' should be invalid here
                     // as they are incomplete patterns.
-                    return !(leftToken.IsKind(SyntaxKind.OrKeyword) ||
-                        leftToken.IsKind(SyntaxKind.AndKeyword) ||
-                        leftToken.IsKind(SyntaxKind.NotKeyword) ||
-                        leftToken.IsKind(SyntaxKind.OpenParenToken) ||
-                        leftToken.IsKind(SyntaxKind.ColonColonToken) ||
-                        leftToken.IsKind(SyntaxKind.DotDotToken));
+                    return !(targetToken.IsKind(SyntaxKind.OrKeyword) ||
+                        targetToken.IsKind(SyntaxKind.AndKeyword) ||
+                        targetToken.IsKind(SyntaxKind.NotKeyword) ||
+                        targetToken.IsKind(SyntaxKind.OpenParenToken) ||
+                        targetToken.IsKind(SyntaxKind.ColonColonToken) ||
+                        targetToken.IsKind(SyntaxKind.DotDotToken));
                 }
 
                 // We want to make sure that IsAtEndOfPattern returns true even when the user is in the middle of typing a keyword
                 // after a pattern.
                 // For example, with the keyword 'and', we want to make sure that 'e is int an$$' is still recognized as valid.
                 if (lastTokenInPattern.Parent is SingleVariableDesignationSyntax variableDesignationSyntax &&
-                    originalLeftToken.Parent == variableDesignationSyntax)
+                    leftToken.Parent == variableDesignationSyntax)
                 {
                     return patternSyntax is DeclarationPatternSyntax or RecursivePatternSyntax;
                 }
@@ -1457,7 +1464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 // this will be parsed as a constant-pattern where the constant expression is a cast expression (if 'expr'
                 // is a legal type).
                 if (patternSyntax is ConstantPatternSyntax { Expression: CastExpressionSyntax { Expression: IdentifierNameSyntax } castExpression } &&
-                    leftToken == castExpression.CloseParenToken)
+                    targetToken == castExpression.CloseParenToken)
                 {
                     return true;
                 }
@@ -1465,7 +1472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // e is C.P $$
             // e is int $$
-            if (leftToken.IsLastTokenOfNode<TypeSyntax>(out var typeSyntax))
+            if (targetToken.IsLastTokenOfNode<TypeSyntax>(out var typeSyntax))
             {
                 // If typeSyntax is part of a qualified name, we want to get the fully-qualified name so that we can
                 // later accurately perform the check comparing the right side of the BinaryExpressionSyntax to
@@ -1479,26 +1486,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     binaryExpressionSyntax.OperatorToken.IsKind(SyntaxKind.IsKeyword) &&
                     binaryExpressionSyntax.Right == typeSyntax && !typeSyntax.IsVar)
                 {
+                    parent = typeSyntax;
                     return true;
                 }
             }
 
             // We need to include a special case for switch statement cases, as some are not currently parsed as patterns, e.g. case (1 $$
-            if (IsAtEndOfSwitchStatementPattern(leftToken))
-            {
+            if (IsAtEndOfSwitchStatementPattern(targetToken, out parent))
                 return true;
-            }
 
             return false;
 
-            static bool IsAtEndOfSwitchStatementPattern(SyntaxToken leftToken)
+            static bool IsAtEndOfSwitchStatementPattern(SyntaxToken targetToken, [NotNullWhen(true)] out SyntaxNode? parent)
             {
-                SyntaxNode? node = leftToken.Parent as ExpressionSyntax;
+                parent = null;
+
+                SyntaxNode? node = targetToken.Parent as ExpressionSyntax;
                 if (node == null)
                     return false;
 
                 // Walk up the right edge of all complete expressions.
-                while (node is ExpressionSyntax && node.GetLastToken(includeZeroWidth: true) == leftToken)
+                while (node is ExpressionSyntax && node.GetLastToken(includeZeroWidth: true) == targetToken)
                     node = node.GetRequiredParent();
 
                 // Getting rid of the extra parentheses to deal with cases such as 'case (((1 $$'
@@ -1506,10 +1514,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     node = node.GetRequiredParent();
 
                 // case (1 $$
-                if (node is CaseSwitchLabelSyntax { Parent: SwitchSectionSyntax })
-                    return true;
+                if (node is not CaseSwitchLabelSyntax { Parent: SwitchSectionSyntax } caseSwitch)
+                    return false;
 
-                return false;
+                parent = caseSwitch.Value;
+                return true;
             }
         }
 
