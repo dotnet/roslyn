@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseNullPropagation
@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         TInvocationExpressionSyntax,
         TConditionalAccessExpressionSyntax,
         TElementAccessExpressionSyntax,
+        TMemberAccessExpressionSyntax,
         TIfStatementSyntax,
         TExpressionStatementSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
@@ -44,6 +45,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         where TInvocationExpressionSyntax : TExpressionSyntax
         where TConditionalAccessExpressionSyntax : TExpressionSyntax
         where TElementAccessExpressionSyntax : TExpressionSyntax
+        where TMemberAccessExpressionSyntax : TExpressionSyntax
         where TIfStatementSyntax : TStatementSyntax
         where TExpressionStatementSyntax : TStatementSyntax
     {
@@ -146,7 +148,6 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             if (whenPartType is IPointerTypeSymbol)
                 return;
 
-            // ?. is not available in expression-trees.  Disallow the fix in that case.
             var type = semanticModel.GetTypeInfo(conditionalExpression, cancellationToken).Type;
             if (type?.IsValueType == true)
             {
@@ -161,6 +162,15 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 // converting to c?.nullable doesn't affect the type
             }
 
+            if (syntaxFacts.IsSimpleMemberAccessExpression(whenPartToCheck))
+            {
+                // `x == null ? x : x.M` cannot be converted to `x?.M` when M is a method symbol.
+                syntaxFacts.GetPartsOfMemberAccessExpression(whenPartToCheck, out _, out var name);
+                if (semanticModel.GetSymbolInfo(name, cancellationToken).GetAnySymbol() is IMethodSymbol)
+                    return;
+            }
+
+            // ?. is not available in expression-trees.  Disallow the fix in that case.
             if (IsInExpressionTree(semanticModel, conditionNode, expressionType, cancellationToken))
                 return;
 

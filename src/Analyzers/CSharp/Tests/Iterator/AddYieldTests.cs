@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Iterator
 {
     using VerifyCS = CSharpCodeFixVerifier<EmptyDiagnosticAnalyzer, CSharpAddYieldCodeFixProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
     public class AddYieldTests
     {
         private static async Task TestMissingInRegularAndScriptAsync(string code)
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Iterator
             await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [Fact]
         public async Task TestAddYieldIEnumerableReturnNull()
         {
             var initial =
@@ -42,7 +43,7 @@ class Program
             await TestMissingInRegularAndScriptAsync(initial);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [Fact]
         public async Task TestAddYieldIEnumerableReturnObject()
         {
             var initial =
@@ -70,7 +71,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [Fact]
         public async Task TestAddYieldIEnumeratorReturnObject()
         {
             var initial =
@@ -98,7 +99,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [Fact]
         public async Task TestAddYieldIEnumeratorReturnGenericList()
         {
             var initial =
@@ -128,7 +129,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [Fact]
         public async Task TestAddYieldGenericIEnumeratorReturnObject()
         {
             var initial =
@@ -158,7 +159,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [Fact]
         public async Task TestAddYieldGenericIEnumerableReturnObject()
         {
             var initial =
@@ -188,7 +189,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [Fact]
         public async Task TestAddYieldIEnumerableReturnGenericList()
         {
             var initial =
@@ -206,7 +207,7 @@ class Program
             await TestMissingInRegularAndScriptAsync(initial);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [Fact]
         public async Task TestAddYieldGenericIEnumeratorReturnDefault()
         {
             var initial =
@@ -236,7 +237,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [Fact]
         public async Task TestAddYieldGenericIEnumerableReturnConvertibleToObject()
         {
             var initial =
@@ -266,7 +267,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [Fact]
         public async Task TestAddYieldGenericIEnumerableReturnConvertibleToFloat()
         {
             var initial =
@@ -296,7 +297,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [Fact]
         public async Task TestAddYieldGenericIEnumeratorNonConvertableType()
         {
             var initial =
@@ -314,7 +315,7 @@ class Program
             await TestMissingInRegularAndScriptAsync(initial);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [Fact]
         public async Task TestAddYieldGenericIEnumeratorConvertableTypeDateTime()
         {
             var initial =
@@ -344,7 +345,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [Fact]
         public async Task TestAddYieldNoTypeArguments()
         {
             var initial =

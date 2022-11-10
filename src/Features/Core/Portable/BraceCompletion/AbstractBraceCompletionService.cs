@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
             }
 
             // check that the user is not typing in a string literal or comment
-            var syntaxFactsService = document.ProjectServices.GetRequiredService<ISyntaxFactsService>();
+            var syntaxFactsService = document.LanguageServices.GetRequiredService<ISyntaxFactsService>();
 
             return !syntaxFactsService.IsInNonUserCode(document.SyntaxTree, openingPosition, cancellationToken);
         }
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         protected virtual Task<bool> IsValidOpenBraceTokenAtPositionAsync(Document document, SyntaxToken token, int position, CancellationToken cancellationToken)
         {
             // Subclass should have overridden this.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         protected bool AllowOverTypeInUserCodeWithValidClosingToken(BraceCompletionContext context, CancellationToken cancellationToken)
         {
             var tree = context.Document.SyntaxTree;
-            var syntaxFactsService = context.Document.ProjectServices.GetRequiredService<ISyntaxFactsService>();
+            var syntaxFactsService = context.Document.LanguageServices.GetRequiredService<ISyntaxFactsService>();
 
             return !syntaxFactsService.IsInNonUserCode(tree, context.CaretLocation, cancellationToken)
                 && CheckClosingTokenKind(context.Document, context.ClosingPoint);

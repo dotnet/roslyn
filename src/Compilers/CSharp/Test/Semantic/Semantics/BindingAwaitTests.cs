@@ -1515,7 +1515,7 @@ static class MyExtensions
                 // (10,9): error CS1986: 'await' requires that the type A have a suitable GetAwaiter method
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_BadAwaitArg, "await new A()").WithArguments("A").WithLocation(10, 9),
-                // (11,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'B.GetAwaiter(object)'
+                // (11,9): error CS7036: There is no argument given that corresponds to the required parameter 'o' of 'B.GetAwaiter(object)'
                 //         await new B();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "await new B()").WithArguments("o", "B.GetAwaiter(object)").WithLocation(11, 9),
                 // (12,9): error CS1986: 'await' requires that the type C have a suitable GetAwaiter method

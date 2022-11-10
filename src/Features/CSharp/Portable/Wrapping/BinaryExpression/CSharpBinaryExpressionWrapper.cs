@@ -5,7 +5,7 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Indentation;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Precedence;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Wrapping.BinaryExpression;

@@ -229,7 +229,7 @@ internal partial class SolutionState
             return false;
         }
 
-        private static ITemporaryStreamStorage? TryCreateMetadataStorage(Workspace workspace, Compilation compilation, CancellationToken cancellationToken)
+        private static ITemporaryStreamStorageInternal? TryCreateMetadataStorage(Workspace workspace, Compilation compilation, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -251,8 +251,8 @@ internal partial class SolutionState
                     {
                         workspace.LogTestMessage(static compilation => $"Successfully emitted a skeleton assembly for {compilation.AssemblyName}", compilation);
 
-                        var temporaryStorageService = workspace.Services.GetRequiredService<ITemporaryStorageService>();
-                        var storage = temporaryStorageService.CreateTemporaryStreamStorage(cancellationToken);
+                        var temporaryStorageService = workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>();
+                        var storage = temporaryStorageService.CreateTemporaryStreamStorage();
 
                         stream.Position = 0;
                         storage.WriteStream(stream, cancellationToken);

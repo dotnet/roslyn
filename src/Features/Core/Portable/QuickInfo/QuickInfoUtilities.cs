@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -21,11 +21,11 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 {
     internal static class QuickInfoUtilities
     {
-        public static Task<QuickInfoItem> CreateQuickInfoItemAsync(HostSolutionServices services, SemanticModel semanticModel, TextSpan span, ImmutableArray<ISymbol> symbols, SymbolDescriptionOptions options, CancellationToken cancellationToken)
+        public static Task<QuickInfoItem> CreateQuickInfoItemAsync(SolutionServices services, SemanticModel semanticModel, TextSpan span, ImmutableArray<ISymbol> symbols, SymbolDescriptionOptions options, CancellationToken cancellationToken)
             => CreateQuickInfoItemAsync(services, semanticModel, span, symbols, supportedPlatforms: null, showAwaitReturn: false, flowState: NullableFlowState.None, options, cancellationToken);
 
         public static async Task<QuickInfoItem> CreateQuickInfoItemAsync(
-            HostSolutionServices services,
+            SolutionServices services,
             SemanticModel semanticModel,
             TextSpan span,
             ImmutableArray<ISymbol> symbols,
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                     var symbolIndex = FeaturesResources.Awaited_task_returns_0.IndexOf(defaultSymbol);
 
                     var builder = ImmutableArray.CreateBuilder<TaggedText>();
-                    builder.AddText(FeaturesResources.Awaited_task_returns_0.Substring(0, symbolIndex));
+                    builder.AddText(FeaturesResources.Awaited_task_returns_0[..symbolIndex]);
                     builder.AddRange(mainDescriptionTaggedParts);
                     builder.AddText(FeaturesResources.Awaited_task_returns_0[(symbolIndex + defaultSymbol.Length)..]);
 

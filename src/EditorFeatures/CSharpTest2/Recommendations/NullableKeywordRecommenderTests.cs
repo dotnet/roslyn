@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
@@ -94,20 +93,20 @@ $$");
         public async Task TestNotAfterPragmaWarning()
             => await VerifyAbsenceAsync(@"#pragma warning $$");
 
-        [Fact]
-        public async Task TestAfterPragmaWarningDisable()
-            => await VerifyKeywordAsync(@"#pragma warning disable $$");
+        [Fact, WorkItem(63594, "https://github.com/dotnet/roslyn/issues/63594")]
+        public async Task TestNotAfterPragmaWarningDisable()
+            => await VerifyAbsenceAsync(@"#pragma warning disable $$");
+
+        [Fact, WorkItem(63594, "https://github.com/dotnet/roslyn/issues/63594")]
+        public async Task TestNotAfterPragmaWarningEnable()
+            => await VerifyAbsenceAsync(@"#pragma warning enable $$");
+
+        [Fact, WorkItem(63594, "https://github.com/dotnet/roslyn/issues/63594")]
+        public async Task TestNotAfterPragmaWarningRestore()
+            => await VerifyAbsenceAsync(@"#pragma warning restore $$");
 
         [Fact]
-        public async Task TestAfterPragmaWarningEnable()
-            => await VerifyKeywordAsync(@"#pragma warning enable $$");
-
-        [Fact]
-        public async Task TestAfterPragmaWarningRestore()
-            => await VerifyKeywordAsync(@"#pragma warning restore $$");
-
-        [Fact]
-        public async Task TestAfterPragmaWarningSafeOnly()
+        public async Task TestNotAfterPragmaWarningSafeOnly()
             => await VerifyAbsenceAsync(@"#pragma warning safeonly $$");
 
         [Fact]

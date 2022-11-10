@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             SyntaxNode node,
             CancellationToken cancellationToken)
         {
-            var editor = document.GetSyntaxEditor(root);
+            var editor = new SyntaxEditor(root, document.Project.Solution.Services);
 
             // We use the callback form of ReplaceNode because we may have nested code that
             // needs to be updated in fix-all situations.  For example, nested foreach statements.
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             // i.e.   (int x, int y) t = ...   will be converted to (int x, int y) = ...
             //
             // If we had the "var t" form we'll convert that to the declaration expression "var (x, y)"
-            return typeNode.IsKind(SyntaxKind.TupleType, out TupleTypeSyntax tupleTypeSyntax)
+            return typeNode is TupleTypeSyntax tupleTypeSyntax
                 ? CreateTupleExpression(tupleTypeSyntax)
                 : CreateDeclarationExpression(tupleType, typeNode);
         }

@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.AddRequiredParentheses
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of Microsoft.CodeAnalysis.VisualBasic.AddRequiredParentheses.VisualBasicAddRequiredParenthesesForBinaryLikeExpressionDiagnosticAnalyzer, Microsoft.CodeAnalysis.AddRequiredParentheses.AddRequiredParenthesesCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddRequiredParentheses
+    <Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
     Partial Public Class AddRequiredParenthesesTests
         Private Const RequireAllParenthesesForClarity As String = "[*]
 dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity
@@ -48,7 +49,7 @@ dotnet_style_parentheses_in_other_operators = never_if_unnecessary
             }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
+        <Fact>
         Public Async Function TestArithmeticPrecedence() As Task
             Await VerifyCodeFixAsync(
 "class C
@@ -63,7 +64,7 @@ end class",
 end class", RequireAllParenthesesForClarity)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
+        <Fact>
         Public Async Function TestNoArithmeticOnLowerPrecedence() As Task
             Await VerifyCodeFixAsync(
 "class C
@@ -78,7 +79,7 @@ end class",
 end class", RequireAllParenthesesForClarity)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
+        <Fact>
         Public Async Function TestNotIfArithmeticPrecedenceStaysTheSame() As Task
             Await VerifyNoCodeFixAsync(
 "class C
@@ -88,7 +89,7 @@ end class", RequireAllParenthesesForClarity)
 end class", RequireAllParenthesesForClarity)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
+        <Fact>
         Public Async Function TestNotIfArithmeticPrecedenceIsNotEnforced1() As Task
             Await VerifyNoCodeFixAsync(
 "class C
@@ -98,7 +99,7 @@ end class", RequireAllParenthesesForClarity)
 end class", RequireOtherBinaryParenthesesForClarity)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
+        <Fact>
         Public Async Function TestNotIfArithmeticPrecedenceIsNotEnforced2() As Task
             Await VerifyNoCodeFixAsync(
 "class C
@@ -108,7 +109,7 @@ end class", RequireOtherBinaryParenthesesForClarity)
 end class", RequireOtherBinaryParenthesesForClarity)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
+        <Fact>
         Public Async Function TestLogicalPrecedence() As Task
             Await VerifyCodeFixAsync(
 "class C
@@ -123,7 +124,7 @@ end class",
 end class", RequireAllParenthesesForClarity)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
+        <Fact>
         Public Async Function TestNoLogicalOnLowerPrecedence() As Task
             Await VerifyCodeFixAsync(
 "class C
@@ -138,7 +139,7 @@ end class",
 end class", RequireAllParenthesesForClarity)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
+        <Fact>
         Public Async Function TestNotIfLogicalPrecedenceStaysTheSame() As Task
             Await VerifyNoCodeFixAsync(
 "class C
@@ -148,7 +149,7 @@ end class", RequireAllParenthesesForClarity)
 end class", RequireAllParenthesesForClarity)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
+        <Fact>
         Public Async Function TestNotIfLogicalPrecedenceIsNotEnforced() As Task
             Await VerifyNoCodeFixAsync(
 "class C
@@ -158,7 +159,7 @@ end class", RequireAllParenthesesForClarity)
 end class", RequireArithmeticBinaryParenthesesForClarity)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
+        <Fact>
         Public Async Function TestMixedArithmeticAndLogical() As Task
             Await VerifyNoCodeFixAsync(
 "class C
@@ -168,7 +169,7 @@ end class", RequireArithmeticBinaryParenthesesForClarity)
 end class", RequireAllParenthesesForClarity)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
+        <Fact>
         Public Async Function TestShiftPrecedence1() As Task
             Await VerifyCodeFixAsync(
 "class C
@@ -183,7 +184,7 @@ end class",
 end class", RequireAllParenthesesForClarity)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
+        <Fact>
         Public Async Function TestShiftPrecedence2() As Task
             Await VerifyCodeFixAsync(
 "class C
@@ -198,7 +199,7 @@ end class",
 end class", RequireArithmeticBinaryParenthesesForClarity)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
+        <Fact>
         Public Async Function TestShiftPrecedence3() As Task
             Await VerifyNoCodeFixAsync(
 "class C

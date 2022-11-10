@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.MoveDeclarationNearReference
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MoveDeclarationNearReference
+    <Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)>
     Public Class MoveDeclarationNearReferenceTests
         Inherits AbstractVisualBasicCodeActionTest
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MoveDeclarationNea
             Return New VisualBasicMoveDeclarationNearReferenceCodeRefactoringProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)>
+        <Fact>
         Public Async Function TestMove1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -35,7 +36,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)>
+        <Fact>
         Public Async Function TestMove2() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -54,7 +55,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)>
+        <Fact>
         Public Async Function TestMove3() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -87,7 +88,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)>
+        <Fact>
         Public Async Function TestMove4() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -110,7 +111,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)>
+        <Fact>
         Public Async Function TestAssign1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -132,7 +133,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)>
+        <Fact>
         Public Async Function TestAssign2() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -154,7 +155,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)>
+        <Fact>
         Public Async Function TestAssign3() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -177,7 +178,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)>
+        <Fact>
         Public Async Function TestMissing1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
@@ -188,7 +189,7 @@ end class")
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)>
+        <Fact>
         Public Async Function TestMissingWhenReferencedInDeclaration() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class Program
@@ -199,7 +200,7 @@ end class")
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)>
+        <Fact>
         Public Async Function TestMissingWhenInDeclarationGroup() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class Program
@@ -211,7 +212,7 @@ end class")
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)>
+        <Fact>
         Public Async Function TestWarnOnChangingScopes1() As Task
             Await TestInRegularAndScriptAsync(
 "imports System.Linq
@@ -236,7 +237,7 @@ class Program
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)>
+        <Fact>
         Public Async Function TestWarnOnChangingScopes2() As Task
             Await TestAsync(
 "using System
@@ -265,7 +266,7 @@ class Program
 end class", parseOptions:=Nothing)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)>
+        <Fact>
         Public Async Function MissingIfNotInDeclarationSpan() As Task
             Await TestMissingInRegularAndScriptAsync(
 "using System

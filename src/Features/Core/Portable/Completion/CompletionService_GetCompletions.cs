@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Completion
         protected virtual bool ItemsMatch(CompletionItem item, CompletionItem existingItem)
         {
             return item.Span == existingItem.Span
-                && item.SortText == existingItem.SortText;
+                && item.SortText == existingItem.SortText && item.InlineDescription == existingItem.InlineDescription;
         }
 
         /// <summary>

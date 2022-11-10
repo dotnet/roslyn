@@ -958,7 +958,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public SyntaxNodeOrToken GetNextSibling()

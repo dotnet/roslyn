@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.MakeMethodAsynchronous
+    <Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
     Public Class MakeMethodAsynchronousTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -14,8 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.MakeMe
             Return (Nothing, New VisualBasicMakeMethodAsynchronousCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
-        <WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
+        <Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
         Public Async Function TestAwaitInSubNoModifiers() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -35,8 +35,7 @@ End Module",
                 index:=1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
-        <WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
+        <Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
         Public Async Function TestAwaitInSubWithModifiers() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -56,7 +55,7 @@ End Module",
                 index:=1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
+        <Fact>
         Public Async Function TestAwaitInFunctionNoModifiers() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -75,7 +74,7 @@ Module Program
  End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
+        <Fact>
         Public Async Function TestAwaitInFunctionWithModifiers() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -95,7 +94,7 @@ Module Program
                 )
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
+        <Fact>
         Public Async Function TestAwaitInLambdaFunction() As Task
             Dim initial =
 <ModuleDeclaration>
@@ -114,7 +113,7 @@ Module Program
             Await TestAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
+        <Fact>
         Public Async Function TestAwaitInLambdaSub() As Task
             Dim initial =
 <ModuleDeclaration>
@@ -131,7 +130,7 @@ Module Program
             Await TestAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
+        <Fact>
         Public Async Function TestAwaitInMember() As Task
             Await TestMissingInRegularAndScriptAsync("Imports System
 Imports System.Threading.Tasks
@@ -140,8 +139,7 @@ Module Program
  End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
-        <WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
+        <Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
         Public Async Function TestBadAwaitInNonAsyncMethod() As Task
             Dim initial =
 <ModuleDeclaration>
@@ -158,8 +156,7 @@ Async Function rtrt() As Task
             Await TestAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
-        <WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
+        <Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
         Public Async Function TestBadAwaitInNonAsyncVoidMethod() As Task
             Dim initial =
 <ModuleDeclaration>
@@ -176,7 +173,7 @@ Async Sub rtrt()
             Await TestAsync(initial, expected, index:=1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
+        <Fact>
         Public Async Function TestBadAwaitInNonAsyncVoidMethod1() As Task
             Dim initial =
 <ModuleDeclaration>
@@ -193,8 +190,7 @@ Async Function rtrtAsync() As Threading.Tasks.Task
             Await TestAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
-        <WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
+        <Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
         Public Async Function TestBadAwaitInNonAsyncFunction() As Task
             Dim initial =
 <ModuleDeclaration>
@@ -211,8 +207,7 @@ Async Function rtrt() As Task
             Await TestAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
-        <WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
+        <Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
         Public Async Function TestBadAwaitInNonAsyncFunction2() As Task
             Dim initial =
 <ModuleDeclaration>
@@ -229,7 +224,7 @@ Async Function rtrt() As Task(Of Integer)
             Await TestAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
+        <Fact>
         Public Async Function TestBadAwaitInNonAsyncFunction3() As Task
             Dim initial =
 <File>
@@ -252,8 +247,7 @@ End Module
             Await TestAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
-        <WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
+        <Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
         Public Async Function TestBadAwaitInNonAsyncFunction4() As Task
             Dim initial =
 <File>
@@ -274,8 +268,7 @@ End Class
             Await TestAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
-        <WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
+        <Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
         Public Async Function TestBadAwaitInNonAsyncFunction5() As Task
             Dim initial =
 <File>
@@ -296,7 +289,7 @@ End Class
             Await TestAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
+        <Fact>
         Public Async Function TestBadAwaitInNonAsyncFunction6() As Task
             Dim initial =
 <File>
@@ -319,7 +312,7 @@ End Class
             Await TestAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
+        <Fact>
         Public Async Function TestBadAwaitInNonAsyncFunction7() As Task
             Dim initial =
 <File>
@@ -342,7 +335,7 @@ End Class
             Await TestAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
+        <Fact>
         Public Async Function TestBadAwaitInNonAsyncFunction8() As Task
             Dim initial =
 <File>
@@ -363,8 +356,7 @@ End Class
             Await TestAsync(initial, expected)
         End Function
 
-        <WorkItem(6477, "https://github.com/dotnet/roslyn/issues/6477")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
+        <Fact, WorkItem(6477, "https://github.com/dotnet/roslyn/issues/6477")>
         Public Async Function TestNullNodeCrash() As Task
             Dim initial =
 <File>
@@ -381,8 +373,7 @@ End Module
             Await TestMissingAsync(initial)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
-        <WorkItem(26312, "https://github.com/dotnet/roslyn/issues/26312")>
+        <Fact, WorkItem(26312, "https://github.com/dotnet/roslyn/issues/26312")>
         Public Async Function TestTaskPlacementOnEntryPoint() As Task
             Dim initial =
 <File>
@@ -409,8 +400,7 @@ End Module
             Await TestAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
-        <WorkItem(26312, "https://github.com/dotnet/roslyn/issues/26312")>
+        <Fact, WorkItem(26312, "https://github.com/dotnet/roslyn/issues/26312")>
         Public Async Function TestTaskPlacementOnEntryPoint_CaseInsensitive() As Task
             Dim initial =
 <File>
@@ -437,8 +427,7 @@ End Module
             Await TestAsync(initial, expected)
         End Function
 
-        <WorkItem(17368, "https://github.com/dotnet/roslyn/issues/17368")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
+        <Fact, WorkItem(17368, "https://github.com/dotnet/roslyn/issues/17368")>
         Public Async Function TestWithMissingParameterList() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System

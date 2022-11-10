@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             // Otherwise, we have a single-line raw string.  Determine the default indentation desired here.
             // We'll use that if we have to convert this single-line raw string to a multi-line one.
-            var indentationOptions = textBuffer.GetIndentationOptions(_editorOptionsService, documentBeforePaste.ProjectServices, explicitFormat: false);
+            var indentationOptions = textBuffer.GetIndentationOptions(_editorOptionsService, documentBeforePaste.LanguageServices, explicitFormat: false);
             return stringExpressionBeforePaste.GetFirstToken().GetPreferredIndentation(documentBeforePaste, indentationOptions, cancellationToken);
         }
 

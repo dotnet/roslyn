@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
 
                 if (TryGetBraceCompletionContext(out var contextAfterStart, cancellationToken))
                 {
-                    var indentationOptions = SubjectBuffer.GetIndentationOptions(_editorOptionsService, contextAfterStart.Document.ProjectServices, explicitFormat: false);
+                    var indentationOptions = SubjectBuffer.GetIndentationOptions(_editorOptionsService, contextAfterStart.Document.LanguageServices, explicitFormat: false);
                     var changesAfterStart = _service.GetTextChangesAfterCompletion(contextAfterStart, indentationOptions, cancellationToken);
                     if (changesAfterStart != null)
                     {
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
                             return;
                         }
 
-                        var indentationOptions = SubjectBuffer.GetIndentationOptions(_editorOptionsService, context.Document.ProjectServices, explicitFormat: false);
+                        var indentationOptions = SubjectBuffer.GetIndentationOptions(_editorOptionsService, context.Document.LanguageServices, explicitFormat: false);
                         var changesAfterReturn = _service.GetTextChangeAfterReturn(context, indentationOptions, CancellationToken.None);
                         if (changesAfterReturn != null)
                         {

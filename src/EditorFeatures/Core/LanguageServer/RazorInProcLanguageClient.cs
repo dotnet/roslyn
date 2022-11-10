@@ -49,12 +49,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         public RazorInProcLanguageClient(
             CSharpVisualBasicLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider,
             ExperimentalCapabilitiesProvider experimentalCapabilitiesProvider,
             IThreadingContext threadingContext,
-            ILspLoggerFactory lspLoggerFactory,
+            ILspServiceLoggerFactory lspLoggerFactory,
             [Import(AllowDefault = true)] AbstractLanguageClientMiddleLayer middleLayer)
-            : base(lspServiceProvider, globalOptions, listenerProvider, lspLoggerFactory, threadingContext, middleLayer)
+            : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, middleLayer)
         {
             _experimentalCapabilitiesProvider = experimentalCapabilitiesProvider;
         }

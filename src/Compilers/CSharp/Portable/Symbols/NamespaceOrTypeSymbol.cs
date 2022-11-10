@@ -239,9 +239,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Simple type name, possibly with generic name mangling.
         /// </param>
         /// <returns>
-        /// Symbol for the type, or MissingMetadataSymbol if the type isn't found.
+        /// Symbol for the type, or null if the type isn't found.
         /// </returns>
-        internal virtual NamedTypeSymbol LookupMetadataType(ref MetadataTypeName emittedTypeName)
+        internal virtual NamedTypeSymbol? LookupMetadataType(ref MetadataTypeName emittedTypeName)
         {
             Debug.Assert(!emittedTypeName.IsNull);
 
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (scope.Kind == SymbolKind.ErrorType)
             {
-                return new MissingMetadataTypeSymbol.Nested((NamedTypeSymbol)scope, ref emittedTypeName);
+                return null;
             }
 
             NamedTypeSymbol? namedType = null;
@@ -331,21 +331,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 Done:
             if (isTopLevel
-                && scope is not PENamespaceSymbol
                 && (emittedTypeName.ForcedArity == -1 || emittedTypeName.ForcedArity == emittedTypeName.InferredArity)
                 && GeneratedNameParser.TryParseFileTypeName(
                     emittedTypeName.UnmangledTypeName,
                     out string? displayFileName,
-                    out int ordinal,
+                    out byte[]? checksum,
                     out string? sourceName))
             {
                 // also do a lookup for file types from source.
                 namespaceOrTypeMembers = scope.GetTypeMembers(sourceName);
                 foreach (var named in namespaceOrTypeMembers)
                 {
-                    if (named.AssociatedSyntaxTree is SyntaxTree tree
-                        && getDisplayName(tree) == displayFileName
-                        && named.DeclaringCompilation.GetSyntaxTreeOrdinal(tree) == ordinal
+                    if (named.AssociatedFileIdentifier is FileIdentifier identifier
+                        && identifier.DisplayFilePath == displayFileName
+                        && !identifier.FilePathChecksumOpt.IsDefault
+                        && identifier.FilePathChecksumOpt.SequenceEqual(checksum)
                         && named.Arity == emittedTypeName.InferredArity)
                     {
                         if ((object?)namedType != null)
@@ -359,26 +359,7 @@ Done:
                 }
             }
 
-            if ((object?)namedType == null)
-            {
-                if (isTopLevel)
-                {
-                    return new MissingMetadataTypeSymbol.TopLevel(scope.ContainingModule, ref emittedTypeName);
-                }
-                else
-                {
-                    return new MissingMetadataTypeSymbol.Nested((NamedTypeSymbol)scope, ref emittedTypeName);
-                }
-            }
-
             return namedType;
-
-            static string getDisplayName(SyntaxTree tree)
-            {
-                var sb = PooledStringBuilder.GetInstance();
-                GeneratedNames.AppendFileName(tree.FilePath, sb);
-                return sb.ToStringAndFree();
-            }
         }
 
         /// <summary>

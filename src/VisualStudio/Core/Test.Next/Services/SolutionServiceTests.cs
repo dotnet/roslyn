@@ -33,7 +33,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
     public class SolutionServiceTests
     {
         private static RemoteWorkspace CreateRemoteWorkspace()
-            => new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices(), WorkspaceKind.RemoteWorkspace);
+            => new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices());
 
         [Fact]
         public async Task TestCreation()
@@ -68,7 +68,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var synched = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, updatePrimaryBranch, solution.WorkspaceVersion, cancellationToken: CancellationToken.None);
             Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
 
-            Assert.IsType<RemoteWorkspace>(synched.Workspace);
+            Assert.Equal(WorkspaceKind.RemoteWorkspace, synched.WorkspaceKind);
         }
 
         [Fact]
@@ -145,7 +145,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // same instance from cache
             Assert.True(object.ReferenceEquals(first, second));
-            Assert.True(first.Workspace is RemoteWorkspace);
+            Assert.Equal(WorkspaceKind.RemoteWorkspace, first.WorkspaceKind);
         }
 
         [Fact]
@@ -172,6 +172,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     .WithProjectOutputRefFilePath(projectId, "OutputRefFilePath" + version)
                     .WithProjectCompilationOutputInfo(projectId, new CompilationOutputInfo("AssemblyPath" + version))
                     .WithProjectDefaultNamespace(projectId, "DefaultNamespace" + version)
+                    .WithProjectChecksumAlgorithm(projectId, SourceHashAlgorithm.Sha1 + version)
                     .WithHasAllInformation(projectId, (version % 2) != 0)
                     .WithRunAnalyzers(projectId, (version % 2) != 0);
             }
@@ -186,6 +187,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 Assert.Equal("OutputRefFilePath" + version, project.OutputRefFilePath);
                 Assert.Equal("AssemblyPath" + version, project.CompilationOutputInfo.AssemblyPath);
                 Assert.Equal("DefaultNamespace" + version, project.DefaultNamespace);
+                Assert.Equal(SourceHashAlgorithm.Sha1 + version, project.State.ChecksumAlgorithm);
                 Assert.Equal((version % 2) != 0, project.State.HasAllInformation);
                 Assert.Equal((version % 2) != 0, project.State.RunAnalyzers);
             }
@@ -387,23 +389,23 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var remoteSolution1 = await GetInitialOOPSolutionAsync(remoteWorkspace, assetProvider, solution1);
 
-            await Verify(solution1, remoteSolution1, expectRemoteSolutionToCurrent: true);
+            await Verify(remoteWorkspace, solution1, remoteSolution1, expectRemoteSolutionToCurrent: true);
             var version = solution1.WorkspaceVersion;
 
             // update remote workspace
             var currentSolution = remoteSolution1.WithDocumentText(remoteSolution1.Projects.First().Documents.First().Id, SourceText.From(code + " class Test2 { }"));
             var (oopSolution2, _) = await remoteWorkspace.GetTestAccessor().TryUpdateWorkspaceCurrentSolutionAsync(currentSolution, ++version);
 
-            await Verify(currentSolution, oopSolution2, expectRemoteSolutionToCurrent: true);
+            await Verify(remoteWorkspace, currentSolution, oopSolution2, expectRemoteSolutionToCurrent: true);
 
             // move backward
-            await Verify(remoteSolution1, (await remoteWorkspace.GetTestAccessor().TryUpdateWorkspaceCurrentSolutionAsync(remoteSolution1, solution1.WorkspaceVersion)).solution, expectRemoteSolutionToCurrent: false);
+            await Verify(remoteWorkspace, remoteSolution1, (await remoteWorkspace.GetTestAccessor().TryUpdateWorkspaceCurrentSolutionAsync(remoteSolution1, solution1.WorkspaceVersion)).solution, expectRemoteSolutionToCurrent: false);
 
             // move forward
             currentSolution = oopSolution2.WithDocumentText(oopSolution2.Projects.First().Documents.First().Id, SourceText.From(code + " class Test3 { }"));
             var remoteSolution3 = (await remoteWorkspace.GetTestAccessor().TryUpdateWorkspaceCurrentSolutionAsync(currentSolution, ++version)).solution;
 
-            await Verify(currentSolution, remoteSolution3, expectRemoteSolutionToCurrent: true);
+            await Verify(remoteWorkspace, currentSolution, remoteSolution3, expectRemoteSolutionToCurrent: true);
 
             // move to new solution backward
             var solutionInfo2 = await assetProvider.CreateSolutionInfoAsync(await solution1.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
@@ -416,7 +418,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 solution2, ++version);
             Assert.NotNull(solution3);
             Assert.True(updated3);
-            await Verify(solution1, solution3, expectRemoteSolutionToCurrent: true);
+            await Verify(remoteWorkspace, solution1, solution3, expectRemoteSolutionToCurrent: true);
 
             static async Task<Solution> GetInitialOOPSolutionAsync(RemoteWorkspace remoteWorkspace, AssetProvider assetProvider, Solution solution)
             {
@@ -428,13 +430,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 return await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, updatePrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
             }
 
-            static async Task Verify(Solution givenSolution, Solution remoteSolution, bool expectRemoteSolutionToCurrent)
+            static async Task Verify(RemoteWorkspace remoteWorkspace, Solution givenSolution, Solution remoteSolution, bool expectRemoteSolutionToCurrent)
             {
                 // verify we got solution expected
                 Assert.Equal(await givenSolution.State.GetChecksumAsync(CancellationToken.None), await remoteSolution.State.GetChecksumAsync(CancellationToken.None));
 
                 // verify remote workspace got updated
-                Assert.True(expectRemoteSolutionToCurrent == (remoteSolution == remoteSolution.Workspace.CurrentSolution));
+                Assert.True(expectRemoteSolutionToCurrent == (remoteSolution == remoteWorkspace.CurrentSolution));
             }
         }
 
@@ -820,10 +822,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var recoveredSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, updatePrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
             oldSolutionValidator?.Invoke(recoveredSolution);
 
-            Assert.IsAssignableFrom<RemoteWorkspace>(recoveredSolution.Workspace);
-            var primaryWorkspace = recoveredSolution.Workspace;
+            Assert.Equal(WorkspaceKind.RemoteWorkspace, recoveredSolution.WorkspaceKind);
             Assert.Equal(solutionChecksum, await recoveredSolution.State.GetChecksumAsync(CancellationToken.None));
-            Assert.Same(primaryWorkspace.PrimaryBranchId, recoveredSolution.BranchId);
 
             // get new solution
             var newSolution = newSolutionGetter(solution);
@@ -834,14 +834,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var recoveredNewSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, newSolutionChecksum, updatePrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
 
             Assert.Equal(newSolutionChecksum, await recoveredNewSolution.State.GetChecksumAsync(CancellationToken.None));
-            Assert.NotSame(primaryWorkspace.PrimaryBranchId, recoveredNewSolution.BranchId);
 
             // do same once updating primary workspace
             await remoteWorkspace.UpdatePrimaryBranchSolutionAsync(assetProvider, newSolutionChecksum, solution.WorkspaceVersion + 1, CancellationToken.None);
             var third = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, newSolutionChecksum, updatePrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
 
             Assert.Equal(newSolutionChecksum, await third.State.GetChecksumAsync(CancellationToken.None));
-            Assert.Same(primaryWorkspace.PrimaryBranchId, third.BranchId);
 
             newSolutionValidator?.Invoke(recoveredNewSolution);
         }

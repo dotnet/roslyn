@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -657,7 +658,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -795,9 +796,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             try
             {
-                EditAndContinueWorkspaceService.Log.Write("EmitSolutionUpdate: '{0}'", solution.FilePath);
+                var log = EditAndContinueWorkspaceService.Log;
 
-                using var _1 = ArrayBuilder<ManagedModuleUpdate>.GetInstance(out var deltas);
+                log.Write("EmitSolutionUpdate: '{0}'", solution.FilePath);
+
+                using var _1 = ArrayBuilder<ModuleUpdate>.GetInstance(out var deltas);
                 using var _2 = ArrayBuilder<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)>.GetInstance(out var nonRemappableRegions);
                 using var _3 = ArrayBuilder<(ProjectId, EmitBaseline)>.GetInstance(out var emitBaselines);
                 using var _4 = ArrayBuilder<(ProjectId, ImmutableArray<Diagnostic>)>.GetInstance(out var diagnostics);
@@ -814,7 +817,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var oldProject = oldSolution.GetProject(newProject.Id);
                     if (oldProject == null)
                     {
-                        EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: project not loaded", newProject.Id.DebugName, newProject.Id);
+                        log.Write("EnC state of '{0}' queried: project not loaded", newProject.Id);
 
                         // TODO (https://github.com/dotnet/roslyn/issues/1204):
                         //
@@ -836,7 +839,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    EditAndContinueWorkspaceService.Log.Write("Found {0} potentially changed document(s) in project '{1}'", changedOrAddedDocuments.Count, newProject.FilePath);
+                    log.Write("Found {0} potentially changed document(s) in project '{1}'", changedOrAddedDocuments.Count, newProject.Id);
 
                     var (mvid, mvidReadError) = await DebuggingSession.GetProjectModuleIdAsync(newProject, cancellationToken).ConfigureAwait(false);
                     if (mvidReadError != null)
@@ -853,7 +856,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (mvid == Guid.Empty)
                     {
-                        EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}': project not built", newProject.FilePath);
+                        log.Write("Emitting update of '{0}': project not built", newProject.Id);
                         continue;
                     }
 
@@ -883,14 +886,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
 
                     var projectSummary = GetProjectAnalysisSummary(changedDocumentAnalyses);
-                    EditAndContinueWorkspaceService.Log.Write("Project summary for '{0}': {1}", projectSummary, newProject.FilePath);
+                    log.Write("Project summary for '{0}': {1}", newProject.Id, projectSummary);
                     if (projectSummary == ProjectAnalysisSummary.NoChanges)
                     {
                         continue;
                     }
 
-                    // The capability of a module to apply edits may change during edit session if the user attaches debugger to
-                    // an additional process that doesn't support EnC (or detaches from such process). Before we apply edits
+                    foreach (var changedDocumentAnalysis in changedDocumentAnalyses)
+                    {
+                        if (changedDocumentAnalysis.HasChanges)
+                        {
+                            log.Write("Document changed, added, or deleted: '{0}'", changedDocumentAnalysis.FilePath);
+                        }
+                    }
+
+                    // The capability of a module to apply edits may change during edit session if the user attaches debugger to 
+                    // an additional process that doesn't support EnC (or detaches from such process). Before we apply edits 
                     // we need to check with the debugger.
                     var (moduleDiagnostics, isModuleLoaded) = await GetModuleDiagnosticsAsync(mvid, oldProject, newProject, changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);
 
@@ -927,7 +938,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    if (!DebuggingSession.TryGetOrCreateEmitBaseline(newProject, out var createBaselineDiagnostics, out var baseline, out var baselineAccessLock))
+                    if (!DebuggingSession.TryGetOrCreateEmitBaseline(newProject, out var createBaselineDiagnostics, out var baseline, out var baselineGeneration, out var baselineAccessLock))
                     {
                         Debug.Assert(!createBaselineDiagnostics.IsEmpty);
 
@@ -939,7 +950,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}'", newProject.FilePath);
+                    log.Write("Emitting update of '{0}'", newProject.Id);
+
+                    if (log.FileLoggingEnabled)
+                    {
+                        foreach (var changedDocumentAnalysis in changedDocumentAnalyses)
+                        {
+                            if (changedDocumentAnalysis.HasChanges)
+                            {
+                                var oldDocument = await oldProject.GetDocumentAsync(changedDocumentAnalysis.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                                var newDocument = await newProject.GetDocumentAsync(changedDocumentAnalysis.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                                await log.WriteDocumentChangeAsync(oldDocument, newDocument, DebuggingSession.Id, baselineGeneration + 1, cancellationToken).ConfigureAwait(false);
+                            }
+                        }
+                    }
 
                     var oldCompilation = await oldProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                     var newCompilation = await newProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -1000,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 out var moduleNonRemappableRegions,
                                 out var exceptionRegionUpdates);
 
-                            deltas.Add(new ManagedModuleUpdate(
+                            var delta = new ModuleUpdate(
                                 mvid,
                                 ilStream.ToImmutableArray(),
                                 metadataStream.ToImmutableArray(),
@@ -1010,10 +1034,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 changedTypeTokens,
                                 activeStatementsInUpdatedMethods,
                                 exceptionRegionUpdates,
-                                projectChanges.RequiredCapabilities));
+                                projectChanges.RequiredCapabilities);
+
+                            deltas.Add(delta);
 
                             nonRemappableRegions.Add((mvid, moduleNonRemappableRegions));
                             emitBaselines.Add((newProject.Id, emitResult.Baseline));
+
+                            if (log.FileLoggingEnabled)
+                            {
+                                await LogDeltaFilesAsync(log, delta, baselineGeneration, oldProject, newProject, cancellationToken).ConfigureAwait(false);
+                            }
                         }
                     }
                     else
@@ -1046,8 +1077,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var update = isBlocked ?
                     SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable(), syntaxError, hasEmitErrors) :
                     new SolutionUpdate(
-                        new ManagedModuleUpdates(
-                            (deltas.Count > 0) ? ManagedModuleUpdateStatus.Ready : ManagedModuleUpdateStatus.None,
+                        new ModuleUpdates(
+                            (deltas.Count > 0) ? ModuleUpdateStatus.Ready : ModuleUpdateStatus.None,
                             deltas.ToImmutable()),
                         nonRemappableRegions.ToImmutable(),
                         emitBaselines.ToImmutable(),
@@ -1059,8 +1090,37 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
+        }
+
+        private async ValueTask LogDeltaFilesAsync(TraceLog log, ModuleUpdate delta, int baselineGeneration, Project oldProject, Project newProject, CancellationToken cancellationToken)
+        {
+            var sessionId = DebuggingSession.Id;
+
+            if (baselineGeneration == 0)
+            {
+                var oldCompilationOutputs = DebuggingSession.GetCompilationOutputs(oldProject);
+
+                await log.WriteToFileAsync(
+                    async (stream, cancellationToken) => await oldCompilationOutputs.TryCopyAssemblyToAsync(stream, cancellationToken).ConfigureAwait(false),
+                    sessionId,
+                    newProject.Name,
+                    PathUtilities.GetFileName(oldCompilationOutputs.AssemblyDisplayPath) ?? oldProject.Name + ".dll",
+                    cancellationToken).ConfigureAwait(false);
+
+                await log.WriteToFileAsync(
+                    async (stream, cancellationToken) => await oldCompilationOutputs.TryCopyPdbToAsync(stream, cancellationToken).ConfigureAwait(false),
+                    sessionId,
+                    newProject.Name,
+                    PathUtilities.GetFileName(oldCompilationOutputs.PdbDisplayPath) ?? oldProject.Name + ".pdb",
+                    cancellationToken).ConfigureAwait(false);
+            }
+
+            var generation = baselineGeneration + 1;
+            log.WriteToFile(sessionId, delta.ILDelta, newProject.Name, generation + ".il");
+            log.WriteToFile(sessionId, delta.MetadataDelta, newProject.Name, generation + ".meta");
+            log.WriteToFile(sessionId, delta.PdbDelta, newProject.Name, generation + ".pdb");
         }
 
         // internal for testing

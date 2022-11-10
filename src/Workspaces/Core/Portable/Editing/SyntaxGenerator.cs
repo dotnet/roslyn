@@ -11,7 +11,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -57,8 +57,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
         /// </summary>
-        internal static SyntaxGenerator GetGenerator(HostSolutionServices services, string language)
-            => services.GetProjectServices(language).GetRequiredService<SyntaxGenerator>();
+        internal static SyntaxGenerator GetGenerator(SolutionServices services, string language)
+            => services.GetLanguageServices(language).GetRequiredService<SyntaxGenerator>();
 
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the language corresponding to the document.

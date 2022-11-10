@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a new <see cref="SyntaxEditor"/> instance.
         /// </summary>
-        internal SyntaxEditor(SyntaxNode root, HostSolutionServices services)
+        public SyntaxEditor(SyntaxNode root, SolutionServices services)
             : this(root ?? throw new ArgumentNullException(nameof(root)),
                    SyntaxGenerator.GetGenerator(services ?? throw new ArgumentNullException(nameof(services)), root.Language))
         {

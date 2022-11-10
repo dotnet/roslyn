@@ -345,15 +345,15 @@ unsafe interface I
                 // (14,31): error CS0453: The type 'A<int>.B1[]' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
                 //     void M7(A<A<int>.B1[]>.B1 o);
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "o").WithArguments("A<T>", "T", "A<int>.B1[]").WithLocation(14, 31),
-                // (9,28): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<string>.B1')
+                // (9,28): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('A<string>.B1')
                 //     void M2(A<string>.B1** o);
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "o").WithArguments("A<string>.B1").WithLocation(9, 28),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "o").WithArguments("A<string>.B1").WithLocation(9, 28),
                 // (9,28): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
                 //     void M2(A<string>.B1** o);
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "o").WithArguments("A<T>", "T", "string").WithLocation(9, 28),
-                // (10,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<A<int>.B2>.B1')
+                // (10,30): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('A<A<int>.B2>.B1')
                 //     void M3(A<A<int>.B2>.B1* o);
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "o").WithArguments("A<A<int>.B2>.B1").WithLocation(10, 30),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "o").WithArguments("A<A<int>.B2>.B1").WithLocation(10, 30),
                 // (11,28): error CS0453: The type 'A<int>[]' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
                 //     void M4(A<A<int>[]>.B1 o);
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "o").WithArguments("A<T>", "T", "A<int>[]").WithLocation(11, 28),
@@ -363,9 +363,9 @@ unsafe interface I
                 // (8,27): error CS0306: The type 'A<int>*' may not be used as a type argument
                 //     void M1(A<A<int>*>.B1 o);
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "o").WithArguments("A<int>*").WithLocation(8, 27),
-                // (8,27): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<int>')
+                // (8,27): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('A<int>')
                 //     void M1(A<A<int>*>.B1 o);
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "o").WithArguments("A<int>").WithLocation(8, 27));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "o").WithArguments("A<int>").WithLocation(8, 27));
         }
 
         [WorkItem(542618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542618")]
@@ -3896,35 +3896,35 @@ class C : I
                     AssemblySymbol asm = i2.ContainingAssembly;
 
                     mdName = MetadataTypeName.FromFullName("I3`1", false, -1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I3", t.Name);
                     Assert.True(t.MangleName);
                     Assert.Equal(1, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I3`1", false, 0);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I3`1", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(0, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I3`1", false, 1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I3", t.Name);
                     Assert.True(t.MangleName);
                     Assert.Equal(1, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I3`1", false, 2);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I3`1", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(2, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I3`1", true, -1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I3", t.Name);
                     Assert.True(t.MangleName);
@@ -3938,7 +3938,7 @@ class C : I
                     //Assert.Equal(0, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I3`1", true, 1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I3", t.Name);
                     Assert.True(t.MangleName);
@@ -3952,35 +3952,35 @@ class C : I
                     //Assert.Equal(2, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I", false, -1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(0, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I", false, 0);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(0, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I", false, 1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(1, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I", true, -1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(0, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I", true, 0);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I", t.Name);
                     Assert.False(t.MangleName);
@@ -3994,35 +3994,35 @@ class C : I
                     //Assert.Equal(1, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I2`1", false, -1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I2`1", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(0, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I2`1", false, 0);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I2`1", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(0, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I2`1", false, 1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I2", t.Name);
                     Assert.True(t.MangleName);
                     Assert.Equal(1, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I2`1", false, 2);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I2`1", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(2, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I2`1", true, -1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I2", t.Name);
                     Assert.True(t.MangleName);
@@ -4036,7 +4036,7 @@ class C : I
                     //Assert.Equal(0, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I2`1", true, 1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I2", t.Name);
                     Assert.True(t.MangleName);
@@ -4050,35 +4050,35 @@ class C : I
                     //Assert.Equal(2, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I4`2", false, -1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I4`2", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(1, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I4`2", false, 0);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I4`2", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(0, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I4`2", false, 1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.False(t.IsErrorType());
                     Assert.Equal("I4`2", t.Name);
                     Assert.False(t.MangleName);
                     Assert.Equal(1, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I4`2", false, 2);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I4", t.Name);
                     Assert.True(t.MangleName);
                     Assert.Equal(2, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I4`2", true, -1);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I4", t.Name);
                     Assert.True(t.MangleName);
@@ -4099,7 +4099,7 @@ class C : I
                     //Assert.Equal(1, t.Arity);
 
                     mdName = MetadataTypeName.FromFullName("I4`2", true, 2);
-                    t = asm.LookupTopLevelMetadataType(ref mdName, true);
+                    t = asm.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     Assert.True(t.IsErrorType());
                     Assert.Equal("I4", t.Name);
                     Assert.True(t.MangleName);
@@ -4116,10 +4116,7 @@ class C : I
 
                     mdName = MetadataTypeName.FromFullName("I3`1", false, 0);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I3`1", t.Name);
-                    Assert.False(t.MangleName);
-                    Assert.Equal(0, t.Arity);
+                    Assert.Null(t);
 
                     mdName = MetadataTypeName.FromFullName("I3`1", false, 1);
                     t = containingType.LookupMetadataType(ref mdName);
@@ -4130,10 +4127,7 @@ class C : I
 
                     mdName = MetadataTypeName.FromFullName("I3`1", false, 2);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I3`1", t.Name);
-                    Assert.False(t.MangleName);
-                    Assert.Equal(2, t.Arity);
+                    Assert.Null(t);
 
                     mdName = MetadataTypeName.FromFullName("I3`1", true, -1);
                     t = containingType.LookupMetadataType(ref mdName);
@@ -4179,10 +4173,7 @@ class C : I
 
                     mdName = MetadataTypeName.FromFullName("I", false, 1);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I", t.Name);
-                    Assert.False(t.MangleName);
-                    Assert.Equal(1, t.Arity);
+                    Assert.Null(t);
 
                     mdName = MetadataTypeName.FromFullName("I", true, -1);
                     t = containingType.LookupMetadataType(ref mdName);
@@ -4221,24 +4212,15 @@ class C : I
 
                     mdName = MetadataTypeName.FromFullName("I2`1", false, 1);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I2", t.Name);
-                    Assert.True(t.MangleName);
-                    Assert.Equal(1, t.Arity);
+                    Assert.Null(t);
 
                     mdName = MetadataTypeName.FromFullName("I2`1", false, 2);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I2`1", t.Name);
-                    Assert.False(t.MangleName);
-                    Assert.Equal(2, t.Arity);
+                    Assert.Null(t);
 
                     mdName = MetadataTypeName.FromFullName("I2`1", true, -1);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I2", t.Name);
-                    Assert.True(t.MangleName);
-                    Assert.Equal(1, t.Arity);
+                    Assert.Null(t);
 
                     //mdName = MetadataTypeName.FromFullName("I2`1", true, 0);
                     //t = containingType.LookupMetadataType(ref mdName);
@@ -4249,10 +4231,7 @@ class C : I
 
                     mdName = MetadataTypeName.FromFullName("I2`1", true, 1);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I2", t.Name);
-                    Assert.True(t.MangleName);
-                    Assert.Equal(1, t.Arity);
+                    Assert.Null(t);
 
                     //mdName = MetadataTypeName.FromFullName("I2`1", true, 2);
                     //t = containingType.LookupMetadataType(ref mdName);
@@ -4270,10 +4249,7 @@ class C : I
 
                     mdName = MetadataTypeName.FromFullName("I4`2", false, 0);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I4`2", t.Name);
-                    Assert.False(t.MangleName);
-                    Assert.Equal(0, t.Arity);
+                    Assert.Null(t);
 
                     mdName = MetadataTypeName.FromFullName("I4`2", false, 1);
                     t = containingType.LookupMetadataType(ref mdName);
@@ -4284,17 +4260,11 @@ class C : I
 
                     mdName = MetadataTypeName.FromFullName("I4`2", false, 2);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I4", t.Name);
-                    Assert.True(t.MangleName);
-                    Assert.Equal(2, t.Arity);
+                    Assert.Null(t);
 
                     mdName = MetadataTypeName.FromFullName("I4`2", true, -1);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I4", t.Name);
-                    Assert.True(t.MangleName);
-                    Assert.Equal(2, t.Arity);
+                    Assert.Null(t);
 
                     //mdName = MetadataTypeName.FromFullName("I4`2", true, 0);
                     //t = containingType.LookupMetadataType(ref mdName);
@@ -4312,10 +4282,7 @@ class C : I
 
                     mdName = MetadataTypeName.FromFullName("I4`2", true, 2);
                     t = containingType.LookupMetadataType(ref mdName);
-                    Assert.True(t.IsErrorType());
-                    Assert.Equal("I4", t.Name);
-                    Assert.True(t.MangleName);
-                    Assert.Equal(2, t.Arity);
+                    Assert.Null(t);
                 };
 
             CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier, targetFramework: TargetFramework.Mscorlib40);

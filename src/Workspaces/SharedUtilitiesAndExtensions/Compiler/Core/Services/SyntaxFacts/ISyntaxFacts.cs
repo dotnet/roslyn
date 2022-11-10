@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Internal.Editing;
 using Microsoft.CodeAnalysis.Editing;
 #endif
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     /// <summary>
     /// Contains helpers to allow features and other algorithms to run over C# and Visual Basic code in a uniform fashion.
@@ -194,11 +194,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsDeclarationExpression([NotNullWhen(true)] SyntaxNode? node);
 
-        bool IsIsTypeExpression([NotNullWhen(true)] SyntaxNode? node);
-        bool IsIsNotTypeExpression([NotNullWhen(true)] SyntaxNode? node);
-
-        bool IsIsPatternExpression([NotNullWhen(true)] SyntaxNode? node);
-
         bool IsConversionExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsCastExpression([NotNullWhen(true)] SyntaxNode? node);
 
@@ -368,7 +363,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsBaseConstructorInitializer(SyntaxToken token);
         bool IsQueryKeyword(SyntaxToken token);
         bool IsElementAccessExpression([NotNullWhen(true)] SyntaxNode? node);
-        bool IsIndexerMemberCRef([NotNullWhen(true)] SyntaxNode? node);
         bool IsIdentifierStartCharacter(char c);
         bool IsIdentifierPartCharacter(char c);
         bool IsIdentifierEscapeCharacter(char c);
@@ -461,18 +455,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsPropertyPatternClause(SyntaxNode node);
 
         bool IsAnyPattern([NotNullWhen(true)] SyntaxNode? node);
-
-        bool IsAndPattern([NotNullWhen(true)] SyntaxNode? node);
         bool IsBinaryPattern([NotNullWhen(true)] SyntaxNode? node);
-        bool IsConstantPattern([NotNullWhen(true)] SyntaxNode? node);
-        bool IsDeclarationPattern([NotNullWhen(true)] SyntaxNode? node);
-        bool IsNotPattern([NotNullWhen(true)] SyntaxNode? node);
-        bool IsOrPattern([NotNullWhen(true)] SyntaxNode? node);
-        bool IsParenthesizedPattern([NotNullWhen(true)] SyntaxNode? node);
-        bool IsRecursivePattern([NotNullWhen(true)] SyntaxNode? node);
-        bool IsTypePattern([NotNullWhen(true)] SyntaxNode? node);
         bool IsUnaryPattern([NotNullWhen(true)] SyntaxNode? node);
-        bool IsVarPattern([NotNullWhen(true)] SyntaxNode? node);
 
         SyntaxNode GetExpressionOfConstantPattern(SyntaxNode node);
         SyntaxNode GetTypeOfTypePattern(SyntaxNode node);
@@ -481,6 +465,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         void GetPartsOfBinaryPattern(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
         void GetPartsOfDeclarationPattern(SyntaxNode node, out SyntaxNode type, out SyntaxNode designation);
         void GetPartsOfRecursivePattern(SyntaxNode node, out SyntaxNode? type, out SyntaxNode? positionalPart, out SyntaxNode? propertyPart, out SyntaxNode? designation);
+        void GetPartsOfRelationalPattern(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode expression);
         void GetPartsOfUnaryPattern(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode pattern);
 
         bool ContainsInterleavedDirective(TextSpan span, SyntaxToken token, CancellationToken cancellationToken);
@@ -550,6 +535,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         // note: this is only for nodes that have a single child nodes.  If a node has multiple child nodes, then
         // ISyntaxFacts should have a GetPartsOfXXX helper instead, and GetXXXOfYYY should be built off of that
         // inside ISyntaxFactsExtensions
+
+        SyntaxNode GetArgumentListOfImplicitElementAccess(SyntaxNode node);
 
         SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node);

@@ -13,7 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Rename
         }
 
         internal static ImmutableArray<ISymbol> GetSymbolsTouchingPosition(
-            int position, SemanticModel semanticModel, HostSolutionServices services, CancellationToken cancellationToken)
+            int position, SemanticModel semanticModel, SolutionServices services, CancellationToken cancellationToken)
         {
             var bindableToken = semanticModel.SyntaxTree.GetRoot(cancellationToken).FindToken(position, findInsideTrivia: true);
             var semanticInfo = semanticModel.GetSemanticInfo(bindableToken, services, cancellationToken);
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
 
                 // Append the remaining of the sub-string within replaceInsideString after the last match. 
-                stringBuilder.Append(replaceInsideString.Substring(startOffset));
+                stringBuilder.Append(replaceInsideString[startOffset..]);
 
                 return stringBuilder.ToString();
             }

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
             {
             }
 
-            public struct Value
+            public readonly struct Value
             {
                 public readonly ImmutableArray<byte> PublicKeyToken;
                 public readonly AssemblyVersion Version;
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
             {
             }
 
-            public struct Key : IEquatable<Key>
+            public readonly struct Key : IEquatable<Key>
             {
                 public readonly string Name;
                 public readonly ImmutableArray<byte> PublicKeyToken;
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public struct Value
+            public readonly struct Value
             {
                 public readonly AssemblyVersion VersionLow;
                 public readonly AssemblyVersion VersionHigh;

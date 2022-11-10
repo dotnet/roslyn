@@ -6,12 +6,13 @@ Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
+    <Trait(Traits.Feature, Traits.Features.Simplification)>
     Public Class InitializerSimplificationTests
         Inherits AbstractSimplificationTests
 
 #Region "VB tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_DontRemovePropertyNameForObjectCreationInitializer() As Task
             Dim input =
 <Workspace>
@@ -47,7 +48,7 @@ End Class
             Await AssertCompilesAndEqual(input, expected).ConfigureAwait(False)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_RemoveInferrablePropertyNameForAnonymousObjectCreationInitializer() As Task
             Dim input =
 <Workspace>

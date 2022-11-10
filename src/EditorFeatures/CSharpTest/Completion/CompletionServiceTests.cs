@@ -27,9 +27,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class CompletionServiceTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void AcquireCompletionService()
         {
             var workspace = new AdhocWorkspace();
@@ -40,6 +41,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
 
             var service = CompletionService.GetService(document);
             Assert.NotNull(service);
+        }
+
+        [Fact]
+        public void FindCompletionProvider()
+        {
+            using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features.AddParts(typeof(ThirdPartyCompletionProvider)));
+            var text = SourceText.From("class C { }");
+
+            var document = workspace.CurrentSolution
+                .AddProject("TestProject", "Assembly", LanguageNames.CSharp)
+                .AddDocument("TestDocument.cs", text);
+
+            var service = CompletionService.GetService(document);
+
+            // Create an item with ProvderName set to ThirdPartyCompletionProvider
+            // We should be able to find the provider object vithout calling into CompletionService for other operations.
+            var item = CompletionItem.Create("ThirdPartyCompletionProviderItem");
+            item.ProviderName = typeof(ThirdPartyCompletionProvider).FullName;
+
+            var provider = service.GetProvider(item, document.Project);
+            Assert.True(provider is ThirdPartyCompletionProvider);
         }
 
         [ExportCompletionProvider(nameof(ThirdPartyCompletionProvider), LanguageNames.CSharp)]
@@ -78,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
         /// <summary>
         /// Ensure that 3rd party can set options on solution and access them from within a custom completion provider.
         /// </summary>
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task PassThroughOptions1()
         {
             using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features.AddParts(typeof(ThirdPartyCompletionProvider)));
@@ -101,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
         /// <summary>
         /// Ensure that 3rd party can set options on solution and access them from within a custom completion provider.
         /// </summary>
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task PassThroughOptions2()
         {
             using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures.AddParts(typeof(ThirdPartyCompletionProvider)));

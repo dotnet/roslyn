@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     internal sealed class CSharpSyntaxFormattingService : CSharpSyntaxFormatting, ISyntaxFormattingService
     {
-        private readonly HostProjectServices _services;
+        private readonly LanguageServices _services;
 
         [ExportLanguageServiceFactory(typeof(ISyntaxFormattingService), LanguageNames.CSharp), Shared]
         internal sealed class Factory : ILanguageServiceFactory
@@ -39,10 +39,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-                => new CSharpSyntaxFormattingService(languageServices.ProjectServices);
+                => new CSharpSyntaxFormattingService(languageServices.LanguageServices);
         }
 
-        private CSharpSyntaxFormattingService(HostProjectServices languageServices)
+        private CSharpSyntaxFormattingService(LanguageServices languageServices)
             => _services = languageServices;
 
         public bool ShouldFormatOnTypedCharacter(
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var token = documentSyntax.Root.FindToken(Math.Max(0, caretPosition - 1), findInsideTrivia: true);
             if (token.IsMissing ||
                 !ValidSingleOrMultiCharactersTokenKind(typedChar, token.Kind()) ||
-                token.IsKind(SyntaxKind.EndOfFileToken, SyntaxKind.None) ||
+                token.Kind() is SyntaxKind.EndOfFileToken or SyntaxKind.None ||
                 documentSyntax.SyntaxTree.IsInNonUserCode(caretPosition, cancellationToken))
             {
                 return false;

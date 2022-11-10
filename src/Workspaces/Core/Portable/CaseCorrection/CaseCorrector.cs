@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
         /// <summary>
         /// Case correct only things that don't require semantic information
         /// </summary>
-        internal static SyntaxNode CaseCorrect(SyntaxNode root, ImmutableArray<TextSpan> spans, HostSolutionServices services, CancellationToken cancellationToken = default)
+        internal static SyntaxNode CaseCorrect(SyntaxNode root, ImmutableArray<TextSpan> spans, SolutionServices services, CancellationToken cancellationToken = default)
             => services.GetRequiredLanguageService<ICaseCorrectionService>(root.Language).CaseCorrect(root, spans, cancellationToken);
     }
 }

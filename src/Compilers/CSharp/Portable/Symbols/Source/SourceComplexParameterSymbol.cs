@@ -198,6 +198,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
 
+        internal sealed override DeclarationScope EffectiveScope
+        {
+            get
+            {
+                var scope = CalculateEffectiveScopeIgnoringAttributes();
+                if (scope != DeclarationScope.Unscoped &&
+                    HasUnscopedRefAttribute)
+                {
+                    return DeclarationScope.Unscoped;
+                }
+                return scope;
+            }
+        }
+
+        private bool HasUnscopedRefAttribute => GetEarlyDecodedWellKnownAttributeData()?.HasUnscopedRefAttribute == true;
+
         internal static SyntaxNode? GetDefaultValueSyntaxForIsNullableAnalysisEnabled(ParameterSyntax? parameterSyntax) =>
             parameterSyntax?.Default?.Value;
 
@@ -556,6 +572,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyCustomAttributesBag;
         }
 
+        /// <summary>
+        /// Binds attributes applied to this parameter.
+        /// </summary>
+        public ImmutableArray<(CSharpAttributeData, BoundAttribute)> BindParameterAttributes()
+        {
+            return BindAttributes(GetAttributeDeclarations(), WithTypeParametersBinderOpt);
+        }
+
         internal override void EarlyDecodeWellKnownAttributeType(NamedTypeSymbol attributeType, AttributeSyntax attributeSyntax)
         {
             Debug.Assert(!attributeType.IsErrorType());
@@ -592,6 +616,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.DateTimeConstantAttribute))
             {
                 return EarlyDecodeAttributeForDefaultParameterValue(AttributeDescription.DateTimeConstantAttribute, ref arguments);
+            }
+            else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.UnscopedRefAttribute))
+            {
+                // We can't bind the attribute here because that might lead to a cycle.
+                // Instead, simply record that the attribute exists and bind later.
+                arguments.GetOrCreateData<ParameterEarlyWellKnownAttributeData>().HasUnscopedRefAttribute = true;
+                return (null, null);
             }
             else if (!IsOnPartialImplementation(arguments.AttributeSyntax))
             {
@@ -748,7 +779,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ReservedAttributes.IsByRefLikeAttribute |
                 ReservedAttributes.TupleElementNamesAttribute |
                 ReservedAttributes.NullableAttribute |
-                ReservedAttributes.NativeIntegerAttribute))
+                ReservedAttributes.NativeIntegerAttribute |
+                ReservedAttributes.ScopedRefAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.AllowNullAttribute))
@@ -792,6 +824,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 DecodeInterpolatedStringHandlerArgumentAttribute(ref arguments, diagnostics, index);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.UnscopedRefAttribute))
+            {
+                if (!this.IsValidUnscopedRefAttributeTarget())
+                {
+                    diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, arguments.AttributeSyntaxOpt.Location);
+                }
+                else if (DeclaredScope != DeclarationScope.Unscoped)
+                {
+                    diagnostics.Add(ErrorCode.ERR_UnscopedScoped, arguments.AttributeSyntaxOpt.Location);
+                }
+            }
+        }
+
+        private bool IsValidUnscopedRefAttributeTarget()
+        {
+            return ParameterHelpers.IsRefScopedByDefault(this);
         }
 
         private static bool? DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(AttributeDescription description, CSharpAttributeData attribute)
@@ -1231,7 +1279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             var parameterWellKnownAttributeData = arguments.GetOrCreateData<ParameterWellKnownAttributeData>();

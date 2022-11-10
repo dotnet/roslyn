@@ -139,8 +139,8 @@ End Class"
             Await TestAsync(initial, expected)
         End Function
 
-        <WorkItem(13436, "https://github.com/dotnet/roslyn/issues/13436")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
+        <WorkItem(13436, "https://github.com/dotnet/roslyn/issues/13436")>
         Public Async Function RemovesParamTag_BothParamTagsOnSameLine() As Task
             Dim initial =
 "Class Program
@@ -165,8 +165,8 @@ End Class"
             Await TestAsync(initial, expected)
         End Function
 
-        <WorkItem(13436, "https://github.com/dotnet/roslyn/issues/13436")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
+        <WorkItem(13436, "https://github.com/dotnet/roslyn/issues/13436")>
         Public Async Function RemovesParamTag_TrailingText1() As Task
             Dim initial =
 "Class Program

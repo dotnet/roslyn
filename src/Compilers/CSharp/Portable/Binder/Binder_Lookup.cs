@@ -1333,7 +1333,7 @@ symIsHidden:;
 
         private bool IsInScopeOfAssociatedSyntaxTree(Symbol symbol)
         {
-            while (symbol is not null and not SourceMemberContainerTypeSymbol { IsFileLocal: true })
+            while (symbol is not null and not NamedTypeSymbol { AssociatedFileIdentifier: not null })
             {
                 symbol = symbol.ContainingType;
             }
@@ -1344,22 +1344,35 @@ symIsHidden:;
                 return true;
             }
 
-            var tree = getSyntaxTreeForFileTypes();
-            return symbol.IsDefinedInSourceTree(tree, definedWithinSpan: null);
+            if ((object)symbol.DeclaringCompilation != this.Compilation
+                && (this.Flags & BinderFlags.InEEMethodBinder) == 0)
+            {
+                return false;
+            }
 
-            SyntaxTree getSyntaxTreeForFileTypes()
+            var symbolFileIdentifier = ((NamedTypeSymbol)symbol).AssociatedFileIdentifier.GetValueOrDefault();
+            if (symbolFileIdentifier.FilePathChecksumOpt.IsDefault)
+            {
+                // the containing file of the file-local type has an ill-formed path.
+                return false;
+            }
+
+            var binderFileIdentifier = getFileIdentifierForFileTypes();
+            return !binderFileIdentifier.FilePathChecksumOpt.IsDefault
+                && binderFileIdentifier.FilePathChecksumOpt.SequenceEqual(symbolFileIdentifier.FilePathChecksumOpt);
+
+            FileIdentifier getFileIdentifierForFileTypes()
             {
                 for (var binder = this; binder != null; binder = binder.Next)
                 {
                     if (binder is BuckStopsHereBinder lastBinder)
                     {
-                        Debug.Assert(lastBinder.AssociatedSyntaxTree is not null);
-                        return lastBinder.AssociatedSyntaxTree;
+                        // we never expect to bind a file type in a context where the BuckStopsHereBinder lacks an AssociatedFileIdentifier
+                        return lastBinder.AssociatedFileIdentifier.Value;
                     }
                 }
 
-                Debug.Assert(false);
-                return null;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

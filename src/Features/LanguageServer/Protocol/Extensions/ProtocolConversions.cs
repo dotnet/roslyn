@@ -656,8 +656,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var delimiter = projectContext.Id.IndexOf('|');
 
             return ProjectId.CreateFromSerialized(
-                Guid.Parse(projectContext.Id.Substring(0, delimiter)),
-                debugName: projectContext.Id.Substring(delimiter + 1));
+                Guid.Parse(projectContext.Id[..delimiter]),
+                debugName: projectContext.Id[(delimiter + 1)..]);
+        }
+
+        public static LSP.VSProjectContext ProjectToProjectContext(Project project)
+        {
+            var projectContext = new LSP.VSProjectContext
+            {
+                Id = ProjectIdToProjectContextId(project.Id),
+                Label = project.Name
+            };
+
+            if (project.Language == LanguageNames.CSharp)
+            {
+                projectContext.Kind = LSP.VSProjectKind.CSharp;
+            }
+            else if (project.Language == LanguageNames.VisualBasic)
+            {
+                projectContext.Kind = LSP.VSProjectKind.VisualBasic;
+            }
+
+            return projectContext;
         }
 
         public static async Task<SyntaxFormattingOptions> GetFormattingOptionsAsync(

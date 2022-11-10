@@ -12,7 +12,7 @@ Imports VerifyConvertToIterator = Microsoft.CodeAnalysis.Editor.UnitTests.CodeAc
 Imports VerifyConvertToYield = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer, Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator.VisualBasicChangeToYieldCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.Iterator
-
+    <Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
     Public Class ConvertToIteratorTests
         Private Shared Async Function VerifyCodeFixAsync(code As String, fixedCode As String) As Task
             Await New VerifyConvertToIterator.Test With
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.I
             }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
+        <Fact>
         Public Async Function TestConvertToIteratorFunction() As Task
             Await VerifyCodeFixAsync(
 "Imports System
@@ -52,7 +52,7 @@ Module Module1
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
+        <Fact>
         Public Async Function TestConvertToIteratorSub() As Task
             Await VerifyNoCodeFixAsync(
 "Module Module1
@@ -62,7 +62,7 @@ End Module")
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
+        <Fact>
         Public Async Function TestConvertToIteratorFunctionLambda() As Task
             Await VerifyCodeFixAsync(
 "Imports System
@@ -87,7 +87,7 @@ Module Module1
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
+        <Fact>
         Public Async Function TestConvertToIteratorSubLambda() As Task
             Await VerifyNoCodeFixAsync(
 "Imports System
@@ -102,7 +102,7 @@ Module Module1
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
+        <Fact>
         Public Async Function TestConvertToIteratorSingleLineFunctionLambda() As Task
             Await VerifyNoCodeFixAsync(
 "Imports System
@@ -115,7 +115,7 @@ Module Module1
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
+        <Fact>
         Public Async Function TestConvertToIteratorSingleLineSubLambda() As Task
             Await VerifyNoCodeFixAsync(
 "Imports System
@@ -129,6 +129,7 @@ End Module")
         End Function
     End Class
 
+    <Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
     Public Class ChangeToYieldTests
         Private Shared Async Function VerifyCodeFixAsync(code As String, fixedCode As String) As Task
             Await New VerifyConvertToYield.Test With
@@ -146,7 +147,7 @@ End Module")
             }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
+        <Fact>
         Public Async Function TestChangeToYieldCodeFixProviderFunction() As Task
             Await VerifyCodeFixAsync(
 "Module Module1
@@ -161,7 +162,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
+        <Fact>
         Public Async Function TestChangeToYieldCodeFixProviderSub() As Task
             Await VerifyCodeFixAsync(
 "Module Module1
@@ -176,7 +177,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
+        <Fact>
         Public Async Function TestChangeToYieldCodeFixProviderFunctionLambda() As Task
             Await VerifyCodeFixAsync(
 "Module Module1
@@ -195,7 +196,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
+        <Fact>
         Public Async Function TestChangeToYieldCodeFixProviderSubLambda() As Task
             Await VerifyCodeFixAsync(
 "Module Module1
@@ -214,7 +215,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
+        <Fact>
         Public Async Function TestChangeToYieldCodeFixProviderSingleLineFunctionLambda() As Task
             Await VerifyNoCodeFixAsync("Module Module1
     Sub M()
@@ -223,7 +224,7 @@ End Module")
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
+        <Fact>
         Public Async Function TestChangeToYieldCodeFixProviderSingleLineSubLambda() As Task
             Await VerifyCodeFixAsync(
 "Module Module1

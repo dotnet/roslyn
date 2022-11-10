@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -108,6 +109,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 var storageKey = storageLocation.GetKeyNameForLanguage(optionKey.Language);
 
                 RecordObservedValueToWatchForChanges(optionKey, storageKey);
+
+                if (optionKey.Option.Type == typeof(ImmutableArray<string>) &&
+                    _settingManager.TryGetValue(storageKey, out string[] stringArray) == GetValueResult.Success)
+                {
+                    return stringArray.ToImmutableArray();
+                }
 
                 if (_settingManager.TryGetValue(storageKey, out object value) == GetValueResult.Success)
                 {

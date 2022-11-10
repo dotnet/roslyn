@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
                 return;
             }
 
-            Debug.Assert(declaration.IsKind(SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement, SyntaxKind.DeclarationExpression));
+            Debug.Assert(declaration.Kind() is SyntaxKind.VariableDeclaration or SyntaxKind.ForEachStatement or SyntaxKind.DeclarationExpression);
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var declaredType = FindAnalyzableType(declaration, semanticModel, cancellationToken);
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
             var typeNode = await context.TryGetRelevantNodeAsync<TypeSyntax>().ConfigureAwait(false);
             var typeNodeParent = typeNode?.Parent;
             if (typeNodeParent != null &&
-                (typeNodeParent.IsKind(SyntaxKind.DeclarationExpression, SyntaxKind.VariableDeclaration) ||
+                (typeNodeParent.Kind() is SyntaxKind.DeclarationExpression or SyntaxKind.VariableDeclaration ||
                 (typeNodeParent.IsKind(SyntaxKind.ForEachStatement) && !syntaxFacts.IsExpressionOfForeach(typeNode))))
             {
                 return typeNodeParent;

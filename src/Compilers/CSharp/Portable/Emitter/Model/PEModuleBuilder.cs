@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         // TODO: Need to estimate amount of elements for this map and pass that value to the constructor. 
         protected readonly ConcurrentDictionary<Symbol, Cci.IModuleReference> AssemblyOrModuleSymbolToModuleRefMap = new ConcurrentDictionary<Symbol, Cci.IModuleReference>();
         private readonly ConcurrentDictionary<Symbol, object> _genericInstanceMap = new ConcurrentDictionary<Symbol, object>(Symbols.SymbolEqualityComparer.ConsiderEverything);
+        private readonly ConcurrentDictionary<ImportChain, ImmutableArray<Cci.UsedNamespaceOrType>> _translatedImportsMap =
+                                                            new ConcurrentDictionary<ImportChain, ImmutableArray<Cci.UsedNamespaceOrType>>(ReferenceEqualityComparer.Instance);
         private readonly ConcurrentSet<TypeSymbol> _reportedErrorTypesMap = new ConcurrentSet<TypeSymbol>();
 
         private readonly NoPia.EmbeddedTypesManager _embeddedTypesManagerOpt;
@@ -1710,10 +1712,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(member, arguments, isOptionalUse: true);
         }
 
-        internal SynthesizedAttributeData SynthesizeLifetimeAnnotationAttribute(ParameterSymbol symbol, DeclarationScope scope)
+        internal SynthesizedAttributeData SynthesizeScopedRefAttribute(ParameterSymbol symbol, DeclarationScope scope)
         {
             Debug.Assert(scope != DeclarationScope.Unscoped);
-            Debug.Assert(symbol.RefKind != RefKind.Out || scope == DeclarationScope.ValueScoped);
+            Debug.Assert(!ParameterHelpers.IsRefScopedByDefault(symbol) || scope == DeclarationScope.ValueScoped);
             Debug.Assert(!symbol.IsThis);
 
             if ((object)Compilation.SourceModule != symbol.ContainingModule)
@@ -1722,20 +1724,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return null;
             }
 
-            var booleanType = Compilation.GetSpecialType(SpecialType.System_Boolean);
-            Debug.Assert((object)booleanType != null);
-            return SynthesizeLifetimeAnnotationAttribute(
-                WellKnownMember.System_Runtime_CompilerServices_LifetimeAnnotationAttribute__ctor,
-                ImmutableArray.Create(
-                    new TypedConstant(booleanType, TypedConstantKind.Primitive, scope == DeclarationScope.RefScoped),
-                    new TypedConstant(booleanType, TypedConstantKind.Primitive, scope == DeclarationScope.ValueScoped)));
+            return SynthesizeScopedRefAttribute(WellKnownMember.System_Runtime_CompilerServices_ScopedRefAttribute__ctor);
         }
 
-        internal virtual SynthesizedAttributeData SynthesizeLifetimeAnnotationAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments)
+        internal virtual SynthesizedAttributeData SynthesizeScopedRefAttribute(WellKnownMember member)
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
             // https://github.com/dotnet/roslyn/issues/30062 Should not be optional.
-            return Compilation.TrySynthesizeAttribute(member, arguments, isOptionalUse: true);
+            return Compilation.TrySynthesizeAttribute(member, isOptionalUse: true);
+        }
+
+        internal virtual SynthesizedAttributeData SynthesizeRefSafetyRulesAttribute(ImmutableArray<TypedConstant> arguments)
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            // https://github.com/dotnet/roslyn/issues/30062 Should not be optional.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor, arguments, isOptionalUse: true);
         }
 
         internal bool ShouldEmitNullablePublicOnlyAttribute()
@@ -1811,9 +1814,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.NativeIntegerAttribute);
         }
 
-        internal void EnsureLifetimeAnnotationAttributeExists()
+        internal void EnsureScopedRefAttributeExists()
         {
-            EnsureEmbeddableAttributeExists(EmbeddableAttributes.LifetimeAnnotationAttribute);
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.ScopedRefAttribute);
         }
 
 #nullable enable
@@ -1946,6 +1949,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal virtual ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(BindingDiagnosticBag diagnostics)
         {
             return base.GetEmbeddedTypes(diagnostics.DiagnosticBag);
+        }
+
+        internal bool TryGetTranslatedImports(ImportChain chain, out ImmutableArray<Cci.UsedNamespaceOrType> imports)
+        {
+            return _translatedImportsMap.TryGetValue(chain, out imports);
+        }
+
+        internal ImmutableArray<Cci.UsedNamespaceOrType> GetOrAddTranslatedImports(ImportChain chain, ImmutableArray<Cci.UsedNamespaceOrType> imports)
+        {
+            return _translatedImportsMap.GetOrAdd(chain, imports);
         }
     }
 }

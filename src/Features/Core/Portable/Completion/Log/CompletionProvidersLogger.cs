@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             ExtensionMethodCompletionMethodsProvided,
             ExtensionMethodCompletionGetSymbolsTicks,
             ExtensionMethodCompletionCreateItemsTicks,
+            ExtensionMethodCompletionRemoteAssetSyncTicks,
             ExtensionMethodCompletionRemoteTicks,
             CommitsOfExtensionMethodImportCompletionItem,
             ExtensionMethodCompletionPartialResultCount,
@@ -52,14 +53,15 @@ namespace Microsoft.CodeAnalysis.Completion.Log
         internal static void LogCommitOfTypeImportCompletionItem() =>
             s_countLogAggregator.IncreaseCount(ActionInfo.CommitsOfTypeImportCompletionItem);
 
-        internal static void LogExtensionMethodCompletionTicksDataPoint(TimeSpan total, TimeSpan getSymbols, TimeSpan createItems, bool isRemote)
+        internal static void LogExtensionMethodCompletionTicksDataPoint(TimeSpan total, TimeSpan getSymbols, TimeSpan createItems, TimeSpan? remoteAssetSync)
         {
             s_histogramLogAggregator.LogTime(ActionInfo.ExtensionMethodCompletionTicks, total);
             s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionTicks, total);
 
-            if (isRemote)
+            if (remoteAssetSync.HasValue)
             {
-                s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionRemoteTicks, total - getSymbols - createItems);
+                s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionRemoteAssetSyncTicks, remoteAssetSync.Value);
+                s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionRemoteTicks, total - remoteAssetSync.Value - getSymbols - createItems);
             }
 
             s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionGetSymbolsTicks, getSymbols);
@@ -100,33 +102,20 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             {
                 foreach (var kv in s_statisticLogAggregator)
                 {
-                    var info = ((ActionInfo)kv.Key).ToString("f");
                     var statistics = kv.Value.GetStatisticResult();
-
-                    m[CreateProperty(info, nameof(statistics.Maximum))] = statistics.Maximum;
-                    m[CreateProperty(info, nameof(statistics.Minimum))] = statistics.Minimum;
-                    m[CreateProperty(info, nameof(statistics.Mean))] = statistics.Mean;
-                    m[CreateProperty(info, nameof(statistics.Range))] = statistics.Range;
-                    m[CreateProperty(info, nameof(statistics.Count))] = statistics.Count;
+                    statistics.WriteTelemetryPropertiesTo(m, prefix: kv.Key.ToString());
                 }
 
                 foreach (var kv in s_countLogAggregator)
                 {
-                    var info = ((ActionInfo)kv.Key).ToString("f");
-                    m[info] = kv.Value.GetCount();
+                    m[kv.Key.ToString()] = kv.Value.GetCount();
                 }
 
                 foreach (var kv in s_histogramLogAggregator)
                 {
-                    var info = ((ActionInfo)kv.Key).ToString("f");
-                    m[$"{info}.BucketSize"] = kv.Value.BucketSize;
-                    m[$"{info}.MaxBucketValue"] = kv.Value.MaxBucketValue;
-                    m[$"{info}.Buckets"] = kv.Value.GetBucketsAsString();
+                    kv.Value.WriteTelemetryPropertiesTo(m, prefix: kv.Key.ToString());
                 }
             }));
         }
-
-        private static string CreateProperty(string parent, string child)
-            => parent + "." + child;
     }
 }

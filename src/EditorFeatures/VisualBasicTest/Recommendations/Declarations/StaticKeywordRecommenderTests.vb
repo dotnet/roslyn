@@ -3,17 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class StaticKeywordRecommenderTests
         Inherits RecommenderTests
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub StaticInMethodBodyTest()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Static")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub StaticInLambdaTest()
             VerifyRecommendationsContain(<MethodBody>
 Dim x = Sub()
@@ -22,7 +21,6 @@ Dim x = Sub()
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub StaticAfterStatementTest()
             VerifyRecommendationsContain(<MethodBody>
 Dim x
@@ -30,7 +28,6 @@ Dim x
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub StaticNotInsideSingleLineLambdaTest()
             VerifyRecommendationsMissing(<MethodBody>
 Dim x = Sub() |

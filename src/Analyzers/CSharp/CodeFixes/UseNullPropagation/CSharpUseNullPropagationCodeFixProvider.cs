@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
         InvocationExpressionSyntax,
         ConditionalAccessExpressionSyntax,
         ElementAccessExpressionSyntax,
+        MemberAccessExpressionSyntax,
         ElementBindingExpressionSyntax,
         IfStatementSyntax,
         ExpressionStatementSyntax,

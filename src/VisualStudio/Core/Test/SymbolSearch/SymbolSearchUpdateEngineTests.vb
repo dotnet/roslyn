@@ -16,11 +16,12 @@ Imports Moq
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Packaging)>
     Public Class SymbolSearchUpdateEngineTests
         Private Shared ReadOnly s_allButMoqExceptions As Func(Of Exception, CancellationToken, Boolean) =
             Function(e, cancellationToken) TypeOf e IsNot MockException
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact>
         Public Async Function CreateCacheFolderIfMissing() As Task
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
@@ -51,7 +52,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact>
         Public Async Function DoNotCreateCacheFolderIfItIsThere() As Task
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
@@ -79,7 +80,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact>
         Public Async Function DownloadFullDatabaseWhenLocalDatabaseIsMissing() As Task
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
@@ -117,7 +118,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact>
         Public Async Function FailureToParseFullDBAtXmlLevelTakesCatastrophicPath() As Task
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
@@ -160,7 +161,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact>
         Public Async Function TestClientDisposedAfterUse() As Task
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
@@ -193,7 +194,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact>
         Public Async Function CrashInClientRunsFailureLoopPath() As Task
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
@@ -241,7 +242,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact>
         Public Async Function FailureToParseFullDBAtElfieLevelTakesCatastrophicPath() As Task
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
@@ -284,7 +285,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact>
         Public Async Function SuccessParsingDBWritesToDisk() As Task
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
@@ -332,7 +333,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact>
         Public Async Function WriteAgainOnIOFailure() As Task
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
@@ -391,7 +392,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact>
         Public Async Function LocalDatabaseExistingCausesPatchToDownload_UpToDate_DoesNothing() As Task
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
@@ -435,7 +436,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact>
         Public Async Function LocalDatabaseExistingCausesPatchToDownload_IsTooOldCausesFullDownload() As Task
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
@@ -489,7 +490,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact>
         Public Async Function LocalDatabaseExistingCausesPatchToDownload_ContentsCausesPatching_FailureToPatchCausesFullDownload() As Task
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
@@ -549,7 +550,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact>
         Public Async Function LocalDatabaseExistingCausesPatchToDownload_ContentsCausesPatching_SuccessfulPatchWritesToDisk() As Task
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()

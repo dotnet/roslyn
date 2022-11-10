@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Internal.Editing
 namespace Microsoft.CodeAnalysis.Editing
 #endif
 {
-    public struct DeclarationModifiers : IEquatable<DeclarationModifiers>
+    public readonly struct DeclarationModifiers : IEquatable<DeclarationModifiers>
     {
         private readonly Modifiers _modifiers;
 
