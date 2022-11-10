@@ -6,9 +6,6 @@ parameters:
 - name: jobName
   type: string
   default: ''
-- name: buildJobName
-  type: string
-  default: ''
 - name: testArtifactName
   type: string
   default: ''
@@ -20,13 +17,12 @@ parameters:
   default: ''
 - name: queueName
   type: string
-  default: 'Build.Windows.10.Amd64.Open'
+  default: 'windows.vs2022.amd64.open'
 
 jobs:
 - job: ${{ parameters.jobName }}
-  dependsOn: ${{ parameters.buildJobName }}
   pool:
-    name: NetCore1ESPool-Public
+    name: NetCore-Public
     demands: ImageOverride -equals ${{ parameters.queueName }}
   timeoutInMinutes: 120
   variables:
@@ -35,12 +31,13 @@ jobs:
   steps:
     - checkout: none
 
-    # A .NET 6 runtime is needed since our unit tests target net6.0
+    # A .NET 7 runtime is needed since our unit tests target net7.0
     - task: UseDotNet@2
-      displayName: 'Install .NET 6 Runtime'
+      displayName: 'Install .NET 7 Runtime'
       inputs:
         packageType: runtime
-        version: 6.0.8
+        version: 7.0.0-rc.1.22426.10
+        includePreviewVersions: true
         installationPath: '$(Build.SourcesDirectory)/.dotnet'
 
     - task: DownloadPipelineArtifact@2

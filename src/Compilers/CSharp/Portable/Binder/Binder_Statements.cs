@@ -237,11 +237,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression argument = (node.Expression == null)
                 ? BadExpression(node).MakeCompilerGenerated()
                 : BindValue(node.Expression, diagnostics, BindValueKind.RValue);
-            argument = ValidateEscape(argument, ExternalScope, isByRef: false, diagnostics: diagnostics);
 
             if (!argument.HasAnyErrors)
             {
                 argument = GenerateConversionForAssignment(elementType, argument, diagnostics);
+                argument = ValidateEscape(argument, ReturnOnlyScope, isByRef: false, diagnostics: diagnostics);
             }
             else
             {
@@ -691,18 +691,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindDeclarationStatementParts(LocalDeclarationStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
-            var typeSyntax = node.Declaration.Type.SkipRef(out _);
+            var typeSyntax = node.Declaration.Type;
             bool isConst = node.IsConst;
 
-            foreach (var modifier in node.Modifiers)
+            if (typeSyntax is ScopedTypeSyntax scopedType)
             {
-                // Check for support for 'scoped'. Duplicate modifiers are reported
-                // as errors in parsing rather than here.
-                if (modifier.Kind() == SyntaxKind.ScopedKeyword)
-                {
-                    ModifierUtils.CheckScopedModifierAvailability(node, modifier, diagnostics);
-                }
+                // Check for support for 'scoped'.
+                ModifierUtils.CheckScopedModifierAvailability(node, scopedType.ScopedKeyword, diagnostics);
+
+                typeSyntax = scopedType.Type;
             }
+
+            typeSyntax = typeSyntax.SkipRef(out _);
 
             bool isVar;
             AliasSymbol alias;
@@ -783,7 +783,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // or it might not; if it is not then we do not want to report an error. If it is, then
             // we want to treat the declaration as an explicitly typed declaration.
 
-            TypeWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax.SkipRef(out _), diagnostics, out isVar, out alias);
+            Debug.Assert(typeSyntax is not ScopedTypeSyntax);
+            TypeWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax.SkipScoped(out _).SkipRef(out _), diagnostics, out isVar, out alias);
             Debug.Assert(declType.HasType || isVar);
 
             if (isVar)
@@ -1235,11 +1236,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ContainingMemberOrLambda,
                     this,
                     allowRefKind: false, // do not allow ref
+                    allowScoped: false,
                     typeSyntax,
                     identifier,
                     kind,
-                    equalsValue,
-                    hasScopedModifier: false);
+                    equalsValue);
             }
 
             return localSymbol;
@@ -1541,12 +1542,50 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (isRef)
                     {
+                        // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-11.0/low-level-struct-improvements.md#rules-ref-reassignment
+                        // For a ref reassignment in the form `e1 = ref e2` both of the following must be true:
+                        // 1. `e2` must have *ref-safe-to-escape* at least as large as the *ref-safe-to-escape* of `e1`
+                        // 2. `e1` must have the same *safe-to-escape* as `e2`
+
                         var leftEscape = GetRefEscape(op1, LocalScopeDepth);
                         var rightEscape = GetRefEscape(op2, LocalScopeDepth);
                         if (leftEscape < rightEscape)
                         {
-                            Error(diagnostics, ErrorCode.ERR_RefAssignNarrower, node, getName(op1), op2.Syntax);
-                            op2 = ToBadExpression(op2);
+                            var errorCode = (rightEscape, this.InUnsafeRegion) switch
+                            {
+                                (Binder.ReturnOnlyScope, false) => ErrorCode.ERR_RefAssignReturnOnly,
+                                (Binder.ReturnOnlyScope, true) => ErrorCode.WRN_RefAssignReturnOnly,
+                                (_, false) => ErrorCode.ERR_RefAssignNarrower,
+                                (_, true) => ErrorCode.WRN_RefAssignNarrower
+                            };
+
+                            Error(diagnostics, errorCode, node, getName(op1), op2.Syntax);
+                            if (!this.InUnsafeRegion)
+                            {
+                                op2 = ToBadExpression(op2);
+                            }
+                        }
+                        else if (op1.Kind is BoundKind.Local or BoundKind.Parameter)
+                        {
+                            leftEscape = GetValEscape(op1, LocalScopeDepth);
+                            rightEscape = GetValEscape(op2, LocalScopeDepth);
+
+                            Debug.Assert(leftEscape == rightEscape || op1.Type.IsRefLikeType);
+
+                            // We only check if the safe-to-escape of e2 is wider than the safe-to-escape of e1 here,
+                            // we don't check for equality. The case where the safe-to-escape of e2 is narrower than
+                            // e1 is handled in the if (op1.Type.IsRefLikeType) { ... } block later.
+                            if (leftEscape > rightEscape)
+                            {
+                                Debug.Assert(op1.Kind != BoundKind.Parameter); // If the assert fails, add a corresponding test.
+
+                                var errorCode = this.InUnsafeRegion ? ErrorCode.WRN_RefAssignValEscapeWider : ErrorCode.ERR_RefAssignValEscapeWider;
+                                Error(diagnostics, errorCode, node, getName(op1), op2.Syntax);
+                                if (!this.InUnsafeRegion)
+                                {
+                                    op2 = ToBadExpression(op2);
+                                }
+                            }
                         }
                     }
 
@@ -1858,19 +1897,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundBlock FinishBindBlockParts(CSharpSyntaxNode node, ImmutableArray<BoundStatement> boundStatements, BindingDiagnosticBag diagnostics)
         {
             ImmutableArray<LocalSymbol> locals = GetDeclaredLocalsForScope(node);
-
-            if (IsDirectlyInIterator)
-            {
-                var method = ContainingMemberOrLambda as MethodSymbol;
-                if ((object)method != null)
-                {
-                    method.IteratorElementTypeWithAnnotations = GetIteratorElementType();
-                }
-                else
-                {
-                    Debug.Assert(diagnostics.DiagnosticBag is null || !diagnostics.DiagnosticBag.IsEmptyWithoutResolution);
-                }
-            }
 
             return new BoundBlock(
                 node,
@@ -2685,6 +2711,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var typeSyntax = nodeOpt.Type;
+            Debug.Assert(typeSyntax is not ScopedTypeSyntax || localKind is LocalDeclarationKind.RegularVariable or LocalDeclarationKind.UsingVariable);
+
+            if (typeSyntax is ScopedTypeSyntax scopedType)
+            {
+                // Check for support for 'scoped'.
+                ModifierUtils.CheckScopedModifierAvailability(typeSyntax, scopedType.ScopedKeyword, diagnostics);
+
+                typeSyntax = scopedType.Type;
+            }
+
             // Fixed and using variables are not allowed to be ref-like, but regular variables are
             if (localKind == LocalDeclarationKind.RegularVariable)
             {
@@ -2931,16 +2967,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (arg != null)
                     {
                         var container = this.ContainingMemberOrLambda;
-                        var lambda = container as LambdaSymbol;
-                        if ((object)lambda != null)
+                        if (container is LambdaSymbol)
                         {
                             // Error case: void-returning or async task-returning method or lambda with "return x;"
-                            var errorCode = retType.IsVoidType()
-                                ? ErrorCode.ERR_RetNoObjectRequiredLambda
-                                : ErrorCode.ERR_TaskRetNoObjectRequiredLambda;
+                            if (retType.IsVoidType())
+                            {
+                                Error(diagnostics, ErrorCode.ERR_RetNoObjectRequiredLambda, syntax.ReturnKeyword);
+                            }
+                            else
+                            {
+                                Error(diagnostics, ErrorCode.ERR_TaskRetNoObjectRequiredLambda, syntax.ReturnKeyword, retType);
+                            }
 
-                            // Anonymous function converted to a void returning delegate cannot return a value
-                            Error(diagnostics, errorCode, syntax.ReturnKeyword);
                             hasErrors = true;
 
                             // COMPATIBILITY: The native compiler also produced an error
@@ -2952,11 +2990,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             // Error case: void-returning or async task-returning method or lambda with "return x;"
-                            var errorCode = retType.IsVoidType()
-                                ? ErrorCode.ERR_RetNoObjectRequired
-                                : ErrorCode.ERR_TaskRetNoObjectRequired;
+                            if (retType.IsVoidType())
+                            {
+                                Error(diagnostics, ErrorCode.ERR_RetNoObjectRequired, syntax.ReturnKeyword, container);
+                            }
+                            else
+                            {
+                                Error(diagnostics, ErrorCode.ERR_TaskRetNoObjectRequired, syntax.ReturnKeyword, container, retType);
+                            }
 
-                            Error(diagnostics, errorCode, syntax.ReturnKeyword, container);
                             hasErrors = true;
                         }
                     }
@@ -2976,7 +3018,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         arg = CreateReturnConversion(syntax, diagnostics, arg, sigRefKind, retType);
-                        arg = ValidateEscape(arg, Binder.ExternalScope, refKind != RefKind.None, diagnostics);
+                        arg = ValidateEscape(arg, Binder.ReturnOnlyScope, refKind != RefKind.None, diagnostics);
                     }
                 }
             }
@@ -3049,8 +3091,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (IsEffectivelyGenericTaskReturningAsyncMethod()
                             && TypeSymbol.Equals(argument.Type, this.GetCurrentReturnType(out unusedRefKind), TypeCompareKind.ConsiderEverything2))
                         {
-                            // Since this is an async method, the return expression must be of type '{0}' rather than 'Task<{0}>'
-                            Error(diagnostics, ErrorCode.ERR_BadAsyncReturnExpression, argument.Syntax, returnType);
+                            // Since this is an async method, the return expression must be of type '{0}' rather than '{1}'
+                            Error(diagnostics, ErrorCode.ERR_BadAsyncReturnExpression, argument.Syntax, returnType, argument.Type);
                         }
                         else
                         {
@@ -3369,9 +3411,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    expression = returnType.IsErrorType()
-                        ? BindToTypeForErrorRecovery(expression)
-                        : CreateReturnConversion(syntax, diagnostics, expression, refKind, returnType);
+                    if (returnType.IsErrorType())
+                    {
+                        expression = BindToTypeForErrorRecovery(expression);
+                    }
+                    else
+                    {
+                        expression = CreateReturnConversion(syntax, diagnostics, expression, refKind, returnType);
+                        expression = ValidateEscape(expression, Binder.ReturnOnlyScope, isByRef: refKind != RefKind.None, diagnostics);
+                    }
                     statement = new BoundReturnStatement(syntax, returnRefKind, expression, @checked: CheckOverflowAtRuntime) { WasCompilerGenerated = true };
                 }
             }
@@ -3418,8 +3466,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ExpressionSyntax expressionSyntax = expressionBody.Expression.CheckAndUnwrapRefExpression(diagnostics, out refKind);
                 BindValueKind requiredValueKind = bodyBinder.GetRequiredReturnValueKind(refKind);
                 BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, requiredValueKind);
-                expression = bodyBinder.ValidateEscape(expression, Binder.ExternalScope, refKind != RefKind.None, diagnostics);
-
                 return bodyBinder.CreateBlockFromExpression(expressionBody, bodyBinder.GetDeclaredLocalsForScope(expressionBody), refKind, expression, expressionSyntax, diagnostics);
             }
         }
@@ -3436,8 +3482,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expressionSyntax = body.CheckAndUnwrapRefExpression(diagnostics, out refKind);
             BindValueKind requiredValueKind = GetRequiredReturnValueKind(refKind);
             BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, requiredValueKind);
-            expression = ValidateEscape(expression, Binder.ExternalScope, refKind != RefKind.None, diagnostics);
-
             return bodyBinder.CreateBlockFromExpression(body, bodyBinder.GetDeclaredLocalsForScope(body), refKind, expression, expressionSyntax, diagnostics);
         }
 
@@ -3522,17 +3566,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(recordDecl.ParameterList is object);
             Debug.Assert(recordDecl.IsKind(SyntaxKind.RecordDeclaration));
 
-            Binder bodyBinder = this.GetBinder(recordDecl);
-            Debug.Assert(bodyBinder != null);
-
-            BoundExpressionStatement initializer = null;
+            BoundExpressionStatement initializer;
+            ImmutableArray<LocalSymbol> constructorLocals;
             if (recordDecl.PrimaryConstructorBaseTypeIfClass is PrimaryConstructorBaseTypeSyntax baseWithArguments)
             {
-                initializer = bodyBinder.BindConstructorInitializer(baseWithArguments, diagnostics);
+                Binder initializerBinder = GetBinder(baseWithArguments);
+                Debug.Assert(initializerBinder != null);
+                initializer = initializerBinder.BindConstructorInitializer(baseWithArguments, diagnostics);
+                constructorLocals = initializerBinder.GetDeclaredLocalsForScope(baseWithArguments);
+            }
+            else
+            {
+                initializer = BindImplicitConstructorInitializer(recordDecl, diagnostics);
+                constructorLocals = ImmutableArray<LocalSymbol>.Empty;
             }
 
             return new BoundConstructorMethodBody(recordDecl,
-                                                  bodyBinder.GetDeclaredLocalsForScope(recordDecl),
+                                                  constructorLocals,
                                                   initializer,
                                                   blockBody: new BoundBlock(recordDecl, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty).MakeCompilerGenerated(),
                                                   expressionBody: null);
@@ -3582,7 +3632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel
             return new BoundConstructorMethodBody(constructor,
                                                   bodyBinder.GetDeclaredLocalsForScope(constructor),
-                                                  initializer == null ? null : bodyBinder.BindConstructorInitializer(initializer, diagnostics),
+                                                  initializer == null ? bodyBinder.BindImplicitConstructorInitializer(constructor, diagnostics) : bodyBinder.BindConstructorInitializer(initializer, diagnostics),
                                                   constructor.Body == null ? null : (BoundBlock)bodyBinder.BindStatement(constructor.Body, diagnostics),
                                                   constructor.ExpressionBody == null ?
                                                       null :
@@ -3613,6 +3663,251 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(initializerInvocation.HasAnyErrors || constructorInitializer.IsConstructorInitializer(), "Please keep this bound node in sync with BoundNodeExtensions.IsConstructorInitializer.");
             return constructorInitializer;
         }
+
+#nullable enable
+        internal BoundExpressionStatement? BindImplicitConstructorInitializer(SyntaxNode ctorSyntax, BindingDiagnosticBag diagnostics)
+        {
+            BoundExpression? initializerInvocation;
+            initializerInvocation = BindImplicitConstructorInitializer((MethodSymbol)this.ContainingMember(), diagnostics, Compilation);
+
+            if (initializerInvocation is null)
+            {
+                return null;
+            }
+
+            //  Base WasCompilerGenerated state off of whether constructor is implicitly declared, this will ensure proper instrumentation.
+            var constructorInitializer = new BoundExpressionStatement(ctorSyntax, initializerInvocation) { WasCompilerGenerated = ((MethodSymbol)ContainingMember()).IsImplicitlyDeclared };
+            Debug.Assert(initializerInvocation.HasAnyErrors || constructorInitializer.IsConstructorInitializer(), "Please keep this bound node in sync with BoundNodeExtensions.IsConstructorInitializer.");
+            return constructorInitializer;
+        }
+
+        /// <summary>
+        /// Bind the implicit constructor initializer of a constructor symbol.
+        /// </summary>
+        /// <param name="constructor">Constructor method.</param>
+        /// <param name="diagnostics">Accumulates errors (e.g. access "this" in constructor initializer).</param>
+        /// <param name="compilation">Used to retrieve binder.</param>
+        /// <returns>A bound expression for the constructor initializer call.</returns>
+        internal static BoundExpression? BindImplicitConstructorInitializer(
+            MethodSymbol constructor, BindingDiagnosticBag diagnostics, CSharpCompilation compilation)
+        {
+            if (constructor.MethodKind != MethodKind.Constructor || constructor.IsExtern)
+            {
+                return null;
+            }
+
+            // Note that the base type can be null if we're compiling System.Object in source.
+            NamedTypeSymbol containingType = constructor.ContainingType;
+            NamedTypeSymbol baseType = containingType.BaseTypeNoUseSiteDiagnostics;
+
+            SourceMemberMethodSymbol? sourceConstructor = constructor as SourceMemberMethodSymbol;
+            Debug.Assert(sourceConstructor?.SyntaxNode is RecordDeclarationSyntax
+                || ((ConstructorDeclarationSyntax?)sourceConstructor?.SyntaxNode)?.Initializer == null);
+
+            // The common case is that the type inherits directly from object.
+            // Also, we might be trying to generate a constructor for an entirely compiler-generated class such
+            // as a closure class; in that case it is vexing to try to find a suitable binder for the non-existing
+            // constructor syntax so that we can do unnecessary overload resolution on the non-existing initializer!
+            // Simply take the early out: bind directly to the parameterless object ctor rather than attempting
+            // overload resolution.
+            if ((object)baseType != null)
+            {
+                if (baseType.SpecialType == SpecialType.System_Object)
+                {
+                    return GenerateBaseParameterlessConstructorInitializer(constructor, diagnostics);
+                }
+                else if (baseType.IsErrorType() || baseType.IsStatic)
+                {
+                    // If the base type is bad and there is no initializer then we can just bail.
+                    // We have no expressions we need to analyze to report errors on.
+                    return null;
+                }
+            }
+
+            if (containingType.IsStructType() || containingType.IsEnumType())
+            {
+                return null;
+            }
+            else if (constructor is SynthesizedRecordCopyCtor copyCtor)
+            {
+                return GenerateBaseCopyConstructorInitializer(copyCtor, diagnostics);
+            }
+
+            // Now, in order to do overload resolution, we're going to need a binder. There are
+            // two possible situations:
+            //
+            // class D1 : B { }
+            // class D2 : B { D2(int x) { } }
+            //
+            // In the first case the binder needs to be the binder associated with
+            // the *body* of D1 because if the base class ctor is protected, we need
+            // to be inside the body of a derived class in order for it to be in the
+            // accessibility domain of the protected base class ctor.
+            //
+            // In the second case the binder could be the binder associated with
+            // the body of D2; since the implicit call to base() will have no arguments
+            // there is no need to look up "x".
+            Binder outerBinder;
+
+            if ((object?)sourceConstructor == null)
+            {
+                // The constructor is implicit. We need to get the binder for the body
+                // of the enclosing class.
+                CSharpSyntaxNode containerNode = constructor.GetNonNullSyntaxNode();
+                BinderFactory binderFactory = compilation.GetBinderFactory(containerNode.SyntaxTree);
+
+                if (containerNode is RecordDeclarationSyntax recordDecl)
+                {
+                    outerBinder = binderFactory.GetInRecordBodyBinder(recordDecl);
+                }
+                else
+                {
+                    SyntaxToken bodyToken = GetImplicitConstructorBodyToken(containerNode);
+                    outerBinder = binderFactory.GetBinder(containerNode, bodyToken.Position);
+                }
+            }
+            else
+            {
+                BinderFactory binderFactory = compilation.GetBinderFactory(sourceConstructor.SyntaxTree);
+
+                switch (sourceConstructor.SyntaxNode)
+                {
+                    case ConstructorDeclarationSyntax ctorDecl:
+                        // We have a ctor in source but no explicit constructor initializer.  We can't just use the binder for the
+                        // type containing the ctor because the ctor might be marked unsafe.  Use the binder for the parameter list
+                        // as an approximation - the extra symbols won't matter because there are no identifiers to bind.
+
+                        outerBinder = binderFactory.GetBinder(ctorDecl.ParameterList);
+                        break;
+
+                    case RecordDeclarationSyntax recordDecl:
+                        outerBinder = binderFactory.GetInRecordBodyBinder(recordDecl);
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.Unreachable();
+                }
+            }
+
+            // wrap in ConstructorInitializerBinder for appropriate errors
+            // Handle scoping for possible pattern variables declared in the initializer
+            Binder initializerBinder = outerBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructor);
+
+            return initializerBinder.BindConstructorInitializer(null, constructor, diagnostics);
+        }
+
+        private static SyntaxToken GetImplicitConstructorBodyToken(CSharpSyntaxNode containerNode)
+        {
+            return ((BaseTypeDeclarationSyntax)containerNode).OpenBraceToken;
+        }
+
+        internal static BoundCall? GenerateBaseParameterlessConstructorInitializer(MethodSymbol constructor, BindingDiagnosticBag diagnostics)
+        {
+            NamedTypeSymbol baseType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;
+            MethodSymbol? baseConstructor = null;
+            LookupResultKind resultKind = LookupResultKind.Viable;
+            Location diagnosticsLocation = constructor.Locations.IsEmpty ? NoLocation.Singleton : constructor.Locations[0];
+
+            foreach (MethodSymbol ctor in baseType.InstanceConstructors)
+            {
+                if (ctor.ParameterCount == 0)
+                {
+                    baseConstructor = ctor;
+                    break;
+                }
+            }
+
+            // UNDONE: If this happens then something is deeply wrong. Should we give a better error?
+            if ((object?)baseConstructor == null)
+            {
+                diagnostics.Add(ErrorCode.ERR_BadCtorArgCount, diagnosticsLocation, baseType, /*desired param count*/ 0);
+                return null;
+            }
+
+            if (Binder.ReportUseSite(baseConstructor, diagnostics, diagnosticsLocation))
+            {
+                return null;
+            }
+
+            // UNDONE: If this happens then something is deeply wrong. Should we give a better error?
+            bool hasErrors = false;
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, constructor.ContainingAssembly);
+            if (!AccessCheck.IsSymbolAccessible(baseConstructor, constructor.ContainingType, ref useSiteInfo))
+            {
+                diagnostics.Add(ErrorCode.ERR_BadAccess, diagnosticsLocation, baseConstructor);
+                resultKind = LookupResultKind.Inaccessible;
+                hasErrors = true;
+            }
+
+            diagnostics.Add(diagnosticsLocation, useSiteInfo);
+
+            CSharpSyntaxNode syntax = constructor.GetNonNullSyntaxNode();
+
+            BoundExpression receiver = new BoundThisReference(syntax, constructor.ContainingType) { WasCompilerGenerated = true };
+            return new BoundCall(
+                syntax: syntax,
+                receiverOpt: receiver,
+                method: baseConstructor,
+                arguments: ImmutableArray<BoundExpression>.Empty,
+                argumentNamesOpt: ImmutableArray<string>.Empty,
+                argumentRefKindsOpt: ImmutableArray<RefKind>.Empty,
+                isDelegateCall: false,
+                expanded: false,
+                invokedAsExtensionMethod: false,
+                argsToParamsOpt: ImmutableArray<int>.Empty,
+                defaultArguments: BitVector.Empty,
+                resultKind: resultKind,
+                type: baseConstructor.ReturnType,
+                hasErrors: hasErrors)
+            { WasCompilerGenerated = true };
+        }
+
+        private static BoundCall? GenerateBaseCopyConstructorInitializer(SynthesizedRecordCopyCtor constructor, BindingDiagnosticBag diagnostics)
+        {
+            NamedTypeSymbol containingType = constructor.ContainingType;
+            NamedTypeSymbol baseType = containingType.BaseTypeNoUseSiteDiagnostics;
+            Location diagnosticsLocation = constructor.Locations.FirstOrNone();
+
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, containingType.ContainingAssembly);
+            MethodSymbol? baseConstructor = SynthesizedRecordCopyCtor.FindCopyConstructor(baseType, containingType, ref useSiteInfo);
+
+            if (baseConstructor is null)
+            {
+                diagnostics.Add(ErrorCode.ERR_NoCopyConstructorInBaseType, diagnosticsLocation, baseType);
+                return null;
+            }
+
+            var constructorUseSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, constructor.ContainingAssembly);
+            constructorUseSiteInfo.Add(baseConstructor.GetUseSiteInfo());
+            if (Binder.ReportConstructorUseSiteDiagnostics(diagnosticsLocation, diagnostics, suppressUnsupportedRequiredMembersError: constructor.HasSetsRequiredMembers, constructorUseSiteInfo))
+            {
+                return null;
+            }
+
+            diagnostics.Add(diagnosticsLocation, useSiteInfo);
+
+            CSharpSyntaxNode syntax = constructor.GetNonNullSyntaxNode();
+            BoundExpression receiver = new BoundThisReference(syntax, constructor.ContainingType) { WasCompilerGenerated = true };
+            BoundExpression argument = new BoundParameter(syntax, constructor.Parameters[0]);
+
+            return new BoundCall(
+                syntax: syntax,
+                receiverOpt: receiver,
+                method: baseConstructor,
+                arguments: ImmutableArray.Create(argument),
+                argumentNamesOpt: default,
+                argumentRefKindsOpt: default,
+                isDelegateCall: false,
+                expanded: false,
+                invokedAsExtensionMethod: false,
+                argsToParamsOpt: default,
+                defaultArguments: default,
+                resultKind: LookupResultKind.Viable,
+                type: baseConstructor.ReturnType,
+                hasErrors: false)
+            { WasCompilerGenerated = true };
+        }
+#nullable disable
 
         private BoundNode BindMethodBody(CSharpSyntaxNode declaration, BlockSyntax blockBody, ArrowExpressionClauseSyntax expressionBody, BindingDiagnosticBag diagnostics)
         {

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#if NETFRAMEWORK
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -90,13 +92,32 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
 
             // Third, check that the MVIDs of the files on disk match the MVIDs of the loaded assemblies.
+            var comparer = PathUtilities.Comparer;
+            var compilerDirectory = Path.GetDirectoryName(typeof(AnalyzerConsistencyChecker).Assembly.CodeBase);
+
             for (int i = 0; i < resolvedPaths.Count; i++)
             {
                 var resolvedPath = resolvedPaths[i];
                 var loadedAssembly = loadedAssemblies[i];
+
+                // When an assembly is loaded from the GAC then the load result would be the same if 
+                // this ran on command line compiler. So there is no consistency issue here, this 
+                // is just runtime rules expressing themselves.
+                if (loadedAssembly.GlobalAssemblyCache)
+                {
+                    continue;
+                }
+
+                // When an assembly is loaded from the compiler directory then this means it's assembly
+                // binding redirects taking over. For example it's moving from an older version of System.Memory
+                // to the one shipping in the compiler. This is not a consistency issue.
+                if (PathUtilities.Comparer.Equals(compilerDirectory, Path.GetDirectoryName(loadedAssembly.CodeBase)))
+                {
+                    continue;
+                }
+
                 var resolvedPathMvid = AssemblyUtilities.ReadMvid(resolvedPath);
                 var loadedAssemblyMvid = loadedAssembly.ManifestModule.ModuleVersionId;
-
                 if (resolvedPathMvid != loadedAssemblyMvid)
                 {
                     var message = $"analyzer assembly '{resolvedPath}' has MVID '{resolvedPathMvid}' but loaded assembly '{loadedAssembly.FullName}' has MVID '{loadedAssemblyMvid}'";
@@ -109,3 +130,5 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
     }
 }
+
+#endif

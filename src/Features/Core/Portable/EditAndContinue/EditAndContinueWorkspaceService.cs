@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -93,51 +94,50 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public void OnSourceFileUpdated(Document document)
-        {
-            // notify all active debugging sessions
-            foreach (var debuggingSession in GetActiveDebuggingSessions())
-            {
-                // fire and forget
-                _ = Task.Run(() => debuggingSession.OnSourceFileUpdatedAsync(document)).ReportNonFatalErrorAsync();
-            }
-        }
-
         public async ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(
             Solution solution,
             IManagedHotReloadService debuggerService,
+            IPdbMatchingSourceTextProvider sourceTextProvider,
             ImmutableArray<DocumentId> captureMatchingDocuments,
             bool captureAllMatchingDocuments,
             bool reportDiagnostics,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfTrue(captureAllMatchingDocuments && !captureMatchingDocuments.IsEmpty);
-
-            IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>> initialDocumentStates;
-
-            if (captureAllMatchingDocuments || !captureMatchingDocuments.IsEmpty)
+            try
             {
-                var documentsByProject = captureAllMatchingDocuments ?
-                    solution.Projects.Select(project => (project, project.State.DocumentStates.States.Values)) :
-                    GetDocumentStatesGroupedByProject(solution, captureMatchingDocuments);
+                Contract.ThrowIfTrue(captureAllMatchingDocuments && !captureMatchingDocuments.IsEmpty);
 
-                initialDocumentStates = await CommittedSolution.GetMatchingDocumentsAsync(documentsByProject, _compilationOutputsProvider, cancellationToken).ConfigureAwait(false);
+                IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>> initialDocumentStates;
+
+                if (captureAllMatchingDocuments || !captureMatchingDocuments.IsEmpty)
+                {
+                    var documentsByProject = captureAllMatchingDocuments ?
+                        solution.Projects.Select(project => (project, project.State.DocumentStates.States.Values)) :
+                        GetDocumentStatesGroupedByProject(solution, captureMatchingDocuments);
+
+                    initialDocumentStates = await CommittedSolution.GetMatchingDocumentsAsync(documentsByProject, _compilationOutputsProvider, sourceTextProvider, cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    initialDocumentStates = SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>();
+                }
+
+                var sessionId = new DebuggingSessionId(Interlocked.Increment(ref s_debuggingSessionId));
+                var session = new DebuggingSession(sessionId, solution, debuggerService, _compilationOutputsProvider, sourceTextProvider, initialDocumentStates, reportDiagnostics);
+
+                lock (_debuggingSessions)
+                {
+                    _debuggingSessions.Add(session);
+                }
+
+                Log.Write("Session #{0} started.", sessionId.Ordinal);
+                return sessionId;
+
             }
-            else
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
-                initialDocumentStates = SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>();
+                throw ExceptionUtilities.Unreachable();
             }
-
-            var sessionId = new DebuggingSessionId(Interlocked.Increment(ref s_debuggingSessionId));
-            var session = new DebuggingSession(sessionId, solution, debuggerService, _compilationOutputsProvider, initialDocumentStates, reportDiagnostics);
-
-            lock (_debuggingSessions)
-            {
-                _debuggingSessions.Add(session);
-            }
-
-            Log.Write("Session #{0} started.", sessionId.Ordinal);
-            return sessionId;
         }
 
         private static IEnumerable<(Project, IEnumerable<DocumentState>)> GetDocumentStatesGroupedByProject(Solution solution, ImmutableArray<DocumentId> documentIds)

@@ -1523,7 +1523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TypeReserved = 8336,
         ERR_RefExtensionMustBeValueTypeOrConstrainedToOne = 8337,
         ERR_InExtensionMustBeValueType = 8338,
-        ERR_BadParameterModifiersOrder = 8339,
+        // ERR_BadParameterModifiersOrder = 8339,
 
         ERR_FieldsInRoStruct = 8340,
         ERR_AutoPropsInRoStruct = 8341,
@@ -1610,6 +1610,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_VarianceInterfaceNesting = 8427,
         ERR_ImplicitIndexIndexerWithName = 8428,
         ERR_ImplicitRangeIndexerWithName = 8429,
+        // available range
+
+        WRN_ManagedAddr = 8500,
         // available range
 
         #region diagnostics introduced for recursive patterns
@@ -2109,12 +2112,44 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureNotAvailableInVersion11 = 9058,
         ERR_RefFieldInNonRefStruct = 9059,
         ERR_CannotMatchOnINumberBase = 9060,
-        ERR_MisplacedScoped = 9061,
+        ERR_ScopedDiscard = 9061,
         ERR_ScopedTypeNameDisallowed = 9062,
         ERR_UnscopedRefAttributeUnsupportedTarget = 9063,
         ERR_RuntimeDoesNotSupportRefFields = 9064,
         ERR_ExplicitScopedRef = 9065,
         ERR_UnscopedScoped = 9066,
+        WRN_DuplicateAnalyzerReference = 9067,
+        ERR_FileTypeNonUniquePath = 9068,
+        ERR_FilePathCannotBeConvertedToUtf8 = 9069,
+        ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn = 9070,
+        ERR_FileLocalDuplicateNameInNS = 9071,
+        ERR_DeconstructVariableCannotBeByRef = 9072,
+        WRN_ScopedMismatchInParameterOfTarget = 9073,
+        WRN_ScopedMismatchInParameterOfOverrideOrImplementation = 9074,
+        ERR_RefReturnScopedParameter = 9075,
+        ERR_RefReturnScopedParameter2 = 9076,
+        ERR_RefReturnOnlyParameter = 9077,
+        ERR_RefReturnOnlyParameter2 = 9078,
+        ERR_RefAssignReturnOnly = 9079,
+
+        WRN_EscapeVariable = 9080,
+        WRN_EscapeStackAlloc = 9081,
+        WRN_RefReturnNonreturnableLocal = 9082,
+        WRN_RefReturnNonreturnableLocal2 = 9083,
+        WRN_RefReturnStructThis = 9084,
+        WRN_RefAssignNarrower = 9085,
+        WRN_MismatchedRefEscapeInTernary = 9086,
+        WRN_RefReturnParameter = 9087,
+        WRN_RefReturnScopedParameter = 9088,
+        WRN_RefReturnParameter2 = 9089,
+        WRN_RefReturnScopedParameter2 = 9090,
+        WRN_RefReturnLocal = 9091,
+        WRN_RefReturnLocal2 = 9092,
+        WRN_RefAssignReturnOnly = 9093,
+        WRN_RefReturnOnlyParameter = 9094,
+        WRN_RefReturnOnlyParameter2 = 9095,
+        ERR_RefAssignValEscapeWider = 9096,
+        WRN_RefAssignValEscapeWider = 9097,
 
         #endregion
 

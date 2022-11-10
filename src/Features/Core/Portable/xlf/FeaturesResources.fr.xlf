@@ -495,6 +495,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">La modification de la visibilité de {0} requiert le redémarrage de l’application.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_snippet_for_0">
+        <source>Code snippet for '{0}'</source>
+        <target state="new">Code snippet for '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Comments_not_allowed">
         <source>Comments not allowed</source>
         <target state="translated">Commentaires non autorisés</target>
@@ -627,7 +632,7 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       </trans-unit>
       <trans-unit id="Deleting_0_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
         <source>Deleting {0} requires restarting the application because is not supported by the runtime.</source>
-        <target state="new">Deleting {0} requires restarting the application because is not supported by the runtime.</target>
+        <target state="translated">La suppression de {0} requiert le redémarrage de l’application, car elle n’est pas prise en charge par le Runtime.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
@@ -668,6 +673,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       <trans-unit id="Enable_all_JSON_editor_features">
         <source>Enable all JSON editor features</source>
         <target state="translated">Activer toutes les fonctionnalités de l’éditeur JSON</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enum_members">
+        <source>Enum members</source>
+        <target state="translated">Membres d'enum</target>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
@@ -717,7 +727,7 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       </trans-unit>
       <trans-unit id="Extract_base_record">
         <source>Extract base record...</source>
-        <target state="new">Extract base record...</target>
+        <target state="translated">Extraire le record de base...</target>
         <note>{Locked="record"} "record" is a language construct for C# and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Extract_interface">
@@ -968,6 +978,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       <trans-unit id="Inline_and_keep_0">
         <source>Inline and keep '{0}'</source>
         <target state="translated">Inline et conserver '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_temporary_variable">
+        <source>Inline temporary variable</source>
+        <target state="new">Inline temporary variable</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -1285,6 +1300,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Opérateurs</target>
         <note />
       </trans-unit>
+      <trans-unit id="Please_resolve_errors_in_your_code_before_renaming_this_element">
+        <source>Please resolve errors in your code before renaming this element.</source>
+        <target state="new">Please resolve errors in your code before renaming this element.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Probable_JSON_string_detected">
         <source>Probable JSON string detected</source>
         <target state="translated">Chaîne JSON probable détectée</target>
@@ -1327,12 +1347,12 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       </trans-unit>
       <trans-unit id="Pull_selected_members_up">
         <source>Pull selected members up</source>
-        <target state="new">Pull selected members up</target>
+        <target state="translated">Extraire les membres sélectionnés vers le haut</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_selected_members_up_to_0">
         <source>Pull selected members up to {0}</source>
-        <target state="new">Pull selected members up to {0}</target>
+        <target state="translated">Extraire les membres sélectionnés jusqu’à {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -2535,6 +2555,11 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">Le changement de nom d’une variable capturée, de « {0} » à « {1} », requiert le redémarrage de l’application.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
+        <source>Renaming anonymous type members is not yet supported.</source>
+        <target state="new">Renaming anonymous type members is not yet supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Remplacer '{0}' par '{1}'</target>
@@ -2547,7 +2572,7 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       </trans-unit>
       <trans-unit id="Required">
         <source>required</source>
-        <target state="new">required</target>
+        <target state="translated">obligatoire</target>
         <note>Used in the object initializer completion.</note>
       </trans-unit>
       <trans-unit id="Resolve_conflict_markers">
@@ -2657,7 +2682,7 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       </trans-unit>
       <trans-unit id="The_assembly_0_references_compiler_version_1_newer_than_2">
         <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="new">The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
+        <target state="translated">L'assembly d'analyseur '{0}' fait référence à la version '{1}' du compilateur, qui est plus récente que la version en cours d'exécution '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -2993,6 +3018,31 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">
         <source>You can use the navigation bar to switch contexts.</source>
         <target state="translated">Vous pouvez utiliser la barre de navigation pour changer de contexte.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_elements_from_previous_submissions">
+        <source>You cannot rename elements from previous submissions.</source>
+        <target state="new">You cannot rename elements from previous submissions.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_elements_that_are_defined_in_metadata">
+        <source>You cannot rename elements that are defined in metadata.</source>
+        <target state="new">You cannot rename elements that are defined in metadata.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_operators">
+        <source>You cannot rename operators.</source>
+        <target state="new">You cannot rename operators.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_this_element">
+        <source>You cannot rename this element.</source>
+        <target state="new">You cannot rename this element.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_must_rename_an_identifier">
+        <source>You must rename an identifier.</source>
+        <target state="new">You must rename an identifier.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_bases">
@@ -3343,7 +3393,7 @@ Si le spécificateur de format "H" est utilisé sans autres spécificateurs de f
       </trans-unit>
       <trans-unit id="console_writeline">
         <source>Console.WriteLine</source>
-        <target state="new">Console.WriteLine</target>
+        <target state="translated">Console.WriteLine</target>
         <note />
       </trans-unit>
       <trans-unit id="date_separator">
@@ -3423,6 +3473,11 @@ Si le spécificateur de format "d" est utilisé sans autres spécificateurs de f
         <target state="translated">externe</target>
         <note>External means "external source", meaning source files that are not part of the current solution</note>
       </trans-unit>
+      <trans-unit id="foreach_loop">
+        <source>foreach loop</source>
+        <target state="translated">Boucle foreach</target>
+        <note />
+      </trans-unit>
       <trans-unit id="from_metadata">
         <source>from metadata</source>
         <target state="translated">à partir des métadonnées</target>
@@ -3484,7 +3539,7 @@ Le spécificateur de format standard "f" représente une combinaison des modèle
       </trans-unit>
       <trans-unit id="if_statement">
         <source>if statement</source>
-        <target state="new">if statement</target>
+        <target state="translated">si l’instruction</target>
         <note />
       </trans-unit>
       <trans-unit id="in_0_1_2">
@@ -4270,6 +4325,11 @@ Quand ce spécificateur de format standard est utilisé, l'opération qui consis
         <target state="translated">constructeur statique</target>
         <note />
       </trans-unit>
+      <trans-unit id="struct_">
+        <source>struct</source>
+        <target state="translated">struct</target>
+        <note />
+      </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">
         <source>'symbol' cannot be a namespace.</source>
         <target state="translated">'symbol' ne peut pas être un espace de noms.</target>
@@ -4925,6 +4985,11 @@ The offset is always displayed with a leading sign. A plus sign (+) indicates ho
 Avec les valeurs DateTimeOffset, ce spécificateur de format représente le décalage de la valeur DateTimeOffset par rapport à l'heure UTC, en heures.
 
 Le décalage est toujours affiché avec un signe de début. Le signe plus (+) indique les heures d'avance par rapport à l'heure UTC, et le signe moins (-) indique les heures de retard par rapport à l'heure UTC. Un décalage à un chiffre est présenté dans un format qui comporte un zéro de début.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="while_loop">
+        <source>while loop</source>
+        <target state="new">while loop</target>
         <note />
       </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">

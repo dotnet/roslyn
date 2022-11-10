@@ -495,6 +495,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Для изменения видимости {0} требуется перезапустить приложение.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_snippet_for_0">
+        <source>Code snippet for '{0}'</source>
+        <target state="new">Code snippet for '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Comments_not_allowed">
         <source>Comments not allowed</source>
         <target state="translated">Комментарии не разрешены</target>
@@ -627,7 +632,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Deleting_0_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
         <source>Deleting {0} requires restarting the application because is not supported by the runtime.</source>
-        <target state="new">Deleting {0} requires restarting the application because is not supported by the runtime.</target>
+        <target state="translated">Для удаления {0} требуется перезапустить приложение, поскольку удаление не поддерживается средой выполнения.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
@@ -668,6 +673,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Enable_all_JSON_editor_features">
         <source>Enable all JSON editor features</source>
         <target state="translated">Включить все функции редактора JSON</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enum_members">
+        <source>Enum members</source>
+        <target state="translated">Элементы перечисления</target>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
@@ -717,7 +727,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Extract_base_record">
         <source>Extract base record...</source>
-        <target state="new">Extract base record...</target>
+        <target state="translated">Извлечь базовый объект record...</target>
         <note>{Locked="record"} "record" is a language construct for C# and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Extract_interface">
@@ -968,6 +978,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Inline_and_keep_0">
         <source>Inline and keep '{0}'</source>
         <target state="translated">Сделать "{0}" встроенным и сохранить его</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_temporary_variable">
+        <source>Inline temporary variable</source>
+        <target state="new">Inline temporary variable</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -1285,6 +1300,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Операторы</target>
         <note />
       </trans-unit>
+      <trans-unit id="Please_resolve_errors_in_your_code_before_renaming_this_element">
+        <source>Please resolve errors in your code before renaming this element.</source>
+        <target state="new">Please resolve errors in your code before renaming this element.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Probable_JSON_string_detected">
         <source>Probable JSON string detected</source>
         <target state="translated">Обнаружена возможная строка JSON</target>
@@ -1327,12 +1347,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Pull_selected_members_up">
         <source>Pull selected members up</source>
-        <target state="new">Pull selected members up</target>
+        <target state="translated">Вытянуть выбранные элементы вверх</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_selected_members_up_to_0">
         <source>Pull selected members up to {0}</source>
-        <target state="new">Pull selected members up to {0}</target>
+        <target state="translated">Вытянуть выбранные элементы до {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -2535,6 +2555,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Для переименования зафиксированной переменной из "{0}" в "{1}" требуется перезапустить приложение.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
+        <source>Renaming anonymous type members is not yet supported.</source>
+        <target state="new">Renaming anonymous type members is not yet supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Замените '{0}' на '{1}'</target>
@@ -2547,7 +2572,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Required">
         <source>required</source>
-        <target state="new">required</target>
+        <target state="translated">требуется</target>
         <note>Used in the object initializer completion.</note>
       </trans-unit>
       <trans-unit id="Resolve_conflict_markers">
@@ -2657,7 +2682,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="The_assembly_0_references_compiler_version_1_newer_than_2">
         <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="new">The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
+        <target state="translated">Сборка анализатора "{0}" ссылается на версию "{1}" компилятора, являющуюся более новой, чем версия "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -2993,6 +3018,31 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">
         <source>You can use the navigation bar to switch contexts.</source>
         <target state="translated">Для переключения контекстов можно использовать панель навигации.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_elements_from_previous_submissions">
+        <source>You cannot rename elements from previous submissions.</source>
+        <target state="new">You cannot rename elements from previous submissions.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_elements_that_are_defined_in_metadata">
+        <source>You cannot rename elements that are defined in metadata.</source>
+        <target state="new">You cannot rename elements that are defined in metadata.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_operators">
+        <source>You cannot rename operators.</source>
+        <target state="new">You cannot rename operators.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_this_element">
+        <source>You cannot rename this element.</source>
+        <target state="new">You cannot rename this element.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_must_rename_an_identifier">
+        <source>You must rename an identifier.</source>
+        <target state="new">You must rename an identifier.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_bases">
@@ -3343,7 +3393,7 @@ If the "H" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="console_writeline">
         <source>Console.WriteLine</source>
-        <target state="new">Console.WriteLine</target>
+        <target state="translated">Console.WriteLine</target>
         <note />
       </trans-unit>
       <trans-unit id="date_separator">
@@ -3423,6 +3473,11 @@ If the "d" format specifier is used without other custom format specifiers, it's
         <target state="translated">внешний</target>
         <note>External means "external source", meaning source files that are not part of the current solution</note>
       </trans-unit>
+      <trans-unit id="foreach_loop">
+        <source>foreach loop</source>
+        <target state="translated">Цикл ForEach</target>
+        <note />
+      </trans-unit>
       <trans-unit id="from_metadata">
         <source>from metadata</source>
         <target state="translated">из метаданных</target>
@@ -3484,7 +3539,7 @@ The "f" standard format specifier represents a combination of the long date ("D"
       </trans-unit>
       <trans-unit id="if_statement">
         <source>if statement</source>
-        <target state="new">if statement</target>
+        <target state="translated">оператор if</target>
         <note />
       </trans-unit>
       <trans-unit id="in_0_1_2">
@@ -4270,6 +4325,11 @@ When this standard format specifier is used, the formatting or parsing operation
         <target state="translated">статический конструктор</target>
         <note />
       </trans-unit>
+      <trans-unit id="struct_">
+        <source>struct</source>
+        <target state="translated">структура</target>
+        <note />
+      </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">
         <source>'symbol' cannot be a namespace.</source>
         <target state="translated">'"символ" не может быть пространством имен.</target>
@@ -4925,6 +4985,11 @@ The offset is always displayed with a leading sign. A plus sign (+) indicates ho
 При использовании значений DateTimeOffset этот описатель формата представляет смещение значения DateTimeOffset от UTC в часах.
 
 Смещение всегда отображается с предшествующим знаком. Знак "плюс" (+) обозначает часы опережения UTC, а знак "минус" (-) — часы отставания от UTC. Смещение из одной цифры форматируется с начальным нулем.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="while_loop">
+        <source>while loop</source>
+        <target state="new">while loop</target>
         <note />
       </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">

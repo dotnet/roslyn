@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.SourceGeneratorTelemetry;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -70,19 +71,8 @@ namespace Microsoft.CodeAnalysis
             private CompilationTrackerState ReadState()
                 => Volatile.Read(ref _stateDoNotAccessDirectly);
 
-            private void WriteState(CompilationTrackerState state, SolutionServices solutionServices)
-            {
-                var cacheService = solutionServices.GetService<IProjectCacheHostService>();
-                if (cacheService != null)
-                {
-                    // Allow the cache service to create a strong reference to the compilation. We'll get the "furthest along" compilation we have
-                    // and hold onto that.
-                    var compilationToCache = state.FinalCompilationWithGeneratedDocuments ?? state.CompilationWithoutGeneratedDocuments;
-                    cacheService.CacheObjectIfCachingEnabledForKey(ProjectState.Id, state, compilationToCache);
-                }
-
-                Volatile.Write(ref _stateDoNotAccessDirectly, state);
-            }
+            private void WriteState(CompilationTrackerState state)
+                => Volatile.Write(ref _stateDoNotAccessDirectly, state);
 
             public GeneratorDriver? GeneratorDriver
             {
@@ -173,14 +163,27 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            /// <summary>
+            /// A class to help simplify the investigation of https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1467404 when we
+            /// see a crash dump with the failure. The goal is just to make it easy to find the state that we operated on in memory,
+            /// when sometimes local have been optimized away.
+            /// </summary>
+            private class OldStateHolderForBug1467404Investigation
+            {
+                public CompilationTrackerState? State;
+            }
+
             public ICompilationTracker FreezePartialStateWithTree(SolutionState solution, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken)
             {
+                var stateHolder = new OldStateHolderForBug1467404Investigation();
+
                 GetPartialCompilationState(
                     solution, docState.Id,
                     out var inProgressProject,
                     out var compilationPair,
                     out var generatorInfo,
                     out var metadataReferenceToProjectId,
+                    out stateHolder.State,
                     cancellationToken);
 
                 // Ensure we actually have the tree we need in there
@@ -212,6 +215,8 @@ namespace Microsoft.CodeAnalysis
                     this.ProjectState.Id,
                     metadataReferenceToProjectId);
 
+                GC.KeepAlive(stateHolder);
+
                 return new CompilationTracker(inProgressProject, finalState, this.SkeletonReferenceCache.Clone());
             }
 
@@ -231,9 +236,11 @@ namespace Microsoft.CodeAnalysis
                 out CompilationPair compilations,
                 out CompilationTrackerGeneratorInfo generatorInfo,
                 out Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId,
+                out CompilationTrackerState oldStateForBugInvestigation,
                 CancellationToken cancellationToken)
             {
                 var state = ReadState();
+                oldStateForBugInvestigation = state;
                 var compilationWithoutGeneratedDocuments = state.CompilationWithoutGeneratedDocuments;
 
                 // check whether we can bail out quickly for typing case
@@ -369,11 +376,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (this.TryGetCompilation(out var compilation))
                 {
-                    // PERF: This is a hot code path and Task<TResult> isn't cheap,
-                    // so cache the completed tasks to reduce allocations. We also
-                    // need to avoid keeping a strong reference to the Compilation,
-                    // so use a ConditionalWeakTable.
-                    return SpecializedTasks.FromResult(compilation);
+                    return Task.FromResult(compilation);
                 }
                 else if (cancellationToken.IsCancellationRequested)
                 {
@@ -394,7 +397,7 @@ namespace Microsoft.CodeAnalysis
                 return compilationInfo.Compilation;
             }
 
-            private async Task<Compilation> GetOrBuildDeclarationCompilationAsync(SolutionServices solutionServices, CancellationToken cancellationToken)
+            private async Task<Compilation> GetOrBuildDeclarationCompilationAsync(CancellationToken cancellationToken)
             {
                 try
                 {
@@ -416,9 +419,7 @@ namespace Microsoft.CodeAnalysis
                         {
                             // We've got nothing.  Build it from scratch :(
                             return await BuildDeclarationCompilationFromScratchAsync(
-                                solutionServices,
-                                state.GeneratorInfo,
-                                cancellationToken).ConfigureAwait(false);
+                                state.GeneratorInfo, cancellationToken).ConfigureAwait(false);
                         }
 
                         if (state is AllSyntaxTreesParsedState or FinalState)
@@ -427,7 +428,7 @@ namespace Microsoft.CodeAnalysis
                             return compilation;
                         }
 
-                        (compilation, _, _) = await BuildDeclarationCompilationFromInProgressAsync(solutionServices, (InProgressState)state, compilation, cancellationToken).ConfigureAwait(false);
+                        (compilation, _, _) = await BuildDeclarationCompilationFromInProgressAsync((InProgressState)state, compilation, cancellationToken).ConfigureAwait(false);
 
                         // We must have an in progress compilation. Build off of that.
                         return compilation;
@@ -435,7 +436,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -478,7 +479,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -540,9 +541,7 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     var compilation = await BuildDeclarationCompilationFromScratchAsync(
-                        solution.Services.SolutionServices,
-                        generatorInfo,
-                        cancellationToken).ConfigureAwait(false);
+                        generatorInfo, cancellationToken).ConfigureAwait(false);
 
                     return await FinalizeCompilationAsync(
                         solution,
@@ -553,7 +552,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -561,7 +560,6 @@ namespace Microsoft.CodeAnalysis
                 "https://github.com/dotnet/roslyn/issues/23582",
                 Constraint = "Avoid calling " + nameof(Compilation.AddSyntaxTrees) + " in a loop due to allocation overhead.")]
             private async Task<Compilation> BuildDeclarationCompilationFromScratchAsync(
-                SolutionServices solutionServices,
                 CompilationTrackerGeneratorInfo generatorInfo,
                 CancellationToken cancellationToken)
             {
@@ -578,12 +576,12 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     compilation = compilation.AddSyntaxTrees(trees);
-                    WriteState(new AllSyntaxTreesParsedState(compilation, generatorInfo), solutionServices);
+                    WriteState(new AllSyntaxTreesParsedState(compilation, generatorInfo));
                     return compilation;
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -611,7 +609,8 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    var (compilationWithoutGenerators, compilationWithGenerators, generatorDriver) = await BuildDeclarationCompilationFromInProgressAsync(solution.Services.SolutionServices, state, inProgressCompilation, cancellationToken).ConfigureAwait(false);
+                    var (compilationWithoutGenerators, compilationWithGenerators, generatorDriver) = await BuildDeclarationCompilationFromInProgressAsync(
+                        state, inProgressCompilation, cancellationToken).ConfigureAwait(false);
                     return await FinalizeCompilationAsync(
                         solution,
                         compilationWithoutGenerators,
@@ -621,12 +620,12 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
             private async Task<(Compilation compilationWithoutGenerators, Compilation? compilationWithGenerators, GeneratorDriver? generatorDriver)> BuildDeclarationCompilationFromInProgressAsync(
-                SolutionServices solutionServices, InProgressState state, Compilation compilationWithoutGenerators, CancellationToken cancellationToken)
+                InProgressState state, Compilation compilationWithoutGenerators, CancellationToken cancellationToken)
             {
                 try
                 {
@@ -679,14 +678,14 @@ namespace Microsoft.CodeAnalysis
                         intermediateProjects = intermediateProjects.RemoveAt(0);
 
                         this.WriteState(CompilationTrackerState.Create(
-                            compilationWithoutGenerators, state.GeneratorInfo.WithDriver(generatorDriver), compilationWithGenerators, intermediateProjects), solutionServices);
+                            compilationWithoutGenerators, state.GeneratorInfo.WithDriver(generatorDriver), compilationWithGenerators, intermediateProjects));
                     }
 
                     return (compilationWithoutGenerators, compilationWithGenerators, generatorDriver);
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -806,7 +805,12 @@ namespace Microsoft.CodeAnalysis
                     {
                         using var generatedDocumentsBuilder = new TemporaryArray<SourceGeneratedDocumentState>();
 
-                        if (ProjectState.SourceGenerators.Any())
+                        if (!ProjectState.SourceGenerators.Any())
+                        {
+                            // We don't have any generators, so if we have a compilation from a previous run with generated files, we definitely can't use it anymore
+                            compilationWithStaleGeneratedTrees = null;
+                        }
+                        else // we have a generator
                         {
                             // If we don't already have a generator driver, we'll have to create one from scratch
                             if (generatorInfo.Driver == null)
@@ -816,7 +820,7 @@ namespace Microsoft.CodeAnalysis
 
                                 generatorInfo = generatorInfo.WithDriver(compilationFactory.CreateGeneratorDriver(
                                         this.ProjectState.ParseOptions!,
-                                        ProjectState.SourceGenerators,
+                                        ProjectState.SourceGenerators.ToImmutableArray(),
                                         this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider,
                                         additionalTexts));
                             }
@@ -861,6 +865,9 @@ namespace Microsoft.CodeAnalysis
                             // END HACK HACK HACK HACK.
 
                             generatorInfo = generatorInfo.WithDriver(generatorInfo.Driver!.RunGenerators(compilationToRunGeneratorsOn, cancellationToken));
+
+                            solution.Services.GetService<ISourceGeneratorTelemetryCollectorWorkspaceService>()?.CollectRunResult(generatorInfo.Driver!.GetRunResult(), generatorInfo.Driver!.GetTimingInfo(), ProjectState);
+
                             var runResult = generatorInfo.Driver!.GetRunResult();
 
                             // We may be able to reuse compilationWithStaleGeneratedTrees if the generated trees are identical. We will assign null
@@ -886,11 +893,14 @@ namespace Microsoft.CodeAnalysis
                                     continue;
                                 }
 
+                                var generatorAnalyzerReference = this.ProjectState.GetAnalyzerReferenceForGenerator(generatorResult.Generator);
+
                                 foreach (var generatedSource in generatorResult.GeneratedSources)
                                 {
                                     var existing = FindExistingGeneratedDocumentState(
                                         generatorInfo.Documents,
                                         generatorResult.Generator,
+                                        generatorAnalyzerReference,
                                         generatedSource.HintName);
 
                                     if (existing != null)
@@ -912,14 +922,15 @@ namespace Microsoft.CodeAnalysis
                                             ProjectState.Id,
                                             generatedSource.HintName,
                                             generatorResult.Generator,
-                                            generatedSource.SyntaxTree.FilePath);
+                                            generatedSource.SyntaxTree.FilePath,
+                                            generatorAnalyzerReference);
 
                                         generatedDocumentsBuilder.Add(
                                             SourceGeneratedDocumentState.Create(
                                                 identity,
                                                 generatedSource.SourceText,
                                                 generatedSource.SyntaxTree.Options,
-                                                this.ProjectState.LanguageServices,
+                                                ProjectState.LanguageServices,
                                                 solution.Services));
 
                                         // The count of trees was the same, but something didn't match up. Since we're here, at least one tree
@@ -956,7 +967,7 @@ namespace Microsoft.CodeAnalysis
                         this.ProjectState.Id,
                         metadataReferenceToProjectId);
 
-                    this.WriteState(finalState, solution.Services.SolutionServices);
+                    this.WriteState(finalState);
 
                     return new CompilationInfo(compilationWithGenerators, hasSuccessfullyLoaded, generatorInfo);
                 }
@@ -974,16 +985,17 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 // Local functions
                 static SourceGeneratedDocumentState? FindExistingGeneratedDocumentState(
                     TextDocumentStates<SourceGeneratedDocumentState> states,
                     ISourceGenerator generator,
+                    AnalyzerReference analyzerReference,
                     string hintName)
                 {
-                    var generatorIdentity = new SourceGeneratorIdentity(generator);
+                    var generatorIdentity = new SourceGeneratorIdentity(generator, analyzerReference);
 
                     foreach (var (_, state) in states.States)
                     {

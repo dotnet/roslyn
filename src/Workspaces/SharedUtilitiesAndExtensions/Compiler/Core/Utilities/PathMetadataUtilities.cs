@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             if (rootNamespace is not null && @namespace.StartsWith(rootNamespace + ".", StringComparison.OrdinalIgnoreCase))
             {
                 // Add 1 to get rid of the starting "." as well
-                @namespace = @namespace.Substring(rootNamespace.Length + 1);
+                @namespace = @namespace[(rootNamespace.Length + 1)..];
             }
 
             var parts = @namespace.Split(NamespaceSeparatorArray, options: StringSplitOptions.RemoveEmptyEntries);

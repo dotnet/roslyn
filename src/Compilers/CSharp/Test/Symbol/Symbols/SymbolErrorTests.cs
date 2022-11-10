@@ -7781,7 +7781,7 @@ class D : C<int>
    public override void F(int t) {}   // CS0462
 }
 ";
-            var comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.NetLatest);
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
             {
@@ -11520,7 +11520,7 @@ public class Test
                 // (2,39): error CS0643: 'AllowMultiple' duplicate named attribute argument
                 // [AttributeUsage(AllowMultiple = true, AllowMultiple = false)]
                 Diagnostic(ErrorCode.ERR_DuplicateNamedAttributeArgument, "AllowMultiple = false").WithArguments("AllowMultiple").WithLocation(2, 39),
-                // (2,2): error CS76: There is no argument given that corresponds to the required formal parameter 'validOn' of 'AttributeUsageAttribute.AttributeUsageAttribute(AttributeTargets)'
+                // (2,2): error CS76: There is no argument given that corresponds to the required parameter 'validOn' of 'AttributeUsageAttribute.AttributeUsageAttribute(AttributeTargets)'
                 // [AttributeUsage(AllowMultiple = true, AllowMultiple = false)]
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AttributeUsage(AllowMultiple = true, AllowMultiple = false)").WithArguments("validOn", "System.AttributeUsageAttribute.AttributeUsageAttribute(System.AttributeTargets)").WithLocation(2, 2)
                 );
@@ -13059,9 +13059,9 @@ public static class C
 //     public static C operator +(C c)  // CS0715
 Diagnostic(ErrorCode.ERR_OperatorInStaticClass, "+").WithArguments("C.operator +(C)"),
 
-// (4,30): error CS0721: 'C': static types cannot be used as parameters
+// (4,32): error CS0721: 'C': static types cannot be used as parameters
 //     public static C operator +(C c)  // CS0715
-Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "+").WithArguments("C"),
+Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C").WithArguments("C"),
 
 // (4,19): error CS0722: 'C': static types cannot be used as return types
 //     public static C operator +(C c)  // CS0715
@@ -13350,7 +13350,7 @@ static class S
         [Fact]
         public void CS0721ERR_ParameterIsStaticClass01()
         {
-            var text = @"namespace NS
+            var source = @"namespace NS
 {
     public static class C
     {
@@ -13379,13 +13379,16 @@ static class S
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.WRN_ParameterIsStaticClass, Line = 12, Column = 14, IsWarning = true },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 16, Column = 21 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 22, Column = 20 });
-
-            var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
-            // TODO...
+            CreateCompilation(source).VerifyDiagnostics(
+                // (12,16): warning CS8897: 'D<T>': static types cannot be used as parameters
+                //         void M(D<T> d); // Dev10 no error?
+                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "D<T>").WithArguments("NS.D<T>").WithLocation(12, 16),
+                // (16,23): error CS0721: 'C': static types cannot be used as parameters
+                //         public void F(C p)  // CS0721
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C").WithArguments("NS.C").WithLocation(16, 23),
+                // (22,25): error CS0721: 'D<T>': static types cannot be used as parameters
+                //             object M<T>(D<T> p1)  // CS0721
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "D<T>").WithArguments("NS.D<T>").WithLocation(22, 25));
         }
 
         [Fact]
@@ -13398,8 +13401,44 @@ class C
     S P { set { } }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (4,11): error CS0721: 'S': static types cannot be used as parameters
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "set").WithArguments("S").WithLocation(4, 11));
+                // (4,5): error CS0721: 'S': static types cannot be used as parameters
+                //     S P { set { } }
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "S").WithArguments("S").WithLocation(4, 5));
+        }
+
+        [WorkItem(61831, "https://github.com/dotnet/roslyn/issues/61831")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61831#issuecomment-1249148459")]
+        public void CS0721ERR_ParameterIsStaticClass_Lambdas()
+        {
+            var source =
+@"static class S { }
+delegate void Dlg(S p);
+class C
+{
+    void M()
+    {
+        var _a = (S p) => { };
+        var _b = delegate (S p) { };
+        Dlg _c = (p) => { };
+        Dlg _d = p => { };
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (2,19): error CS0721: 'S': static types cannot be used as parameters
+                // delegate void Dlg(S p);
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "S").WithArguments("S").WithLocation(2, 19),
+                // (7,18): error CS0721: 'S': static types cannot be used as parameters
+                //         var _a = (S p) => { };
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "S").WithArguments("S").WithLocation(7, 19),
+                // (8,18): error CS0721: 'S': static types cannot be used as parameters
+                //         var _b = delegate (S p) { };
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "S").WithArguments("S").WithLocation(8, 28),
+                // (9,19): error CS0721: 'S': static types cannot be used as parameters
+                //         Dlg _c = (p) => { };
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "p").WithArguments("S").WithLocation(9, 19),
+                // (10,18): error CS0721: 'S': static types cannot be used as parameters
+                //         Dlg _d = p => { };
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "p").WithArguments("S").WithLocation(10, 18));
         }
 
         [Fact]
@@ -13458,8 +13497,9 @@ class C
     S P { get { return null; } }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (4,11): error CS0722: 'S': static types cannot be used as return types
-                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "get").WithArguments("S").WithLocation(4, 11));
+                // (4,5): error CS0722: 'S': static types cannot be used as return types
+                //     S P { get { return null; } }
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "S").WithArguments("S").WithLocation(4, 5));
         }
 
         [WorkItem(530434, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530434")]
@@ -13542,34 +13582,28 @@ interface I
 {
     void M1(C c); // 1
     C M2(); // 2
-    C Prop { get; set; } // 3, 4
-    C this[C c] { get; set; } // 5, 6, 7
+    C Prop { get; set; } // 3
+    C this[C c] { get; set; } // 4, 5
 }
 ";
             var comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
-                // (5,10): warning CS8897: 'C': static types cannot be used as parameters
+                // (5,13): warning CS8897: 'C': static types cannot be used as parameters
                 //     void M1(C c); // 1
-                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "M1").WithArguments("C").WithLocation(5, 10),
+                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "C").WithArguments("C").WithLocation(5, 13),
                 // (6,7): warning CS8898: 'C': static types cannot be used as return types
                 //     C M2(); // 2
                 Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "M2").WithArguments("C").WithLocation(6, 7),
-                // (7,14): warning CS8898: 'C': static types cannot be used as return types
-                //     C Prop { get; set; } // 3, 4
-                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "get").WithArguments("C").WithLocation(7, 14),
-                // (7,19): warning CS8897: 'C': static types cannot be used as parameters
-                //     C Prop { get; set; } // 3, 4
-                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "set").WithArguments("C").WithLocation(7, 19),
-                // (8,7): warning CS8897: 'C': static types cannot be used as parameters
-                //     C this[C c] { get; set; } // 5, 6, 7
-                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "this").WithArguments("C").WithLocation(8, 7),
-                // (8,19): warning CS8898: 'C': static types cannot be used as return types
-                //     C this[C c] { get; set; } // 5, 6, 7
-                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "get").WithArguments("C").WithLocation(8, 19),
-                // (8,24): warning CS8897: 'C': static types cannot be used as parameters
-                //     C this[C c] { get; set; } // 5, 6, 7
-                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "set").WithArguments("C").WithLocation(8, 24)
+                // (7,5): warning CS8898: 'C': static types cannot be used as return types
+                //     C Prop { get; set; } // 3
+                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "C").WithArguments("C").WithLocation(7, 5),
+                // (8,5): warning CS8898: 'C': static types cannot be used as return types
+                //     C this[C c] { get; set; } // 4, 5
+                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "C").WithArguments("C").WithLocation(8, 5),
+                // (8,12): warning CS8897: 'C': static types cannot be used as parameters
+                //     C this[C c] { get; set; } // 4, 5
+                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "C").WithArguments("C").WithLocation(8, 12)
             );
 
             comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(4));
@@ -14578,8 +14612,8 @@ class Goo1
             compilation.VerifyDiagnostics(
                 // (3,25): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown"),
-                // (4,17): error CS0721: 'C': static types cannot be used as parameters
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "M2").WithArguments("C"),
+                // (4,25): error CS0721: 'C': static types cannot be used as parameters
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C").WithArguments("C"),
                 // (5,25): error CS1103: The first parameter of an extension method cannot be of type 'dynamic'
                 Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic"));
         }
@@ -18556,7 +18590,7 @@ class Derived : Base<string>
 }
 ";
             // We no longer report a runtime ambiguous override (CS1957) because the compiler produces a methodimpl record to disambiguate.
-            CSharpCompilation comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            CSharpCompilation comp = CreateCompilation(text, targetFramework: TargetFramework.NetLatest);
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
             {

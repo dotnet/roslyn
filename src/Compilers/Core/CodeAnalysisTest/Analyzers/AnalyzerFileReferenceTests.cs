@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -323,6 +324,36 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 """, writer.ToString());
         }
 
+        [ConditionalFact(typeof(IsEnglishLocal), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/63856")]
+        public void DuplicateAnalyzerReference()
+        {
+            var directory = Temp.CreateDirectory();
+
+            TempFile corlib = directory.CreateFile("mscorlib.dll");
+            corlib.WriteAllBytes(TestResources.NetFX.Minimal.mincorlib);
+
+            TempFile source = directory.CreateFile("in.cs");
+            source.WriteAllText("int x = 0;");
+
+            var compiler = new AnalyzerLoaderMockCSharpCompiler(
+                CSharpCommandLineParser.Default,
+                responseFile: null,
+                args: new[] { "/nologo", $@"/analyzer:""{_testFixture.AnalyzerWithFakeCompilerDependency.Path}""", $@"/analyzer:""{_testFixture.AnalyzerWithFakeCompilerDependency.Path}""", "/nostdlib", $@"/r:""{corlib.Path}""", "/out:something.dll", source.Path },
+                new BuildPaths(clientDir: directory.Path, workingDir: directory.Path, sdkDir: null, tempDir: null),
+                additionalReferenceDirectories: null,
+                new DefaultAnalyzerAssemblyLoader());
+
+            var writer = new StringWriter();
+            var result = compiler.Run(writer);
+            Assert.Equal(0, result);
+            AssertEx.Equal($"""
+                warning CS9067: Analyzer reference '{_testFixture.AnalyzerWithFakeCompilerDependency.Path}' specified multiple times
+                warning CS8032: An instance of analyzer Analyzer cannot be created from {_testFixture.AnalyzerWithFakeCompilerDependency.Path} : Method 'get_SupportedDiagnostics' in type 'Analyzer' from assembly 'AnalyzerWithFakeCompilerDependency, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' does not have an implementation..
+                in.cs(1,5): warning CS0219: The variable 'x' is assigned but its value is never used
+
+                """, writer.ToString());
+        }
+
         [ConditionalFact(typeof(CoreClrOnly), Reason = "Can't load a framework targeting generator, which these are in desktop")]
         public void TestLoadGenerators()
         {
@@ -444,7 +475,7 @@ public class Generator : ISourceGenerator
                 var generatorPath = Path.Combine(directory.Path, $"generator_{targetFramework}.dll");
 
                 var compilation = CSharpCompilation.Create($"generator_{targetFramework}",
-                                                           new[] { CSharpSyntaxTree.ParseText(generatorSource) },
+                                                           new[] { CSharpTestSource.Parse(generatorSource) },
                                                            TargetFrameworkUtil.GetReferences(TargetFramework.Standard, new[] { MetadataReference.CreateFromAssemblyInternal(typeof(ISourceGenerator).Assembly) }),
                                                            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 

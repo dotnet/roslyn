@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var suffix = DetermineSuffix(type, nonNegativeValue);
 
             var stringValue = negative && nonNegativeValue.Equals(value)
-                ? (integerMinValueString ?? throw ExceptionUtilities.Unreachable)
+                ? (integerMinValueString ?? throw ExceptionUtilities.Unreachable())
                 : ((IFormattable)nonNegativeValue).ToString(formatString, CultureInfo.InvariantCulture) + suffix;
 
             var literal = SyntaxFactory.LiteralExpression(

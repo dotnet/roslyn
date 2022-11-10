@@ -14,6 +14,7 @@ using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.Pro
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.WinForms)]
     public class BasicWinForms : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
@@ -23,7 +24,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact]
         public void TestMyIntelliSense()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -52,12 +53,14 @@ End Class");
             VisualStudio.Editor.Verify.CompletionItemDoNotExist("ToString");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact]
         public void AddControl()
         {
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.vb");
             VisualStudio.Editor.AddWinFormButton("SomeButton");
+            VisualStudio.SolutionExplorer.SaveFile(project, "Form1.vb");
+            VisualStudio.SolutionExplorer.SaveFile(project, "Form1.resx");
             VisualStudio.SolutionExplorer.CloseDesignerFile(project, "Form1.vb", saveFile: true);
             VisualStudio.SolutionExplorer.OpenFile(project, "Form1.Designer.vb");
             var actualText = VisualStudio.Editor.GetText();
@@ -65,12 +68,14 @@ End Class");
             Assert.Contains(@"Friend WithEvents SomeButton As Button", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact]
         public void ChangeControlProperty()
         {
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.vb");
             VisualStudio.Editor.AddWinFormButton("SomeButton");
+            VisualStudio.SolutionExplorer.SaveFile(project, "Form1.vb");
+            VisualStudio.SolutionExplorer.SaveFile(project, "Form1.resx");
             VisualStudio.Editor.EditWinFormButtonProperty(buttonName: "SomeButton", propertyName: "Text", propertyValue: "NewButtonText");
             VisualStudio.SolutionExplorer.CloseDesignerFile(project, "Form1.vb", saveFile: true);
             VisualStudio.SolutionExplorer.OpenFile(project, "Form1.Designer.vb");
@@ -78,12 +83,14 @@ End Class");
             Assert.Contains(@"Me.SomeButton.Text = ""NewButtonText""", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact]
         public void ChangeControlPropertyInCode()
         {
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.vb");
             VisualStudio.Editor.AddWinFormButton("SomeButton");
+            VisualStudio.SolutionExplorer.SaveFile(project, "Form1.vb");
+            VisualStudio.SolutionExplorer.SaveFile(project, "Form1.resx");
             VisualStudio.Editor.EditWinFormButtonProperty(buttonName: "SomeButton", propertyName: "Text", propertyValue: "ButtonTextGoesHere");
             var expectedPropertyValue = "ButtonTextGoesHere";
             var actualPropertyValue = VisualStudio.Editor.GetWinFormButtonPropertyValue(buttonName: "SomeButton", propertyName: "Text");
@@ -105,12 +112,14 @@ End Class");
             Assert.Equal(expectedPropertyValue, actualPropertyValue);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact]
         public void AddClickHandler()
         {
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.vb");
             VisualStudio.Editor.AddWinFormButton("SomeButton");
+            VisualStudio.SolutionExplorer.SaveFile(project, "Form1.vb");
+            VisualStudio.SolutionExplorer.SaveFile(project, "Form1.resx");
             VisualStudio.Editor.EditWinFormButtonEvent(buttonName: "SomeButton", eventName: "Click", eventHandlerName: "ExecuteWhenButtonClicked");
             VisualStudio.SolutionExplorer.OpenFile(project, "Form1.vb");
             var actualText = VisualStudio.Editor.GetText();
@@ -118,12 +127,14 @@ End Class");
             VisualStudio.SolutionExplorer.SaveFile(project, "Form1.vb");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact]
         public void RenameControl()
         {
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.vb");
             VisualStudio.Editor.AddWinFormButton("SomeButton");
+            VisualStudio.SolutionExplorer.SaveFile(project, "Form1.vb");
+            VisualStudio.SolutionExplorer.SaveFile(project, "Form1.resx");
             // Add some control properties and events
             VisualStudio.Editor.EditWinFormButtonProperty(buttonName: "SomeButton", propertyName: "Text", propertyValue: "ButtonTextValue");
             VisualStudio.Editor.EditWinFormButtonEvent(buttonName: "SomeButton", eventName: "Click", eventHandlerName: "SomeButtonHandler");
@@ -150,12 +161,14 @@ End Class");
             Assert.Contains(@"Private Sub SomeButtonHandler(sender As Object, e As EventArgs) Handles AnotherNewButton.Click", formActualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact]
         public void RemoveEventHandler()
         {
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.vb");
             VisualStudio.Editor.AddWinFormButton("SomeButton");
+            VisualStudio.SolutionExplorer.SaveFile(project, "Form1.vb");
+            VisualStudio.SolutionExplorer.SaveFile(project, "Form1.resx");
             VisualStudio.Editor.EditWinFormButtonEvent(buttonName: "SomeButton", eventName: "Click", eventHandlerName: "GooHandler");
             //  Remove the event handler
             VisualStudio.Editor.EditWinFormButtonEvent(buttonName: "SomeButton", eventName: "Click", eventHandlerName: "");
@@ -166,12 +179,14 @@ End Class");
             Assert.DoesNotContain(@"Private Sub GooHandler(sender As Object, e As EventArgs) Handles SomeButton.Click", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact]
         public void ChangeAccessibility()
         {
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.vb");
             VisualStudio.Editor.AddWinFormButton("SomeButton");
+            VisualStudio.SolutionExplorer.SaveFile(project, "Form1.vb");
+            VisualStudio.SolutionExplorer.SaveFile(project, "Form1.resx");
             VisualStudio.Editor.EditWinFormButtonProperty(
                 buttonName: "SomeButton",
                 propertyName: "Modifiers",
@@ -183,12 +198,14 @@ End Class");
             Assert.Contains(@"Public WithEvents SomeButton As Button", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact]
         public void DeleteControl()
         {
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.vb");
             VisualStudio.Editor.AddWinFormButton("SomeButton");
+            VisualStudio.SolutionExplorer.SaveFile(project, "Form1.vb");
+            VisualStudio.SolutionExplorer.SaveFile(project, "Form1.resx");
             VisualStudio.Editor.DeleteWinFormButton("SomeButton");
             VisualStudio.ErrorList.Verify.NoBuildErrors();
             VisualStudio.SolutionExplorer.OpenFile(project, "Form1.Designer.vb");

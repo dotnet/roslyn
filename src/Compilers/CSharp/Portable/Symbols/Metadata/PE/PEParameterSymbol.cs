@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         isBad = true;
                     }
                 }
-                else if (ParameterHelpers.IsRefScopedByDefault(refKind, typeWithAnnotations))
+                else if (ParameterHelpers.IsRefScopedByDefault(_moduleSymbol.UseUpdatedEscapeRules, refKind))
                 {
                     scope = DeclarationScope.RefScoped;
                 }
@@ -993,9 +993,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal sealed override DeclarationScope DeclaredScope => _packedFlags.Scope;
+        internal sealed override DeclarationScope EffectiveScope => _packedFlags.Scope;
 
-        internal sealed override DeclarationScope EffectiveScope => DeclaredScope;
+        internal sealed override bool UseUpdatedEscapeRules => _moduleSymbol.UseUpdatedEscapeRules;
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {

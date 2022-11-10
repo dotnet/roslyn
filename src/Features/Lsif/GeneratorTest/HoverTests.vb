@@ -42,28 +42,46 @@ class C
             Dim expectedHoverContents As String
             Select Case code
                 Case "class [|C|] { string s; }"
-                    expectedHoverContents = "class C"
+                    expectedHoverContents = "```csharp
+class C
+```
+  "
                 Case "class C { void [|M|]() { } }"
-                    expectedHoverContents = "void C.M()"
+                    expectedHoverContents = "```csharp
+void C.M()
+```
+  "
                 Case "class C { string [|s|]; }"
-                    expectedHoverContents = $"({FeaturesResources.field}) string C.s"
+                    expectedHoverContents = $"```csharp
+({FeaturesResources.field}) string C.s
+```
+  "
                 Case "class C { void M(string [|s|]) { M(s); } }"
-                    expectedHoverContents = $"({FeaturesResources.parameter}) string s"
+                    expectedHoverContents = $"```csharp
+({FeaturesResources.parameter}) string s
+```
+  "
                 Case "class C { void M(string s) { string [|local|] = """"; } }"
-                    expectedHoverContents = $"({FeaturesResources.local_variable}) string local"
+                    expectedHoverContents = $"```csharp
+({FeaturesResources.local_variable}) string local
+```
+  "
                 Case "
 class C
 {
     /// <summary>Doc Comment</summary>
     void [|M|]() { }
 }"
-                    expectedHoverContents = "void C.M()
-Doc Comment"
+                    expectedHoverContents = "```csharp
+void C.M()
+```
+  
+Doc&nbsp;Comment  "
                 Case Else
                     Throw TestExceptionUtilities.UnexpectedValue(code)
             End Select
 
-            Assert.Equal(MarkupKind.PlainText, hoverMarkupContent.Kind)
+            Assert.Equal(MarkupKind.Markdown, hoverMarkupContent.Kind)
             Assert.Equal(expectedHoverContents + Environment.NewLine, hoverMarkupContent.Value)
         End Function
 
@@ -99,29 +117,50 @@ class C
             Dim expectedHoverContents As String
             Select Case code
                 Case "class C { [|string|] s; }"
-                    expectedHoverContents = "class System.String"
+                    expectedHoverContents = "```csharp
+class System.String
+```
+  "
                 Case "class C { void M() { [|M|](); } }"
-                    expectedHoverContents = "void C.M()"
+                    expectedHoverContents = "```csharp
+void C.M()
+```
+  "
                 Case "class C { void M(string s) { M([|s|]); } }"
-                    expectedHoverContents = $"({FeaturesResources.parameter}) string s"
+                    expectedHoverContents = $"```csharp
+({FeaturesResources.parameter}) string s
+```
+  "
                 Case "class C { void M(string s) { string local = """"; M([|local|]); } }"
-                    expectedHoverContents = $"({FeaturesResources.local_variable}) string local"
+                    expectedHoverContents = $"```csharp
+({FeaturesResources.local_variable}) string local
+```
+  "
                 Case "using [|S|] = System.String;"
-                    expectedHoverContents = "class System.String"
+                    expectedHoverContents = "```csharp
+class System.String
+```
+  "
                 Case "class C { [|global|]::System.String s; }"
-                    expectedHoverContents = "<global namespace>"
+                    expectedHoverContents = "```csharp
+<global namespace>
+```
+  "
                 Case "
 class C
 {
     /// <see cref=""C.[|M|]()"" />
     void M() { }
 }"
-                    expectedHoverContents = "void C.M()"
+                    expectedHoverContents = "```csharp
+void C.M()
+```
+  "
                 Case Else
                     Throw TestExceptionUtilities.UnexpectedValue(code)
             End Select
 
-            Assert.Equal(MarkupKind.PlainText, hoverMarkupContent.Kind)
+            Assert.Equal(MarkupKind.Markdown, hoverMarkupContent.Kind)
             Assert.Equal(expectedHoverContents + Environment.NewLine, hoverMarkupContent.Value)
         End Function
 
@@ -161,8 +200,11 @@ class C
             Next
 
             Dim hoverMarkupContent = DirectCast(hoverVertex.Result.Contents.Value.Fourth, MarkupContent)
-            Assert.Equal(MarkupKind.PlainText, hoverMarkupContent.Kind)
-            Assert.Equal("class System.String" + Environment.NewLine, hoverMarkupContent.Value)
+            Assert.Equal(MarkupKind.Markdown, hoverMarkupContent.Kind)
+            Assert.Equal("```csharp
+class System.String
+```
+  " + Environment.NewLine, hoverMarkupContent.Value)
         End Function
     End Class
 End Namespace

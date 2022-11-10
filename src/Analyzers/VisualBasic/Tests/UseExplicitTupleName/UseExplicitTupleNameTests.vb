@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.UseExplicitTupleName
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseExplicitTupleName
+    <Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
     Public Class UseExplicitTupleNameTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -16,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseExplicitTupleNa
                     New UseExplicitTupleNameCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
+        <Fact>
         Public Async Function TestNamedTuple1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -35,7 +36,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
+        <Fact>
         Public Async Function TestInArgument() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -60,7 +61,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
+        <Fact>
         Public Async Function TestNamedTuple2() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -79,7 +80,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
+        <Fact>
         Public Async Function TestMissingOnMatchingName1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -91,7 +92,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
+        <Fact>
         Public Async Function TestMissingOnMatchingName2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -103,7 +104,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
+        <Fact>
         Public Async Function TestWrongCasing() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -115,7 +116,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
+        <Fact>
         Public Async Function TestFixAll1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -136,7 +137,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
+        <Fact>
         Public Async Function TestFixAll2() As Task
             Await TestInRegularAndScriptAsync(
 "

@@ -15,6 +15,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwitch
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
     public partial class PopulateSwitchStatementTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public PopulateSwitchStatementTests(ITestOutputHelper logger)
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpPopulateSwitchStatementDiagnosticAnalyzer(), new CSharpPopulateSwitchStatementCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task OnlyOnFirstToken()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task AllMembersAndDefaultExist()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task AllMembersExist_NotDefault()
         {
             await TestInRegularAndScriptAsync(
@@ -142,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task NotAllMembersExist_NotDefault()
         {
             await TestInRegularAndScriptAsync(
@@ -198,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
 }", index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task NotAllMembersExist_WithDefault()
         {
             await TestInRegularAndScriptAsync(
@@ -256,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task NotAllMembersExist_NotDefault_EnumHasExplicitType()
         {
             await TestInRegularAndScriptAsync(
@@ -312,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
 }", index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task NotAllMembersExist_WithMembersAndDefaultInSection_NewValuesAboveDefaultSection()
         {
             await TestInRegularAndScriptAsync(
@@ -368,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task NotAllMembersExist_WithMembersAndDefaultInSection_AssumesDefaultIsInLastSection()
         {
             await TestInRegularAndScriptAsync(
@@ -426,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task NoMembersExist0()
         {
             await TestInRegularAndScriptAsync(
@@ -478,7 +479,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
 }", index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task NoMembersExist1()
         {
             await TestInRegularAndScriptAsync(
@@ -526,7 +527,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
 }", index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task NoMembersExist2()
         {
             await TestInRegularAndScriptAsync(
@@ -580,7 +581,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
 }", index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task UsingStaticEnum_AllMembersExist()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -615,7 +616,7 @@ namespace ConsoleApplication1
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task UsingStaticEnum_AllMembersExist_OutOfDefaultOrder()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -650,7 +651,7 @@ namespace ConsoleApplication1
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task UsingStaticEnum_MembersExist()
         {
             await TestInRegularAndScriptAsync(
@@ -710,7 +711,7 @@ namespace ConsoleApplication1
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task UsingStaticEnum_NoMembersExist()
         {
             await TestInRegularAndScriptAsync(
@@ -760,7 +761,7 @@ namespace ConsoleApplication1
 }", index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task NotAllMembersExist_NotDefault_EnumHasNonFlagsAttribute()
         {
             await TestInRegularAndScriptAsync(
@@ -818,7 +819,7 @@ namespace ConsoleApplication1
 }", index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task NotAllMembersExist_NotDefault_EnumIsNested()
         {
             await TestInRegularAndScriptAsync(
@@ -874,7 +875,7 @@ namespace ConsoleApplication1
 }", index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task NotAllMembersExist_SwitchIsNotEnum()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -899,7 +900,7 @@ namespace ConsoleApplication1
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task NotAllMembersExist_NotDefault_UsingConstants()
         {
             await TestInRegularAndScriptAsync(
@@ -949,8 +950,7 @@ class MyClass
 }", index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        [WorkItem(13455, "https://github.com/dotnet/roslyn/issues/13455")]
+        [Fact, WorkItem(13455, "https://github.com/dotnet/roslyn/issues/13455")]
         public async Task AllMissingTokens()
         {
             await TestInRegularAndScriptAsync(
@@ -987,8 +987,7 @@ class MyClass
 }");
         }
 
-        [Fact]
-        [WorkItem(40240, "https://github.com/dotnet/roslyn/issues/40240")]
+        [Fact, WorkItem(40240, "https://github.com/dotnet/roslyn/issues/40240")]
         public async Task TestAddMissingCasesForNullableEnum()
         {
             await TestInRegularAndScriptAsync(
@@ -1252,6 +1251,105 @@ enum MyEnum
     void M()
     {
         var v = null switch[||]
+    }
+}");
+        }
+
+        [Fact, WorkItem(48876, "https://github.com/dotnet/roslyn/issues/48876")]
+        public async Task NotOnCompleteBoolean1()
+        {
+            await TestMissingAsync(
+@"
+public class Sample
+{
+    public string Method(bool boolean)
+    {
+        [||]switch (boolean)
+        {
+            case true: return ""true"";
+            case false: ""false"";
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(48876, "https://github.com/dotnet/roslyn/issues/48876")]
+        public async Task NotOnCompleteBoolean2()
+        {
+            await TestMissingAsync(
+@"
+public class Sample
+{
+    public string Method(bool? boolean)
+    {
+        [||]switch (boolean)
+        {
+            case true: return ""true"";
+            case false: return ""false"";
+            case null: return ""null"";
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(48876, "https://github.com/dotnet/roslyn/issues/48876")]
+        public async Task OnIncompleteBoolean1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+public class Sample
+{
+    public string Method(bool boolean)
+    {
+        [||]switch (boolean)
+        {
+            case true: return ""true"";
+        }
+    }
+}",
+@"
+public class Sample
+{
+    public string Method(bool boolean)
+    {
+        switch (boolean)
+        {
+            case true: return ""true"";
+            default:
+                break;
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(48876, "https://github.com/dotnet/roslyn/issues/48876")]
+        public async Task OnIncompleteBoolean2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+public class Sample
+{
+    public string Method(bool? boolean)
+    {
+        [||]switch (boolean)
+        {
+            case true: return ""true"";
+            case false: return ""false"";
+        }
+    }
+}",
+@"
+public class Sample
+{
+    public string Method(bool? boolean)
+    {
+        switch (boolean)
+        {
+            case true: return ""true"";
+            case false: return ""false"";
+            default:
+                break;
+        }
     }
 }");
         }

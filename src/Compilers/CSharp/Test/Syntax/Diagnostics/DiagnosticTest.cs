@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDiagnostic()
         {
             MockMessageProvider provider = new MockMessageProvider();
-            SyntaxTree syntaxTree = new MockSyntaxTree();
+            SyntaxTree syntaxTree = new MockCSharpSyntaxTree();
             CultureInfo englishCulture = CultureHelpers.EnglishCulture;
 
             DiagnosticInfo di1 = new DiagnosticInfo(provider, 1);
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestCustomErrorInfo()
         {
             MockMessageProvider provider = new MockMessageProvider();
-            SyntaxTree syntaxTree = new MockSyntaxTree();
+            SyntaxTree syntaxTree = new MockCSharpSyntaxTree();
 
             DiagnosticInfo di3 = new CustomErrorInfo(provider, "OtherSymbol", new SourceLocation(syntaxTree, new TextSpan(14, 8)));
             var d3 = new CSDiagnostic(di3, new SourceLocation(syntaxTree, new TextSpan(1, 1)));
@@ -354,6 +354,27 @@ class X
                         case ErrorCode.WRN_UseDefViolationFieldSupportedVersion:
                         case ErrorCode.WRN_UseDefViolationThisSupportedVersion:
                         case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
+                        case ErrorCode.WRN_DuplicateAnalyzerReference:
+                        case ErrorCode.WRN_ScopedMismatchInParameterOfTarget:
+                        case ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation:
+                        case ErrorCode.WRN_ManagedAddr:
+                        case ErrorCode.WRN_EscapeVariable:
+                        case ErrorCode.WRN_EscapeStackAlloc:
+                        case ErrorCode.WRN_RefReturnNonreturnableLocal:
+                        case ErrorCode.WRN_RefReturnNonreturnableLocal2:
+                        case ErrorCode.WRN_RefReturnStructThis:
+                        case ErrorCode.WRN_RefAssignNarrower:
+                        case ErrorCode.WRN_MismatchedRefEscapeInTernary:
+                        case ErrorCode.WRN_RefReturnParameter:
+                        case ErrorCode.WRN_RefReturnScopedParameter:
+                        case ErrorCode.WRN_RefReturnParameter2:
+                        case ErrorCode.WRN_RefReturnScopedParameter2:
+                        case ErrorCode.WRN_RefReturnLocal:
+                        case ErrorCode.WRN_RefReturnLocal2:
+                        case ErrorCode.WRN_RefAssignReturnOnly:
+                        case ErrorCode.WRN_RefReturnOnlyParameter:
+                        case ErrorCode.WRN_RefReturnOnlyParameter2:
+                        case ErrorCode.WRN_RefAssignValEscapeWider:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -2878,6 +2899,7 @@ class Program
                     case ErrorCode.ERR_DynamicRequiredTypesMissing:
                     case ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
                     case ErrorCode.ERR_CannotBeConvertedToUtf8:
+                    case ErrorCode.ERR_FileTypeNonUniquePath:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 

@@ -5,11 +5,12 @@
 Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
+    <Trait(Traits.Feature, Traits.Features.Simplification)>
     Public Class ExtensionMethodSimplificationTests
         Inherits AbstractSimplificationTests
 
 #Region "Visual Basic tests"
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyExtensionMethodOnce() As Task
             Dim input =
 <Workspace>
@@ -56,7 +57,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyExtensionMethodChained() As Task
             Dim input =
 <Workspace>
@@ -107,7 +108,7 @@ End Module
 #End Region
 
 #Region "CSharp tests"
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharp_SimplifyExtensionMethodOnce() As Task
             Dim input =
 <Workspace>
@@ -157,7 +158,7 @@ public static class ProgramExtensions
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharp_SimplifyExtensionMethodChained() As Task
             Dim input =
 <Workspace>

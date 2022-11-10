@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
@@ -41,19 +42,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public static VisualStudioWorkspace_InProc Create()
             => new VisualStudioWorkspace_InProc();
-
-        public void SetOptionInfer(string projectName, bool value)
-            => InvokeOnUIThread(cancellationToken =>
-            {
-                var convertedValue = value ? 1 : 0;
-                var project = GetProject(projectName);
-                project.Properties.Item("OptionInfer").Value = convertedValue;
-            });
-
-        private static EnvDTE.Project GetProject(string nameOrFileName)
-            => GetDTE().Solution.Projects.OfType<EnvDTE.Project>().First(p =>
-               string.Compare(p.FileName, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0
-                || string.Compare(p.Name, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0);
 
         public bool IsPrettyListingOn(string languageName)
             => _globalOptions.GetOption(FeatureOnOffOptions.PrettyListing, languageName);
@@ -128,7 +116,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => InvokeOnUIThread(cancellationToken =>
             {
                 LoadRoslynPackage();
-                _visualStudioWorkspace.TestHookPartialSolutionsDisabled = true;
+
+                var hook = _visualStudioWorkspace.Services.GetRequiredService<IWorkpacePartialSolutionsTestHook>();
+                hook.IsPartialSolutionDisabled = true;
             });
 
         /// <summary>

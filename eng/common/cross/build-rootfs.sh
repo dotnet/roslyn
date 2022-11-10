@@ -186,32 +186,27 @@ while :; do
             __UbuntuArch=i386
             __UbuntuRepo="http://archive.ubuntu.com/ubuntu/"
             ;;
-        lldb3.6)
-            __LLDB_Package="lldb-3.6-dev"
-            ;;
-        lldb3.8)
-            __LLDB_Package="lldb-3.8-dev"
-            ;;
-        lldb3.9)
-            __LLDB_Package="liblldb-3.9-dev"
-            ;;
-        lldb4.0)
-            __LLDB_Package="liblldb-4.0-dev"
-            ;;
-        lldb5.0)
-            __LLDB_Package="liblldb-5.0-dev"
-            ;;
-        lldb6.0)
-            __LLDB_Package="liblldb-6.0-dev"
+        lldb*)
+            version="${lowerI/lldb/}"
+            parts=(${version//./ })
+
+            # for versions > 6.0, lldb has dropped the minor version
+            if [[ "${parts[0]}" -gt 6 ]]; then
+                version="${parts[0]}"
+            fi
+
+            __LLDB_Package="liblldb-${version}-dev"
             ;;
         no-lldb)
             unset __LLDB_Package
             ;;
         llvm*)
-            version="$(echo "$lowerI" | tr -d '[:alpha:]-=')"
+            version="${lowerI/llvm/}"
             parts=(${version//./ })
             __LLVM_MajorVersion="${parts[0]}"
             __LLVM_MinorVersion="${parts[1]}"
+
+            # for versions > 6.0, llvm has dropped the minor version
             if [[ -z "$__LLVM_MinorVersion" && "$__LLVM_MajorVersion" -le 6 ]]; then
                 __LLVM_MinorVersion=0;
             fi
@@ -229,6 +224,16 @@ while :; do
         bionic) # Ubuntu 18.04
             if [[ "$__CodeName" != "jessie" ]]; then
                 __CodeName=bionic
+            fi
+            ;;
+        focal) # Ubuntu 20.04
+            if [[ "$__CodeName" != "jessie" ]]; then
+                __CodeName=focal
+            fi
+            ;;
+        jammy) # Ubuntu 22.04
+            if [[ "$__CodeName" != "jessie" ]]; then
+                __CodeName=jammy
             fi
             ;;
         jessie) # Debian 8
@@ -386,9 +391,9 @@ elif [[ "$__CodeName" == "illumos" ]]; then
         --with-gnu-ld --disable-nls --disable-libgomp --disable-libquadmath --disable-libssp --disable-libvtv --disable-libcilkrts --disable-libada --disable-libsanitizer \
         --disable-libquadmath-support --disable-shared --enable-tls
     make -j "$JOBS" && make install && cd ..
-    BaseUrl=https://pkgsrc.joyent.com
+    BaseUrl=https://pkgsrc.smartos.org
     if [[ "$__UseMirror" == 1 ]]; then
-        BaseUrl=http://pkgsrc.smartos.skylime.net
+        BaseUrl=https://pkgsrc.smartos.skylime.net
     fi
     BaseUrl="$BaseUrl/packages/SmartOS/trunk/${__illumosArch}/All"
     echo "Downloading manifest"
@@ -397,7 +402,8 @@ elif [[ "$__CodeName" == "illumos" ]]; then
     read -ra array <<<"$__IllumosPackages"
     for package in "${array[@]}"; do
         echo "Installing '$package'"
-        package="$(grep ">$package-[0-9]" All | sed -En 's/.*href="(.*)\.tgz".*/\1/p')"
+        # find last occurrence of package in listing and extract its name
+        package="$(sed -En '/.*href="('"$package"'-[0-9].*).tgz".*/h;$!d;g;s//\1/p' All)"
         echo "Resolved name '$package'"
         wget "$BaseUrl"/"$package".tgz
         ar -x "$package".tgz

@@ -2796,7 +2796,7 @@ class Program
         d = (ref int i) => i;
     }
 }";
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB });
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
@@ -2832,7 +2832,7 @@ class Program
         d = (int* p) => p;
     }
 }";
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, options: TestOptions.UnsafeReleaseExe);
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseExe);
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
@@ -2868,7 +2868,7 @@ class Program
         var d2 = (ref int i) => i;
     }
 }";
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB });
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
@@ -2901,7 +2901,7 @@ class Program
         d = (ref int i) => i;
     }
 }";
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB });
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
@@ -8276,15 +8276,15 @@ class Program
 
             var variables = nodes.OfType<VariableDeclaratorSyntax>().Where(v => v.Identifier.Text == "d").ToArray();
             Assert.Equal(3, variables.Length);
-            VerifyLocalDelegateType(model, variables[0], "T <anonymous delegate>.Invoke(ref T)");
-            VerifyLocalDelegateType(model, variables[1], "U <anonymous delegate>.Invoke(ref U)");
-            VerifyLocalDelegateType(model, variables[2], "System.Double <anonymous delegate>.Invoke(ref System.Double)");
+            VerifyLocalDelegateType(model, variables[0], "T <anonymous delegate>.Invoke(ref T arg)");
+            VerifyLocalDelegateType(model, variables[1], "U <anonymous delegate>.Invoke(ref U arg)");
+            VerifyLocalDelegateType(model, variables[2], "System.Double <anonymous delegate>.Invoke(ref System.Double arg)");
 
             var identifiers = nodes.OfType<InvocationExpressionSyntax>().Where(i => i.Expression is IdentifierNameSyntax id && id.Identifier.Text == "Report").Select(i => i.ArgumentList.Arguments[0].Expression).ToArray();
             Assert.Equal(3, identifiers.Length);
-            VerifyExpressionType(model, identifiers[0], "<anonymous delegate> d", "T <anonymous delegate>.Invoke(ref T)");
-            VerifyExpressionType(model, identifiers[1], "<anonymous delegate> d", "U <anonymous delegate>.Invoke(ref U)");
-            VerifyExpressionType(model, identifiers[2], "<anonymous delegate> d", "System.Double <anonymous delegate>.Invoke(ref System.Double)");
+            VerifyExpressionType(model, identifiers[0], "<anonymous delegate> d", "T <anonymous delegate>.Invoke(ref T arg)");
+            VerifyExpressionType(model, identifiers[1], "<anonymous delegate> d", "U <anonymous delegate>.Invoke(ref U arg)");
+            VerifyExpressionType(model, identifiers[2], "<anonymous delegate> d", "System.Double <anonymous delegate>.Invoke(ref System.Double arg)");
         }
 
         [Fact]
@@ -9294,7 +9294,7 @@ class Program
                 var reader = assembly.GetMetadataReader();
                 var actualTypes = reader.GetTypeDefNames().Select(h => reader.GetString(h)).ToArray();
 
-                string[] expectedTypes = new[] { "<Module>", "Program", "<>c", };
+                string[] expectedTypes = new[] { "<Module>", "EmbeddedAttribute", "RefSafetyRulesAttribute", "Program", "<>c", };
                 AssertEx.Equal(expectedTypes, actualTypes);
             }
         }
@@ -10125,18 +10125,16 @@ class Program
 @"1
 <>f__AnonymousDelegate0
 2
-<>f__AnonymousDelegate0
+<>f__AnonymousDelegate1
 3
-<>f__AnonymousDelegate1
+<>f__AnonymousDelegate2
 4
-<>f__AnonymousDelegate1
+<>f__AnonymousDelegate3
 -5
-<>f__AnonymousDelegate2
+<>f__AnonymousDelegate4
 -6
-<>f__AnonymousDelegate2
+<>f__AnonymousDelegate4
 ");
-
-            // https://github.com/dotnet/roslyn/issues/62780: Test with [UnscopedRef].
         }
 
         [Fact]
@@ -10234,6 +10232,168 @@ class Program
 (2, System.Int16, System.Int64)
 <>f__AnonymousDelegate0`2[System.Int16,System.Int64]
 ");
+        }
+
+        [Fact, WorkItem(64436, "https://github.com/dotnet/roslyn/issues/64436")]
+        public void SynthesizedDelegateTypes_NamedArguments_Ref()
+        {
+            var source = """
+                var lam1 = (ref int x) => { };
+                void m1(ref int x) { }
+                var inferred1 = m1;
+                var lam2 = (int x, ref int y) => { };
+                void m2(int x, ref int y) { }
+                var inferred2 = m2;
+                var lam3 = (in int x, int y) => { };
+                void m3(in int x, int y) { }
+                var inferred3 = m3;
+                var lam4 = (out int x) => { x = 5; };
+                void m4(out int x) { x = 5; }
+                var inferred4 = m4;
+
+                int i = 1;
+                lam1(arg: ref i);
+                inferred1(arg: ref i);
+                lam2(arg1: 10, arg2: ref i);
+                inferred2(arg1: 10, arg2: ref i);
+                lam3(arg1: in i, arg2: 10);
+                inferred3(arg1: in i, arg2: 10);
+                lam4(arg: out i);
+                inferred4(arg: out i);
+
+                // Error cases:
+                lam1();
+                inferred1();
+                lam2(10);
+                inferred2(10);
+                lam3(arg2: 100);
+                inferred3(arg2: 100);
+                lam4(arg: i);
+                inferred4(arg: i);
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (25,1): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of '<anonymous delegate>'
+                // lam1();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam1").WithArguments("arg", "<anonymous delegate>").WithLocation(25, 1),
+                // (26,1): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of '<anonymous delegate>'
+                // inferred1();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "inferred1").WithArguments("arg", "<anonymous delegate>").WithLocation(26, 1),
+                // (27,1): error CS7036: There is no argument given that corresponds to the required parameter 'arg2' of '<anonymous delegate>'
+                // lam2(10);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam2").WithArguments("arg2", "<anonymous delegate>").WithLocation(27, 1),
+                // (28,1): error CS7036: There is no argument given that corresponds to the required parameter 'arg2' of '<anonymous delegate>'
+                // inferred2(10);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "inferred2").WithArguments("arg2", "<anonymous delegate>").WithLocation(28, 1),
+                // (29,1): error CS7036: There is no argument given that corresponds to the required parameter 'arg1' of '<anonymous delegate>'
+                // lam3(arg2: 100);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam3").WithArguments("arg1", "<anonymous delegate>").WithLocation(29, 1),
+                // (30,1): error CS7036: There is no argument given that corresponds to the required parameter 'arg1' of '<anonymous delegate>'
+                // inferred3(arg2: 100);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "inferred3").WithArguments("arg1", "<anonymous delegate>").WithLocation(30, 1),
+                // (31,11): error CS1620: Argument 1 must be passed with the 'out' keyword
+                // lam4(arg: i);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("1", "out").WithLocation(31, 11),
+                // (32,16): error CS1620: Argument 1 must be passed with the 'out' keyword
+                // inferred4(arg: i);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("1", "out").WithLocation(32, 16));
+        }
+
+        [Fact, WorkItem(64436, "https://github.com/dotnet/roslyn/issues/64436")]
+        public void SynthesizedDelegateTypes_NamedArguments_Pointer()
+        {
+            var source = """
+                unsafe
+                {
+                    var lam1 = (int* x) => { };
+                    void m1(int* x) { }
+                    var inferred1 = m1;
+                    var lam2 = (int x, int* y, int z) => { };
+                    void m2(int x, int* y, int z) { }
+                    var inferred2 = m2;
+
+                    lam1(arg: null);
+                    inferred1(arg: null);
+                    lam2(arg1: 10, arg2: null, arg3: 100);
+                    inferred2(arg1: 10, arg2: null, arg3: 100);
+
+                    // Error cases:
+                    lam1();
+                    inferred1();
+                    lam2(10);
+                    inferred2(10);
+                    lam2(10, arg3: 100);
+                    inferred2(10, arg3: 100);
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
+                // (16,5): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of '<anonymous delegate>'
+                //     lam1();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam1").WithArguments("arg", "<anonymous delegate>").WithLocation(16, 5),
+                // (17,5): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of '<anonymous delegate>'
+                //     inferred1();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "inferred1").WithArguments("arg", "<anonymous delegate>").WithLocation(17, 5),
+                // (18,5): error CS7036: There is no argument given that corresponds to the required parameter 'arg2' of '<anonymous delegate>'
+                //     lam2(10);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam2").WithArguments("arg2", "<anonymous delegate>").WithLocation(18, 5),
+                // (19,5): error CS7036: There is no argument given that corresponds to the required parameter 'arg2' of '<anonymous delegate>'
+                //     inferred2(10);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "inferred2").WithArguments("arg2", "<anonymous delegate>").WithLocation(19, 5),
+                // (20,5): error CS7036: There is no argument given that corresponds to the required parameter 'arg2' of '<anonymous delegate>'
+                //     lam2(10, arg3: 100);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam2").WithArguments("arg2", "<anonymous delegate>").WithLocation(20, 5),
+                // (21,5): error CS7036: There is no argument given that corresponds to the required parameter 'arg2' of '<anonymous delegate>'
+                //     inferred2(10, arg3: 100);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "inferred2").WithArguments("arg2", "<anonymous delegate>").WithLocation(21, 5));
+        }
+
+        [Fact, WorkItem(64436, "https://github.com/dotnet/roslyn/issues/64436")]
+        public void SynthesizedDelegateTypes_NamedArguments_MoreThan16Parameters()
+        {
+            var range = Enumerable.Range(1, 17);
+            var manyParams = string.Join(", ", range.Select(i => $"int p{i}"));
+            var manyArgs = string.Join(", ", range.Select(i => $"arg{i}: {i * 10}"));
+            var manyTypes = string.Join(",", range.Select(_ => "System.Int32"));
+            var source = $$"""
+                using System;
+
+                var lam = ({{manyParams}}) => { };
+                void method({{manyParams}}) { }
+                var inferred = method;
+                lam({{manyArgs}});
+                inferred({{manyArgs}});
+                Report(lam);
+                Report(inferred);
+                
+                static void Report(Delegate d) => Console.WriteLine(d.GetType());
+                """;
+            CompileAndVerify(source, expectedOutput: $"""
+                <>A`17[{manyTypes}]
+                <>A`17[{manyTypes}]
+                """).VerifyDiagnostics();
+
+            var fewArgs = string.Join(", ", range.Skip(1).Select(i => $"arg{i}: {i * 10}"));
+            source = $$"""
+                var lam = ({{manyParams}}) => { };
+                void method({{manyParams}}) { }
+                var inferred = method;
+                lam({{fewArgs}});
+                inferred({{fewArgs}});
+                lam();
+                inferred();
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,1): error CS7036: There is no argument given that corresponds to the required parameter 'arg1' of '<anonymous delegate>'
+                // lam(arg2: 20, arg3: 30, arg4: 40, arg5: 50, arg6: 60, arg7: 70, arg8: 80, arg9: 90, arg10: 100, arg11: 110, arg12: 120, arg13: 130, arg14: 140, arg15: 150, arg16: 160, arg17: 170);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam").WithArguments("arg1", "<anonymous delegate>").WithLocation(4, 1),
+                // (5,1): error CS7036: There is no argument given that corresponds to the required parameter 'arg1' of '<anonymous delegate>'
+                // inferred(arg2: 20, arg3: 30, arg4: 40, arg5: 50, arg6: 60, arg7: 70, arg8: 80, arg9: 90, arg10: 100, arg11: 110, arg12: 120, arg13: 130, arg14: 140, arg15: 150, arg16: 160, arg17: 170);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "inferred").WithArguments("arg1", "<anonymous delegate>").WithLocation(5, 1),
+                // (6,1): error CS7036: There is no argument given that corresponds to the required parameter 'arg1' of '<anonymous delegate>'
+                // lam();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam").WithArguments("arg1", "<anonymous delegate>").WithLocation(6, 1),
+                // (7,1): error CS7036: There is no argument given that corresponds to the required parameter 'arg1' of '<anonymous delegate>'
+                // inferred();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "inferred").WithArguments("arg1", "<anonymous delegate>").WithLocation(7, 1));
         }
 
         private static void VerifyLocalDelegateType(SemanticModel model, VariableDeclaratorSyntax variable, string expectedInvokeMethod)
@@ -11516,6 +11676,21 @@ class Program
   .maxstack  0
   IL_0000:  ret
 }");
+        }
+
+        [Fact, WorkItem(64656, "https://github.com/dotnet/roslyn/issues/64656")]
+        public void UsingStatic_DelegateInference()
+        {
+            var source = """
+                using static A;
+                var f = M;
+                f();
+                static class A
+                {
+                    public static void M() => System.Console.WriteLine("A.M()");
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: "A.M()").VerifyDiagnostics();
         }
     }
 }

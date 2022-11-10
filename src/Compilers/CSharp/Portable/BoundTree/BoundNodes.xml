@@ -97,13 +97,23 @@
   -->
   <Node Name="BoundValuePlaceholder" Base="BoundValuePlaceholderBase">
   </Node>
-  
+
+  <!--
+  This node is used in memory safety analysis to represent a receiver
+  that will be replaced with a copy captured in a temp during IL gen. 
+  -->
+  <Node Name="BoundCapturedReceiverPlaceholder" Base="BoundValuePlaceholderBase">
+    <Field Name="Receiver" Type="BoundExpression"/>
+    <Field Name="LocalScopeDepth" Type="uint"/>
+  </Node>
+
   <!--
   This node is used to represent an expression returning value of a certain type.
   It is used to perform intermediate binding, and will not survive the local rewriting.
   -->
   <Node Name="BoundDeconstructValuePlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="VariableSymbol" Type="Symbol?"/>
     <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
   </Node>
 
@@ -2379,6 +2389,8 @@
   <Node Name="OutDeconstructVarPendingInference" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
+    <Field Name="VariableSymbol" Type="Symbol?"/>
+    <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
   </Node>
   
   <AbstractNode Name="BoundMethodBodyBase" Base="BoundNode">

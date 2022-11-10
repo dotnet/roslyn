@@ -46,11 +46,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DiagnosticsClassificationTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
+            IDiagnosticAnalyzerService analyzerService,
             ClassificationTypeMap typeMap,
             EditorOptionsService editorOptionsService,
             [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, diagnosticService, editorOptionsService.GlobalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Classification))
+            : base(threadingContext, diagnosticService, analyzerService, editorOptionsService.GlobalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Classification))
         {
             _typeMap = typeMap;
             _classificationTag = new ClassificationTag(_typeMap.GetClassificationType(ClassificationTypeDefinitions.UnnecessaryCode));
@@ -72,13 +73,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (!data.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
             {
-                // All unnecessary code diagnostics should have the 'Unnecessary' custom tag.
-                // Below assert ensures that we do no report unnecessary code diagnostics that
-                // want to fade out multiple locations which are encoded as
-                // additional location indices in the diagnostic's property bag
-                // without the 'Unnecessary' custom tag. 
-                Debug.Assert(!data.TryGetUnnecessaryLocationIndices(out _));
-
                 return false;
             }
 
@@ -92,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return true;
         }
 
-        protected internal override ITagSpan<ClassificationTag> CreateTagSpan(Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data)
+        protected internal override ITagSpan<ClassificationTag> CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data)
             => new TagSpan<ClassificationTag>(span, _classificationTag);
 
         protected internal override ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
@@ -105,5 +99,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Default to the base implementation for the diagnostic data
             return base.GetLocationsToTag(diagnosticData);
         }
+
+        protected override bool TagEquals(ClassificationTag tag1, ClassificationTag tag2)
+            => tag1.ClassificationType.Classification == tag2.ClassificationType.Classification;
     }
 }

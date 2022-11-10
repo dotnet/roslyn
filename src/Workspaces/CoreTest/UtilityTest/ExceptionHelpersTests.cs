@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 Assert.True(false, "Should not get here because an exception should be thrown before this point.");

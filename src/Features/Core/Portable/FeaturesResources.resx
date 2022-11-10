@@ -3154,11 +3154,50 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
     <value>required</value>
     <comment>Used in the object initializer completion.</comment>
   </data>
+  <data name="foreach_loop" xml:space="preserve">
+    <value>foreach loop</value>
+  </data>
   <data name="Deleting_0_requires_restarting_the_application_because_is_not_supported_by_the_runtime" xml:space="preserve">
     <value>Deleting {0} requires restarting the application because is not supported by the runtime.</value>
   </data>
   <data name="Extract_base_record" xml:space="preserve">
     <value>Extract base record...</value>
     <comment>{Locked="record"} "record" is a language construct for C# and should not be localized.</comment>
+  </data>
+  <data name="Enum_members" xml:space="preserve">
+    <value>Enum members</value>
+  </data>
+  <data name="struct_" xml:space="preserve">
+    <value>struct</value>
+  </data>
+  <data name="Inline_temporary_variable" xml:space="preserve">
+    <value>Inline temporary variable</value>
+  </data>
+  <data name="while_loop" xml:space="preserve">
+    <value>while loop</value>
+  </data>
+  <data name="Code_snippet_for_0" xml:space="preserve">
+    <value>Code snippet for '{0}'</value>
+  </data>
+  <data name="Please_resolve_errors_in_your_code_before_renaming_this_element" xml:space="preserve">
+    <value>Please resolve errors in your code before renaming this element.</value>
+  </data>
+  <data name="Renaming_anonymous_type_members_is_not_yet_supported" xml:space="preserve">
+    <value>Renaming anonymous type members is not yet supported.</value>
+  </data>
+  <data name="You_cannot_rename_elements_from_previous_submissions" xml:space="preserve">
+    <value>You cannot rename elements from previous submissions.</value>
+  </data>
+  <data name="You_cannot_rename_elements_that_are_defined_in_metadata" xml:space="preserve">
+    <value>You cannot rename elements that are defined in metadata.</value>
+  </data>
+  <data name="You_cannot_rename_operators" xml:space="preserve">
+    <value>You cannot rename operators.</value>
+  </data>
+  <data name="You_cannot_rename_this_element" xml:space="preserve">
+    <value>You cannot rename this element.</value>
+  </data>
+  <data name="You_must_rename_an_identifier" xml:space="preserve">
+    <value>You must rename an identifier.</value>
   </data>
 </root>

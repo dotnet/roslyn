@@ -28,314 +28,327 @@ pr:
       - CONTRIBUTING.md
       - README.md
 
-# Windows Build and Test Jobs
-jobs:
-- template: eng/pipelines/build-windows-job.yml
-  parameters:
-    jobName: Build_Windows_Debug
-    testArtifactName: Transport_Artifacts_Windows_Debug
-    configuration: Debug
-    queueName: Build.Windows.Amd64.VS2022.Pre.Open
-    restoreArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
-    buildArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
-
-- template: eng/pipelines/build-windows-job.yml
-  parameters:
-    jobName: Build_Windows_Release
-    testArtifactName: Transport_Artifacts_Windows_Release
-    configuration: Release
-    queueName: Build.Windows.Amd64.VS2022.Pre.Open
-    restoreArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
-    buildArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
-
-- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-  - template: eng/pipelines/test-windows-job.yml
+stages:
+- stage: Windows_Debug_Build
+  dependsOn: []
+  jobs:
+  - template: eng/pipelines/build-windows-job.yml
     parameters:
-      testRunName: 'Test Windows Desktop Debug 32'
-      jobName: Test_Windows_Desktop_Debug_32
-      buildJobName: Build_Windows_Debug
+      jobName: Build_Windows_Debug
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
+      queueName: windows.vs2022preview.amd64.open
+      restoreArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
+      buildArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
+
+- stage: Windows_Release_Build
+  dependsOn: []
+  jobs:
+  - template: eng/pipelines/build-windows-job.yml
+    parameters:
+      jobName: Build_Windows_Release
+      testArtifactName: Transport_Artifacts_Windows_Release
+      configuration: Release
+      queueName: windows.vs2022preview.amd64.open
+      restoreArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
+      buildArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
+
+- stage: Unix_Build
+  dependsOn: []
+  jobs:
+  - template: eng/pipelines/build-unix-job.yml
+    parameters:
+      jobName: Build_Unix_Debug
+      testArtifactName: Transport_Artifacts_Unix_Debug
+      configuration: Debug
+      queueName: Build.Ubuntu.1804.Amd64.Open
+
+- stage: Source_Build
+  dependsOn: []
+  jobs:
+  - template: eng/common/templates/jobs/source-build.yml
+
+- stage: Windows_Debug_Desktop
+  dependsOn: Windows_Debug_Build
+  jobs:
+  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+    - template: eng/pipelines/test-windows-job.yml
+      parameters:
+        testRunName: 'Test Windows Desktop Debug 32'
+        jobName: Test_Windows_Desktop_Debug_32
+        testArtifactName: Transport_Artifacts_Windows_Debug
+        configuration: Debug
+        testArguments: -testDesktop -testArch x86
+
+  - template: eng/pipelines/test-windows-job.yml
+    parameters:
+      testRunName: 'Test Windows Desktop Debug 64'
+      jobName: Test_Windows_Desktop_Debug_64
+      testArtifactName: Transport_Artifacts_Windows_Debug
+      configuration: Debug
+      testArguments: -testDesktop -testArch x64
+
+- stage: Windows_Release_Desktop
+  dependsOn: Windows_Release_Build
+  jobs:
+  - template: eng/pipelines/test-windows-job.yml
+    parameters:
+      testRunName: 'Test Windows Desktop Release 32'
+      jobName: Test_Windows_Desktop_Release_32
+      testArtifactName: Transport_Artifacts_Windows_Release
+      configuration: Release
       testArguments: -testDesktop -testArch x86
 
-- template: eng/pipelines/test-windows-job.yml
-  parameters:
-    testRunName: 'Test Windows Desktop Debug 64'
-    jobName: Test_Windows_Desktop_Debug_64
-    buildJobName: Build_Windows_Debug
-    testArtifactName: Transport_Artifacts_Windows_Debug
-    configuration: Debug
-    testArguments: -testDesktop -testArch x64
+  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+    - template: eng/pipelines/test-windows-job.yml
+      parameters:
+        testRunName: 'Test Windows Desktop Release 64'
+        jobName: Test_Windows_Desktop_Release_64
+        testArtifactName: Transport_Artifacts_Windows_Release
+        configuration: Release
+        testArguments: -testDesktop -testArch x64
 
-- template: eng/pipelines/test-windows-job.yml
-  parameters:
-    testRunName: 'Test Windows CoreClr Debug'
-    jobName: Test_Windows_CoreClr_Debug
-    buildJobName: Build_Windows_Debug
-    testArtifactName: Transport_Artifacts_Windows_Debug
-    configuration: Debug
-    testArguments: -testCoreClr
-
-- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-  - template: eng/pipelines/test-windows-job-single-machine.yml
+  - template: eng/pipelines/test-windows-job.yml
     parameters:
-      testRunName: 'Test Windows CoreClr Debug Single Machine'
-      jobName: Test_Windows_CoreClr_Debug_Single_Machine
-      buildJobName: Build_Windows_Debug
+      testRunName: 'Test Windows Desktop Spanish Release 64'
+      jobName: Test_Windows_Desktop_Spanish_Release_64
+      testArtifactName: Transport_Artifacts_Windows_Release
+      configuration: Release
+      testArguments: -testDesktop -testArch x64 -helixQueueName Windows.10.Amd64.Server2022.ES.Open
+
+- stage: Windows_Debug_CoreClr
+  dependsOn: Windows_Debug_Build
+  jobs:
+  - template: eng/pipelines/test-windows-job.yml
+    parameters:
+      testRunName: 'Test Windows CoreClr Debug'
+      jobName: Test_Windows_CoreClr_Debug
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testCoreClr
 
-- template: eng/pipelines/test-windows-job.yml
-  parameters:
-    testRunName: 'Test Windows Desktop Release 32'
-    jobName: Test_Windows_Desktop_Release_32
-    buildJobName: Build_Windows_Release
-    testArtifactName: Transport_Artifacts_Windows_Release
-    configuration: Release
-    testArguments: -testDesktop -testArch x86
+  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+    - template: eng/pipelines/test-windows-job-single-machine.yml
+      parameters:
+        testRunName: 'Test Windows CoreClr Debug Single Machine'
+        jobName: Test_Windows_CoreClr_Debug_Single_Machine
+        testArtifactName: Transport_Artifacts_Windows_Debug
+        configuration: Debug
+        testArguments: -testCoreClr
 
-- template: eng/pipelines/test-windows-job.yml
-  parameters:
-    testRunName: 'Test Windows Desktop Spanish Release 64'
-    jobName: Test_Windows_Desktop_Spanish_Release_64
-    buildJobName: Build_Windows_Release
-    testArtifactName: Transport_Artifacts_Windows_Release
-    configuration: Release
-    testArguments: -testDesktop -testArch x64 -helixQueueName Windows.10.Amd64.Server2022.ES.Open
-
-- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
   - template: eng/pipelines/test-windows-job.yml
     parameters:
-      testRunName: 'Test Windows Desktop Release 64'
-      jobName: Test_Windows_Desktop_Release_64
-      buildJobName: Build_Windows_Release
+      testRunName: 'Test Windows CoreCLR IOperation Debug'
+      jobName: Test_Windows_CoreClr_IOperation_Debug
+      testArtifactName: Transport_Artifacts_Windows_Debug
+      configuration: Debug
+      testArguments: -testCoreClr -testIOperation -testCompilerOnly
+
+  # This leg runs almost all the compiler tests supported on CoreCLR, but
+  #  with additional validation for used assemblies and GetEmitDiagnostics
+  - template: eng/pipelines/test-windows-job.yml
+    parameters:
+      testRunName: 'Test Windows CoreCLR UsedAssemblies Debug'
+      jobName: Test_Windows_CoreClr_UsedAssemblies_Debug
+      testArtifactName: Transport_Artifacts_Windows_Debug
+      configuration: Debug
+      testArguments: -testCoreClr -testUsedAssemblies -testCompilerOnly
+
+- stage: Windows_Release_CoreClr
+  dependsOn: Windows_Release_Build
+  jobs:
+  - template: eng/pipelines/test-windows-job.yml
+    parameters:
+      testRunName: 'Test Windows CoreClr Release'
+      jobName: Test_Windows_CoreClr_Release
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
-      testArguments: -testDesktop -testArch x64
+      testArguments: -testCoreClr
 
-- template: eng/pipelines/test-windows-job.yml
-  parameters:
-    testRunName: 'Test Windows CoreClr Release'
-    jobName: Test_Windows_CoreClr_Release
-    buildJobName: Build_Windows_Release
-    testArtifactName: Transport_Artifacts_Windows_Release
-    configuration: Release
-    testArguments: -testCoreClr
-
-- template: eng/pipelines/test-windows-job.yml
-  parameters:
-    testRunName: 'Test Windows CoreCLR IOperation Debug'
-    jobName: Test_Windows_CoreClr_IOperation_Debug
-    buildJobName: Build_Windows_Debug
-    testArtifactName: Transport_Artifacts_Windows_Debug
-    configuration: Debug
-    testArguments: -testCoreClr -testIOperation -testCompilerOnly
-
-# This leg runs almost all the compiler tests supported on CoreCLR, but
-#  with additional validation for used assemblies and GetEmitDiagnostics
-- template: eng/pipelines/test-windows-job.yml
-  parameters:
-    testRunName: 'Test Windows CoreCLR UsedAssemblies Debug'
-    jobName: Test_Windows_CoreClr_UsedAssemblies_Debug
-    buildJobName: Build_Windows_Debug
-    testArtifactName: Transport_Artifacts_Windows_Debug
-    configuration: Debug
-    testArguments: -testCoreClr -testUsedAssemblies -testCompilerOnly
-
-# Unix Build and Test Jobs
-- template: eng/pipelines/build-unix-job.yml
-  parameters:
-    jobName: Build_Unix_Debug
-    testArtifactName: Transport_Artifacts_Unix_Debug
-    configuration: Debug
-    queueName: Build.Ubuntu.1804.Amd64.Open
-
-- template: eng/pipelines/test-unix-job.yml
-  parameters:
-    testRunName: 'Test Linux Debug'
-    jobName: Test_Linux_Debug
-    buildJobName: Build_Unix_Debug
-    testArtifactName: Transport_Artifacts_Unix_Debug
-    configuration: Debug
-    testArguments: --testCoreClr --helixQueueName Ubuntu.1804.Amd64.Open
-
-- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-  - template: eng/pipelines/test-unix-job-single-machine.yml
+- stage: Unix_Debug_CoreClr
+  dependsOn: Unix_Build
+  jobs:
+  - template: eng/pipelines/test-unix-job.yml
     parameters:
-      testRunName: 'Test Linux Debug Single Machine'
-      jobName: Test_Linux_Debug_Single_Machine
-      buildJobName: Build_Unix_Debug
+      testRunName: 'Test Linux Debug'
+      jobName: Test_Linux_Debug
       testArtifactName: Transport_Artifacts_Unix_Debug
       configuration: Debug
-      testArguments: --testCoreClr
-      queueName: Build.Ubuntu.1804.Amd64.Open
+      testArguments: --testCoreClr --helixQueueName Ubuntu.1804.Amd64.Open
 
-- template: eng/pipelines/test-unix-job.yml
-  parameters:
-    testRunName: 'Test macOS Debug'
-    jobName: Test_macOS_Debug
-    buildJobName: Build_Unix_Debug
-    testArtifactName: Transport_Artifacts_Unix_Debug
-    configuration: Debug
-    testArguments: --testCoreClr --helixQueueName OSX.1015.Amd64.Open
-
-- template: eng/common/templates/jobs/source-build.yml
-
-# Build Correctness Jobs
-
-- template: eng/pipelines/evaluate-changed-files.yml
-  parameters:
-    jobName: Determine_Changes
-    vmImageName: ubuntu-latest
-    paths:
-      - subset: compilers
-        include:
-        - src/Compilers/*
-        - src/Dependencies/*
-
-- job: Correctness_Build_Artifacts
-  dependsOn: Determine_Changes
-  pool:
-    name: NetCore1ESPool-Public
-    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
-  timeoutInMinutes: 90
-  variables:
-    compilerChange: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
-  steps:
-    - template: eng/pipelines/checkout-windows-task.yml
-
-    - task: PowerShell@2
-      displayName: Restore
-      inputs:
-        filePath: eng/build.ps1
-        arguments: -configuration Release -prepareMachine -ci -restore -binaryLog
-
-    - task: PowerShell@2
-      displayName: Build
-      inputs:
-        filePath: eng/build.ps1
-        arguments: -configuration Release -prepareMachine -ci -build -pack -publish -sign -binaryLog
-
-    - script: $(Build.SourcesDirectory)\artifacts\bin\BuildBoss\Release\net472\BuildBoss.exe  -r "$(Build.SourcesDirectory)/" -c Release -p Roslyn.sln
-      displayName: Validate Build Artifacts
-
-    - task: PowerShell@2
-      displayName: Generate Syntax Files
-      inputs:
-        filePath: eng/generate-compiler-code.ps1
-        arguments: -test -configuration Release
-      condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['compilerChange'], 'true'))
-      
-    - script: $(Build.SourcesDirectory)\.dotnet\dotnet.exe tool run dotnet-format whitespace  $(Build.SourcesDirectory)\src --folder --include-generated --include $(Build.SourcesDirectory)\src\Compilers\CSharp\Portable\Generated\ $(Build.SourcesDirectory)\src\Compilers\VisualBasic\Portable\Generated\ $(Build.SourcesDirectory)\src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\Generated\ --verify-no-changes
-      displayName: Validate Generated Syntax Files
-      condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['compilerChange'], 'true'))
-      
-    - template: eng/pipelines/publish-logs.yml
+  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+    - template: eng/pipelines/test-unix-job-single-machine.yml
       parameters:
-        jobName: Correctness_Build_Artifacts
-        configuration: Release
-    
-- job: Correctness_Determinism
-  dependsOn: Determine_Changes
-  condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
-  pool:
-    name: NetCore1ESPool-Public
-    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
-  timeoutInMinutes: 90
-  steps:
-    - template: eng/pipelines/checkout-windows-task.yml
-    
-    - script: eng/test-determinism.cmd -configuration Debug
-      displayName: Build - Validate determinism
-
-    - template: eng/pipelines/publish-logs.yml
-      parameters:
-        jobName: Correctness_Determinism
+        testRunName: 'Test Linux Debug Single Machine'
+        jobName: Test_Linux_Debug_Single_Machine
+        testArtifactName: Transport_Artifacts_Unix_Debug
         configuration: Debug
+        testArguments: --testCoreClr
+        queueName: Build.Ubuntu.1804.Amd64.Open
 
-- job: Correctness_Bootstrap_Build
-  dependsOn: Determine_Changes
-  condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
-  pool:
-    name: NetCore1ESPool-Public
-    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
-  timeoutInMinutes: 90
-  steps:
-    - template: eng/pipelines/checkout-windows-task.yml
+  - template: eng/pipelines/test-unix-job.yml
+    parameters:
+      testRunName: 'Test macOS Debug'
+      jobName: Test_macOS_Debug
+      testArtifactName: Transport_Artifacts_Unix_Debug
+      configuration: Debug
+      testArguments: --testCoreClr --helixQueueName OSX.1015.Amd64.Open
 
-    - script: eng/test-build-correctness.cmd -configuration Release -enableDumps
-      displayName: Build - Validate correctness
+- stage: Correctness
+  dependsOn: []
+  jobs:
+  - template: eng/pipelines/evaluate-changed-files.yml
+    parameters:
+      jobName: Determine_Changes
+      vmImageName: ubuntu-latest
+      paths:
+        - subset: compilers
+          include:
+          - src/Compilers/*
+          - src/Dependencies/*
 
-    - template: eng/pipelines/publish-logs.yml
-      parameters:
-        jobName: Correctness_Bootstrap_Build
-        configuration: Release
+  - job: Correctness_Build_Artifacts
+    dependsOn: Determine_Changes
+    pool:
+      name: NetCore-Public
+      demands: ImageOverride -equals windows.vs2022preview.amd64.open
+    timeoutInMinutes: 90
+    variables:
+      compilerChange: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
+    steps:
+      - template: eng/pipelines/checkout-windows-task.yml
 
-    - task: PublishBuildArtifacts@1
-      displayName: Publish Artifact Packages
-      inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\packages\Release\PreRelease'
-        ArtifactName: 'Bootstrap Packages - PreRelease'
-        publishLocation: Container
+      - task: PowerShell@2
+        displayName: Restore
+        inputs:
+          filePath: eng/build.ps1
+          arguments: -configuration Release -prepareMachine -ci -restore -binaryLog
 
-    - task: PublishBuildArtifacts@1
-      displayName: Publish VSIX Packages
-      inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\VSSetup\Release\Installer'
-        ArtifactName: 'Bootstrap VSIX - PreRelease'
-        publishLocation: Container
+      - task: PowerShell@2
+        displayName: Build
+        inputs:
+          filePath: eng/build.ps1
+          arguments: -configuration Release -prepareMachine -ci -build -pack -publish -sign -binaryLog
 
-- job: Correctness_TodoCheck
-  pool:
-    vmImage: ubuntu-20.04
-  timeoutInMinutes: 10
-  steps:
-    - template: eng/pipelines/checkout-unix-task.yml
+      - script: $(Build.SourcesDirectory)\artifacts\bin\BuildBoss\Release\net472\BuildBoss.exe  -r "$(Build.SourcesDirectory)/" -c Release -p Roslyn.sln
+        displayName: Validate Build Artifacts
 
-    - pwsh: eng/todo-check.ps1
-      displayName: Validate TODO/PROTOTYPE comments are not present
+      - task: PowerShell@2
+        displayName: Generate Syntax Files
+        inputs:
+          filePath: eng/generate-compiler-code.ps1
+          arguments: -test -configuration Release
+        condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['compilerChange'], 'true'))
 
-- job: Correctness_Rebuild
-  dependsOn: Determine_Changes
-  condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
-  pool:
-    name: NetCore1ESPool-Public
-    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
-  timeoutInMinutes: 90
-  steps:
-    - template: eng/pipelines/checkout-windows-task.yml
+      - script: $(Build.SourcesDirectory)\.dotnet\dotnet.exe tool run dotnet-format whitespace  $(Build.SourcesDirectory)\src --folder --include-generated --include $(Build.SourcesDirectory)\src\Compilers\CSharp\Portable\Generated\ $(Build.SourcesDirectory)\src\Compilers\VisualBasic\Portable\Generated\ $(Build.SourcesDirectory)\src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\Generated\ --verify-no-changes
+        displayName: Validate Generated Syntax Files
+        condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['compilerChange'], 'true'))
 
-    - task: PowerShell@2
-      displayName: Restore
-      inputs:
-        filePath: eng/build.ps1
-        arguments: -configuration Debug -prepareMachine -ci -restore -binaryLog
+      - template: eng/pipelines/publish-logs.yml
+        parameters:
+          jobName: Correctness_Build_Artifacts
+          configuration: Release
 
-    - powershell: .\eng\test-rebuild.ps1 -ci -configuration Release
-      displayName: Run BuildValidator
+  - job: Correctness_Determinism
+    dependsOn: Determine_Changes
+    condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
+    pool:
+      name: NetCore-Public
+      demands: ImageOverride -equals windows.vs2022preview.amd64.open
+    timeoutInMinutes: 90
+    steps:
+      - template: eng/pipelines/checkout-windows-task.yml
 
-    - task: PublishBuildArtifacts@1
-      displayName: Publish BuildValidator debug outputs
-      inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)/artifacts/BuildValidator'
-        ArtifactName: 'BuildValidator_DebugOut'
-        publishLocation: Container
-      continueOnError: true
-      condition: failed()
+      - script: eng/test-determinism.cmd -configuration Debug
+        displayName: Build - Validate determinism
 
-    - template: eng/pipelines/publish-logs.yml
-      parameters:
-        jobName: Correctness_Rebuild
-        configuration: Release
+      - template: eng/pipelines/publish-logs.yml
+        parameters:
+          jobName: Correctness_Determinism
+          configuration: Debug
 
-- job: Correctness_Analyzers
-  pool:
-    name: NetCore1ESPool-Public
-    demands: ImageOverride -equals Build.Ubuntu.1804.Amd64.Open
-  timeoutInMinutes: 35
-  steps:
-    - template: eng/pipelines/checkout-unix-task.yml
-      
-    - script: ./eng/build.sh --solution Roslyn.sln --restore --build --configuration Debug --prepareMachine --ci --binaryLog --runanalyzers --warnaserror /p:RoslynEnforceCodeStyle=true
-      displayName: Build with analyzers
+  - job: Correctness_Bootstrap_Build
+    dependsOn: Determine_Changes
+    condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
+    pool:
+      name: NetCore-Public
+      demands: ImageOverride -equals windows.vs2022preview.amd64.open
+    timeoutInMinutes: 90
+    steps:
+      - template: eng/pipelines/checkout-windows-task.yml
+
+      - script: eng/test-build-correctness.cmd -configuration Release -enableDumps
+        displayName: Build - Validate correctness
+
+      - template: eng/pipelines/publish-logs.yml
+        parameters:
+          jobName: Correctness_Bootstrap_Build
+          configuration: Release
+
+      - task: PublishBuildArtifacts@1
+        displayName: Publish Artifact Packages
+        inputs:
+          PathtoPublish: '$(Build.SourcesDirectory)\artifacts\packages\Release\PreRelease'
+          ArtifactName: 'Bootstrap Packages - PreRelease'
+          publishLocation: Container
+
+      - task: PublishBuildArtifacts@1
+        displayName: Publish VSIX Packages
+        inputs:
+          PathtoPublish: '$(Build.SourcesDirectory)\artifacts\VSSetup\Release\Installer'
+          ArtifactName: 'Bootstrap VSIX - PreRelease'
+          publishLocation: Container
+
+  - job: Correctness_TodoCheck
+    pool:
+      vmImage: ubuntu-20.04
+    timeoutInMinutes: 10
+    steps:
+      - template: eng/pipelines/checkout-unix-task.yml
+
+      - pwsh: eng/todo-check.ps1
+        displayName: Validate TODO/PROTOTYPE comments are not present
+
+  - job: Correctness_Rebuild
+    dependsOn: Determine_Changes
+    condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
+    pool:
+      name: NetCore-Public
+      demands: ImageOverride -equals windows.vs2022preview.amd64.open
+    timeoutInMinutes: 90
+    steps:
+      - template: eng/pipelines/checkout-windows-task.yml
+
+      - task: PowerShell@2
+        displayName: Restore
+        inputs:
+          filePath: eng/build.ps1
+          arguments: -configuration Debug -prepareMachine -ci -restore -binaryLog
+
+      - powershell: .\eng\test-rebuild.ps1 -ci -configuration Release
+        displayName: Run BuildValidator
+
+      - task: PublishBuildArtifacts@1
+        displayName: Publish BuildValidator debug outputs
+        inputs:
+          PathtoPublish: '$(Build.SourcesDirectory)/artifacts/BuildValidator'
+          ArtifactName: 'BuildValidator_DebugOut'
+          publishLocation: Container
+        continueOnError: true
+        condition: failed()
+
+      - template: eng/pipelines/publish-logs.yml
+        parameters:
+          jobName: Correctness_Rebuild
+          configuration: Release
+
+  - job: Correctness_Analyzers
+    pool:
+      name: NetCore-Public
+      demands: ImageOverride -equals Build.Ubuntu.1804.Amd64.Open
+    timeoutInMinutes: 35
+    steps:
+      - template: eng/pipelines/checkout-unix-task.yml
+
+      - script: ./eng/build.sh --solution Roslyn.sln --restore --build --configuration Debug --prepareMachine --ci --binaryLog --runanalyzers --warnaserror /p:RoslynEnforceCodeStyle=true
+        displayName: Build with analyzers

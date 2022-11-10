@@ -181,76 +181,116 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Return MetadataTokens.Handle(table, rowNumber)
         End Function
 
-        Friend Shared Sub CheckEncLog(reader As MetadataReader, ParamArray rows As EditAndContinueLogEntry())
-            AssertEx.Equal(rows, reader.GetEditAndContinueLogEntries(), itemInspector:=AddressOf EncLogRowToString)
-        End Sub
-
-        Friend Shared Sub CheckEncLogDefinitions(reader As MetadataReader, ParamArray rows As EditAndContinueLogEntry())
-            AssertEx.Equal(rows, reader.GetEditAndContinueLogEntries().Where(Function(entry) IsDefinition(entry.Handle.Kind)), itemInspector:=AddressOf EncLogRowToString)
-        End Sub
-
         Friend Shared Function IsDefinition(kind As HandleKind) As Boolean
-            Dim index As TableIndex
-            Assert.True(MetadataTokens.TryGetTableIndex(kind, index))
-
-            Select Case index
-                Case TableIndex.MethodDef,
-                     TableIndex.Field,
-                     TableIndex.Constant,
-                     TableIndex.GenericParam,
-                     TableIndex.GenericParamConstraint,
-                     TableIndex.[Event],
-                     TableIndex.CustomAttribute,
-                     TableIndex.DeclSecurity,
-                     TableIndex.Assembly,
-                     TableIndex.MethodImpl,
-                     TableIndex.Param,
-                     TableIndex.[Property],
-                     TableIndex.TypeDef,
-                     TableIndex.ExportedType,
-                     TableIndex.StandAloneSig,
-                     TableIndex.ClassLayout,
-                     TableIndex.FieldLayout,
-                     TableIndex.FieldMarshal,
-                     TableIndex.File,
-                     TableIndex.ImplMap,
-                     TableIndex.InterfaceImpl,
-                     TableIndex.ManifestResource,
-                     TableIndex.MethodSemantics,
-                     TableIndex.[Module],
-                     TableIndex.NestedClass,
-                     TableIndex.EventMap,
-                     TableIndex.PropertyMap
+            Select Case kind
+                Case HandleKind.AssemblyReference, HandleKind.ModuleReference, HandleKind.TypeReference, HandleKind.MemberReference, HandleKind.TypeSpecification, HandleKind.MethodSpecification
+                    Return False
+                Case Else
                     Return True
             End Select
-
-            Return False
         End Function
 
+        ''' <summary>
+        ''' Checks that the EncLog contains specified rows.
+        ''' Any default values in the expected <paramref name="rows"/> are ignored to facilitate conditional code.
+        ''' </summary>
+        Friend Shared Sub CheckEncLog(reader As MetadataReader, ParamArray rows As EditAndContinueLogEntry())
+            AssertEx.Equal(
+                rows.Where(Function(r) r.Handle <> Nothing),
+                reader.GetEditAndContinueLogEntries(), itemInspector:=AddressOf EncLogRowToString)
+        End Sub
 
+        ''' <summary>
+        ''' Checks that the EncLog contains specified definition rows. References are ignored as they are usually not interesting to validate. They are emitted as needed.
+        ''' Any default values in the expected <paramref name="rows"/> are ignored to facilitate conditional code.
+        ''' </summary>
+        Friend Shared Sub CheckEncLogDefinitions(reader As MetadataReader, ParamArray rows As EditAndContinueLogEntry())
+            AssertEx.Equal(
+                rows.Where(Function(r) r.Handle <> Nothing),
+                reader.GetEditAndContinueLogEntries().Where(Function(entry) IsDefinition(entry.Handle.Kind)), itemInspector:=AddressOf EncLogRowToString)
+        End Sub
+
+        ''' <summary>
+        ''' Checks that the EncMap contains specified handles.
+        ''' Any default values in the expected <paramref name="handles"/> are ignored to facilitate conditional code.
+        ''' </summary>
         Friend Shared Sub CheckEncMap(reader As MetadataReader, ParamArray [handles] As EntityHandle())
-            AssertEx.Equal([handles], reader.GetEditAndContinueMapEntries(), itemInspector:=AddressOf EncMapRowToString)
+            AssertEx.Equal(
+                [handles].Where(Function(h) h <> Nothing),
+                reader.GetEditAndContinueMapEntries(), itemInspector:=AddressOf EncMapRowToString)
         End Sub
 
+        ''' <summary>
+        ''' Checks that the EncMap contains specified definition handles. References are ignored as they are usually Not interesting to validate. They are emitted as needed.
+        ''' Any default values in the expected <paramref name="handles"/> are ignored to facilitate conditional code.
+        ''' </summary>
         Friend Shared Sub CheckEncMapDefinitions(reader As MetadataReader, ParamArray [handles] As EntityHandle())
-            AssertEx.Equal([handles], reader.GetEditAndContinueMapEntries().Where(Function(e) IsDefinition(e.Kind)), itemInspector:=AddressOf EncMapRowToString)
+            AssertEx.Equal(
+                [handles].Where(Function(h) h <> Nothing),
+                reader.GetEditAndContinueMapEntries().Where(Function(e) IsDefinition(e.Kind)), itemInspector:=AddressOf EncMapRowToString)
         End Sub
 
-        Friend Shared Sub CheckNames(reader As MetadataReader, [handles] As StringHandle(), ParamArray expectedNames As String())
+        Friend Shared Sub CheckNames(reader As MetadataReader, [handles] As IEnumerable(Of StringHandle), ParamArray expectedNames As String())
             CheckNames({reader}, [handles], expectedNames)
         End Sub
 
-        Friend Shared Sub CheckNames(readers As MetadataReader(), [handles] As StringHandle(), ParamArray expectedNames As String())
+        Friend Shared Sub CheckNames(readers As MetadataReader(), [handles] As IEnumerable(Of StringHandle), ParamArray expectedNames As String())
             Dim actualNames = readers.GetStrings([handles])
             AssertEx.Equal(expectedNames, actualNames)
         End Sub
 
-        Friend Shared Sub CheckNamesSorted(readers As MetadataReader(), [handles] As StringHandle(), ParamArray expectedNames As String())
+        Public Shared Sub CheckNames(readers As IList(Of MetadataReader), typeHandles As IEnumerable(Of TypeDefinitionHandle), ParamArray expectedNames As String())
+            CheckNames(readers, typeHandles, Function(reader, handle) reader.GetTypeDefinition(CType(handle, TypeDefinitionHandle)).Name, Function(handle) handle, expectedNames)
+        End Sub
+
+        Friend Shared Sub CheckNamesSorted(readers As MetadataReader(), [handles] As IEnumerable(Of StringHandle), ParamArray expectedNames As String())
             Dim actualNames = readers.GetStrings([handles])
             Array.Sort(actualNames)
             Array.Sort(expectedNames)
             AssertEx.Equal(expectedNames, actualNames)
         End Sub
+
+        Private Shared Sub CheckNames(Of THandle)(
+            readers As IList(Of MetadataReader),
+            entityHandles As IEnumerable(Of THandle),
+            getName As Func(Of MetadataReader, Handle, StringHandle),
+            toHandle As Func(Of THandle, Handle),
+            expectedNames As String())
+            Dim aggregator = GetAggregator(readers)
+
+            AssertEx.Equal(expectedNames, entityHandles.Select(
+                Function(handle)
+                    Dim typeGeneration As Integer
+                    Dim genEntityHandle = aggregator.GetGenerationHandle(toHandle(handle), typeGeneration)
+                    Dim nameHandle = getName(readers(typeGeneration), genEntityHandle)
+
+                    Dim nameGeneration As Integer
+                    Dim genNameHandle = CType(aggregator.GetGenerationHandle(nameHandle, nameGeneration), StringHandle)
+                    Return readers(nameGeneration).GetString(genNameHandle)
+                End Function))
+        End Sub
+
+        Public Shared Sub CheckBlobValue(readers As IList(Of MetadataReader), valueHandle As BlobHandle, expectedValue As Byte())
+            Dim aggregator = GetAggregator(readers)
+
+            Dim generation As Integer
+            Dim genHandle = CType(aggregator.GetGenerationHandle(valueHandle, generation), BlobHandle)
+            Dim attributeData = readers(generation).GetBlobBytes(genHandle)
+            AssertEx.Equal(expectedValue, attributeData)
+        End Sub
+
+        Public Shared Sub CheckStringValue(readers As IList(Of MetadataReader), valueHandle As StringHandle, expectedValue As String)
+            Dim aggregator = GetAggregator(readers)
+
+            Dim generation As Integer
+            Dim genHandle = CType(aggregator.GetGenerationHandle(valueHandle, generation), StringHandle)
+            Dim attributeData = readers(generation).GetString(genHandle)
+            AssertEx.Equal(expectedValue, attributeData)
+        End Sub
+
+        Public Shared Function GetAggregator(readers As IList(Of MetadataReader)) As MetadataAggregator
+            Return New MetadataAggregator(readers(0), readers.Skip(1).ToArray())
+        End Function
 
         Friend Shared Function EncLogRowToString(row As EditAndContinueLogEntry) As String
             Dim index As TableIndex = 0

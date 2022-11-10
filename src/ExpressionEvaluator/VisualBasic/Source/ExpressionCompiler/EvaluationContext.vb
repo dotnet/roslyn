@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End If
 
             Dim localNames = debugInfo.LocalVariableNames.WhereAsArray(
-                Function(name) name Is Nothing OrElse Not name.StartsWith(GeneratedNameConstants.StateMachineHoistedUserVariablePrefix, StringComparison.Ordinal))
+                Function(name) name Is Nothing OrElse Not name.StartsWith(GeneratedNameConstants.StateMachineHoistedUserVariableOrDisplayClassPrefix, StringComparison.Ordinal))
 
             Dim localsBuilder = ArrayBuilder(Of LocalSymbol).GetInstance()
             MethodDebugInfo(Of TypeSymbol, LocalSymbol).GetLocals(localsBuilder, symbolProvider, localNames, localInfo, Nothing, debugInfo.TupleLocalMap)
@@ -204,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             For Each localName In allLocalNames
                 Dim hoistedLocalName As String = Nothing
                 Dim hoistedLocalSlot As Integer = 0
-                If localName IsNot Nothing AndAlso GeneratedNameParser.TryParseStateMachineHoistedUserVariableName(localName, hoistedLocalName, hoistedLocalSlot) Then
+                If localName IsNot Nothing AndAlso GeneratedNameParser.TryParseStateMachineHoistedUserVariableOrDisplayClassName(localName, hoistedLocalName, hoistedLocalSlot) Then
                     builder.Add(hoistedLocalSlot)
                 End If
             Next
@@ -326,7 +326,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 tupleLocalMap:=Nothing,
                 localVariableNames:=ImmutableArray(Of String).Empty,
                 localConstants:=ImmutableArray(Of LocalSymbol).Empty,
-                reuseSpan:=Nothing)
+                reuseSpan:=Nothing,
+                containingDocumentName:=Nothing)
         End Function
 
         Friend Function CreateCompilationContext(withSyntax As Boolean) As CompilationContext

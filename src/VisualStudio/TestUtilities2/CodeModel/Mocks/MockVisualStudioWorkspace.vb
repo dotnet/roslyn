@@ -35,7 +35,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
 
         Public Sub SetWorkspace(testWorkspace As TestWorkspace)
             _workspace = testWorkspace
-            SetCurrentSolution(testWorkspace.CurrentSolution)
+            SetCurrentSolutionEx(testWorkspace.CurrentSolution)
 
             ' HACK: ensure this service is created so it can be used during disposal
             Me.Services.GetService(Of IWorkspaceEventListenerService)()
@@ -47,17 +47,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
 
         Protected Overrides Sub ApplyDocumentTextChanged(documentId As DocumentId, newText As SourceText)
             Assert.True(_workspace.TryApplyChanges(_workspace.CurrentSolution.WithDocumentText(documentId, newText)))
-            SetCurrentSolution(_workspace.CurrentSolution)
+            SetCurrentSolutionEx(_workspace.CurrentSolution)
         End Sub
 
         Public Overrides Sub CloseDocument(documentId As DocumentId)
             _workspace.CloseDocument(documentId)
-            SetCurrentSolution(_workspace.CurrentSolution)
+            SetCurrentSolutionEx(_workspace.CurrentSolution)
         End Sub
 
         Protected Overrides Sub ApplyDocumentRemoved(documentId As DocumentId)
             Assert.True(_workspace.TryApplyChanges(_workspace.CurrentSolution.RemoveDocument(documentId)))
-            SetCurrentSolution(_workspace.CurrentSolution)
+            SetCurrentSolutionEx(_workspace.CurrentSolution)
         End Sub
 
         Friend Overrides Function OpenInvisibleEditor(documentId As DocumentId) As IInvisibleEditor

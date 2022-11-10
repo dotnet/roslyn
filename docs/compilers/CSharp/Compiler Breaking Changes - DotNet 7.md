@@ -1,5 +1,66 @@
 # This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
+## For the purpose of definite assignment analysis, invocations of async local functions are no longer treated as being awaited
+
+***Introduced in Visual Studio 2022 version 17.5***
+
+For the purpose of definite assignment analysis, invocations of an async local function is
+no longer treated as being awaited and, therefore, the local function is not considered to
+be fully executed. See https://github.com/dotnet/roslyn/issues/43697 for the rationale.
+
+The code below is now going to report a definite assignment error:
+```csharp
+    public async Task M()
+    {
+        bool a;
+        await M1();
+        Console.WriteLine(a); // error CS0165: Use of unassigned local variable 'a'  
+
+        async Task M1()
+        {
+            if ("" == String.Empty)
+            {
+                throw new Exception();
+            }
+            else
+            {
+                a = true;
+            }
+        }
+    }
+```
+
+## `INoneOperation` nodes for attributes are now `IAttributeOperation` nodes.
+
+***Introduced in Visual Studio 2022 version 17.5, .NET SDK version 7.0.200***
+
+In previous versions of the compiler, the `IOperation` tree for an attribute was rooted with an `INoneOperation` node.
+We have added native support for attributes, which means that the root of the tree is now an `IAttributeOperation`. Some
+analyzers, including older versions of the .NET SDK analyzers, are not expecting this tree shape, and will incorrectly
+warn (or potentially fail to warn) when encountering it. The workarounds for this are:
+
+* Update your analyzer version, if possible. If using the .NET SDK or older versions of Microsoft.CodeAnalysis.FxCopAnalyzers,
+update to Microsoft.CodeAnalysis.NetAnalyzers 7.0.0-preview1.22464.1 or newer.
+* Suppress any false-positives from the analyzers until they can be updated with a version that takes this change into
+account.
+
+## Type tests for `ref` structs are not supported.
+
+***Introduced in Visual Studio 2022 version 17.4***
+
+When a `ref` struct type is used in an 'is' or 'as' operator, in some scenarios compiler was previously reporting
+an erroneous warning about the type test always failing at runtime, omitting the actual type check, and leading to
+incorrect behavior. When incorrect behavior at execution time was possible, compiler will now produce an error instead.
+
+```csharp
+ref struct G<T>
+{
+    public void Test()
+    {
+        if (this is G<int>) // Will now produce an error, used to be treated as always `false`.
+        {
+```
+
 ## Unused results from ref local are dereferences.
 
 ***Introduced in Visual Studio 2022 version 17.4***
@@ -84,6 +145,33 @@ Possible workarounds are:
 
 Also, implicit conversions between `IntPtr`/`UIntPtr` and other numeric types are treated as standard
 conversions on such platforms. This can affect overload resolution in some cases.
+
+These changes could cause a behavioral change if the user code was depending on overflow exceptions in an
+unchecked context, or if it was not expecting overflow exceptions in a checked context. An analyzer was 
+[added in 7.0](https://github.com/dotnet/runtime/issues/74022) to help detect such behavioral changes
+and take appropriate action. The analyzer will produce diagnostics on potential behavioral changes, which default
+to info severity but can be upgraded to warnings via [editorconfig](https://learn.microsoft.com/dotnet/fundamentals/code-analysis/configuration-options#severity-level).
+
+## Addition of System.UIntPtr and System.Int32
+
+***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.3.***
+
+When the platform supports __numeric__ `IntPtr` and `UIntPtr` types (as indicated by the presence of
+`System.Runtime.CompilerServices.RuntimeFeature.NumericIntPtr`), the operator `+(UIntPtr, int)` defined in `System.UIntPtr`
+can no longer be used.
+Instead, adding expressions of types `System.UIntPtr` and a `System.Int32` results in an error:
+
+```csharp
+UIntPtr M(UIntPtr x, int y)
+{
+    return x + y; // error: Operator '+' is ambiguous on operands of type 'nuint' and 'int'
+}
+```
+
+Possible workarounds are:
+
+1. Use the `UIntPtr.Add(UIntPtr, int)` method: `UIntPtr.Add(x, y)`
+2. Apply an unchecked cast to type `nuint` on the second operand: `x + unchecked((nuint)y)`
 
 ## Nameof operator in attribute on method or local function
 

@@ -46,35 +46,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var diagnostic = context.Diagnostics.First();
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            if (root == null)
-            {
-                return;
-            }
+            var cancellationToken = context.CancellationToken;
 
-            var model = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
-            if (model == null)
-            {
-                return;
-            }
+            var model = await context.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var node = context.Diagnostics.First().Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
 
-            var node = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
-
-            var declarationTypeToFix = TryGetDeclarationTypeToFix(model, node);
+            var declarationTypeToFix = TryGetDeclarationTypeToFix(model, node, cancellationToken);
             if (declarationTypeToFix == null)
-            {
                 return;
-            }
 
             RegisterCodeFix(context, CSharpCodeFixesResources.Declare_as_nullable, GetEquivalenceKey(node, model));
         }
 
         private static string GetEquivalenceKey(SyntaxNode node, SemanticModel model)
         {
-            return IsRemoteApiUsage(node, model) ? AssigningNullLiteralRemotelyEquivalenceKey :
-                node.IsKind(SyntaxKind.ConditionalAccessExpression) ? ConditionalOperatorEquivalenceKey :
-                AssigningNullLiteralLocallyEquivalenceKey;
+            return IsRemoteApiUsage(node, model)
+                ? AssigningNullLiteralRemotelyEquivalenceKey
+                : node.IsKind(SyntaxKind.ConditionalAccessExpression)
+                    ? ConditionalOperatorEquivalenceKey
+                    : AssigningNullLiteralLocallyEquivalenceKey;
 
             static bool IsRemoteApiUsage(SyntaxNode node, SemanticModel model)
             {
@@ -104,20 +94,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
         }
 
         protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document,
+            ImmutableArray<Diagnostic> diagnostics,
+            SyntaxEditor editor,
+            CodeActionOptionsProvider fallbackOptions,
+            CancellationToken cancellationToken)
         {
             // a method can have multiple `return null;` statements, but we should only fix its return type once
             using var _ = PooledHashSet<TypeSyntax>.GetInstance(out var alreadyHandled);
 
-            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (model != null)
+            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            foreach (var diagnostic in diagnostics)
             {
-                foreach (var diagnostic in diagnostics)
-                {
-                    var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-                    MakeDeclarationNullable(editor, model, node, alreadyHandled);
-                }
+                var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+                MakeDeclarationNullable(editor, model, node, alreadyHandled, cancellationToken);
             }
         }
 
@@ -127,9 +118,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             return equivalenceKey == GetEquivalenceKey(node, model);
         }
 
-        private static void MakeDeclarationNullable(SyntaxEditor editor, SemanticModel model, SyntaxNode node, HashSet<TypeSyntax> alreadyHandled)
+        private static void MakeDeclarationNullable(
+            SyntaxEditor editor, SemanticModel model, SyntaxNode node, HashSet<TypeSyntax> alreadyHandled, CancellationToken cancellationToken)
         {
-            var declarationTypeToFix = TryGetDeclarationTypeToFix(model, node);
+            var declarationTypeToFix = TryGetDeclarationTypeToFix(model, node, cancellationToken);
             if (declarationTypeToFix != null && alreadyHandled.Add(declarationTypeToFix))
             {
                 var fixedDeclaration = SyntaxFactory.NullableType(declarationTypeToFix.WithoutTrivia()).WithTriviaFrom(declarationTypeToFix);
@@ -137,24 +129,30 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             }
         }
 
-        private static TypeSyntax? TryGetDeclarationTypeToFix(SemanticModel model, SyntaxNode node)
+        private static TypeSyntax? TryGetDeclarationTypeToFix(
+            SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
         {
             if (!IsExpressionSupported(node))
-            {
                 return null;
-            }
 
-            if (node.IsParentKind(SyntaxKind.ReturnStatement, SyntaxKind.YieldReturnStatement))
+            if (node.Parent is (kind: SyntaxKind.ReturnStatement or SyntaxKind.YieldReturnStatement))
             {
-                var containingMember = node.GetAncestors().FirstOrDefault(a => a.IsKind(
-                    SyntaxKind.MethodDeclaration, SyntaxKind.PropertyDeclaration, SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression,
-                    SyntaxKind.LocalFunctionStatement, SyntaxKind.AnonymousMethodExpression, SyntaxKind.ConstructorDeclaration, SyntaxKind.DestructorDeclaration,
-                    SyntaxKind.OperatorDeclaration, SyntaxKind.IndexerDeclaration, SyntaxKind.EventDeclaration));
+                var containingMember = node.GetAncestors().FirstOrDefault(
+                    a => a.Kind() is
+                        SyntaxKind.MethodDeclaration or
+                        SyntaxKind.PropertyDeclaration or
+                        SyntaxKind.ParenthesizedLambdaExpression or
+                        SyntaxKind.SimpleLambdaExpression or
+                        SyntaxKind.LocalFunctionStatement or
+                        SyntaxKind.AnonymousMethodExpression or
+                        SyntaxKind.ConstructorDeclaration or
+                        SyntaxKind.DestructorDeclaration or
+                        SyntaxKind.OperatorDeclaration or
+                        SyntaxKind.IndexerDeclaration or
+                        SyntaxKind.EventDeclaration);
 
                 if (containingMember == null)
-                {
                     return null;
-                }
 
                 var onYield = node.IsParentKind(SyntaxKind.YieldReturnStatement);
 
@@ -182,72 +180,49 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             }
 
             // string x = null;
-            if (node.Parent?.Parent?.IsParentKind(SyntaxKind.VariableDeclaration) == true)
+            if (node.Parent?.Parent?.Parent is VariableDeclarationSyntax variableDeclaration)
             {
-                var variableDeclaration = (VariableDeclarationSyntax)node.Parent.Parent.Parent!;
-                if (variableDeclaration.Variables.Count != 1)
-                {
-                    // string x = null, y = null;
-                    return null;
-                }
-
-                return variableDeclaration.Type;
+                // string x = null, y = null;
+                return variableDeclaration.Variables.Count == 1 ? variableDeclaration.Type : null;
             }
 
             // x = null;
             if (node.Parent is AssignmentExpressionSyntax assignment)
             {
-                var symbol = model.GetSymbolInfo(assignment.Left).Symbol;
-                if (symbol is ILocalSymbol local)
+                var symbol = model.GetSymbolInfo(assignment.Left, cancellationToken).Symbol;
+                if (symbol is ILocalSymbol { DeclaringSyntaxReferences.Length: > 0 } local)
                 {
-                    var syntax = local.DeclaringSyntaxReferences[0].GetSyntax();
-                    if (syntax is VariableDeclaratorSyntax declarator &&
-                        declarator.Parent is VariableDeclarationSyntax declaration &&
-                        declaration.Variables.Count == 1)
-                    {
+                    var syntax = local.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+                    if (syntax is VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Variables.Count: 1 } declaration })
                         return declaration.Type;
-                    }
                 }
                 else if (symbol is IParameterSymbol parameter)
                 {
-                    return TryGetParameterTypeSyntax(parameter);
+                    return TryGetParameterTypeSyntax(parameter, cancellationToken);
                 }
-                else if (symbol is IFieldSymbol { IsImplicitlyDeclared: false } field)
+                else if (symbol is IFieldSymbol { IsImplicitlyDeclared: false, DeclaringSyntaxReferences.Length: > 0 } field)
                 {
                     // implicitly declared fields don't have DeclaringSyntaxReferences so filter them out
-                    var syntax = field.DeclaringSyntaxReferences[0].GetSyntax();
-                    if (syntax is VariableDeclaratorSyntax declarator &&
-                       declarator.Parent is VariableDeclarationSyntax declaration &&
-                       declaration.Variables.Count == 1)
-                    {
+                    var syntax = field.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+                    if (syntax is VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Variables.Count: 1 } declaration })
                         return declaration.Type;
-                    }
-                    else if (syntax is TupleElementSyntax tupleElement)
-                    {
+
+                    if (syntax is TupleElementSyntax tupleElement)
                         return tupleElement.Type;
-                    }
                 }
-                else if (symbol is IFieldSymbol { CorrespondingTupleField: IFieldSymbol tupleField })
+                else if (symbol is IFieldSymbol { CorrespondingTupleField: IFieldSymbol { Locations: [{ IsInSource: true } location] } })
                 {
                     // Assigning a tuple field, eg. foo.Item1 = null
                     // The tupleField won't have DeclaringSyntaxReferences because it's implicitly declared, otherwise it
                     // would have fallen into the branch above. We can use the Locations instead, if there is one and it's in source
-                    if (tupleField.Locations is { Length: 1 } &&
-                        tupleField.Locations[0] is { IsInSource: true } location)
-                    {
-                        if (location.FindNode(default) is TupleElementSyntax tupleElement)
-                        {
-                            return tupleElement.Type;
-                        }
-                    }
+                    if (location.FindNode(cancellationToken) is TupleElementSyntax tupleElement)
+                        return tupleElement.Type;
                 }
-                else if (symbol is IPropertySymbol property)
+                else if (symbol is IPropertySymbol { DeclaringSyntaxReferences.Length: > 0 } property)
                 {
-                    var syntax = property.DeclaringSyntaxReferences[0].GetSyntax();
+                    var syntax = property.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
                     if (syntax is PropertyDeclarationSyntax declaration)
-                    {
                         return declaration.Type;
-                    }
                 }
 
                 return null;
@@ -256,8 +231,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             // Method(null)
             if (node.Parent is ArgumentSyntax argument && argument.Parent?.Parent is InvocationExpressionSyntax invocation)
             {
-                var symbol = model.GetSymbolInfo(invocation.Expression).Symbol;
-                if (symbol is not IMethodSymbol method || method.PartialImplementationPart is object)
+                var symbol = model.GetSymbolInfo(invocation.Expression, cancellationToken).Symbol;
+                if (symbol is not IMethodSymbol method || method.PartialImplementationPart is not null)
                 {
                     // We don't handle partial methods yet
                     return null;
@@ -266,50 +241,43 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 if (argument.NameColon?.Name is IdentifierNameSyntax { Identifier: var identifier })
                 {
                     var parameter = method.Parameters.Where(p => p.Name == identifier.Text).FirstOrDefault();
-                    return TryGetParameterTypeSyntax(parameter);
+                    return TryGetParameterTypeSyntax(parameter, cancellationToken);
                 }
 
                 var index = invocation.ArgumentList.Arguments.IndexOf(argument);
                 if (index >= 0 && index < method.Parameters.Length)
                 {
                     var parameter = method.Parameters[index];
-                    return TryGetParameterTypeSyntax(parameter);
+                    return TryGetParameterTypeSyntax(parameter, cancellationToken);
                 }
 
                 return null;
             }
 
             // string x { get; set; } = null;
-            if (node.Parent.IsParentKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax? propertyDeclaration))
-            {
+            if (node.Parent?.Parent is PropertyDeclarationSyntax propertyDeclaration)
                 return propertyDeclaration.Type;
-            }
 
             // string x { get; }
             // Unassigned value that's not marked as null
             if (node is PropertyDeclarationSyntax propertyDeclarationSyntax)
-            {
                 return propertyDeclarationSyntax.Type;
-            }
 
             // string x;
             // Unassigned value that's not marked as null
-            if (node is VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Parent: FieldDeclarationSyntax _ } declarationSyntax } &&
-                declarationSyntax.Variables.Count == 1)
-            {
+            if (node is VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Parent: FieldDeclarationSyntax, Variables.Count: 1 } declarationSyntax })
                 return declarationSyntax.Type;
-            }
 
             // void M(string x = null) { }
-            if (node.Parent.IsParentKind(SyntaxKind.Parameter, out ParameterSyntax? optionalParameter))
+            if (node.Parent?.Parent is ParameterSyntax optionalParameter)
             {
-                var parameterSymbol = model.GetDeclaredSymbol(optionalParameter);
-                return TryGetParameterTypeSyntax(parameterSymbol);
+                var parameterSymbol = model.GetDeclaredSymbol(optionalParameter, cancellationToken);
+                return TryGetParameterTypeSyntax(parameterSymbol, cancellationToken);
             }
 
             // static string M() => null;
             if (node.IsParentKind(SyntaxKind.ArrowExpressionClause) &&
-                node.Parent.IsParentKind(SyntaxKind.MethodDeclaration, out MethodDeclarationSyntax? arrowMethod))
+                node.Parent?.Parent is MethodDeclarationSyntax arrowMethod)
             {
                 return arrowMethod.ReturnType;
             }
@@ -341,9 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                     case GenericNameSyntax generic:
                         var typeArguments = generic.TypeArgumentList.Arguments;
                         if (typeArguments.Count == 1)
-                        {
                             return typeArguments[0];
-                        }
 
                         break;
                 }
@@ -351,10 +317,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 return null;
             }
 
-            static TypeSyntax? TryGetParameterTypeSyntax(IParameterSymbol? parameterSymbol)
+            static TypeSyntax? TryGetParameterTypeSyntax(IParameterSymbol? parameterSymbol, CancellationToken cancellationToken)
             {
-                if (parameterSymbol is object &&
-                    parameterSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is ParameterSyntax parameterSyntax &&
+                if (parameterSymbol?.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax(cancellationToken) is ParameterSyntax parameterSyntax &&
                     parameterSymbol.ContainingSymbol is IMethodSymbol method &&
                     method.GetAllMethodSymbolsOfPartialParts().Length == 1)
                 {
@@ -366,16 +331,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
         }
 
         private static bool IsExpressionSupported(SyntaxNode node)
-        {
-            return node.IsKind(
-                SyntaxKind.NullLiteralExpression,
-                SyntaxKind.AsExpression,
-                SyntaxKind.DefaultExpression,
-                SyntaxKind.DefaultLiteralExpression,
-                SyntaxKind.ConditionalExpression,
-                SyntaxKind.ConditionalAccessExpression,
-                SyntaxKind.PropertyDeclaration,
-                SyntaxKind.VariableDeclarator);
-        }
+            => node.Kind() is
+                SyntaxKind.NullLiteralExpression or
+                SyntaxKind.AsExpression or
+                SyntaxKind.DefaultExpression or
+                SyntaxKind.DefaultLiteralExpression or
+                SyntaxKind.ConditionalExpression or
+                SyntaxKind.ConditionalAccessExpression or
+                SyntaxKind.PropertyDeclaration or
+                SyntaxKind.VariableDeclarator;
     }
 }

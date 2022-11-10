@@ -11,11 +11,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets
 {
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class CSharpConsoleSnippetCompletionProviderTests : AbstractCSharpSnippetCompletionProviderTests
     {
         protected override string ItemToCommit => "cw";
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertConsoleSnippetInMethodTest()
         {
             var markupBeforeCommit =
@@ -40,7 +41,7 @@ class Program
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertAsyncConsoleSnippetTest()
         {
             var markupBeforeCommit =
@@ -65,7 +66,7 @@ class Program
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertConsoleSnippetGlobalTest()
         {
             var markupBeforeCommit =
@@ -81,7 +82,6 @@ class Program
 @"using System;
 
 Console.WriteLine($$);
-
 class Program
 {
     public async Task MethodAsync()
@@ -91,7 +91,7 @@ class Program
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task NoConsoleSnippetInBlockNamespaceTest()
         {
             var markupBeforeCommit =
@@ -109,7 +109,7 @@ namespace Namespace
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task NoConsoleSnippetInFileScopedNamespaceTest()
         {
             var markupBeforeCommit =
@@ -126,7 +126,7 @@ class Program
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertConsoleSnippetInConstructorTest()
         {
             var markupBeforeCommit =
@@ -157,7 +157,7 @@ class Program
         /// Simplifier does not work as intended, once that changes this outcome
         /// should be able to simplify the inserted snippet.
         /// </summary>
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertConsoleSnippetInLocalFunctionTest()
         {
             var markupBeforeCommit =
@@ -194,7 +194,7 @@ class Program
         /// Simplifier does not work as intended, once that changes this outcome
         /// should be able to simplify the inserted snippet.
         /// </summary>
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertConsoleSnippetInAnonymousFunctionTest()
         {
             var markupBeforeCommit =
@@ -227,7 +227,7 @@ static void Main(string[] args)
         /// Simplifier does not work as intended, once that changes this outcome
         /// should be able to simplify the inserted snippet.
         /// </summary>
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertConsoleSnippetInParenthesizedLambdaExpressionTest()
         {
             var markupBeforeCommit =
@@ -250,7 +250,7 @@ Func<int, int, bool> testForEquality = (x, y) =>
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task NoConsoleSnippetInSwitchExpression()
         {
             var markupBeforeCommit =
@@ -273,7 +273,7 @@ Func<int, int, bool> testForEquality = (x, y) =>
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task NoConsoleSnippetInSingleLambdaExpression()
         {
             var markupBeforeCommit =
@@ -287,7 +287,7 @@ Func<int, int, bool> testForEquality = (x, y) =>
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task NoConsoleSnippetInStringTest()
         {
             var markupBeforeCommit =
@@ -302,7 +302,7 @@ Func<int, int, bool> testForEquality = (x, y) =>
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task NoConsoleSnippetInObjectInitializerTest()
         {
             var markupBeforeCommit =
@@ -327,7 +327,7 @@ class Test
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task NoConsoleSnippetInParameterListTest()
         {
             var markupBeforeCommit =
@@ -341,7 +341,7 @@ class Test
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task NoConsoleSnippetInRecordDeclarationTest()
         {
             var markupBeforeCommit =
@@ -355,7 +355,7 @@ class Test
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task NoConsoleSnippetInVariableDeclarationTest()
         {
             var markupBeforeCommit =
@@ -370,7 +370,7 @@ class Test
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertConsoleSnippetWithInvocationBeforeAndAfterCursorTest()
         {
             var markupBeforeCommit =
@@ -395,7 +395,7 @@ class Program
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertConsoleSnippetWithInvocationUnderscoreBeforeAndAfterCursorTest()
         {
             var markupBeforeCommit =
