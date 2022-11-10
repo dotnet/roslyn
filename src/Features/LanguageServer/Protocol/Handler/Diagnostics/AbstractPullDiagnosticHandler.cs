@@ -168,12 +168,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     cancellationToken).ConfigureAwait(false);
                 if (newResultId != null)
                 {
-                    progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(
-                        context, diagnosticSource, newResultId, clientCapabilities, cancellationToken).ConfigureAwait(false));
+                    var diagnosticReport = await ComputeAndReportCurrentDiagnosticsAsync(
+                        context, diagnosticSource, newResultId, clientCapabilities, cancellationToken).ConfigureAwait(false);
+                    if (diagnosticReport != null)
+                    {
+                        progress.Report(diagnosticReport);
+                    }
                 }
                 else
                 {
-                    context.TraceInformation($"Diagnostics were unchanged for {diagnosticSource.GetDocumentIdentifier().Uri} in {diagnosticSource.GetProject().Name}");
+                    context.TraceInformation($"Diagnostics were unchanged for {diagnosticSource.ToDisplayString()}");
 
                     // Nothing changed between the last request and this one.  Report a (null-diagnostics,
                     // same-result-id) response to the client as that means they should just preserve the current
@@ -254,7 +258,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return diagnosticMode;
         }
 
-        private async Task<TReport> ComputeAndReportCurrentDiagnosticsAsync(
+        private async Task<TReport?> ComputeAndReportCurrentDiagnosticsAsync(
             RequestContext context,
             IDiagnosticSource diagnosticSource,
             string resultId,
@@ -263,12 +267,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         {
             using var _ = ArrayBuilder<LSP.Diagnostic>.GetInstance(out var result);
             var diagnostics = await diagnosticSource.GetDiagnosticsAsync(DiagnosticAnalyzerService, context, cancellationToken).ConfigureAwait(false);
-            context.TraceInformation($"Found {diagnostics.Length} diagnostics for {diagnosticSource.GetDocumentIdentifier().Uri} in {diagnosticSource.GetProject().Name}");
+
+            // If we can't get a text document identifier we can't report diagnostics for this source.
+            // This can happen for 'fake' projects (e.g. used for TS script blocks).
+            var documentIdentifier = diagnosticSource.GetDocumentIdentifier();
+            if (documentIdentifier == null)
+            {
+                // We are not expecting to get any diagnostics for sources that don't have a path.
+                Contract.ThrowIfFalse(diagnostics.IsEmpty);
+                return default;
+            }
+
+            context.TraceInformation($"Found {diagnostics.Length} diagnostics for {diagnosticSource.ToDisplayString()}");
 
             foreach (var diagnostic in diagnostics)
                 result.AddRange(ConvertDiagnostic(diagnosticSource, diagnostic, clientCapabilities));
 
-            return CreateReport(diagnosticSource.GetDocumentIdentifier(), result.ToArray(), resultId);
+            return CreateReport(documentIdentifier, result.ToArray(), resultId);
         }
 
         private void HandleRemovedDocuments(RequestContext context, ImmutableArray<PreviousPullResult> removedPreviousResults, BufferedProgress<TReport> progress)
