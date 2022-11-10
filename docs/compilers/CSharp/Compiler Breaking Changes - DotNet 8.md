@@ -1,11 +1,11 @@
 # This document lists known breaking changes in Roslyn after .NET 7 all the way to .NET 8.
 
-## Inferred delegate type for methods with default parameter values or `params` arrays is no longer `System.Action` or `System.Func`
+## Inferred delegate type for methods includes default parameter values and `params` modifier
 
 ***Introduced in Visual Studio 2022 version 17.5***
 
-In C# 11 or earlier, methods with default parameter values or `params` arrays
-are inferred as `System.Action` or `System.Func` as demonstrated in the following code:
+In C# 11 or earlier, delegate types inferred from methods ignored default parameter values and `params` modifiers
+as demonstrated in the following code:
 
 ```csharp
 void Method(int i = 0, params int[] xs) { }
