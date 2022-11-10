@@ -154,6 +154,50 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
                 """);
         }
 
+        [Fact, WorkItem(65302, "https://github.com/dotnet/roslyn/issues/65302")]
+        public async Task ReturnTypelessTuple_Async()
+        {
+            await VerifyCS.VerifyCodeFixAsync("""
+                class C
+                {
+                    async void M()
+                    {
+                        {|CS0127:return|} (null, string.Empty);
+                    }
+                }
+                """, """
+                class C
+                {
+                    async System.Threading.Tasks.Task<(object, string)> M()
+                    {
+                        return (null, string.Empty);
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(65302, "https://github.com/dotnet/roslyn/issues/65302")]
+        public async Task ReturnTypelessTuple_Nested_Async()
+        {
+            await VerifyCS.VerifyCodeFixAsync("""
+                class C
+                {
+                    async void M()
+                    {
+                        {|CS0127:return|} ((5, null), string.Empty);
+                    }
+                }
+                """, """
+                class C
+                {
+                    async System.Threading.Tasks.Task<((int, object), string)> M()
+                    {
+                        return ((5, null), string.Empty);
+                    }
+                }
+                """);
+        }
+
         [Fact]
         public async Task ReturnLambda()
         {
