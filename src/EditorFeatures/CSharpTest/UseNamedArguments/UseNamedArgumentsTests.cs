@@ -579,7 +579,7 @@ class C {
             }.RunAsync();
         }
 
-        [WorkItem(63362, "https://github.com/dotnet/roslyn/issues/63362")]
+        [Fact, WorkItem(63362, "https://github.com/dotnet/roslyn/issues/63362")]
         public async Task TestTrivia()
         {
             await VerifyCS.VerifyRefactoringAsync(@"
@@ -611,7 +611,7 @@ class C
 ");
         }
 
-        [WorkItem(63362, "https://github.com/dotnet/roslyn/issues/63362")]
+        [Fact, WorkItem(63362, "https://github.com/dotnet/roslyn/issues/63362")]
         public async Task TestTrivia_Attribute()
         {
             await VerifyCS.VerifyRefactoringAsync(@"
