@@ -12709,12 +12709,12 @@ class C
                 int V_2, //z
                 int V_3)
   IL_0000:  nop
-  IL_0001:  ldc.i4.1
-  IL_0002:  stloc.0
+  IL_0001:  ldc.i4.3
+  IL_0002:  stloc.2
   IL_0003:  ldc.i4.2
   IL_0004:  stloc.1
-  IL_0005:  ldc.i4.3
-  IL_0006:  stloc.2
+  IL_0005:  ldc.i4.1
+  IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  ldloc.1
   IL_0009:  add
@@ -12745,10 +12745,10 @@ class C
                 [int] V_3,
                 int V_4)
   IL_0000:  nop
-  IL_0001:  ldc.i4.1
-  IL_0002:  stloc.0
-  IL_0003:  ldc.i4.3
-  IL_0004:  stloc.2
+  IL_0001:  ldc.i4.3
+  IL_0002:  stloc.2
+  IL_0003:  ldc.i4.1
+  IL_0004:  stloc.0
   IL_0005:  ldloc.0
   IL_0006:  ldloc.2
   IL_0007:  add
@@ -12776,12 +12776,12 @@ class C
                 int V_5, //y
                 int V_6)
   IL_0000:  nop
-  IL_0001:  ldc.i4.1
-  IL_0002:  stloc.0
+  IL_0001:  ldc.i4.3
+  IL_0002:  stloc.2
   IL_0003:  ldc.i4.2
   IL_0004:  stloc.s    V_5
-  IL_0006:  ldc.i4.3
-  IL_0007:  stloc.2
+  IL_0006:  ldc.i4.1
+  IL_0007:  stloc.0
   IL_0008:  ldloc.0
   IL_0009:  ldloc.s    V_5
   IL_000b:  add

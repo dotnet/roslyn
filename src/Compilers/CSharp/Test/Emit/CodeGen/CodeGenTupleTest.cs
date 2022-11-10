@@ -29372,6 +29372,7 @@ True
                 C.M1();
                 C.M2();
                 C.M3();
+                C.M4();
 
                 class C
                 {
@@ -29390,6 +29391,12 @@ True
 
                     public static void M2()
                     {
+                        (int x, int y) = (Effect(1), Effect(2));
+                        Console.WriteLine((x, y));
+                    }
+
+                    public static void M3()
+                    {
                         int x, y;
                         int temp1 = Effect(1);
                         int temp2 = Effect(2);
@@ -29398,7 +29405,7 @@ True
                         Console.WriteLine((x, y));
                     }
 
-                    public static void M3()
+                    public static void M4()
                     {
                         int x, y;
                         (x, y) = ValueTuple.Create(Effect(1), Effect(2));
@@ -29435,12 +29442,16 @@ True
                 Effect: 1
                 Effect: 2
                 (1, 2)
+                Effect: 1
+                Effect: 2
+                (1, 2)
                 """);
 
             verifier.VerifyIL("C.M1", expectedIL);
             verifier.VerifyIL("C.M2", expectedIL);
+            verifier.VerifyIL("C.M3", expectedIL);
 
-            verifier.VerifyIL("C.M3", """
+            verifier.VerifyIL("C.M4", """
             {
               // Code size       48 (0x30)
               .maxstack  2
