@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis
                 EncodedStringText.Create(stream, DefaultEncoding, checksumAlgorithm: options.ChecksumAlgorithm);
 #pragma warning restore
 
-        [Obsolete("Use/override LoadTextAndVersionAsync(LoadTextOptions, CancellationToken)")]
+        [Obsolete("Use/override LoadTextAndVersionAsync(LoadTextOptions, CancellationToken)", false)]
         public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
             => base.LoadTextAndVersionAsync(workspace, documentId, cancellationToken);
 
