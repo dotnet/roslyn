@@ -17,6 +17,7 @@ variables:
   BuildConfiguration: Release
   codecov_token: c8862aaf-0c6d-48ee-a4a7-e88af58ef469
   NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages
+  Codeql.Enabled: true
 
 jobs:
 - template: azure-pipelines/build.yml
