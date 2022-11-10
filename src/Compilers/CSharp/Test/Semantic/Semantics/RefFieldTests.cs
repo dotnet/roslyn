@@ -4825,6 +4825,51 @@ class Program
                 using System.Diagnostics.CodeAnalysis;
                 ref struct R
                 {
+                    public ref int FA() => throw null;
+                    [UnscopedRef] public ref int FB() => throw null;
+                }
+                class Program
+                {
+                    static void F1(ref R r1, in int i1) { }
+                    static void F2(ref R r2, [UnscopedRef] in int i2) { }
+                    static void F(ref R x)
+                    {
+                        R y = default;
+                        F1(ref x, y.FA());
+                        F1(ref x, y.FB());
+                        F2(ref x, y.FA());
+                        F2(ref x, y.FB()); // 1
+                        F1(ref x, in y.FA());
+                        F1(ref x, in y.FB());
+                        F2(ref x, in y.FA());
+                        F2(ref x, in y.FB()); // 2
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (17,9): error CS8350: This combination of arguments to 'Program.F2(ref R, in int)' is disallowed because it may expose variables referenced by parameter 'i2' outside of their declaration scope
+                //         F2(ref x, y.FB()); // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x, y.FB())").WithArguments("Program.F2(ref R, in int)", "i2").WithLocation(17, 9),
+                // (17,19): error CS8168: Cannot return local 'y' by reference because it is not a ref local
+                //         F2(ref x, y.FB()); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "y").WithArguments("y").WithLocation(17, 19),
+                // (21,9): error CS8350: This combination of arguments to 'Program.F2(ref R, in int)' is disallowed because it may expose variables referenced by parameter 'i2' outside of their declaration scope
+                //         F2(ref x, in y.FB()); // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x, in y.FB())").WithArguments("Program.F2(ref R, in int)", "i2").WithLocation(21, 9),
+                // (21,22): error CS8168: Cannot return local 'y' by reference because it is not a ref local
+                //         F2(ref x, in y.FB()); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "y").WithArguments("y").WithLocation(21, 22));
+        }
+
+        // As above, but with ref readonly returns.
+        [Fact]
+        public void MethodArgumentsMustMatch_18()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                ref struct R
+                {
                     public ref readonly int FA() => throw null;
                     [UnscopedRef] public ref readonly int FB() => throw null;
                 }
@@ -4861,7 +4906,6 @@ class Program
                 //         F2(ref x, in y.FB()); // 2
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "y").WithArguments("y").WithLocation(21, 22));
         }
-
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
