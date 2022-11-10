@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -22,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [ExportCSharpVisualBasicStatelessLspService(typeof(WorkspaceSymbolsHandler)), Shared]
     [Method(Methods.WorkspaceSymbolName)]
-    internal class WorkspaceSymbolsHandler : ILspServiceRequestHandler<WorkspaceSymbolParams, SymbolInformation[]?>
+    internal sealed class WorkspaceSymbolsHandler : ILspServiceRequestHandler<WorkspaceSymbolParams, SymbolInformation[]?>
     {
         private static readonly IImmutableSet<string> s_supportedKinds =
             ImmutableHashSet.Create(
@@ -40,16 +39,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 NavigateToItemKind.Structure);
 
         private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public WorkspaceSymbolsHandler(
-            IAsynchronousOperationListenerProvider listenerProvider,
-            IThreadingContext threadingContext)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.NavigateTo);
-            _threadingContext = threadingContext;
         }
 
         public bool MutatesSolutionState => false;
@@ -68,7 +64,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 new LSPNavigateToCallback(context, progress),
                 request.Query,
                 s_supportedKinds,
-                _threadingContext.DisposalToken);
+                cancellationToken);
 
             await searcher.SearchAsync(searchCurrentDocument: false, cancellationToken).ConfigureAwait(false);
             return progress.GetValues();
@@ -94,14 +90,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 if (location == null)
                     return;
 
-                _progress.Report(new VSSymbolInformation
-                {
-                    Name = result.Name,
-                    ContainerName = result.AdditionalInformation,
-                    Kind = ProtocolConversions.NavigateToKindToSymbolKind(result.Kind),
-                    Location = location,
-                    Icon = VSLspExtensionConversions.GetImageIdFromGlyph(result.NavigableItem.Glyph)
-                });
+                var service = project.Solution.Services.GetRequiredService<ILspSymbolInformationCreationService>();
+                var symbolInfo = service.Create(
+                    result.Name, result.AdditionalInformation, ProtocolConversions.NavigateToKindToSymbolKind(result.Kind), location, result.NavigableItem.Glyph);
+
+                _progress.Report(symbolInfo);
             }
 
             public void Done(bool isFullyLoaded)
