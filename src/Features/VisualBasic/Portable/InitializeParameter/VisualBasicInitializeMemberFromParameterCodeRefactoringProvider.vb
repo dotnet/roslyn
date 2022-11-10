@@ -4,6 +4,7 @@
 
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.InitializeParameter
@@ -62,6 +63,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
 
         Protected Overrides Function GetBody(functionDeclaration As SyntaxNode) As SyntaxNode
             Return InitializeParameterHelpers.GetBody(functionDeclaration)
+        End Function
+
+        Protected Overrides Function GetAccessorBody(accessor As IMethodSymbol, cancellationToken As CancellationToken) As SyntaxNode
+            If accessor.DeclaringSyntaxReferences.Length = 0 Then
+                Return Nothing
+            End If
+
+            Dim reference = accessor.DeclaringSyntaxReferences(0).GetSyntax(cancellationToken)
+            Return TryCast(TryCast(reference, AccessorStatementSyntax)?.Parent, AccessorBlockSyntax)
+        End Function
+
+        Protected Overrides Function RemoveThrowNotImplemented(propertySyntax As SyntaxNode) As SyntaxNode
+            Dim propertyBlock = TryCast(propertySyntax, PropertyBlockSyntax)
+            If propertyBlock IsNot Nothing Then
+                Dim accessors = SyntaxFactory.List(propertyBlock.Accessors.Select(Function(a) RemoveThrowNotImplemented(a)))
+                Return propertyBlock.WithAccessors(accessors)
+            End If
+
+            Return propertySyntax
+        End Function
+
+        Private Overloads Shared Function RemoveThrowNotImplemented(accessorBlock As AccessorBlockSyntax) As AccessorBlockSyntax
+            Return accessorBlock.WithStatements(Nothing)
         End Function
     End Class
 End Namespace

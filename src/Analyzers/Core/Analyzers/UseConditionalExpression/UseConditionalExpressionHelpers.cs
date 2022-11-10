@@ -61,11 +61,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 ? block.Operations[0]
                 : statement;
 
-        public static IOperation UnwrapImplicitConversion(IOperation value)
-            => value is IConversionOperation conversion && conversion.IsImplicit
-                ? conversion.Operand
-                : value;
-
         public static bool HasRegularComments(ISyntaxFacts syntaxFacts, SyntaxNode syntax)
             => HasRegularCommentTrivia(syntaxFacts, syntax.GetLeadingTrivia()) ||
                HasRegularCommentTrivia(syntaxFacts, syntax.GetTrailingTrivia());
@@ -75,9 +70,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             foreach (var trivia in triviaList)
             {
                 if (syntaxFacts.IsRegularComment(trivia))
-                {
                     return true;
-                }
             }
 
             return false;

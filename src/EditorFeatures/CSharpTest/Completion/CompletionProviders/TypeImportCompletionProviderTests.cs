@@ -29,14 +29,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             ForceExpandedCompletionIndexCreation = true;
         }
 
-        #region "Option tests"
-
-        [Fact]
-        public async Task OptionSetToNull_ExpEnabled()
+        [InlineData(null)]
+        [InlineData(true)]
+        [InlineData(false)]
+        [Theory]
+        public async Task OptionSetToTrue(bool? optionValue)
         {
-            TypeImportCompletionFeatureFlag = true;
-
-            ShowImportCompletionItemsOptionValue = null;
+            ShowImportCompletionItemsOptionValue = optionValue;
 
             var markup = @"
 class Bar
@@ -44,55 +43,15 @@ class Bar
      $$
 }";
 
-            await VerifyAnyItemExistsAsync(markup);
+            if (!optionValue.HasValue || optionValue.Value)
+            {
+                await VerifyAnyItemExistsAsync(markup);
+            }
+            else
+            {
+                await VerifyNoItemsExistAsync(markup);
+            }
         }
-
-        [Fact]
-        public async Task OptionSetToNull_ExpDisabled()
-        {
-            ShowImportCompletionItemsOptionValue = null;
-            ForceExpandedCompletionIndexCreation = false;
-            var markup = @"
-class Bar
-{
-     $$
-}";
-
-            await VerifyNoItemsExistAsync(markup);
-        }
-
-        [Theory, CombinatorialData]
-        public async Task OptionSetToFalse(bool isExperimentEnabled)
-        {
-            TypeImportCompletionFeatureFlag = isExperimentEnabled;
-            ShowImportCompletionItemsOptionValue = false;
-            ForceExpandedCompletionIndexCreation = false;
-
-            var markup = @"
-class Bar
-{
-     $$
-}";
-
-            await VerifyNoItemsExistAsync(markup);
-        }
-
-        [Theory, CombinatorialData]
-        public async Task OptionSetToTrue(bool isExperimentEnabled)
-        {
-            TypeImportCompletionFeatureFlag = isExperimentEnabled;
-            ShowImportCompletionItemsOptionValue = true;
-
-            var markup = @"
-class Bar
-{
-     $$
-}";
-
-            await VerifyAnyItemExistsAsync(markup);
-        }
-
-        #endregion
 
         #region "CompletionItem tests"
 
