@@ -10677,6 +10677,16 @@ f( [Attribute] () => { });
         }
 
         [Fact]
+        public async Task FormatAttributeOnLambdaParameter()
+        {
+            await AssertFormatAsync(expected: """
+                var f = ([Attribute] int x = 1) => x;
+                """, code: """
+                var f = (  [ Attribute ]int x=1)=>x;
+                """);
+        }
+
+        [Fact]
         public async Task FormatRawStringInterpolation()
         {
             await AssertFormatAsync(

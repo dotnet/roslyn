@@ -2325,13 +2325,33 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task Lambda_Parameter_DefaultValue()
+        public async Task Lambda_Parameter_DefaultValue_01()
         {
             await TestInMethodAsync(
 @"(int param = 42) => {
     return para$$m + 1;
 }",
     MainDescription($"({FeaturesResources.parameter}) int param = 42"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task Lambda_Parameter_DefaultValue_02()
+        {
+            await TestInMethodAsync(
+@"(int param = $$int.MaxValue) => {
+    return param + 1;
+}",
+    MainDescription($"{FeaturesResources.struct_} System.Int32"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task Lambda_Parameter_DefaultValue_03()
+        {
+            await TestInMethodAsync(
+@"(int param = int.$$MaxValue) => {
+    return param + 1;
+}",
+    MainDescription($"({FeaturesResources.constant}) const int int.MaxValue = 2147483647"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]

@@ -5870,8 +5870,7 @@ class C
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        // PROTOTYPE: Remove ConditionalFact once IOperation support is added for lambda default parameters
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LocalConstantUsedInLambdaDefaultParameterValue()
         {
             var source =
@@ -5892,8 +5891,7 @@ class C
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        // PROTOTYPE: Remove ConditionalFact once IOperation support is added for lambda default parameters
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void MultipleDependentLocalConstants_LambdaDefaultParameterValue()
         {
             var source =
