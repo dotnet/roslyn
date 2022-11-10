@@ -90,11 +90,9 @@ public class Test
             await TestServices.EditorVerifier.CurrentLineTextAsync("        object.Equals(null, null)$$", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
-        [IdeTheory]
-        [CombinatorialData]
-        public async Task TabTabCompleteNewObject([CombinatorialRange(0, 10)] int iteration)
+        [IdeFact]
+        public async Task TabTabCompleteNewObject()
         {
-            _ = iteration;
             await SetUpEditorAsync(@"
 public class Test
 {
@@ -118,11 +116,9 @@ public class Test
             await TestServices.EditorVerifier.CurrentLineTextAsync("        var value = new object()$$", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
-        [IdeTheory]
-        [CombinatorialData]
-        public async Task TabTabBeforeSemicolon([CombinatorialRange(0, 10)] int iteration)
+        [IdeFact]
+        public async Task TabTabBeforeSemicolon()
         {
-            _ = iteration;
             await SetUpEditorAsync(@"
 public class Test
 {
@@ -148,11 +144,9 @@ public class Test
             await TestServices.EditorVerifier.CurrentLineTextAsync("        f.ToString()$$;", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
-        [IdeTheory]
-        [CombinatorialData]
-        public async Task TabTabCompletionWithArguments([CombinatorialRange(0, 10)] int iteration)
+        [IdeFact]
+        public async Task TabTabCompletionWithArguments()
         {
-            _ = iteration;
             await SetUpEditorAsync(@"
 using System;
 public class Test
@@ -200,11 +194,9 @@ public class Test
             await TestServices.EditorVerifier.CurrentLineTextAsync("        f.ToString(\"format\"$$)", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
-        [IdeTheory]
-        [CombinatorialData]
-        public async Task FullCycle([CombinatorialRange(0, 10)] int iteration)
+        [IdeFact]
+        public async Task FullCycle()
         {
-            _ = iteration;
             await SetUpEditorAsync(@"
 using System;
 public class TestClass
@@ -245,11 +237,9 @@ public class TestClass
             await TestServices.EditorVerifier.CurrentLineTextAsync("        Test(0$$, 0)", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
-        [IdeTheory]
-        [CombinatorialData]
-        public async Task ImplicitArgumentSwitching([CombinatorialRange(0, 10)] int iteration)
+        [IdeFact]
+        public async Task ImplicitArgumentSwitching()
         {
-            _ = iteration;
             await SetUpEditorAsync(@"
 using System;
 public class TestClass
@@ -284,11 +274,9 @@ public class TestClass
         /// <summary>
         /// Argument completion with no arguments.
         /// </summary>
-        [IdeTheory]
-        [CombinatorialData]
-        public async Task SemicolonWithTabTabCompletion1([CombinatorialRange(0, 10)] int iteration)
+        [IdeFact]
+        public async Task SemicolonWithTabTabCompletion1()
         {
-            _ = iteration;
             await SetUpEditorAsync(@"
 public class Test
 {
@@ -351,11 +339,9 @@ public class Test
         /// <summary>
         /// Argument completion with exactly one argument.
         /// </summary>
-        [IdeTheory]
-        [CombinatorialData]
-        public async Task SemicolonWithTabTabCompletion3([CombinatorialRange(0, 10)] int iteration)
+        [IdeFact]
+        public async Task SemicolonWithTabTabCompletion3()
         {
-            _ = iteration;
             await SetUpEditorAsync(@"
 public class Test
 {
@@ -424,11 +410,9 @@ $$
 ", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
-        [IdeTheory]
-        [CombinatorialData]
-        public async Task SmartBreakLineWithTabTabCompletion2([CombinatorialRange(0, 10)] int iteration)
+        [IdeFact]
+        public async Task SmartBreakLineWithTabTabCompletion2()
         {
-            _ = iteration;
             await SetUpEditorAsync(@"
 public class Test
 {
@@ -511,12 +495,10 @@ public class Test
             await TestServices.EditorVerifier.CurrentLineTextAsync("        M(" + parameterText + ", 0, 0)", cancellationToken: HangMitigatingCancellationToken);
         }
 
-        [IdeTheory]
+        [IdeFact]
         [WorkItem(54038, "https://github.com/dotnet/roslyn/issues/54038")]
-        [CombinatorialData]
-        public async Task InsertPreprocessorSnippet([CombinatorialRange(0, 10)] int iteration)
+        public async Task InsertPreprocessorSnippet()
         {
-            _ = iteration;
             await SetUpEditorAsync(@"
 using System;
 public class TestClass
