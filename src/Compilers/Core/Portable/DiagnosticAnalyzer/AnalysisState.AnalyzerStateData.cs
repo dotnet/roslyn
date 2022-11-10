@@ -57,8 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public virtual void Free()
             {
-                Debug.Assert(StateKind != StateKind.InProcess);
-                this.StateKind = StateKind.ReadyToProcess;
+                Debug.Assert(StateKind == StateKind.ReadyToProcess);
                 this.ProcessedActions.Clear();
             }
         }
