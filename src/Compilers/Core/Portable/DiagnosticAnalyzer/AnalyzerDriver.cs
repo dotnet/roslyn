@@ -2654,7 +2654,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                 }
 
-                if (cacheAnalysisData)
+                if (cacheAnalysisData && success)
                 {
                     ClearCachedAnalysisDataIfAnalyzed(symbol, declarationIndex, analysisState);
                 }

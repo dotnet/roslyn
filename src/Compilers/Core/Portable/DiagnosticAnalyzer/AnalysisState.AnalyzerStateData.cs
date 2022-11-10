@@ -6,6 +6,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -16,10 +17,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         internal class AnalyzerStateData
         {
+            private int _stateKind;
+
             /// <summary>
             /// Current state of analysis.
             /// </summary>
-            public StateKind StateKind { get; private set; }
+            public StateKind StateKind
+            {
+                get
+                {
+                    return (StateKind)Volatile.Read(ref _stateKind);
+                }
+
+                private set
+                {
+                    _stateKind = (int)value;
+                }
+            }
 
             /// <summary>
             /// Set of completed actions.
