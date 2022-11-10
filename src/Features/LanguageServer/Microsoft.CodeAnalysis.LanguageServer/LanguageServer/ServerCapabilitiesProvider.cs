@@ -18,20 +18,6 @@ internal sealed class ServerCapabilitiesProvider : ICapabilitiesProvider
     public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
     {
         var roslynCapabilities = _roslynCapabilities.GetCapabilities(clientCapabilities);
-        return new()
-        {
-            TextDocumentSync = new TextDocumentSyncOptions
-            {
-                Change = TextDocumentSyncKind.Incremental,
-                OpenClose = true,
-            },
-            DefinitionProvider = roslynCapabilities.DefinitionProvider,
-            FoldingRangeProvider = roslynCapabilities.FoldingRangeProvider,
-            DocumentHighlightProvider = roslynCapabilities.DocumentHighlightProvider,
-            SignatureHelpProvider = roslynCapabilities.SignatureHelpProvider,
-            DocumentFormattingProvider = roslynCapabilities.DocumentFormattingProvider,
-            DocumentRangeFormattingProvider = roslynCapabilities.DocumentRangeFormattingProvider,
-            DocumentOnTypeFormattingProvider = roslynCapabilities.DocumentOnTypeFormattingProvider,
-        };
+        return roslynCapabilities;
     }
 }
