@@ -5,7 +5,7 @@
     <TargetFramework>net472</TargetFramework>
 
     <!-- VS Insertion -->
-    <TargetVsixContainerName>Roslyn.VisualStudio.Setup.ServiceHub.vsix</TargetVsixContainerName>
+    <TargetVsixContainerName>Roslyn.VisualStudio.Setup.ServiceHub.Desktop.Config.vsix</TargetVsixContainerName>
     <VisualStudioInsertionComponent>Microsoft.CodeAnalysis.LanguageServices</VisualStudioInsertionComponent>
 
     <!-- ServiceHub AssemblyPath -->
@@ -16,7 +16,7 @@
 
   <Target Name="_SetSwrFilePath">
     <PropertyGroup>
-      <_SwrFilePath>$(IntermediateOutputPath)Roslyn.VisualStudio.Setup.ServiceHub.swr</_SwrFilePath>
+      <_SwrFilePath>$(IntermediateOutputPath)Roslyn.VisualStudio.Setup.ServiceHub.Desktop.Config.swr</_SwrFilePath>
     </PropertyGroup>
   </Target>
   
