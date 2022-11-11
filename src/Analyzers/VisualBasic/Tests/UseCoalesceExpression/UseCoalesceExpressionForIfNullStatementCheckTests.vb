@@ -16,172 +16,75 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseCoalesceExpress
     <Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
     Public Class UseCoalesceExpressionForIfNullStatementCheckTests
         <Fact>
-        Public Async Function TestLocalDeclaration_ThrowStatement() As Task
+        Public Async Function TestLocalDeclaration_NotWithThrowStatement() As Task
+            Dim test = "
+                class C
+                    sub M()
+                        dim item = TryCast(FindItem(), C)
+                        [|if|] item is nothing
+                            throw new System.InvalidOperationException()
+                        end if
+                    end sub
+
+                    function FindItem() as object
+                        return nothing
+                    end function
+                end class
+                "
+
             Await New VerifyVB.Test() With {
-                .TestCode = """
-                class C
-                {
-                    void M()
-                    {
-                        var item = FindItem() as C;
-                        [|if|] (item == null)
-                            throw new System.InvalidOperationException();
-                    }
-
-                    object FindItem() => null;
-                }
-                """,
-                .FixedCode = """
-                class C
-                {
-                    void M()
-                    {
-                        var item = FindItem() as C ?? throw new System.InvalidOperationException();
-                    }
-                
-                    object FindItem() => null;
-                }
-                """
-            }.RunAsync()
-        End Function
-
-        <Fact>
-        Public Async Function TestLocalDeclaration_Block() As Task
-            Await New VerifyVB.Test With {
-                .TestCode = """
-                class C
-                {
-                    void M()
-                    {
-                        var item = FindItem() as C;
-                        [|if|] (item == null)
-                        {
-                            throw new System.InvalidOperationException();
-                        }
-                    }
-
-                    object FindItem() => null;
-                }
-                """,
-                .FixedCode = """
-                class C
-                {
-                    void M()
-                    {
-                        var item = FindItem() as C ?? throw new System.InvalidOperationException();
-                    }
-                
-                    object FindItem() => null;
-                }
-                """
-            }.RunAsync()
-        End Function
-
-        <Fact>
-        Public Async Function TestLocalDeclaration_IsPattern() As Task
-            Await New VerifyVB.Test With {
-                .TestCode = """
-                class C
-                {
-                    void M()
-                    {
-                        var item = FindItem() as C;
-                        [|if|] (item is null)
-                            throw new System.InvalidOperationException();
-                    }
-
-                    object FindItem() => null;
-                }
-                """,
-                .FixedCode = """
-                class C
-                {
-                    void M()
-                    {
-                        var item = FindItem() as C ?? throw new System.InvalidOperationException();
-                    }
-                
-                    object FindItem() => null;
-                }
-                """
+                .TestCode = test,
+                .FixedCode = test
             }.RunAsync()
         End Function
 
         <Fact>
         Public Async Function TestLocalDeclaration_Assignment1() As Task
             Await New VerifyVB.Test With {
-                .TestCode = """
+                .TestCode = "
                 class C
-                {
-                    void M()
-                    {
-                        var item = FindItem() as C;
-                        [|if|] (item == null)
-                            item = new C();
-                    }
+                    sub M()
+                        dim item = TryCast(FindItem(), C)
+                        [|if|] item is nothing
+                            item = new C()
+                        end if
+                    end sub
 
-                    object FindItem() => null;
-                }
-                """,
-                .FixedCode = """
+                    function FindItem() as object
+                        return nothing
+                    end function
+                end class
+                ",
+                .FixedCode = "
                 class C
-                {
-                    void M()
-                    {
-                        var item = FindItem() as C ?? new C();
-                    }
-                
-                    object FindItem() => null;
-                }
-                """
-            }.RunAsync()
-        End Function
+                    sub M()
+                        dim item = TryCast(If(FindItem(), new C()), C)
+                    end sub
 
-        <Fact>
-        Public Async Function TestLocalDeclaration_Assignment2() As Task
-            Await New VerifyVB.Test with {
-                .testcode = """
-                class C
-                {
-                    void M()
-                    {
-                        var item = FindItem() as C;
-                        [|if|] (item == null)
-                            item = new();
-                    }
-
-                    object FindItem() => null;
-                }
-                """,
-                .fixedcode = """
-                class C
-                {
-                    void M()
-                    {
-                        var item = FindItem() as C ?? new();
-                    }
-                
-                    object FindItem() => null;
-                }
-                """
+                    function FindItem() as object
+                        return nothing
+                    end function
+                end class
+                "
             }.RunAsync()
         End Function
 
         <Fact>
         Public Async Function TestLocalDeclaration_NotWithWrongItemChecked() As Task
-            Dim text = """
+            Dim text = "
                 class C
-                {
-                    void M(C item1)
-                    {
-                        var item = FindItem() as C;
-                        if (item1 == null)
-                            throw new System.InvalidOperationException();
-                    }
+                    sub M(item1 as C)
+                        dim item = TryCast(FindItem(), C)
+                        if item1 is nothing
+                            item = nothing
+                        end if
+                    end sub
 
-                    object FindItem() => null;
-                }
-                """
+                    function FindItem() as object
+                        return nothing
+                    end function
+                end class
+                "
 
             Await New VerifyVB.Test With {
                 .TestCode = text,
@@ -191,41 +94,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseCoalesceExpress
 
         <Fact>
         Public Async Function TestLocalDeclaration_NotWithWrongCondition() As Task
-            Dim text = """
+            Dim text = "
                 class C
-                {
-                    void M()
-                    {
-                        var item = FindItem() as C;
-                        if (item != null)
-                            throw new System.InvalidOperationException();
-                    }
+                    sub M()
+                        dim item = TryCast(FindItem(), C)
+                        if item isnot nothing
+                            item = nothing
+                        end if
+                    end sub
 
-                    object FindItem() => null;
-                }
-                """
-
-            Await New VerifyVB.Test With {
-                .TestCode = text,
-                .FixedCode = text
-            }.RunAsync()
-        End Function
-
-        <Fact>
-        Public Async Function TestLocalDeclaration_NotWithWrongPattern() As Task
-            Dim text = """
-                class C
-                {
-                    void M()
-                    {
-                        var item = FindItem() as C;
-                        if (item is not null)
-                            throw new System.InvalidOperationException();
-                    }
-
-                    object FindItem() => null;
-                }
-                """
+                    function FindItem() as object
+                        return nothing
+                    end function
+                end class
+                "
 
             Await New VerifyVB.Test With {
                 .TestCode = text,
@@ -235,19 +117,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseCoalesceExpress
 
         <Fact>
         Public Async Function TestLocalDeclaration_NotWithWrongAssignment() As Task
-            Dim text = """
+            Dim text = "
                 class C
-                {
-                    void M(C item1)
-                    {
-                        var item = FindItem() as C;
-                        if (item == null)
-                            item1 = new C();
-                    }
+                    sub M(item1 as C)
+                        dim item = TryCast(FindItem(), C)
+                        if item is nothing
+                            item1 = new C()
+                        end if
+                    end sub
 
-                    object FindItem() => null;
-                }
-                """
+                    function FindItem() as object
+                        return nothing
+                    end function
+                end class
+                "
 
             Await New VerifyVB.Test With {
                 .TestCode = text,
@@ -257,21 +140,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseCoalesceExpress
 
         <Fact>
         Public Async Function TestLocalDeclaration_NotWithElseBlock() As Task
-            Dim text = """
+            Dim text = "
                 class C
-                {
-                    void M(C item1)
-                    {
-                        var item = FindItem() as C;
-                        if (item == null)
-                            item = new C();
+                    sub M(item1 as C)
+                        dim item = TryCast(FindItem(), C)
+                        if item is nothing
+                            item = new C()
                         else
-                            item = null;
-                    }
+                            item = null
+                        end if
+                    end sub
 
-                    object FindItem() => null;
-                }
-                """
+                    function FindItem() as object
+                        return nothing
+                    end function
+                end class
+                "
 
             Await New VerifyVB.Test With {
                 .TestCode = text,
@@ -281,22 +165,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseCoalesceExpress
 
         <Fact>
         Public Async Function TestLocalDeclaration_NotWithMultipleWhenTrueStatements() As Task
-            Dim text = """
+            Dim text = "
                 class C
-                {
-                    void M(C item1)
-                    {
-                        var item = FindItem() as C;
-                        if (item == null)
-                        {
-                            item = new C();
-                            item = null;
-                        }
-                    }
+                    sub M(item1 as C)
+                        dim item = TryCast(FindItem(), C)
+                        if item is nothing
+                            item = new C()
+                            item = null
+                        end if
+                    end sub
 
-                    object FindItem() => null;
-                }
-                """
+                    function FindItem() as object
+                        return nothing
+                    end function
+                end class
+                "
 
             Await New VerifyVB.Test With {
                 .TestCode = text,
@@ -306,48 +189,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseCoalesceExpress
 
         <Fact>
         Public Async Function TestLocalDeclaration_NotWithNoWhenTrueStatements() As Task
-            Dim text = """
+            Dim text = "
                 class C
-                {
-                    void M(C item1)
-                    {
-                        var item = FindItem() as C;
-                        if (item == null)
-                        {
-                        }
-                    }
+                    sub M(item1 as C)
+                        dim item = TryCast(FindItem(), C)
+                        if item is nothing
+                        end if
+                    end sub
 
-                    object FindItem() => null;
-                }
-                """
-
-            Await New VerifyVB.Test With {
-                .TestCode = text,
-                .FixedCode = text
-            }.RunAsync()
-        End Function
-
-        <Fact>
-        Public Async Function TestLocalDeclaration_NotWithThrowWithoutExpression() As Task
-            Dim text = """
-                class C
-                {
-                    void M()
-                    {
-                        try
-                        {
-                        }
-                        catch
-                        {
-                            var item = FindItem() as C;
-                            if (item == null)
-                                throw;
-                        }
-                    }
-
-                    object FindItem() => null;
-                }
-                """
+                    function FindItem() as object
+                        return nothing
+                    end function
+                end class
+                "
 
             Await New VerifyVB.Test With {
                 .TestCode = text,
@@ -357,19 +211,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseCoalesceExpress
 
         <Fact>
         Public Async Function TestLocalDeclaration_NotWithLocalWithoutInitializer() As Task
-            Dim text = """
+            Dim text = "
                 class C
-                {
-                    void M()
-                    {
-                        C item;
-                        if ({|CS0165:item|} == null)
-                            throw new System.InvalidOperationException();
-                    }
+                    sub M()
+                        dim item as C
+                        if item is nothing
+                            item = nothing
+                        end if
+                    end sub
 
-                    object FindItem() => null;
-                }
-                """
+                    function FindItem() as object
+                        return nothing
+                    end function
+                end class
+                "
 
             Await New VerifyVB.Test With {
                 .TestCode = text,
@@ -379,19 +234,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseCoalesceExpress
 
         <Fact>
         Public Async Function TestLocalDeclaration_NotWithValueTypeInitializer() As Task
-            Dim text = """
+            Dim text = "
                 class C
-                {
-                    void M()
-                    {
-                        object item = 0;
-                        if (item == null)
-                            item = null;
-                    }
+                    sub M()
+                        dim item as object = 0
+                        if item is nothing
+                            item = null
+                        end if
+                    end sub
 
-                    object FindItem() => null;
-                }
-                """
+                    function FindItem() as object
+                        return nothing
+                    end function
+                end class
+                "
 
             Await New VerifyVB.Test With {
                 .TestCode = text,
