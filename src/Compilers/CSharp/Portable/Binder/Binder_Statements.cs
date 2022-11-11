@@ -1883,7 +1883,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node,
                 locals,
                 GetDeclaredLocalFunctionsForScope(node),
-                inUnsafeRegion: InUnsafeRegion,
+                inUnsafeRegion: InUnsafeRegion.ToThreeState(),
                 boundStatements);
         }
 

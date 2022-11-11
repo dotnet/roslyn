@@ -67,20 +67,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         private uint _localScopeDepth;
         private Dictionary<LocalSymbol, (uint RefEscapeScope, uint ValEscapeScope)>? _localEscapeScopes;
         private Dictionary<BoundValuePlaceholderBase, uint>? _placeholders;
+        private uint _switchGoverningValEscape;
 
         private RefSafetyAnalysis(
             CSharpCompilation compilation,
             Symbol symbol,
             bool inUnsafeRegion,
             bool useUpdatedEscapeRules,
-            BindingDiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics,
+            Dictionary<LocalSymbol, (uint RefEscapeScope, uint ValEscapeScope)>? localEscapeScopes = null)
         {
             _compilation = compilation;
             _symbol = symbol;
             _useUpdatedEscapeRules = useUpdatedEscapeRules;
             _diagnostics = diagnostics;
             _inUnsafeRegion = inUnsafeRegion;
-            _localScopeDepth = Binder.CurrentMethodScope;
+            _localScopeDepth = Binder.CurrentMethodScope - 1;
+            _localEscapeScopes = localEscapeScopes;
         }
 
         protected override BoundExpression? VisitExpressionWithoutStackGuard(BoundExpression node)
@@ -157,13 +160,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitBlock(BoundBlock node)
         {
-            using var region = new UnsafeRegion(this, node.InUnsafeRegion ?? _inUnsafeRegion);
+            var inUnsafeRegion = node.InUnsafeRegion;
+            using var region = new UnsafeRegion(this, inUnsafeRegion.HasValue() ? inUnsafeRegion.Value() :  _inUnsafeRegion);
             using var _ = new LocalScope(this);
             AddLocals(node.Locals);
             return base.VisitBlock(node);
         }
 
-        public override BoundNode Visit(BoundNode node)
+        public override BoundNode Visit(BoundNode? node)
         {
 #if DEBUG
             // PROTOTYPE: Ensure _localScopeDepth matches expected depth
@@ -194,7 +198,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // PROTOTYPE: Test all combinations of { safe, unsafe } for { container, local function }.
             var localFunction = node.Symbol;
             // PROTOTYPE: Test local function within unsafe block.
-            var analysis = new RefSafetyAnalysis(_compilation, localFunction, localFunction.IsUnsafe, _useUpdatedEscapeRules, _diagnostics);
+            // PROTOTYPE: It's not clear we should be reusing _localEscapeScopes across nested local functions
+            // (or lambdas in VisitLambda) because _localScopeDepth is reset when entering the local function
+            // (or lambda) so the scopes are unrelated across the outer and inner methods.
+            // See https://github.com/dotnet/roslyn/issues/65353 for a related bug.
+            var analysis = new RefSafetyAnalysis(_compilation, localFunction, localFunction.IsUnsafe, _useUpdatedEscapeRules, _diagnostics, _localEscapeScopes);
             analysis.Visit(node.BlockBody);
             analysis.Visit(node.ExpressionBody);
             return null;
@@ -203,9 +211,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitLambda(BoundLambda node)
         {
             var lambda = node.Symbol;
-            var analysis = new RefSafetyAnalysis(_compilation, lambda, _inUnsafeRegion, _useUpdatedEscapeRules, _diagnostics);
+            var analysis = new RefSafetyAnalysis(_compilation, lambda, _inUnsafeRegion, _useUpdatedEscapeRules, _diagnostics, _localEscapeScopes);
             analysis.Visit(node.Body);
             return null;
+        }
+
+        public override BoundNode? VisitConstructorMethodBody(BoundConstructorMethodBody node)
+        {
+            using var _ = new LocalScope(this);
+            AddLocals(node.Locals);
+            return base.VisitConstructorMethodBody(node);
         }
 
         public override BoundNode? VisitForStatement(BoundForStatement node)
@@ -230,11 +245,61 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitFixedStatement(node);
         }
 
+        public override BoundNode? VisitDoStatement(BoundDoStatement node)
+        {
+            using var _ = new LocalScope(this);
+            AddLocals(node.Locals);
+            return base.VisitDoStatement(node);
+        }
+
+        public override BoundNode? VisitWhileStatement(BoundWhileStatement node)
+        {
+            using var _ = new LocalScope(this);
+            AddLocals(node.Locals);
+            return base.VisitWhileStatement(node);
+        }
+
+        public override BoundNode? VisitSwitchStatement(BoundSwitchStatement node)
+        {
+            using var _ = new LocalScope(this);
+            // PROTOTYPE: Do we need the same for switch expressions?
+            // PROTOTYPE: Shouldn't be tracking this value in a field. We should be explicitly walking
+            // the SwitchSections here, similar to how this was created in Binder.BuildSwitchLabels().
+            var previousValEscape = _switchGoverningValEscape;
+            _switchGoverningValEscape = GetValEscape(node.Expression, _localScopeDepth);
+            AddLocals(node.InnerLocals);
+            base.VisitSwitchStatement(node);
+            _switchGoverningValEscape = previousValEscape;
+            return null;
+        }
+
         public override BoundNode? VisitSwitchSection(BoundSwitchSection node)
         {
             using var _ = new LocalScope(this);
             AddLocals(node.Locals);
             return base.VisitSwitchSection(node);
+        }
+
+        public override BoundNode? VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
+        {
+            using var _ = new LocalScope(this);
+            AddLocals(node.Locals);
+            return base.VisitSwitchExpressionArm(node);
+        }
+
+        public override BoundNode? VisitCatchBlock(BoundCatchBlock node)
+        {
+            using var _ = new LocalScope(this);
+            AddLocals(node.Locals);
+            return base.VisitCatchBlock(node);
+        }
+
+        public override BoundNode? VisitLocal(BoundLocal node)
+        {
+            Debug.Assert(_localEscapeScopes?.ContainsKey(node.LocalSymbol) == true ||
+                (node.LocalSymbol.ContainingSymbol is SynthesizedSimpleProgramEntryPointSymbol entryPoint && _symbol != entryPoint));
+
+            return base.VisitLocal(node);
         }
 
         // PROTOTYPE: This needs to be called from every BoundNode that includes Locals.
@@ -312,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitReturnStatement(BoundReturnStatement node)
         {
-            if (node.ExpressionOpt is { } expr)
+            if (node.ExpressionOpt is { Type: { } } expr)
             {
                 ValidateEscape(expr, Binder.ReturnOnlyScope, node.RefKind != RefKind.None, _diagnostics);
             }
@@ -321,7 +386,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitYieldReturnStatement(BoundYieldReturnStatement node)
         {
-            ValidateEscape(node.Expression, Binder.ReturnOnlyScope, isByRef: false, _diagnostics);
+            if (node.Expression is { Type: { } } expr)
+            {
+                ValidateEscape(expr, Binder.ReturnOnlyScope, isByRef: false, _diagnostics);
+            }
             return base.VisitYieldReturnStatement(node);
         }
 
@@ -329,6 +397,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ValidateAssignment(node.Syntax, node.Left, node.Right, node.IsRef, _diagnostics);
             return base.VisitAssignmentOperator(node);
+        }
+
+        public override BoundNode? VisitIsPatternExpression(BoundIsPatternExpression node)
+        {
+            if (node.Pattern is BoundObjectPattern { Variable: LocalSymbol local })
+            {
+                uint valEscape = GetValEscape(node.Expression, _localScopeDepth);
+                SetLocalScopes(local, _localScopeDepth, valEscape);
+            }
+
+            return base.VisitIsPatternExpression(node);
+        }
+
+        public override BoundNode? VisitDeclarationPattern(BoundDeclarationPattern node)
+        {
+            if (node.Variable is LocalSymbol local)
+            {
+                SetLocalScopes(local, _localScopeDepth, _switchGoverningValEscape);
+            }
+            return base.VisitDeclarationPattern(node);
         }
 
         public override BoundNode? VisitConditionalOperator(BoundConditionalOperator node)
@@ -344,35 +432,97 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             base.VisitCall(node);
 
-            var method = node.Method;
-            CheckInvocationArgMixing(
-                node.Syntax,
-                method,
-                node.ReceiverOpt,
-                method.Parameters,
-                node.Arguments,
-                node.ArgumentRefKindsOpt,
-                node.ArgsToParamsOpt,
-                _localScopeDepth,
-                _diagnostics);
+            if (!node.HasErrors)
+            {
+                var method = node.Method;
+                // PROTOTYPE: Should this substitution surround base.VisitCall(node) above?
+                // PROTOTYPE: Need placeholder substitution whenever we visit any call,
+                // and regardless of whether it's Get, Check, Val, Ref, or ArgMixing.
+                var placeholders = ArrayBuilder<(BoundInterpolatedStringArgumentPlaceholder, uint)>.GetInstance();
+                for (int i = 0; i < node.Arguments.Length; i++)
+                {
+                    getInterpolatedStringPlaceholders(i, node.Arguments[i], method.Parameters, node.ArgumentRefKindsOpt, node.ArgsToParamsOpt, placeholders);
+                }
+                foreach (var (placeholder, valEscapeScope) in placeholders)
+                {
+                    AddPlaceholder(placeholder, valEscapeScope);
+                }
+                CheckInvocationArgMixing(
+                    node.Syntax,
+                    method,
+                    node.ReceiverOpt,
+                    method.Parameters,
+                    node.Arguments,
+                    node.ArgumentRefKindsOpt,
+                    node.ArgsToParamsOpt,
+                    _localScopeDepth,
+                    _diagnostics);
+                foreach (var (placeholder, _) in placeholders)
+                {
+                    RemovePlaceholder(placeholder);
+                }
+                placeholders.Free();
+            }
+
             return null;
+
+            void getInterpolatedStringPlaceholders(
+                int argIndex,
+                BoundExpression argument,
+                ImmutableArray<ParameterSymbol> parameters,
+                ImmutableArray<RefKind> argRefKindsOpt,
+                ImmutableArray<int> argsToParamsOpt,
+                ArrayBuilder<(BoundInterpolatedStringArgumentPlaceholder, uint)> placeholders)
+            {
+                if (argument is BoundConversion { ConversionKind: ConversionKind.InterpolatedStringHandler, Operand: BoundInterpolatedString or BoundBinaryOperator } conversion)
+                {
+                    var interpolationData = conversion.Operand.GetInterpolatedStringHandlerData();
+                    foreach (var placeholder in interpolationData.ArgumentPlaceholders)
+                    {
+                        BoundExpression expr;
+                        switch (placeholder.ArgumentIndex)
+                        {
+                            case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
+                                Debug.Assert(node.ReceiverOpt is { });
+                                expr = node.ReceiverOpt;
+                                break;
+                            case >= 0:
+                                var paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
+                                RefKind argRefKind = argRefKindsOpt.RefKinds(argIndex);
+                                RefKind paramRefKind = parameters[paramIndex].RefKind;
+                                Debug.Assert(paramRefKind == RefKind.None); // PROTOTYPE: Handle other cases, including value passed to RefKind.In. See addInterpolationPlaceholderReplacements().
+                                expr = argument;
+                                break;
+                            case BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter:
+                                continue;
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(placeholder.ArgumentIndex);
+                        }
+                        placeholders.Add((placeholder, GetValEscape(expr, _localScopeDepth)));
+                    }
+                }
+            }
         }
 
         public override BoundNode? VisitObjectCreationExpression(BoundObjectCreationExpression node)
         {
             base.VisitObjectCreationExpression(node);
 
-            var constructor = node.Constructor;
-            CheckInvocationArgMixing(
-                node.Syntax,
-                constructor,
-                receiverOpt: null,
-                constructor.Parameters,
-                node.Arguments,
-                node.ArgumentRefKindsOpt,
-                node.ArgsToParamsOpt,
-                _localScopeDepth,
-                _diagnostics);
+            if (!node.HasErrors)
+            {
+                var constructor = node.Constructor;
+                CheckInvocationArgMixing(
+                    node.Syntax,
+                    constructor,
+                    receiverOpt: null,
+                    constructor.Parameters,
+                    node.Arguments,
+                    node.ArgumentRefKindsOpt,
+                    node.ArgsToParamsOpt,
+                    _localScopeDepth,
+                    _diagnostics);
+            }
+
             return null;
         }
 
@@ -380,17 +530,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             base.VisitIndexerAccess(node);
 
-            var indexer = node.Indexer;
-            CheckInvocationArgMixing(
-                node.Syntax,
-                indexer,
-                node.ReceiverOpt,
-                indexer.Parameters,
-                node.Arguments,
-                node.ArgumentRefKindsOpt,
-                node.ArgsToParamsOpt,
-                _localScopeDepth,
-                _diagnostics);
+            if (!node.HasErrors)
+            {
+                var indexer = node.Indexer;
+                CheckInvocationArgMixing(
+                    node.Syntax,
+                    indexer,
+                    node.ReceiverOpt,
+                    indexer.Parameters,
+                    node.Arguments,
+                    node.ArgumentRefKindsOpt,
+                    node.ArgsToParamsOpt,
+                    _localScopeDepth,
+                    _diagnostics);
+            }
+
             return null;
         }
 
@@ -398,6 +552,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             base.VisitDeconstructionAssignmentOperator(node);
 
+            // PROTOTYPE: Should this substitution surround base.VisitDeconstructionAssignmentOperator(node) above?
+            // PROTOTYPE: Do we need this placeholder substitution even if we have a deconstruction assignment within a Get, Check, Val, Ref call?
             var right = node.Right;
             var conversion = right.Conversion;
             Debug.Assert(conversion.Kind == ConversionKind.Deconstruction);

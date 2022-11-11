@@ -3043,7 +3043,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundBlock : BoundStatementList
     {
-        public BoundBlock(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, bool? inUnsafeRegion, ImmutableArray<BoundStatement> statements, bool hasErrors = false)
+        public BoundBlock(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, ThreeState inUnsafeRegion, ImmutableArray<BoundStatement> statements, bool hasErrors = false)
             : base(BoundKind.Block, syntax, statements, hasErrors || statements.HasErrors())
         {
 
@@ -3058,14 +3058,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ImmutableArray<LocalSymbol> Locals { get; }
         public ImmutableArray<LocalFunctionSymbol> LocalFunctions { get; }
-        public bool? InUnsafeRegion { get; }
+        public ThreeState InUnsafeRegion { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitBlock(this);
 
-        public BoundBlock Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, bool? inUnsafeRegion, ImmutableArray<BoundStatement> statements)
+        public BoundBlock Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, ThreeState inUnsafeRegion, ImmutableArray<BoundStatement> statements)
         {
-            if (locals != this.Locals || localFunctions != this.LocalFunctions || inUnsafeRegion.Equals(this.InUnsafeRegion) || statements != this.Statements)
+            if (locals != this.Locals || localFunctions != this.LocalFunctions || inUnsafeRegion != this.InUnsafeRegion || statements != this.Statements)
             {
                 var result = new BoundBlock(this.Syntax, locals, localFunctions, inUnsafeRegion, statements, this.HasErrors);
                 result.CopyAttributes(this);

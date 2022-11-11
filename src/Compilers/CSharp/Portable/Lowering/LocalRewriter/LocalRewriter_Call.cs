@@ -456,7 +456,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Handler conversions are not supported in expression lambdas.
                     Debug.Assert(!_inExpressionLambda);
                     var interpolationData = conversion.Operand.GetInterpolatedStringHandlerData();
-                    var creation = (BoundObjectCreationExpression)interpolationData.Construction;
 
                     if (interpolationData.ArgumentPlaceholders.Length > (interpolationData.HasTrailingHandlerValidityParameter ? 1 : 0))
                     {

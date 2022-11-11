@@ -14126,6 +14126,37 @@ class Program
             comp.VerifyDiagnostics();
         }
 
+        [Fact]
+        public void RefEscape_14()
+        {
+            var code = """
+using System.Runtime.CompilerServices;
+[InterpolatedStringHandler]
+struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount) { }
+}
+ref struct R { }
+class Program
+{
+    static R F1()
+    {
+        R r = F2($"");
+        return r;
+    }
+    static R F2(ref CustomHandler handler)
+    {
+        return default;
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.Regular, targetFramework: TargetFramework.Net50);
+            comp.VerifyDiagnostics(
+                // (13,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(13, 16));
+        }
+
         [Theory, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
         [InlineData(@"$""{{ {i} }}""")]
         [InlineData(@"$""{{ "" + $""{i}"" + $"" }}""")]

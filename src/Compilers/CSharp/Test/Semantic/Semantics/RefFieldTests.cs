@@ -27536,5 +27536,27 @@ class Program
                 //             r2;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "r2").WithArguments("r2").WithLocation(21, 13));
         }
+
+        [Fact]
+        public void TopLevelStatementLocal()
+        {
+            var source = """
+                int i = 0;
+                ref int r = ref i;
+                class C
+                {
+                    static void F1() { F2(ref r); }
+                    static ref int F2(ref int r) => ref r;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,31): error CS8801: Cannot use local variable or local function 'r' declared in a top-level statement in this context.
+                //     static void F1() { F2(ref r); }
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "r").WithArguments("r").WithLocation(5, 31),
+                // (5,31): error CS0165: Use of unassigned local variable 'r'
+                //     static void F1() { F2(ref r); }
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "r").WithArguments("r").WithLocation(5, 31));
+        }
     }
 }

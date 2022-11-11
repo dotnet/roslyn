@@ -667,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     localBuilder.Add(local);
                 }
 
-                body = block.Update(localBuilder.ToImmutableAndFree(), block.LocalFunctions, block.Statements);
+                body = block.Update(localBuilder.ToImmutableAndFree(), block.LocalFunctions, block.InUnsafeRegion, block.Statements);
                 TypeParameterChecker.Check(body, _allTypeParameters);
                 compilationState.AddSynthesizedMethod(this, body);
             }
