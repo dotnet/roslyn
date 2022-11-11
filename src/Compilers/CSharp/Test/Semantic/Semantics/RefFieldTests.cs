@@ -15635,7 +15635,7 @@ class Program
             Assert.Null(model.GetSymbolInfo(invocations[1]).Symbol);
         }
 
-        [Fact]
+        [Fact, WorkItem(64985, "https://github.com/dotnet/roslyn/issues/64985")]
         public void DelegateConversions_ImplicitlyTypedParameter_ParameterlessAnonymousMethod_Ref()
         {
             var source = """
@@ -15674,7 +15674,7 @@ class Program
             Assert.Equal("lambda expression", method.ToTestDisplayString());
             var parameters = method.GetParameters();
             Assert.Equal("R <p0>", parameters[0].ToTestDisplayString());
-            Assert.Equal("ref R <p1>", parameters[1].ToTestDisplayString());
+            Assert.Equal("R <p1>", parameters[1].ToTestDisplayString());
         }
 
         [Fact]
