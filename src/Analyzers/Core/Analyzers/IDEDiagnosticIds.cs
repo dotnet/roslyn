@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UseCollectionInitializerDiagnosticId = "IDE0028";
 
-        public const string UseCoalesceExpressionDiagnosticId = "IDE0029";
-        public const string UseCoalesceExpressionForNullableDiagnosticId = "IDE0030";
+        public const string UseCoalesceExpressionForTernaryConditionalCheckDiagnosticId = "IDE0029";
+        public const string UseCoalesceExpressionForNullableTernaryConditionalCheckDiagnosticId = "IDE0030";
 
         public const string UseNullPropagationDiagnosticId = "IDE0031";
 
@@ -182,6 +182,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string RemoveUnnecessaryNullableDirectiveDiagnosticId = "IDE0241";
 
         public const string MakeStructReadOnlyDiagnosticId = "IDE0250";
+
+        public const string UseCoalesceExpressionForIfNullCheckDiagnosticId = "IDE0260";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
