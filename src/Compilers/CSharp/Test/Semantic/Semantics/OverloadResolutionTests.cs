@@ -8319,6 +8319,9 @@ public class C : CodeAccessSecurityAttribute
                 // (16,35): error CS1001: Identifier expected
                 //     public A(params SecurityAction)
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(16, 35),
+                // (30,22): error CS0231: A params parameter must be the last parameter in a parameter list
+                //     public C(int p1, params SecurityAction p2, string p3)
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params SecurityAction p2").WithLocation(30, 22),
                 // (14,14): error CS0534: 'A' does not implement inherited abstract member 'SecurityAttribute.CreatePermission()'
                 // public class A : CodeAccessSecurityAttribute
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "A").WithArguments("A", "System.Security.Permissions.SecurityAttribute.CreatePermission()").WithLocation(14, 14),

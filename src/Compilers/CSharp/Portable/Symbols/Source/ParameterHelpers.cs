@@ -641,11 +641,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // error CS0225: The params parameter must be a single dimensional array
                 diagnostics.Add(ErrorCode.ERR_ParamsMustBeArray, paramsKeyword.GetLocation());
             }
-            else if (isParams && ordinal != lastParameterIndex)
-            {
-                // error CS0231: A params parameter must be the last parameter in a parameter list
-                diagnostics.Add(ErrorCode.ERR_ParamsLast, syntax.GetLocation());
-            }
             else if (typeWithAnnotations.IsStatic)
             {
                 Debug.Assert(containingSymbol is null || (containingSymbol is FunctionPointerMethodSymbol or { ContainingType: not null }));
@@ -666,6 +661,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // CS1601: Cannot make reference to variable of type 'System.TypedReference'
                 diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, syntax.Location, typeWithAnnotations.Type);
+            }
+
+            if (isParams && ordinal != lastParameterIndex)
+            {
+                // error CS0231: A params parameter must be the last parameter in a parameter list
+                diagnostics.Add(ErrorCode.ERR_ParamsLast, syntax.GetLocation());
             }
 
             if (declaredScope == DeclarationScope.ValueScoped && !typeWithAnnotations.IsRefLikeType())

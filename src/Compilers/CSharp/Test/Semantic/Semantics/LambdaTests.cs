@@ -8267,7 +8267,10 @@ class Program
             CreateCompilation(source).VerifyDiagnostics(
                 // (1,12): error CS0231: A params parameter must be the last parameter in a parameter list
                 // var lam = (params int[] xs, int y) => xs.Length + y;
-                Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] xs").WithLocation(1, 12));
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] xs").WithLocation(1, 12),
+                // (1,25): warning CS9502: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // var lam = (params int[] xs, int y) => xs.Length + y;
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(1, 25));
         }
 
         [Fact]
@@ -8279,7 +8282,10 @@ class Program
             CreateCompilation(source).VerifyDiagnostics(
                 // (1,12): error CS0231: A params parameter must be the last parameter in a parameter list
                 // var lam = (params int[] xs, params int[] ys) => xs.Length + ys.Length;
-                Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] xs").WithLocation(1, 12));
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] xs").WithLocation(1, 12),
+                // (1,25): warning CS9502: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // var lam = (params int[] xs, params int[] ys) => xs.Length + ys.Length;
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(1, 25));
         }
 
         [Fact]
