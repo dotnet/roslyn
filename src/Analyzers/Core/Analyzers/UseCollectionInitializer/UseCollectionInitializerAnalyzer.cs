@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         {
             // If containing statement is inside a block (e.g. method), than we need to iterate through its child statements.
             // If containing statement is in top-level code, than we need to iterate through child statements of containing compilation unit.
-            var containingBlockOrCompilationUnit = _containingStatement.GetRequiredParent();
+            var containingBlockOrCompilationUnit = _containingStatement!.GetRequiredParent();
 
             // In case of top-level code parent of the statement will be GlobalStatementSyntax,
             // so we need to get its parent in order to get CompilationUnitSyntax
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             [NotNullWhen(true)] out SyntaxNode? instance)
         {
             instance = null;
-            if (_syntaxFacts.GetExpressionOfExpressionStatement(statement) is not TInvocationExpressionSyntax invocationExpression)
+            if (_syntaxFacts!.GetExpressionOfExpressionStatement(statement) is not TInvocationExpressionSyntax invocationExpression)
                 return false;
 
             var arguments = _syntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);

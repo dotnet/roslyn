@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -32,10 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public override CodeStyleOption2<ExpressionBodyPreference> GetExpressionBodyPreference(CSharpCodeGenerationOptions options)
             => options.PreferExpressionBodiedIndexers;
 
-        protected override BlockSyntax GetBody(IndexerDeclarationSyntax declaration)
+        protected override BlockSyntax? GetBody(IndexerDeclarationSyntax declaration)
             => GetBodyFromSingleGetAccessor(declaration.AccessorList);
 
-        protected override ArrowExpressionClauseSyntax GetExpressionBody(IndexerDeclarationSyntax declaration)
+        protected override ArrowExpressionClauseSyntax? GetExpressionBody(IndexerDeclarationSyntax declaration)
             => declaration.ExpressionBody;
 
         protected override SyntaxToken GetSemicolonToken(IndexerDeclarationSyntax declaration)
@@ -44,13 +43,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected override IndexerDeclarationSyntax WithSemicolonToken(IndexerDeclarationSyntax declaration, SyntaxToken token)
             => declaration.WithSemicolonToken(token);
 
-        protected override IndexerDeclarationSyntax WithExpressionBody(IndexerDeclarationSyntax declaration, ArrowExpressionClauseSyntax expressionBody)
+        protected override IndexerDeclarationSyntax WithExpressionBody(IndexerDeclarationSyntax declaration, ArrowExpressionClauseSyntax? expressionBody)
             => declaration.WithExpressionBody(expressionBody);
 
         protected override IndexerDeclarationSyntax WithAccessorList(IndexerDeclarationSyntax declaration, AccessorListSyntax accessorList)
             => declaration.WithAccessorList(accessorList);
 
-        protected override IndexerDeclarationSyntax WithBody(IndexerDeclarationSyntax declaration, BlockSyntax body)
+        protected override IndexerDeclarationSyntax WithBody(IndexerDeclarationSyntax declaration, BlockSyntax? body)
         {
             if (body == null)
             {
@@ -68,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected override bool TryConvertToExpressionBody(
             IndexerDeclarationSyntax declaration,
             ExpressionBodyPreference conversionPreference,
-            out ArrowExpressionClauseSyntax arrowExpression,
+            [NotNullWhen(true)] out ArrowExpressionClauseSyntax? arrowExpression,
             out SyntaxToken semicolonToken)
         {
             return TryConvertToExpressionBodyForBaseProperty(declaration, conversionPreference, out arrowExpression, out semicolonToken);
@@ -83,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             }
 
             var getAccessor = GetSingleGetAccessor(declaration.AccessorList);
-            return getAccessor.ExpressionBody.GetLocation();
+            return getAccessor!.ExpressionBody!.GetLocation();
         }
     }
 }

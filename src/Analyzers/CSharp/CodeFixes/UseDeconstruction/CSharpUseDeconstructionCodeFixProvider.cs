@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -63,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             Document document,
             SemanticModel semanticModel,
             SyntaxNode root,
-            SyntaxNode node,
+            SyntaxNode? node,
             CancellationToken cancellationToken)
         {
             var editor = new SyntaxEditor(root, document.Project.Solution.Services);
@@ -75,14 +73,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             ImmutableArray<MemberAccessExpressionSyntax> memberAccessExpressions = default;
             if (node is VariableDeclaratorSyntax variableDeclarator)
             {
-                var variableDeclaration = (VariableDeclarationSyntax)variableDeclarator.Parent;
+                var variableDeclaration = (VariableDeclarationSyntax)variableDeclarator.Parent!;
                 if (CSharpUseDeconstructionDiagnosticAnalyzer.TryAnalyzeVariableDeclaration(
                         semanticModel, variableDeclaration,
                         out var tupleType, out memberAccessExpressions,
                         cancellationToken))
                 {
                     editor.ReplaceNode(
-                        variableDeclaration.Parent,
+                        variableDeclaration.Parent!,
                         (current, _) =>
                         {
                             var currentDeclarationStatement = (LocalDeclarationStatementSyntax)current;
@@ -144,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 SyntaxFactory.AssignmentExpression(
                     SyntaxKind.SimpleAssignmentExpression,
                     CreateTupleOrDeclarationExpression(tupleType, declarationStatement.Declaration.Type),
-                    variableDeclarator.Initializer.EqualsToken,
+                    variableDeclarator.Initializer!.EqualsToken,
                     variableDeclarator.Initializer.Value),
                 declarationStatement.SemicolonToken);
         }
@@ -182,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
 
             // "int x" as a tuple element directly translates to "int x" (a declaration expression
             // with a variable designation 'x').
-            var node = (TupleElementSyntax)nodeOrToken.AsNode();
+            var node = (TupleElementSyntax)nodeOrToken.AsNode()!;
             return SyntaxFactory.Argument(
                 SyntaxFactory.DeclarationExpression(
                     node.Type,

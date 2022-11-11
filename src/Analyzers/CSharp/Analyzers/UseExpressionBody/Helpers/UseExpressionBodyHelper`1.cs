@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             return null;
         }
 
-        protected static BlockSyntax? GetBodyFromSingleGetAccessor(AccessorListSyntax accessorList)
+        protected static BlockSyntax? GetBodyFromSingleGetAccessor(AccessorListSyntax? accessorList)
             => GetSingleGetAccessor(accessorList)?.Body;
 
         public override BlockSyntax? GetBody(SyntaxNode declaration)

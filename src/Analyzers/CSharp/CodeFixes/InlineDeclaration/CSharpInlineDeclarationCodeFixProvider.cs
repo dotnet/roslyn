@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -58,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             var declarationsToRemove = new HashSet<StatementSyntax>();
             foreach (var diagnostic in diagnostics)
             {
-                declarationsToRemove.Add((LocalDeclarationStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken).Parent.Parent);
+                declarationsToRemove.Add((LocalDeclarationStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken).Parent!.Parent!);
             }
 
             // Attempt to use an out-var declaration if that's the style the user prefers.
@@ -112,13 +110,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             HashSet<StatementSyntax> declarationsToRemove,
             CancellationToken cancellationToken)
         {
-            declarator = currentRoot.GetCurrentNode(declarator);
-            identifier = currentRoot.GetCurrentNode(identifier);
+            declarator = currentRoot.GetCurrentNode(declarator)!;
+            identifier = currentRoot.GetCurrentNode(identifier)!;
 
             var editor = new SyntaxEditor(currentRoot, document.Project.Solution.Services);
             var sourceText = currentRoot.GetText();
 
-            var declaration = (VariableDeclarationSyntax)declarator.Parent;
+            var declaration = (VariableDeclarationSyntax)declarator.Parent!;
             var singleDeclarator = declaration.Variables.Count == 1;
 
             if (singleDeclarator)
@@ -127,12 +125,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 // the entire local declaration statement. Note that comments belonging to
                 // this local statement will be moved to be above the statement containing
                 // the out-var.
-                var localDeclarationStatement = (LocalDeclarationStatementSyntax)declaration.Parent;
-                var block = (BlockSyntax)localDeclarationStatement.Parent;
+                var localDeclarationStatement = (LocalDeclarationStatementSyntax)declaration.Parent!;
+                var block = (BlockSyntax)localDeclarationStatement.Parent!;
                 var declarationIndex = block.Statements.IndexOf(localDeclarationStatement);
 
                 // Try to find a predecessor Statement on the same line that isn't going to be removed
-                StatementSyntax priorStatementSyntax = null;
+                StatementSyntax? priorStatementSyntax = null;
                 var localDeclarationToken = localDeclarationStatement.GetFirstToken();
                 for (var i = declarationIndex - 1; i >= 0; i--)
                 {
@@ -170,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                     // Find the next Statement that isn't going to be removed.
                     // We initialize this to null here but we must see at least the statement
                     // into which the declaration is going to be inlined so this will be not null
-                    StatementSyntax nextStatementSyntax = null;
+                    StatementSyntax? nextStatementSyntax = null;
                     for (var i = declarationIndex + 1; i < block.Statements.Count; i++)
                     {
                         var statement = block.Statements[i];
@@ -182,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                     }
 
                     editor.ReplaceNode(
-                        nextStatementSyntax,
+                        nextStatementSyntax!,
                         (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclarationStatement));
                 }
 
@@ -227,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // Then the type is not-apparent, and we should not use var if the user only wants
             // it for apparent types
 
-            var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
+            var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator, cancellationToken)!;
             var newType = GenerateTypeSyntaxOrVar(local.Type, options);
 
             var declarationExpression = GetDeclarationExpression(
@@ -241,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
                 // If the user originally wrote it something other than 'var', then use what they
                 // wrote.  Otherwise, synthesize the actual type of the local.
-                var explicitType = declaration.Type.IsVar ? local.Type?.GenerateTypeSyntax() : declaration.Type;
+                var explicitType = declaration.Type.IsVar ? local.Type.GenerateTypeSyntax() : declaration.Type;
                 declarationExpression = SyntaxFactory.DeclarationExpression(explicitType, declarationExpression.Designation);
             }
 
@@ -278,26 +276,26 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
         private static DeclarationExpressionSyntax GetDeclarationExpression(
             SourceText sourceText, IdentifierNameSyntax identifier,
-            TypeSyntax newType, VariableDeclaratorSyntax declaratorOpt)
+            TypeSyntax newType, VariableDeclaratorSyntax? declarator)
         {
             var designation = SyntaxFactory.SingleVariableDesignation(identifier.Identifier);
 
-            if (declaratorOpt != null)
+            if (declarator != null)
             {
                 // We're removing a single declarator.  Copy any comments it has to the out-var.
                 //
                 // Note: this is tricky due to comment ownership.  We want the comments that logically
                 // belong to the declarator, even if our syntax model attaches them to other tokens.
-                var precedingTrivia = declaratorOpt.GetAllPrecedingTriviaToPreviousToken(
+                var precedingTrivia = declarator.GetAllPrecedingTriviaToPreviousToken(
                     sourceText, includePreviousTokenTrailingTriviaOnlyIfOnSameLine: true);
                 if (precedingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
                 {
                     designation = designation.WithPrependedLeadingTrivia(MassageTrivia(precedingTrivia));
                 }
 
-                if (declaratorOpt.GetTrailingTrivia().Any(t => t.IsSingleOrMultiLineComment()))
+                if (declarator.GetTrailingTrivia().Any(t => t.IsSingleOrMultiLineComment()))
                 {
-                    designation = designation.WithAppendedTrailingTrivia(MassageTrivia(declaratorOpt.GetTrailingTrivia()));
+                    designation = designation.WithAppendedTrailingTrivia(MassageTrivia(declarator.GetTrailingTrivia()));
                 }
             }
 
@@ -395,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         private static bool TryGetSpeculativeSemanticModel(
             SemanticModel semanticModel,
             int position, SyntaxNode topmostContainer,
-            out SemanticModel speculativeModel)
+            [NotNullWhen(true)] out SemanticModel? speculativeModel)
         {
             switch (topmostContainer)
             {

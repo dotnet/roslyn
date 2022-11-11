@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -32,10 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public override CodeStyleOption2<ExpressionBodyPreference> GetExpressionBodyPreference(CSharpCodeGenerationOptions options)
             => options.PreferExpressionBodiedProperties;
 
-        protected override BlockSyntax GetBody(PropertyDeclarationSyntax declaration)
+        protected override BlockSyntax? GetBody(PropertyDeclarationSyntax declaration)
             => GetBodyFromSingleGetAccessor(declaration.AccessorList);
 
-        protected override ArrowExpressionClauseSyntax GetExpressionBody(PropertyDeclarationSyntax declaration)
+        protected override ArrowExpressionClauseSyntax? GetExpressionBody(PropertyDeclarationSyntax declaration)
             => declaration.ExpressionBody;
 
         protected override SyntaxToken GetSemicolonToken(PropertyDeclarationSyntax declaration)
@@ -44,13 +43,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected override PropertyDeclarationSyntax WithSemicolonToken(PropertyDeclarationSyntax declaration, SyntaxToken token)
             => declaration.WithSemicolonToken(token);
 
-        protected override PropertyDeclarationSyntax WithExpressionBody(PropertyDeclarationSyntax declaration, ArrowExpressionClauseSyntax expressionBody)
+        protected override PropertyDeclarationSyntax WithExpressionBody(PropertyDeclarationSyntax declaration, ArrowExpressionClauseSyntax? expressionBody)
             => declaration.WithExpressionBody(expressionBody);
 
         protected override PropertyDeclarationSyntax WithAccessorList(PropertyDeclarationSyntax declaration, AccessorListSyntax accessorListSyntax)
             => declaration.WithAccessorList(accessorListSyntax);
 
-        protected override PropertyDeclarationSyntax WithBody(PropertyDeclarationSyntax declaration, BlockSyntax body)
+        protected override PropertyDeclarationSyntax WithBody(PropertyDeclarationSyntax declaration, BlockSyntax? body)
         {
             if (body == null)
             {
@@ -68,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected override bool TryConvertToExpressionBody(
             PropertyDeclarationSyntax declaration,
             ExpressionBodyPreference conversionPreference,
-            out ArrowExpressionClauseSyntax arrowExpression,
+            [NotNullWhen(true)] out ArrowExpressionClauseSyntax? arrowExpression,
             out SyntaxToken semicolonToken)
         {
             return TryConvertToExpressionBodyForBaseProperty(declaration, conversionPreference, out arrowExpression, out semicolonToken);
@@ -83,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             }
 
             var getAccessor = GetSingleGetAccessor(declaration.AccessorList);
-            return getAccessor.ExpressionBody.GetLocation();
+            return getAccessor!.ExpressionBody!.GetLocation();
         }
     }
 }

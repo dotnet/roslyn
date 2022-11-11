@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -22,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnsealClass
     {
         protected abstract string TitleFormat { get; }
 
-        public override FixAllProvider GetFixAllProvider()
+        public override FixAllProvider? GetFixAllProvider()
         {
             // This code fix addresses a very specific compiler error. It's unlikely there will be more than 1 of them at a time.
             return null;
@@ -33,8 +31,8 @@ namespace Microsoft.CodeAnalysis.UnsealClass
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
 
-            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var node = syntaxRoot.FindNode(context.Span, getInnermostNodeForTie: true);
 
@@ -62,8 +60,8 @@ namespace Microsoft.CodeAnalysis.UnsealClass
             foreach (var (documentId, syntaxReferences) in
                 declarationReferences.GroupBy(reference => solution.GetDocumentId(reference.SyntaxTree)))
             {
-                var document = solution.GetDocument(documentId);
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var document = solution.GetDocument(documentId)!;
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 var editor = new SyntaxEditor(root, document.Project.Solution.Services);
                 var generator = editor.Generator;
@@ -81,7 +79,7 @@ namespace Microsoft.CodeAnalysis.UnsealClass
                     }
                 }
 
-                solution = solution.WithDocumentSyntaxRoot(documentId, editor.GetChangedRoot());
+                solution = solution.WithDocumentSyntaxRoot(documentId!, editor.GetChangedRoot());
             }
 
             return solution;

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -84,8 +82,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             /// Here, 'get' accessor is used in an increment operation, but the result of the increment operation isn't used and 'P' itself is not used anywhere else, so it can be safely removed
             /// </summary>
             private readonly HashSet<IPropertySymbol> _propertiesWithShadowGetAccessorUsages = new();
-            private readonly INamedTypeSymbol _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
-            private readonly INamedTypeSymbol _eventArgsType;
+            private readonly INamedTypeSymbol? _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
+            private readonly INamedTypeSymbol? _eventArgsType;
             private readonly DeserializationConstructorCheck _deserializationConstructorCheck;
             private readonly ImmutableHashSet<INamedTypeSymbol> _attributeSetForMethodsToIgnore;
             private readonly AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax> _analyzer;
@@ -298,7 +296,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                         // while the increment operation '_f2++' is child of a return statement, which uses the result of the increment.
                         // For the above test, '_f1' can be safely removed without affecting the semantics of the program, while '_f2' cannot be removed.
 
-                        if (memberReference.Parent.Parent is IExpressionStatementOperation)
+                        if (memberReference.Parent!.Parent is IExpressionStatementOperation)
                         {
                             valueUsageInfo = ValueUsageInfo.Write;
 
@@ -353,7 +351,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 // Workaround for https://github.com/dotnet/roslyn/issues/19965
                 // IOperation API does not expose potential references to methods/properties within
                 // a bound method group/property group.
-                var symbolInfo = nameofArgument.SemanticModel.GetSymbolInfo(nameofArgument.Syntax, operationContext.CancellationToken);
+                var symbolInfo = nameofArgument.SemanticModel!.GetSymbolInfo(nameofArgument.Syntax, operationContext.CancellationToken);
                 foreach (var symbol in symbolInfo.GetAllSymbols())
                 {
                     switch (symbol.Kind)
@@ -370,7 +368,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
             private void AnalyzeObjectCreationOperation(OperationAnalysisContext operationContext)
             {
-                var constructor = ((IObjectCreationOperation)operationContext.Operation).Constructor.OriginalDefinition;
+                var constructor = ((IObjectCreationOperation)operationContext.Operation).Constructor!.OriginalDefinition;
 
                 // An object creation is considered as a read reference to the constructor
                 // to ensure that we consider the constructor as "used".
@@ -393,8 +391,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
                 // Report diagnostics for unused candidate members.
                 var first = true;
-                PooledHashSet<ISymbol> symbolsReferencedInDocComments = null;
-                ArrayBuilder<string> debuggerDisplayAttributeArguments = null;
+                PooledHashSet<ISymbol>? symbolsReferencedInDocComments = null;
+                ArrayBuilder<string>? debuggerDisplayAttributeArguments = null;
                 try
                 {
                     var entryPoint = symbolEndContext.Compilation.GetEntryPoint(symbolEndContext.CancellationToken);
@@ -440,13 +438,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                             // bail out if any of the DebuggerDisplay string arguments contains the member name.
                             // In future, we can consider improving this heuristic to parse the embedded expression
                             // and resolve symbol references.
-                            if (debuggerDisplayAttributeArguments.Any(arg => arg.Contains(member.Name)))
+                            if (debuggerDisplayAttributeArguments!.Any(arg => arg.Contains(member.Name)))
                             {
                                 continue;
                             }
 
                             // Report IDE0051 or IDE0052 based on whether the underlying member has any Write/WritableRef/NonReadWriteRef references or not.
-                            var rule = !valueUsageInfo.IsWrittenTo() && !valueUsageInfo.IsNameOnly() && !symbolsReferencedInDocComments.Contains(member)
+                            var rule = !valueUsageInfo.IsWrittenTo() && !valueUsageInfo.IsNameOnly() && !symbolsReferencedInDocComments!.Contains(member)
                                 ? s_removeUnusedMembersRule
                                 : s_removeUnreadMembersRule;
 
@@ -517,7 +515,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             {
                 foreach (var tree in namedTypeSymbol.Locations.Select(l => l.SourceTree))
                 {
-                    if (tree.GetDiagnostics(cancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error))
+                    if (tree!.GetDiagnostics(cancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error))
                     {
                         return true;
                     }
@@ -529,9 +527,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             private PooledHashSet<ISymbol> GetCandidateSymbolsReferencedInDocComments(INamedTypeSymbol namedTypeSymbol, Compilation compilation, CancellationToken cancellationToken)
             {
                 var builder = PooledHashSet<ISymbol>.GetInstance();
-                foreach (var root in namedTypeSymbol.Locations.Select(l => l.SourceTree.GetRoot(cancellationToken)))
+                foreach (var root in namedTypeSymbol.Locations.Select(l => l.SourceTree!.GetRoot(cancellationToken)))
                 {
-                    SemanticModel lazyModel = null;
+                    SemanticModel? lazyModel = null;
                     foreach (var node in root.DescendantNodes(descendIntoTrivia: true)
                                              .OfType<TDocumentationCommentTriviaSyntax>()
                                              .SelectMany(n => n.DescendantNodes().OfType<TIdentifierNameSyntax>()))
@@ -583,7 +581,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                         attribute.ConstructorArguments.Length == 1 &&
                         attribute.ConstructorArguments[0] is var arg &&
                         arg.Kind == TypedConstantKind.Primitive &&
-                        arg.Type.SpecialType == SpecialType.System_String)
+                        arg.Type!.SpecialType == SpecialType.System_String)
                     {
                         if (arg.Value is string value)
                         {
@@ -714,7 +712,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             }
 
             private bool IsMethodWithSpecialAttribute(IMethodSymbol methodSymbol)
-                => methodSymbol.GetAttributes().Any(static (a, self) => self._attributeSetForMethodsToIgnore.Contains(a.AttributeClass), this);
+                => methodSymbol.GetAttributes().Any(static (a, self) => self._attributeSetForMethodsToIgnore.Contains(a.AttributeClass!), this);
 
             private static bool IsShouldSerializeOrResetPropertyMethod(IMethodSymbol methodSymbol)
             {

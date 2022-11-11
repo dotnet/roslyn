@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -26,11 +24,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         {
             private readonly AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer _compilationAnalyzer;
 
-            private readonly INamedTypeSymbol _eventArgsTypeOpt;
+            private readonly INamedTypeSymbol? _eventArgsType;
             private readonly ImmutableHashSet<INamedTypeSymbol> _attributeSetForMethodsToIgnore;
             private readonly DeserializationConstructorCheck _deserializationConstructorCheck;
             private readonly ConcurrentDictionary<IMethodSymbol, bool> _methodsUsedAsDelegates;
-            private readonly INamedTypeSymbol _iCustomMarshaler;
+            private readonly INamedTypeSymbol? _iCustomMarshaler;
 
             /// <summary>
             /// Map from unused parameters to a boolean value indicating if the parameter has a read reference or not.
@@ -41,14 +39,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
             public SymbolStartAnalyzer(
                 AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer compilationAnalyzer,
-                INamedTypeSymbol eventArgsTypeOpt,
+                INamedTypeSymbol? eventArgsType,
                 ImmutableHashSet<INamedTypeSymbol> attributeSetForMethodsToIgnore,
                 DeserializationConstructorCheck deserializationConstructorCheck,
-                INamedTypeSymbol iCustomMarshaler)
+                INamedTypeSymbol? iCustomMarshaler)
             {
                 _compilationAnalyzer = compilationAnalyzer;
 
-                _eventArgsTypeOpt = eventArgsTypeOpt;
+                _eventArgsType = eventArgsType;
                 _attributeSetForMethodsToIgnore = attributeSetForMethodsToIgnore;
                 _deserializationConstructorCheck = deserializationConstructorCheck;
                 _unusedParameters = new ConcurrentDictionary<IParameterSymbol, bool>();
@@ -137,7 +135,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 }
 
                 var location = parameter.Locations[0];
-                var option = analyzerOptions.GetAnalyzerOptions(location.SourceTree).UnusedParameters;
+                var option = analyzerOptions.GetAnalyzerOptions(location.SourceTree!).UnusedParameters;
                 if (option.Notification.Severity == ReportDiagnostic.Suppress ||
                     !ShouldReportUnusedParameters(parameter.ContainingSymbol, option.Value, option.Notification.Severity))
                 {
@@ -181,7 +179,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 return new DiagnosticHelper.LocalizableStringWithArguments(messageFormat, parameterName);
             }
 
-            private static IEnumerable<INamedTypeSymbol> GetAttributesForMethodsToIgnore(Compilation compilation)
+            private static IEnumerable<INamedTypeSymbol?> GetAttributesForMethodsToIgnore(Compilation compilation)
             {
                 // Ignore conditional methods (One conditional will often call another conditional method as its only use of a parameter)
                 yield return compilation.ConditionalAttribute();
@@ -238,17 +236,17 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 // Ignore event handler methods "Handler(object, MyEventArgs)"
                 // as event handlers are required to match this signature
                 // regardless of whether or not the parameters are used.
-                if (_eventArgsTypeOpt != null &&
+                if (_eventArgsType != null &&
                     method.Parameters.Length == 2 &&
                     method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
-                    method.Parameters[1].Type.InheritsFromOrEquals(_eventArgsTypeOpt))
+                    method.Parameters[1].Type.InheritsFromOrEquals(_eventArgsType))
                 {
                     return false;
                 }
 
                 // Ignore flagging parameters for methods with certain well-known attributes,
                 // which are known to have unused parameters in real world code.
-                if (method.GetAttributes().Any(static (a, self) => self._attributeSetForMethodsToIgnore.Contains(a.AttributeClass), this))
+                if (method.GetAttributes().Any(static (a, self) => self._attributeSetForMethodsToIgnore.Contains(a.AttributeClass!), this))
                 {
                     return false;
                 }

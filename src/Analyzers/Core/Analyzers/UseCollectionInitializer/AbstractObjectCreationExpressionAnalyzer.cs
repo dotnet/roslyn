@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -29,11 +27,13 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         protected TObjectCreationExpressionSyntax _objectCreationExpression;
         protected CancellationToken _cancellationToken;
 
-        protected TStatementSyntax _containingStatement;
+        protected TStatementSyntax? _containingStatement;
         private SyntaxNodeOrToken _valuePattern;
-        private ISymbol _initializedSymbol;
+        private ISymbol? _initializedSymbol;
 
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         protected AbstractObjectCreationExpressionAnalyzer()
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
         }
 
@@ -51,11 +51,11 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         protected void Clear()
         {
-            _semanticModel = null;
-            _syntaxFacts = null;
-            _objectCreationExpression = null;
+            _semanticModel = null!;
+            _syntaxFacts = null!;
+            _objectCreationExpression = null!;
             _cancellationToken = default;
-            _containingStatement = null;
+            _containingStatement = null!;
             _valuePattern = default;
             _initializedSymbol = null;
         }
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return false;
             }
 
-            if (_objectCreationExpression.Parent.Parent is not TVariableDeclaratorSyntax containingDeclarator)
+            if (_objectCreationExpression.Parent!.Parent is not TVariableDeclaratorSyntax containingDeclarator)
             {
                 return false;
             }
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             return true;
         }
 
-        protected bool ValuePatternMatches(TExpressionSyntax expression)
+        protected bool ValuePatternMatches(TExpressionSyntax? expression)
         {
             if (_valuePattern.IsToken)
             {

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyInterpolation
         protected override InterpolationSyntax WithAlignmentClause(InterpolationSyntax interpolation, InterpolationAlignmentClauseSyntax alignmentClause)
             => interpolation.WithAlignmentClause(alignmentClause);
 
-        protected override InterpolationSyntax WithFormatClause(InterpolationSyntax interpolation, InterpolationFormatClauseSyntax formatClause)
+        protected override InterpolationSyntax WithFormatClause(InterpolationSyntax interpolation, InterpolationFormatClauseSyntax? formatClause)
             => interpolation.WithFormatClause(formatClause);
 
         protected override string Escape(InterpolatedStringExpressionSyntax interpolatedString, string formatString)

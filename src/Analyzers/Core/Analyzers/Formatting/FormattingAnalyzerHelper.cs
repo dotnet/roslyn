@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
@@ -30,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             foreach (var formattingChange in formattingChanges)
             {
                 var change = formattingChange;
-                if (change.NewText.Length > 0 && !change.Span.IsEmpty)
+                if (change.NewText!.Length > 0 && !change.Span.IsEmpty)
                 {
                     // Handle cases where the change is a substring removal from the beginning. In these cases, we want
                     // the diagnostic span to cover the unwanted leading characters (which should be removed), and
@@ -55,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     }
                 }
 
-                if (change.NewText.Length == 0 && change.Span.IsEmpty)
+                if (change.NewText!.Length == 0 && change.Span.IsEmpty)
                 {
                     // No actual change (allows for the formatter to report a NOP change without triggering a
                     // diagnostic that can't be fixed).

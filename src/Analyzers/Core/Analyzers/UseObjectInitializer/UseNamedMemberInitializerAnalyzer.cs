@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -61,7 +60,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         {
             // If containing statement is inside a block (e.g. method), than we need to iterate through its child statements.
             // If containing statement is in top-level code, than we need to iterate through child statements of containing compilation unit.
-            var containingBlockOrCompilationUnit = _containingStatement.Parent;
+            var containingBlockOrCompilationUnit = _containingStatement!.Parent!;
 
             // In case of top-level code parent of the statement will be GlobalStatementSyntax,
             // so we need to get its parent in order to get CompilationUnitSyntax
@@ -87,7 +86,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 }
             }
 
-            foreach (var child in containingBlockOrCompilationUnit.ChildNodesAndTokens())
+            foreach (var child in containingBlockOrCompilationUnit!.ChildNodesAndTokens())
             {
                 if (child.IsToken)
                     continue;
@@ -115,13 +114,13 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 _syntaxFacts.GetPartsOfAssignmentStatement(
                     statement, out var left, out var right);
 
-                var rightExpression = right as TExpressionSyntax;
+                var rightExpression = (TExpressionSyntax)right;
                 var leftMemberAccess = left as TMemberAccessExpressionSyntax;
 
                 if (!_syntaxFacts.IsSimpleMemberAccessExpression(leftMemberAccess))
                     break;
 
-                var expression = (TExpressionSyntax)_syntaxFacts.GetExpressionOfMemberAccessExpression(leftMemberAccess);
+                var expression = (TExpressionSyntax?)_syntaxFacts.GetExpressionOfMemberAccessExpression(leftMemberAccess);
                 if (!ValuePatternMatches(expression))
                     break;
 
@@ -184,8 +183,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
         private static bool IsExplicitlyImplemented(
             ITypeSymbol classOrStructType,
-            ISymbol member,
-            out ISymbol typeMember)
+            ISymbol? member,
+            [NotNullWhen(true)] out ISymbol? typeMember)
         {
             if (member != null && member.ContainingType.IsInterfaceType())
             {
@@ -207,7 +206,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 {
                     if (child.IsNode)
                     {
-                        if (ImplicitMemberAccessWouldBeAffected(child.AsNode()))
+                        if (ImplicitMemberAccessWouldBeAffected(child.AsNode()!))
                         {
                             return true;
                         }

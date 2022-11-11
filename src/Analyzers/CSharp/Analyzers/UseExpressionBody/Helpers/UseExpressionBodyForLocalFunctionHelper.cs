@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
@@ -32,10 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public override CodeStyleOption2<ExpressionBodyPreference> GetExpressionBodyPreference(CSharpCodeGenerationOptions options)
             => options.PreferExpressionBodiedLocalFunctions;
 
-        protected override BlockSyntax GetBody(LocalFunctionStatementSyntax statement)
+        protected override BlockSyntax? GetBody(LocalFunctionStatementSyntax statement)
             => statement.Body;
 
-        protected override ArrowExpressionClauseSyntax GetExpressionBody(LocalFunctionStatementSyntax statement)
+        protected override ArrowExpressionClauseSyntax? GetExpressionBody(LocalFunctionStatementSyntax statement)
             => statement.ExpressionBody;
 
         protected override SyntaxToken GetSemicolonToken(LocalFunctionStatementSyntax statement)
@@ -44,10 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected override LocalFunctionStatementSyntax WithSemicolonToken(LocalFunctionStatementSyntax statement, SyntaxToken token)
             => statement.WithSemicolonToken(token);
 
-        protected override LocalFunctionStatementSyntax WithExpressionBody(LocalFunctionStatementSyntax statement, ArrowExpressionClauseSyntax expressionBody)
+        protected override LocalFunctionStatementSyntax WithExpressionBody(LocalFunctionStatementSyntax statement, ArrowExpressionClauseSyntax? expressionBody)
             => statement.WithExpressionBody(expressionBody);
 
-        protected override LocalFunctionStatementSyntax WithBody(LocalFunctionStatementSyntax statement, BlockSyntax body)
+        protected override LocalFunctionStatementSyntax WithBody(LocalFunctionStatementSyntax statement, BlockSyntax? body)
             => statement.WithBody(body);
 
         protected override bool CreateReturnStatementForExpression(

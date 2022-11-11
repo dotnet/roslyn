@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 {
     // Map from different combinations of diagnostic properties to a properties map that gets added to each diagnostic instance.
     using PropertiesMap = ImmutableDictionary<(UnusedValuePreference preference, bool isUnusedLocalAssignment, bool isRemovableAssignment),
-                                              ImmutableDictionary<string, string>>;
+                                              ImmutableDictionary<string, string?>>;
 
     /// <summary>
     /// Analyzer to report unused expression values and parameters:
@@ -100,7 +99,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         {
         }
 
-        protected abstract bool IsRecordDeclaration(SyntaxNode node);
+        protected abstract bool IsRecordDeclaration([NotNullWhen(true)] SyntaxNode? node);
         protected abstract Location GetDefinitionLocationToFade(IOperation unusedDefinition);
         protected abstract bool SupportsDiscard(SyntaxTree tree);
         protected abstract bool MethodHasHandlesClause(IMethodSymbol method);
@@ -144,7 +143,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         private static PropertiesMap CreatePropertiesMap()
         {
             var builder = ImmutableDictionary.CreateBuilder<(UnusedValuePreference preference, bool isUnusedLocalAssignment, bool isRemovableAssignment),
-                                                            ImmutableDictionary<string, string>>();
+                                                            ImmutableDictionary<string, string?>>();
             AddEntries(UnusedValuePreference.DiscardVariable);
             AddEntries(UnusedValuePreference.UnusedLocalVariable);
             return builder.ToImmutable();
@@ -163,7 +162,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
             void AddEntryCore(UnusedValuePreference preference, bool isUnusedLocalAssignment, bool isRemovableAssignment)
             {
-                var propertiesBuilder = ImmutableDictionary.CreateBuilder<string, string>();
+                var propertiesBuilder = ImmutableDictionary.CreateBuilder<string, string?>();
 
                 propertiesBuilder.Add(UnusedValuePreferenceKey, preference.ToString());
                 if (isUnusedLocalAssignment)
@@ -192,7 +191,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 compilationContext => SymbolStartAnalyzer.CreateAndRegisterActions(compilationContext, this));
         }
 
-        private bool TryGetOptions(SyntaxTree syntaxTree, AnalyzerOptions analyzerOptions, out Options options)
+        private bool TryGetOptions(SyntaxTree syntaxTree, AnalyzerOptions analyzerOptions, [NotNullWhen(true)] out Options? options)
         {
             options = null;
 
@@ -217,22 +216,21 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             // Local functions.
             (UnusedValuePreference preference, ReportDiagnostic severity) GetPreferenceAndSeverity(CodeStyleOption2<UnusedValuePreference> option)
             {
-                var preferenceOpt = option?.Value;
-                if (preferenceOpt == null ||
-                    option.Notification.Severity == ReportDiagnostic.Suppress)
+                var preference = option.Value;
+                if (option.Notification.Severity == ReportDiagnostic.Suppress)
                 {
                     // Prefer does not matter as the severity is suppressed - we will never report this diagnostic.
                     return (default(UnusedValuePreference), ReportDiagnostic.Suppress);
                 }
 
                 // If language or language version does not support discard, fall back to prefer unused local variable.
-                if (preferenceOpt.Value == UnusedValuePreference.DiscardVariable &&
+                if (preference == UnusedValuePreference.DiscardVariable &&
                     !SupportsDiscard(syntaxTree))
                 {
-                    preferenceOpt = UnusedValuePreference.UnusedLocalVariable;
+                    preference = UnusedValuePreference.UnusedLocalVariable;
                 }
 
-                return (preferenceOpt.Value, option.Notification.Severity);
+                return (preference, option.Notification.Severity);
             }
         }
 

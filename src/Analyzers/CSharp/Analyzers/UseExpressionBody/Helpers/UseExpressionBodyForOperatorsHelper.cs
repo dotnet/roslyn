@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
@@ -31,10 +29,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public override CodeStyleOption2<ExpressionBodyPreference> GetExpressionBodyPreference(CSharpCodeGenerationOptions options)
             => options.PreferExpressionBodiedOperators;
 
-        protected override BlockSyntax GetBody(OperatorDeclarationSyntax declaration)
+        protected override BlockSyntax? GetBody(OperatorDeclarationSyntax declaration)
             => declaration.Body;
 
-        protected override ArrowExpressionClauseSyntax GetExpressionBody(OperatorDeclarationSyntax declaration)
+        protected override ArrowExpressionClauseSyntax? GetExpressionBody(OperatorDeclarationSyntax declaration)
             => declaration.ExpressionBody;
 
         protected override SyntaxToken GetSemicolonToken(OperatorDeclarationSyntax declaration)
@@ -43,10 +41,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected override OperatorDeclarationSyntax WithSemicolonToken(OperatorDeclarationSyntax declaration, SyntaxToken token)
             => declaration.WithSemicolonToken(token);
 
-        protected override OperatorDeclarationSyntax WithExpressionBody(OperatorDeclarationSyntax declaration, ArrowExpressionClauseSyntax expressionBody)
+        protected override OperatorDeclarationSyntax WithExpressionBody(OperatorDeclarationSyntax declaration, ArrowExpressionClauseSyntax? expressionBody)
             => declaration.WithExpressionBody(expressionBody);
 
-        protected override OperatorDeclarationSyntax WithBody(OperatorDeclarationSyntax declaration, BlockSyntax body)
+        protected override OperatorDeclarationSyntax WithBody(OperatorDeclarationSyntax declaration, BlockSyntax? body)
             => declaration.WithBody(body);
 
         protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, OperatorDeclarationSyntax declaration)

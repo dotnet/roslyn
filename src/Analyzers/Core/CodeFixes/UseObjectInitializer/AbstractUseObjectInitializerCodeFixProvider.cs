@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             // feature to keep track of all the object creation nodes as we make edits to
             // the tree.  If we didn't do this, then we wouldn't be able to find the 
             // second object-creation-node after we make the edit for the first one.
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             var originalRoot = editor.OriginalRoot;
             var originalObjectCreationNodes = new Stack<TObjectCreationExpressionSyntax>();
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             // care about so we can find them across each edit.
             document = document.WithSyntaxRoot(originalRoot.TrackNodes(originalObjectCreationNodes));
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var currentRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             while (originalObjectCreationNodes.Count > 0)
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 }
 
                 document = document.WithSyntaxRoot(subEditor.GetChangedRoot());
-                semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 currentRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             }
 
