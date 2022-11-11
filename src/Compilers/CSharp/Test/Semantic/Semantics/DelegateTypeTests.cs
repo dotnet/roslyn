@@ -14305,10 +14305,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "b").WithArguments("2", "2", "<missing>").WithLocation(1, 20),
                 // (1,40): warning CS9502: Parameter 3 has params modifier in lambda but not in target delegate type.
                 // D d1 = (int a, int b = 2, params int[] c) => { }; // 1, 2
-                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "c").WithArguments("3").WithLocation(1, 40),
-                // (1,41): error CS1737: Optional parameters must appear after all required parameters
-                // D d1 = (int a, int b = 2, params int[] c) => { }; // 1, 2
-                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(1, 41));
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "c").WithArguments("3").WithLocation(1, 40));
         }
     }
 }
