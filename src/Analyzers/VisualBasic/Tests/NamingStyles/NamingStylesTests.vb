@@ -501,5 +501,36 @@ End Class",
 End Class",
                 New TestParameters(options:=s_options.MethodNamesArePascalCase))
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Async Function TestModulesFollowClassPreference() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Module [|m|]
+End Module",
+"Public Module M
+End Module",
+                options:=s_options.ClassNamesArePascalCase)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Async Function TestModulesPreference() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Module [|m|]
+End Module
+",
+"Public Module M
+End Module
+",
+                options:=s_options.ModuleNamesArePascalCase)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Async Function TestModulePreferenceDoesNotApplyToClass() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Public Class [|c|]
+End Module
+",
+                New TestParameters(options:=s_options.ModuleNamesArePascalCase))
+        End Function
     End Class
 End Namespace

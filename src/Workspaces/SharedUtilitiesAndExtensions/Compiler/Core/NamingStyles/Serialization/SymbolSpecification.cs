@@ -397,10 +397,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 => _category switch
                 {
                     SymbolCategory.Other => symbol.IsKind((SymbolKind)_kind),
-                    SymbolCategory.Type => symbol is ITypeSymbol type && type.TypeKind == (TypeKind)_kind,
+                    SymbolCategory.Type => symbol is ITypeSymbol type && MatchesTypeKind(symbolTypeKind: type.TypeKind, specificationTypeKind: (TypeKind)_kind),
                     SymbolCategory.Method => symbol is IMethodSymbol method && method.MethodKind == (MethodKind)_kind,
                     _ => false
                 };
+
+            private static bool MatchesTypeKind(TypeKind symbolTypeKind, TypeKind specificationTypeKind)
+            {
+                if (symbolTypeKind == CodeAnalysis.TypeKind.Module)
+                {
+                    // Both class and module specifications apply to module symbols.
+                    return specificationTypeKind is CodeAnalysis.TypeKind.Class or CodeAnalysis.TypeKind.Module;
+                }
+
+                return specificationTypeKind == symbolTypeKind;
+            }
 
             internal XElement CreateXElement()
                 => _category switch
