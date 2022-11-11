@@ -3028,6 +3028,65 @@ public class C : A {
             Assert.Empty(frozenDocument.Project.AdditionalDocuments);
         }
 
+        [Fact]
+        public async Task TestFrozenPartialSemanticsNoCompilationYetBuilt()
+        {
+            using var workspace = CreateWorkspaceWithPartialSemantics();
+            var project = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp)
+                .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project
+                .AddDocument("RegularDocument2.cs", "// Source File", filePath: "RegularDocument2.cs").Project;
+
+            // Freeze semantics -- that document should be there, but nothing else will be yet.
+            var frozenDocument = project.Documents.First().WithFrozenPartialSemantics(CancellationToken.None);
+
+            Assert.Single(frozenDocument.Project.Documents);
+            var singleTree = Assert.Single((await frozenDocument.Project.GetCompilationAsync()).SyntaxTrees);
+            Assert.Same(await frozenDocument.GetSyntaxTreeAsync(), singleTree);
+        }
+
+        [Fact]
+        [WorkItem(1467404, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1467404")]
+        public async Task TestFrozenPartialSemanticsHandlesDocumentWithSamePathBeingRemovedAndAdded()
+        {
+            using var workspace = CreateWorkspaceWithPartialSemantics();
+            var project = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp)
+                .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
+
+            // Fetch the compilation to ensure further changes produce in progress states
+            var originalCompilation = await project.GetCompilationAsync();
+            project = project.RemoveDocument(project.DocumentIds.Single())
+                .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
+
+            // Freeze semantics -- with the new document; this should still give us a project with a single document, the previous
+            // tree having been removed.
+            var frozenDocument = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
+
+            Assert.Single(frozenDocument.Project.Documents);
+            var singleTree = Assert.Single((await frozenDocument.Project.GetCompilationAsync()).SyntaxTrees);
+            Assert.Same(await frozenDocument.GetSyntaxTreeAsync(), singleTree);
+        }
+
+        [Fact]
+        [WorkItem(1467404, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1467404")]
+        public async Task TestFrozenPartialSemanticsHandlesRemoveAndAddWithNullPathAndDifferentNames()
+        {
+            using var workspace = CreateWorkspaceWithPartialSemantics();
+            var project = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp)
+                .AddDocument("RegularDocument.cs", "// Source File", filePath: null).Project;
+
+            // Fetch the compilation to ensure further changes produce in progress states
+            var originalCompilation = await project.GetCompilationAsync();
+            project = project.RemoveDocument(project.DocumentIds.Single())
+                .AddDocument("RegularDocument2.cs", "// Source File", filePath: null).Project;
+
+            // Freeze semantics -- with the new document; this should still give us a project with two documents: the new
+            // one will be added, and the old one will stay around since the name differed.
+            var frozenDocument = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
+
+            Assert.Equal(2, frozenDocument.Project.Documents.Count());
+            Assert.Equal(2, (await frozenDocument.Project.GetCompilationAsync()).SyntaxTrees.Count());
+        }
+
         [Theory]
         [CombinatorialData]
         public async Task TestFrozenPartialSemanticsWithMulitipleUnrelatedEdits([CombinatorialValues(1, 2, 3)] int documentToFreeze)
@@ -3052,6 +3111,8 @@ public class C : A {
                 .WithDocumentText(documentId2, SourceText.From("// Document 2 Changed"))
                 .WithDocumentText(documentId3, SourceText.From("// Document 3 Changed"));
 
+            // We will freeze the appropriate document -- the reason we have three here is the code path might work accidentally if it
+            // was the first or last change made, so covering "first", "middle" and "last" ensures that's covered.
             var documentIdToFreeze = documentToFreeze == 1 ? documentId1 : documentToFreeze == 2 ? documentId2 : documentId3;
 
             var frozen = solution.GetRequiredDocument(documentIdToFreeze).WithFrozenPartialSemantics(CancellationToken.None);
