@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <MicrosoftBuildLocatorVersion>1.5.5</MicrosoftBuildLocatorVersion>
-    <MicrosoftCodeAnalysisVersion>4.5.0-2.22559.13</MicrosoftCodeAnalysisVersion>
+    <MicrosoftCodeAnalysisVersion>4.5.0-2.22560.8</MicrosoftCodeAnalysisVersion>
     <MicrosoftCodeAnalysisCSharpFeaturesVersion>$(MicrosoftCodeAnalysisVersion)</MicrosoftCodeAnalysisCSharpFeaturesVersion>
     <MicrosoftCodeAnalysisLanguageServerProtocolVersion>$(MicrosoftCodeAnalysisVersion)</MicrosoftCodeAnalysisLanguageServerProtocolVersion>
     <MicrosoftCodeAnalysisCSharpLanguageServerProtocolVersion>$(MicrosoftCodeAnalysisVersion)</MicrosoftCodeAnalysisCSharpLanguageServerProtocolVersion>
