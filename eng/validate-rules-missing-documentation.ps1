@@ -9,7 +9,7 @@ $ErrorActionPreference="Stop"
 
 Write-Host "Building Microsoft.CodeAnalysis.Features"
 try {
-    Invoke-Expression "./.dotnet/dotnet.exe build src/Features/Core/Portable/Microsoft.CodeAnalysis.Features.csproj --no-restore --no-dependencies -t:GenerateRulesMissingDocumentation -p:RoslynEnforceCodeStyle=false -p:RunAnalyzersDuringBuild=false -p:ContinuousIntegrationBuild=$ci -c Release"
+    Invoke-Expression "dotnet build src/Features/Core/Portable/Microsoft.CodeAnalysis.Features.csproj -t:GenerateRulesMissingDocumentation -p:RoslynEnforceCodeStyle=false -p:RunAnalyzersDuringBuild=false -p:ContinuousIntegrationBuild=$ci -c Release"
     if ($LASTEXITCODE -ne 0) {
         Write-Host "Failed with exit code $LASTEXITCODE."
         exit $LASTEXITCODE
