@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TParameterSymbol parameter = parameterCreationFunc(withTypeParametersBinder, owner, parameterType, parameterSyntax, refKind, parameterIndex, paramsKeyword, thisKeyword, addRefReadOnlyModifier, scope, diagnostics);
 
                 DeclarationScope? declaredScope = parameter is SourceParameterSymbol s ? s.DeclaredScope : null;
-                ReportParameterErrors(owner, parameterSyntax, parameter.Ordinal, lastIndex + 1, parameter.IsParams, parameter.TypeWithAnnotations,
+                ReportParameterErrors(owner, parameterSyntax, parameter.Ordinal, lastIndex, parameter.IsParams, parameter.TypeWithAnnotations,
                                       parameter.RefKind, declaredScope, parameter.ContainingSymbol, thisKeyword, paramsKeyword, firstDefault, diagnostics);
 
                 builder.Add(parameter);
@@ -609,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol? owner,
             BaseParameterSyntax syntax,
             int ordinal,
-            int parameterCount,
+            int lastParameterIndex,
             bool isParams,
             TypeWithAnnotations typeWithAnnotations,
             RefKind refKind,
@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // error CS0225: The params parameter must be a single dimensional array
                 diagnostics.Add(ErrorCode.ERR_ParamsMustBeArray, paramsKeyword.GetLocation());
             }
-            else if (isParams && ordinal != parameterCount - 1)
+            else if (isParams && ordinal != lastParameterIndex)
             {
                 // error CS0231: A params parameter must be the last parameter in a parameter list
                 diagnostics.Add(ErrorCode.ERR_ParamsLast, syntax.GetLocation());
