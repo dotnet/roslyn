@@ -3066,7 +3066,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     continue;
                                 }
 
-                                // For reordering or parameters we need to report insert and delete edits, but we also need to account for
+                                // For reordering of parameters we need to report insert and delete edits, but we also need to account for
                                 // renames if the runtime doesn't support it. We track this with a syntax node that we can use to report
                                 // the rude edit.
                                 IParameterSymbol? renamedParameter = null;
