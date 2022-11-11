@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 if (syntaxFacts.IsSimpleAssignmentStatement(whenTrueStatement))
                 {
                     syntaxFacts.GetPartsOfAssignmentStatement(whenTrueStatement, out _, out var right);
-                    return right;
+                    return right.WithoutTrivia();
                 }
                 else if (syntaxFacts.IsThrowStatement(whenTrueStatement))
                 {

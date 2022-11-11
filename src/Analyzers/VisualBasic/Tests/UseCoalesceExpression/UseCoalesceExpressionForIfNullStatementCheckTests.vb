@@ -9,12 +9,12 @@ Imports Microsoft.CodeAnalysis.UseCoalesceExpression
 Imports Microsoft.CodeAnalysis.VisualBasic.UseCoalesceExpression
 
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
-    Microsoft.CodeAnalysis.VisualBasic.UseCoalesceExpression.VisualBasicUseCoalesceExpressionForIfNullStatementCheckDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.UseCoalesceExpression.UseCoalesceExpressionForIfNullStatementCheckCodeFixProvider)
+    Microsoft.CodeAnalysis.VisualBasic.UseCoalesceExpression.VisualBasicUseCoalesceExpressionForIfnothingStatementCheckDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.UseCoalesceExpression.UseCoalesceExpressionForIfnothingStatementCheckCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseCoalesceExpression
     <Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
-    Public Class UseCoalesceExpressionForIfNullStatementCheckTests
+    Public Class UseCoalesceExpressionForIfnothingStatementCheckTests
         <Fact>
         Public Async Function TestLocalDeclaration_NotWithThrowStatement() As Task
             Dim test = "
@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseCoalesceExpress
                         if item is nothing
                             item = new C()
                         else
-                            item = null
+                            item = nothing
                         end if
                     end sub
 
@@ -171,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseCoalesceExpress
                         dim item = TryCast(FindItem(), C)
                         if item is nothing
                             item = new C()
-                            item = null
+                            item = nothing
                         end if
                     end sub
 
@@ -239,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseCoalesceExpress
                     sub M()
                         dim item as object = 0
                         if item is nothing
-                            item = null
+                            item = nothing
                         end if
                     end sub
 
