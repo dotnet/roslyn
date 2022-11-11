@@ -1595,8 +1595,8 @@ class Program
             CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput: "3");
         }
 
-        [Fact, WorkItem(60332, "https://github.com/dotnet/roslyn/issues/60332")]
-        public void RefParameterOnMethodWithAsyncMethodBuilderAttribute()
+        [Theory, CombinatorialData, WorkItem(60332, "https://github.com/dotnet/roslyn/issues/60332")]
+        public void RefParameterOnMethodWithAsyncMethodBuilderAttribute(bool useCSharp9)
         {
             var source = """
                 using System.Runtime.CompilerServices;
@@ -1622,8 +1622,30 @@ class Program
                 }
                 """;
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-            compilation.VerifyDiagnostics(
+            var compilation = CreateCompilation(source, parseOptions: useCSharp9 ? TestOptions.Regular9 : TestOptions.Regular10, targetFramework: TargetFramework.Net70);
+            if (useCSharp9)
+            {
+                compilation.VerifyDiagnostics(
+                    // (8,35): error CS1988: Async methods cannot have ref, in or out parameters
+                    // static async ValueTask m0(ref int x, out int y) // 1
+                    Diagnostic(ErrorCode.ERR_BadAsyncArgType, "x").WithLocation(8, 35),
+                    // (8,46): error CS1988: Async methods cannot have ref, in or out parameters
+                    // static async ValueTask m0(ref int x, out int y) // 1
+                    Diagnostic(ErrorCode.ERR_BadAsyncArgType, "y").WithLocation(8, 46),
+                    // (16,24): error CS8773: Feature 'async method builder override' is not available in C# 9.0. Please use language version 10.0 or greater.
+                    // static async ValueTask m1(ref int x, out int y) // 2
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "m1").WithArguments("async method builder override", "10.0").WithLocation(16, 24),
+                    // (16,35): error CS1988: Async methods cannot have ref, in or out parameters
+                    // static async ValueTask m1(ref int x, out int y) // 2
+                    Diagnostic(ErrorCode.ERR_BadAsyncArgType, "x").WithLocation(16, 35),
+                    // (16,46): error CS1988: Async methods cannot have ref, in or out parameters
+                    // static async ValueTask m1(ref int x, out int y) // 2
+                    Diagnostic(ErrorCode.ERR_BadAsyncArgType, "y").WithLocation(16, 46)
+                    );
+            }
+            else
+            {
+                compilation.VerifyDiagnostics(
                     // (8,35): error CS1988: Async methods cannot have ref, in or out parameters
                     // static async ValueTask m0(ref int x, out int y) // 1
                     Diagnostic(ErrorCode.ERR_BadAsyncArgType, "x").WithLocation(8, 35),
@@ -1637,6 +1659,7 @@ class Program
                     // static async ValueTask m1(ref int x, out int y) // 2
                     Diagnostic(ErrorCode.ERR_BadAsyncArgType, "y").WithLocation(16, 46)
                     );
+            }
         }
     }
 }
