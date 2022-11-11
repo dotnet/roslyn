@@ -3017,11 +3017,9 @@ public class C : A {
             var project = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp)
                 .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
 
-            // Fetch the compilation and ensure it's held during forking, as otherwise we may have no in-progress state
-            // when we freeze.
+            // Fetch the compilation to ensure further changes produce in progress states
             var originalCompilation = await project.GetCompilationAsync();
             project = project.AddAdditionalDocument("Test.txt", "").Project;
-            GC.KeepAlive(originalCompilation);
 
             // Freeze semantics -- this should give us a compilation and state that don't include the additional file,
             // since the compilation won't represent that either
@@ -3046,16 +3044,13 @@ public class C : A {
                 .AddDocument(documentId2, nameof(documentId2), "// Document 2")
                 .AddDocument(documentId3, nameof(documentId3), "// Document 3");
 
-            // Fetch the compilation and ensure it's held during forking, as otherwise we may have no in-progress state
-            // when we freeze.
+            // Fetch the compilation to ensure further changes produce in progress states
             var originalCompilation = await solution.Projects.Single().GetCompilationAsync();
 
             solution = solution
                 .WithDocumentText(documentId1, SourceText.From("// Document 1 Changed"))
                 .WithDocumentText(documentId2, SourceText.From("// Document 2 Changed"))
                 .WithDocumentText(documentId3, SourceText.From("// Document 3 Changed"));
-
-            GC.KeepAlive(originalCompilation);
 
             var documentIdToFreeze = documentToFreeze == 1 ? documentId1 : documentToFreeze == 2 ? documentId2 : documentId3;
 
