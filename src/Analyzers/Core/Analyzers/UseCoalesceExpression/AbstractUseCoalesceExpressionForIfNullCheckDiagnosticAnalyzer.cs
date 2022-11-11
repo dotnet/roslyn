@@ -38,10 +38,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
         {
         }
 
+        protected abstract ISyntaxFacts GetSyntaxFacts();
+        protected abstract bool IsNullCheck(TExpressionSyntax condition, [NotNullWhen(true)] out TExpressionSyntax? checkedExpression);
+
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
-        protected abstract ISyntaxFacts GetSyntaxFacts();
 
         protected override void InitializeWorker(AnalysisContext context)
         {
@@ -91,6 +92,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
                 // if (v == null)
                 //    ...
                 if (!AnalyzeAssignmentForm(previousStatement))
+                    return;
             }
             else
             {
@@ -103,10 +105,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
                 // if (v == null)
                 //    ...
 
-                if (!syntaxFacts.IsIdentifierName(condition))
+                if (!syntaxFacts.IsIdentifierName(checkedExpression))
                     return false;
 
-                var conditionIdentifier = syntaxFacts.GetIdentifierOfIdentifierName(condition).ValueText;
+                var conditionIdentifier = syntaxFacts.GetIdentifierOfIdentifierName(checkedExpression).ValueText;
 
                 var declarators = syntaxFacts.GetVariablesOfLocalDeclarationStatement(localDeclarationStatement);
                 if (declarators.Count != 1)
@@ -144,15 +146,45 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
                     syntaxFacts.GetPartsOfAssignmentStatement(whenTrueStatement, out var left, out _);
                     if (syntaxFacts.IsIdentifierName(left))
                     {
-                        var leftName = syntaxFacts.GetIdentifierOfIdentifierName(left);
+                        var leftName = syntaxFacts.GetIdentifierOfIdentifierName(left).ValueText;
                         return leftName == variableName;
                     }
                 }
 
                 return false;
             }
-        }
 
-        protected abstract bool IsNullCheck(TExpressionSyntax condition, [NotNullWhen(true)] out TExpressionSyntax? checkedExpression);
+            bool AnalyzeAssignmentForm(TStatementSyntax assignmentStatement)
+            {
+                // expr = Expr();
+                // if (expr == null)
+                //    ...
+
+                syntaxFacts.GetPartsOfAssignmentStatement(assignmentStatement, out var topAssignmentLeft, out _);
+                if (!syntaxFacts.AreEquivalent(topAssignmentLeft, checkedExpression))
+                    return false;
+
+                // expr = Expr();
+                // if (expr == null)
+                //    throw ...
+                //
+                // can always convert this to `var v = Expr() ?? throw
+                if (syntaxFacts.IsThrowStatement(whenTrueStatement))
+                    return true;
+
+                // expr = Expr();
+                // if (expr == null)
+                //    expr = ...
+                //
+                // can convert if embedded statement is assigning to same variable
+                if (syntaxFacts.IsSimpleAssignmentStatement(whenTrueStatement))
+                {
+                    syntaxFacts.GetPartsOfAssignmentStatement(whenTrueStatement, out var innerAssignmentLeft, out _);
+                    return syntaxFacts.AreEquivalent(innerAssignmentLeft, checkedExpression);
+                }
+
+                return false;
+            }
+        }
     }
 }
