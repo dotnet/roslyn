@@ -54,8 +54,8 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 editor.ReplaceNode(
                     expressionToCoalesce,
                     generator.CoalesceExpression(
-                        expressionToCoalesce,
-                        GetWhenNullExpression(whenTrueStatement)));
+                        expressionToCoalesce.WithoutTrivia(),
+                        GetWhenNullExpression(whenTrueStatement).WithoutTrailingTrivia()).WithTriviaFrom(expressionToCoalesce));
             }
 
             return Task.CompletedTask;
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 if (syntaxFacts.IsSimpleAssignmentStatement(whenTrueStatement))
                 {
                     syntaxFacts.GetPartsOfAssignmentStatement(whenTrueStatement, out _, out var right);
-                    return right.WithoutTrivia();
+                    return right;
                 }
                 else if (syntaxFacts.IsThrowStatement(whenTrueStatement))
                 {

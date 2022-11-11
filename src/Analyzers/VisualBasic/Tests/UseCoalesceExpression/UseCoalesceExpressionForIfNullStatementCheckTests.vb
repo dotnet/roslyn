@@ -9,19 +9,19 @@ Imports Microsoft.CodeAnalysis.UseCoalesceExpression
 Imports Microsoft.CodeAnalysis.VisualBasic.UseCoalesceExpression
 
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
-    Microsoft.CodeAnalysis.VisualBasic.UseCoalesceExpression.VisualBasicUseCoalesceExpressionForIfnothingStatementCheckDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.UseCoalesceExpression.UseCoalesceExpressionForIfnothingStatementCheckCodeFixProvider)
+    Microsoft.CodeAnalysis.VisualBasic.UseCoalesceExpression.VisualBasicUseCoalesceExpressionForIfNullStatementCheckDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.UseCoalesceExpression.UseCoalesceExpressionForIfNullStatementCheckCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseCoalesceExpression
     <Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
-    Public Class UseCoalesceExpressionForIfnothingStatementCheckTests
+    Public Class UseCoalesceExpressionForIfNullStatementCheckTests
         <Fact>
         Public Async Function TestLocalDeclaration_NotWithThrowStatement() As Task
             Dim test = "
                 class C
                     sub M()
                         dim item = TryCast(FindItem(), C)
-                        [|if|] item is nothing
+                        if item is nothing
                             throw new System.InvalidOperationException()
                         end if
                     end sub
@@ -42,29 +42,29 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseCoalesceExpress
         Public Async Function TestLocalDeclaration_Assignment1() As Task
             Await New VerifyVB.Test With {
                 .TestCode = "
-                class C
-                    sub M()
-                        dim item = TryCast(FindItem(), C)
-                        [|if|] item is nothing
-                            item = new C()
-                        end if
-                    end sub
+class C
+    sub M()
+        dim item = TryCast(FindItem(), C)
+        [|if|] item is nothing
+            item = new C()
+        end if
+    end sub
 
-                    function FindItem() as object
-                        return nothing
-                    end function
-                end class
+    function FindItem() as object
+        return nothing
+    end function
+end class
                 ",
                 .FixedCode = "
-                class C
-                    sub M()
-                        dim item = TryCast(If(FindItem(), new C()), C)
-                    end sub
+class C
+    sub M()
+        dim item = If(TryCast(FindItem(), C), new C())
+    end sub
 
-                    function FindItem() as object
-                        return nothing
-                    end function
-                end class
+    function FindItem() as object
+        return nothing
+    end function
+end class
                 "
             }.RunAsync()
         End Function

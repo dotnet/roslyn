@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UseCoalesceExpression
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpUseCoalesceExpressionForIfNullStatementCheckDiagnosticAnalyzer : 
+    internal class CSharpUseCoalesceExpressionForIfNullStatementCheckDiagnosticAnalyzer :
         AbstractUseCoalesceExpressionForIfNullCheckDiagnosticAnalyzer<
             SyntaxKind,
             ExpressionSyntax,
