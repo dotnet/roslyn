@@ -141,6 +141,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
 
                 var declarator = declarators[0];
                 var equalsValue = syntaxFacts.GetInitializerOfVariableDeclarator(declarator);
+                if (equalsValue is null)
+                    return false;
+
                 if (syntaxFacts.GetValueOfEqualsValueClause(equalsValue) is not TExpressionSyntax initializer)
                     return false;
 
