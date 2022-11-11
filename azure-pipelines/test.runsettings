@@ -31,11 +31,13 @@
             <!-- When set to True, restarts the IIS process and collects coverage information from it. -->
             <CollectAspDotNet>False</CollectAspDotNet>
             <!-- When set to True, static native instrumentation will be enabled. -->
-            <EnableStaticNativeInstrumentation>True</EnableStaticNativeInstrumentation>
+            <EnableStaticNativeInstrumentation>False</EnableStaticNativeInstrumentation>
             <!-- When set to True, dynamic native instrumentation will be enabled. -->
-            <EnableDynamicNativeInstrumentation>True</EnableDynamicNativeInstrumentation>
+            <EnableDynamicNativeInstrumentation>False</EnableDynamicNativeInstrumentation>
             <!-- When set to True, instrumented binaries on disk are removed and original files are restored. -->
             <EnableStaticNativeInstrumentationRestore>True</EnableStaticNativeInstrumentationRestore>
+            <EnableStaticManagedInstrumentation>True</EnableStaticManagedInstrumentation>
+            <EnableDynamicManagedInstrumentation>False</EnableDynamicManagedInstrumentation>
           </CodeCoverage>
         </Configuration>
       </DataCollector>
