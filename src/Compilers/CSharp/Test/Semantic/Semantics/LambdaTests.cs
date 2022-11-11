@@ -8293,5 +8293,17 @@ class Program
                 // var lam = (params int x) => x;
                 Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(1, 12));
         }
+
+        [Fact]
+        public void ParamsArray_ParamArrayAttribute()
+        {
+            var source = """
+                var lam = ([System.ParamArrayAttribute] int[] xs) => xs;
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,13): error CS0674: Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.
+                // var lam = ([System.ParamArrayAttribute] int[] xs) => xs;
+                Diagnostic(ErrorCode.ERR_ExplicitParamArray, "System.ParamArrayAttribute").WithLocation(1, 13));
+        }
     }
 }
