@@ -228,9 +228,7 @@ namespace Baz
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory]
+        [Theory, CombinatorialData]
         public async Task Show_TopLevel_Public_NoImport_InReference(bool isProjectReference)
         {
             var file1 = $@"
@@ -255,9 +253,7 @@ namespace Baz
             await VerifyTypeImportItemExistsAsync(markup, "Bar2", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory]
+        [Theory, CombinatorialData]
         public async Task DoNotShow_TopLevel_Public_WithImport_InReference(bool isProjectReference)
         {
             var file1 = $@"
@@ -283,9 +279,7 @@ namespace Baz
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar2", inlineDescription: "Foo");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory]
+        [Theory, CombinatorialData]
         public async Task DoNotShow_TopLevel_Internal_NoImport_InReference(bool isProjectReference)
         {
             var file1 = $@"
@@ -310,9 +304,7 @@ namespace Baz
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar2", inlineDescription: "Foo");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory]
+        [Theory, CombinatorialData]
         public async Task TopLevel_OverloadsWithMixedAccessibility_Internal_NoImport_InReference1(bool isProjectReference)
         {
             var file1 = $@"
@@ -337,9 +329,7 @@ namespace Baz
             await VerifyTypeImportItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory]
+        [Theory, CombinatorialData]
         public async Task DoNotShow_TopLevel_OverloadsWithMixedAccessibility_Internal_WithImport_InReference1(bool isProjectReference)
         {
             var file1 = $@"
@@ -365,9 +355,7 @@ namespace Baz
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", displayTextSuffix: "<>", inlineDescription: "Foo");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory]
+        [Theory, CombinatorialData]
         public async Task TopLevel_OverloadsWithMixedAccessibility_InternalWithIVT_NoImport_InReference1(bool isProjectReference)
         {
             var file1 = $@"     
@@ -394,9 +382,7 @@ namespace Baz
             await VerifyTypeImportItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory]
+        [Theory, CombinatorialData]
         public async Task DoNotShow_TopLevel_OverloadsWithMixedAccessibility_InternalWithIVT_WithImport_InReference1(bool isProjectReference)
         {
             var file1 = $@"     
@@ -424,9 +410,7 @@ namespace Baz
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", displayTextSuffix: "<>", inlineDescription: "Foo");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory]
+        [Theory, CombinatorialData]
         public async Task TopLevel_OverloadsWithMixedAccessibility_Internal_NoImport_InReference2(bool isProjectReference)
         {
             var file1 = $@"
@@ -454,9 +438,7 @@ namespace Baz
             await VerifyTypeImportItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory]
+        [Theory, CombinatorialData]
         public async Task DoNotShow_TopLevel_OverloadsWithMixedAccessibility_Internal_SameNamespace_InReference2(bool isProjectReference)
         {
             var file1 = $@"
@@ -484,9 +466,7 @@ namespace Foo.Baz
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", displayTextSuffix: "<>", inlineDescription: "Foo");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory]
+        [Theory, CombinatorialData]
         public async Task TopLevel_OverloadsWithMixedAccessibility_InternalWithIVT_NoImport_InReference2(bool isProjectReference)
         {
             var file1 = $@"   
@@ -516,9 +496,7 @@ namespace Baz
             await VerifyTypeImportItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassInternal, inlineDescription: "Foo");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory]
+        [Theory, CombinatorialData]
         public async Task Show_TopLevel_Internal_WithIVT_NoImport_InReference(bool isProjectReference)
         {
             var file1 = $@"
@@ -661,9 +639,7 @@ namespace Baz
             await VerifyTypeImportItemIsAbsentAsync(markup, "Barr", inlineDescription: "Foo.Bar");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory]
+        [Theory, CombinatorialData]
         public async Task TypesWithIdenticalNameButDifferentNamespaces(bool isProjectReference)
         {
             var file1 = $@"
@@ -698,9 +674,7 @@ namespace NS
             await VerifyTypeImportItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassPublic, inlineDescription: "Baz");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory]
+        [Theory, CombinatorialData]
         public async Task TestNoCompletionItemWhenThereIsAlias(bool isProjectReference)
         {
             var file1 = @"
@@ -750,9 +724,7 @@ namespace Foo1
             await VerifyTypeImportItemIsAbsentAsync(markup, "Foo7", "Foo1.Foo2.Foo3");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory]
+        [Theory, CombinatorialData]
         public async Task TestAttributesAlias(bool isProjectReference)
         {
             var file1 = @"
@@ -785,9 +757,7 @@ namespace Foo
             await VerifyTypeImportItemIsAbsentAsync(markup, "BarAttributeDifferentEnding", "Foo");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory]
+        [Theory, CombinatorialData]
         public async Task TestGenericsAliasHasNoEffect(bool isProjectReference)
         {
             var file1 = @"
@@ -1460,9 +1430,7 @@ namespace Baz
             }
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory]
+        [Theory, CombinatorialData]
         public async Task TestBrowsableAwaysFromReferences(bool isProjectReference)
         {
             var srcDoc = @"
@@ -1496,9 +1464,7 @@ namespace Foo
                     inlineDescription: "Foo");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory]
+        [Theory, CombinatorialData]
         public async Task TestBrowsableNeverFromReferences(bool isProjectReference)
         {
             var srcDoc = @"
@@ -1787,6 +1753,49 @@ global using global::System.Threading.Tasks;
             var markup = CreateMarkupForSingleProject(source, globalUsings, LanguageNames.CSharp, referencedFileName: "GlobalUsings.cs");
             await VerifyTypeImportItemIsAbsentAsync(markup, "Task", inlineDescription: "System.Threading.Tasks");
             await VerifyTypeImportItemIsAbsentAsync(markup, "Console", inlineDescription: "System");
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData(true)]
+        [InlineData(false)]
+        [WorkItem(65339, "https://github.com/dotnet/roslyn/issues/65339")]
+        public async Task TestFileScopedType(bool? isProjectReference)
+        {
+            var srcDoc = @"
+class Program
+{
+    void M()
+    {
+        $$goo
+    }
+}";
+
+            var refDoc = @"
+namespace Foo
+{
+    file class Goo
+    {
+    }
+}";
+
+            string markup;
+            if (isProjectReference.HasValue)
+            {
+                markup = isProjectReference switch
+                {
+                    true => CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                    false => CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp)
+                };
+            }
+            else
+            {
+                markup = CreateMarkupForSingleProject(srcDoc, refDoc, LanguageNames.CSharp);
+            }
+            await VerifyTypeImportItemIsAbsentAsync(
+                    markup,
+                    "Goo",
+                    inlineDescription: "Foo");
         }
 
         private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null, CompletionItemFlags? flags = null)
