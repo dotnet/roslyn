@@ -20,13 +20,6 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-
-    /// <summary>
-    /// TODO - This must be moved to the MS.CA.LanguageServer.Protocol project once
-    /// the <see cref="IFindUsagesService"/> is moved down to the features layer and
-    /// we no longer reference VS classified text runs.
-    /// See https://github.com/dotnet/roslyn/issues/55142
-    /// </summary>
     [ExportCSharpVisualBasicStatelessLspService(typeof(FindAllReferencesHandler)), Shared]
     [Method(LSP.Methods.TextDocumentReferencesName)]
     internal sealed class FindAllReferencesHandler : ILspServiceDocumentRequestHandler<LSP.ReferenceParams, LSP.SumType<LSP.VSInternalReferenceItem, LSP.Location>[]?>
