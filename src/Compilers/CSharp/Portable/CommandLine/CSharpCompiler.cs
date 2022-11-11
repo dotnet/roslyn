@@ -566,19 +566,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 try
                 {
+                    var transformerDiagnostics = new DiagnosticBag();
+
                     var context = new TransformerContext(outputCompilation,
                         plugins,
                         analyzerConfigProvider,
                         transformerOptions,
                         inputResources.AddRange(addedResources),
                         services,
-                        diagnostics,
+                        transformerDiagnostics,
                         assemblyLoader);
                     transformer.Execute(context);
 
                     diagnosticFiltersBuilder.AddRange(context.DiagnosticFilters);
                     addedResources.AddRange(context.AddedResources);
 
+                    // Filter the diagnostics.
+                    foreach ( var transformerDiagnostic in transformerDiagnostics .AsEnumerableWithoutResolution() )
+                    {
+                        var filteredDiagnostic = outputCompilation.Options.FilterDiagnostic(transformerDiagnostic, cancellationToken);
+                        if ( filteredDiagnostic != null )
+                        {
+                            diagnostics.Add(filteredDiagnostic);
+                        }
+                    }
+
+                    // Apply the transformations.
                     foreach (var transformedTree in context.TransformedTrees)
                     {
                         var newTree = transformedTree.NewTree;
