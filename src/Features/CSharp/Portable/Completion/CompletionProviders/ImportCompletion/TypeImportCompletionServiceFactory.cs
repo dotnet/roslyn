@@ -21,11 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-            => new CSharpTypeImportCompletionService(languageServices.ProjectServices.SolutionServices);
+            => new CSharpTypeImportCompletionService(languageServices.LanguageServices.SolutionServices);
 
         private class CSharpTypeImportCompletionService : AbstractTypeImportCompletionService
         {
-            public CSharpTypeImportCompletionService(HostSolutionServices services)
+            public CSharpTypeImportCompletionService(SolutionServices services)
                 : base(services)
             {
             }

@@ -49,22 +49,22 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitFlowCapture(IFlowCaptureOperation operation, object? argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitIsNull(IIsNullOperation operation, object? argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitCaughtException(ICaughtExceptionOperation operation, object? argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitStaticLocalInitializationSemaphore(IStaticLocalInitializationSemaphoreOperation operation, object? argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

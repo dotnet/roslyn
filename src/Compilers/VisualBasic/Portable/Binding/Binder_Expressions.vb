@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
@@ -1078,7 +1079,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 "End Class" & vbCrLf
 
             ' It looks like Dev11 ignores project level conditional compilation here, which makes sense since expression cannot contain #If directives.
-            Dim tree = VisualBasicSyntaxTree.ParseText(codeToParse)
+            Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(codeToParse))
             Dim root As CompilationUnitSyntax = tree.GetCompilationUnitRoot()
             Dim hasErrors As Boolean = False
 

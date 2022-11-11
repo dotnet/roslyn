@@ -7,6 +7,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -51,6 +52,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (constantValue != null)
                 {
+                    if (constantValue.IsBad)
+                    {
+                        throw ExceptionUtilities.UnexpectedValue(constantValue);
+                    }
+
                     Debug.Assert(constantValue.IsNull);
                     BoundExpression result = rewrittenType.IsNullableType() ? new BoundDefaultExpression(syntax, rewrittenType) : MakeLiteral(syntax, constantValue, rewrittenType);
 

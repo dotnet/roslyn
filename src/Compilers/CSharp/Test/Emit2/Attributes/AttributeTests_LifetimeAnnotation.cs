@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }";
             var comp = CreateCompilation(new[] { ScopedRefAttributeDefinition, source });
             var expected =
-@" void Program.F(ref System.Int32 i)
-    [ScopedRef] ref System.Int32 i
+@"void Program.F(scoped ref System.Int32 i)
+    [ScopedRef] scoped ref System.Int32 i
 ";
             CompileAndVerify(comp, symbolValidator: module =>
             {
@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }";
             comp = CreateCompilation(source, references: new[] { ref0 });
             var expected =
-@"void Program.F(ref System.Int32 i)
-    [ScopedRef] ref System.Int32 i
+@"void Program.F(scoped ref System.Int32 i)
+    [ScopedRef] scoped ref System.Int32 i
 ";
             CompileAndVerify(comp, symbolValidator: module =>
             {
@@ -110,8 +110,17 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { ScopedRefAttributeDefinition, source });
-            // https://github.com/dotnet/roslyn/issues/62124: Re-enable check for ScopedRefAttribute in ReportExplicitUseOfReservedAttributes.
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (2,18): error CS9065: Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.
+                // delegate void D([ScopedRef] ref int i);
+                Diagnostic(ErrorCode.ERR_ExplicitScopedRef, "ScopedRef").WithLocation(2, 18),
+                // (5,30): error CS9065: Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.
+                //     public static void Main([ScopedRef] string[] args)
+                Diagnostic(ErrorCode.ERR_ExplicitScopedRef, "ScopedRef").WithLocation(5, 30),
+                // (7,17): error CS9065: Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.
+                //         D d = ([ScopedRef] ref int i) => { };
+                Diagnostic(ErrorCode.ERR_ExplicitScopedRef, "ScopedRef").WithLocation(7, 17)
+                );
         }
 
         [WorkItem(62124, "https://github.com/dotnet/roslyn/issues/62124")]
@@ -128,7 +137,7 @@ using System.Runtime.CompilerServices;
     [ScopedRef] event EventHandler E;
     [ScopedRef] object P { get; }
     [ScopedRef] static object M1() => throw null;
-    [ScopedRef] static object M2() => throw null;
+    [return: ScopedRef] static object M2() => throw null;
     static void M3<[ScopedRef] T>() { }
 }
 namespace System.Runtime.CompilerServices
@@ -140,7 +149,6 @@ namespace System.Runtime.CompilerServices
 }
 ";
             var comp = CreateCompilation(source);
-            // https://github.com/dotnet/roslyn/issues/62124: Re-enable check for ScopedRefAttribute in ReportExplicitUseOfReservedAttributes.
             comp.VerifyDiagnostics(
                 // (6,24): warning CS0169: The field 'Program.F' is never used
                 //     [ScopedRef] object F;
@@ -150,11 +158,47 @@ namespace System.Runtime.CompilerServices
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("Program.E").WithLocation(7, 36));
         }
 
+        [WorkItem(62124, "https://github.com/dotnet/roslyn/issues/62124")]
+        [Fact]
+        public void ExplicitAttribute_ReferencedInSource_03()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+record struct R1([ScopedRef] ref int i);
+record struct R2([ScopedRef] R i);
+ref struct R { }
+";
+            var comp = CreateCompilation(new[] { ScopedRefAttributeDefinition, source });
+            comp.VerifyDiagnostics(
+                // (3,19): error CS9065: Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.
+                // record struct R1([ScopedRef] ref int i);
+                Diagnostic(ErrorCode.ERR_ExplicitScopedRef, "ScopedRef").WithLocation(3, 19),
+                // (3,30): error CS0631: ref and out are not valid in this context
+                // record struct R1([ScopedRef] ref int i);
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "ref").WithLocation(3, 30),
+                // (4,19): error CS9065: Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.
+                // record struct R2([ScopedRef] R i);
+                Diagnostic(ErrorCode.ERR_ExplicitScopedRef, "ScopedRef").WithLocation(4, 19),
+                // (4,30): error CS8345: Field or auto-implemented property cannot be of type 'R' unless it is an instance member of a ref struct.
+                // record struct R2([ScopedRef] R i);
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "R").WithArguments("R").WithLocation(4, 30)
+                );
+        }
+
         [Fact]
         public void ExplicitAttribute_UnexpectedParameterTargets()
         {
             var source0 =
-@".class private System.Runtime.CompilerServices.ScopedRefAttribute extends [mscorlib]System.Attribute
+@".assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+.assembly '<<GeneratedFileName>>' { }
+.module '<<GeneratedFileName>>.dll'
+.custom instance void System.Runtime.CompilerServices.RefSafetyRulesAttribute::.ctor(int32) = { int32(11) }
+.class private System.Runtime.CompilerServices.RefSafetyRulesAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor(int32 version) cil managed { ret }
+  .field public int32 Version
+}
+.class private System.Runtime.CompilerServices.ScopedRefAttribute extends [mscorlib]System.Attribute
 {
   .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
 }
@@ -191,7 +235,7 @@ namespace System.Runtime.CompilerServices
   }
 }
 ";
-            var ref0 = CompileIL(source0);
+            var ref0 = CompileIL(source0, prependDefaultHeader: false);
 
             var source1 =
 @"class Program
@@ -214,24 +258,24 @@ namespace System.Runtime.CompilerServices
                 Diagnostic(ErrorCode.ERR_BindToBogus, "F2").WithArguments("A.F2(int)").WithLocation(7, 11));
 
             var method = comp.GetMember<MethodSymbol>("A.F1");
-            Assert.Equal("void A.F1(scoped R r)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
+            Assert.Equal("void A.F1(scoped R r)", method.ToTestDisplayString());
             var parameter = method.Parameters[0];
-            Assert.Equal(DeclarationScope.ValueScoped, parameter.Scope);
+            Assert.Equal(DeclarationScope.ValueScoped, parameter.EffectiveScope);
 
             method = comp.GetMember<MethodSymbol>("A.F2");
-            Assert.Equal("void A.F2(System.Int32 y)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
+            Assert.Equal("void A.F2(System.Int32 y)", method.ToTestDisplayString());
             parameter = method.Parameters[0];
-            Assert.Equal(DeclarationScope.Unscoped, parameter.Scope);
+            Assert.Equal(DeclarationScope.Unscoped, parameter.EffectiveScope);
 
             method = comp.GetMember<MethodSymbol>("A.F3");
-            Assert.Equal("void A.F3(System.Object x, scoped ref System.Int32 y)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
+            Assert.Equal("void A.F3(System.Object x, scoped ref System.Int32 y)", method.ToTestDisplayString());
             parameter = method.Parameters[1];
-            Assert.Equal(DeclarationScope.RefScoped, parameter.Scope);
+            Assert.Equal(DeclarationScope.RefScoped, parameter.EffectiveScope);
 
             method = comp.GetMember<MethodSymbol>("A.F4");
-            Assert.Equal("void A.F4(scoped ref R r)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
+            Assert.Equal("void A.F4(scoped ref R r)", method.ToTestDisplayString());
             parameter = method.Parameters[0];
-            Assert.Equal(DeclarationScope.RefScoped, parameter.Scope);
+            Assert.Equal(DeclarationScope.RefScoped, parameter.EffectiveScope);
         }
 
         [Fact]
@@ -277,8 +321,6 @@ namespace System.Runtime.CompilerServices
     }
 }";
             var comp = CreateCompilation(source1, references: new[] { ref0 });
-            // https://github.com/dotnet/roslyn/issues/61647: If the [ScopedRef] scoped value is an int
-            // rather than a pair of bools, the compiler should reject attribute values that it does not recognize.
             comp.VerifyDiagnostics();
         }
 
@@ -296,15 +338,15 @@ struct S
 }";
             var comp = CreateCompilation(source);
             var expected =
-@"S..ctor(ref System.Int32 i)
-    [ScopedRef] ref System.Int32 i
-void S.F(R r)
-    [ScopedRef] R r
-S S.op_Addition(S a, in R b)
+@"S..ctor(scoped ref System.Int32 i)
+    [ScopedRef] scoped ref System.Int32 i
+void S.F(scoped R r)
+    [ScopedRef] scoped R r
+S S.op_Addition(S a, scoped in R b)
     S a
-    [ScopedRef] in R b
-System.Object S.this[in System.Int32 i].get
-    [ScopedRef] in System.Int32 i
+    [ScopedRef] scoped in R b
+System.Object S.this[scoped in System.Int32 i].get
+    [ScopedRef] scoped in System.Int32 i
 ";
             CompileAndVerify(comp, symbolValidator: module =>
             {
@@ -356,6 +398,37 @@ class Program
         }
 
         [Fact]
+        public void EmitAttribute_RefToRefStructParameters()
+        {
+            var source =
+@"ref struct R { }
+class Program
+{
+    public static void F0(R r) { }
+    public static void F1(ref R r) { }
+    public static void F2(in R r) { }
+    public static void F3(out R r) { r = default; }
+    public static void F4(scoped ref R r) { }
+    public static void F5(scoped in R r) { }
+    public static void F6(scoped out R r) { r = default; }
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"void Program.F4(scoped ref R r)
+    [ScopedRef] scoped ref R r
+void Program.F5(scoped in R r)
+    [ScopedRef] scoped in R r
+";
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                Assert.Equal("System.Runtime.CompilerServices.ScopedRefAttribute", GetScopedRefType(module).ToTestDisplayString());
+                AssertScopedRefAttributes(module, expected);
+            });
+
+            // https://github.com/dotnet/roslyn/issues/62780: Test additional cases with [UnscopedRef].
+        }
+
+        [Fact]
         public void EmitAttribute_DelegateParameters()
         {
             var source =
@@ -364,16 +437,16 @@ delegate void D(scoped in int x, scoped R y);
 ";
             var comp = CreateCompilation(source);
             var expected =
-@"void D.Invoke(in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 x, R y)
-    [ScopedRef] in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 x
-    [ScopedRef] R y
-System.IAsyncResult D.BeginInvoke(in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 x, R y, System.AsyncCallback callback, System.Object @object)
-    [ScopedRef] in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 x
-    [ScopedRef] R y
+@"void D.Invoke(scoped in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 x, scoped R y)
+    [ScopedRef] scoped in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 x
+    [ScopedRef] scoped R y
+System.IAsyncResult D.BeginInvoke(scoped in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 x, scoped R y, System.AsyncCallback callback, System.Object @object)
+    [ScopedRef] scoped in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 x
+    [ScopedRef] scoped R y
     System.AsyncCallback callback
     System.Object @object
-void D.EndInvoke(in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 x, System.IAsyncResult result)
-    [ScopedRef] in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 x
+void D.EndInvoke(scoped in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 x, System.IAsyncResult result)
+    [ScopedRef] scoped in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 x
     System.IAsyncResult result
 ";
             CompileAndVerify(
@@ -401,17 +474,17 @@ class Program
 }";
             var comp = CreateCompilation(source);
             var expected =
-@"void D.Invoke(in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 i)
-    [ScopedRef] in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 i
-System.IAsyncResult D.BeginInvoke(in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 i, System.AsyncCallback callback, System.Object @object)
-    [ScopedRef] in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 i
+@"void D.Invoke(scoped in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 i)
+    [ScopedRef] scoped in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 i
+System.IAsyncResult D.BeginInvoke(scoped in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 i, System.AsyncCallback callback, System.Object @object)
+    [ScopedRef] scoped in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 i
     System.AsyncCallback callback
     System.Object @object
-void D.EndInvoke(in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 i, System.IAsyncResult result)
-    [ScopedRef] in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 i
+void D.EndInvoke(scoped in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 i, System.IAsyncResult result)
+    [ScopedRef] scoped in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 i
     System.IAsyncResult result
-void Program.<>c.<Main>b__0_0(in System.Int32 i)
-    [ScopedRef] in System.Int32 i
+void Program.<>c.<Main>b__0_0(scoped in System.Int32 i)
+    [ScopedRef] scoped in System.Int32 i
 ";
             CompileAndVerify(
                 source,
@@ -437,8 +510,8 @@ void Program.<>c.<Main>b__0_0(in System.Int32 i)
 }";
             var comp = CreateCompilation(source);
             var expected =
-@"void Program.<M>g__L|0_0(in System.Int32 i)
-    [ScopedRef] in System.Int32 i
+@"void Program.<M>g__L|0_0(scoped in System.Int32 i)
+    [ScopedRef] scoped in System.Int32 i
 ";
             CompileAndVerify(
                 source,
@@ -467,14 +540,14 @@ class Program
 }";
             var comp = CreateCompilation(source);
             var expected =
-@"void <>f__AnonymousDelegate0.Invoke(in System.Int32 value)
-    [ScopedRef] in System.Int32 value
-R <>f__AnonymousDelegate1.Invoke(R value)
-    [ScopedRef] R value
-void Program.<>c.<Main>b__0_0(in System.Int32 i)
-    [ScopedRef] in System.Int32 i
-R Program.<>c.<Main>b__0_1(R r)
-    [ScopedRef] R r
+@"void <>f__AnonymousDelegate0.Invoke(scoped in System.Int32 arg)
+    [ScopedRef] scoped in System.Int32 arg
+R <>f__AnonymousDelegate1.Invoke(scoped R arg)
+    [ScopedRef] scoped R arg
+void Program.<>c.<Main>b__0_0(scoped in System.Int32 i)
+    [ScopedRef] scoped in System.Int32 i
+R Program.<>c.<Main>b__0_1(scoped R r)
+    [ScopedRef] scoped R r
 ";
             CompileAndVerify(
                 source,

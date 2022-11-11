@@ -4,13 +4,13 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
 {
     internal partial class CSharpSymbolDisplayService : AbstractSymbolDisplayService
     {
-        public CSharpSymbolDisplayService(HostProjectServices services)
+        public CSharpSymbolDisplayService(Host.LanguageServices services)
             : base(services)
         {
         }

@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
         {
         }
 
-        public void CleanupGeneratedFiles(Workspace? workspace)
+        public void CleanupGeneratedFiles(MetadataAsSourceWorkspace workspace)
         {
         }
 
-        public Task<MetadataAsSourceFile?> GetGeneratedFileAsync(Workspace workspace, Project project, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, string tempPath, CancellationToken cancellationToken)
+        public Task<MetadataAsSourceFile?> GetGeneratedFileAsync(MetadataAsSourceWorkspace metadataWorkspace, Workspace sourceWorkspace, Project sourceProject, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, string tempPath, CancellationToken cancellationToken)
         {
             return Task.FromResult<MetadataAsSourceFile?>(NullResult);
         }
@@ -46,17 +46,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             return null;
         }
 
-        public bool TryAddDocumentToWorkspace(Workspace workspace, string filePath, Text.SourceTextContainer sourceTextContainer)
+        public bool TryAddDocumentToWorkspace(MetadataAsSourceWorkspace workspace, string filePath, Text.SourceTextContainer sourceTextContainer)
         {
             return true;
         }
 
-        public bool TryRemoveDocumentFromWorkspace(Workspace workspace, string filePath)
+        public bool TryRemoveDocumentFromWorkspace(MetadataAsSourceWorkspace workspace, string filePath)
         {
             return true;
         }
 
-        public bool ShouldCollapseOnOpen(string filePath, BlockStructureOptions options)
+        public bool ShouldCollapseOnOpen(MetadataAsSourceWorkspace workspace, string filePath, BlockStructureOptions options)
         {
             return true;
         }

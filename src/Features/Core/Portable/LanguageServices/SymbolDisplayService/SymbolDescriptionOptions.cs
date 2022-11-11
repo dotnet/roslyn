@@ -6,7 +6,7 @@ using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.QuickInfo;
 
-namespace Microsoft.CodeAnalysis.LanguageServices;
+namespace Microsoft.CodeAnalysis.LanguageService;
 
 [DataContract]
 internal readonly record struct SymbolDescriptionOptions

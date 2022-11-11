@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.QuickInfo
@@ -20,10 +20,10 @@ namespace Microsoft.CodeAnalysis.QuickInfo
     /// </summary>
     internal abstract class QuickInfoServiceWithProviders : QuickInfoService
     {
-        private readonly HostProjectServices _services;
+        private readonly LanguageServices _services;
         private ImmutableArray<QuickInfoProvider> _providers;
 
-        protected QuickInfoServiceWithProviders(HostProjectServices services)
+        protected QuickInfoServiceWithProviders(LanguageServices services)
         {
             _services = services;
         }

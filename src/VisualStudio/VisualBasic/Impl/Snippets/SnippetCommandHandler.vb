@@ -117,10 +117,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             Dim currentSnapshot = subjectBuffer.CurrentSnapshot
             Dim document = currentSnapshot.GetOpenDocumentInCurrentContextWithChanges()
             If document IsNot Nothing Then
-                Dim editorWorkspace = document.Project.Solution.Workspace
-                Dim text = currentSnapshot.AsText()
-                Dim change = New TextChange(Microsoft.CodeAnalysis.Text.TextSpan.FromBounds(caretPosition - 1, caretPosition), String.Empty)
-                editorWorkspace.ApplyTextChanges(document.Id, change, CancellationToken.None)
+                subjectBuffer.ApplyChange(New TextChange(Microsoft.CodeAnalysis.Text.TextSpan.FromBounds(caretPosition - 1, caretPosition), String.Empty))
             End If
         End Sub
     End Class

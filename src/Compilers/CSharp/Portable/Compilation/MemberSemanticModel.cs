@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
     /// Binding info for expressions and statements that are part of a member declaration.
+    /// Instances of this class should not be exposed to external consumers.
     /// </summary>
     internal abstract partial class MemberSemanticModel : CSharpSemanticModel
     {
@@ -33,21 +34,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private NullableWalker.SnapshotManager _lazySnapshotManager;
         private ImmutableDictionary<Symbol, Symbol> _lazyRemappedSymbols;
         private readonly ImmutableDictionary<Symbol, Symbol> _parentRemappedSymbolsOpt;
-        /// <summary>
-        /// Only used when this is a speculative semantic model.
-        /// </summary>
-        private readonly NullableWalker.SnapshotManager _parentSnapshotManagerOpt;
 
         internal readonly Binder RootBinder;
 
-        /// <summary>
-        /// Field specific to a non-speculative MemberSemanticModel that must have a containing semantic model.
-        /// </summary>
-        private readonly SyntaxTreeSemanticModel _containingSemanticModelOpt;
-
-        // Fields specific to a speculative MemberSemanticModel.
-        private readonly SyntaxTreeSemanticModel _parentSemanticModelOpt;
-        private readonly int _speculatedPosition;
+        private readonly PublicSemanticModel _containingPublicSemanticModel;
 
         private readonly Lazy<CSharpOperationFactory> _operationFactory;
 
@@ -55,29 +45,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode root,
             Symbol memberSymbol,
             Binder rootBinder,
-            SyntaxTreeSemanticModel containingSemanticModelOpt,
-            SyntaxTreeSemanticModel parentSemanticModelOpt,
-            NullableWalker.SnapshotManager snapshotManagerOpt,
-            ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt,
-            int speculatedPosition)
+            PublicSemanticModel containingPublicSemanticModel,
+            ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt)
         {
             Debug.Assert(root != null);
             Debug.Assert((object)memberSymbol != null);
-            Debug.Assert(parentSemanticModelOpt == null ^ containingSemanticModelOpt == null);
-            Debug.Assert(containingSemanticModelOpt == null || !containingSemanticModelOpt.IsSpeculativeSemanticModel);
-            Debug.Assert(parentSemanticModelOpt == null || !parentSemanticModelOpt.IsSpeculativeSemanticModel, CSharpResources.ChainingSpeculativeModelIsNotSupported);
-            Debug.Assert(snapshotManagerOpt == null || parentSemanticModelOpt != null);
+            Debug.Assert(containingPublicSemanticModel.IsSpeculativeSemanticModel == (containingPublicSemanticModel is SpeculativeSemanticModelWithMemberModel));
 
             _root = root;
             _memberSymbol = memberSymbol;
+            _containingPublicSemanticModel = containingPublicSemanticModel;
+            _parentRemappedSymbolsOpt = parentRemappedSymbolsOpt;
 
             this.RootBinder = rootBinder.WithAdditionalFlags(GetSemanticModelBinderFlags());
-            _containingSemanticModelOpt = containingSemanticModelOpt;
-            _parentSemanticModelOpt = parentSemanticModelOpt;
-            _parentSnapshotManagerOpt = snapshotManagerOpt;
-            _parentRemappedSymbolsOpt = parentRemappedSymbolsOpt;
-            _speculatedPosition = speculatedPosition;
-
             _operationFactory = new Lazy<CSharpOperationFactory>(() => new CSharpOperationFactory(this));
         }
 
@@ -85,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return (_containingSemanticModelOpt ?? _parentSemanticModelOpt).Compilation;
+                return _containingPublicSemanticModel.Compilation;
             }
         }
 
@@ -112,7 +92,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _parentSemanticModelOpt != null;
+                return _containingPublicSemanticModel.IsSpeculativeSemanticModel;
+            }
+        }
+
+        public sealed override bool IgnoresAccessibility
+        {
+            get
+            {
+                return _containingPublicSemanticModel.IgnoresAccessibility;
             }
         }
 
@@ -120,7 +108,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _speculatedPosition;
+                // This property is not meaningful for member semantic models.
+                // An external consumer should never be able to access them directly.
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -128,15 +118,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _parentSemanticModelOpt;
+                // This property is not meaningful for member semantic models.
+                // An external consumer should never be able to access them directly.
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
-        internal sealed override SemanticModel ContainingModelOrSelf
+        internal sealed override SemanticModel ContainingPublicModelOrSelf
         {
             get
             {
-                return _containingSemanticModelOpt ?? (SemanticModel)this;
+                return _containingPublicSemanticModel;
             }
         }
 
@@ -164,14 +156,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyRemappedSymbols;
         }
 
-        internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, TypeSyntax type, SpeculativeBindingOption bindingOption, out SemanticModel speculativeModel)
+        internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, TypeSyntax type, SpeculativeBindingOption bindingOption, out PublicSemanticModel speculativeModel)
         {
             var expression = SyntaxFactory.GetStandaloneExpression(type);
 
             var binder = this.GetSpeculativeBinder(position, expression, bindingOption);
             if (binder != null)
             {
-                speculativeModel = new SpeculativeMemberSemanticModel(parentModel, _memberSymbol, type, binder, GetSnapshotManager(), GetRemappedSymbols(), position);
+                speculativeModel = new SpeculativeSemanticModelWithMemberModel(parentModel, position, _memberSymbol, type, binder, GetRemappedSymbols(), GetSnapshotManager());
                 return true;
             }
 
@@ -179,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, CrefSyntax crefSyntax, out SemanticModel speculativeModel)
+        internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, CrefSyntax crefSyntax, out PublicSemanticModel speculativeModel)
         {
             // crefs can never legally appear within members.
             speculativeModel = null;
@@ -566,22 +558,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return boundNodes[boundNodes.Length - 1];
         }
 
-        public override ImmutableArray<Diagnostic> GetSyntaxDiagnostics(TextSpan? span = null, CancellationToken cancellationToken = default(CancellationToken))
+        public sealed override ImmutableArray<Diagnostic> GetSyntaxDiagnostics(TextSpan? span = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotSupportedException();
         }
 
-        public override ImmutableArray<Diagnostic> GetDeclarationDiagnostics(TextSpan? span = null, CancellationToken cancellationToken = default(CancellationToken))
+        public sealed override ImmutableArray<Diagnostic> GetDeclarationDiagnostics(TextSpan? span = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotSupportedException();
         }
 
-        public override ImmutableArray<Diagnostic> GetMethodBodyDiagnostics(TextSpan? span = null, CancellationToken cancellationToken = default(CancellationToken))
+        public sealed override ImmutableArray<Diagnostic> GetMethodBodyDiagnostics(TextSpan? span = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotSupportedException();
         }
 
-        public override ImmutableArray<Diagnostic> GetDiagnostics(TextSpan? span = null, CancellationToken cancellationToken = default(CancellationToken))
+        public sealed override ImmutableArray<Diagnostic> GetDiagnostics(TextSpan? span = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotSupportedException();
         }
@@ -1953,13 +1945,14 @@ done:
                 // Not all speculative models are created with existing snapshots. Attributes,
                 // TypeSyntaxes, and MethodBodies do not depend on existing state in a member,
                 // and so the SnapshotManager can be null in these cases.
-                if (_parentSnapshotManagerOpt is null || !isNullableAnalysisEnabled)
+                var parentSnapshotManagerOpt = ((SpeculativeSemanticModelWithMemberModel)_containingPublicSemanticModel).ParentSnapshotManagerOpt;
+                if (parentSnapshotManagerOpt is null || !isNullableAnalysisEnabled)
                 {
                     rewriteAndCache();
                     return;
                 }
 
-                boundRoot = NullableWalker.AnalyzeAndRewriteSpeculation(_speculatedPosition, boundRoot, binder, _parentSnapshotManagerOpt, out var newSnapshots, ref remappedSymbols);
+                boundRoot = NullableWalker.AnalyzeAndRewriteSpeculation(_containingPublicSemanticModel.OriginalPositionForSpeculation, boundRoot, binder, parentSnapshotManagerOpt, out var newSnapshots, ref remappedSymbols);
                 GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot, newSnapshots, remappedSymbols);
             }
             else
@@ -2278,6 +2271,7 @@ done:
                     case SyntaxKind.ParenthesizedExpression:
                     case SyntaxKind.RefExpression:
                     case SyntaxKind.RefType:
+                    case SyntaxKind.ScopedType:
                         var pp = parent.Parent;
                         if (pp == null) break;
                         parent = pp;
@@ -2330,12 +2324,12 @@ foundParent:;
 
         internal sealed override Func<SyntaxNode, bool> GetSyntaxNodesToAnalyzeFilter(SyntaxNode declaredNode, ISymbol declaredSymbol)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
-        internal override bool ShouldSkipSyntaxNodeAnalysis(SyntaxNode node, ISymbol containingSymbol)
+        internal sealed override bool ShouldSkipSyntaxNodeAnalysis(SyntaxNode node, ISymbol containingSymbol)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         /// <summary>

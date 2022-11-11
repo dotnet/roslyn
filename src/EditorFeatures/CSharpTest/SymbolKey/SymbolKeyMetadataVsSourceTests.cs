@@ -91,8 +91,7 @@ public class App : C
             ResolveAndVerifySymbol(member04, originalSymbols[4], comp1, SymbolKeyComparison.None);
         }
 
-        [WorkItem(542700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542700")]
-        [Fact]
+        [Fact, WorkItem(542700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542700")]
         public void M2SNonTypeMemberSymbols01()
         {
             var src1 = @"using System;

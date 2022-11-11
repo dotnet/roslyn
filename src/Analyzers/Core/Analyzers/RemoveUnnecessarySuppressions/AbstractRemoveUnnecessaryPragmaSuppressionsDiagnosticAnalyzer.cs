@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeQuality;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                 // CheckId represents diagnostic ID, followed by an option ':' and name.
                 // For example, "CA1801:ReviewUnusedParameters"
                 var index = checkId.IndexOf(':');
-                id = index > 0 ? checkId.Substring(0, index) : checkId;
+                id = index > 0 ? checkId[..index] : checkId;
 
                 if (attribute.AttributeConstructor.Parameters[0].Name == "category" &&
                     attribute.AttributeConstructor.Parameters[0].Type.SpecialType == SpecialType.System_String &&

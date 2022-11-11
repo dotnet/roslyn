@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     internal partial class AbstractSymbolDisplayService
     {
@@ -88,14 +88,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             private readonly Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> _documentationMap = new();
             private readonly Func<ISymbol, string> _getNavigationHint;
 
-            protected readonly HostSolutionServices Services;
+            protected readonly SolutionServices Services;
             protected readonly SymbolDescriptionOptions Options;
             protected readonly CancellationToken CancellationToken;
 
             protected AbstractSymbolDescriptionBuilder(
                 SemanticModel semanticModel,
                 int position,
-                HostSolutionServices services,
+                SolutionServices services,
                 IStructuralTypeDisplayService structuralTypeDisplayService,
                 SymbolDescriptionOptions options,
                 CancellationToken cancellationToken)

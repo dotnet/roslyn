@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         private UseExpressionBodyForMethodsHelper()
             : base(IDEDiagnosticIds.UseExpressionBodyForMethodsDiagnosticId,
                    EnforceOnBuildValues.UseExpressionBodyForMethods,
-                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_methods), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_methods), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_method), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_method), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    CSharpCodeStyleOptions.PreferExpressionBodiedMethods,
                    ImmutableArray.Create(SyntaxKind.MethodDeclaration))
         {

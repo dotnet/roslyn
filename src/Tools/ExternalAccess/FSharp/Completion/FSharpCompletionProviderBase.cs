@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion
         public sealed override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
             => ShouldTriggerCompletionImpl(text, caretPosition, trigger);
 
-        internal sealed override bool ShouldTriggerCompletion(HostProjectServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, OptionSet passthroughOptions)
+        internal sealed override bool ShouldTriggerCompletion(Host.LanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, OptionSet passthroughOptions)
             => ShouldTriggerCompletionImpl(text, caretPosition, trigger);
 
         protected abstract bool ShouldTriggerCompletionImpl(SourceText text, int caretPosition, CompletionTrigger trigger);

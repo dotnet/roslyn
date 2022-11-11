@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             var title = syntaxFacts.ConvertToSingleLine(token.Parent).ToString();
             if (title.Length >= 10)
             {
-                title = title.Substring(0, 10) + "...";
+                title = title[..10] + "...";
             }
 
             var searchTitle = string.Format(FeaturesResources._0_references, title);

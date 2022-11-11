@@ -5,9 +5,11 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -843,6 +845,97 @@ public class C
                 AssertEx.NotNull(actualText.Encoding);
                 AssertEx.Equal(encoding.WebName, actualText.Encoding.WebName);
                 AssertEx.EqualOrDiff(source, actualText.ToString());
+            });
+        }
+
+        [Fact]
+        public async Task OptionTurnedOff_NullResult()
+        {
+            var source = @"
+public class C
+{
+    public event System.EventHandler E { add { } remove { } }
+}";
+
+            await RunTestAsync(async path =>
+            {
+                var sourceText = SourceText.From(source, Encoding.UTF8);
+                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"));
+
+                using var workspace = (TestWorkspace)project.Solution.Workspace;
+
+                var service = workspace.GetService<IMetadataAsSourceFileService>();
+                try
+                {
+                    var options = MetadataAsSourceOptions.GetDefault(project.Services) with
+                    {
+                        NavigateToSourceLinkAndEmbeddedSources = false
+                    };
+                    var file = await service.GetGeneratedFileAsync(workspace, project, symbol, signaturesOnly: false, options, CancellationToken.None).ConfigureAwait(false);
+
+                    Assert.Same(NullResultMetadataAsSourceFileProvider.NullResult, file);
+                }
+                finally
+                {
+                    service.CleanupGeneratedFiles();
+                    service.TryGetWorkspace()?.Dispose();
+                }
+            });
+        }
+
+        [Fact]
+        public async Task MethodInPartialType_NavigateToCorrectFile()
+        {
+            var source1 = @"
+public partial class C
+{
+    public void M1()
+    {
+    }
+}
+";
+            var source2 = @"
+using System.Threading.Tasks;
+
+public partial class C
+{
+    public static async Task [|M2|]() => await M3();
+
+    private static async Task M3()
+    {
+    }
+}
+";
+
+            await RunTestAsync(async path =>
+            {
+                MarkupTestFile.GetSpan(source2, out source2, out var expectedSpan);
+
+                var sourceText1 = SourceText.From(source1, Encoding.UTF8);
+                var sourceText2 = SourceText.From(source2, Encoding.UTF8);
+
+                var workspace = TestWorkspace.Create(@$"
+<Workspace>
+    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
+    </Project>
+</Workspace>", composition: GetTestComposition());
+
+                var project = workspace.CurrentSolution.Projects.First();
+
+                var dllFilePath = GetDllPath(path);
+                var sourceCodePath = GetSourceFilePath(path);
+                var pdbFilePath = GetPdbPath(path);
+                CompileTestSource(dllFilePath, new[] { Path.Combine(path, "source1.cs"), Path.Combine(path, "source2.cs") }, pdbFilePath, "reference", new[] { sourceText1, sourceText2 }, project, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
+
+                project = project.AddMetadataReference(MetadataReference.CreateFromFile(GetDllPath(path)));
+
+                var mainCompilation = await project.GetRequiredCompilationAsync(CancellationToken.None).ConfigureAwait(false);
+
+                var symbol = mainCompilation.GetMember("C.M2");
+
+                AssertEx.NotNull(symbol, $"Couldn't find symbol to go-to-def for.");
+
+                await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, source2.ToString(), expectedSpan, expectNullResult: false);
             });
         }
     }

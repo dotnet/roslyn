@@ -98,7 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
             bool hasBody = hasBlockBody || _isExpressionBodied;
             _hasAnyBody = hasBody;
-            _refKind = syntax.ReturnType.GetRefKind();
+            Debug.Assert(syntax.ReturnType is not ScopedTypeSyntax);
+            _refKind = syntax.ReturnType.SkipScoped(out _).GetRefKind();
 
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
@@ -137,10 +138,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowRefOrOut: true,
                 allowThis: true,
                 addRefReadOnlyModifier: IsVirtual || IsAbstract,
-                diagnostics: diagnostics);
+                diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
 
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
-            var returnTypeSyntax = syntax.ReturnType.SkipRef(out RefKind refKind);
+            var returnTypeSyntax = syntax.ReturnType;
+            Debug.Assert(returnTypeSyntax is not ScopedTypeSyntax);
+
+            returnTypeSyntax = returnTypeSyntax.SkipScoped(out _).SkipRef(out RefKind refKind);
             TypeWithAnnotations returnType = signatureBinder.BindType(returnTypeSyntax, diagnostics);
 
             // span-like types are returnable in general
@@ -707,7 +711,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, implementingMethod.Locations[0], new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
                 },
-                extraArgument: (object)null))
+                extraArgument: (object)null,
+                allowVariance: false,
+                invokedAsExtensionMethod: false))
             {
                 hasTypeDifferences = true;
             }

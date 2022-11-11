@@ -64,25 +64,25 @@ namespace Microsoft.CodeAnalysis
                     var metadataReferenceChecksums = ChecksumCache.GetOrCreate<ChecksumCollection>(MetadataReferences, _ => new ChecksumCollection(MetadataReferences.SelectAsArray(r => serializer.CreateChecksum(r, cancellationToken))));
                     var analyzerReferenceChecksums = ChecksumCache.GetOrCreate<ChecksumCollection>(AnalyzerReferences, _ => new ChecksumCollection(AnalyzerReferences.SelectAsArray(r => serializer.CreateChecksum(r, cancellationToken))));
 
-                    var documentChecksums = await Task.WhenAll(documentChecksumsTasks).ConfigureAwait(false);
-                    var additionalChecksums = await Task.WhenAll(additionalDocumentChecksumTasks).ConfigureAwait(false);
-                    var analyzerConfigDocumentChecksums = await Task.WhenAll(analyzerConfigDocumentChecksumTasks).ConfigureAwait(false);
+                    var documentChecksums = new ChecksumCollection(await documentChecksumsTasks.WhenAll().ConfigureAwait(false));
+                    var additionalDocumentChecksums = new ChecksumCollection(await additionalDocumentChecksumTasks.WhenAll().ConfigureAwait(false));
+                    var analyzerConfigDocumentChecksums = new ChecksumCollection(await analyzerConfigDocumentChecksumTasks.WhenAll().ConfigureAwait(false));
 
                     return new ProjectStateChecksums(
                         infoChecksum,
                         compilationOptionsChecksum,
                         parseOptionsChecksum,
-                        documentChecksums: new ChecksumCollection(ImmutableArray.Create(documentChecksums)),
+                        documentChecksums,
                         projectReferenceChecksums,
                         metadataReferenceChecksums,
                         analyzerReferenceChecksums,
-                        additionalDocumentChecksums: new ChecksumCollection(ImmutableArray.Create(additionalChecksums)),
-                        analyzerConfigDocumentChecksumCollection: new ChecksumCollection(ImmutableArray.Create(analyzerConfigDocumentChecksums)));
+                        additionalDocumentChecksums,
+                        analyzerConfigDocumentChecksums);
                 }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }

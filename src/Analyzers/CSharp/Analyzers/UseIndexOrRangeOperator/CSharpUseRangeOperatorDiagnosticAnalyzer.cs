@@ -8,7 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -81,11 +81,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return;
 
             var operation = context.Operation;
+            var semanticModel = operation.SemanticModel;
+            Contract.ThrowIfNull(semanticModel);
+
             var result = AnalyzeInvocation((IInvocationOperation)operation, infoCache);
             if (result == null)
                 return;
 
-            if (CSharpSemanticFacts.Instance.IsInExpressionTree(operation.SemanticModel, operation.Syntax, infoCache.ExpressionOfTType, context.CancellationToken))
+            if (CSharpSemanticFacts.Instance.IsInExpressionTree(semanticModel, operation.Syntax, infoCache.ExpressionOfTType, context.CancellationToken))
                 return;
 
             context.ReportDiagnostic(CreateDiagnostic(result.Value, option.Notification.Severity));

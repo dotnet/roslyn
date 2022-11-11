@@ -4,12 +4,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using static Microsoft.VisualStudio.Threading.ThreadingTools;
 
@@ -32,8 +34,8 @@ namespace Microsoft.CodeAnalysis.Remote
         private int _currentRemoteWorkspaceVersion = -1;
 
         // internal for testing purposes.
-        internal RemoteWorkspace(HostServices hostServices, string? workspaceKind)
-            : base(hostServices, workspaceKind)
+        internal RemoteWorkspace(HostServices hostServices)
+            : base(hostServices, WorkspaceKind.RemoteWorkspace)
         {
         }
 
@@ -52,8 +54,8 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Syncs over the solution corresponding to <paramref name="solutionChecksum"/> and sets it as the current
         /// solution for <see langword="this"/> workspace.  This will also end up updating <see
-        /// cref="_lastAnyBranchSolution"/> and <see cref="_lastPrimaryBranchSolution"/>, allowing them to be pre-populated for
-        /// feature requests that come in soon after this call completes.
+        /// cref="_lastRequestedAnyBranchSolution"/> and <see cref="_lastRequestedPrimaryBranchSolution"/>, allowing
+        /// them to be pre-populated for feature requests that come in soon after this call completes.
         /// </summary>
         public async Task UpdatePrimaryBranchSolutionAsync(
             AssetProvider assetProvider, Checksum solutionChecksum, int workspaceVersion, CancellationToken cancellationToken)
@@ -110,16 +112,50 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // Gets or creates a solution corresponding to the requested checksum.  This will always succeed, and will
             // increment the in-flight of that solution until we decrement it at the end of our try/finally block.
-            InFlightSolution inFlightSolution;
-            Task<Solution> solutionTask;
-            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-            {
-                inFlightSolution = GetOrCreateSolutionAndAddInFlightCount_NoLock(
-                    assetProvider, solutionChecksum, workspaceVersion, updatePrimaryBranch);
-                solutionTask = inFlightSolution.PreferredSolutionTask_NoLock;
-            }
+            var (inFlightSolution, solutionTask) = await AcquireSolutionAndIncrementInFlightCountAsync().ConfigureAwait(false);
 
             try
+            {
+                return await ProcessSolutionAsync(inFlightSolution, solutionTask).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken, ErrorSeverity.Critical))
+            {
+                // Any non-cancellation exception is bad and needs to be reported.  We will still ensure that we cleanup
+                // below though no matter what happens so that other calls to OOP can properly work.
+                throw ExceptionUtilities.Unreachable();
+            }
+            finally
+            {
+                await DecrementInFlightCountAsync(inFlightSolution).ConfigureAwait(false);
+            }
+
+            // Gets or creates a solution corresponding to the requested checksum.  This will always succeed, and will
+            // increment the in-flight of that solution until we decrement it at the end of our try/finally block.
+            async ValueTask<(InFlightSolution inFlightSolution, Task<Solution> solutionTask)> AcquireSolutionAndIncrementInFlightCountAsync()
+            {
+                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    try
+                    {
+                        inFlightSolution = GetOrCreateSolutionAndAddInFlightCount_NoLock(
+                            assetProvider, solutionChecksum, workspaceVersion, updatePrimaryBranch);
+                        solutionTask = inFlightSolution.PreferredSolutionTask_NoLock;
+
+                        // We must have at least 1 for the in-flight-count (representing this current in-flight call).
+                        Contract.ThrowIfTrue(inFlightSolution.InFlightCount < 1);
+
+                        return (inFlightSolution, solutionTask);
+                    }
+                    catch (Exception ex) when (FatalError.ReportAndPropagate(ex, ErrorSeverity.Critical))
+                    {
+                        // Any exception thrown in the above (including cancellation) is critical and unrecoverable.  We
+                        // will have potentially started work, while also leaving ourselves in some inconsistent state.
+                        throw ExceptionUtilities.Unreachable();
+                    }
+                }
+            }
+
+            async ValueTask<(Solution solution, T result)> ProcessSolutionAsync(InFlightSolution inFlightSolution, Task<Solution> solutionTask)
             {
                 // We must have at least 1 for the in-flight-count (representing this current in-flight call).
                 Contract.ThrowIfTrue(inFlightSolution.InFlightCount < 1);
@@ -129,23 +165,56 @@ namespace Microsoft.CodeAnalysis.Remote
                 // private CTS token that inFlightSolution controls.
                 var solution = await solutionTask.WithCancellation(cancellationToken).ConfigureAwait(false);
 
+                // now that we've computed the solution, cache it to help out future requests.
+                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    if (updatePrimaryBranch)
+                        _lastRequestedPrimaryBranchSolution = (solutionChecksum, solution);
+                    else
+                        _lastRequestedAnyBranchSolution = (solutionChecksum, solution);
+                }
+
                 // Now, pass it to the callback to do the work.  Any other callers into us will be able to benefit from
                 // using this same solution as well
                 var result = await implementation(solution).ConfigureAwait(false);
 
                 return (solution, result);
             }
-            finally
-            {
-                // Intentionally not cancellable.  We must do the decrement to ensure our cache state is consistent.
-                // This will block the calling thread.  However, this should only be for a short amount of time as
-                // nothing in RemoteWorkspace should ever hold this lock for long periods of time.
-                using (_gate.DisposableWait(CancellationToken.None))
-                {
 
-                    // finally, decrement our in-flight-count on the solution.  If we were the last one keeping it alive, it
-                    // will get removed from our caches.
-                    inFlightSolution.DecrementInFlightCount_NoLock();
+            async ValueTask DecrementInFlightCountAsync(InFlightSolution inFlightSolution)
+            {
+                // All this work is intentionally not cancellable.  We must do the decrement to ensure our cache state
+                // is consistent. This will block the calling thread.  However, this should only be for a short amount
+                // of time as nothing in RemoteWorkspace should ever hold this lock for long periods of time.
+
+                try
+                {
+                    ImmutableArray<Task> solutionComputationTasks;
+                    using (await _gate.DisposableWaitAsync(CancellationToken.None).ConfigureAwait(false))
+                    {
+
+                        // finally, decrement our in-flight-count on the solution.  If we were the last one keeping it alive, it
+                        // will get removed from our caches.
+                        solutionComputationTasks = inFlightSolution.DecrementInFlightCount_NoLock();
+                    }
+
+                    // If we were the request that decremented the in-flight-count to 0, then ensure we wait for all the
+                    // solution-computation tasks to finish.  If we do not do this then it's possible for this call to
+                    // return all the way back to the host side unpinning the solution we have pinned there.  This may
+                    // happen concurrently with the solution-computation calls calling back into the host which will
+                    // then crash due to that solution no longer being pinned there.  While this does force this caller
+                    // to wait for those tasks to stop, this should ideally be fast as they will have been cancelled
+                    // when the in-flight-count went to 0.
+                    //
+                    // Use a NoThrowAwaitable as we want to await all tasks here regardless of how individual ones may cancel.
+                    foreach (var task in solutionComputationTasks)
+                        await task.NoThrowAwaitable(false);
+                }
+                catch (Exception ex) when (FatalError.ReportAndPropagate(ex, ErrorSeverity.Critical))
+                {
+                    // Similar to AcquireSolutionAndIncrementInFlightCountAsync Any exception thrown in the above
+                    // (including cancellation) is critical and unrecoverable.  We must clean up our state, and anything
+                    // that prevents that could leave us in an inconsistent position.
                 }
             }
         }
@@ -193,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -237,23 +306,33 @@ namespace Microsoft.CodeAnalysis.Remote
                 // if either solution id or file path changed, then we consider it as new solution. Otherwise,
                 // update the current solution in place.
 
-                var oldSolution = CurrentSolution;
-                var addingSolution = oldSolution.Id != newSolution.Id || oldSolution.FilePath != newSolution.FilePath;
-                if (addingSolution)
-                {
-                    // We're not doing an update, we're moving to a new solution entirely.  Clear out the old one. This
-                    // is necessary so that we clear out any open document information this workspace is tracking. Note:
-                    // this seems suspect as the remote workspace should not be tracking any open document state.
-                    ClearSolutionData();
-                }
-
-                newSolution = SetCurrentSolution(newSolution);
-
-                _ = RaiseWorkspaceChangedEventAsync(
-                    addingSolution ? WorkspaceChangeKind.SolutionAdded : WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
+                // Ensure we update newSolution with the result of SetCurrentSolution.  It will be the one appropriately
+                // 'attached' to this workspace.
+                (_, newSolution) = this.SetCurrentSolution(
+                    (oldSolution, _) => newSolution,
+                    data: /*unused*/0,
+                    onBeforeUpdate: (oldSolution, newSolution, _) =>
+                    {
+                        if (IsAddingSolution(oldSolution, newSolution))
+                        {
+                            // We're not doing an update, we're moving to a new solution entirely.  Clear out the old one. This
+                            // is necessary so that we clear out any open document information this workspace is tracking. Note:
+                            // this seems suspect as the remote workspace should not be tracking any open document state.
+                            this.ClearSolutionData();
+                        }
+                    },
+                    onAfterUpdate: (oldSolution, newSolution, _) =>
+                    {
+                        RaiseWorkspaceChangedEventAsync(
+                            IsAddingSolution(oldSolution, newSolution) ? WorkspaceChangeKind.SolutionAdded : WorkspaceChangeKind.SolutionChanged,
+                            oldSolution, newSolution);
+                    });
 
                 return (newSolution, updated: true);
             }
+
+            static bool IsAddingSolution(Solution oldSolution, Solution newSolution)
+                => oldSolution.Id != newSolution.Id || oldSolution.FilePath != newSolution.FilePath;
         }
 
         public TestAccessor GetTestAccessor()

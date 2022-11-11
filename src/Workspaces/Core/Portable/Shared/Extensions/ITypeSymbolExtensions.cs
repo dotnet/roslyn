@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return builder.ToImmutable();
         }
 
-        public static ISymbol? FindImplementations(this ITypeSymbol typeSymbol, ISymbol constructedInterfaceMember, HostSolutionServices services)
+        public static ISymbol? FindImplementations(this ITypeSymbol typeSymbol, ISymbol constructedInterfaceMember, SolutionServices services)
             => constructedInterfaceMember switch
             {
                 IEventSymbol eventSymbol => typeSymbol.FindImplementations(eventSymbol, services),
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private static ISymbol? FindImplementations<TSymbol>(
             this ITypeSymbol typeSymbol,
             TSymbol constructedInterfaceMember,
-            HostSolutionServices services) where TSymbol : class, ISymbol
+            SolutionServices services) where TSymbol : class, ISymbol
         {
             // Check the current type for explicit interface matches.  Otherwise, check
             // the current type and base types for implicit matches.
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 where SymbolEquivalenceComparer.Instance.Equals(explicitInterfaceMethod, constructedInterfaceMember)
                 select member;
 
-            var provider = services.GetProjectServices(typeSymbol.Language);
+            var provider = services.GetLanguageServices(typeSymbol.Language);
             var semanticFacts = provider.GetRequiredService<ISemanticFactsService>();
 
             // Even if a language only supports explicit interface implementation, we

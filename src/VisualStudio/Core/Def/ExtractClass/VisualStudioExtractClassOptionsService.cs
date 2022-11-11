@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractClass;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PullMemberUp;
@@ -83,6 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
             var viewModel = new ExtractClassViewModel(
                 _uiThreadOperationExecutor,
                 notificationService,
+                selectedType,
                 memberViewModels,
                 memberToDependentsMap,
                 defaultTypeName,

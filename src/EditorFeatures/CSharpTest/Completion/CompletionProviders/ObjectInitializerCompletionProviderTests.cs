@@ -17,12 +17,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType()
             => typeof(ObjectAndWithInitializerCompletionProvider);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NothingToInitialize()
         {
             var markup = @"
@@ -40,8 +41,7 @@ class D
             await VerifyExclusiveAsync(markup, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(46397, "https://github.com/dotnet/roslyn/issues/46397")]
+        [Fact, WorkItem(46397, "https://github.com/dotnet/roslyn/issues/46397")]
         public async Task ImplicitObjectCreation_NothingToInitialize()
         {
             var markup = @"
@@ -59,7 +59,7 @@ class D
             await VerifyExclusiveAsync(markup, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task OneItem1()
         {
             var markup = @"
@@ -78,8 +78,7 @@ class D
             await VerifyExclusiveAsync(markup, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(46397, "https://github.com/dotnet/roslyn/issues/46397")]
+        [Fact, WorkItem(46397, "https://github.com/dotnet/roslyn/issues/46397")]
         public async Task ImplicitObjectCreation_OneItem1()
         {
             var markup = @"
@@ -98,7 +97,7 @@ class D
             await VerifyExclusiveAsync(markup, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ImplicitObjectCreation_NullableStruct_OneItem1()
         {
             var markup = @"
@@ -117,7 +116,7 @@ class D
             await VerifyExclusiveAsync(markup, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ShowWithEqualsSign()
         {
             var markup = @"
@@ -136,7 +135,7 @@ class D
             await VerifyExclusiveAsync(markup, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task OneItem2()
         {
             var markup = @"
@@ -155,7 +154,7 @@ class C
             await VerifyExclusiveAsync(markup, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task FieldAndProperty()
         {
             var markup = @"
@@ -178,7 +177,7 @@ class D
             await VerifyExclusiveAsync(markup, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task HidePreviouslyTyped()
         {
             var markup = @"
@@ -201,7 +200,7 @@ class D
             await VerifyItemExistsAsync(markup, "otherValue");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NotInEqualsValue()
         {
             var markup = @"
@@ -222,7 +221,7 @@ class D
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NothingLeftToShow()
         {
             var markup = @"
@@ -244,7 +243,7 @@ class D
             await VerifyExclusiveAsync(markup, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NestedObjectInitializers()
         {
             var markup = @"
@@ -272,7 +271,7 @@ class E
             await VerifyExclusiveAsync(markup, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NotExclusive1()
         {
             var markup = @"using System.Collections.Generic;
@@ -293,7 +292,7 @@ class D
             await VerifyExclusiveAsync(markup, false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NotExclusive2()
         {
             var markup = @"using System.Collections;
@@ -314,8 +313,7 @@ class D
             await VerifyExclusiveAsync(markup, false);
         }
 
-        [WorkItem(544242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544242")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(544242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544242")]
         public async Task NotInArgumentList()
         {
             var markup = @"class C
@@ -329,8 +327,7 @@ class D
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(530075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530075")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(530075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530075")]
         public async Task NotInArgumentList2()
         {
             var markup = @"class C
@@ -345,8 +342,7 @@ class D
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(544289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544289")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(544289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544289")]
         public async Task DerivedMembers()
         {
             var markup = @"using System;
@@ -382,8 +378,7 @@ namespace ConsoleApplication1
             await VerifyItemIsAbsentAsync(markup, "BasePrivate");
         }
 
-        [WorkItem(544242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544242")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(544242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544242")]
         public async Task NotInCollectionInitializer()
         {
             var markup = @"using System.Collections.Generic;
@@ -398,7 +393,7 @@ class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InitializeDerivedType()
         {
             var markup = @"using System.Collections.Generic;
@@ -420,8 +415,7 @@ class C
             await VerifyItemExistsAsync(markup, "goo");
         }
 
-        [WorkItem(544550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544550")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(544550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544550")]
         public async Task ReadOnlyPropertiesShouldNotBePresent()
         {
             var markup = @"using System.Collections.Generic;
@@ -438,8 +432,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "Count");
         }
 
-        [WorkItem(544550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544550")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(544550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544550")]
         public async Task IndexersShouldNotBePresent()
         {
             var markup = @"using System.Collections.Generic;
@@ -456,7 +449,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "this[]");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ReadOnlyPropertiesThatFollowTheCollectionPatternShouldBePresent()
         {
             var markup = @"using System.Collections.Generic;
@@ -476,8 +469,7 @@ class C
             await VerifyItemExistsAsync(markup, "bar");
         }
 
-        [WorkItem(544607, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544607")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(544607, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544607")]
         public async Task DoNotIncludeStaticMember()
         {
             var markup = @"
@@ -497,9 +489,7 @@ class Bar
             await VerifyItemIsAbsentAsync(markup, "Gibberish");
         }
 
-        [Fact]
-        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         public async Task EditorBrowsable_PropertyInObjectCreationAlways()
         {
             var markup = @"
@@ -527,9 +517,7 @@ public class Goo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact]
-        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         public async Task EditorBrowsable_PropertyInObjectCreationNever()
         {
             var markup = @"
@@ -556,9 +544,7 @@ public class Goo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact]
-        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         public async Task EditorBrowsable_PropertyInObjectCreationAdvanced()
         {
             var markup = @"
@@ -598,7 +584,7 @@ public class Goo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestCommitCharacter()
         {
             const string markup = @"
@@ -615,7 +601,7 @@ class D
             await VerifyCommonCommitCharactersAsync(markup, textTypedSoFar: "v");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestEnter()
         {
             const string markup = @"
@@ -629,7 +615,7 @@ class D
     }
 }";
 
-            using var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: ExportProvider);
+            using var workspace = TestWorkspace.CreateCSharp(markup, composition: GetComposition());
             var hostDocument = workspace.Documents.Single();
             var position = hostDocument.CursorPosition.Value;
             var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
@@ -642,12 +628,11 @@ class D
             Assert.False(CommitManager.SendEnterThroughToEditor(service.GetRules(CompletionOptions.Default), item, string.Empty), "Expected false from SendEnterThroughToEditor()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void TestTrigger()
             => TestCommonIsTextualTriggerCharacter();
 
-        [WorkItem(530828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530828")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(530828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530828")]
         public async Task DoNotIncludeIndexedPropertyWithNonOptionalParameter()
         {
             var markup = @"C c01 = new C() {$$ }";
@@ -673,8 +658,7 @@ End Class";
                 referencedLanguage: LanguageNames.VisualBasic);
         }
 
-        [WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")]
         public async Task CollectionInitializerPatternFromBaseType()
         {
             var markup = @"
@@ -716,8 +700,7 @@ class Program
             await VerifyItemExistsAsync(markup, "D");
         }
 
-        [WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")]
         public async Task CollectionInitializerPatternFromBaseTypeInaccessible()
         {
             var markup = @"
@@ -760,8 +743,7 @@ class Program
             await VerifyItemExistsAsync(markup, "D");
         }
 
-        [WorkItem(13158, "https://github.com/dotnet/roslyn/issues/13158")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(13158, "https://github.com/dotnet/roslyn/issues/13158")]
         public async Task CollectionInitializerForInterfaceType1()
         {
             var markup = @"
@@ -785,8 +767,7 @@ class Program
             await VerifyItemExistsAsync(markup, "Bar");
         }
 
-        [WorkItem(13158, "https://github.com/dotnet/roslyn/issues/13158")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(13158, "https://github.com/dotnet/roslyn/issues/13158")]
         public async Task CollectionInitializerForInterfaceType2()
         {
             var markup = @"
@@ -812,8 +793,7 @@ class Program
             await VerifyItemExistsAsync(markup, "Bar");
         }
 
-        [WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")]
         public async Task CollectionInitializerPatternFromBaseTypeAccessible()
         {
             var markup = @"
@@ -852,8 +832,7 @@ class Container
             await VerifyItemExistsAsync(markup, "D");
         }
 
-        [WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")]
         public async Task ObjectInitializerOfGenericTypeConstructedWithInaccessibleType()
         {
             var markup = @"
@@ -878,8 +857,7 @@ class Program
             await VerifyItemExistsAsync(markup, "Value");
         }
 
-        [WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")]
         public async Task ObjectInitializerOfGenericTypeСonstraint1()
         {
             var markup = @"
@@ -905,8 +883,7 @@ internal class Example
             await VerifyItemExistsAsync(markup, "B");
         }
 
-        [WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")]
         public async Task ObjectInitializerOfGenericTypeСonstraint2()
         {
             var markup = @"
@@ -925,8 +902,7 @@ internal class Example
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")]
         public async Task ObjectInitializerOfGenericTypeСonstraint3()
         {
             var markup = @"
@@ -946,8 +922,7 @@ internal class Example
             await VerifyItemExistsAsync(markup, "Method");
         }
 
-        [WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")]
         public async Task ObjectInitializerOfGenericTypeСonstraint4()
         {
             var markup = @"
@@ -966,8 +941,7 @@ internal class Example
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(26560, "https://github.com/dotnet/roslyn/issues/26560")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(26560, "https://github.com/dotnet/roslyn/issues/26560")]
         public async Task ObjectInitializerEscapeKeywords()
         {
             var markup = @"
@@ -996,7 +970,7 @@ class D
             await VerifyItemIsAbsentAsync(markup, "this");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task RequiredMembersLabeledAndSelected()
         {
             var markup = @"
@@ -1018,8 +992,7 @@ class D
             await VerifyItemExistsAsync(markup, "RequiredProperty", inlineDescription: FeaturesResources.Required);
         }
 
-        [WorkItem(15205, "https://github.com/dotnet/roslyn/issues/15205")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(15205, "https://github.com/dotnet/roslyn/issues/15205")]
         public async Task NestedPropertyInitializers1()
         {
             var markup = @"
@@ -1045,8 +1018,7 @@ class Program
             await VerifyItemExistsAsync(markup, "PropB");
         }
 
-        [WorkItem(15205, "https://github.com/dotnet/roslyn/issues/15205")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(15205, "https://github.com/dotnet/roslyn/issues/15205")]
         public async Task NestedPropertyInitializers2()
         {
             var markup = @"
@@ -1077,8 +1049,7 @@ class Program
             await VerifyItemExistsAsync(markup, "PropB");
         }
 
-        [WorkItem(15205, "https://github.com/dotnet/roslyn/issues/15205")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(15205, "https://github.com/dotnet/roslyn/issues/15205")]
         public async Task NestedPropertyInitializers3()
         {
             var markup = @"
@@ -1123,8 +1094,7 @@ class Program
             await VerifyItemExistsAsync(markup, "PropB");
         }
 
-        [WorkItem(15205, "https://github.com/dotnet/roslyn/issues/15205")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(15205, "https://github.com/dotnet/roslyn/issues/15205")]
         public async Task NestedPropertyInitializers4()
         {
             var markup = @"
@@ -1155,8 +1125,7 @@ class Program
             await VerifyItemExistsAsync(markup, "PropB");
         }
 
-        [WorkItem(15205, "https://github.com/dotnet/roslyn/issues/15205")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(15205, "https://github.com/dotnet/roslyn/issues/15205")]
         public async Task NestedPropertyInitializers5()
         {
             var markup = @"
@@ -1186,8 +1155,7 @@ class Program
             await VerifyItemExistsAsync(markup, "PropB");
         }
 
-        [WorkItem(36702, "https://github.com/dotnet/roslyn/issues/36702")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(36702, "https://github.com/dotnet/roslyn/issues/36702")]
         public async Task NestedPropertyInitializers6()
         {
             var markup = @"
@@ -1219,7 +1187,7 @@ class Program
 
         private async Task VerifyExclusiveAsync(string markup, bool exclusive)
         {
-            using var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: ExportProvider);
+            using var workspace = TestWorkspace.CreateCSharp(markup, composition: GetComposition());
             var hostDocument = workspace.Documents.Single();
             var position = hostDocument.CursorPosition.Value;
             var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
@@ -1230,7 +1198,7 @@ class Program
 
             if (!completionList.IsEmpty)
             {
-                Assert.True(exclusive == completionList.GetTestAccessor().IsExclusive, "group.IsExclusive == " + completionList.GetTestAccessor().IsExclusive);
+                Assert.True(exclusive == completionList.IsExclusive, "group.IsExclusive == " + completionList.IsExclusive);
             }
         }
     }

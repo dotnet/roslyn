@@ -376,7 +376,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Exte
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.Xamarin.Remote", "src\Tools\ExternalAccess\Xamarin.Remote\Microsoft.CodeAnalysis.ExternalAccess.Xamarin.Remote.csproj", "{DE53934B-7FC1-48A0-85AB-C519FBBD02CF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.VisualStudio.Setup.ServiceHub", "src\Setup\DevDivVsix\ServiceHubConfig\Roslyn.VisualStudio.Setup.ServiceHub.csproj", "{3D33BBFD-EC63-4E8C-A714-0A48A3809A87}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.VisualStudio.Setup.ServiceHub.Desktop.Config", "src\Setup\DevDivVsix\ServiceHubConfig\Roslyn.VisualStudio.Setup.ServiceHub.Desktop.Config.csproj", "{3D33BBFD-EC63-4E8C-A714-0A48A3809A87}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests", "src\Tools\ExternalAccess\FSharpTest\Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests.csproj", "{BFFB5CAE-33B5-447E-9218-BDEBFDA96CB5}"
 EndProject
@@ -452,8 +452,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Edit
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Test.Utilities", "src\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj", "{5D94ED65-EFA3-44EB-A5DA-62E85BAC9DD6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.TestSourceGenerator", "src\Workspaces\TestSourceGenerator\Microsoft.CodeAnalysis.TestSourceGenerator.csproj", "{21B50E65-D601-4D82-B98A-FFE6DE3B25DC}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.XunitHook", "src\EditorFeatures\XunitHook\Microsoft.CodeAnalysis.XunitHook.csproj", "{967A8F5E-7D18-436C-97ED-1DB303FE5DE0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodeStyleConfigFileGenerator", "src\CodeStyle\Tools\CodeStyleConfigFileGenerator.csproj", "{41ED1BFA-FDAD-4FE4-8118-DB23FB49B0B0}"
@@ -510,6 +508,20 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Toolset.Package.Arm64", "src\NuGet\Microsoft.Net.Compilers.Toolset\arm64\Microsoft.Net.Compilers.Toolset.Package.Arm64.csproj", "{A9A8ADE5-F123-4109-9FA4-4B92F1657043}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.EndToEnd.UnitTests", "src\Compilers\CSharp\Test\EndToEnd\Microsoft.CodeAnalysis.CSharp.EndToEnd.UnitTests.csproj", "{C247414A-8946-4BAB-BE1F-C82B90C63EF6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CommonLanguageServerProtocol.Framework", "src\Features\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework\Microsoft.CommonLanguageServerProtocol.Framework.csproj", "{D2589BCE-4F2E-4113-B7E7-37392C0C5492}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CommonLanguageServerProtocol.Framework.Example", "src\Features\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework.Example\Microsoft.CommonLanguageServerProtocol.Framework.Example.csproj", "{BD9539EB-AA5E-4E67-AC7F-97D7CBC4D0C9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CommonLanguageServerProtocol.Framework.UnitTests", "src\Features\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework.UnitTests\Microsoft.CommonLanguageServerProtocol.Framework.UnitTests.csproj", "{58AD1B2C-6FFC-47CB-838A-54D0CA2BF0C8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.TestAnalyzerReference", "src\Workspaces\TestAnalyzerReference\Microsoft.CodeAnalysis.TestAnalyzerReference.csproj", "{8A29449D-411E-49E4-B99E-E8428076BB21}"
+EndProject
+Project("{9a19103f-16f7-4668-be54-9a1e7a4f7556}") = "Microsoft.CodeAnalysis.CSharp.LanguageServer.Protocol", "src\Features\LanguageServer\Microsoft.CodeAnalysis.CSharp.LanguageServer.Protocol\Microsoft.CodeAnalysis.CSharp.LanguageServer.Protocol.csproj", "{4C1B26EE-465B-4B30-9E50-0285EF7AB035}"
+EndProject
+Project("{778dae3c-4631-46ea-aa77-85c1314464d9}") = "Microsoft.CodeAnalysis.VisualBasic.LanguageServer.Protocol", "src\Features\LanguageServer\Microsoft.CodeAnalysis.VisualBasic.LanguageServer.Protocol\Microsoft.CodeAnalysis.VisualBasic.LanguageServer.Protocol.vbproj", "{F836BDB1-4EC7-4F4C-B2E9-BCD721C9E650}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestDiscoveryWorker", "src\Tools\TestDiscoveryWorker\TestDiscoveryWorker.csproj", "{8BC50AFF-1EBF-4E9A-AEBB-04F387AA800F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1145,10 +1157,6 @@ Global
 		{5D94ED65-EFA3-44EB-A5DA-62E85BAC9DD6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5D94ED65-EFA3-44EB-A5DA-62E85BAC9DD6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5D94ED65-EFA3-44EB-A5DA-62E85BAC9DD6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{21B50E65-D601-4D82-B98A-FFE6DE3B25DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{21B50E65-D601-4D82-B98A-FFE6DE3B25DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{21B50E65-D601-4D82-B98A-FFE6DE3B25DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{21B50E65-D601-4D82-B98A-FFE6DE3B25DC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{967A8F5E-7D18-436C-97ED-1DB303FE5DE0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{967A8F5E-7D18-436C-97ED-1DB303FE5DE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{967A8F5E-7D18-436C-97ED-1DB303FE5DE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -1241,6 +1249,34 @@ Global
 		{C247414A-8946-4BAB-BE1F-C82B90C63EF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C247414A-8946-4BAB-BE1F-C82B90C63EF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C247414A-8946-4BAB-BE1F-C82B90C63EF6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2589BCE-4F2E-4113-B7E7-37392C0C5492}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2589BCE-4F2E-4113-B7E7-37392C0C5492}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2589BCE-4F2E-4113-B7E7-37392C0C5492}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2589BCE-4F2E-4113-B7E7-37392C0C5492}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BD9539EB-AA5E-4E67-AC7F-97D7CBC4D0C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD9539EB-AA5E-4E67-AC7F-97D7CBC4D0C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD9539EB-AA5E-4E67-AC7F-97D7CBC4D0C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD9539EB-AA5E-4E67-AC7F-97D7CBC4D0C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58AD1B2C-6FFC-47CB-838A-54D0CA2BF0C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58AD1B2C-6FFC-47CB-838A-54D0CA2BF0C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58AD1B2C-6FFC-47CB-838A-54D0CA2BF0C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58AD1B2C-6FFC-47CB-838A-54D0CA2BF0C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A29449D-411E-49E4-B99E-E8428076BB21}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A29449D-411E-49E4-B99E-E8428076BB21}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A29449D-411E-49E4-B99E-E8428076BB21}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A29449D-411E-49E4-B99E-E8428076BB21}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C1B26EE-465B-4B30-9E50-0285EF7AB035}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C1B26EE-465B-4B30-9E50-0285EF7AB035}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C1B26EE-465B-4B30-9E50-0285EF7AB035}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C1B26EE-465B-4B30-9E50-0285EF7AB035}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F836BDB1-4EC7-4F4C-B2E9-BCD721C9E650}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F836BDB1-4EC7-4F4C-B2E9-BCD721C9E650}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F836BDB1-4EC7-4F4C-B2E9-BCD721C9E650}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F836BDB1-4EC7-4F4C-B2E9-BCD721C9E650}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8BC50AFF-1EBF-4E9A-AEBB-04F387AA800F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BC50AFF-1EBF-4E9A-AEBB-04F387AA800F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BC50AFF-1EBF-4E9A-AEBB-04F387AA800F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BC50AFF-1EBF-4E9A-AEBB-04F387AA800F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1445,7 +1481,6 @@ Global
 		{9B25E472-DF94-4E24-9F5D-E487CE5A91FB} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{67F44564-759B-4643-BD86-407B010B0B74} = {EE97CB90-33BB-4F3A-9B3D-69375DEC6AC6}
 		{5D94ED65-EFA3-44EB-A5DA-62E85BAC9DD6} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
-		{21B50E65-D601-4D82-B98A-FFE6DE3B25DC} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
 		{967A8F5E-7D18-436C-97ED-1DB303FE5DE0} = {EE97CB90-33BB-4F3A-9B3D-69375DEC6AC6}
 		{41ED1BFA-FDAD-4FE4-8118-DB23FB49B0B0} = {DC014586-8D07-4DE6-B28E-C0540C59C085}
 		{E919DD77-34F8-4F57-8058-4D3FF4C2B241} = {C2D1346B-9665-4150-B644-075CF1636BAA}
@@ -1473,6 +1508,13 @@ Global
 		{6131713D-DFB4-49B5-8010-50071FED3E85} = {C52D8057-43AF-40E6-A01B-6CDBB7301985}
 		{A9A8ADE5-F123-4109-9FA4-4B92F1657043} = {C52D8057-43AF-40E6-A01B-6CDBB7301985}
 		{C247414A-8946-4BAB-BE1F-C82B90C63EF6} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
+		{D2589BCE-4F2E-4113-B7E7-37392C0C5492} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
+		{BD9539EB-AA5E-4E67-AC7F-97D7CBC4D0C9} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
+		{58AD1B2C-6FFC-47CB-838A-54D0CA2BF0C8} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
+		{8A29449D-411E-49E4-B99E-E8428076BB21} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
+		{4C1B26EE-465B-4B30-9E50-0285EF7AB035} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
+		{F836BDB1-4EC7-4F4C-B2E9-BCD721C9E650} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
+		{8BC50AFF-1EBF-4E9A-AEBB-04F387AA800F} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}

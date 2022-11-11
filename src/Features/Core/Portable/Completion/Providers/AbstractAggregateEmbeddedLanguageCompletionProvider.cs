@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return lazyLanguageService.Metadata.Language == languageName && lazyLanguageService.Metadata.ServiceType == embeddedLanguageServiceType;
         }
 
-        protected ImmutableArray<IEmbeddedLanguage> GetLanguageProviders(HostProjectServices? languageServices)
+        protected ImmutableArray<IEmbeddedLanguage> GetLanguageProviders(Host.LanguageServices? languageServices)
         {
             if (_languageProviders.IsDefault)
             {
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override ImmutableHashSet<char> TriggerCharacters { get; }
 
-        internal sealed override bool ShouldTriggerCompletion(HostProjectServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, OptionSet passThroughOptions)
+        internal sealed override bool ShouldTriggerCompletion(LanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, OptionSet passThroughOptions)
         {
             foreach (var language in GetLanguageProviders(languageServices))
             {
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private IEmbeddedLanguage GetLanguage(CompletionItem item)
         {
             if (_languageProviders.IsDefault)
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
 
             return _languageProviders.Single(lang => lang.CompletionProvider?.Name == item.Properties[EmbeddedProviderName]);
         }

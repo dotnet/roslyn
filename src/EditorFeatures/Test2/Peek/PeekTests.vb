@@ -17,9 +17,10 @@ Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Peek)>
     Public Class PeekTests
 
-        <WpfFact, WorkItem(820706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820706"), Trait(Traits.Feature, Traits.Features.Peek)>
+        <WpfFact, WorkItem(820706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820706")>
         Public Sub TestInvokeInEmptyFile()
             Dim result = GetPeekResultCollection(<Workspace>
                                                      <Project Language="C#" CommonReferences="true">
@@ -30,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
             Assert.Null(result)
         End Sub
 
-        <WpfFact, WorkItem(827025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827025"), Trait(Traits.Feature, Traits.Features.Peek)>
+        <WpfFact, WorkItem(827025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827025")>
         Public Sub TestWorksAcrossLanguages()
             Using workspace = CreateTestWorkspace(<Workspace>
                                                       <Project Language="C#" AssemblyName="Reference" CommonReferences="true">
@@ -50,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
             End Using
         End Sub
 
-        <WpfFact, WorkItem(824336, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824336"), Trait(Traits.Feature, Traits.Features.Peek)>
+        <WpfFact, WorkItem(824336, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824336")>
         Public Sub TestPeekDefinitionWhenInvokedOnLiteral()
             Using workspace = CreateTestWorkspace(<Workspace>
                                                       <Project Language="C#" CommonReferences="true">
@@ -66,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
             End Using
         End Sub
 
-        <WpfFact, WorkItem(824331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824331"), WorkItem(820289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820289"), Trait(Traits.Feature, Traits.Features.Peek)>
+        <WpfFact, WorkItem(824331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824331"), WorkItem(820289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820289")>
         Public Sub TestPeekDefinitionWhenExtensionMethodFromMetadata()
             Using workspace = CreateTestWorkspace(<Workspace>
                                                       <Project Language="C#" CommonReferences="true">
@@ -84,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
             End Using
         End Sub
 
-        <WpfFact, WorkItem(819660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819660"), Trait(Traits.Feature, Traits.Features.Peek)>
+        <WpfFact, WorkItem(819660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819660")>
         Public Sub TestPeekDefinitionFromVisualBasicMetadataAsSource()
             Using workspace = CreateTestWorkspace(<Workspace>
                                                       <Project Language="Visual Basic" CommonReferences="true">
@@ -103,7 +104,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact, WorkItem(819602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819602"), Trait(Traits.Feature, Traits.Features.Peek)>
+        <WpfFact, WorkItem(819602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819602")>
         Public Sub TestPeekDefinitionOnParamNameXmlDocComment()
             Using workspace = CreateTestWorkspace(<Workspace>
                                                       <Project Language="Visual Basic" CommonReferences="true">
@@ -123,7 +124,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact, WorkItem(820363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820363"), Trait(Traits.Feature, Traits.Features.Peek)>
+        <WpfFact, WorkItem(820363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820363")>
         Public Sub TestPeekDefinitionOnLinqVariable()
             Using workspace = CreateTestWorkspace(<Workspace>
                                                       <Project Language="Visual Basic" CommonReferences="true">
@@ -144,8 +145,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(1091211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091211")>
+        <WpfFact, WorkItem(1091211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091211")>
         Public Sub TestPeekAcrossProjectsInvolvingPortableReferences()
             Dim workspaceDefinition =
 <Workspace>
@@ -181,10 +181,9 @@ End Module
                 Assert.Equal(1, result.Items.Count)
                 result.AssertNavigatesToIdentifier(0, "Identifier")
             End Using
-
         End Sub
 
-        <WpfFact, WorkItem(820363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820363"), Trait(Traits.Feature, Traits.Features.Peek)>
+        <WpfFact, WorkItem(820363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820363")>
         Public Sub TestFileMapping()
             Using workspace = CreateTestWorkspace(<Workspace>
                                                       <Project Language="C#" CommonReferences="true">
@@ -212,6 +211,36 @@ public class Component
     public void M()
     {
     }
+}
+                                                          ]]></Document>
+                                                      </Project>
+                                                  </Workspace>)
+                Dim result = GetPeekResultCollection(workspace)
+
+                Assert.Equal(1, result.Items.Count)
+                result.AssertNavigatesToIdentifier(0, "Identifier")
+            End Using
+        End Sub
+
+        <WpfFact, WorkItem(64615, "https://github.com/dotnet/roslyn/issues/64615")>
+        Public Sub TestPartialMethods()
+            Using workspace = CreateTestWorkspace(<Workspace>
+                                                      <Project Language="C#" CommonReferences="true">
+                                                          <Document><![CDATA[
+public partial class D
+{
+    public void M()
+    {
+        $$PartialMethod();
+    }
+
+    partial void PartialMethod();
+}
+                                                          ]]></Document>
+                                                          <Document><![CDATA[
+public partial class D
+{
+    partial void {|Identifier:PartialMethod|}() { }
 }
                                                           ]]></Document>
                                                       </Project>

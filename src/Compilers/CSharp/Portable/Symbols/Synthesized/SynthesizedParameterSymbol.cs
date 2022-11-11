@@ -48,10 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool IsDiscard => false;
 
-        internal override bool IsMetadataIn => RefKind == RefKind.In;
-
-        internal override bool IsMetadataOut => RefKind == RefKind.Out;
-
         public override string Name
         {
             get { return _name; }
@@ -86,27 +82,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsIDispatchConstant
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         internal override bool IsIUnknownConstant
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         internal override bool IsCallerLineNumber
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         internal override bool IsCallerFilePath
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         internal override bool IsCallerMemberName
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         internal override int CallerArgumentExpressionParameterIndex
@@ -162,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (ParameterHelpers.RequiresScopedRefAttribute(this))
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeScopedRefAttribute(this, Scope));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeScopedRefAttribute(this, EffectiveScope));
             }
 
             if (type.Type.ContainsTupleNames() &&
@@ -188,7 +184,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasInterpolatedStringHandlerArgumentError => false;
 
-        internal sealed override DeclarationScope Scope => _scope;
+        internal sealed override DeclarationScope EffectiveScope => _scope;
+
+        internal sealed override bool HasUnscopedRefAttribute => false;
+
+        internal sealed override bool UseUpdatedEscapeRules => _container?.UseUpdatedEscapeRules ?? false;
     }
 
     internal sealed class SynthesizedParameterSymbol : SynthesizedParameterSymbolBase
@@ -203,6 +203,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(container, type, ordinal, refKind, scope, name)
         {
         }
+
+        internal sealed override bool IsMetadataIn => RefKind == RefKind.In;
+
+        internal sealed override bool IsMetadataOut => RefKind == RefKind.Out;
 
         public static ParameterSymbol Create(
             MethodSymbol? container,
@@ -251,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     oldParam.Ordinal,
                     oldParam.RefKind,
                     oldParam.Name,
-                    oldParam.Scope,
+                    oldParam.EffectiveScope,
                     oldParam.RefCustomModifiers,
                     baseParameterForAttributes: null));
             }
@@ -310,6 +314,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override MarshalPseudoCustomAttributeData? MarshallingInformation => _baseParameterForAttributes?.MarshallingInformation;
 
         internal override bool IsMetadataOptional => _baseParameterForAttributes?.IsMetadataOptional == true;
+
+        internal override bool IsMetadataIn => RefKind == RefKind.In || _baseParameterForAttributes?.GetDecodedWellKnownAttributeData()?.HasInAttribute == true;
+
+        internal override bool IsMetadataOut => RefKind == RefKind.Out || _baseParameterForAttributes?.GetDecodedWellKnownAttributeData()?.HasOutAttribute == true;
 
         internal override ConstantValue? ExplicitDefaultConstantValue => _baseParameterForAttributes?.ExplicitDefaultConstantValue;
 

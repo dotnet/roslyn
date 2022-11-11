@@ -2,11 +2,19 @@
 
 # Branches that trigger a build on commit
 trigger:
-- main
-- main-vs-deps
-- release/*
-- features/*
-- demos/*
+  branches:
+    include:
+    - main
+    - main-vs-deps
+    - release/*
+    - features/*
+    - demos/*
+    exclude:
+    # Since the version of VS on the integration VM images are a moving target,
+    # we are unable to reliably run integration tests on servicing branches.
+    - release/dev17.0-vs-deps
+    - release/dev17.2
+    - release/dev17.3
 
 # Branches that are allowed to trigger a build via /azp run.
 # Automatic building of all PRs is disabled in the pipeline's trigger page.
@@ -19,6 +27,12 @@ pr:
     - release/*
     - features/*
     - demos/*
+    exclude:
+    # Since the version of VS on the integration VM images are a moving target,
+    # we are unable to reliably run integration tests on servicing branches.
+    - release/dev17.0-vs-deps
+    - release/dev17.2
+    - release/dev17.3
   paths:
     exclude:
       - docs/*
@@ -27,18 +41,41 @@ pr:
       - .vscode/*
       - .github/*
       - .devcontainer/*
+      - src/Compilers/*
       - .git-blame-ignore-revs
       - .vsconfig
       - CODE-OF-CONDUCT.md
       - CONTRIBUTING.md
       - README.md
 
+parameters:
+- name: poolName
+  displayName: Pool Name
+  type: string
+  default: NetCore-Public
+  values:
+  - NetCore-Public
+  - NetCore-Svc-Public
+- name: queueName
+  displayName: Queue Name
+  type: string
+  default: windows.vs2022preview.amd64.open
+  values:
+  - windows.vs2022.amd64.open
+  - windows.vs2022.scout.amd64.open
+  - windows.vs2022preview.amd64.open
+  - windows.vs2022preview.scout.amd64.open
+- name: timeout
+  displayName: Timeout in Minutes
+  type: number
+  default: 150
+
 jobs:
 - job: VS_Integration_CoreHost_Debug
   pool:
-    name: NetCore1ESPool-Public
-    demands: ImageOverride -equals $(queueName)
-  timeoutInMinutes: 150
+    name: ${{ parameters.poolName }}
+    demands: ImageOverride -equals ${{ parameters.queueName }}
+  timeoutInMinutes: ${{ parameters.timeout }}
   variables:
     - name: XUNIT_LOGS
       value: $(Build.SourcesDirectory)\artifacts\log\Debug
@@ -52,9 +89,9 @@ jobs:
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
   - job: VS_Integration_CoreHost_Release
     pool:
-      name: NetCore1ESPool-Public
-      demands: ImageOverride -equals $(queueName)
-    timeoutInMinutes: 150
+      name: ${{ parameters.poolName }}
+      demands: ImageOverride -equals ${{ parameters.queueName }}
+    timeoutInMinutes: ${{ parameters.timeout }}
     variables:
       - name: XUNIT_LOGS
         value: $(Build.SourcesDirectory)\artifacts\log\Debug

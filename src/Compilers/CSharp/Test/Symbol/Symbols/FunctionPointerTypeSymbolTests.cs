@@ -539,33 +539,33 @@ class C
 }");
 
             comp.VerifyDiagnostics(
-                    // (5,19): error CS8755: 'params' cannot be used as a modifier on a function pointer parameter.
-                    //         delegate*<params string[], void> p1,
-                    Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "params").WithArguments("params").WithLocation(5, 19),
-                    // (6,19): error CS0027: Keyword 'this' is not available in the current context
-                    //         delegate*<this string, void> p2,
-                    Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(6, 19),
-                    // (7,19): error CS8755: 'readonly' cannot be used as a modifier on a function pointer parameter.
-                    //         delegate*<readonly ref string, void> p3,
-                    Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "readonly").WithArguments("readonly").WithLocation(7, 19),
-                    // (8,22): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
-                    //         delegate*<in out string, void> p4,
-                    Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "in").WithLocation(8, 22),
-                    // (9,23): error CS8328:  The parameter modifier 'in' cannot be used with 'out'
-                    //         delegate*<out in string, void> p5,
-                    Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "out").WithLocation(9, 23),
-                    // (10,22): error CS8328:  The parameter modifier 'ref' cannot be used with 'in'
-                    //         delegate*<in ref string, void> p6,
-                    Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "in").WithLocation(10, 22),
-                    // (11,23): error CS8328:  The parameter modifier 'in' cannot be used with 'ref'
-                    //         delegate*<ref in string, void> p7,
-                    Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(11, 23),
-                    // (12,23): error CS8328:  The parameter modifier 'ref' cannot be used with 'out'
-                    //         delegate*<out ref string, void> p8,
-                    Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "out").WithLocation(12, 23),
-                    // (13,23): error CS8328:  The parameter modifier 'out' cannot be used with 'ref'
-                    //         delegate*<ref out string, void> p9) {}
-                    Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(13, 23));
+                // (5,19): error CS8755: 'params' cannot be used as a modifier on a function pointer parameter.
+                //         delegate*<params string[], void> p1,
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "params").WithArguments("params").WithLocation(5, 19),
+                // (6,19): error CS0027: Keyword 'this' is not available in the current context
+                //         delegate*<this string, void> p2,
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(6, 19),
+                // (7,19): error CS9068: 'readonly' is not supported as a parameter modifier. Did you mean 'in'?
+                //         delegate*<readonly ref string, void> p3,
+                Diagnostic(ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn, "readonly").WithLocation(7, 19),
+                // (8,22): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
+                //         delegate*<in out string, void> p4,
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "in").WithLocation(8, 22),
+                // (9,23): error CS8328:  The parameter modifier 'in' cannot be used with 'out'
+                //         delegate*<out in string, void> p5,
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "out").WithLocation(9, 23),
+                // (10,22): error CS8328:  The parameter modifier 'ref' cannot be used with 'in'
+                //         delegate*<in ref string, void> p6,
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "in").WithLocation(10, 22),
+                // (11,23): error CS8328:  The parameter modifier 'in' cannot be used with 'ref'
+                //         delegate*<ref in string, void> p7,
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(11, 23),
+                // (12,23): error CS8328:  The parameter modifier 'ref' cannot be used with 'out'
+                //         delegate*<out ref string, void> p8,
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "out").WithLocation(12, 23),
+                // (13,23): error CS8328:  The parameter modifier 'out' cannot be used with 'ref'
+                //         delegate*<ref out string, void> p9) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(13, 23));
 
             var c = comp.GetTypeByMetadataName("C");
             var m = c.GetMethod("M");
@@ -1915,16 +1915,15 @@ unsafe class C
                 // (8,19): error CS8808: 'in' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
                 //         delegate*<in int> ptr2;
                 Diagnostic(ErrorCode.ERR_InvalidFuncPointerReturnTypeModifier, "in").WithArguments("in").WithLocation(8, 19),
-                // (9,23): error CS8755: 'readonly' cannot be used as a modifier on a function pointer parameter.
+                // (9,23): error CS9068: 'readonly' is not supported as a parameter modifier. Did you mean 'in'?
                 //         delegate*<ref readonly int, void> ptr3;
-                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "readonly").WithArguments("readonly").WithLocation(9, 23),
+                Diagnostic(ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn, "readonly").WithLocation(9, 23),
                 // (10,19): error CS1536: Invalid parameter type 'void'
                 //         delegate*<void, void> ptr4;
                 Diagnostic(ErrorCode.ERR_NoVoidParameter, "void").WithLocation(10, 19),
                 // (11,19): error CS1547: Keyword 'void' cannot be used in this context
                 //         delegate*<ref void> ptr5;
-                Diagnostic(ErrorCode.ERR_NoVoidHere, "ref void").WithLocation(11, 19)
-            );
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "ref void").WithLocation(11, 19));
 
             var syntaxTree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(syntaxTree);

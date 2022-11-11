@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             if (i > 0)
             {
                 span = new TextSpan(span.Start + i, span.Length - i);
-                newText = newText.Substring(i);
+                newText = newText[i..];
             }
 
             return new TextChange(span, newText);

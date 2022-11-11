@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InitializeParameter
+    <Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
     Partial Public Class InitializeMemberFromParameterTests
         Inherits AbstractVisualBasicCodeActionTest
 
@@ -15,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InitializeParamete
             Return New VisualBasicInitializeMemberFromParameterCodeRefactoringProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestInitializeFieldWithSameName() As Task
 
             Await TestInRegularAndScript1Async(
@@ -37,7 +38,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestEndOfParameter1() As Task
 
             Await TestInRegularAndScript1Async(
@@ -59,7 +60,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestEndOfParameter2() As Task
 
             Await TestInRegularAndScript1Async(
@@ -80,7 +81,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestInitializeFieldWithUnderscoreName() As Task
 
             Await TestInRegularAndScript1Async(
@@ -102,7 +103,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestInitializeWritableProperty() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -123,7 +124,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestInitializeFieldWithDifferentName() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -145,7 +146,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestInitializeDoesNotUsePropertyWithUnrelatedName() As Task
 
             Await TestInRegularAndScriptAsync(
@@ -168,7 +169,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestInitializeFieldWithWrongType1() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -191,7 +192,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestInitializeFieldWithWrongType2() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -213,7 +214,7 @@ class C
 end class", index:=1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestInitializeFieldWithConvertibleType() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -234,7 +235,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestWhenAlreadyInitialized1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -249,7 +250,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestWhenAlreadyInitialized3() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -275,7 +276,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestInsertionLocation1() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -301,7 +302,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestInsertionLocation2() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -325,7 +326,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestInsertionLocation3() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -352,7 +353,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestNotInMethod() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -366,7 +367,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestInsertionLocation6() As Task
 
             Await TestInRegularAndScript1Async(
@@ -390,7 +391,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestInsertionLocation7() As Task
 
             Await TestInRegularAndScript1Async(
@@ -414,8 +415,7 @@ class C
 end class")
         End Function
 
-        <WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact, WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")>
         Public Async Function TestInitializeFieldWithParameterNameSelected1() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -436,8 +436,7 @@ class C
 end class")
         End Function
 
-        <WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact, WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")>
         Public Async Function TestInitializeFieldWithParameterNameSelected2() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -458,7 +457,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestInitializeClassProperty_RequiredAccessibilityOmitIfDefault() As Task
             Await TestInRegularAndScript1Async("
 Class C
@@ -480,7 +479,7 @@ End Class
 ", index:=0, parameters:=OmitIfDefault_Warning)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestInitializeClassProperty_RequiredAccessibilityNever() As Task
             Await TestInRegularAndScript1Async("
 Class C
@@ -502,7 +501,7 @@ End Class
 ", index:=0, parameters:=Never_Warning)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestInitializeClassProperty_RequiredAccessibilityAlways() As Task
             Await TestInRegularAndScript1Async("
 Class C
@@ -524,7 +523,7 @@ End Class
 ", index:=0, parameters:=Always_Warning)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestInitializeClassField_RequiredAccessibilityOmitIfDefault() As Task
             Await TestInRegularAndScript1Async("
 Class C
@@ -545,7 +544,7 @@ End Class
 ", index:=1, parameters:=OmitIfDefault_Warning)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestInitializeClassField_RequiredAccessibilityNever() As Task
             Await TestInRegularAndScript1Async("
 Class C
@@ -566,7 +565,7 @@ End Class
 ", index:=1, parameters:=Never_Warning)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestInitializeClassField_RequiredAccessibilityAlways() As Task
             Await TestInRegularAndScript1Async("
 Class C
@@ -587,7 +586,7 @@ End Class
 ", index:=1, parameters:=Always_Warning)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestInitializeStructProperty_RequiredAccessibilityOmitIfDefault() As Task
             Await TestInRegularAndScript1Async("
 Structure S
@@ -605,7 +604,7 @@ End Structure
 ", index:=0, parameters:=OmitIfDefault_Warning)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestInitializeStructProperty_RequiredAccessibilityNever() As Task
             Await TestInRegularAndScript1Async("
 Structure S
@@ -623,7 +622,7 @@ End Structure
 ", index:=0, parameters:=Never_Warning)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestInitializeStructProperty_RequiredAccessibilityAlways() As Task
             Await TestInRegularAndScript1Async("
 Structure S
@@ -641,7 +640,7 @@ End Structure
 ", index:=0, parameters:=Always_Warning)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestInitializeStructField_RequiredAccessibilityOmitIfDefault() As Task
             Await TestInRegularAndScript1Async("
 Structure S
@@ -659,7 +658,7 @@ End Structure
 ", index:=1, parameters:=OmitIfDefault_Warning)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestInitializeStructField_RequiredAccessibilityNever() As Task
             Await TestInRegularAndScript1Async("
 Structure S
@@ -677,7 +676,7 @@ End Structure
 ", index:=1, parameters:=Never_Warning)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact>
         Public Async Function TestInitializeStructField_RequiredAccessibilityAlways() As Task
             Await TestInRegularAndScript1Async("
 Structure S
@@ -695,8 +694,7 @@ End Structure
 ", index:=1, parameters:=Always_Warning)
         End Function
 
-        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact, WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingFields1() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -718,8 +716,7 @@ class C
 end class", index:=3)
         End Function
 
-        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact, WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingFields2() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -744,8 +741,7 @@ class C
 end class", index:=2)
         End Function
 
-        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact, WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingFields3() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -770,8 +766,7 @@ class C
 end class", index:=2)
         End Function
 
-        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact, WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingFields4() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -796,8 +791,7 @@ class C
 end class", index:=2)
         End Function
 
-        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact, WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingProperties1() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -819,8 +813,7 @@ class C
 end class", index:=2)
         End Function
 
-        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact, WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingProperties2() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -846,8 +839,7 @@ class C
 end class", index:=3)
         End Function
 
-        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact, WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingProperties3() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -873,8 +865,7 @@ class C
 end class", index:=3)
         End Function
 
-        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <Fact, WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingProperties4() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -898,6 +889,110 @@ class C
     Public ReadOnly Property I As Integer
     Public ReadOnly Property J As Integer
 end class", index:=3)
+        End Function
+
+        <Fact, WorkItem(36998, "https://github.com/dotnet/roslyn/issues/36998")>
+        Public Async Function TestInitializeThrowingProperty1() As Task
+            Await TestInRegularAndScript1Async(
+"
+imports System
+
+class C
+    Private ReadOnly property S As String
+        get
+            throw new NotImplementedException
+        end get
+    end property
+
+    public sub new([||]s As String)
+
+    end sub
+end class",
+"
+imports System
+
+class C
+    Private ReadOnly property S As String
+        get
+        end get
+    end property
+
+    public sub new(s As String)
+        Me.S = s
+    end sub
+end class")
+        End Function
+
+        <Fact, WorkItem(36998, "https://github.com/dotnet/roslyn/issues/36998")>
+        Public Async Function TestInitializeThrowingProperty2() As Task
+            Await TestInRegularAndScript1Async(
+"
+imports System
+
+class C
+    Private property S As String
+        get
+            throw new NotImplementedException
+        end get
+        set(value as S)
+            throw new NotImplementedException
+        end set
+    end property
+
+    public sub new([||]s As String)
+
+    end sub
+end class",
+"
+imports System
+
+class C
+    Private property S As String
+        get
+        end get
+        set(value as S)
+        end set
+    end property
+
+    public sub new(s As String)
+        Me.S = s
+    end sub
+end class")
+        End Function
+
+        <Fact, WorkItem(36998, "https://github.com/dotnet/roslyn/issues/36998")>
+        Public Async Function TestInitializeThrowingProperty3() As Task
+            Await TestInRegularAndScript1Async(
+"
+imports System
+
+class C
+    Private ReadOnly property S As String
+        get
+            throw new InvalidOperationException
+        end get
+    end property
+
+    public sub new([||]s As String)
+
+    end sub
+end class",
+"
+imports System
+
+class C
+    Private ReadOnly property S As String
+        get
+            throw new InvalidOperationException
+        end get
+    end property
+
+    Public ReadOnly Property S1 As String
+
+    public sub new(s As String)
+        S1 = s
+    end sub
+end class")
         End Function
 
         Private ReadOnly Property OmitIfDefault_Warning As TestParameters

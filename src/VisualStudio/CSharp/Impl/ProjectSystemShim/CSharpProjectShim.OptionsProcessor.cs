@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             private string? _mainTypeName;
             private OutputKind _outputKind;
 
-            public OptionsProcessor(VisualStudioProject visualStudioProject, HostWorkspaceServices workspaceServices)
+            public OptionsProcessor(VisualStudioProject visualStudioProject, SolutionServices workspaceServices)
                 : base(visualStudioProject, workspaceServices)
             {
                 _visualStudioProject = visualStudioProject;

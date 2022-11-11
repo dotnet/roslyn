@@ -32,12 +32,20 @@ internal static class CodeGenerationOptionsStorage
             NamingStyle = globalOptions.GetNamingStylePreferences(language)
         };
 
-    public static CodeGenerationOptions GetCodeGenerationOptions(this IGlobalOptionService globalOptions, HostProjectServices languageServices)
+    public static CodeGenerationOptions GetCodeGenerationOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
         => languageServices.GetRequiredService<ICodeGenerationOptionsStorage>().GetOptions(globalOptions);
 
-    public static CodeAndImportGenerationOptions GetCodeAndImportGenerationOptions(this IGlobalOptionService globalOptions, HostProjectServices languageServices)
-        => new(globalOptions.GetCodeGenerationOptions(languageServices), globalOptions.GetAddImportPlacementOptions(languageServices));
+    public static CodeAndImportGenerationOptions GetCodeAndImportGenerationOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
+        => new()
+        {
+            GenerationOptions = globalOptions.GetCodeGenerationOptions(languageServices),
+            AddImportOptions = globalOptions.GetAddImportPlacementOptions(languageServices)
+        };
 
-    public static CleanCodeGenerationOptions GetCleanCodeGenerationOptions(this IGlobalOptionService globalOptions, HostProjectServices languageServices)
-        => new(globalOptions.GetCodeGenerationOptions(languageServices), globalOptions.GetCodeCleanupOptions(languageServices));
+    public static CleanCodeGenerationOptions GetCleanCodeGenerationOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
+        => new()
+        {
+            GenerationOptions = globalOptions.GetCodeGenerationOptions(languageServices),
+            CleanupOptions = globalOptions.GetCodeCleanupOptions(languageServices)
+        };
 }

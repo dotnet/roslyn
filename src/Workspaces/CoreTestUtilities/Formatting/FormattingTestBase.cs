@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
         protected abstract SyntaxNode ParseCompilation(string text, ParseOptions? parseOptions);
 
         internal void AssertFormatWithTransformation(
-            HostSolutionServices services, string expected, SyntaxNode root, IEnumerable<TextSpan> spans, SyntaxFormattingOptions options, bool treeCompare = true, ParseOptions? parseOptions = null)
+            SolutionServices services, string expected, SyntaxNode root, IEnumerable<TextSpan> spans, SyntaxFormattingOptions options, bool treeCompare = true, ParseOptions? parseOptions = null)
         {
             var newRootNode = Formatter.Format(root, spans, services, options, rules: null, CancellationToken.None);
 
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
             }
         }
 
-        private static async Task AssertFormatAsync(HostSolutionServices services, string expected, SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, SourceText sourceText)
+        private static async Task AssertFormatAsync(SolutionServices services, string expected, SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, SourceText sourceText)
         {
             // Verify formatting the input code produces the expected result
             var result = Formatter.GetFormattedTextChanges(root, spans, services, options);

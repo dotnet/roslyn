@@ -96,7 +96,7 @@ namespace IdeCoreBenchmarks
 
             // Force a storage instance to be created.  This makes it simple to go examine it prior to any operations we
             // perform, including seeing how big the initial string table is.
-            var storageService = _workspace.Services.GetPersistentStorageService();
+            var storageService = _workspace.Services.SolutionServices.GetPersistentStorageService();
             if (storageService == null)
                 throw new ArgumentException("Couldn't get storage service");
 
@@ -125,12 +125,10 @@ namespace IdeCoreBenchmarks
                 foreach (var document in project.Documents)
                 {
                     // await WalkTree(document);
-                    await SyntaxTreeIndex.PrecalculateAsync(document, default).ConfigureAwait(false);
+                    await SyntaxTreeIndex.GetIndexAsync(document, default).ConfigureAwait(false);
                 }
             }
             Console.WriteLine("Serial: " + (DateTime.Now - start));
-            Console.WriteLine("Precalculated count: " + SyntaxTreeIndex.PrecalculatedCount);
-            Console.WriteLine("Computed count: " + SyntaxTreeIndex.ComputedCount);
             Console.ReadLine();
         }
 
@@ -161,7 +159,7 @@ namespace IdeCoreBenchmarks
                     async () =>
                     {
                         // await WalkTree(d);
-                        await TopLevelSyntaxTreeIndex.PrecalculateAsync(d, default);
+                        await TopLevelSyntaxTreeIndex.GetIndexAsync(d, default);
                     })).ToList();
                 await Task.WhenAll(tasks);
             }
@@ -177,7 +175,7 @@ namespace IdeCoreBenchmarks
             Console.WriteLine("Starting indexing");
             var start = DateTime.Now;
             var tasks = _workspace.CurrentSolution.Projects.SelectMany(p => p.Documents).Select(d => Task.Run(
-                () => SyntaxTreeIndex.PrecalculateAsync(d, default))).ToList();
+                () => SyntaxTreeIndex.GetIndexAsync(d, default))).ToList();
             await Task.WhenAll(tasks);
             Console.WriteLine("Solution parallel: " + (DateTime.Now - start));
         }
@@ -204,7 +202,7 @@ namespace IdeCoreBenchmarks
             var service = project.Services.GetService<INavigateToSearchService>();
             var results = new List<INavigateToSearchResult>();
             await service.SearchProjectAsync(
-                project, priorityDocuments, "Syntax", service.KindsProvided,
+                project, priorityDocuments, "Syntax", service.KindsProvided, activeDocument: null,
                 r =>
                 {
                     lock (results)
