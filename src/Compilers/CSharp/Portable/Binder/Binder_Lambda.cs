@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         firstDefault = i;
                     }
 
-                    ParameterHelpers.GetModifiers(paramSyntax.Modifiers, out _, out var paramsKeyword, out _, out _);
+                    ParameterHelpers.GetModifiers(paramSyntax.Modifiers, refnessKeyword: out _, out var paramsKeyword, thisKeyword: out _, scope: out _);
                     var isParams = paramsKeyword.Kind() != SyntaxKind.None;
 
                     // UNDONE: Where do we report improper use of pointer types?
