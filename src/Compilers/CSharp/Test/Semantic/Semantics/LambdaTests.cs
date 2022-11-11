@@ -229,10 +229,10 @@ class C
                 // (66,39): error CS1670: params is not valid in this context
                 //         Action<int[]> q16 = delegate (params int[] p) { };
                 Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(66, 39),
-                // (67,49): warning CS9502: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // (67,49): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
                 //         Action<string[]> q17 = (params string[] s)=>{};
                 Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "s").WithArguments("1").WithLocation(67, 49),
-                // (68,61): warning CS9502: Parameter 2 has params modifier in lambda but not in target delegate type.
+                // (68,61): warning CS9100: Parameter 2 has params modifier in lambda but not in target delegate type.
                 //         Action<int, double[]> q18 = (int x, params double[] s)=>{};
                 Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "s").WithArguments("2").WithLocation(68, 61),
                 // (70,34): error CS1593: Delegate 'Action' does not take 1 arguments
@@ -4847,7 +4847,7 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                    // (7,68): warning CS9501: Parameter 1 has default value '2' in lambda but '<missing>' in the target delegate type.
+                    // (7,68): warning CS9099: Parameter 1 has default value '2' in lambda but '<missing>' in the target delegate type.
                     //         Action<int> a1 = ([Optional, DefaultParameterValue(2)] int i) => { };
                     Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "i").WithArguments("1", "2", "<missing>").WithLocation(7, 68));
 
@@ -7152,7 +7152,7 @@ class Program
                 // (5,20): error CS8917: The delegate type could not be inferred.
                 //         var lam1 = (x = 7) => x;
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(x = 7) => x").WithLocation(5, 20),
-                // (5,21): error CS9500:  Default not allowed for implicitly typed lambda parameter 'x' 
+                // (5,21): error CS9098:  Default not allowed for implicitly typed lambda parameter 'x' 
                 //         var lam1 = (x = 7) => x;
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedDefaultParameter, "x").WithArguments("x").WithLocation(5, 21));
         }
@@ -7177,7 +7177,7 @@ class Program
                 // (5,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
                 //         var lam = (string s = null, x = 7, double d = 3.14) => { };
                 Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "x").WithLocation(5, 37),
-                // (5,37): error CS9500: Implicitly typed lambda parameter 'x' cannot have a default value.
+                // (5,37): error CS9098: Implicitly typed lambda parameter 'x' cannot have a default value.
                 //         var lam = (string s = null, x = 7, double d = 3.14) => { };
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedDefaultParameter, "x").WithArguments("x").WithLocation(5, 37));
         }
@@ -7886,7 +7886,7 @@ class Program
 ";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (7,27): warning CS9501: Parameter 1 has default value '"0123456..."' in lambda but '"abc"' in the target delegate type.
+                // (7,27): warning CS9099: Parameter 1 has default value '"0123456..."' in lambda but '"abc"' in the target delegate type.
                 //         Del del = (string s = "0123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899") => { };
                 Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "s").WithArguments("1", @"""0123456...""", @"""abc""").WithLocation(7, 27));
         }
