@@ -18,16 +18,16 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCoalesceExpression
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
-    public class UseCoalesceExpressionForNullableTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class UseCoalesceExpressionForNullableTernaryConditionalCheckTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        public UseCoalesceExpressionForNullableTests(ITestOutputHelper logger)
+        public UseCoalesceExpressionForNullableTernaryConditionalCheckTests(ITestOutputHelper logger)
           : base(logger)
         {
         }
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpUseCoalesceExpressionForNullableDiagnosticAnalyzer(),
-                new UseCoalesceExpressionForNullableCodeFixProvider());
+            => (new CSharpUseCoalesceExpressionForNullableTernaryConditionalCheckDiagnosticAnalyzer(),
+                new UseCoalesceExpressionForNullableTernaryConditionalCheckCodeFixProvider());
 
         [Fact]
         public async Task TestOnLeft_Equals()

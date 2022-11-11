@@ -18,11 +18,11 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.UseCoalesceExpressionForNullable), Shared]
-    internal class UseCoalesceExpressionForNullableCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal class UseCoalesceExpressionForNullableTernaryConditionalCheckCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public UseCoalesceExpressionForNullableCodeFixProvider()
+        public UseCoalesceExpressionForNullableTernaryConditionalCheckCodeFixProvider()
         {
         }
 

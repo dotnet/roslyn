@@ -9,15 +9,10 @@ using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 {
-    internal abstract class AbstractUseCoalesceExpressionForIfNullCheckDiagnosticAnalyzer
-    {
-
-    }
-
     /// <summary>
     /// Looks for code of the form "x == null ? y : x" and offers to convert it to "x ?? y";
     /// </summary>
-    internal abstract class AbstractUseCoalesceExpressionDiagnosticAnalyzer<
+    internal abstract class AbstractUseCoalesceExpressionForTernaryConditionalCheckDiagnosticAnalyzer<
         TSyntaxKind,
         TExpressionSyntax,
         TConditionalExpressionSyntax,
@@ -27,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         where TConditionalExpressionSyntax : TExpressionSyntax
         where TBinaryExpressionSyntax : TExpressionSyntax
     {
-        protected AbstractUseCoalesceExpressionDiagnosticAnalyzer()
+        protected AbstractUseCoalesceExpressionForTernaryConditionalCheckDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCoalesceExpressionDiagnosticId,
                    EnforceOnBuildValues.UseCoalesceExpression,
                    CodeStyleOptions2.PreferCoalesceExpression,

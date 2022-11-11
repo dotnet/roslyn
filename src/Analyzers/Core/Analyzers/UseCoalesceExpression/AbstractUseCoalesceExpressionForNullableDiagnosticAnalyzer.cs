@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
     /// <summary>
     /// Looks for code of the form "!x.HasValue ? y : x.Value" and offers to convert it to "x ?? y";
     /// </summary>
-    internal abstract class AbstractUseCoalesceExpressionForNullableDiagnosticAnalyzer<
+    internal abstract class AbstractUseCoalesceExpressionForNullableTernaryConditionalCheckDiagnosticAnalyzer<
         TSyntaxKind,
         TExpressionSyntax,
         TConditionalExpressionSyntax,
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         where TMemberAccessExpression : TExpressionSyntax
         where TPrefixUnaryExpressionSyntax : TExpressionSyntax
     {
-        protected AbstractUseCoalesceExpressionForNullableDiagnosticAnalyzer()
+        protected AbstractUseCoalesceExpressionForNullableTernaryConditionalCheckDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCoalesceExpressionForNullableDiagnosticId,
                    EnforceOnBuildValues.UseCoalesceExpressionForNullable,
                    CodeStyleOptions2.PreferCoalesceExpression,
