@@ -98,8 +98,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 memberGroup = memberGroup.WhereAsArray(Function(m) Not m.Equals(enclosingSymbol))
             End If
 
-            memberGroup = memberGroup.Sort(semanticModel, invocationExpression.SpanStart)
+            If memberGroup.Length = 0 Then
+                Return Nothing
+            End If
 
+            memberGroup = memberGroup.Sort(semanticModel, invocationExpression.SpanStart)
             Dim typeInfo = semanticModel.GetTypeInfo(targetExpression, cancellationToken)
             Dim expressionType = If(typeInfo.Type, typeInfo.ConvertedType)
             Dim defaultProperties =
@@ -117,9 +120,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             Dim items = New List(Of SignatureHelpItem)
             Dim accessibleMembers = ImmutableArray(Of ISymbol).Empty
-            If memberGroup.Length = 0 Then
-                Return Nothing
-            End If
 
             accessibleMembers = GetAccessibleMembers(invocationExpression, semanticModel, within, memberGroup, cancellationToken)
             items.AddRange(GetMemberGroupItems(accessibleMembers, document, invocationExpression, semanticModel))
