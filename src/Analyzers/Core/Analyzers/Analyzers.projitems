@@ -28,7 +28,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)AnalyzerOptionsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeofToNameof\AbstractConvertTypeOfToNameOfDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticCustomTags.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)DummyAnalyzer\DummyDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\AbstractFileHeaderDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\AbstractFileHeaderHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\FileHeader.cs" />

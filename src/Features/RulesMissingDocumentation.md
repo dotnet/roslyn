@@ -2,7 +2,6 @@
 
 Rule ID | Missing Help Link | Title |
 --------|-------------------|-------|
-DummyDiagnosticId | <https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/dummydiagnosticid> | Title |
 IDE0043 |  | Invalid format string |
 IDE0120 | <https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0120> | Simplify LINQ expression |
 IDE0130 | <https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0130> | Namespace does not match folder structure |
