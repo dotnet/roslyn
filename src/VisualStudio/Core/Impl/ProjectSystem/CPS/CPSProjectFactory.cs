@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,10 +58,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         {
             // Read all required properties from EvaluationData before we start updating anything.
 
+            var projectFilePath = data.GetRequiredPropertyAbsolutePathValue(BuildPropertyNames.MSBuildProjectFullPath);
+
             var creationInfo = new VisualStudioProjectCreationInfo
             {
                 AssemblyName = data.GetPropertyValue(BuildPropertyNames.AssemblyName),
-                FilePath = data.GetRequiredPropertyAbsolutePathValue(BuildPropertyNames.MSBuildProjectFullPath),
+                FilePath = projectFilePath,
                 Hierarchy = hostObject as IVsHierarchy,
                 ProjectGuid = id,
             };
@@ -69,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             if (languageName is LanguageNames.CSharp or LanguageNames.VisualBasic)
             {
                 binOutputPath = data.GetRequiredPropertyAbsolutePathValue(BuildPropertyNames.TargetPath);
-                objOutputPath = GetIntermediateAssemblyPath(data);
+                objOutputPath = GetIntermediateAssemblyPath(data, projectFilePath);
                 commandLineArgs = data.GetRequiredPropertyValue(BuildPropertyNames.CommandLineArgsForDesignTimeEvaluation);
             }
             else
@@ -123,26 +126,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             return project;
         }
 
-        private static string GetIntermediateAssemblyPath(EvaluationData data)
+        private static string GetIntermediateAssemblyPath(EvaluationData data, string projectFilePath)
         {
-            var values = data.GetItemValues(BuildPropertyNames.IntermediateAssembly);
+            const string itemName = BuildPropertyNames.IntermediateAssembly;
+
+            var values = data.GetItemValues(itemName);
             if (values.Length != 1)
             {
                 var joinedValues = string.Join(";", values);
-                throw new InvalidProjectDataException(
-                    nameof(BuildPropertyNames.IntermediateAssembly),
-                    joinedValues,
-                    $"Item group '{nameof(BuildPropertyNames.IntermediateAssembly)}' is required to specify an absolute path: '{joinedValues}'.");
+                throw new InvalidProjectDataException(itemName, joinedValues, $"Item group '{itemName}' is required to specify a single value: '{joinedValues}'.");
             }
 
             var path = values[0];
 
             if (!PathUtilities.IsAbsolute(path))
             {
-                throw new InvalidProjectDataException(
-                    nameof(BuildPropertyNames.IntermediateAssembly),
-                    path,
-                    $"Item group '{nameof(BuildPropertyNames.IntermediateAssembly)}' is required to specify an absolute path: '{path}'.");
+                path = Path.Combine(PathUtilities.GetDirectoryName(projectFilePath), path);
+            }
+
+            if (!PathUtilities.IsAbsolute(path))
+            {
+                throw new InvalidProjectDataException(itemName, values[0], $"Item group '{itemName}' is required to specify an absolute path or a path relative to the directory containing the project: '{values[0]}'.");
             }
 
             return path;

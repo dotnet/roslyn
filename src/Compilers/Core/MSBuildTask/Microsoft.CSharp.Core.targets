@@ -186,8 +186,8 @@
        so any behaviors here that don't match the real command line generation will only be temporary, and
        probably won't be any worse than having no options at all. -->
   <PropertyGroup>
-    <CommandLineArgsForDesignTimeEvaluation>-langversion:$(LangVersion) -checksumalgorithm:$(ChecksumAlgorithm)</CommandLineArgsForDesignTimeEvaluation>
+    <CommandLineArgsForDesignTimeEvaluation>-langversion:$(LangVersion)</CommandLineArgsForDesignTimeEvaluation>
+    <CommandLineArgsForDesignTimeEvaluation Condition="'$(ChecksumAlgorithm)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -checksumalgorithm:$(ChecksumAlgorithm)</CommandLineArgsForDesignTimeEvaluation>
     <CommandLineArgsForDesignTimeEvaluation Condition="'$(DefineConstants)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -define:$(DefineConstants)</CommandLineArgsForDesignTimeEvaluation>
-    <OutputAssemblyForDesignTimeEvaluation>@(IntermediateAssembly)</OutputAssemblyForDesignTimeEvaluation>
   </PropertyGroup>
 </Project>
