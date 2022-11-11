@@ -723,6 +723,8 @@ public class Test
         [Fact]
         public void StaticFieldIsUsedForSpanCreatedFromArrayWithInitializer_02()
         {
+            // This IL applies CompilerFeatureRequiredAttribute to WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer.
+            // That should prevent its usage during code gen, as if the member doesn't exist.
             var ilSource = @"
 .class public sequential ansi sealed beforefieldinit System.ReadOnlySpan`1<T>
     extends [mscorlib]System.ValueType
@@ -896,9 +898,11 @@ public class Test
   IL_0015:  ret
 }
 ";
-
+            // Verify emitted IL with "bad" WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer
             verifier.VerifyIL("Test.StaticData.get", expected);
 
+            // We should get the same IL with regular ReadOnlySpan implementation,
+            // but with WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer missing
             compilation = CreateCompilationWithMscorlibAndSpan(csharp);
             compilation.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer);
             verifier = CompileAndVerify(compilation, verify: Verification.Skipped);
