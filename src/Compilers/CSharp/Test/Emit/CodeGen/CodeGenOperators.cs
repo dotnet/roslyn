@@ -8,9 +8,12 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
+using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Text;
 using Xunit;
 
@@ -5173,7 +5176,7 @@ class Test
 
     public static long Calculate1(long[] f)
     {
-" + $"        return { BuildSequenceOfBinaryExpressions_01() };" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_01()};" + @"
     }
 
     public static long Calculate2(long[] f)
@@ -5214,6 +5217,7 @@ class Test
 
         [ConditionalFact(typeof(NoIOperationValidation))]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        [WorkItem(63689, "https://github.com/dotnet/roslyn/issues/63689")]
         public void EmitSequenceOfBinaryExpressions_02()
         {
             var source =
@@ -5233,12 +5237,17 @@ class Test
 
     public static double Calculate(long[] f)
     {
-" + $"        return checked({ BuildSequenceOfBinaryExpressions_01() });" + @"
+" + $"        return checked({BuildSequenceOfBinaryExpressions_01()});" + @"
     }
 }
 ";
 
             var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "11461640193");
+
+            var tree = result.Compilation.SyntaxTrees.Single();
+            var model = result.Compilation.GetSemanticModel(tree);
+
+            ControlFlowGraph.Create((IMethodBodyOperation)model.GetOperation(tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Calculate").Single()));
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/29428")]
@@ -5264,7 +5273,7 @@ class Test
 
     public static bool Calculate(bool[] a, bool[] f)
     {
-" + $"        return { BuildSequenceOfBinaryExpressions_03(count) };" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_03(count)};" + @"
     }
 }
 ";
@@ -5323,7 +5332,7 @@ class Test
 
     public static double? Calculate(float?[] f)
     {
-" + $"        return { BuildSequenceOfBinaryExpressions_01() };" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_01()};" + @"
     }
 }
 ";
@@ -5364,7 +5373,7 @@ class Test
 
     public static double? Calculate(double?[] f)
     {
-" + $"        return { BuildSequenceOfBinaryExpressions_01(count) };" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_01(count)};" + @"
     }
 
     static void Test2()
@@ -5380,7 +5389,7 @@ class Test
 
     public static double Calculate(double[] f)
     {
-" + $"        return { BuildSequenceOfBinaryExpressions_01(count) };" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_01(count)};" + @"
     }
 }
 ";
@@ -5403,7 +5412,7 @@ class Test
 
     public static bool Calculate(S1[] a, S1[] f)
     {
-" + $"        return { BuildSequenceOfBinaryExpressions_03() };" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_03()};" + @"
     }
 }
 
@@ -5442,6 +5451,107 @@ struct S1
     //         return a[0] && f[0] || a[1] && f[1] || a[2] && f[2] || ...
     Diagnostic(ErrorCode.ERR_InsufficientStack, "a").WithLocation(10, 16)
                 );
+        }
+
+        [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/29428")]
+        [WorkItem(63689, "https://github.com/dotnet/roslyn/issues/63689")]
+        public void EmitSequenceOfBinaryExpressions_07()
+        {
+            const int start = 1024;
+            const int step = 1024;
+            const int limit = start * 8;
+
+            bool passed = false;
+
+            for (int count = start; count <= limit; count += step)
+            {
+                var source =
+@"
+class Test
+{ 
+    static void Main()
+    {
+    }
+
+    public static bool Calculate(S1[] a, S1[] f)
+    {
+" + $"        return {BuildSequenceOfBinaryExpressions_03(count)};" + @"
+    }
+}
+
+struct S1
+{
+    public static S1 operator & (S1 x, S1 y)
+    {
+        return new S1();
+    }
+
+    public static S1 operator |(S1 x, S1 y)
+    {
+        return new S1();
+    }
+
+    public static bool operator true(S1 x)
+    {
+        return true;
+    }
+
+    public static bool operator false(S1 x)
+    {
+        return true;
+    }
+
+    public static implicit operator bool (S1 x)
+    {
+        return true;
+    }
+}
+";
+
+                var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                try
+                {
+                    ControlFlowGraph.Create((IMethodBodyOperation)model.GetOperation(tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Calculate").Single()));
+                }
+                catch (System.InsufficientExecutionStackException)
+                {
+                    passed = true;
+                    break;
+                }
+            }
+
+            Assert.True(passed);
+        }
+
+        [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/29428")]
+        [WorkItem(63689, "https://github.com/dotnet/roslyn/issues/63689")]
+        public void EmitSequenceOfBinaryExpressions_08()
+        {
+            var source =
+@"
+class Test
+{ 
+    static void Main()
+    {
+    }
+
+    public static bool Calculate(bool[] a, bool[] f)
+    {
+" + $"        return {BuildSequenceOfBinaryExpressions_03(2048)};" + @"
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            ControlFlowGraph.Create((IMethodBodyOperation)model.GetOperation(tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Calculate").Single()));
         }
 
         [Fact, WorkItem(7262, "https://github.com/dotnet/roslyn/issues/7262")]

@@ -180,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Public NotOverridable Overrides Function GetSourceAssemblyAttributes(isRefAssembly As Boolean) As IEnumerable(Of Cci.ICustomAttribute)
-            Return SourceModule.ContainingSourceAssembly.GetAssemblyCustomAttributesToEmit(Me.CompilationState,
+            Return SourceModule.ContainingSourceAssembly.GetAssemblyCustomAttributesToEmit(Me,
                                                                                            isRefAssembly,
                                                                                            emittingAssemblyAttributesInNetModule:=OutputKind.IsNetModule())
         End Function
@@ -190,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Public NotOverridable Overrides Function GetSourceModuleAttributes() As IEnumerable(Of Cci.ICustomAttribute)
-            Return SourceModule.GetCustomAttributesToEmit(Me.CompilationState)
+            Return SourceModule.GetCustomAttributesToEmit(Me)
         End Function
 
         Public NotOverridable Overrides Function GetSymbolToLocationMap() As MultiDictionary(Of Cci.DebugSourceDocument, Cci.DefinitionWithLocation)
@@ -443,7 +443,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 ' exported types are not emitted in EnC deltas (hence generation 0):
                 Dim fullEmittedName As String = MetadataHelpers.BuildQualifiedName(
                     DirectCast(typeReference, Cci.INamespaceTypeReference).NamespaceName,
-                    Cci.MetadataWriter.GetMangledName(DirectCast(typeReference, Cci.INamedTypeReference), generation:=0))
+                    Cci.MetadataWriter.GetMetadataName(DirectCast(typeReference, Cci.INamedTypeReference), generation:=0))
 
                 ' First check against types declared in the primary module
                 If ContainsTopLevelType(fullEmittedName) Then

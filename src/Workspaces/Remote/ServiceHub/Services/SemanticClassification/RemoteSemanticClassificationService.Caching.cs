@@ -110,10 +110,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Document document, ClassificationType type, ClassificationOptions options, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
-            var persistenceService = solution.Workspace.Services.GetPersistentStorageService();
-
-            // we should never use no-op storage in OOP
-            Contract.ThrowIfTrue(persistenceService is NoOpPersistentStorageService);
+            var persistenceService = solution.Services.GetPersistentStorageService();
 
             var storage = await persistenceService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
             await using var _1 = storage.ConfigureAwait(false);
@@ -310,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
                 }
 
-                return classifiedSpans.ToImmutable();
+                return classifiedSpans.ToImmutableAndClear();
             }
             catch
             {

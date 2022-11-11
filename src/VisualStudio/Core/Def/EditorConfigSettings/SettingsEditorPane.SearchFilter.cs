@@ -20,10 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
             public SearchFilter(IVsSearchQuery searchQuery, IWpfTableControl control)
             {
                 _searchTokens = SearchUtilities.ExtractSearchTokens(searchQuery);
-                if (_searchTokens == null)
-                {
-                    _searchTokens = Array.Empty<IVsSearchToken>();
-                }
+                _searchTokens ??= Array.Empty<IVsSearchToken>();
 
                 var newVisibleColumns = new List<ITableColumnDefinition>();
                 foreach (var c in control.ColumnStates)

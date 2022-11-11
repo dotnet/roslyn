@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// An event that is fired when any <see cref="TextDocument"/> is opened in the editor.
         /// </summary>
-        internal event EventHandler<TextDocumentEventArgs> TextDocumentOpened
+        public event EventHandler<TextDocumentEventArgs> TextDocumentOpened
         {
             add
             {
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private protected Task RaiseTextDocumentOpenedEventAsync(TextDocument document)
+        protected Task RaiseTextDocumentOpenedEventAsync(TextDocument document)
             => RaiseTextDocumentOpenedOrClosedEventAsync(document, new TextDocumentEventArgs(document), TextDocumentOpenedEventName);
 
         private Task RaiseTextDocumentOpenedOrClosedEventAsync<TDocument, TDocumentEventArgs>(
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// An event that is fired when any <see cref="TextDocument"/> is closed in the editor.
         /// </summary>
-        internal event EventHandler<TextDocumentEventArgs> TextDocumentClosed
+        public event EventHandler<TextDocumentEventArgs> TextDocumentClosed
         {
             add
             {
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private protected Task RaiseTextDocumentClosedEventAsync(TextDocument document)
+        protected Task RaiseTextDocumentClosedEventAsync(TextDocument document)
             => RaiseTextDocumentOpenedOrClosedEventAsync(document, new TextDocumentEventArgs(document), TextDocumentClosedEventName);
 
         /// <summary>
@@ -246,8 +246,13 @@ namespace Microsoft.CodeAnalysis
         {
             // this will register features that want to listen to workspace events
             // lazily first time workspace event is actually fired
-            this.Services.GetService<IWorkspaceEventListenerService>()?.EnsureListeners();
+            EnsureEventListeners();
             return _eventMap.GetEventHandlers<EventHandler<T>>(eventName);
+        }
+
+        private void EnsureEventListeners()
+        {
+            this.Services.GetService<IWorkspaceEventListenerService>()?.EnsureListeners();
         }
     }
 }

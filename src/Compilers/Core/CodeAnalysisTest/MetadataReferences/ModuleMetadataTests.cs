@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             fixed (byte* ptr = &assembly[h.MetadataStartOffset])
             {
                 var stream = new UnmanagedMemoryStream(ptr, h.MetadataSize);
-                var metadata = ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream, disposeOwner: true);
+                var metadata = ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream.Dispose);
                 Assert.Equal(new AssemblyIdentity("Members"), metadata.Module.ReadAssemblyIdentityOrThrow());
             }
         }
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             fixed (byte* ptr = &netModule[h.MetadataStartOffset])
             {
                 var stream = new UnmanagedMemoryStream(ptr, h.MetadataSize);
-                ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream, disposeOwner: true);
+                ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream.Dispose);
             }
         }
 
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     OnSeek = (_, _) => seeked = true,
                 };
 
-                var metadata = ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream, disposeOwner: true);
+                var metadata = ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream.Dispose);
                 Assert.Equal(new AssemblyIdentity("Members"), metadata.Module.ReadAssemblyIdentityOrThrow());
 
                 // Disposing the metadata should dispose the stream.
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     OnSeek = (_, _) => seeked = true,
                 };
 
-                var metadata = ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream, disposeOwner: false);
+                var metadata = ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length);
                 Assert.Equal(new AssemblyIdentity("Members"), metadata.Module.ReadAssemblyIdentityOrThrow());
 
                 // Disposing the metadata should not dispose the stream.
@@ -352,7 +352,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact]
+        /// <summary>
+        /// Only test in 64-bit process. <see cref="UnmanagedMemoryStream"/> throws if the given length is greater than the size of the available address space.
+        /// </summary>
+        [ConditionalFact(typeof(Bitness64))]
         public unsafe void CreateFromUnmanagedMemoryStream_LargeIntSize()
         {
             var assembly = TestResources.Basic.Members;

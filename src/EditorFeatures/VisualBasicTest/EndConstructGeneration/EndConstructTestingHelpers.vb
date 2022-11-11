@@ -213,6 +213,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 globalOptions.SetGlobalOption(New OptionKey(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic), False)
 
                 Dim view = workspace.Documents.First().GetTextView()
+                view.Options.GlobalOptions.SetOptionValue(DefaultOptions.IndentStyleId, IndentingStyle.Smart)
+
                 Dim line = view.TextSnapshot.GetLineFromLineNumber(beforeCaret(0))
                 If beforeCaret(1) = -1 Then
                     view.Caret.MoveTo(line.End)
@@ -224,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 Dim endConstructor = New EndConstructCommandHandler(
                     factory,
                     workspace.GetService(Of ITextUndoHistoryRegistry),
-                    globalOptions)
+                    workspace.GetService(Of EditorOptionsService))
 
                 Dim operations = factory.GetEditorOperations(view)
                 endConstructor.ExecuteCommand_ReturnKeyCommandHandler(New ReturnKeyCommandArgs(view, view.TextBuffer), Sub() operations.InsertNewLine(), TestCommandExecutionContext.Create())

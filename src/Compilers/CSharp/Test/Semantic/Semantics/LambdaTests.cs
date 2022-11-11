@@ -3913,10 +3913,8 @@ class Program
             a = (IdentifierNameSyntax)newTree.GetRoot().DescendantNodes().OfType<AttributeSyntax>().Single().Name;
             Assert.Equal("A", a.Identifier.Text);
 
-            // If we aren't using the right binder here, the compiler crashes going through the binder factory
             var info = model.GetSymbolInfo(a);
-            // This behavior is wrong. See https://github.com/dotnet/roslyn/issues/24135
-            Assert.Equal(attrType, info.Symbol);
+            Assert.Equal(attrCtor, info.Symbol);
         }
 
         [Fact]
@@ -6781,6 +6779,225 @@ class Program
             Assert.Equal(RefKind.Ref, lambdas[0].Parameters[0].RefKind);
             Assert.Equal(RefKind.In, lambdas[1].Parameters[0].RefKind);
             Assert.Equal(RefKind.Out, lambdas[2].Parameters[0].RefKind);
+        }
+
+        [Fact]
+        public void StaticPartialLambda()
+        {
+            CreateCompilation("""
+                class C
+                {
+                    void M()
+                    {
+                        System.Action x = static partial () => { };
+                    }
+                }
+                """).VerifyDiagnostics(
+                // (5,27): error CS8934: Cannot convert lambda expression to type 'Action' because the return type does not match the delegate return type
+                //         System.Action x = static partial () => { };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "static partial () => { }").WithArguments("lambda expression", "System.Action").WithLocation(5, 27),
+                // (5,34): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //         System.Action x = static partial () => { };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(5, 34));
+        }
+
+        [Fact]
+        public void PartialStaticLambda()
+        {
+            CreateCompilation("""
+                class C
+                {
+                    void M()
+                    {
+                        System.Action x = partial static () => { };
+                    }
+                }
+                """).VerifyDiagnostics(
+                // (5,27): error CS0103: The name 'partial' does not exist in the current context
+                //         System.Action x = partial static () => { };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "partial").WithArguments("partial").WithLocation(5, 27),
+                // (5,35): error CS1002: ; expected
+                //         System.Action x = partial static () => { };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 35),
+                // (5,35): error CS0106: The modifier 'static' is not valid for this item
+                //         System.Action x = partial static () => { };
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "static").WithArguments("static").WithLocation(5, 35),
+                // (5,43): error CS8124: Tuple must contain at least two elements.
+                //         System.Action x = partial static () => { };
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 43),
+                // (5,45): error CS1001: Identifier expected
+                //         System.Action x = partial static () => { };
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(5, 45),
+                // (5,45): error CS1003: Syntax error, ',' expected
+                //         System.Action x = partial static () => { };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(5, 45),
+                // (5,48): error CS1002: ; expected
+                //         System.Action x = partial static () => { };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(5, 48));
+        }
+
+        [Fact]
+        public void PartialLambda()
+        {
+            CreateCompilation("""
+                class C
+                {
+                    void M()
+                    {
+                        System.Action x = partial () => { };
+                    }
+                }
+                """).VerifyDiagnostics(
+                // (5,27): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //         System.Action x = partial () => { };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(5, 27),
+                // (5,27): error CS8934: Cannot convert lambda expression to type 'Action' because the return type does not match the delegate return type
+                //         System.Action x = partial () => { };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "partial () => { }").WithArguments("lambda expression", "System.Action").WithLocation(5, 27));
+        }
+
+        [WorkItem(61013, "https://github.com/dotnet/roslyn/issues/61013")]
+        [Fact]
+        public void InvalidCast()
+        {
+            var source = """
+                using System;
+                #nullable enable
+                internal class Program
+                {
+                    void Main(string[] args)
+                    {
+                        Choice(args.Length > 0
+                            ? (Action)(() => DS1()
+                            : () => DS2(args[0]));
+                    }
+
+                    void DS1()
+                    { }
+
+                    void DS2(string a)
+                    { }
+
+                    void Choice(Action a)
+                    {
+                        a();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var action = syntaxTree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().First(id => id.Identifier.ValueText == "Action");
+            var model = comp.GetSemanticModel(syntaxTree);
+            AssertEx.Equal("System.Action", model.GetTypeInfo(action).Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(64392, "https://github.com/dotnet/roslyn/issues/64392")]
+        public void ReferToFieldWithinLambdaInTypeAttribute_01()
+        {
+            var source = @"
+[Display(x => $""{Name}"")]
+public class Test
+{
+    [Display(Name = ""Name"")]
+    public string Name { get; }
+}
+
+public class DisplayAttribute : System.Attribute
+{
+    public DisplayAttribute() { }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,2): error CS1729: 'DisplayAttribute' does not contain a constructor that takes 1 arguments
+                // [Display(x => $"{Name}")]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"Display(x => $""{Name}"")").WithArguments("DisplayAttribute", "1").WithLocation(2, 2),
+                // (5,14): error CS0246: The type or namespace name 'Name' could not be found (are you missing a using directive or an assembly reference?)
+                //     [Display(Name = "Name")]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Name").WithArguments("Name").WithLocation(5, 14)
+                );
+        }
+
+        [Fact]
+        [WorkItem(64392, "https://github.com/dotnet/roslyn/issues/64392")]
+        public void ReferToFieldWithinLambdaInTypeAttribute_02()
+        {
+            var source = @"
+[Display(x => Name)]
+public class Test
+{
+    [Display(Name = ""Name"")]
+    public string Name { get; }
+}
+
+public class DisplayAttribute : System.Attribute
+{
+    public DisplayAttribute() { }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,2): error CS1729: 'DisplayAttribute' does not contain a constructor that takes 1 arguments
+                // [Display(x => Name)]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Display(x => Name)").WithArguments("DisplayAttribute", "1").WithLocation(2, 2),
+                // (5,14): error CS0246: The type or namespace name 'Name' could not be found (are you missing a using directive or an assembly reference?)
+                //     [Display(Name = "Name")]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Name").WithArguments("Name").WithLocation(5, 14)
+                );
+        }
+
+        [Fact]
+        public void DelegateConversions_ImplicitlyTypedParameter_RefParameter()
+        {
+            var source = """
+                struct R { }
+
+                delegate R D1(ref R r);
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        D1 d1 = r1 => r1; // 1
+                        M(r2 => r2); // 2
+                    }
+
+                    static void M(D1 d1) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (9,17): error CS1676: Parameter 1 must be declared with the 'ref' keyword
+                //         D1 d1 = r1 => r1; // 1
+                Diagnostic(ErrorCode.ERR_BadParamRef, "r1").WithArguments("1", "ref").WithLocation(9, 17),
+                // (10,11): error CS1676: Parameter 1 must be declared with the 'ref' keyword
+                //         M(r2 => r2); // 2
+                Diagnostic(ErrorCode.ERR_BadParamRef, "r2").WithArguments("1", "ref").WithLocation(10, 11)
+                );
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambdas = root.DescendantNodes().OfType<LambdaExpressionSyntax>().ToArray();
+
+            Assert.Equal("r1 => r1", lambdas[0].ToString());
+            var lambdaParameter1 = model.GetSymbolInfo(lambdas[0]).Symbol.GetParameters()[0];
+            Assert.Equal("? r1", lambdaParameter1.ToTestDisplayString());
+            Assert.Equal(RefKind.None, lambdaParameter1.RefKind);
+
+            // Implicitly-typed lambda parameters can get a type, but they cannot get a different ref-kind (or scoped-ness) during anonymous function conversion
+            // Tracked by https://github.com/dotnet/roslyn/issues/64985
+            Assert.Equal("r2 => r2", lambdas[1].ToString());
+            var lambdaParameter2 = model.GetSymbolInfo(lambdas[1]).Symbol.GetParameters()[0];
+            Assert.Equal("ref R r2", lambdaParameter2.ToTestDisplayString());
+            Assert.Equal(RefKind.Ref, lambdaParameter2.RefKind);
         }
     }
 }

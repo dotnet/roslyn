@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
+    <Trait(Traits.Feature, Traits.Features.SignatureHelp)>
     Public Class CollectionInitializerSignatureHelpProviderTests
         Inherits AbstractVisualBasicSignatureHelpProviderTests
 
@@ -13,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
             Return GetType(CollectionInitializerSignatureHelpProvider)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function ForSingleParamAddMethods() As Task
             Dim markup = "
 imports System.Collections.Generic
@@ -30,7 +31,7 @@ end class"
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function ForMultiParamAddMethods() As Task
             Dim markup = "
 imports System.Collections.Generic
@@ -47,7 +48,7 @@ end class"
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function ForSecondParam() As Task
             Dim markup = "
 imports System.Collections.Generic
@@ -64,7 +65,7 @@ end class"
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function WithoutClosingConstructs() As Task
             Dim markup = "
 imports System.Collections.Generic
@@ -80,7 +81,7 @@ class C
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function WithMultipleAddMethods() As Task
             Dim markup = "
 imports System.Collections
@@ -109,7 +110,7 @@ class C
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function DoesNotImplementIEnumerable() As Task
             Dim markup = "
 imports System.Collections
@@ -133,7 +134,7 @@ class C
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function WithExtensionAddMethods() As Task
             Dim markup = "
 imports System.Collections

@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             if (document == null)
                 return;
 
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.Interactive)
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.Interactive)
                 return;
 
             var inheritanceMarginInfoService = document.GetLanguageService<IInheritanceMarginService>();
@@ -150,5 +150,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                     new InheritanceMarginTag(lineNumber, membersOnTheLineArray)));
             }
         }
+
+        protected override bool TagEquals(InheritanceMarginTag tag1, InheritanceMarginTag tag2)
+            => tag1.Equals(tag2);
     }
 }

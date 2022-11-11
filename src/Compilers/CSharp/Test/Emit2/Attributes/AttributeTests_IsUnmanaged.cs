@@ -35,7 +35,7 @@ public class Test
 }
 ";
 
-            CompileAndVerify(text, symbolValidator: module =>
+            CompileAndVerify(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), symbolValidator: module =>
             {
                 var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("M").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
@@ -59,7 +59,7 @@ public class Test<T> where T : unmanaged
 }
 ";
 
-            CompileAndVerify(text, symbolValidator: module =>
+            CompileAndVerify(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), symbolValidator: module =>
             {
                 var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Test`1").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
@@ -89,7 +89,7 @@ public class Test
 }
 ";
 
-            CompileAndVerify(text, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("<M>g__N|0_0").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
@@ -112,7 +112,7 @@ namespace System.Runtime.CompilerServices
 public delegate void D<T>() where T : unmanaged;
 ";
 
-            CompileAndVerify(text, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 var typeParameter = module.GlobalNamespace.GetTypeMember("D").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
@@ -841,8 +841,9 @@ class Test<T> where T : unmanaged
 
                 case Accessibility.Public:
                     {
-                        Assert.Null(attributeType.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName));
-
+                        var refSafetyRulesAttribute = attributeType.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.RefSafetyRulesAttribute.FullName);
+                        var embeddedAttribute = attributeType.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);
+                        Assert.Equal(refSafetyRulesAttribute is null, embeddedAttribute is null);
                         break;
                     }
 

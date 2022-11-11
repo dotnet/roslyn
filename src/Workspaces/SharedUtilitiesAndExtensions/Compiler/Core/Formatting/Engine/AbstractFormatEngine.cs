@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // get span and common root
             this.SpanToFormat = GetSpanToFormat();
-            _commonRoot = startToken.GetCommonRoot(endToken) ?? throw ExceptionUtilities.Unreachable;
+            _commonRoot = startToken.GetCommonRoot(endToken) ?? throw ExceptionUtilities.Unreachable();
         }
 
         internal abstract IHeaderFacts HeaderFacts { get; }

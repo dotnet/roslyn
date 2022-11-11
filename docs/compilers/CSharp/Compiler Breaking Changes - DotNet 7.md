@@ -1,5 +1,107 @@
 # This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
+## For the purpose of definite assignment analysis, invocations of async local functions are no longer treated as being awaited
+
+***Introduced in Visual Studio 2022 version 17.5***
+
+For the purpose of definite assignment analysis, invocations of an async local function is
+no longer treated as being awaited and, therefore, the local function is not considered to
+be fully executed. See https://github.com/dotnet/roslyn/issues/43697 for the rationale.
+
+The code below is now going to report a definite assignment error:
+```csharp
+    public async Task M()
+    {
+        bool a;
+        await M1();
+        Console.WriteLine(a); // error CS0165: Use of unassigned local variable 'a'  
+
+        async Task M1()
+        {
+            if ("" == String.Empty)
+            {
+                throw new Exception();
+            }
+            else
+            {
+                a = true;
+            }
+        }
+    }
+```
+
+## `INoneOperation` nodes for attributes are now `IAttributeOperation` nodes.
+
+***Introduced in Visual Studio 2022 version 17.5, .NET SDK version 7.0.200***
+
+In previous versions of the compiler, the `IOperation` tree for an attribute was rooted with an `INoneOperation` node.
+We have added native support for attributes, which means that the root of the tree is now an `IAttributeOperation`. Some
+analyzers, including older versions of the .NET SDK analyzers, are not expecting this tree shape, and will incorrectly
+warn (or potentially fail to warn) when encountering it. The workarounds for this are:
+
+* Update your analyzer version, if possible. If using the .NET SDK or older versions of Microsoft.CodeAnalysis.FxCopAnalyzers,
+update to Microsoft.CodeAnalysis.NetAnalyzers 7.0.0-preview1.22464.1 or newer.
+* Suppress any false-positives from the analyzers until they can be updated with a version that takes this change into
+account.
+
+## Type tests for `ref` structs are not supported.
+
+***Introduced in Visual Studio 2022 version 17.4***
+
+When a `ref` struct type is used in an 'is' or 'as' operator, in some scenarios compiler was previously reporting
+an erroneous warning about the type test always failing at runtime, omitting the actual type check, and leading to
+incorrect behavior. When incorrect behavior at execution time was possible, compiler will now produce an error instead.
+
+```csharp
+ref struct G<T>
+{
+    public void Test()
+    {
+        if (this is G<int>) // Will now produce an error, used to be treated as always `false`.
+        {
+```
+
+## Unused results from ref local are dereferences.
+
+***Introduced in Visual Studio 2022 version 17.4***
+
+When a `ref` local variable is referenced by value, but the result is not used (such as being assigned to a discard), the result was previously ignored. The compiler will now dereference that local, ensuring that any side effects are observed.
+
+```csharp
+ref int local = Unsafe.NullRef<int>();
+_ = local; // Will now produce a `NullReferenceException`
+```
+
+## Types cannot be named `scoped`
+
+***Introduced in Visual Studio 2022 version 17.4.*** Starting in C# 11, types cannot be named `scoped`. The compiler will report an error on all such type names. To work around this, the type name and all usages must be escaped with an `@`:
+
+```csharp
+class scoped {} // Error CS9056
+class @scoped {} // No error
+```
+
+```csharp
+ref scoped local; // Error
+ref scoped.nested local; // Error
+ref @scoped local2; // No error
+```
+
+This was done as `scoped` is now a modifier for variable declarations and reserved following `ref` in a ref type.
+
+## Types cannot be named `file`
+
+***Introduced in Visual Studio 2022 version 17.4.*** Starting in C# 11, types cannot be named `file`. The compiler will report an error on all such type names. To work around this, the type name and all usages must be escaped with an `@`:
+
+```csharp
+class file {} // Error CS9056
+class @file {} // No error
+```
+
+This was done as `file` is now a modifier for type declarations.
+
+You can learn more about this change in the associated [csharplang issue](https://github.com/dotnet/csharplang/issues/6011).
+
 ## Required spaces in #line span directives
 
 ***Introduced in .NET SDK 6.0.400, Visual Studio 2022 version 17.3.***
@@ -44,6 +146,33 @@ Possible workarounds are:
 Also, implicit conversions between `IntPtr`/`UIntPtr` and other numeric types are treated as standard
 conversions on such platforms. This can affect overload resolution in some cases.
 
+These changes could cause a behavioral change if the user code was depending on overflow exceptions in an
+unchecked context, or if it was not expecting overflow exceptions in a checked context. An analyzer was 
+[added in 7.0](https://github.com/dotnet/runtime/issues/74022) to help detect such behavioral changes
+and take appropriate action. The analyzer will produce diagnostics on potential behavioral changes, which default
+to info severity but can be upgraded to warnings via [editorconfig](https://learn.microsoft.com/dotnet/fundamentals/code-analysis/configuration-options#severity-level).
+
+## Addition of System.UIntPtr and System.Int32
+
+***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.3.***
+
+When the platform supports __numeric__ `IntPtr` and `UIntPtr` types (as indicated by the presence of
+`System.Runtime.CompilerServices.RuntimeFeature.NumericIntPtr`), the operator `+(UIntPtr, int)` defined in `System.UIntPtr`
+can no longer be used.
+Instead, adding expressions of types `System.UIntPtr` and a `System.Int32` results in an error:
+
+```csharp
+UIntPtr M(UIntPtr x, int y)
+{
+    return x + y; // error: Operator '+' is ambiguous on operands of type 'nuint' and 'int'
+}
+```
+
+Possible workarounds are:
+
+1. Use the `UIntPtr.Add(UIntPtr, int)` method: `UIntPtr.Add(x, y)`
+2. Apply an unchecked cast to type `nuint` on the second operand: `x + unchecked((nuint)y)`
+
 ## Nameof operator in attribute on method or local function
 
 ***Introduced in .NET SDK 6.0.400, Visual Studio 2022 version 17.3.***
@@ -83,11 +212,6 @@ Possible workarounds are:
 
 1. Rename the type parameter or parameter to avoid shadowing the name from outer scope.
 1. Use a string literal instead of the `nameof` operator.
-1. Downgrade the `<LangVersion>` element to 9.0 or earlier.
-
-Note: The break will also apply to C# 10 and earlier when .NET 7 ships, but is
-currently scoped down to users of LangVer=preview.  
-Tracked by https://github.com/dotnet/roslyn/issues/60640
 
 ## Cannot return an out parameter by reference
 
@@ -103,13 +227,58 @@ static ref T ReturnOutParamByRef<T>(out T t)
 }
 ```
 
-A possible workaround is to change the method signature to pass the parameter by `ref` instead.
+Possible workarounds are:
+1. Use `System.Diagnostics.CodeAnalysis.UnscopedRefAttribute` to mark the reference as unscoped.
+    ```csharp
+    static ref T ReturnOutParamByRef<T>([UnscopedRef] out T t)
+    {
+        t = default;
+        return ref t; // ok
+    }
+    ```
+
+1. Change the method signature to pass the parameter by `ref`.
+    ```csharp
+    static ref T ReturnRefParamByRef<T>(ref T t)
+    {
+        t = default;
+        return ref t; // ok
+    }
+    ```
+
+## Instance method on ref struct may capture unscoped ref parameters
+
+***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.4.***
+
+With language version C# 11 or later, or with .NET 7.0 or later, a `ref struct` instance method invocation is assumed to capture unscoped `ref` or `in` parameters.
 
 ```csharp
-static ref T ReturnRefParamByRef<T>(ref T t)
+R<int> Use(R<int> r)
 {
-    t = default;
-    return ref t; // ok
+    int i = 42;
+    r.MayCaptureArg(ref i); // error CS8350: may expose variables referenced by parameter 't' outside of their declaration scope
+    return r;
+}
+
+ref struct R<T>
+{
+    public void MayCaptureArg(ref T t) { }
+}
+```
+
+A possible workaround, if the `ref` or `in` parameter is not captured in the `ref struct` instance method, is to declare the parameter as `scoped ref` or `scoped in`.
+
+```csharp
+R<int> Use(R<int> r)
+{
+    int i = 42;
+    r.CannotCaptureArg(ref i); // ok
+    return r;
+}
+
+ref struct R<T>
+{
+    public void CannotCaptureArg(scoped ref T t) { }
 }
 ```
 
@@ -151,6 +320,27 @@ static R Create()
 {
     int i = 0;
     return CannotCaptureArg(ref i); // ok
+}
+```
+
+## `ref` to `ref struct` argument considered unscoped in `__arglist`
+
+***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.4.***
+
+With language version C# 11 or later, or with .NET 7.0 or later, a `ref` to a `ref struct` type is considered an unscoped reference when passed as an argument to `__arglist`.
+
+```csharp
+ref struct R { }
+
+class Program
+{
+    static void MayCaptureRef(__arglist) { }
+
+    static void Main()
+    {
+        var r = new R();
+        MayCaptureRef(__arglist(ref r)); // error: may expose variables outside of their declaration scope
+    }
 }
 ```
 

@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
                 targetSymbol As ISymbol,
                 suppressMessageAttribute As INamedTypeSymbol,
                 diagnostic As Diagnostic,
-                services As HostWorkspaceServices,
+                services As SolutionServices,
                 options As SyntaxFormattingOptions,
                 addImportsService As IAddImportsService,
                 cancellationToken As CancellationToken) As SyntaxNode

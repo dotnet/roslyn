@@ -19,7 +19,7 @@ variables:
   _DevDivDropAccessToken: $(System.AccessToken)
 
 steps:
-- template: eng/pipelines/checkout-task.yml
+- template: eng/pipelines/checkout-windows-task.yml
 
 - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
   displayName: Setting SourceBranchName variable

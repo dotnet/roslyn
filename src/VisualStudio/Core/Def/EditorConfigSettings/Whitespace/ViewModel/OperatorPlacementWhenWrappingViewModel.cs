@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespac
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public OperatorPlacementWhenWrappingViewModelFactory()
         {
-            _key = new OptionKey2(CodeStyleOptions2.OperatorPlacementWhenWrapping, LanguageNames.CSharp);
+            _key = new OptionKey2(CodeStyleOptions2.OperatorPlacementWhenWrapping);
         }
 
         public IEnumSettingViewModel CreateViewModel(WhitespaceSetting setting)

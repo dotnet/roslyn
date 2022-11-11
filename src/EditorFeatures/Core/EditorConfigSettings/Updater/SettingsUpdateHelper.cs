@@ -87,7 +87,26 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                     optionValue = $"{optionValue}:{severity}";
                 }
 
-                var language = option.IsPerLanguage ? Language.CSharp | Language.VisualBasic : Language.CSharp;
+                Language language;
+                if (option is ISingleValuedOption singleValuedOption)
+                {
+                    language = singleValuedOption.LanguageName switch
+                    {
+                        LanguageNames.CSharp => Language.CSharp,
+                        LanguageNames.VisualBasic => Language.VisualBasic,
+                        null => Language.CSharp | Language.VisualBasic,
+                        _ => throw ExceptionUtilities.UnexpectedValue(singleValuedOption.LanguageName),
+                    };
+                }
+                else if (option is IPerLanguageValuedOption perLanguageValuedOption)
+                {
+                    language = Language.CSharp | Language.VisualBasic;
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(option);
+                }
+
                 return (true, optionName, optionValue, language);
             }
         }
@@ -251,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
             {
                 // We splice on the last occurrence of '.' to account for filenames containing periods.
                 var nameExtensionSplitIndex = mostRecentHeaderText.LastIndexOf('.');
-                var fileName = mostRecentHeaderText.Substring(0, nameExtensionSplitIndex);
+                var fileName = mostRecentHeaderText[..nameExtensionSplitIndex];
                 var splicedFileExtensions = mostRecentHeaderText[(nameExtensionSplitIndex + 1)..].Split(',', ' ', '{', '}');
 
                 // Replacing characters in the header with the regex equivalent.

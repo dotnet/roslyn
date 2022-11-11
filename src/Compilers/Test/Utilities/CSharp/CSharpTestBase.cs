@@ -16,6 +16,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -625,6 +626,28 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
+        protected const string UnscopedRefAttributeDefinition =
+@"namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.All, AllowMultiple = false, Inherited = false)]
+    public sealed class UnscopedRefAttribute : Attribute
+    {
+    }
+}";
+
+        protected const string RefSafetyRulesAttributeDefinition =
+@"namespace System.Runtime.CompilerServices
+{
+    public sealed class RefSafetyRulesAttribute : Attribute
+    {
+        public RefSafetyRulesAttribute(int version) { Version = version; }
+        public int Version;
+    }
+}";
+
+        protected static MetadataReference RefSafetyRulesAttributeLib =>
+            CreateCompilation(RefSafetyRulesAttributeDefinition).EmitToImageReference();
+
         protected const string RequiredMemberAttribute = @"
 namespace System.Runtime.CompilerServices
 {
@@ -965,32 +988,14 @@ namespace System.Diagnostics.CodeAnalysis
 
         internal CompilationVerifier CompileAndVerifyFieldMarshal(CSharpTestSource source, Func<string, PEAssembly, byte[]> getExpectedBlob, bool isField = true) =>
             CompileAndVerifyFieldMarshalCommon(
-                CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.RegularPreview),
+                CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute()),
                 getExpectedBlob,
                 isField);
 
         #region SyntaxTree Factories
 
         public static SyntaxTree Parse(string text, string filename = "", CSharpParseOptions options = null, Encoding encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
-        {
-            if ((object)options == null)
-            {
-                options = TestOptions.RegularPreview;
-            }
-
-            var stringText = StringText.From(text, encoding ?? Encoding.UTF8, checksumAlgorithm);
-            return CheckSerializable(SyntaxFactory.ParseSyntaxTree(stringText, options, filename));
-        }
-
-        private static SyntaxTree CheckSerializable(SyntaxTree tree)
-        {
-            var stream = new MemoryStream();
-            var root = tree.GetRoot();
-            root.SerializeTo(stream);
-            stream.Position = 0;
-            var deserializedRoot = CSharpSyntaxNode.DeserializeFrom(stream);
-            return tree;
-        }
+            => CSharpTestSource.Parse(text, filename, options, encoding, checksumAlgorithm);
 
         public static SyntaxTree[] Parse(IEnumerable<string> sources, CSharpParseOptions options = null)
         {
@@ -1092,21 +1097,6 @@ namespace System.Diagnostics.CodeAnalysis
             string sourceFileName = "",
             bool skipUsesIsNullable = false) => CreateCompilationCore(source, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib45, references), options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable, experimentalFeature: feature);
 
-        internal static CSharpCompilation CreateNumericIntPtrCompilation(
-              CSharpTestSource source,
-              IEnumerable<MetadataReference> references = null,
-              CSharpCompilationOptions options = null,
-              CSharpParseOptions parseOptions = null,
-              string assemblyName = "",
-              string sourceFileName = "")
-        {
-            // Note: we use skipUsesIsNullable and skipExtraValidation so that nobody pulls
-            // on the compilation or its references before we set the RuntimeSupportsNumericIntPtr flag.
-            var comp = CreateCompilationCore(source, references, options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable: true, experimentalFeature: null, skipExtraValidation: true);
-            comp.Assembly.RuntimeSupportsNumericIntPtr = true;
-            return comp;
-        }
-
         public static CSharpCompilation CreateCompilationWithWinRT(
             CSharpTestSource source,
             IEnumerable<MetadataReference> references = null,
@@ -1197,7 +1187,10 @@ namespace System.Diagnostics.CodeAnalysis
             TargetFramework targetFramework = TargetFramework.Standard,
             string assemblyName = "",
             string sourceFileName = "",
-            bool skipUsesIsNullable = false) => CreateEmptyCompilation(source, TargetFrameworkUtil.GetReferences(targetFramework, references), options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable);
+            bool skipUsesIsNullable = false)
+        {
+            return CreateEmptyCompilation(source, TargetFrameworkUtil.GetReferences(targetFramework, references), options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable);
+        }
 
         public static CSharpCompilation CreateEmptyCompilation(
             CSharpTestSource source,
@@ -1206,7 +1199,8 @@ namespace System.Diagnostics.CodeAnalysis
             CSharpParseOptions parseOptions = null,
             string assemblyName = "",
             string sourceFileName = "",
-            bool skipUsesIsNullable = false) => CreateCompilationCore(source, references, options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable, experimentalFeature: null);
+            bool skipUsesIsNullable = false,
+            bool skipExtraValidation = false) => CreateCompilationCore(source, references, options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable, experimentalFeature: null, skipExtraValidation: skipExtraValidation);
 
         private static CSharpCompilation CreateCompilationCore(
             CSharpTestSource source,
@@ -2190,7 +2184,7 @@ namespace System.Diagnostics.CodeAnalysis
             return comp;
         }
 
-        protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
             var reference = CreateEmptyCompilation(
                 SpanSource,
@@ -2457,11 +2451,11 @@ namespace System
                 parseOptions: parseOptions);
         }
 
-        protected static CSharpCompilation CreateCompilationWithSpanAndMemoryExtensions(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        protected static CSharpCompilation CreateCompilationWithSpanAndMemoryExtensions(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null, TargetFramework targetFramework = TargetFramework.NetCoreApp)
         {
             if (ExecutionConditionUtil.IsCoreClr)
             {
-                return CreateCompilation(text, targetFramework: TargetFramework.NetCoreApp, references: new[] { Basic.Reference.Assemblies.Net50.SystemMemory }, options: options, parseOptions: parseOptions);
+                return CreateCompilation(text, targetFramework: targetFramework, options: options, parseOptions: parseOptions);
             }
             else
             {

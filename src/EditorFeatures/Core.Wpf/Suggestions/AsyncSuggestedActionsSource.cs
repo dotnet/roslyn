@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActionsAsync, cancellationToken))
                 {
-                    var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    var document = range.Snapshot.GetOpenTextDocumentInCurrentContextWithChanges();
                     if (document is null)
                         return;
 
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             private async IAsyncEnumerable<SuggestedActionSet> GetCodeFixesAndRefactoringsAsync(
                 ReferenceCountedDisposable<State> state,
                 ISuggestedActionCategorySet requestedActionCategories,
-                Document document,
+                TextDocument document,
                 SnapshotSpan range,
                 TextSpan? selection,
                 Func<string, IDisposable?> addOperationScope,

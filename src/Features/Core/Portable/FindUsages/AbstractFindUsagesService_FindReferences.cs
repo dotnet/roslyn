@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         {
             using var _ = ArrayBuilder<DefinitionItem>.GetInstance(out var result);
 
-            var factory = solution.Workspace.Services.GetRequiredService<IDefinitionsAndReferencesFactory>();
+            var factory = solution.Services.GetRequiredService<IDefinitionsAndReferencesFactory>();
 
             foreach (var definition in definitions)
             {
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             CancellationToken cancellationToken)
         {
             var solution = project.Solution;
-            var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
                 // Create a callback that we can pass to the server process to hear about the 
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             var title = syntaxFacts.ConvertToSingleLine(token.Parent).ToString();
             if (title.Length >= 10)
             {
-                title = title.Substring(0, 10) + "...";
+                title = title[..10] + "...";
             }
 
             var searchTitle = string.Format(FeaturesResources._0_references, title);

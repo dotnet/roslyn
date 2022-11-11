@@ -49,6 +49,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 // partial semantics, we can ensure we don't spend an inordinate amount of time computing and using full
                 // compilation data (like skeleton assemblies).
                 var forceFrozenPartialSemanticsForCrossProcessOperations = true;
+
+                var workspace = textSnapshot.TextBuffer.GetWorkspace();
+                if (workspace is null)
+                    return null;
+
                 var document = textSnapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
                 if (document == null)
                     return null;
@@ -58,14 +63,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                     return null;
 
                 // If these are navbars for a file that isn't even visible, then avoid doing any unnecessary computation
-                // work until far in teh future (or if visibility changes).  This ensures our non-visible docs do settle
+                // work until far in the future (or if visibility changes).  This ensures our non-visible docs do settle
                 // once enough time has passed, while greatly reducing their impact on the system.
                 await _visibilityTracker.DelayWhileNonVisibleAsync(
                     _threadingContext, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(false);
 
                 using (Logger.LogBlock(FunctionId.NavigationBar_ComputeModelAsync, cancellationToken))
                 {
-                    var items = await itemService.GetItemsAsync(document, forceFrozenPartialSemanticsForCrossProcessOperations, textSnapshot.Version, cancellationToken).ConfigureAwait(false);
+                    var items = await itemService.GetItemsAsync(
+                        document,
+                        workspace.CanApplyChange(ApplyChangesKind.ChangeDocument),
+                        forceFrozenPartialSemanticsForCrossProcessOperations,
+                        textSnapshot.Version,
+                        cancellationToken).ConfigureAwait(false);
                     return new NavigationBarModel(itemService, items);
                 }
             }

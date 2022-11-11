@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
         protected override bool CanParseSubmission(string code)
         {
             var options = CSharpInteractiveEvaluatorLanguageInfoProvider.Instance.ParseOptions;
-            var tree = SyntaxFactory.ParseSyntaxTree(code, options);
+            var tree = SyntaxFactory.ParseSyntaxTree(SourceText.From(code, encoding: null, SourceHashAlgorithms.Default), options);
             return tree.HasCompilationUnitRoot &&
                 !tree.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
         }

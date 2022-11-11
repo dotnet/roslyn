@@ -38,6 +38,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
         Public Sub New(workspace As TestWorkspace)
             Me.Workspace = workspace
             View = workspace.Documents.Single().GetTextView()
+            View.Options.GlobalOptions.SetOptionValue(DefaultOptions.IndentStyleId, IndentingStyle.Smart)
+
             EditorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(View)
 
             Dim position = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value

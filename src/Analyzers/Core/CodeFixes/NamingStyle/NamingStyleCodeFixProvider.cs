@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -121,6 +121,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
             private readonly Func<CancellationToken, Task<Solution>> _createChangedSolutionAsync;
             private readonly string _equivalenceKey;
 
+            /// <summary>
+            /// This code action does produce non-text-edit operations (like notifying 3rd parties about a rename).  But
+            /// it doesn't require this.  As such, we can allow it to run in hosts that only allow document edits. Those
+            /// hosts will simply ignore the operations they don't understand.
+            /// </summary>
+            public override ImmutableArray<string> Tags => ImmutableArray<string>.Empty;
+
             public FixNameCodeAction(
 #if !CODE_STYLE
                 Solution startingSolution,
@@ -154,12 +161,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
 #if CODE_STYLE  // https://github.com/dotnet/roslyn/issues/42218 tracks removing this conditional code.
                 return SpecializedCollections.SingletonEnumerable(codeAction);
 #else
-                var factory = _startingSolution.Workspace.Services.GetRequiredService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
+                var factory = _startingSolution.Services.GetRequiredService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
                 return new CodeActionOperation[]
                 {
                     codeAction,
                     factory.CreateSymbolRenamedOperation(_symbol, _newName, _startingSolution, newSolution)
-                }.AsEnumerable();
+                };
 #endif
             }
 

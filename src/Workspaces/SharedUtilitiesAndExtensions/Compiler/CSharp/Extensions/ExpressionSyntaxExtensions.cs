@@ -15,9 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class ExpressionSyntaxExtensions
     {
-        public static ExpressionSyntax WalkUpParentheses(this ExpressionSyntax expression)
+        [return: NotNullIfNotNull("expression")]
+        public static ExpressionSyntax? WalkUpParentheses(this ExpressionSyntax? expression)
         {
-            while (expression.IsParentKind(SyntaxKind.ParenthesizedExpression, out ExpressionSyntax? parentExpr))
+            while (expression?.Parent is ParenthesizedExpressionSyntax parentExpr)
                 expression = parentExpr;
 
             return expression;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static ExpressionSyntax WalkDownParentheses(this ExpressionSyntax expression)
         {
-            while (expression.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax? parenExpression))
+            while (expression is ParenthesizedExpressionSyntax parenExpression)
                 expression = parenExpression.Expression;
 
             return expression;
@@ -35,33 +36,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => expression.IsParentKind(SyntaxKind.NameMemberCref) && expression.Parent.IsParentKind(SyntaxKind.QualifiedCref);
 
         public static bool IsSimpleMemberAccessExpressionName([NotNullWhen(true)] this ExpressionSyntax? expression)
-            => expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax? memberAccess) && memberAccess.Name == expression;
+            => expression?.Parent is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess && memberAccess.Name == expression;
 
-        public static bool IsAnyMemberAccessExpressionName(this ExpressionSyntax expression)
+        public static bool IsAnyMemberAccessExpressionName([NotNullWhen(true)] this ExpressionSyntax? expression)
         {
             if (expression == null)
-            {
                 return false;
-            }
 
             return expression == (expression.Parent as MemberAccessExpressionSyntax)?.Name ||
                 expression.IsMemberBindingExpressionName();
         }
 
         public static bool IsMemberBindingExpressionName([NotNullWhen(true)] this ExpressionSyntax? expression)
-            => expression.IsParentKind(SyntaxKind.MemberBindingExpression, out MemberBindingExpressionSyntax? memberBinding) &&
+            => expression?.Parent is MemberBindingExpressionSyntax memberBinding &&
                memberBinding.Name == expression;
 
         public static bool IsRightSideOfQualifiedName([NotNullWhen(true)] this ExpressionSyntax? expression)
-            => expression.IsParentKind(SyntaxKind.QualifiedName, out QualifiedNameSyntax? qualifiedName) && qualifiedName.Right == expression;
+            => expression?.Parent is QualifiedNameSyntax qualifiedName && qualifiedName.Right == expression;
 
         public static bool IsRightSideOfColonColon(this ExpressionSyntax expression)
-            => expression.IsParentKind(SyntaxKind.AliasQualifiedName, out AliasQualifiedNameSyntax? aliasName) && aliasName.Name == expression;
+            => expression?.Parent is AliasQualifiedNameSyntax aliasName && aliasName.Name == expression;
 
         public static bool IsRightSideOfDot(this ExpressionSyntax name)
             => IsSimpleMemberAccessExpressionName(name) || IsMemberBindingExpressionName(name) || IsRightSideOfQualifiedName(name) || IsQualifiedCrefName(name);
 
-        public static bool IsRightSideOfDotOrArrow(this ExpressionSyntax name)
+        public static bool IsRightSideOfDotOrArrow([NotNullWhen(true)] this ExpressionSyntax? name)
             => IsAnyMemberAccessExpressionName(name) || IsRightSideOfQualifiedName(name);
 
         public static bool IsRightSideOfDotOrColonColon(this ExpressionSyntax name)
@@ -87,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsLeftSideOfSimpleMemberAccessExpression(this ExpressionSyntax expression)
-            => (expression?.Parent).IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax? memberAccess) &&
+            => (expression?.Parent) is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess &&
                memberAccess.Expression == expression;
 
         public static bool IsLeftSideOfDotOrArrow(this ExpressionSyntax expression)
@@ -95,13 +94,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                (expression.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Expression == expression);
 
         public static bool IsLeftSideOfQualifiedName(this ExpressionSyntax expression)
-            => (expression?.Parent).IsKind(SyntaxKind.QualifiedName, out QualifiedNameSyntax? qualifiedName) && qualifiedName.Left == expression;
+            => (expression?.Parent) is QualifiedNameSyntax qualifiedName && qualifiedName.Left == expression;
 
         public static bool IsLeftSideOfExplicitInterfaceSpecifier([NotNullWhen(true)] this NameSyntax? name)
             => name.IsParentKind(SyntaxKind.ExplicitInterfaceSpecifier);
 
         public static bool IsExpressionOfInvocation(this ExpressionSyntax expression)
-            => expression.IsParentKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax? invocation) &&
+            => expression?.Parent is InvocationExpressionSyntax invocation &&
                invocation.Expression == expression;
 
         public static bool TryGetNameParts(this ExpressionSyntax expression, [NotNullWhen(true)] out IList<string>? parts)
@@ -119,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool TryGetNameParts(this ExpressionSyntax expression, List<string> parts)
         {
-            if (expression.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax? memberAccess))
+            if (expression is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess)
             {
                 if (!TryGetNameParts(memberAccess.Expression, parts))
                 {
@@ -128,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 return AddSimpleName(memberAccess.Name, parts);
             }
-            else if (expression.IsKind(SyntaxKind.QualifiedName, out QualifiedNameSyntax? qualifiedName))
+            else if (expression is QualifiedNameSyntax qualifiedName)
             {
                 if (!TryGetNameParts(qualifiedName.Left, parts))
                 {
@@ -188,15 +187,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        public static bool IsInOutContext(this ExpressionSyntax expression)
-        {
-            return
-                expression?.Parent is ArgumentSyntax argument &&
-                argument.Expression == expression &&
-                argument.RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword;
-        }
+        public static bool IsInOutContext([NotNullWhen(true)] this ExpressionSyntax? expression)
+            => expression?.Parent is ArgumentSyntax { RefOrOutKeyword: SyntaxToken(SyntaxKind.OutKeyword) } argument &&
+               argument.Expression == expression;
 
-        public static bool IsInRefContext(this ExpressionSyntax expression)
+        public static bool IsInRefContext([NotNullWhen(true)] this ExpressionSyntax? expression)
             => IsInRefContext(expression, out _);
 
         /// <summary>
@@ -219,10 +214,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        public static bool IsInInContext(this ExpressionSyntax expression)
-            => (expression?.Parent as ArgumentSyntax)?.RefKindKeyword.Kind() == SyntaxKind.InKeyword;
+        public static bool IsInInContext([NotNullWhen(true)] this ExpressionSyntax? expression)
+            => expression?.Parent is ArgumentSyntax { RefKindKeyword: SyntaxToken(SyntaxKind.InKeyword) };
 
-        private static ExpressionSyntax GetExpressionToAnalyzeForWrites(ExpressionSyntax expression)
+        [return: NotNullIfNotNull("expression")]
+        private static ExpressionSyntax? GetExpressionToAnalyzeForWrites(ExpressionSyntax? expression)
         {
             if (expression.IsRightSideOfDotOrArrow())
             {
@@ -234,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return expression;
         }
 
-        public static bool IsOnlyWrittenTo(this ExpressionSyntax expression)
+        public static bool IsOnlyWrittenTo([NotNullWhen(true)] this ExpressionSyntax? expression)
         {
             expression = GetExpressionToAnalyzeForWrites(expression);
 
@@ -320,7 +316,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
         }
 
-        public static bool IsWrittenTo(this ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
+        public static bool IsWrittenTo(
+            [NotNullWhen(true)] this ExpressionSyntax? expression,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
         {
             if (expression == null)
                 return false;
@@ -396,10 +395,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsNamedArgumentIdentifier(this ExpressionSyntax expression)
-            => expression is IdentifierNameSyntax && expression.Parent is NameColonSyntax;
+            => expression is IdentifierNameSyntax { Parent: NameColonSyntax };
 
         public static bool IsInsideNameOfExpression(
-            this ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
+            [NotNullWhen(true)] this ExpressionSyntax? expression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             var invocation = expression?.GetAncestor<InvocationExpressionSyntax>();
             if (invocation?.Expression is IdentifierNameSyntax name &&
@@ -429,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool CanReplaceWithRValue(
-            this ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
+            [NotNullWhen(true)] this ExpressionSyntax? expression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             // An RValue can't be written into.
             // i.e. you can't replace "a" in "a = b" with "Goo() = b".
@@ -585,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             if (parentNonExpression != null &&
-                parentNonExpression.IsKind(SyntaxKind.FromClause, out FromClauseSyntax? fromClause) &&
+                parentNonExpression is FromClauseSyntax fromClause &&
                 topExpression != null &&
                 fromClause.Type == topExpression)
             {
@@ -891,7 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static StatementSyntax ConvertToStatement(ExpressionSyntax expression, SyntaxToken semicolonToken, bool createReturnStatementForExpression)
         {
-            if (expression.IsKind(SyntaxKind.ThrowExpression, out ThrowExpressionSyntax? throwExpression))
+            if (expression is ThrowExpressionSyntax throwExpression)
             {
                 return SyntaxFactory.ThrowStatement(throwExpression.ThrowKeyword, throwExpression.Expression, semicolonToken);
             }

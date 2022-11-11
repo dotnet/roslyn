@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -211,13 +211,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         protected static bool IsParameterReference(IOperation operation, IParameterSymbol parameter)
-        => UnwrapImplicitConversion(operation) is IParameterReferenceOperation parameterReference &&
+        => operation.UnwrapImplicitConversion() is IParameterReferenceOperation parameterReference &&
            parameter.Equals(parameterReference.Parameter);
-
-        protected static IOperation UnwrapImplicitConversion(IOperation operation)
-            => operation is IConversionOperation conversion && conversion.IsImplicit
-                ? conversion.Operand
-                : operation;
 
         protected static bool ContainsParameterReference(
             SemanticModel semanticModel,

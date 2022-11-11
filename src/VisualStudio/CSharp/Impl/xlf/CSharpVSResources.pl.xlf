@@ -102,6 +102,16 @@
         <target state="translated">Wstaw znaki // na początku nowych wierszy podczas pisania komentarzy ze znakami //</target>
         <note />
       </trans-unit>
+      <trans-unit id="Insert_space_between_called_method_name_and_its_opening_parenthesis">
+        <source>Insert space between called method name and its opening parenthesis</source>
+        <target state="new">Insert space between called method name and its opening parenthesis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis">
+        <source>Insert space between method name and its opening parenthesis</source>
+        <target state="new">Insert space between method name and its opening parenthesis</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inside_namespace">
         <source>Inside namespace</source>
         <target state="translated">W elemencie namespace</target>
@@ -184,7 +194,7 @@
       </trans-unit>
       <trans-unit id="Show_new_snippet_experience_experimental">
         <source>Show new snippet experience (experimental)</source>
-        <target state="new">Show new snippet experience (experimental)</target>
+        <target state="translated">Pokaż nowe środowisko fragmentu kodu (eksperymentalne)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
@@ -402,19 +412,9 @@
         <target state="translated">Wstaw spację wewnątrz nawiasów pustej listy argumentów</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis1">
-        <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">Wstaw spację między nazwę metody i jej nawias otwierający</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_space_within_empty_parameter_list_parentheses">
         <source>Insert space within empty parameter list parentheses</source>
         <target state="translated">Wstaw spację wewnątrz nawiasów pustej listy parametrów</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis2">
-        <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">Wstaw spację między nazwę metody i jej nawias otwierający</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_space_within_parameter_list_parentheses">

@@ -65,21 +65,21 @@ internal readonly struct CodeFixOptionsProvider
 #if CODE_STYLE
         => LineFormattingOptions.Default;
 #else
-        => _fallbackOptions.GetOptions(_languageServices).CleanupOptions.FormattingOptions.LineFormatting;
+        => _fallbackOptions.GetOptions(_languageServices.LanguageServices).CleanupOptions.FormattingOptions.LineFormatting;
 #endif
 
     private SyntaxFormattingOptions? FallbackSyntaxFormattingOptions
 #if CODE_STYLE
         => null;
 #else
-        => _fallbackOptions.GetOptions(_languageServices).CleanupOptions.FormattingOptions;
+        => _fallbackOptions.GetOptions(_languageServices.LanguageServices).CleanupOptions.FormattingOptions;
 #endif
 
     private SyntaxFormattingOptions.CommonOptions FallbackCommonSyntaxFormattingOptions
 #if CODE_STYLE
         => SyntaxFormattingOptions.CommonOptions.Default;
 #else
-        => _fallbackOptions.GetOptions(_languageServices).CleanupOptions.FormattingOptions.Common;
+        => _fallbackOptions.GetOptions(_languageServices.LanguageServices).CleanupOptions.FormattingOptions.Common;
 #endif
 }
 

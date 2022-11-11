@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(OnAutoInsertHandler)), Shared]
     [Method(LSP.VSInternalMethods.OnAutoInsertName)]
-    internal sealed class OnAutoInsertHandler : IRequestHandler<LSP.VSInternalDocumentOnAutoInsertParams, LSP.VSInternalDocumentOnAutoInsertResponseItem?>
+    internal sealed class OnAutoInsertHandler : ILspServiceDocumentRequestHandler<LSP.VSInternalDocumentOnAutoInsertParams, LSP.VSInternalDocumentOnAutoInsertResponseItem?>
     {
         private readonly ImmutableArray<IBraceCompletionService> _csharpBraceCompletionServices;
         private readonly ImmutableArray<IBraceCompletionService> _visualBasicBraceCompletionServices;
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.VSInternalDocumentOnAutoInsertParams request) => request.TextDocument;
+        public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.VSInternalDocumentOnAutoInsertParams request) => request.TextDocument;
 
         public async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
             LSP.VSInternalDocumentOnAutoInsertParams request,
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             var (service, context) = serviceAndContext.Value;
-            var postReturnEdit = await service.GetTextChangeAfterReturnAsync(context, options, cancellationToken).ConfigureAwait(false);
+            var postReturnEdit = service.GetTextChangeAfterReturn(context, options, cancellationToken);
             if (postReturnEdit == null)
             {
                 return null;
@@ -235,9 +235,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _ => throw new ArgumentException($"Language {document.Project.Language} is not recognized for OnAutoInsert")
             };
 
+            var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+
             foreach (var service in servicesForDocument)
             {
-                var context = await service.GetCompletedBraceContextAsync(document, caretLocation, cancellationToken).ConfigureAwait(false);
+                var context = service.GetCompletedBraceContext(parsedDocument, caretLocation);
                 if (context != null)
                 {
                     return (service, context.Value);

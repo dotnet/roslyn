@@ -6,7 +6,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     [Flags]
     internal enum SymbolDescriptionGroups

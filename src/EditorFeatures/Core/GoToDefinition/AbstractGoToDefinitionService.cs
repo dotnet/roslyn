@@ -11,10 +11,11 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GoToDefinition
 {
@@ -42,46 +43,58 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
                 workspace, document.Id, position, virtualSpace: 0, cancellationToken);
         }
 
-        public async Task<INavigableLocation?> FindDefinitionLocationAsync(Document document, int position, CancellationToken cancellationToken)
+        public async Task<(INavigableLocation? location, TextSpan symbolSpan)> FindDefinitionLocationAsync(
+            Document document,
+            int position,
+            bool includeType,
+            CancellationToken cancellationToken)
         {
             var symbolService = document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
-            var targetPositionOfControlFlow = await symbolService.GetTargetIfControlFlowAsync(
+            var (controlFlowTarget, controlFlowSpan) = await symbolService.GetTargetIfControlFlowAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
-            if (targetPositionOfControlFlow is not null)
+            if (controlFlowTarget != null)
             {
-                return await GetNavigableLocationAsync(
-                    document, targetPositionOfControlFlow.Value, cancellationToken).ConfigureAwait(false);
+                var location = await GetNavigableLocationAsync(
+                    document, controlFlowTarget.Value, cancellationToken).ConfigureAwait(false);
+                return (location, controlFlowSpan);
             }
+            else
+            {
+                // Try to compute the referenced symbol and attempt to go to definition for the symbol.
+                var (symbol, project, span) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
+                    document, position, includeType, cancellationToken).ConfigureAwait(false);
+                if (symbol is null)
+                    return default;
 
-            // Try to compute the referenced symbol and attempt to go to definition for the symbol.
-            var (symbol, _) = await symbolService.GetSymbolAndBoundSpanAsync(
-                document, position, includeType: true, cancellationToken).ConfigureAwait(false);
-            if (symbol is null)
-                return null;
+                // if the symbol only has a single source location, and we're already on it,
+                // try to see if there's a better symbol we could navigate to.
+                var remappedLocation = await GetAlternativeLocationIfAlreadyOnDefinitionAsync(
+                    project, position, symbol, originalDocument: document, cancellationToken).ConfigureAwait(false);
+                if (remappedLocation != null)
+                    return (remappedLocation, span);
 
-            // if the symbol only has a single source location, and we're already on it,
-            // try to see if there's a better symbol we could navigate to.
-            var remappedLocation = await GetAlternativeLocationIfAlreadyOnDefinitionAsync(
-                document, position, symbol, cancellationToken).ConfigureAwait(false);
-            if (remappedLocation != null)
-                return remappedLocation;
+                var isThirdPartyNavigationAllowed = await IsThirdPartyNavigationAllowedAsync(
+                    symbol, position, document, cancellationToken).ConfigureAwait(false);
 
-            var isThirdPartyNavigationAllowed = await IsThirdPartyNavigationAllowedAsync(
-                symbol, position, document, cancellationToken).ConfigureAwait(false);
-
-            return await GoToDefinitionHelpers.GetDefinitionLocationAsync(
-                symbol,
-                document.Project.Solution,
-                _threadingContext,
-                _streamingPresenter,
-                thirdPartyNavigationAllowed: isThirdPartyNavigationAllowed,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                var location = await GoToDefinitionHelpers.GetDefinitionLocationAsync(
+                    symbol,
+                    project.Solution,
+                    _threadingContext,
+                    _streamingPresenter,
+                    thirdPartyNavigationAllowed: isThirdPartyNavigationAllowed,
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
+                return (location, span);
+            }
         }
 
+        /// <summary>
+        /// Attempts to find a better definition for the symbol, if the user is already on the definition of it.
+        /// </summary>
+        /// <param name="project">The project context to use for finding symbols</param>
+        /// <param name="originalDocument">The document the user is navigating from. This may not be part of the project supplied.</param>
         private async Task<INavigableLocation?> GetAlternativeLocationIfAlreadyOnDefinitionAsync(
-            Document document, int position, ISymbol symbol, CancellationToken cancellationToken)
+            Project project, int position, ISymbol symbol, Document originalDocument, CancellationToken cancellationToken)
         {
-            var project = document.Project;
             var solution = project.Solution;
 
             var sourceLocations = symbol.Locations.WhereAsArray(loc => loc.IsInSource);
@@ -94,7 +107,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
 
             var definitionTree = definitionLocation.SourceTree;
             var definitionDocument = solution.GetDocument(definitionTree);
-            if (definitionDocument != document)
+            if (definitionDocument != originalDocument)
                 return null;
 
             // Ok, we were already on the definition. Look for better symbols we could show results

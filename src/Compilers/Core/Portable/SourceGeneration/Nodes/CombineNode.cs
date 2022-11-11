@@ -26,13 +26,13 @@ namespace Microsoft.CodeAnalysis
             _name = name;
         }
 
-        public NodeStateTable<(TInput1, TInput2)> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<(TInput1, TInput2)> previousTable, CancellationToken cancellationToken)
+        public NodeStateTable<(TInput1, TInput2)> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<(TInput1, TInput2)>? previousTable, CancellationToken cancellationToken)
         {
             // get both input tables
             var input1Table = graphState.GetLatestStateTableForNode(_input1);
             var input2Table = graphState.GetLatestStateTableForNode(_input2);
 
-            if (input1Table.IsCached && input2Table.IsCached)
+            if (input1Table.IsCached && input2Table.IsCached && previousTable is not null)
             {
                 if (graphState.DriverState.TrackIncrementalSteps)
                 {
@@ -41,7 +41,8 @@ namespace Microsoft.CodeAnalysis
                 return previousTable;
             }
 
-            var builder = graphState.CreateTableBuilder(previousTable, _name, _comparer);
+            var totalEntryItemCount = input1Table.GetTotalEntryItemCount();
+            var builder = graphState.CreateTableBuilder(previousTable, _name, _comparer, totalEntryItemCount);
 
             // Semantics of a join:
             //
@@ -75,6 +76,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            Debug.Assert(builder.Count == totalEntryItemCount);
             return builder.ToImmutableAndFree();
         }
 

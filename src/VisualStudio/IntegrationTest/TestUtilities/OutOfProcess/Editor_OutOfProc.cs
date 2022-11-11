@@ -262,7 +262,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 var open = tag.LastIndexOf('[') + 1;
                 var comma = tag.LastIndexOf('-');
                 var close = tag.LastIndexOf(']');
-                var start = tag.Substring(open, comma - open);
+                var start = tag[open..comma];
                 var end = tag.Substring(comma + 1, close - comma - 1);
                 return TextSpan.FromBounds(int.Parse(start), int.Parse(end));
             }).ToArray();

@@ -7,6 +7,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -18,11 +19,12 @@ using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpe
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DeclarationInfoTests
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class DeclarationNameCompletion_ContextTests
     {
         protected CSharpTestWorkspaceFixture fixture = new CSharpTestWorkspaceFixture();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AfterTypeInClass1()
         {
             var markup = @"
@@ -40,7 +42,7 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AfterTypeInClassWithAccessibility()
         {
             var markup = @"
@@ -58,7 +60,7 @@ class C
             await VerifyAccessibility(markup, Accessibility.Public);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AfterTypeInClassVirtual()
         {
             var markup = @"
@@ -75,7 +77,7 @@ class C
             await VerifyAccessibility(markup, Accessibility.Public);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AfterTypeInClassStatic()
         {
             var markup = @"
@@ -93,7 +95,7 @@ class C
             await VerifyAccessibility(markup, Accessibility.Private);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AfterTypeInClassConst()
         {
             var markup = @"
@@ -109,7 +111,7 @@ class C
             await VerifyAccessibility(markup, Accessibility.Private);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task VariableDeclaration1()
         {
             var markup = @"
@@ -129,7 +131,7 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task VariableDeclaration2()
         {
             var markup = @"
@@ -148,7 +150,7 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ReadonlyVariableDeclaration1()
         {
             var markup = @"
@@ -168,7 +170,7 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ReadonlyVariableDeclaration2()
         {
             var markup = @"
@@ -187,7 +189,7 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task UsingVariableDeclaration1()
         {
             var markup = @"
@@ -206,7 +208,7 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task UsingVariableDeclaration2()
         {
             var markup = @"
@@ -225,7 +227,7 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ForVariableDeclaration1()
         {
             var markup = @"
@@ -244,7 +246,7 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ForVariableDeclaration2()
         {
             var markup = @"
@@ -263,7 +265,7 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ForEachVariableDeclaration()
         {
             var markup = @"
@@ -282,7 +284,7 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task Parameter1()
         {
             var markup = @"
@@ -299,7 +301,7 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task Parameter2()
         {
             var markup = @"
@@ -316,7 +318,7 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ParameterAfterPredefinedType1()
         {
             var markup = @"
@@ -333,7 +335,7 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ParameterAfterPredefinedType2()
         {
             var markup = @"
@@ -350,7 +352,7 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ParameterAfterGeneric()
         {
             var markup = @"
@@ -368,7 +370,7 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ClassTypeParameter1()
         {
             var markup = @"
@@ -380,7 +382,7 @@ class C<$$
                 new SymbolKindOrTypeKind(SymbolKind.TypeParameter));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ClassTypeParameter2()
         {
             var markup = @"
@@ -392,7 +394,7 @@ class C<T1, $$
                 new SymbolKindOrTypeKind(SymbolKind.TypeParameter));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ModifierExclusion1()
         {
             var markup = @"
@@ -405,7 +407,7 @@ class C
                 new SymbolKindOrTypeKind(SymbolKind.Field));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ModifierExclusion2()
         {
             var markup = @"
@@ -418,7 +420,7 @@ class C
                 new SymbolKindOrTypeKind(SymbolKind.Field));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ModifierExclusion3()
         {
             var markup = @"
@@ -432,7 +434,7 @@ class C
                 new SymbolKindOrTypeKind(MethodKind.Ordinary));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ModifierExclusion4()
         {
             var markup = @"
@@ -446,7 +448,7 @@ class C
                 new SymbolKindOrTypeKind(MethodKind.Ordinary));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ModifierExclusion5()
         {
             var markup = @"
@@ -460,7 +462,7 @@ class C
                 new SymbolKindOrTypeKind(MethodKind.Ordinary));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ModifierExclusion6()
         {
             var markup = @"
@@ -474,7 +476,7 @@ class C
                 new SymbolKindOrTypeKind(MethodKind.Ordinary));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ModifierExclusion7()
         {
             var markup = @"
@@ -487,7 +489,7 @@ class C
                 new SymbolKindOrTypeKind(MethodKind.Ordinary));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ModifierExclusion8()
         {
             // Note that the async is not included in the incomplete member syntax
@@ -503,7 +505,7 @@ class C
                 new SymbolKindOrTypeKind(MethodKind.Ordinary));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData("int")]
         [InlineData("C")]
         [InlineData("List<string>")]
@@ -523,7 +525,7 @@ class C
                 new SymbolKindOrTypeKind(SymbolKind.Local));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData("int")]
         [InlineData("C")]
         [InlineData("List<string>")]
@@ -543,7 +545,7 @@ class C
                 new SymbolKindOrTypeKind(SymbolKind.Local));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData("int")]
         [InlineData("C")]
         [InlineData("List<string>")]
@@ -565,7 +567,7 @@ class C
                 new SymbolKindOrTypeKind(SymbolKind.Local));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData("int")]
         [InlineData("C")]
         [InlineData("List<string>")]
@@ -588,7 +590,7 @@ class C
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData("int")]
         [InlineData("C")]
         [InlineData("List<string>")]
@@ -608,7 +610,7 @@ class C
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData("int")]
         [InlineData("C")]
         [InlineData("List<string>")]
@@ -630,7 +632,7 @@ class C
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData("int")]
         [InlineData("C")]
         [InlineData("List<string>")]
@@ -650,7 +652,7 @@ class C
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData("int")]
         [InlineData("C")]
         [InlineData("List<string>")]
@@ -670,7 +672,7 @@ class C
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData("int")]
         [InlineData("C")]
         [InlineData("List<string>")]
@@ -692,7 +694,7 @@ class C
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task LocalInsideMethod1()
         {
             var markup = @"
@@ -712,7 +714,7 @@ namespace ConsoleApp1
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task LocalInsideMethod2()
         {
             var markup = @"
@@ -732,7 +734,7 @@ namespace ConsoleApp1
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task LocalInsideMethodAfterPredefinedTypeKeyword()
         {
             var markup = @"
@@ -752,7 +754,7 @@ namespace ConsoleApp1
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task LocalInsideMethodAfterArray()
         {
             var markup = @"

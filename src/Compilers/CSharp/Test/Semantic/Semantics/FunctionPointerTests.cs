@@ -3564,9 +3564,9 @@ class E<T> where T : struct {}
                 // (6,27): error CS0722: 'S': static types cannot be used as return types
                 //     void M1(delegate*<C*, S> ptr) {}
                 Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "S").WithArguments("S").WithLocation(6, 27),
-                // (6,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                // (6,30): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //     void M1(delegate*<C*, S> ptr) {}
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "ptr").WithArguments("C").WithLocation(6, 30),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "ptr").WithArguments("C").WithLocation(6, 30),
                 // (8,32): error CS8377: The type 'T' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'D<T>'
                 //     void M3<T>(delegate*<D<T>> ptr) {}
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "ptr").WithArguments("D<T>", "T", "T").WithLocation(8, 32),

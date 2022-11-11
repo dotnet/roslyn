@@ -84,8 +84,8 @@ End Class";
                 await TestAddConstructorAsync(input, expected);
             }
 
-            [WorkItem(530785, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530785")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WorkItem(530785, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530785")]
             public async Task AddConstructorWithXmlComment()
             {
                 var input = @"
@@ -937,8 +937,8 @@ $$ End Set
                     Parameters(Parameter(typeof(int), "num"), Parameter(typeof(string), "text", true, "Hello!"), Parameter(typeof(float), "floating", true, .5F)));
             }
 
-            [WorkItem(844460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WorkItem(844460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             public async Task AddParametersToPropertyBlock()
             {
                 var input = "Class C\n [|Public Property P As String\n Get\n Return String.Empty\n End Get\n Set(value As String)\n End Set\n End Property|]\n End Class";
@@ -955,8 +955,8 @@ $$ End Set
                     Parameters(Parameter(typeof(int), "num")));
             }
 
-            [WorkItem(844460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WorkItem(844460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             public async Task AddParametersToPropertyStatement()
             {
                 var input = "Class C\n [|Public Property P As String|]\n Get\n Return String.Empty\n End Get\n Set(value As String)\n End Set\n End Property\n End Class";
@@ -973,8 +973,8 @@ $$ End Set
                     Parameters(Parameter(typeof(int), "num")));
             }
 
-            [WorkItem(844460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WorkItem(844460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             public async Task AddParametersToPropertyGetter_ShouldNotSucceed()
             {
                 var input = "Class C\n Public Property P As String\n [|Get\n Return String.Empty\n End Get|]\n Set(value As String)\n End Set\n End Property\n End Class";
@@ -983,8 +983,8 @@ $$ End Set
                     Parameters(Parameter(typeof(int), "num")));
             }
 
-            [WorkItem(844460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WorkItem(844460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
             public async Task AddParametersToPropertySetter_ShouldNotSucceed()
             {
                 var input = "Class C\n Public Property P As String\n Get\n Return String.Empty\n End Get\n [|Set(value As String)\n End Set|]\n End Property\n End Class";
@@ -1680,8 +1680,8 @@ End Namespace";
                     context: new CodeGenerationContext(generateMethodBodies: false));
             }
 
-            [WorkItem(848357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/848357")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WorkItem(848357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/848357")]
             public async Task TestConstraints()
             {
                 var generationSource = @"

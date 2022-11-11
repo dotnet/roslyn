@@ -130,7 +130,6 @@ namespace Microsoft.CodeAnalysis.Tags
         internal static readonly ImmutableArray<string> StatusInformation = ImmutableArray.Create(WellKnownTags.StatusInformation);
 
         internal static readonly ImmutableArray<string> AddReference = ImmutableArray.Create(WellKnownTags.AddReference);
-        internal static readonly ImmutableArray<string> NuGet = ImmutableArray.Create(WellKnownTags.NuGet);
         internal static readonly ImmutableArray<string> TargetTypeMatch = ImmutableArray.Create(WellKnownTags.TargetTypeMatch);
 
         internal static readonly ImmutableArray<string> CSharpFile = ImmutableArray.Create(WellKnownTags.File, LanguageNames.CSharp);

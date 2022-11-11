@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(FoldingRangesHandler)), Shared]
     [Method(Methods.TextDocumentFoldingRangeName)]
-    internal sealed class FoldingRangesHandler : IRequestHandler<FoldingRangeParams, FoldingRange[]?>
+    internal sealed class FoldingRangesHandler : ILspServiceDocumentRequestHandler<FoldingRangeParams, FoldingRange[]?>
     {
         private readonly IGlobalOptionService _globalOptions;
 
@@ -32,15 +32,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(FoldingRangeParams request) => request.TextDocument;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(FoldingRangeParams request) => request.TextDocument;
 
         public async Task<FoldingRange[]?> HandleRequestAsync(FoldingRangeParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
-            if (document == null)
+            if (document is null)
                 return null;
 
-            var blockStructureService = document.Project.LanguageServices.GetService<BlockStructureService>();
+            var blockStructureService = document.Project.Services.GetService<BlockStructureService>();
             if (blockStructureService == null)
             {
                 return Array.Empty<FoldingRange>();
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public static FoldingRange[] GetFoldingRanges(
             SyntaxTree syntaxTree,
-            HostLanguageServices languageServices,
+            LanguageServices languageServices,
             in BlockStructureOptions options,
             CancellationToken cancellationToken)
         {

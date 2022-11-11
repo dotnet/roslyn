@@ -14,11 +14,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
 {
+    [Trait(Traits.Feature, Traits.Features.Outlining)]
     public class RegionDirectiveStructureTests : AbstractCSharpSyntaxNodeStructureTests<RegionDirectiveTriviaSyntax>
     {
         internal override AbstractSyntaxStructureProvider CreateProvider() => new RegionDirectiveStructureProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task BrokenRegion()
         {
             const string code = @"
@@ -27,7 +28,7 @@ $$#region Goo";
             await VerifyNoBlockSpansAsync(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task SimpleRegion()
         {
             const string code = @"
@@ -38,8 +39,7 @@ $$#region Goo";
                 Region("span", "Goo", autoCollapse: false, isDefaultCollapsed: true));
         }
 
-        [WorkItem(539361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539361")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, WorkItem(539361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539361")]
         public async Task RegressionFor5284()
         {
             const string code = @"
@@ -74,8 +74,7 @@ namespace BasicGenerateFromUsage
                 Region("span", "TaoRegion", autoCollapse: false, isDefaultCollapsed: true));
         }
 
-        [WorkItem(953668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/953668")]
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Theory, WorkItem(953668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/953668"), CombinatorialData]
         public async Task RegionsShouldBeCollapsedByDefault(bool collapseRegionsWhenFirstOpened)
         {
             const string code = @"
@@ -97,8 +96,7 @@ class C
                 Region("span", "Region", autoCollapse: false, isDefaultCollapsed: collapseRegionsWhenFirstOpened));
         }
 
-        [WorkItem(4105, "https://github.com/dotnet/roslyn/issues/4105")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, WorkItem(4105, "https://github.com/dotnet/roslyn/issues/4105")]
         public async Task SpacesBetweenPoundAndRegionShouldNotAffectBanner()
         {
             const string code = @"

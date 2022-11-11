@@ -215,11 +215,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     F.If(
                     condition:=
                         F.LogicalAndAlso(
-                            F.IntEqual(F.Field(F.Me, StateField, False), F.Literal(StateMachineStates.FinishedStateMachine)),
+                            F.IntEqual(F.Field(F.Me, StateField, False), F.Literal(StateMachineState.FinishedState)),
                             F.IntEqual(F.Field(F.Me, _initialThreadIdField, False), managedThreadId)),
                     thenClause:=
                         F.Block(
-                            F.Assignment(F.Field(F.Me, StateField, True), F.Literal(StateMachineStates.FirstUnusedState)),
+                            F.Assignment(F.Field(F.Me, StateField, True), F.Literal(StateMachineState.FirstUnusedState)),
                             F.Assignment(F.Local(resultVariable, True), F.Me),
                             If(Method.IsShared OrElse Method.MeParameter.Type.IsReferenceType,
                                     F.Goto(thisInitialized),
@@ -323,7 +323,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Sub InitializeStateMachine(bodyBuilder As ArrayBuilder(Of BoundStatement), frameType As NamedTypeSymbol, stateMachineLocal As LocalSymbol)
             ' Dim stateMachineLocal As new IteratorImplementationClass(N)
             ' where N is either 0 (if we're producing an enumerator) or -2 (if we're producing an enumerable)
-            Dim initialState = If(_isEnumerable, StateMachineStates.FinishedStateMachine, StateMachineStates.FirstUnusedState)
+            Dim initialState = If(_isEnumerable, StateMachineState.FinishedState, StateMachineState.FirstUnusedState)
             bodyBuilder.Add(
                 F.Assignment(
                     F.Local(stateMachineLocal, True),

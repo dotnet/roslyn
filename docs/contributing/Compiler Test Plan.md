@@ -38,6 +38,7 @@ This document provides guidance for thinking about language interactions and tes
 # Type and members
 - Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
 - type declarations (class, record class/struct with or without positional members, struct, interface, type parameter)
+- file-local types
 - methods
 - fields (required and not)
 - properties (including get/set/init accessors, required and not)
@@ -249,6 +250,7 @@ x + y
 x - y 
 x << y 
 x >> y 
+x >>> y 
 x < y 
 x > y 
 x <= y 
@@ -272,6 +274,7 @@ x += y
 x -= y 
 x <<= y 
 x >>= y 
+x >>>= y 
 x &= y 
 x ^= y 
 x |= y 

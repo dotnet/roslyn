@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                 Contract.ThrowIfNull(settings);
 
                 // Only log "delta" property for block end events if feature flag is enabled.
-                var logDelta = _globalOptions.GetOption(DiagnosticOptions.LogTelemetryForBackgroundAnalyzerExecution);
+                var logDelta = _globalOptions.GetOption(DiagnosticOptionsStorage.LogTelemetryForBackgroundAnalyzerExecution);
 
                 // initialize session in the remote service
                 _ = await client.TryInvokeAsync<IRemoteProcessTelemetryService>(

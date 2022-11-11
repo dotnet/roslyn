@@ -67,6 +67,11 @@
         <target state="translated">Fehler beim Lesen des Inhalts der Quelldatei "{0}": "{1}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="Failed_to_resolve_rename_conflicts">
+        <source>Failed to resolve rename conflicts</source>
+        <target state="translated">Fehler beim Auflösen von Umbenennungskonflikten.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FixAllScope_ContainingType_and_FixAllScope_ContainingMember_are_not_supported_with_this_constructor">
         <source>'FixAllScope.ContainingType' and 'FixAllScope.ContainingMember' are not supported with this constructor</source>
         <target state="translated">"FixAllScope.ContainingType" und "FixAllScope.ContainingMember" werden von diesem Konstruktor nicht unterstützt</target>
@@ -232,9 +237,19 @@
         <target state="translated">Der angegebene Verweis ist bereits in der Projektmappe enthalten.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unexpected_value_0_in_DocumentKinds_array">
+        <source>Unexpected value '{0}' in DocumentKinds array.</source>
+        <target state="new">Unexpected value '{0}' in DocumentKinds array.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unknown">
         <source>Unknown</source>
         <target state="translated">Unbekannt</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_TextDocument_property_instead_of_Document_property_as_the_provider_supports_non_source_text_documents">
+        <source>Use 'TextDocument' property instead of 'Document' property as the provider supports non-source text documents.</source>
+        <target state="new">Use 'TextDocument' property instead of 'Document' property as the provider supports non-source text documents.</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_files">
@@ -445,11 +460,6 @@
       <trans-unit id="Specified_path_must_be_absolute">
         <source>Specified path must be absolute.</source>
         <target state="translated">Angegebener Pfad muss absolut sein.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Name_can_be_simplified">
-        <source>Name can be simplified.</source>
-        <target state="translated">Der Name kann vereinfacht werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_identifier">

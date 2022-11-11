@@ -40,13 +40,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 return SpecializedTasks.Null<RemoteHostClient>();
             }
 
-            return TryGetClientAsync(project.Solution.Workspace, cancellationToken);
+            return TryGetClientAsync(project.Solution.Services, cancellationToken);
         }
 
         public static Task<RemoteHostClient?> TryGetClientAsync(Workspace workspace, CancellationToken cancellationToken)
-            => TryGetClientAsync(workspace.Services, cancellationToken);
+            => TryGetClientAsync(workspace.Services.SolutionServices, cancellationToken);
 
-        public static Task<RemoteHostClient?> TryGetClientAsync(HostWorkspaceServices services, CancellationToken cancellationToken)
+        public static Task<RemoteHostClient?> TryGetClientAsync(SolutionServices services, CancellationToken cancellationToken)
         {
             var service = services.GetService<IRemoteHostClientProvider>();
             if (service == null)
@@ -216,6 +216,19 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             using var connection = CreateConnection<TService>(callbackTarget);
             return await connection.TryInvokeAsync(project, invocation, cancellationToken).ConfigureAwait(false);
+        }
+
+        // multiple solution, no callback:
+
+        public async ValueTask<bool> TryInvokeAsync<TService>(
+            Solution solution1,
+            Solution solution2,
+            Func<TService, Checksum, Checksum, CancellationToken, ValueTask> invocation,
+            CancellationToken cancellationToken)
+            where TService : class
+        {
+            using var connection = CreateConnection<TService>(callbackTarget: null);
+            return await connection.TryInvokeAsync(solution1, solution2, invocation, cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -1034,7 +1034,7 @@ class Program {
         }
     }
 }";
-            CreateEmptyCompilation(text, options: TestOptions.DebugExe)
+            CreateEmptyCompilation(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugExe)
             .VerifyEmitDiagnostics(new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "x.y"),
                 // (15,21): error CS0117: 'string' does not contain a definition for 'Format'
                 //             var s = $"X = { 1 } ";
@@ -1067,7 +1067,7 @@ class Program {
         }
     }
 }";
-            CreateEmptyCompilation(text, options: TestOptions.DebugExe)
+            CreateEmptyCompilation(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugExe)
             .VerifyEmitDiagnostics(new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "x.y"),
                 // (17,21): error CS0029: Cannot implicitly convert type 'bool' to 'string'
                 //             var s = $"X = { 1 } ";
@@ -1112,7 +1112,7 @@ class Program {
         }
     }
 }";
-            var comp = CreateEmptyCompilation(text, options: Test.Utilities.TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            var comp = CreateEmptyCompilation(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: Test.Utilities.TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
             var compilation = CompileAndVerify(comp, verify: Verification.Fails);
             compilation.VerifyIL("System.Program.Main",
 @"{
@@ -1261,7 +1261,7 @@ class App{
     Console.WriteLine(str);
   }
 }";
-            var parseOptions = TestOptions.RegularNext;
+            var parseOptions = TestOptions.Regular11;
             var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
 
             //string.Format was fixed in dotnet core 3
@@ -1422,7 +1422,7 @@ class App{
     Console.WriteLine(str);
   }
 }";
-            var parseOptions = TestOptions.RegularNext;
+            var parseOptions = TestOptions.Regular11;
             var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
 
             var expectedOutput = "Before {a} After";
@@ -2229,14 +2229,14 @@ value:1,alignment:2:format:Y";
 
             string expectedIl = getIl();
 
-            var verifier = CompileAndVerify(new[] { source, interpolatedStringBuilder }, expectedOutput: expectedOutput, targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.Regular10);
+            var verifier = CompileAndVerify(new[] { source, interpolatedStringBuilder }, expectedOutput: expectedOutput, targetFramework: TargetFramework.Net50, parseOptions: TestOptions.Regular10);
             verifier.VerifyIL("<top-level-statements-entry-point>", expectedIl);
 
-            var comp1 = CreateCompilation(interpolatedStringBuilder, targetFramework: TargetFramework.NetCoreApp);
+            var comp1 = CreateCompilation(interpolatedStringBuilder, targetFramework: TargetFramework.Net50);
 
             foreach (var reference in new[] { comp1.EmitToImageReference(), comp1.ToMetadataReference() })
             {
-                var comp2 = CreateCompilation(source, new[] { reference }, targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.Regular10);
+                var comp2 = CreateCompilation(source, new[] { reference }, targetFramework: TargetFramework.Net50, parseOptions: TestOptions.Regular10);
                 verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput);
                 verifier.VerifyIL("<top-level-statements-entry-point>", expectedIl);
             }
@@ -4734,7 +4734,7 @@ format:f");
   IL_002e:  ret
 }
 ",
-                _ => throw ExceptionUtilities.Unreachable
+                _ => throw ExceptionUtilities.Unreachable()
             };
         }
 
@@ -5530,7 +5530,7 @@ namespace System.Runtime.CompilerServices
                 GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: true, useBoolReturns: false)
             };
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net50);
             comp.VerifyDiagnostics(
                 // (3,11): error CS8773: Feature 'interpolated string handlers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // C.M(() => $"{new S { Field = "Field" }}");
@@ -5540,7 +5540,7 @@ namespace System.Runtime.CompilerServices
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"new S { Field = ""Field"" }").WithArguments("interpolated string handlers", "10.0").WithLocation(3, 14)
             );
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.NetCoreApp);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.Net50);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"value:Field");
 
             verifier.VerifyIL(@"Program.<>c.<<Main>$>b__0_0()", @"
@@ -5655,7 +5655,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.Net50);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"1.00Literal");
 
             verifier.VerifyIL(@"Program.<>c.<<Main>$>b__0_0(bool)", !expression.Contains('+') ? @"
@@ -5788,7 +5788,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.Net50);
             comp.VerifyDiagnostics(
                 // (3,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(Func<bool, string>)' and 'C.M(Func<bool, CustomHandler>)'
                 // C.M(b => 
@@ -5903,7 +5903,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.Net50);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"1.00Literal");
 
             verifier.VerifyIL("<top-level-statements-entry-point>", !expression.Contains('+') ? @"
@@ -5974,7 +5974,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.Net50);
             comp.VerifyDiagnostics(
                 // (4,19): error CS0029: Cannot implicitly convert type 'string' to 'CustomHandler'
                 // CustomHandler x = (bool)(object)false ? default(CustomHandler) : $"{1,2:f}Literal";
@@ -6060,7 +6060,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.Net50);
             comp.VerifyDiagnostics(
                 // (4,9): error CS0172: Type of conditional expression cannot be determined because 'CustomHandler' and 'string' implicitly convert to one another
                 // var x = (bool)(object)false ? default(CustomHandler) : $"{1,2:f}Literal";
@@ -6087,7 +6087,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.Net50);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
@@ -6144,7 +6144,7 @@ var x = (bool)(object)false switch { true => default(CustomHandler), false => " 
 Console.WriteLine(x);
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.Net50);
             comp.VerifyDiagnostics(
                 // (4,29): error CS8506: No best type was found for the switch expression.
                 // var x = (bool)(object)false switch { true => default(CustomHandler), false => $"{1,2:f}Literal" };
@@ -6171,7 +6171,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.Net50);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"1.00Literal");
 
             verifier.VerifyIL("<top-level-statements-entry-point>", !expression.Contains('+') ? @"
@@ -6379,7 +6379,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.Net50);
             comp.VerifyDiagnostics(
                 // (4,29): error CS8506: No best type was found for the switch expression.
                 // var x = (bool)(object)false switch { true => default(CustomHandler), false => $"{1,2:f}Literal" };
@@ -6506,7 +6506,7 @@ M(ref " + expression + @");
 
 void M(ref CustomHandler c) => System.Console.WriteLine(c);";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: false) }, targetFramework: TargetFramework.Net50);
             comp.VerifyDiagnostics(
                 // (2,3): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 // M($"{1,2:f}Literal");
@@ -8141,7 +8141,7 @@ public partial struct CustomHandler
                     // (1,5): error CS1503: Argument 3: cannot convert from 'int' to 'string'
                     // C.M(1, $"");
                     Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("3", "int", "string").WithLocation(1, 5),
-                    // (1,8): error CS7036: There is no argument given that corresponds to the required formal parameter 'success' of 'CustomHandler.CustomHandler(int, int, string, out bool)'
+                    // (1,8): error CS7036: There is no argument given that corresponds to the required parameter 'success' of 'CustomHandler.CustomHandler(int, int, string, out bool)'
                     // C.M(1, $"");
                     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, expression).WithArguments("success", "CustomHandler.CustomHandler(int, int, string, out bool)").WithLocation(1, 8)
                 };
@@ -9061,7 +9061,7 @@ public struct CustomHandler
                 (extraConstructorArg == "")
                 ? new[]
                 {
-                    // (1,12): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'CustomHandler.CustomHandler(int, int, int)'
+                    // (1,12): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'CustomHandler.CustomHandler(int, int, int)'
                     // C.M(1, "", $"");
                     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, expression).WithArguments("i", "CustomHandler.CustomHandler(int, int, int)").WithLocation(1, 12),
                     // (1,12): error CS1615: Argument 3 may not be passed with the 'out' keyword
@@ -9070,10 +9070,10 @@ public struct CustomHandler
                 }
                 : new[]
                 {
-                    // (1,12): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'CustomHandler.CustomHandler(int, int, int, out bool)'
+                    // (1,12): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'CustomHandler.CustomHandler(int, int, int, out bool)'
                     // C.M(1, "", $"");
                     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, expression).WithArguments("i", "CustomHandler.CustomHandler(int, int, int, out bool)").WithLocation(1, 12),
-                    // (1,12): error CS7036: There is no argument given that corresponds to the required formal parameter 'success' of 'CustomHandler.CustomHandler(int, int, int, out bool)'
+                    // (1,12): error CS7036: There is no argument given that corresponds to the required parameter 'success' of 'CustomHandler.CustomHandler(int, int, int, out bool)'
                     // C.M(1, "", $"");
                     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, expression).WithArguments("success", "CustomHandler.CustomHandler(int, int, int, out bool)").WithLocation(1, 12)
                 }
@@ -9555,7 +9555,7 @@ public partial struct CustomHandler
                     // (6,1): error CS1620: Argument 3 must be passed with the 'ref' keyword
                     // GetC(ref c).M($"literal" + $"");
                     Diagnostic(ErrorCode.ERR_BadArgRef, "GetC(ref c)").WithArguments("3", "ref").WithLocation(6, 1),
-                    // (6,15): error CS7036: There is no argument given that corresponds to the required formal parameter 'success' of 'CustomHandler.CustomHandler(int, int, ref C, out bool)'
+                    // (6,15): error CS7036: There is no argument given that corresponds to the required parameter 'success' of 'CustomHandler.CustomHandler(int, int, ref C, out bool)'
                     // GetC(ref c).M($"literal" + $"");
                     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, expression).WithArguments("success", "CustomHandler.CustomHandler(int, int, ref C, out bool)").WithLocation(6, 15)
                 }
@@ -13425,7 +13425,7 @@ AppendFormatted");
         [Theory]
         [InlineData(@"$""{s}""")]
         [InlineData(@"$""{s}"" + $""""")]
-        public void RefEscape_01(string expression)
+        public void RefEscape_01A(string expression)
         {
             var code = @"
 using System;
@@ -13448,12 +13448,47 @@ public ref struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.NetCoreApp);
-            comp.VerifyDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (17,19): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
                 //         return $"{s}";
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(17, 19)
-            );
+            };
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.Net50);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Net50);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        // As above but with scoped parameter in AppendFormatted().
+        [WorkItem(63262, "https://github.com/dotnet/roslyn/issues/63262")]
+        [Theory]
+        [InlineData(@"$""{s}""")]
+        [InlineData(@"$""{s}"" + $""""")]
+        public void RefEscape_01B(string expression)
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[InterpolatedStringHandler]
+public ref struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount) { }
+
+    public void AppendFormatted(scoped Span<char> s) { }
+
+    public static CustomHandler M()
+    {
+        Span<char> s = stackalloc char[10];
+        return " + expression + @";
+    }
+}
+";
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Net50);
+            comp.VerifyDiagnostics();
         }
 
         [Theory]
@@ -13482,12 +13517,18 @@ public ref struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.NetCoreApp);
-            comp.VerifyDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (17,9): error CS8150: By-value returns may only be used in methods that return by value
                 //         return $"{s}";
                 Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(17, 9)
-            );
+            };
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.Net50);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Net50);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Theory]
@@ -13516,12 +13557,18 @@ public ref struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.NetCoreApp);
-            comp.VerifyDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (17,20): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         return ref $"{s}";
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, expression).WithLocation(17, 20)
-            );
+            };
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.Net50);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Net50);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Theory]
@@ -13557,17 +13604,16 @@ public ref struct S1
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.Net50);
             comp.VerifyDiagnostics(
                 // (17,9): error CS8350: This combination of arguments to 'CustomHandler.M2(ref S1, ref CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
                 //         M2(ref s1, $"{s}");
                 Diagnostic(ErrorCode.ERR_CallArgMixing, @"M2(ref s1, " + expression + @")").WithArguments("CustomHandler.M2(ref S1, ref CustomHandler)", "handler").WithLocation(17, 9),
                 // (17,23): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
                 //         M2(ref s1, $"{s}");
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(17, 23)
-            );
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(17, 23));
 
-            comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
+            comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.Net50);
             comp.VerifyDiagnostics(
                 // (17,9): error CS8350: This combination of arguments to 'CustomHandler.M2(ref S1, ref CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
                 //         M2(ref s1, $"{s}");
@@ -13580,8 +13626,7 @@ public ref struct S1
                 Diagnostic(ErrorCode.ERR_EscapeCall, expression).WithArguments("CustomHandler.CustomHandler(int, int, ref S1)", "s1").WithLocation(17, 20),
                 // (17,23): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
                 //         M2(ref s1, $"{s}");
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(17, 23)
-            );
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(17, 23));
         }
 
         [Theory]
@@ -13617,7 +13662,10 @@ public ref struct S1
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.Net50);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.Net50);
             comp.VerifyDiagnostics();
         }
 
@@ -13648,7 +13696,10 @@ public ref struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.Net50);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.Net50);
             comp.VerifyDiagnostics();
         }
 
@@ -13679,12 +13730,17 @@ public ref struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.Net50);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.Net50);
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
-        public void RefEscape_08()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void RefEscape_08(LanguageVersion languageVersion)
         {
             var code = @"
 using System;
@@ -13711,7 +13767,7 @@ public ref struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.Net50);
             comp.VerifyDiagnostics(
                 // (16,16): error CS8352: Cannot use variable 'c' in this context because it may expose referenced variables outside of their declaration scope
                 //         return c;
@@ -13749,8 +13805,7 @@ public ref struct S1
     public CustomHandler Handler;
 }
 ";
-
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.Net50);
             comp.VerifyDiagnostics(
                 // (15,9): error CS8350: This combination of arguments to 'CustomHandler.M2(ref S1, CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
                 //         M2(ref s1, $"{s2}");
@@ -13760,8 +13815,11 @@ public ref struct S1
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(15, 23)
             );
 
-            comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
+            comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.Regular11, targetFramework: TargetFramework.Net50);
             comp.VerifyDiagnostics(
+                // (10,100): error CS8352: Cannot use variable 'out CustomHandler' in this context because it may expose referenced variables outside of their declaration scope
+                //     public CustomHandler(int literalLength, int formattedCount, ref S1 s1) : this() { s1.Handler = this; }
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "this").WithArguments("out CustomHandler").WithLocation(10, 100),
                 // (15,9): error CS8350: This combination of arguments to 'CustomHandler.M2(ref S1, CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
                 //         M2(ref s1, $"{s2}");
                 Diagnostic(ErrorCode.ERR_CallArgMixing, @"M2(ref s1, $""{s2}"")").WithArguments("CustomHandler.M2(ref S1, CustomHandler)", "handler").WithLocation(15, 9),
@@ -13802,17 +13860,270 @@ class Program
     static void M(ref S s, [InterpolatedStringHandlerArgument(""s"")] CustomHandler handler) { }
 }";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.Net50);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
+            comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.Regular11, targetFramework: TargetFramework.Net50);
             comp.VerifyDiagnostics(
+                // (5,97): error CS8352: Cannot use variable 'out CustomHandler' in this context because it may expose referenced variables outside of their declaration scope
+                //     public CustomHandler(int literalLength, int formattedCount, ref S s) : this() { s.Handler = this; }
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "this").WithArguments("out CustomHandler").WithLocation(5, 97),
                 // (17,15): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         M(ref s, $"{1}");
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s").WithLocation(17, 15),
                 // (17,18): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
                 //         M(ref s, $"{1}");
                 Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{1}""").WithArguments("CustomHandler.CustomHandler(int, int, ref S)", "s").WithLocation(17, 18));
+        }
+
+        [WorkItem(63262, "https://github.com/dotnet/roslyn/issues/63262")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void RefEscape_11A(LanguageVersion languageVersion)
+        {
+            var code =
+@"using System;
+using System.Runtime.CompilerServices;
+[InterpolatedStringHandler]
+ref struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount) { }
+    public void AppendFormatted(Span<char> s) { }
+}
+class Program
+{
+    static void F1()
+    {
+        Span<char> s = stackalloc char[10];
+        M($""{s}"");
+    }
+    static void F2()
+    {
+        Span<char> s = stackalloc char[10];
+        CustomHandler h2 = new CustomHandler(0, 1);
+        h2.AppendFormatted(s); // 1
+        M(ref h2);
+    }
+    static void M(ref CustomHandler handler) { }
+}
+";
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.Net50);
+            comp.VerifyDiagnostics(
+                // (20,9): error CS8350: This combination of arguments to 'CustomHandler.AppendFormatted(Span<char>)' is disallowed because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         h2.AppendFormatted(s); // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "h2.AppendFormatted(s)").WithArguments("CustomHandler.AppendFormatted(System.Span<char>)", "s").WithLocation(20, 9),
+                // (20,28): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         h2.AppendFormatted(s); // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(20, 28));
+        }
+
+        // As above but with scoped parameter in AppendFormatted().
+        [WorkItem(63262, "https://github.com/dotnet/roslyn/issues/63262")]
+        [Fact]
+        public void RefEscape_11B()
+        {
+            var code =
+@"using System;
+using System.Runtime.CompilerServices;
+[InterpolatedStringHandler]
+ref struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount) { }
+    public void AppendFormatted(scoped Span<char> s) { }
+}
+class Program
+{
+    static void F1()
+    {
+        Span<char> s = stackalloc char[10];
+        M($""{s}"");
+    }
+    static void F2()
+    {
+        Span<char> s = stackalloc char[10];
+        CustomHandler h2 = new CustomHandler(0, 1);
+        h2.AppendFormatted(s);
+        M(ref h2);
+    }
+    static void M(ref CustomHandler handler) { }
+}
+";
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Net50);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(63262, "https://github.com/dotnet/roslyn/issues/63262")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void RefEscape_12A(LanguageVersion languageVersion)
+        {
+            var code =
+@"using System;
+using System.Runtime.CompilerServices;
+[InterpolatedStringHandler]
+ref struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount) { }
+    public void AppendFormatted(Span<char> s) { }
+}
+class Program
+{
+    static CustomHandler F1()
+    {
+        Span<char> s = stackalloc char[10];
+        CustomHandler h1 = $""{s}"";
+        return h1; // 1
+    }
+    static CustomHandler F2()
+    {
+        Span<char> s = stackalloc char[10];
+        CustomHandler h2 = new CustomHandler(0, 1);
+        h2.AppendFormatted(s); // 2
+        return h2;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.Net50);
+            comp.VerifyDiagnostics(
+                // (15,16): error CS8352: Cannot use variable 'h1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return h1; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "h1").WithArguments("h1").WithLocation(15, 16),
+                // (21,9): error CS8350: This combination of arguments to 'CustomHandler.AppendFormatted(Span<char>)' is disallowed because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         h2.AppendFormatted(s); // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "h2.AppendFormatted(s)").WithArguments("CustomHandler.AppendFormatted(System.Span<char>)", "s").WithLocation(21, 9),
+                // (21,28): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         h2.AppendFormatted(s); // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(21, 28));
+        }
+
+        // As above but with scoped parameter in AppendFormatted().
+        [WorkItem(63262, "https://github.com/dotnet/roslyn/issues/63262")]
+        [Fact]
+        public void RefEscape_12B()
+        {
+            var code =
+@"using System;
+using System.Runtime.CompilerServices;
+[InterpolatedStringHandler]
+ref struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount) { }
+    public void AppendFormatted(scoped Span<char> s) { }
+}
+class Program
+{
+    static CustomHandler F1()
+    {
+        Span<char> s = stackalloc char[10];
+        CustomHandler h1 = $""{s}"";
+        return h1;
+    }
+    static CustomHandler F2()
+    {
+        Span<char> s = stackalloc char[10];
+        CustomHandler h2 = new CustomHandler(0, 1);
+        h2.AppendFormatted(s);
+        return h2;
+    }
+    static CustomHandler F3()
+    {
+        Span<char> s = stackalloc char[10];
+        scoped CustomHandler h3 = new CustomHandler(0, 1);
+        h3.AppendFormatted(s);
+        return h3; // 1
+    }
+}
+";
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Net50);
+            comp.VerifyDiagnostics(
+                // (29,16): error CS8352: Cannot use variable 'h3' in this context because it may expose referenced variables outside of their declaration scope
+                //         return h3; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "h3").WithArguments("h3").WithLocation(29, 16));
+        }
+
+        [WorkItem(63306, "https://github.com/dotnet/roslyn/issues/63306")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void RefEscape_13A(LanguageVersion languageVersion)
+        {
+            var code =
+@"using System.Runtime.CompilerServices;
+[InterpolatedStringHandler]
+ref struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount) { }
+    public void AppendFormatted(in int i) { }
+}
+class Program
+{
+    static CustomHandler F1()
+    {
+        int i = 1;
+        return $""{i}""; // 1
+    }
+    static CustomHandler F2()
+    {
+        return $""{2}""; // 2
+    }
+    static CustomHandler F3()
+    {
+        int i = 3;
+        CustomHandler h3 = $""{i}""; // 3
+        return h3;
+    }
+    static CustomHandler F4()
+    {
+        CustomHandler h4 = $""{4}""; // 4
+        return h4;
+    }
+}
+";
+            // https://github.com/dotnet/roslyn/issues/63306: Should report an error in each case.
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.Net50);
+            comp.VerifyDiagnostics();
+        }
+
+        // As above but with scoped parameter in AppendFormatted().
+        [Fact]
+        public void RefEscape_13B()
+        {
+            var code =
+@"using System.Runtime.CompilerServices;
+[InterpolatedStringHandler]
+ref struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount) { }
+    public void AppendFormatted(scoped in int i) { }
+}
+class Program
+{
+    static CustomHandler F1()
+    {
+        int i = 1;
+        return $""{i}"";
+    }
+    static CustomHandler F2()
+    {
+        return $""{2}"";
+    }
+    static CustomHandler F3()
+    {
+        int i = 3;
+        CustomHandler h3 = $""{i}"";
+        return h3;
+    }
+    static CustomHandler F4()
+    {
+        CustomHandler h4 = $""{4}"";
+        return h4;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Net50);
+            comp.VerifyDiagnostics();
         }
 
         [Theory, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
@@ -15785,7 +16096,7 @@ struct CustomHandler
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute });
             comp.VerifyDiagnostics(
-                // (4,19): error CS7036: There is no argument given that corresponds to the required formal parameter 's' of 'CustomHandler.CustomHandler(int, int, string)'
+                // (4,19): error CS7036: There is no argument given that corresponds to the required parameter 's' of 'CustomHandler.CustomHandler(int, int, string)'
                 // CustomHandler c = $"";
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, @"$""""").WithArguments("s", "CustomHandler.CustomHandler(int, int, string)").WithLocation(4, 19),
                 // (4,19): error CS1615: Argument 3 may not be passed with the 'out' keyword
@@ -15990,6 +16301,47 @@ class C
                 // (7,16): error CS8026: Feature 'interpolated strings' is not available in C# 5. Please use language version 6 or greater.
                 //         return $"hello + {other}";
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, @"$""hello + {other}""").WithArguments("interpolated strings", "6").WithLocation(7, 16));
+        }
+
+        [Fact, WorkItem(1566008, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1566008")]
+        public void InterpolatedStringInForeach_HasErrors()
+        {
+            var text = """
+                int i = 1;
+                /*<bind>*/foreach (($"{i}") in new int[0]) {}/*</bind>*/
+                """;
+
+            var comp = CreateCompilation(text).VerifyDiagnostics(
+                // (1,5): warning CS0219: The variable 'i' is assigned but its value is never used
+                // int i = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(1, 5),
+                // (2,29): error CS0230: Type and identifier are both required in a foreach statement
+                // /*<bind>*/foreach (($"{i}") in new int[0]) {}/*</bind>*/
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "in").WithLocation(2, 29)
+            );
+
+            VerifyOperationTreeForTest<ForEachVariableStatementSyntax>(comp, expectedOperationTree: """
+                IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (($ ...  int[0]) {}')
+                  LoopControlVariable:
+                    IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$"{i}"')
+                      Parts(1):
+                          IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i}')
+                            Expression:
+                              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                            Alignment:
+                              null
+                            FormatString:
+                              null
+                  Collection:
+                    IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: 'new int[0]')
+                      Dimension Sizes(1):
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                      Initializer:
+                        null
+                  Body:
+                    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{}')
+                  NextVariables(0)
+                """);
         }
     }
 }

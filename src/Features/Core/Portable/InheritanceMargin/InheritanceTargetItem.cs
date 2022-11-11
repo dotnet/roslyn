@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Runtime.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
     /// Information used to decided the margin image and responsible for performing navigations
     /// </summary>
     [DataContract]
-    internal readonly struct InheritanceTargetItem
+    internal readonly record struct InheritanceTargetItem
     {
         /// <summary>
         /// Indicate the inheritance relationship between the target and member.

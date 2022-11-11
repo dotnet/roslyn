@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
-  <Import Project="VisualStudio.targets"/>
+  <Import Project="VisualStudio.targets" Condition="'$(UsingToolVSSDK)' == 'true'"/>
   <Import Project="XUnit.targets" Condition="'$(IsTestProject)' == 'true'" />
 
   <!--
@@ -91,6 +91,11 @@
     <EditorConfigFiles Condition="'$(IsShipping)' != 'true'" Include="$(RepositoryEngineeringDir)config\globalconfigs\NonShipping.globalconfig" />
   </ItemGroup>
 
+  <!-- Check that all shipping assemblies are packaged -->
+  <Target Name="_CheckTestProjectTargetFileName" BeforeTargets="Build" Condition="'$(IsShippingAssembly)' == 'true' and '$(IsPackable)' != 'true'">
+    <Error Text="Project output assembly is shipping (IsShipping == $(IsShipping), IsShippingAssembly == '$(IsShippingAssembly)', IsShippingPackage == '$(IsShippingPackage)') but is not packaged (IsPackable == '$(IsPackable)')" />
+  </Target>
+
   <!--
     Some dependencies bring in references to UIAutomationClient and UIAutomationTypes. These conflict with the faster
     UIAComWrapper implementation used by the Roslyn integration tests. This target sets the alias for the slower
@@ -175,8 +180,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Include BannedSymbols covering all projects -->
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\config\BannedSymbols.txt" />
+    <!-- Include BannedSymbols covering all product projects -->
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\config\BannedSymbols.txt" Condition="'$(IsTestProject)' == 'false'" />
   </ItemGroup>
 
   <ItemGroup>
@@ -358,4 +363,23 @@
            AlwaysCreate="true"
            Condition="'@(ReferencesCopiedInThisBuild)' != ''"/>
   </Target>
+
+  <!-- Workaround for https://github.com/dotnet/roslyn/issues/63189 -->
+  <Target Name="DisableJsonGenerator"
+           AfterTargets="ResolvePackageAssets">
+    <ItemGroup>
+      <ResolvedAnalyzers Remove="@(ResolvedAnalyzers)" Condition="'%(NuGetPackageId)' == 'System.Text.Json'" />
+    </ItemGroup>
+  </Target>
+  
+  <!-- Workaround for https://github.com/dotnet/wpf/issues/6792 -->
+  <Target Name="RemoveDuplicateAnalyzers" BeforeTargets="CoreCompile" Condition="'$(UseWpf)' == 'true'">
+    <ItemGroup>
+        <FilteredAnalyzer Include="@(Analyzer->Distinct())" />
+        <Analyzer Remove="@(Analyzer)" />
+        <Analyzer Include="@(FilteredAnalyzer)" />
+    </ItemGroup>
+  </Target>
+
+  <Import Project="DoNotGenerateSatelliteAssemblies_Workaround.targets" Condition="'$(GenerateSatelliteAssemblies)' == 'false'" />
 </Project>

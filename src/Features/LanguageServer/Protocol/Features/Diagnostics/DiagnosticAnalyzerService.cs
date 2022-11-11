@@ -44,9 +44,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DiagnosticAnalyzerService(
             IDiagnosticUpdateSourceRegistrationService registrationService,
             IAsynchronousOperationListenerProvider listenerProvider,
+            DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache,
             IGlobalOptionService globalOptions)
         {
-            AnalyzerInfoCache = new DiagnosticAnalyzerInfoCache();
+            AnalyzerInfoCache = globalCache.AnalyzerInfoCache;
             Listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
             GlobalOptions = globalOptions;
 
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public Task<(ImmutableArray<DiagnosticData> diagnostics, bool upToDate)> TryGetDiagnosticsForSpanAsync(
-            Document document,
+            TextDocument document,
             TextSpan range,
             Func<string, bool>? shouldIncludeDiagnostic,
             bool includeSuppressedDiagnostics = false,
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
-            Document document,
+            TextDocument document,
             TextSpan? range,
             Func<string, bool>? shouldIncludeDiagnostic,
             bool includeCompilerDiagnostics,

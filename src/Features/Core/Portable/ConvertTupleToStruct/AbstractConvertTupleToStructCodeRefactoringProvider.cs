@@ -22,7 +22,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -212,13 +212,13 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             using (Logger.LogBlock(FunctionId.AbstractConvertTupleToStructCodeRefactoringProvider_ConvertToStructAsync, cancellationToken))
             {
                 var solution = document.Project.Solution;
-                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
                     var result = await client.TryInvokeAsync<IRemoteConvertTupleToStructCodeRefactoringService, SerializableConvertTupleToStructResult>(
                         solution,
                         (service, solutionInfo, callbackId, cancellationToken) => service.ConvertToStructAsync(solutionInfo, callbackId, document.Id, span, scope, isRecord, cancellationToken),
-                        callbackTarget: new RemoteOptionsProvider<CleanCodeGenerationOptions>(solution.Workspace.Services, fallbackOptions),
+                        callbackTarget: new RemoteOptionsProvider<CleanCodeGenerationOptions>(solution.Services, fallbackOptions),
                         cancellationToken).ConfigureAwait(false);
 
                     if (!result.HasValue)
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 var project = group.Key;
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                var generator = project.LanguageServices.GetRequiredService<SyntaxGenerator>();
+                var generator = project.Services.GetRequiredService<SyntaxGenerator>();
 
                 // Get the fully qualified name for the new type we're creating.  We'll use this
                 // at replacement points so that we can find the right type even if we're in a 

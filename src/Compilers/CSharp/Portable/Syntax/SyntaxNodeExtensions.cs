@@ -102,9 +102,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.UncheckedExpression:
                     return true;
 
-                case SyntaxKind.RecordDeclaration:
-                    return ((RecordDeclarationSyntax)syntax).ParameterList is object;
-
                 case SyntaxKind.RecordStructDeclaration:
                     return false;
 
@@ -230,29 +227,46 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static TypeSyntax SkipRef(this TypeSyntax syntax, out RefKind refKind)
         {
-            return SkipRef(syntax, out refKind, allowScoped: true, diagnostics: null);
-        }
-
-        internal static TypeSyntax SkipRef(this TypeSyntax syntax, out RefKind refKind, bool allowScoped, BindingDiagnosticBag? diagnostics)
-        {
-            Debug.Assert(allowScoped || diagnostics is { });
-
             if (syntax.Kind() == SyntaxKind.RefType)
             {
                 var refType = (RefTypeSyntax)syntax;
                 refKind = refType.ReadOnlyKeyword.Kind() == SyntaxKind.ReadOnlyKeyword ?
                     RefKind.RefReadOnly :
                     RefKind.Ref;
-                if (refType.ScopedKeyword.Kind() == SyntaxKind.ScopedKeyword &&
-                    !allowScoped &&
-                    diagnostics is { })
-                {
-                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, refType.ScopedKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ScopedKeyword));
-                }
                 return refType.Type;
             }
 
             refKind = RefKind.None;
+            return syntax;
+        }
+
+        internal static TypeSyntax SkipScoped(this TypeSyntax syntax, out bool isScoped)
+        {
+            if (syntax is ScopedTypeSyntax scopedType)
+            {
+                isScoped = true;
+                return scopedType.Type;
+            }
+
+            isScoped = false;
+            return syntax;
+        }
+
+        internal static SyntaxNode ModifyingScopedOrRefTypeOrSelf(this SyntaxNode syntax)
+        {
+            SyntaxNode? parentNode = syntax.Parent;
+
+            if (parentNode is RefTypeSyntax refType && refType.Type == syntax)
+            {
+                syntax = refType;
+                parentNode = parentNode.Parent;
+            }
+
+            if (parentNode is ScopedTypeSyntax scopedType && scopedType.Type == syntax)
+            {
+                return scopedType;
+            }
+
             return syntax;
         }
 

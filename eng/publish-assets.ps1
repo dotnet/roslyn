@@ -66,14 +66,21 @@ function Publish-Nuget($publishData, [string]$packageDir) {
     $packagesData = GetPackagesPublishData $packageFeeds
 
     foreach ($package in Get-ChildItem *.nupkg) {
+      Write-Host ""
+
       $nupkg = Split-Path -Leaf $package
-      Write-Host "  Publishing $nupkg"
+      Write-Host "Publishing $nupkg"
       if (-not (Test-Path $nupkg)) {
         throw "$nupkg does not exist"
       }
 
-      # Lookup the feed name from the packages map using the package name without the version or extension.
       $nupkgWithoutVersion = $nupkg -replace '(\.\d+){3}-.*.nupkg', ''
+      if ($nupkgWithoutVersion.EndsWith(".Symbols")) {
+        Write-Host "Skipping symbol package $nupkg"
+        continue
+      }
+
+      # Lookup the feed name from the packages map using the package name without the version or extension.
       if (-not (Get-Member -InputObject $packagesData -Name $nupkgWithoutVersion)) {
         throw "$nupkg has no configured feed (looked for $nupkgWithoutVersion)"
       }
@@ -82,7 +89,7 @@ function Publish-Nuget($publishData, [string]$packageDir) {
 
       # If the configured feed is arcade, then skip publishing here.  Arcade will handle publishing to their feeds.
       if ($feedName.equals("arcade")) {
-        Write-Host "    Skipping publishing for $nupkg as it is published by arcade"
+        Write-Host "Skipping publishing for $nupkg as it is published by arcade"
         continue
       }
 

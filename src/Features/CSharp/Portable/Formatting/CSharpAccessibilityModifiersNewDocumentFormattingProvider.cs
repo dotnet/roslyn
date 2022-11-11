@@ -10,10 +10,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddAccessibilityModifiers;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -39,13 +39,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var typeDeclarations = root.DescendantNodes().Where(node => syntaxFacts.IsTypeDeclaration(node));
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
+            var editor = new SyntaxEditor(root, document.Project.Solution.Services);
 
             var service = document.GetRequiredLanguageService<IAddAccessibilityModifiersService>();
 
             foreach (var declaration in typeDeclarations)
             {
-                if (!service.ShouldUpdateAccessibilityModifier(CSharpAccessibilityFacts.Instance, declaration, accessibilityPreferences, out _))
+                if (!service.ShouldUpdateAccessibilityModifier(CSharpAccessibilityFacts.Instance, declaration, accessibilityPreferences, out _, out _))
                     continue;
 
                 // Since we format each document as they are added to a project we can't assume we know about all

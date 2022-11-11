@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // get the previous table, if there was one for this node
-                NodeStateTable<T> previousTable = _previousTable._tables.GetStateTableOrEmpty<T>(source);
+                NodeStateTable<T>? previousTable = _previousTable._tables.GetStateTable<T>(source);
 
                 // request the node update its state based on the current driver table and store the new result
                 var newTable = source.UpdateStateTable(this, previousTable, _cancellationToken);
@@ -62,9 +62,11 @@ namespace Microsoft.CodeAnalysis
                 return newTable;
             }
 
-            public NodeStateTable<T>.Builder CreateTableBuilder<T>(NodeStateTable<T> previousTable, string? stepName, IEqualityComparer<T>? equalityComparer)
+            public NodeStateTable<T>.Builder CreateTableBuilder<T>(
+                NodeStateTable<T>? previousTable, string? stepName, IEqualityComparer<T>? equalityComparer, int? tableCapacity = null)
             {
-                return previousTable.ToBuilder(stepName, DriverState.TrackIncrementalSteps, equalityComparer);
+                previousTable ??= NodeStateTable<T>.Empty;
+                return previousTable.ToBuilder(stepName, DriverState.TrackIncrementalSteps, equalityComparer, tableCapacity);
             }
 
             public DriverStateTable ToImmutable()

@@ -3,12 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractClass
@@ -22,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             _optionsService = service;
         }
 
-        protected abstract Task<SyntaxNode?> GetSelectedNodeAsync(CodeRefactoringContext context);
+        protected abstract Task<ImmutableArray<SyntaxNode>> GetSelectedNodesAsync(CodeRefactoringContext context);
         protected abstract Task<SyntaxNode?> GetSelectedClassDeclarationAsync(CodeRefactoringContext context);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -31,12 +34,13 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             // cases that won't work because the refactoring may try to add a document. There's non-trivial
             // work to support a user interaction that makes sense for those cases. 
             // See: https://github.com/dotnet/roslyn/issues/50868
-            if (!context.Document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.AddDocument))
+            var solution = context.Document.Project.Solution;
+            if (!solution.CanApplyChange(ApplyChangesKind.AddDocument))
             {
                 return;
             }
 
-            var optionsService = _optionsService ?? context.Document.Project.Solution.Workspace.Services.GetService<IExtractClassOptionsService>();
+            var optionsService = _optionsService ?? solution.Services.GetService<IExtractClassOptionsService>();
             if (optionsService is null)
             {
                 return;
@@ -55,28 +59,36 @@ namespace Microsoft.CodeAnalysis.ExtractClass
 
         private async Task<ExtractClassWithDialogCodeAction?> TryGetMemberActionAsync(CodeRefactoringContext context, IExtractClassOptionsService optionsService)
         {
-            var selectedMemberNode = await GetSelectedNodeAsync(context).ConfigureAwait(false);
-            if (selectedMemberNode is null)
+            var selectedMemberNodes = await GetSelectedNodesAsync(context).ConfigureAwait(false);
+            if (selectedMemberNodes.IsEmpty)
             {
                 return null;
             }
 
             var (document, span, cancellationToken) = context;
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var selectedMember = semanticModel.GetDeclaredSymbol(selectedMemberNode, cancellationToken);
-            if (selectedMember is null || selectedMember.ContainingType is null)
+            var memberNodeSymbolPairs = selectedMemberNodes
+                .SelectAsArray(m => (node: m, symbol: semanticModel.GetRequiredDeclaredSymbol(m, cancellationToken)))
+                // Use same logic as pull members up for determining if a selected member
+                // is valid to be moved into a base
+                .WhereAsArray(pair => MemberAndDestinationValidator.IsMemberValid(pair.symbol));
+
+            if (memberNodeSymbolPairs.IsEmpty)
             {
                 return null;
             }
 
-            // Use same logic as pull members up for determining if a selected member
-            // is valid to be moved into a base
-            if (!MemberAndDestinationValidator.IsMemberValid(selectedMember))
-            {
-                return null;
-            }
+            var selectedMembers = memberNodeSymbolPairs.SelectAsArray(pair => pair.symbol);
 
-            var containingType = selectedMember.ContainingType;
+            var containingType = selectedMembers.First().ContainingType;
+            Contract.ThrowIfNull(containingType);
+
+            // Treat the entire nodes' span as the span of interest here.  That way if the user's location is closer to
+            // a refactoring with a narrower span (for example, a span just on the name/parameters of a member, then it
+            // will take precedence over us).
+            var memberSpan = TextSpan.FromBounds(
+                memberNodeSymbolPairs.First().node.FullSpan.Start,
+                memberNodeSymbolPairs.Last().node.FullSpan.End);
 
             // Can't extract to a new type if there's already a base. Maybe
             // in the future we could inject a new type inbetween base and
@@ -87,14 +99,21 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             }
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var containingTypeDeclarationNode = selectedMemberNode.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration);
-            Contract.ThrowIfNull(containingTypeDeclarationNode);
+            var containingTypeDeclarationNode = selectedMemberNodes.First().FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration);
+            if (containingTypeDeclarationNode is null)
+            {
+                // If the containing type node isn't found exit. This could be malformed code that we don't know
+                // how to correctly handle
+                return null;
+            }
 
-            // Treat the entire node's span as the span of interest here.  That way if the user's location is closer to
-            // a refactoring with a narrower span (for example, a span just on the name/parameters of a member, then it
-            // will take precedence over us).
+            if (selectedMemberNodes.Any(m => m.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration) != containingTypeDeclarationNode))
+            {
+                return null;
+            }
+
             return new ExtractClassWithDialogCodeAction(
-                document, selectedMemberNode.Span, optionsService, containingType, containingTypeDeclarationNode, context.Options, selectedMember);
+                document, memberSpan, optionsService, containingType, containingTypeDeclarationNode, context.Options, selectedMembers);
         }
 
         private async Task<ExtractClassWithDialogCodeAction?> TryGetClassActionAsync(CodeRefactoringContext context, IExtractClassOptionsService optionsService)
@@ -110,7 +129,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                 return null;
 
             return new ExtractClassWithDialogCodeAction(
-                document, span, optionsService, originalType, selectedClassNode, context.Options, selectedMember: null);
+                document, span, optionsService, originalType, selectedClassNode, context.Options, selectedMembers: ImmutableArray<ISymbol>.Empty);
         }
     }
 }

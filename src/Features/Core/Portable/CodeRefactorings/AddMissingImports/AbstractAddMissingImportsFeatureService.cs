@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var addImportFeatureService = document.GetRequiredLanguageService<IAddImportFeatureService>();
 
             var solution = document.Project.Solution;
-            var symbolSearchService = solution.Workspace.Services.GetRequiredService<ISymbolSearchService>();
+            var symbolSearchService = solution.Services.GetRequiredService<ISymbolSearchService>();
 
             // Since we are not currently considering NuGet packages, pass an empty array
             var packageSources = ImmutableArray<PackageSource>.Empty;
@@ -94,8 +94,8 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
             var solution = document.Project.Solution;
             var progressTracker = new ProgressTracker();
-            var textDiffingService = solution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
-            var packageInstallerService = solution.Workspace.Services.GetService<IPackageInstallerService>();
+            var textDiffingService = solution.Services.GetRequiredService<IDocumentTextDifferencingService>();
+            var packageInstallerService = solution.Services.GetService<IPackageInstallerService>();
             var addImportService = document.GetRequiredLanguageService<IAddImportFeatureService>();
 
             // Do not limit the results since we plan to fix all the reported issues.
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var services = document.Project.Solution.Workspace.Services;
+            var services = document.Project.Solution.Services;
 
             var textChanges = Formatter.GetFormattedTextChanges(
                 root,

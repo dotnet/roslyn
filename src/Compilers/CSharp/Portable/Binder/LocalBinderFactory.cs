@@ -163,14 +163,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.ParameterList is object);
             Debug.Assert(node.IsKind(SyntaxKind.RecordDeclaration));
 
-            Binder enclosing = new ExpressionVariableBinder(node, _enclosing);
-            AddToMap(node, enclosing);
-            Visit(node.PrimaryConstructorBaseTypeIfClass, enclosing);
+            Visit(node.PrimaryConstructorBaseTypeIfClass);
         }
 
         public override void VisitPrimaryConstructorBaseType(PrimaryConstructorBaseTypeSyntax node)
         {
-            Binder enclosing = _enclosing.WithAdditionalFlags(BinderFlags.ConstructorInitializer);
+            Binder enclosing = new ExpressionVariableBinder(node, _enclosing).WithAdditionalFlags(BinderFlags.ConstructorInitializer);
             AddToMap(node, enclosing);
             VisitConstructorInitializerArgumentList(node, node.ArgumentList, enclosing);
         }
@@ -208,9 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 WithTypeParametersBinder? withTypeParametersBinder;
                 Binder? withParametersBinder;
-                // The LangVer check will be removed before shipping .NET 7.
-                // Tracked by https://github.com/dotnet/roslyn/issues/60640
-                if (((_enclosing.Flags & BinderFlags.InContextualAttributeBinder) != 0) && _enclosing.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureExtendedNameofScope))
+                if ((_enclosing.Flags & BinderFlags.InContextualAttributeBinder) != 0)
                 {
                     var attributeTarget = getAttributeTarget(_enclosing);
                     withTypeParametersBinder = getExtraWithTypeParametersBinder(_enclosing, attributeTarget);

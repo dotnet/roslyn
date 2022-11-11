@@ -229,7 +229,7 @@ public struct C
     // (9,40): error CS1510: A ref or out value must be an assignable variable
     //         TypedReference tr3 = __makeref(123); // CS1510
     Diagnostic(ErrorCode.ERR_RefLvalueExpected, "123").WithLocation(9, 40),
-    // (10,40): error CS0206: A property or indexer may not be passed as an out or ref parameter
+    // (10,40): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
     //         TypedReference tr4 = __makeref(P); // CS0206
     Diagnostic(ErrorCode.ERR_RefProperty, "P").WithLocation(10, 40),
     // (11,40): error CS0199: A static readonly field cannot be used as a ref or out value (except in a static constructor)
@@ -551,7 +551,7 @@ public class MyAttribute : System.Attribute
                 // (8,24): error CS1669: __arglist is not valid in this context
                 //     static void Q(this __arglist) {}
                 Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(8, 24),
-                // (11,9): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'C.M(int, __arglist)'
+                // (11,9): error CS7036: There is no argument given that corresponds to the required parameter '__arglist' of 'C.M(int, __arglist)'
                 //         M(1);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("__arglist", "C.M(int, __arglist)").WithLocation(11, 9),
                 // (12,14): error CS1503: Argument 2: cannot convert from 'int' to '__arglist'
@@ -1451,40 +1451,40 @@ class E
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (26,13): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'A.A(object, __arglist)'
+                // (26,13): error CS7036: There is no argument given that corresponds to the required parameter '__arglist' of 'A.A(object, __arglist)'
                 //         new A(__arglist());
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "A").WithArguments("__arglist", "A.A(object, __arglist)").WithLocation(26, 13),
-                // (28,9): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'A.M(object, __arglist)'
+                // (28,9): error CS7036: There is no argument given that corresponds to the required parameter '__arglist' of 'A.M(object, __arglist)'
                 //         A.M(__arglist());
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("__arglist", "A.M(object, __arglist)").WithLocation(28, 11),
-                // (31,13): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'B.B(object, __arglist)'
+                // (31,13): error CS7036: There is no argument given that corresponds to the required parameter '__arglist' of 'B.B(object, __arglist)'
                 //         new B(__arglist());
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "B").WithArguments("__arglist", "B.B(object, __arglist)").WithLocation(31, 13),
-                // (33,9): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'B.M(object, __arglist)'
+                // (33,9): error CS7036: There is no argument given that corresponds to the required parameter '__arglist' of 'B.M(object, __arglist)'
                 //         B.M(__arglist());
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("__arglist", "B.M(object, __arglist)").WithLocation(33, 11),
-                // (36,13): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'C.C(object, object, __arglist)'
+                // (36,13): error CS7036: There is no argument given that corresponds to the required parameter '__arglist' of 'C.C(object, object, __arglist)'
                 //         new C(__arglist());
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("__arglist", "C.C(object, object, __arglist)").WithLocation(36, 13),
-                // (37,13): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'C.C(object, object, __arglist)'
+                // (37,13): error CS7036: There is no argument given that corresponds to the required parameter '__arglist' of 'C.C(object, object, __arglist)'
                 //         new C(null, __arglist());
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("__arglist", "C.C(object, object, __arglist)").WithLocation(37, 13),
-                // (39,9): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'C.M(object, object, __arglist)'
+                // (39,9): error CS7036: There is no argument given that corresponds to the required parameter '__arglist' of 'C.M(object, object, __arglist)'
                 //         C.M(__arglist());
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("__arglist", "C.M(object, object, __arglist)").WithLocation(39, 11),
-                // (40,9): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'C.M(object, object, __arglist)'
+                // (40,9): error CS7036: There is no argument given that corresponds to the required parameter '__arglist' of 'C.M(object, object, __arglist)'
                 //         C.M(null, __arglist());
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("__arglist", "C.M(object, object, __arglist)").WithLocation(40, 11),
-                // (43,13): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'D.D(object, object, __arglist)'
+                // (43,13): error CS7036: There is no argument given that corresponds to the required parameter '__arglist' of 'D.D(object, object, __arglist)'
                 //         new D(__arglist());
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "D").WithArguments("__arglist", "D.D(object, object, __arglist)").WithLocation(43, 13),
-                // (44,13): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'D.D(object, object, __arglist)'
+                // (44,13): error CS7036: There is no argument given that corresponds to the required parameter '__arglist' of 'D.D(object, object, __arglist)'
                 //         new D(null, __arglist());
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "D").WithArguments("__arglist", "D.D(object, object, __arglist)").WithLocation(44, 13),
-                // (46,9): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'D.M(object, object, __arglist)'
+                // (46,9): error CS7036: There is no argument given that corresponds to the required parameter '__arglist' of 'D.M(object, object, __arglist)'
                 //         D.M(__arglist());
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("__arglist", "D.M(object, object, __arglist)").WithLocation(46, 11),
-                // (47,9): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'D.M(object, object, __arglist)'
+                // (47,9): error CS7036: There is no argument given that corresponds to the required parameter '__arglist' of 'D.M(object, object, __arglist)'
                 //         D.M(null, __arglist());
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("__arglist", "D.M(object, object, __arglist)").WithLocation(47, 11));
         }
@@ -1512,7 +1512,7 @@ class E
 }";
             var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource);
             compilation.VerifyDiagnostics(
-                // (6,9): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'D'
+                // (6,9): error CS7036: There is no argument given that corresponds to the required parameter '__arglist' of 'D'
                 //         d(__arglist());
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "d").WithArguments("__arglist", "D").WithLocation(6, 9));
         }
@@ -1543,7 +1543,7 @@ namespace ConsoleApplication21
 }
 ";
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-    // (12,44): error CS7036: There is no argument given that corresponds to the required formal parameter 'context' of 'GooBar.AllocateNativeOverlapped(IOCompletionCallback, object, byte[])'
+    // (12,44): error CS7036: There is no argument given that corresponds to the required parameter 'context' of 'GooBar.AllocateNativeOverlapped(IOCompletionCallback, object, byte[])'
     //             NativeOverlapped* overlapped = AllocateNativeOverlapped(() => { });
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AllocateNativeOverlapped").WithArguments("context", "ConsoleApplication21.GooBar.AllocateNativeOverlapped(System.Threading.IOCompletionCallback, object, byte[])").WithLocation(12, 44)
 );

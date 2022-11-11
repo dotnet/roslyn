@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         {
             this.CaseGenerationLocationField = caseGenerationLocationField;
             this.SwitchExpressionField = (switchExpressionField.Length >= 2 && switchExpressionField[0] == '$' && switchExpressionField[switchExpressionField.Length - 1] == '$')
-                ? switchExpressionField.Substring(1, switchExpressionField.Length - 2) : switchExpressionField;
+                ? switchExpressionField[1..^1] : switchExpressionField;
         }
 
         protected override int FieldChanged(string field, out int requeryFunction)
@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return (VSConstants.S_OK, snippetFunctionService.SwitchDefaultCaseForm, hasCurrentValue);
             }
 
-            var simplifierOptions = await document.GetSimplifierOptionsAsync(snippetExpansionClient.GlobalOptions, cancellationToken).ConfigureAwait(false);
+            var simplifierOptions = await document.GetSimplifierOptionsAsync(snippetExpansionClient.EditorOptionsService.GlobalOptions, cancellationToken).ConfigureAwait(false);
 
             var value = await snippetFunctionService.GetSwitchExpansionAsync(document, caseGenerationSpan.Value, switchExpressionSpan.Value, simplifierOptions, cancellationToken).ConfigureAwait(false);
             if (value == null)

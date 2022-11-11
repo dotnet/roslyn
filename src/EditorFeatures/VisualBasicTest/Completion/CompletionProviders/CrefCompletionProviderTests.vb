@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
+    <Trait(Traits.Feature, Traits.Features.Completion)>
     Public Class CrefCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
@@ -16,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return GetType(CrefCompletionProvider)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestNotOutsideCref() As Task
             Dim text = <File>
 Class C
@@ -29,7 +30,7 @@ End Class
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestNotOutsideCref2() As Task
             Dim text = <File>
 Class C
@@ -42,7 +43,7 @@ End Class
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestNotOutsideCref3() As Task
             Dim text = <File>
 Class C
@@ -55,7 +56,7 @@ End Class
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestAfterCrefOpenQuote() As Task
             Dim text = <File><![CDATA[
 Imports System
@@ -71,7 +72,7 @@ End Module]]></File>.Value
             Await VerifyAnyItemExistsAsync(text)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestRightSideOfQualifiedName() As Task
             Dim text = <File><![CDATA[
 Imports System
@@ -87,7 +88,7 @@ End Module]]></File>.Value
             Await VerifyItemExistsAsync(text, "Goo()")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestNotInTypeParameterContext() As Task
             Dim text = <File><![CDATA[
 Imports System
@@ -103,7 +104,7 @@ End Class]]></File>.Value
             Await VerifyItemIsAbsentAsync(text, "Integer")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestInSignature_FirstParameter() As Task
             Dim text = <File><![CDATA[
 Imports System
@@ -120,7 +121,7 @@ End Class]]></File>.Value
             Await VerifyItemIsAbsentAsync(text, "Goo(Integer")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestInSignature_SecondParameter() As Task
             Dim text = <File><![CDATA[
 Imports System
@@ -136,7 +137,7 @@ End Class]]></File>.Value
             Await VerifyItemExistsAsync(text, "Integer")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestNotAfterSignature() As Task
             Dim text = <File><![CDATA[
 Imports System
@@ -151,7 +152,7 @@ End Class]]></File>.Value
 
             Await VerifyNoItemsExistAsync(text)
         End Function
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestNotAfterDotAfterSignature() As Task
             Dim text = <File><![CDATA[
 Imports System
@@ -167,7 +168,7 @@ End Class]]></File>.Value
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestMethodParametersIncluded() As Task
             Dim text = <File><![CDATA[
 ''' <summary>
@@ -181,7 +182,7 @@ End Class]]></File>.Value
             Await VerifyItemExistsAsync(text, "Goo(ByRef Integer, Integer, Integer())")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestTypesSuggestedWithTypeParameters() As Task
             Dim text = <File><![CDATA[
 ''' <summary>
@@ -196,7 +197,7 @@ End Class]]></File>.Value
             Await VerifyItemExistsAsync(text, "Program")
             Await VerifyItemExistsAsync(text, "Program(Of TTypeParameter)")
         End Function
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestOperators() As Task
             Dim text = <File><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -222,7 +223,7 @@ End Class]]></File>.Value
             Await VerifyItemExistsAsync(text, "Operator +(C)")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestModOperator() As Task
             Dim text = <File><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -248,7 +249,7 @@ End Class]]></File>.Value
             Await VerifyItemExistsAsync(text, "Operator Mod(C, Integer)")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestConstructorsShown() As Task
             Dim text = <File><![CDATA[
 ''' <summary>
@@ -262,7 +263,7 @@ End Class
 
             Await VerifyItemExistsAsync(text, "New(Integer)")
         End Function
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestAfterNamespace() As Task
             Dim text = <File><![CDATA[
 Imports System
@@ -278,7 +279,7 @@ End Class
             Await VerifyItemExistsAsync(text, "String")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestParameterizedProperties() As Task
             Dim text = <File><![CDATA[
 ''' <summary>
@@ -308,7 +309,7 @@ End Class
             Await VerifyItemExistsAsync(text, "Item(Integer, String)")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestNoIdentifierEscaping() As Task
             Dim text = <File><![CDATA[
 ''' <see cref="A.$$"/>
@@ -321,7 +322,7 @@ End Class
             Await VerifyItemExistsAsync(text, "GetType()")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestNoCommitOnParen() As Task
             Dim text = <File><![CDATA[
 ''' <summary>
@@ -346,7 +347,7 @@ End Class
             Await VerifyProviderCommitAsync(text, "bar(Integer, Integer)", expected, "("c)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestAllowTypingTypeParameters() As Task
             Dim text = <File><![CDATA[
 Imports System.Collections.Generic
@@ -373,7 +374,7 @@ End Class
             Await VerifyProviderCommitAsync(text, "List(Of T)", expected, " "c)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestOfAfterParen() As Task
             Dim text = <File><![CDATA[
 Imports System
@@ -389,7 +390,7 @@ End Module]]></File>.Value
             Await VerifyItemExistsAsync(text, "Of")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestOfNotAfterComma() As Task
             Dim text = <File><![CDATA[
 Imports System
@@ -405,7 +406,7 @@ End Module]]></File>.Value
             Await VerifyItemIsAbsentAsync(text, "Of")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestCrefCompletionSpeculatesOutsideTrivia() As Task
             Dim text = <a><![CDATA[
 Class C
@@ -414,13 +415,13 @@ Class C
     End Sub
 End Class]]></a>.Value.NormalizeLineEndings()
 
-            Using workspace = TestWorkspace.Create(LanguageNames.VisualBasic, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication), New VisualBasicParseOptions(), {text}, exportProvider:=ExportProvider)
+            Using workspace = TestWorkspace.Create(LanguageNames.VisualBasic, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication), New VisualBasicParseOptions(), {text}, composition:=GetComposition())
                 Dim called = False
 
                 Dim hostDocument = workspace.DocumentWithCursor
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim service = GetCompletionService(document.Project)
-                Dim provider = Assert.IsType(Of CrefCompletionProvider)(service.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).Single())
+                Dim provider = Assert.IsType(Of CrefCompletionProvider)(service.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).Single())
                 provider.GetTestAccessor().SetSpeculativeNodeCallback(
                     Sub(node As SyntaxNode)
                         ' asserts that we aren't be asked speculate on nodes inside documentation trivia.
@@ -438,7 +439,7 @@ End Class]]></a>.Value.NormalizeLineEndings()
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestNoSuggestionAfterEmptyCref() As Task
             Dim text = "
 Class C

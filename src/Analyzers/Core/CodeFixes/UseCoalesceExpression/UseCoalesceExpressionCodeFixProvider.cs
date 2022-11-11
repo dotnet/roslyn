@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseCoalesceExpression
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            RegisterCodeFix(context, AnalyzersResources.Use_coalesce_expression, nameof(AnalyzersResources.Use_coalesce_expression));
+            RegisterCodeFix(context, AnalyzersResources.Use_coalesce_expression_for_non_nullable_types, nameof(AnalyzersResources.Use_coalesce_expression_for_non_nullable_types));
             return Task.CompletedTask;
         }
 

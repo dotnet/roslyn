@@ -1,1 +1,1 @@
-
+*REMOVED*Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.GetHashCode() -> Integer

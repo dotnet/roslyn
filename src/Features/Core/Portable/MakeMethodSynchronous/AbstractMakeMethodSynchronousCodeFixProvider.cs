@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
         private async Task<Solution> RenameThenRemoveAsyncTokenAsync(Document document, SyntaxNode node, IMethodSymbol methodSymbol, CancellationToken cancellationToken)
         {
             var name = methodSymbol.Name;
-            var newName = name.Substring(0, name.Length - AsyncSuffix.Length);
+            var newName = name[..^AsyncSuffix.Length];
             var solution = document.Project.Solution;
 
             // Store the path to this node.  That way we can find it post rename.
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var editor = new SyntaxEditor(root, currentSolution.Workspace.Services);
+            var editor = new SyntaxEditor(root, currentSolution.Services);
 
             foreach (var location in group)
             {

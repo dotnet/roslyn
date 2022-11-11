@@ -548,5 +548,37 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Refactoring_FixAllOccurrencesPreviewChanges = 563,
 
         LSP_UsedForkedSolution = 571,
+
+        DocumentOutline_WindowOpen = 572,
+        DocumentOutline_SortByName = 573,
+        DocumentOutline_SortByOrder = 574,
+        DocumentOutline_SortByType = 575,
+
+        ApplyChangesOperation_WorkspaceVersionMatch_ApplicationSucceeded = 580,
+        ApplyChangesOperation_WorkspaceVersionMatch_ApplicationFailed = 581,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationSucceeded = 582,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_IncompatibleSolutionChange = 583,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_IncompatibleProjectChange = 584,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_NoChangedDocument = 585,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_NoTextChange = 586,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_DocumentRemoved = 587,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_TextChangeConflict = 588,
+
+        Completion_SemanticSnippets = 589,
+        // please leave the range up through 600 free in case we need to add more items to learn more about ApplyChangesOperation results.
+
+        SpellCheckFixer_CouldNotFindDocument = 600,
+        SpellCheckFixer_LanguageDoesNotSupportRename = 601,
+        SpellCheckFixer_LanguageCouldNotGetRenameInfo = 602,
+        SpellCheckFixer_RenameSpanNotWithinTokenSpan = 603,
+        SpellCheckFixer_ReplacementTextInvalid = 604,
+        SpellCheckFixer_TryApplyChangesFailure = 605,
+
+        SourceGenerator_SolutionStatistics = 620,
+        SourceGenerator_OtherWorkspaceSessionStatistics = 621,
+
+        // 630-650 for sqlite errors.
+        SQLite_SqlException = 630,
+        SQLite_StorageDisabled = 631,
     }
 }

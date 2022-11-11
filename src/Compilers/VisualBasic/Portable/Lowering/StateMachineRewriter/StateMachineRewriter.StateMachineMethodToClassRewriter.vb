@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Protected Friend ReadOnly F As SyntheticBoundNodeFactory
 
             Private ReadOnly _resumableStateAllocator As ResumableStateMachineStateAllocator
-            Private _nextFinalizerState As Integer
+            Private _nextFinalizerState As StateMachineState
 
             ''' <summary>
             ''' The "state" of the state machine that is the translation of the iterator method.
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' this is the state for finalization from anywhere in this try block.
             ''' Initially set to -1, representing the no-op finalization required at the top level.
             ''' </summary>
-            Private _currentFinalizerState As Integer = -1
+            Private _currentFinalizerState As StateMachineState = StateMachineState.NotStartedOrRunningState
 
             ''' <summary>
             ''' The set of local variables and parameters that were hoisted and need a proxy.
@@ -99,14 +99,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _resumableStateAllocator = New ResumableStateMachineStateAllocator(
                     slotAllocatorOpt, firstState:=FirstIncreasingResumableState, increasing:=True)
 
-                _nextFinalizerState = If(slotAllocatorOpt?.GetFirstUnusedStateMachineState(increasing:=False), StateMachineStates.FirstIteratorFinalizeState)
+                _nextFinalizerState = If(slotAllocatorOpt?.GetFirstUnusedStateMachineState(increasing:=False), StateMachineState.FirstIteratorFinalizeState)
 
                 For Each p In initialProxies
                     Proxies.Add(p.Key, p.Value)
                 Next
             End Sub
 
-            Protected MustOverride ReadOnly Property FirstIncreasingResumableState As Integer
+            Protected MustOverride ReadOnly Property FirstIncreasingResumableState As StateMachineState
             Protected MustOverride ReadOnly Property EncMissingStateMessage As String
 
             ''' <summary>
@@ -156,30 +156,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Sub
             End Structure
 
-            Protected Sub AddResumableState(awaitOrYieldReturnSyntax As SyntaxNode, <Out> ByRef stateNumber As Integer, <Out> ByRef resumeLabel As GeneratedLabelSymbol)
-                stateNumber = _resumableStateAllocator.AllocateState(awaitOrYieldReturnSyntax)
+            Protected Sub AddResumableState(awaitOrYieldReturnSyntax As SyntaxNode, <Out> ByRef state As StateMachineState, <Out> ByRef resumeLabel As GeneratedLabelSymbol)
+                state = _resumableStateAllocator.AllocateState(awaitOrYieldReturnSyntax)
 
                 If _tryBlockSyntaxForNextFinalizerState IsNot Nothing Then
                     If SlotAllocatorOpt Is Nothing OrElse
                        Not SlotAllocatorOpt.TryGetPreviousStateMachineState(_tryBlockSyntaxForNextFinalizerState, _currentFinalizerState) Then
                         _currentFinalizerState = _nextFinalizerState
-                        _nextFinalizerState -= 1
+                        _nextFinalizerState = CType(_nextFinalizerState - 1, StateMachineState)
                     End If
 
                     AddStateDebugInfo(_tryBlockSyntaxForNextFinalizerState, _currentFinalizerState)
                     _tryBlockSyntaxForNextFinalizerState = Nothing
                 End If
 
-                AddStateDebugInfo(awaitOrYieldReturnSyntax, stateNumber)
-                AddState(stateNumber, resumeLabel)
+                AddStateDebugInfo(awaitOrYieldReturnSyntax, state)
+                AddState(state, resumeLabel)
             End Sub
 
-            Protected Sub AddStateDebugInfo(node As SyntaxNode, stateNumber As Integer)
+            Protected Sub AddStateDebugInfo(node As SyntaxNode, state As StateMachineState)
                 Debug.Assert(SyntaxBindingUtilities.BindsToResumableStateMachineState(node) OrElse
                              SyntaxBindingUtilities.BindsToTryStatement(node), $"Unexpected syntax: {node.Kind()}")
 
                 Dim syntaxOffset = CurrentMethod.CalculateLocalSyntaxOffset(node.SpanStart, node.SyntaxTree)
-                _stateDebugInfoBuilder.Add(New StateMachineStateDebugInfo(syntaxOffset, stateNumber))
+                _stateDebugInfoBuilder.Add(New StateMachineStateDebugInfo(syntaxOffset, state))
             End Sub
 
             Protected Sub AddState(stateNumber As Integer, <Out> ByRef resumeLabel As GeneratedLabelSymbol)
@@ -333,11 +333,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' </summary>
             Public Overrides Function VisitTryStatement(node As BoundTryStatement) As BoundNode
                 Dim oldDispatches As Dictionary(Of LabelSymbol, List(Of Integer)) = Me.Dispatches
-                Dim oldFinalizerState As Integer = Me._currentFinalizerState
+                Dim oldFinalizerState As StateMachineState = Me._currentFinalizerState
                 Dim oldTryBlockSyntax As SyntaxNode = Me._tryBlockSyntaxForNextFinalizerState
 
                 Me.Dispatches = Nothing
-                Me._currentFinalizerState = -1
+                Me._currentFinalizerState = StateMachineState.NotStartedOrRunningState
                 Me._tryBlockSyntaxForNextFinalizerState = node.Syntax
 
                 Dim tryBlock As BoundBlock = Me.F.Block(DirectCast(Me.Visit(node.TryBlock), BoundStatement))
@@ -360,7 +360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                               Me.F.Label(finalizer),
                                               Me.F.Assignment(
                                                   F.Field(F.Me(), Me.StateField, True),
-                                                  F.AssignmentExpression(F.Local(Me.CachedState, True), F.Literal(StateMachineStates.NotStartedStateMachine))),
+                                                  F.AssignmentExpression(F.Local(Me.CachedState, True), F.Literal(StateMachineState.NotStartedOrRunningState))),
                                               Me.GenerateReturn(False),
                                               Me.F.Label(skipFinalizer),
                                               tryBlock)
@@ -388,7 +388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                            Me.F.If(
                                                                condition:=Me.F.IntLessThan(
                                                                    Me.F.Local(Me.CachedState, False),
-                                                                   Me.F.Literal(StateMachineStates.FirstUnusedState)),
+                                                                   Me.F.Literal(StateMachineState.FirstUnusedState)),
                                                                thenClause:=DirectCast(Me.Visit(node.FinallyBlockOpt), BoundBlock)),
                                                            SyntheticBoundNodeFactory.HiddenSequencePoint()))
 

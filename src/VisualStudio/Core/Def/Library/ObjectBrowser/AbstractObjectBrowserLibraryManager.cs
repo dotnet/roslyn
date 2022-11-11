@@ -67,10 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         private AbstractListItemFactory GetListItemFactory()
         {
-            if (_listItemFactory == null)
-            {
-                _listItemFactory = CreateListItemFactory();
-            }
+            _listItemFactory ??= CreateListItemFactory();
 
             return _listItemFactory;
         }

@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -107,9 +107,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 if (reference != null)
                 {
                     var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
-                        project.Solution, reference, loadOnly: false, cancellationToken).ConfigureAwait(false);
+                        project.Solution, reference, checksum: null, cancellationToken).ConfigureAwait(false);
 
-                    // We must have an index since we passed in loadOnly: false here.
                     Contract.ThrowIfNull(info);
 
                     var symbols = await info.FindAsync(query, assembly, filter, cancellationToken).ConfigureAwait(false);

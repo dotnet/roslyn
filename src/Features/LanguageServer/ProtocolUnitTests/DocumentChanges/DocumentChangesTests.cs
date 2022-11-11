@@ -12,12 +12,17 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 {
     public partial class DocumentChangesTests : AbstractLanguageServerProtocolTests
     {
+        public DocumentChangesTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         [Fact]
         public async Task DocumentChanges_EndToEnd()
         {
@@ -39,7 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 }";
             var (testLspServer, locationTyped, documentText) = await GetTestLspServerAndLocationAsync(source);
 
-            using (testLspServer)
+            await using (testLspServer)
             {
                 Assert.Empty(testLspServer.GetTrackedTexts());
 
@@ -74,7 +79,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 }";
             var (testLspServer, locationTyped, documentText) = await GetTestLspServerAndLocationAsync(source);
 
-            using (testLspServer)
+            await using (testLspServer)
             {
                 await DidOpen(testLspServer, locationTyped.Uri);
 
@@ -98,7 +103,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 }";
             var (testLspServer, locationTyped, documentText) = await GetTestLspServerAndLocationAsync(source);
 
-            using (testLspServer)
+            await using (testLspServer)
             {
                 await DidOpen(testLspServer, locationTyped.Uri);
 
@@ -119,7 +124,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 }";
             var (testLspServer, locationTyped, documentText) = await GetTestLspServerAndLocationAsync(source);
 
-            using (testLspServer)
+            await using (testLspServer)
             {
                 await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(() => DidClose(testLspServer, locationTyped.Uri));
             }
@@ -138,7 +143,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 }";
             var (testLspServer, locationTyped, documentText) = await GetTestLspServerAndLocationAsync(source);
 
-            using (testLspServer)
+            await using (testLspServer)
             {
                 await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(() => DidChange(testLspServer, locationTyped.Uri, (0, 0, "goo")));
             }
@@ -158,7 +163,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync(source);
 
-            using (testLspServer)
+            await using (testLspServer)
             {
                 await DidOpen(testLspServer, locationTyped.Uri);
 
@@ -190,7 +195,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync(source);
 
-            using (testLspServer)
+            await using (testLspServer)
             {
                 await DidOpen(testLspServer, locationTyped.Uri);
 
@@ -225,7 +230,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             var (testLspServer, locationTyped, documentText) = await GetTestLspServerAndLocationAsync(source);
 
-            using (testLspServer)
+            await using (testLspServer)
             {
                 await DidOpen(testLspServer, locationTyped.Uri);
 
@@ -264,7 +269,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync(source);
 
-            using (testLspServer)
+            await using (testLspServer)
             {
                 await DidOpen(testLspServer, locationTyped.Uri);
 
@@ -300,7 +305,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync(source);
 
-            using (testLspServer)
+            await using (testLspServer)
             {
                 await DidOpen(testLspServer, locationTyped.Uri);
 
