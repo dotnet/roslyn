@@ -495,6 +495,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">{0} の可視性を変更するには、アプリケーションを再起動する必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_snippet_for_0">
+        <source>Code snippet for '{0}'</source>
+        <target state="new">Code snippet for '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Comments_not_allowed">
         <source>Comments not allowed</source>
         <target state="translated">コメントは使用できません</target>
@@ -973,6 +978,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Inline_and_keep_0">
         <source>Inline and keep '{0}'</source>
         <target state="translated">インラインおよび '{0}' の保持</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_temporary_variable">
+        <source>Inline temporary variable</source>
+        <target state="new">Inline temporary variable</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -4940,6 +4950,11 @@ The offset is always displayed with a leading sign. A plus sign (+) indicates ho
 DateTimeOffset 値で使用した場合、この書式指定子は DateTimeOffset 値の UTC を基準とするオフセット (時間単位) を表します。
 
 このオフセットは、常に先頭の符号と共に表示されます。プラス記号 (+) は UTC より時間が進んでいることを示し、マイナス記号 (-) は UTC よりも時間が遅れていることを示します。1 桁のオフセットは、先行ゼロ付きで書式設定されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="while_loop">
+        <source>while loop</source>
+        <target state="new">while loop</target>
         <note />
       </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">

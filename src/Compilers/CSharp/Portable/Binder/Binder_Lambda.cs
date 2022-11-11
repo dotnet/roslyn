@@ -125,6 +125,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     checkAttributes(syntax, p.AttributeLists, diagnostics);
 
+                    var isAnonymousMethod = syntax.IsKind(SyntaxKind.AnonymousMethodExpression);
+                    if (p.Default != null)
+                    {
+                        if (isAnonymousMethod)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_DefaultValueNotAllowed, p.Default.EqualsToken);
+                        }
+                        else
+                        {
+                            MessageID.IDS_FeatureLambdaOptionalParameters.CheckFeatureAvailability(diagnostics, syntax, p.Default.EqualsToken.GetLocation());
+                        }
+                    }
+
                     if (p.IsArgList)
                     {
                         Error(diagnostics, ErrorCode.ERR_IllegalVarArgs, p);
@@ -143,7 +156,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         type = BindType(typeSyntax, diagnostics);
-                        var isAnonymousMethod = syntax.IsKind(SyntaxKind.AnonymousMethodExpression);
                         ParameterHelpers.CheckParameterModifiers(p, diagnostics, parsingFunctionPointerParams: false,
                             parsingLambdaParams: !isAnonymousMethod,
                             parsingAnonymousMethodParams: isAnonymousMethod);

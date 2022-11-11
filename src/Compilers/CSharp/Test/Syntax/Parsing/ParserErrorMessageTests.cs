@@ -3246,9 +3246,9 @@ class A
 ";
 
             CreateCompilation(test).VerifyDiagnostics(
-                    // (5,25): error CS9501: Parameter 1 has default value '42' in lambda and '<missing>' in the target delegate type.
+                    // (5,27): error CS1065: Default values are not valid in this context.
                     //     D d1 = delegate(int x = 42) { };
-                    Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "x").WithArguments("1", "42", "<missing>").WithLocation(5, 25));
+                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 27));
         }
 
         [Fact]
@@ -3263,9 +3263,9 @@ class A
 ";
 
             CreateCompilation(test).VerifyDiagnostics(
-                    // (5,32): error CS9501: Parameter 2 has default value '42' in lambda and '<missing>' in the target delegate type.
+                    // (5,34): error CS1065: Default values are not valid in this context.
                     //     D d1 = delegate(int x, int y = 42) { };
-                    Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "y").WithArguments("2", "42", "<missing>").WithLocation(5, 32));
+                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 34));
         }
 
         [Fact, WorkItem(540251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540251")]

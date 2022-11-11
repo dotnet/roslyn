@@ -298,6 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal abstract bool GetUnificationUseSiteDiagnostic(ref DiagnosticInfo result, TypeSymbol dependentType);
 
+#nullable enable
         /// <summary>
         /// Lookup a top level type referenced from metadata, names should be
         /// compared case-sensitively.
@@ -306,10 +307,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Full type name, possibly with generic name mangling.
         /// </param>
         /// <returns>
-        /// Symbol for the type, or MissingMetadataSymbol if the type isn't found.
+        /// Symbol for the type, or null if the type isn't found.
         /// </returns>
         /// <remarks></remarks>
-        internal abstract NamedTypeSymbol LookupTopLevelMetadataType(ref MetadataTypeName emittedName);
+        internal abstract NamedTypeSymbol? LookupTopLevelMetadataType(ref MetadataTypeName emittedName);
+#nullable disable
 
         internal abstract ICollection<string> TypeNames { get; }
 

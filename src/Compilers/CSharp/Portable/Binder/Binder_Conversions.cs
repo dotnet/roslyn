@@ -704,6 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.AddRange(boundLambda.Diagnostics);
 
             CheckValidScopedMethodConversion(syntax, boundLambda.Symbol, destination, invokedAsExtensionMethod: false, diagnostics);
+            CheckLambdaConversion(boundLambda.Symbol, destination, diagnostics);
             return new BoundConversion(
                 syntax,
                 boundLambda,
@@ -770,6 +771,45 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (Type: targetType, Location: syntax.Location),
                     allowVariance: true,
                     invokedAsExtensionMethod: invokedAsExtensionMethod);
+            }
+        }
+
+        /// <summary>
+        /// Warns for defaults/`params` mismatch.
+        /// </summary>
+        private static void CheckLambdaConversion(LambdaSymbol lambdaSymbol, TypeSymbol targetType, BindingDiagnosticBag diagnostics)
+        {
+            if (lambdaSymbol.SyntaxNode.IsKind(SyntaxKind.AnonymousMethodExpression))
+            {
+                return;
+            }
+
+            var delegateType = targetType.GetDelegateType();
+            Debug.Assert(delegateType is not null);
+            var delegateParameters = delegateType.DelegateParameters();
+
+            Debug.Assert(lambdaSymbol.ParameterCount == delegateParameters.Length);
+            for (int p = 0; p < lambdaSymbol.ParameterCount; p++)
+            {
+                var lambdaParameter = lambdaSymbol.Parameters[p];
+                var delegateParameter = delegateParameters[p];
+
+                if (lambdaParameter.HasExplicitDefaultValue &&
+                    lambdaParameter.ExplicitDefaultConstantValue is { IsBad: false } lambdaParamDefault)
+                {
+                    var delegateParamDefault = delegateParameter.HasExplicitDefaultValue ? delegateParameter.ExplicitDefaultConstantValue : null;
+                    if (delegateParamDefault?.IsBad != true && lambdaParamDefault != delegateParamDefault)
+                    {
+                        // Parameter {0} has default value '{1}' in lambda but '{2}' in target delegate type.
+                        Error(diagnostics, ErrorCode.WRN_OptionalParamValueMismatch, lambdaParameter.Locations[0], p + 1, lambdaParamDefault, delegateParamDefault ?? ((object)MessageID.IDS_Missing.Localize()));
+                    }
+                }
+
+                if (lambdaParameter.IsParams && !delegateParameter.IsParams)
+                {
+                    // Parameter {0} has params modifier in lambda but not in target delegate type.
+                    Error(diagnostics, ErrorCode.WRN_ParamsArrayInLambdaOnly, lambdaParameter.Locations[0], p + 1);
+                }
             }
         }
 
@@ -1331,37 +1371,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
         }
 
-        private static void CheckDefaultParameterMatch(ErrorCode code, ParameterSymbol source, ParameterSymbol target, Location location, BindingDiagnosticBag diagnostics)
-        {
-            Debug.Assert(code is ErrorCode.ERR_OptionalParamValueMismatch or ErrorCode.WRN_OptionalParamValueMismatch);
-
-            var sourceParamDefault = source.ExplicitDefaultConstantValue;
-            if (sourceParamDefault is not null && !sourceParamDefault.IsBad)
-            {
-                var targetParamDefault = target.ExplicitDefaultConstantValue;
-                if (targetParamDefault?.IsBad != true && sourceParamDefault != targetParamDefault)
-                {
-                    // Parameter {0} has default value '{1}' in (lambda|method group) and '{2}' in target delegate type.
-                    diagnostics.Add(code, location, source.Ordinal + 1, sourceParamDefault, targetParamDefault ?? ((object)MessageID.IDS_Missing.Localize()));
-                }
-            }
-        }
-
-        private static void CheckForDefaultParameterMismatch(SyntaxNode methodGroupSyntax, MethodSymbol sourceMethod, MethodSymbol targetDelegateInvoke, bool isExtensionMethod, BindingDiagnosticBag diagnostics)
-        {
-            var start = isExtensionMethod ? 1 : 0;
-            Debug.Assert(sourceMethod.ParameterCount == targetDelegateInvoke.ParameterCount + start);
-
-            for (int i = 0; i < targetDelegateInvoke.ParameterCount; i++)
-            {
-                var delegateParameter = targetDelegateInvoke.Parameters[i];
-                if (delegateParameter.HasExplicitDefaultValue)
-                {
-                    CheckDefaultParameterMatch(ErrorCode.WRN_OptionalParamValueMismatch, sourceMethod.Parameters[i + start], delegateParameter, methodGroupSyntax.Location, diagnostics);
-                }
-            }
-        }
-
         /// <summary>
         /// This method combines final validation (section 7.6.5.1) and delegate compatibility (section 15.2).
         /// </summary>
@@ -1414,12 +1423,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((selectedMethod.HasUnsafeParameter() || selectedMethod.ReturnType.IsUnsafe()) && ReportUnsafeIfNotAllowed(syntax, diagnostics))
             {
                 return true;
-            }
-
-            if (delegateOrFuncPtrType.IsDelegateType())
-            {
-                var invokeMethod = delegateOrFuncPtrType.DelegateInvokeMethod()!;
-                CheckForDefaultParameterMismatch(syntax, selectedMethod, invokeMethod, isExtensionMethod, diagnostics);
             }
 
             CheckValidScopedMethodConversion(syntax, selectedMethod, delegateOrFuncPtrType, isExtensionMethod, diagnostics);

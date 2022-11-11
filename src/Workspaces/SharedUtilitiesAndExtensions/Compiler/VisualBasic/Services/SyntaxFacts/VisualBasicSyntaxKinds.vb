@@ -124,10 +124,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property ReturnStatement As Integer = SyntaxKind.ReturnStatement Implements ISyntaxKinds.ReturnStatement
         Public ReadOnly Property ThrowStatement As Integer = SyntaxKind.ThrowStatement Implements ISyntaxKinds.ThrowStatement
         Public ReadOnly Property UsingStatement As Integer = SyntaxKind.UsingStatement Implements ISyntaxKinds.UsingStatement
+        Public ReadOnly Property WhileStatement As Integer = SyntaxKind.WhileStatement Implements ISyntaxKinds.WhileStatement
         Public ReadOnly Property YieldReturnStatement As Integer = SyntaxKind.YieldStatement Implements ISyntaxKinds.YieldReturnStatement
 
         Public ReadOnly Property Attribute As Integer = SyntaxKind.Attribute Implements ISyntaxKinds.Attribute
         Public ReadOnly Property ClassDeclaration As Integer = SyntaxKind.ClassBlock Implements ISyntaxKinds.ClassDeclaration
+        Public ReadOnly Property ConstructorDeclaration As Integer = SyntaxKind.ConstructorBlock Implements ISyntaxKinds.ConstructorDeclaration
         Public ReadOnly Property InterfaceDeclaration As Integer = SyntaxKind.InterfaceBlock Implements ISyntaxKinds.InterfaceDeclaration
         Public ReadOnly Property RecordDeclaration As Integer? Implements ISyntaxKinds.RecordDeclaration
         Public ReadOnly Property RecordStructDeclaration As Integer? Implements ISyntaxKinds.RecordStructDeclaration
@@ -143,6 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
         Public ReadOnly Property EqualsValueClause As Integer = SyntaxKind.EqualsValue Implements ISyntaxKinds.EqualsValueClause
 
+        Public ReadOnly Property ImplicitElementAccess As Integer? Implements ISyntaxKinds.ImplicitElementAccess
         Public ReadOnly Property Interpolation As Integer = SyntaxKind.Interpolation Implements ISyntaxKinds.Interpolation
         Public ReadOnly Property InterpolatedStringExpression As Integer = SyntaxKind.InterpolatedStringExpression Implements ISyntaxKinds.InterpolatedStringExpression
         Public ReadOnly Property InterpolatedStringText As Integer = SyntaxKind.InterpolatedStringText Implements ISyntaxKinds.InterpolatedStringText

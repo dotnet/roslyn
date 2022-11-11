@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertConversionOperators
             Return from.Type
         End Function
 
-        Protected Overrides Function ConvertExpression(fromExpression As TryCastExpressionSyntax) As DirectCastExpressionSyntax
+        Protected Overrides Function ConvertExpression(fromExpression As TryCastExpressionSyntax, nullableContext As NullableContext, isReferenceType As Boolean) As DirectCastExpressionSyntax
             Return SyntaxFactory.DirectCastExpression(
                 SyntaxFactory.Token(SyntaxKind.DirectCastKeyword),
                 fromExpression.OpenParenToken,

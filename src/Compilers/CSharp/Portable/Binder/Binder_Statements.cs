@@ -237,11 +237,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression argument = (node.Expression == null)
                 ? BadExpression(node).MakeCompilerGenerated()
                 : BindValue(node.Expression, diagnostics, BindValueKind.RValue);
-            argument = ValidateEscape(argument, ReturnOnlyScope, isByRef: false, diagnostics: diagnostics);
 
             if (!argument.HasAnyErrors)
             {
                 argument = GenerateConversionForAssignment(elementType, argument, diagnostics);
+                argument = ValidateEscape(argument, ReturnOnlyScope, isByRef: false, diagnostics: diagnostics);
             }
             else
             {
@@ -2202,24 +2202,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (reason == LambdaConversionResult.MismatchedParameterDefaultValue)
-            {
-                Debug.Assert(anonymousFunction.ParameterCount == delegateParameters.Length);
-
-                var lambdaSymbol = anonymousFunction.LambdaForParameterDefaultValues;
-                Debug.Assert(lambdaSymbol is not null);
-
-                // The lambda symbol may have diagnostics from
-                // binding default parameters, so copy these to the current diagnostic bag
-                lambdaSymbol.GetDeclarationDiagnostics(diagnostics);
-
-                for (int i = 0; i < anonymousFunction.ParameterCount; i++)
-                {
-                    CheckDefaultParameterMatch(ErrorCode.ERR_OptionalParamValueMismatch, lambdaSymbol.Parameters[i], delegateParameters[i], anonymousFunction.ParameterLocation(i), diagnostics);
-                }
-                return;
-            }
-
             if (reason == LambdaConversionResult.BindingFailed)
             {
                 var bindingResult = anonymousFunction.Bind(delegateType, isExpressionTree: false);
@@ -3116,8 +3098,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (IsEffectivelyGenericTaskReturningAsyncMethod()
                             && TypeSymbol.Equals(argument.Type, this.GetCurrentReturnType(out unusedRefKind), TypeCompareKind.ConsiderEverything2))
                         {
-                            // Since this is an async method, the return expression must be of type '{0}' rather than 'Task<{0}>'
-                            Error(diagnostics, ErrorCode.ERR_BadAsyncReturnExpression, argument.Syntax, returnType);
+                            // Since this is an async method, the return expression must be of type '{0}' rather than '{1}'
+                            Error(diagnostics, ErrorCode.ERR_BadAsyncReturnExpression, argument.Syntax, returnType, argument.Type);
                         }
                         else
                         {
@@ -3436,9 +3418,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    expression = returnType.IsErrorType()
-                        ? BindToTypeForErrorRecovery(expression)
-                        : CreateReturnConversion(syntax, diagnostics, expression, refKind, returnType);
+                    if (returnType.IsErrorType())
+                    {
+                        expression = BindToTypeForErrorRecovery(expression);
+                    }
+                    else
+                    {
+                        expression = CreateReturnConversion(syntax, diagnostics, expression, refKind, returnType);
+                        expression = ValidateEscape(expression, Binder.ReturnOnlyScope, isByRef: refKind != RefKind.None, diagnostics);
+                    }
                     statement = new BoundReturnStatement(syntax, returnRefKind, expression, @checked: CheckOverflowAtRuntime) { WasCompilerGenerated = true };
                 }
             }
@@ -3485,8 +3473,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ExpressionSyntax expressionSyntax = expressionBody.Expression.CheckAndUnwrapRefExpression(diagnostics, out refKind);
                 BindValueKind requiredValueKind = bodyBinder.GetRequiredReturnValueKind(refKind);
                 BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, requiredValueKind);
-                expression = bodyBinder.ValidateEscape(expression, Binder.ReturnOnlyScope, refKind != RefKind.None, diagnostics);
-
                 return bodyBinder.CreateBlockFromExpression(expressionBody, bodyBinder.GetDeclaredLocalsForScope(expressionBody), refKind, expression, expressionSyntax, diagnostics);
             }
         }
@@ -3503,8 +3489,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expressionSyntax = body.CheckAndUnwrapRefExpression(diagnostics, out refKind);
             BindValueKind requiredValueKind = GetRequiredReturnValueKind(refKind);
             BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, requiredValueKind);
-            expression = ValidateEscape(expression, Binder.ReturnOnlyScope, refKind != RefKind.None, diagnostics);
-
             return bodyBinder.CreateBlockFromExpression(body, bodyBinder.GetDeclaredLocalsForScope(body), refKind, expression, expressionSyntax, diagnostics);
         }
 
@@ -3589,21 +3573,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(recordDecl.ParameterList is object);
             Debug.Assert(recordDecl.IsKind(SyntaxKind.RecordDeclaration));
 
-            Binder bodyBinder = this.GetBinder(recordDecl);
-            Debug.Assert(bodyBinder != null);
-
             BoundExpressionStatement initializer;
+            ImmutableArray<LocalSymbol> constructorLocals;
             if (recordDecl.PrimaryConstructorBaseTypeIfClass is PrimaryConstructorBaseTypeSyntax baseWithArguments)
             {
-                initializer = bodyBinder.BindConstructorInitializer(baseWithArguments, diagnostics);
+                Binder initializerBinder = GetBinder(baseWithArguments);
+                Debug.Assert(initializerBinder != null);
+                initializer = initializerBinder.BindConstructorInitializer(baseWithArguments, diagnostics);
+                constructorLocals = initializerBinder.GetDeclaredLocalsForScope(baseWithArguments);
             }
             else
             {
-                initializer = bodyBinder.BindImplicitConstructorInitializer(recordDecl, diagnostics);
+                initializer = BindImplicitConstructorInitializer(recordDecl, diagnostics);
+                constructorLocals = ImmutableArray<LocalSymbol>.Empty;
             }
 
             return new BoundConstructorMethodBody(recordDecl,
-                                                  bodyBinder.GetDeclaredLocalsForScope(recordDecl),
+                                                  constructorLocals,
                                                   initializer,
                                                   blockBody: new BoundBlock(recordDecl, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty).MakeCompilerGenerated(),
                                                   expressionBody: null);

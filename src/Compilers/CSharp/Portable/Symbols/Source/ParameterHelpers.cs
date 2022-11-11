@@ -528,6 +528,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             seenParams = true;
                         }
+
+                        if (parsingLambdaParams)
+                        {
+                            MessageID.IDS_FeatureLambdaParamsArray.CheckFeatureAvailability(diagnostics, parameter, modifier.GetLocation());
+                        }
                         break;
 
                     case SyntaxKind.InKeyword:

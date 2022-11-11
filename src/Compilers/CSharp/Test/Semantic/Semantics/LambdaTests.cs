@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-// PROTOTYPE: Address IOperationValidation support for lambda default params
-
 #nullable disable
 
 using System;
@@ -231,6 +229,12 @@ class C
                 // (66,39): error CS1670: params is not valid in this context
                 //         Action<int[]> q16 = delegate (params int[] p) { };
                 Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(66, 39),
+                // (67,49): warning CS9502: Parameter 1 has params modifier in lambda but not in target delegate type.
+                //         Action<string[]> q17 = (params string[] s)=>{};
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "s").WithArguments("1").WithLocation(67, 49),
+                // (68,61): warning CS9502: Parameter 2 has params modifier in lambda but not in target delegate type.
+                //         Action<int, double[]> q18 = (int x, params double[] s)=>{};
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "s").WithArguments("2").WithLocation(68, 61),
                 // (70,34): error CS1593: Delegate 'Action' does not take 1 arguments
                 //         object q19 = new Action( (int x)=>{} );
                 Diagnostic(ErrorCode.ERR_BadDelArgCount, "(int x)=>{}").WithArguments("System.Action", "1").WithLocation(70, 34),
@@ -4843,9 +4847,9 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                    // (7,68): error CS9501: Parameter 1 has default value '2' in lambda and '<missing>' in the target delegate type.
+                    // (7,68): warning CS9501: Parameter 1 has default value '2' in lambda but '<missing>' in the target delegate type.
                     //         Action<int> a1 = ([Optional, DefaultParameterValue(2)] int i) => { };
-                    Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "i").WithArguments("1", "2", "<missing>").WithLocation(7, 68));
+                    Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "i").WithArguments("1", "2", "<missing>").WithLocation(7, 68));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -7038,7 +7042,55 @@ public class DisplayAttribute : System.Attribute
                 );
         }
 
-        // PROTOTYPE: Add separate test cases for lang version 11 vs. lang version 11 preview
+        [Fact]
+        public void DelegateConversions_ImplicitlyTypedParameter_RefParameter()
+        {
+            var source = """
+                struct R { }
+
+                delegate R D1(ref R r);
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        D1 d1 = r1 => r1; // 1
+                        M(r2 => r2); // 2
+                    }
+
+                    static void M(D1 d1) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (9,17): error CS1676: Parameter 1 must be declared with the 'ref' keyword
+                //         D1 d1 = r1 => r1; // 1
+                Diagnostic(ErrorCode.ERR_BadParamRef, "r1").WithArguments("1", "ref").WithLocation(9, 17),
+                // (10,11): error CS1676: Parameter 1 must be declared with the 'ref' keyword
+                //         M(r2 => r2); // 2
+                Diagnostic(ErrorCode.ERR_BadParamRef, "r2").WithArguments("1", "ref").WithLocation(10, 11)
+                );
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambdas = root.DescendantNodes().OfType<LambdaExpressionSyntax>().ToArray();
+
+            Assert.Equal("r1 => r1", lambdas[0].ToString());
+            var lambdaParameter1 = model.GetSymbolInfo(lambdas[0]).Symbol.GetParameters()[0];
+            Assert.Equal("? r1", lambdaParameter1.ToTestDisplayString());
+            Assert.Equal(RefKind.None, lambdaParameter1.RefKind);
+
+            // Implicitly-typed lambda parameters can get a type, but they cannot get a different ref-kind (or scoped-ness) during anonymous function conversion
+            // Tracked by https://github.com/dotnet/roslyn/issues/64985
+            Assert.Equal("r2 => r2", lambdas[1].ToString());
+            var lambdaParameter2 = model.GetSymbolInfo(lambdas[1]).Symbol.GetParameters()[0];
+            Assert.Equal("ref R r2", lambdaParameter2.ToTestDisplayString());
+            Assert.Equal(RefKind.Ref, lambdaParameter2.RefKind);
+        }
+
         [Fact]
         public void LambdaWithExplicitDefaultParam()
         {
@@ -7052,15 +7104,18 @@ public class DisplayAttribute : System.Attribute
     }
 }
 ";
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (5,27): error CS8652: The feature 'lambda optional parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var lam1 = (int x = 7) => x;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "=").WithArguments("lambda optional parameters").WithLocation(5, 27));
 
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
 
-
-        // PROTOTYPE: Add separate test cases for lang version 11 vs. lang version 11 preview
-        [Fact]
-        public void AnonymousMethodWithExplicitDefaultParam()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp11)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        public void AnonymousMethodWithExplicitDefaultParam(LanguageVersion languageVersion)
         {
             var source = """
 class Program
@@ -7073,8 +7128,11 @@ class Program
 }
 
 """;
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
+                // (5,34): error CS1065: Default values are not valid in this context.
+                //         var lam = delegate(int x = 7) { return x; };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 34));
         }
 
         [Fact]
@@ -7160,6 +7218,9 @@ class Program
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (5,34): error CS1065: Default values are not valid in this context.
+                //         var lam = delegate(int a = 3, int b) { return a + b; };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 34),
                 // (5,44): error CS1737: Optional parameters must appear after all required parameters
                 //         var lam = delegate(int a = 3, int b) { return a + b; };
                 Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(5, 44));
@@ -7199,6 +7260,9 @@ class Program
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                    // (5,41): error CS1065: Default values are not valid in this context.
+                    //         var lam = delegate(int x, int y = 3, int z) { return x + y + z; };
+                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 41),
                     // (5,51): error CS1737: Optional parameters must appear after all required parameters
                     //         var lam = delegate(int x, int y = 3, int z) { return x + y + z; };
                     Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(5, 51));
@@ -7239,7 +7303,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (5,32): error CS1750: A value of type 'string' cannot be used as a default parameter because there are no standard conversions to type 'int'
                 //         var lam = delegate(int x = "abcdef") { return x; };
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "x").WithArguments("string", "int").WithLocation(5, 32));
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "x").WithArguments("string", "int").WithLocation(5, 32),
+                // (5,34): error CS1065: Default values are not valid in this context.
+                //         var lam = delegate(int x = "abcdef") { return x; };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 34));
         }
 
         [Fact]
@@ -7295,6 +7362,9 @@ class Program
 """;
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (14,32): error CS1065: Default values are not valid in this context.
+                //         var lam = delegate(C c = new C(null)) { return c.Field; };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(14, 32),
                 // (14,34): error CS1736: Default parameter value for 'c' must be a compile-time constant
                 //         var lam = delegate(C c = new C(null)) { return c.Field; };
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new C(null)").WithArguments("c").WithLocation(14, 34));
@@ -7336,6 +7406,9 @@ class Program
 """;
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (7,37): error CS1065: Default values are not valid in this context.
+                //         var lam = delegate(string s = add(1, 2)) { return s; };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(7, 37),
                 // (7,39): error CS1736: Default parameter value for 's' must be a compile-time constant
                 //         var lam = delegate(string s = add(1, 2)) { return s; };
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "add(1, 2)").WithArguments("s").WithLocation(7, 39));
@@ -7385,10 +7458,13 @@ class Program
 }
 """;
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (12,35): error CS1065: Default values are not valid in this context.
+                //         var fn = delegate(int arg = b1 ? num1 : b2 ? num2 : num3) { return arg; };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(12, 35));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LambdaDefaultLocalConstantExpression()
         {
             var source = """
@@ -7406,7 +7482,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void AnonymousMethodDefaultLocalConstantExpression()
         {
             var source = """
@@ -7421,7 +7497,10 @@ class Program
 }
 """;
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (7,37): error CS1065: Default values are not valid in this context.
+                //         var func = delegate(int arg = i1 + i2) { return arg + 1; };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(7, 37));
         }
 
         [Fact]
@@ -7486,7 +7565,10 @@ class Program
 }
 """;
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (5,62): error CS1065: Default values are not valid in this context.
+                //         var lam = delegate(ref int x, out object y, double c = 4.59) { y = c + (double) x; };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 62));
         }
 
         [Fact]
@@ -7511,21 +7593,36 @@ class Program
             var source = """
 class Program
 {
-    void M(int a)
+    void M(int a, int b)
     {
-       var _ = (int i = M2(a)) => { }; // parameter 'a' should be considered read/used
+        var _ = (int i = M2(a)) => { }; // parameter 'a' should be considered read/used
     }
 
     static int M2(int j) => j;
 }
 """;
-
-            // PROTOTYPE: verify this case with DataFlowAnalysis APIs
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (5,25): error CS1736: Default parameter value for 'i' must be a compile-time constant
-                //        var _ = (int i = M2(a)) => { }; // parameter 'a' should be considered read/used
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M2(a)").WithArguments("i").WithLocation(5, 25));
+                // (5,26): error CS1736: Default parameter value for 'i' must be a compile-time constant
+                //         var _ = (int i = M2(a)) => { }; // parameter 'a' should be considered read/used
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M2(a)").WithArguments("i").WithLocation(5, 26));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            // Find method parameters.
+            var method = comp.GetMember<MethodSymbol>("Program.M").GetPublicSymbol();
+            Assert.Equal(2, method.Parameters.Length);
+            var a = method.Parameters[0];
+            Assert.Equal("a", a.Name);
+            var b = method.Parameters[1];
+            Assert.Equal("b", b.Name);
+
+            // Analyze flow inside method's body.
+            var methodSyntax = (MethodDeclarationSyntax)method.DeclaringSyntaxReferences.Single().GetSyntax();
+            var dataFlow = model.AnalyzeDataFlow(methodSyntax.Body);
+            Assert.Contains(a, dataFlow.ReadInside);
+            Assert.DoesNotContain(b, dataFlow.ReadInside);
         }
 
         [Fact]
@@ -7544,6 +7641,9 @@ class Program
 """;
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (5,31): error CS1065: Default values are not valid in this context.
+                //        var _ = delegate(int i = M2(a)) { }; // parameter 'a' should be considered read/used
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 31),
                 // (5,33): error CS1736: Default parameter value for 'i' must be a compile-time constant
                 //        var _ = delegate(int i = M2(a)) { }; // parameter 'a' should be considered read/used
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M2(a)").WithArguments("i").WithLocation(5, 33));
@@ -7587,7 +7687,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LambdaDefaultWithinNestedScope()
         {
             var source = """
@@ -7786,9 +7886,9 @@ class Program
 ";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (7,27): error CS9501: Parameter 1 has default value '"0123456..."' in lambda and '"abc"' in the target delegate type.
+                // (7,27): warning CS9501: Parameter 1 has default value '"0123456..."' in lambda but '"abc"' in the target delegate type.
                 //         Del del = (string s = "0123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899") => { };
-                Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "s").WithArguments("1", @"""0123456...""", @"""abc""").WithLocation(7, 27));
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "s").WithArguments("1", @"""0123456...""", @"""abc""").WithLocation(7, 27));
         }
 
         [Fact]
@@ -7841,6 +7941,223 @@ class Program
                 // (6,9): error CS7036: There is no argument given that corresponds to the required parameter 'arg2' of '<anonymous delegate>'
                 //         lam(5);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam").WithArguments("arg2", "<anonymous delegate>").WithLocation(6, 9));
+        }
+
+        [Fact]
+        public void LambdaWithDefaultParameter_SymbolInfo()
+        {
+            var source = """
+                using System.Runtime.InteropServices;
+                var lam1 = (int a, int b = 1) => a + b;
+                var lam2 = ([Optional] int x) => x;
+                var lam3 = ([DefaultParameterValue(2)] int x) => x;
+                var lam4 = ([Optional, DefaultParameterValue(3)] int x) => x;
+                """;
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var lambdas = tree.GetRoot().DescendantNodes()
+                .Where(n => n.IsKind(SyntaxKind.ParenthesizedLambdaExpression))
+                .Select(n => (Node: n, Symbol: (IMethodSymbol)model.GetSymbolInfo(n).Symbol))
+                .ToImmutableArray();
+            Assert.Equal(4, lambdas.Length);
+
+            // lam1
+            Assert.Equal("(int a, int b = 1) => a + b", lambdas[0].Node.ToString());
+            Assert.Equal(2, lambdas[0].Symbol.Parameters.Length);
+            Assert.False(lambdas[0].Symbol.Parameters[0].IsOptional);
+            Assert.False(lambdas[0].Symbol.Parameters[0].HasExplicitDefaultValue);
+            Assert.Throws<InvalidOperationException>(() => lambdas[0].Symbol.Parameters[0].ExplicitDefaultValue);
+            Assert.True(lambdas[0].Symbol.Parameters[1].IsOptional);
+            Assert.True(lambdas[0].Symbol.Parameters[1].HasExplicitDefaultValue);
+            Assert.Equal(1, lambdas[0].Symbol.Parameters[1].ExplicitDefaultValue);
+
+            // lam2
+            Assert.Equal("([Optional] int x) => x", lambdas[1].Node.ToString());
+            Assert.Equal(1, lambdas[1].Symbol.Parameters.Length);
+            Assert.True(lambdas[1].Symbol.Parameters[0].IsOptional);
+            Assert.False(lambdas[2].Symbol.Parameters[0].HasExplicitDefaultValue);
+            Assert.Throws<InvalidOperationException>(() => lambdas[1].Symbol.Parameters[0].ExplicitDefaultValue);
+
+            // lam3
+            Assert.Equal("([DefaultParameterValue(2)] int x) => x", lambdas[2].Node.ToString());
+            Assert.Equal(1, lambdas[2].Symbol.Parameters.Length);
+            Assert.False(lambdas[2].Symbol.Parameters[0].IsOptional);
+            Assert.False(lambdas[2].Symbol.Parameters[0].HasExplicitDefaultValue);
+            Assert.Throws<InvalidOperationException>(() => lambdas[2].Symbol.Parameters[0].ExplicitDefaultValue);
+
+            // lam4
+            Assert.Equal("([Optional, DefaultParameterValue(3)] int x) => x", lambdas[3].Node.ToString());
+            Assert.Equal(1, lambdas[3].Symbol.Parameters.Length);
+            Assert.True(lambdas[3].Symbol.Parameters[0].IsOptional);
+            Assert.True(lambdas[3].Symbol.Parameters[0].HasExplicitDefaultValue);
+            Assert.Equal(3, lambdas[3].Symbol.Parameters[0].ExplicitDefaultValue);
+        }
+
+        [Fact]
+        public void LambdaWithDefaultParameter_EqualsValueClauseSyntax()
+        {
+            var source = """
+                var lam = (int a, int b = 1) => a + b;
+                """;
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var lambda = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var equalsValue = lambda.DescendantNodes().OfType<EqualsValueClauseSyntax>().Single();
+            Assert.Equal("= 1", equalsValue.ToString());
+            var constantValue = model.GetConstantValue(equalsValue.Value);
+            Assert.True(constantValue.HasValue);
+            Assert.Equal(1, constantValue.Value);
+        }
+
+        [Fact]
+        public void LambdaWithDefaultParameter_SpeculativeSemanticModel()
+        {
+            var source = """
+                class C
+                {
+                    public static int M1(int x) => x * 2;
+                    public static void M2()
+                    {
+                        var lam = (int b) => b;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var m2 = comp.GetMember<MethodSymbol>("C.M2").GetPublicSymbol();
+            var m2Syntax = (MethodDeclarationSyntax)m2.DeclaringSyntaxReferences.Single().GetSyntax();
+            var newStmt = SyntaxFactory.ParseStatement("var lam = (int b = M1(4)) => b;");
+            var newMethod = m2Syntax.WithBody(SyntaxFactory.Block(newStmt));
+            Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(m2Syntax.Body.SpanStart, newMethod, out var speculativeModel));
+            var newLambda = newMethod.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var newLambdaSymbol = (IMethodSymbol)speculativeModel.GetSymbolInfo(newLambda).Symbol;
+            var newParam = newLambdaSymbol.Parameters.Single();
+            Assert.True(newParam.HasExplicitDefaultValue);
+            Assert.Null(newParam.ExplicitDefaultValue);
+
+            // Ensure errors from default parameter values are not added to declaration table.
+            model.GetDiagnostics().Verify();
+        }
+
+        [Fact]
+        public void LambdaWithDefaultParameter_SameSymbols()
+        {
+            var source = """
+                class C
+                {
+                    public static void M()
+                    {
+                        const int N = 10;
+                        var lam = (int a = N) => a;
+                        var x = N;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (7,13): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         var x = N;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(7, 13));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().ToImmutableArray();
+            Assert.Equal(3, decls.Length);
+
+            Assert.Equal("const int N = 10;", decls[0].ToString());
+            var constSymbol = model.GetDeclaredSymbol(decls[0].Declaration.Variables.Single());
+            Assert.NotNull(constSymbol);
+
+            Assert.Equal("var lam = (int a = N) => a;", decls[1].ToString());
+            var defaultValue = decls[1].DescendantNodes().OfType<LambdaExpressionSyntax>().Single()
+                .DescendantNodes().OfType<EqualsValueClauseSyntax>().Single().Value;
+            var defaultValueSymbol = model.GetSymbolInfo(defaultValue).Symbol;
+            Assert.Same(constSymbol, defaultValueSymbol);
+
+            Assert.Equal("var x = N;", decls[2].ToString());
+            var lhs = decls[2].DescendantNodes().OfType<EqualsValueClauseSyntax>().Single().Value;
+            var lhsSymbol = model.GetSymbolInfo(lhs).Symbol;
+            Assert.Same(constSymbol, lhsSymbol);
+        }
+
+        [Fact]
+        public void LambdaWithDefaultParameter_MemberSemanticModel()
+        {
+            var source = """
+                class C
+                {
+                    public static void M()
+                    {
+                        const int N = 10;
+                        var lam = (int a = N) => a;
+                        lam();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
+
+            // Ensure MemberSemanticModel is parented to the correct outer SemanticModel.
+            var defaultValue = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single()
+                .DescendantNodes().OfType<EqualsValueClauseSyntax>().Single().Value;
+            var defaultValueModel = model.GetMemberModel(defaultValue);
+            Assert.Same(model, defaultValueModel.ContainingPublicModelOrSelf);
+
+            // Ensure binder chain is shared with member model for the enclosing method body.
+            var methodSyntax = (MethodDeclarationSyntax)comp.GetMember<MethodSymbol>("C.M").GetNonNullSyntaxNode();
+            var methodModel = model.GetMemberModel(methodSyntax.Body);
+            Assert.NotNull(methodModel);
+            var methodBinder = GetBinder<BlockBinder>(methodModel.GetEnclosingBinder(methodSyntax.Body.SpanStart));
+            var defaultValueBinder = GetBinder<BlockBinder>(defaultValueModel.GetEnclosingBinder(defaultValue.SpanStart));
+            Assert.Same(methodBinder, defaultValueBinder);
+
+            static T GetBinder<T>(Binder binder) where T : Binder
+            {
+                while (true)
+                {
+                    if (binder is T t)
+                    {
+                        return t;
+                    }
+                    binder = binder.NextRequired;
+                }
+            }
+        }
+
+        [Fact]
+        public void ParamsArray_Langversion()
+        {
+            var source = """
+                var lam = (params int[] xs) => xs.Length;
+                """;
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (1,12): error CS8652: The feature 'lambda params array' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // var lam = (params int[] xs) => xs.Length;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "params").WithArguments("lambda params array").WithLocation(1, 12));
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp11)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        public void ParamsArray_Langversion_DelegateSyntax(LanguageVersion languageVersion)
+        {
+            var source = """
+                var lam = delegate (params int[] xs) { return xs.Length; };
+                """;
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                // (1,21): error CS1670: params is not valid in this context
+                // var lam = delegate (params int[] xs) { return xs.Length };
+                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(1, 21));
         }
 
         [Fact]

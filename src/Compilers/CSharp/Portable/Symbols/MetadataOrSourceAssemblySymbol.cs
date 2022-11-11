@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private NativeIntegerTypeSymbol[] _lazyNativeIntegerTypes;
 
+#nullable enable 
+
         /// <summary>
         /// Lookup declaration for predefined CorLib type in this Assembly.
         /// </summary>
@@ -51,16 +53,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 MetadataTypeName emittedName = MetadataTypeName.FromFullName(type.GetMetadataName(), useCLSCompliantNameArityEncoding: true);
                 ModuleSymbol module = this.Modules[0];
-                NamedTypeSymbol result = module.LookupTopLevelMetadataType(ref emittedName);
-                if (result.Kind != SymbolKind.ErrorType && result.DeclaredAccessibility != Accessibility.Public)
+                NamedTypeSymbol? result = module.LookupTopLevelMetadataType(ref emittedName);
+
+                Debug.Assert(result?.IsErrorType() != true);
+
+                if (result is null || result.DeclaredAccessibility != Accessibility.Public)
                 {
                     result = new MissingMetadataTypeSymbol.TopLevel(module, ref emittedName, type);
                 }
+
                 RegisterDeclaredSpecialType(result);
             }
 
+            Debug.Assert(_lazySpecialTypes is not null);
             return _lazySpecialTypes[(int)type];
         }
+
+#nullable disable
 
         /// <summary>
         /// Register declaration of predefined CorLib type in this Assembly.

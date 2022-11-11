@@ -33599,18 +33599,36 @@ class C
             // of a lambda parameter is that default expression.
             var compilation = CreateCompilationWithMscorlib45(text);
             compilation.GetDiagnostics().Verify(
+                    // (7,56): error CS1065: Default values are not valid in this context.
+                    //                                                 bool b = M(M(out int z1), z1), 
+                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(7, 56),
                     // (7,58): error CS1736: Default parameter value for 'b' must be a compile-time constant
                     //                                                 bool b = M(M(out int z1), z1), 
                     Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(M(out int z1), z1)").WithArguments("b").WithLocation(7, 58),
+                    // (8,56): error CS1065: Default values are not valid in this context.
+                    //                                                 int s2 = z1) 
+                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(8, 56),
                     // (8,58): error CS0103: The name 'z1' does not exist in the current context
                     //                                                 int s2 = z1) 
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(8, 58),
+                    // (9,55): error CS0103: The name 'z1' does not exist in the current context
+                    //                                             { var t = z1; };
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(9, 55),
+                    // (11,56): error CS1065: Default values are not valid in this context.
+                    //                                                 bool b = M(M(out var z2), z2), 
+                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(11, 56),
                     // (11,58): error CS1736: Default parameter value for 'b' must be a compile-time constant
                     //                                                 bool b = M(M(out var z2), z2), 
                     Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(M(out var z2), z2)").WithArguments("b").WithLocation(11, 58),
+                    // (12,56): error CS1065: Default values are not valid in this context.
+                    //                                                 int s2 = z2)  
+                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(12, 56),
                     // (12,58): error CS0103: The name 'z2' does not exist in the current context
                     //                                                 int s2 = z2)  
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(12, 58),
+                    // (13,55): error CS0103: The name 'z2' does not exist in the current context
+                    //                                             { var t = z2; };
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(13, 55),
                     // (15,17): error CS0103: The name 'z1' does not exist in the current context
                     //         int x = z1 + z2;
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(15, 17),

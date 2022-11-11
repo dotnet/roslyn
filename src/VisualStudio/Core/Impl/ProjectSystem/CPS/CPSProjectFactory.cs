@@ -48,6 +48,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         public ImmutableArray<string> EvaluationPropertyNames
             => BuildPropertyNames.InitialEvaluationPropertyNames;
 
+        public ImmutableArray<string> EvaluationItemNames
+            => BuildPropertyNames.InitialEvaluationItemNames;
+
         public Task<IWorkspaceProjectContext> CreateProjectContextAsync(Guid id, string uniqueName, string languageName, EvaluationData data, object? hostObject, CancellationToken cancellationToken)
             => CreateProjectContextAsync(
                 languageName: languageName,

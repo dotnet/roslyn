@@ -3041,7 +3041,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Cannot convert {0} to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type</value>
   </data>
   <data name="ERR_BadAsyncReturnExpression" xml:space="preserve">
-    <value>Since this is an async method, the return expression must be of type '{0}' rather than 'Task&lt;{0}&gt;'</value>
+    <value>Since this is an async method, the return expression must be of type '{0}' rather than '{1}'</value>
   </data>
   <data name="ERR_CantConvAsyncAnonFuncReturns" xml:space="preserve">
     <value>Cannot convert async {0} to delegate type '{1}'. An async {0} may return void, Task or Task&lt;T&gt;, none of which are convertible to '{1}'.</value>
@@ -7343,11 +7343,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ImplicitlyTypedDefaultParameter" xml:space="preserve">
     <value>Implicitly typed lambda parameter '{0}' cannot have a default value.</value>
   </data>
-  <data name="ERR_OptionalParamValueMismatch" xml:space="preserve">
-    <value>Parameter {0} has default value '{1:10}' in lambda and '{2:10}' in the target delegate type.</value>
-     </data>
   <data name="WRN_OptionalParamValueMismatch" xml:space="preserve">
-    <value>Parameter {0} has default value '{1:10}' in method group and '{2:10}' in the target delegate type.</value>
+    <value>Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</value>
   </data>
   <data name="WRN_OptionalParamValueMismatch_Title" xml:space="preserve">
     <value>The default parameter value does not match in the target delegate type.</value>
@@ -7396,5 +7393,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_DeconstructVariableCannotBeByRef" xml:space="preserve">
     <value>A deconstruction variable cannot be declared as a ref local</value>
+  </data>
+  <data name="IDS_FeatureLambdaOptionalParameters" xml:space="preserve">
+    <value>lambda optional parameters</value>
+  </data>
+  <data name="IDS_FeatureLambdaParamsArray" xml:space="preserve">
+    <value>lambda params array</value>
+  </data>
+  <data name="WRN_ParamsArrayInLambdaOnly" xml:space="preserve">
+    <value>Parameter {0} has params modifier in lambda but not in target delegate type.</value>
+  </data>
+  <data name="WRN_ParamsArrayInLambdaOnly_Title" xml:space="preserve">
+    <value>Parameter has params modifier in lambda but not in target delegate type.</value>
   </data>
 </root>
