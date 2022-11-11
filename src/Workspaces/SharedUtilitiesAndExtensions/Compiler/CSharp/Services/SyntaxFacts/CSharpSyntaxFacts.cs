@@ -1712,9 +1712,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public SeparatedSyntaxList<SyntaxNode> GetExpressionsOfObjectCollectionInitializer(SyntaxNode node)
             => node is InitializerExpressionSyntax(SyntaxKind.CollectionInitializerExpression) initExpr ? initExpr.Expressions : default;
 
-        public SyntaxNode GetConditionOfIfStatement(SyntaxNode node)
-            => ((IfStatementSyntax)node).Condition;
-
         #endregion
     }
 }

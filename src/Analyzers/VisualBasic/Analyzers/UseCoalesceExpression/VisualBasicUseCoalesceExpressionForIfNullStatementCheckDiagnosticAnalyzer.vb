@@ -18,10 +18,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCoalesceExpression
             SyntaxKind,
             ExpressionSyntax,
             StatementSyntax,
-            IfStatementSyntax)
+            MultiLineIfBlockSyntax)
 
-        Protected Overrides Function GetSyntaxFacts() As ISyntaxFacts
-            Return VisualBasicSyntaxFacts.Instance
+        Protected Overrides ReadOnly Property IfStatementKind As SyntaxKind = SyntaxKind.MultiLineIfBlock
+
+        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
+
+        Protected Overrides Function GetConditionOfIfStatement(ifBlock As MultiLineIfBlockSyntax) As ExpressionSyntax
+            Return ifBlock.IfStatement.Condition
         End Function
 
         Protected Overrides Function IsNullCheck(condition As ExpressionSyntax, <NotNullWhen(True)> ByRef checkedExpression As ExpressionSyntax) As Boolean
@@ -42,12 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCoalesceExpression
             Return True
         End Function
 
-        Protected Overrides Function TryGetEmbeddedStatement(ifStatement As IfStatementSyntax, <NotNullWhen(True)> ByRef whenTrueStatement As StatementSyntax) As Boolean
-            Dim ifBlock = TryCast(ifStatement.Parent, MultiLineIfBlockSyntax)
-            If ifBlock Is Nothing Then
-                Return False
-            End If
-
+        Protected Overrides Function TryGetEmbeddedStatement(ifBlock As MultiLineIfBlockSyntax, <NotNullWhen(True)> ByRef whenTrueStatement As StatementSyntax) As Boolean
             If ifBlock.Statements.Count <> 1 Then
                 Return False
             End If
@@ -56,17 +55,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCoalesceExpression
             Return True
         End Function
 
-        Protected Overrides Function HasElseBlock(ifStatement As IfStatementSyntax) As Boolean
-            Dim ifBlock = TryCast(ifStatement.Parent, MultiLineIfBlockSyntax)
-            If ifBlock Is Nothing Then
-                Return False
-            End If
-
+        Protected Overrides Function HasElseBlock(ifBlock As MultiLineIfBlockSyntax) As Boolean
             Return ifBlock.ElseBlock IsNot Nothing Or ifBlock.ElseIfBlocks.Count > 0
         End Function
 
-        Protected Overrides Function TryGetPreviousStatement(ifStatement As IfStatementSyntax) As StatementSyntax
-            Return ifStatement.GetPreviousStatement()
+        Protected Overrides Function TryGetPreviousStatement(ifBlock As MultiLineIfBlockSyntax) As StatementSyntax
+            Return ifBlock.GetPreviousStatement()
         End Function
     End Class
 End Namespace

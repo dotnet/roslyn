@@ -551,8 +551,6 @@ namespace Microsoft.CodeAnalysis.LanguageService
         SeparatedSyntaxList<SyntaxNode> GetInitializersOfObjectMemberInitializer(SyntaxNode node);
         SeparatedSyntaxList<SyntaxNode> GetExpressionsOfObjectCollectionInitializer(SyntaxNode node);
 
-        SyntaxNode GetConditionOfIfStatement(SyntaxNode node);
-
         #endregion
     }
 

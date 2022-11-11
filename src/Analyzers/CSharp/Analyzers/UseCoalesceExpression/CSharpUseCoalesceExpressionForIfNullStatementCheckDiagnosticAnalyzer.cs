@@ -24,8 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UseCoalesceExpression
             StatementSyntax,
             IfStatementSyntax>
     {
-        protected override ISyntaxFacts GetSyntaxFacts()
+        protected override SyntaxKind IfStatementKind
+            => SyntaxKind.IfStatement;
+
+        protected override ISyntaxFacts SyntaxFacts
             => CSharpSyntaxFacts.Instance;
+
+        protected override ExpressionSyntax GetConditionOfIfStatement(IfStatementSyntax ifStatement)
+            => ifStatement.Condition;
 
         protected override bool IsNullCheck(ExpressionSyntax condition, [NotNullWhen(true)] out ExpressionSyntax? checkedExpression)
         {

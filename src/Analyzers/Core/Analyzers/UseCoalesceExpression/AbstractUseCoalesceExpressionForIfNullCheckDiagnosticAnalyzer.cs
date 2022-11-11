@@ -33,7 +33,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
         {
         }
 
-        protected abstract ISyntaxFacts GetSyntaxFacts();
+        protected abstract TSyntaxKind IfStatementKind { get; }
+        protected abstract ISyntaxFacts SyntaxFacts { get; }
+
+        protected abstract TExpressionSyntax GetConditionOfIfStatement(TIfStatementSyntax ifStatement);
         protected abstract bool IsNullCheck(TExpressionSyntax condition, [NotNullWhen(true)] out TExpressionSyntax? checkedExpression);
         protected abstract bool TryGetEmbeddedStatement(TIfStatementSyntax ifStatement, [NotNullWhen(true)] out TStatementSyntax? whenTrueStatement);
         protected abstract bool HasElseBlock(TIfStatementSyntax ifStatement);
@@ -44,11 +47,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-        {
-            var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
-            context.RegisterSyntaxNodeAction(AnalyzeSyntax,
-                syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.IfStatement));
-        }
+            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, this.IfStatementKind);
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
@@ -60,8 +59,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
             if (!option.Value)
                 return;
 
-            var syntaxFacts = this.GetSyntaxFacts();
-            var condition = (TExpressionSyntax)syntaxFacts.GetConditionOfIfStatement(ifStatement);
+            var syntaxFacts = this.SyntaxFacts;
+            var condition = GetConditionOfIfStatement(ifStatement);
 
             if (!IsNullCheck(condition, out var checkedExpression))
                 return;
