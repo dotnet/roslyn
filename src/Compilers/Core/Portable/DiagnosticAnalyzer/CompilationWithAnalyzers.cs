@@ -74,8 +74,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Pool of event queues to serve each diagnostics request.
         /// </summary>
-        private readonly ObjectPool<AsyncQueue<CompilationEvent>> _eventQueuePool = new ObjectPool<AsyncQueue<CompilationEvent>>(() => new AsyncQueue<CompilationEvent>());
-        private static readonly AsyncQueue<CompilationEvent> s_EmptyEventQueue = new AsyncQueue<CompilationEvent>();
+        private static readonly AsyncQueue<CompilationEvent> s_alwaysEmptyEventQueue = AsyncQueue<CompilationEvent>.AlwaysEmpty;
 
         /// <summary>
         /// Underlying <see cref="Compilation"/> with a non-null <see cref="Compilation.EventQueue"/>, used to drive analyzer execution.
@@ -406,7 +405,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
-            AsyncQueue<CompilationEvent> eventQueue = _eventQueuePool.Allocate();
+            var eventQueue = new AsyncQueue<CompilationEvent>();
             AnalyzerDriver? driver = null;
 
             try
@@ -441,13 +440,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             finally
             {
                 driver?.Dispose();
-                FreeEventQueue(eventQueue, _eventQueuePool);
             }
         }
 
         private async Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsWithoutStateTrackingAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
         {
-            AsyncQueue<CompilationEvent> eventQueue = _eventQueuePool.Allocate();
+            var eventQueue = new AsyncQueue<CompilationEvent>();
             AnalyzerDriver? driver = null;
 
             try
@@ -473,7 +471,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             finally
             {
                 driver?.Dispose();
-                FreeEventQueue(eventQueue, _eventQueuePool);
             }
         }
 
@@ -812,25 +809,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                     {
                                         try
                                         {
-                                            AsyncQueue<CompilationEvent> eventQueue = s_EmptyEventQueue;
-                                            try
-                                            {
-                                                // Get event queue with pending events to analyze.
-                                                if (getPendingEventsOpt != null)
-                                                {
-                                                    pendingEvents = getPendingEventsOpt();
-                                                    eventQueue = CreateEventsQueue(pendingEvents);
-                                                }
+                                            var eventQueue = s_alwaysEmptyEventQueue;
 
-                                                linkedCancellationToken.ThrowIfCancellationRequested();
-
-                                                // Execute analyzer driver on the given analysis scope with the given event queue.
-                                                await ComputeAnalyzerDiagnosticsCoreAsync(driver, eventQueue, analysisScope, cancellationToken: linkedCancellationToken).ConfigureAwait(false);
-                                            }
-                                            finally
+                                            // Get event queue with pending events to analyze.
+                                            if (getPendingEventsOpt != null)
                                             {
-                                                FreeEventQueue(eventQueue, _eventQueuePool);
+                                                pendingEvents = getPendingEventsOpt();
+                                                eventQueue = CreateEventsQueue(pendingEvents);
                                             }
+
+                                            linkedCancellationToken.ThrowIfCancellationRequested();
+
+                                            // Execute analyzer driver on the given analysis scope with the given event queue.
+                                            await ComputeAnalyzerDiagnosticsCoreAsync(driver, eventQueue, analysisScope, cancellationToken: linkedCancellationToken).ConfigureAwait(false);
                                         }
                                         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                                         {
@@ -1241,10 +1232,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (compilationEvents.IsEmpty)
             {
-                return s_EmptyEventQueue;
+                return s_alwaysEmptyEventQueue;
             }
 
-            var eventQueue = _eventQueuePool.Allocate();
+            var eventQueue = new AsyncQueue<CompilationEvent>();
             Debug.Assert(!eventQueue.IsCompleted);
             Debug.Assert(eventQueue.Count == 0);
 
@@ -1254,28 +1245,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return eventQueue;
-        }
-
-        private static void FreeEventQueue(AsyncQueue<CompilationEvent> eventQueue, ObjectPool<AsyncQueue<CompilationEvent>> eventQueuePool)
-        {
-            if (eventQueue == null || ReferenceEquals(eventQueue, s_EmptyEventQueue))
-            {
-                return;
-            }
-
-            if (eventQueue.Count > 0)
-            {
-                while (eventQueue.TryDequeue(out _)) ;
-            }
-
-            if (!eventQueue.IsCompleted)
-            {
-                eventQueuePool.Free(eventQueue);
-            }
-            else
-            {
-                eventQueuePool.ForgetTrackedObject(eventQueue);
-            }
         }
 
         /// <summary>

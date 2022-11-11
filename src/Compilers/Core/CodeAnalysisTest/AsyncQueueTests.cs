@@ -157,7 +157,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var queue = new AsyncQueue<int>();
             queue.Enqueue(42);
             queue.Complete();
-            await queue.WhenCompletedTask;
             Assert.Equal(42, await queue.DequeueAsync());
 
             var threw = false;
@@ -229,12 +228,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         /// after the <see cref="AsyncQueue{TElement}"/> is completed.
         /// </summary>
         [Fact]
-        public async Task TryDequeueAfterComplete()
+        public void TryDequeueAfterComplete()
         {
             var queue = new AsyncQueue<int>();
             queue.Enqueue(13);
             queue.Complete();
-            await queue.WhenCompletedTask;
 
             int value;
             Assert.True(queue.TryDequeue(out value));
