@@ -180,7 +180,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCoalesceExpressio
                 
                     object FindItem() => null;
                 }
-                """
+                """,
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
@@ -190,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCoalesceExpressio
             var text = """
                 class C
                 {
-                    void M()
+                    void M(C item1)
                     {
                         var item = FindItem() as C;
                         if (item1 == null)
@@ -253,6 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCoalesceExpressio
             {
                 TestCode = text,
                 FixedCode = text,
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
@@ -293,6 +295,112 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCoalesceExpressio
                             item = new C();
                         else
                             item = null;
+                    }
+
+                    object FindItem() => null;
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = text,
+                FixedCode = text,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestLocalDeclaration_NotWithMultipleWhenTrueStatements()
+        {
+            var text = """
+                class C
+                {
+                    void M(C item1)
+                    {
+                        var item = FindItem() as C;
+                        if (item == null)
+                        {
+                            item = new C();
+                            item = null;
+                        }
+                    }
+
+                    object FindItem() => null;
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = text,
+                FixedCode = text,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestLocalDeclaration_NotWithNoWhenTrueStatements()
+        {
+            var text = """
+                class C
+                {
+                    void M(C item1)
+                    {
+                        var item = FindItem() as C;
+                        if (item == null)
+                        {
+                        }
+                    }
+
+                    object FindItem() => null;
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = text,
+                FixedCode = text,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestLocalDeclaration_NotWithThrowWithoutExpression()
+        {
+            var text = """
+                class C
+                {
+                    void M()
+                    {
+                        try
+                        {
+                        }
+                        catch
+                        {
+                            var item = FindItem() as C;
+                            if (item == null)
+                                throw;
+                        }
+                    }
+
+                    object FindItem() => null;
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = text,
+                FixedCode = text,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestLocalDeclaration_NotWithLocalWithoutInitializer()
+        {
+            var text = """
+                class C
+                {
+                    void M()
+                    {
+                        C item;
+                        if ({|CS0165:item|} == null)
+                            throw new System.InvalidOperationException();
                     }
 
                     object FindItem() => null;
