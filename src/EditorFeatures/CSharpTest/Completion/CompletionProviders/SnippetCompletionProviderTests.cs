@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         [Fact, WorkItem(608860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608860")]
         public async Task SnippetsInPreProcessorContextWhenShortcutBeginsWithHash()
-            => await VerifyItemExistsAsync(@"#$$", MockSnippetInfoService.PreProcessorSnippetShortcut.Substring(1), sourceCodeKind: SourceCodeKind.Regular);
+            => await VerifyItemExistsAsync(@"#$$", MockSnippetInfoService.PreProcessorSnippetShortcut[1..], sourceCodeKind: SourceCodeKind.Regular);
 
         [Fact, WorkItem(608860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608860")]
         public async Task SnippetsNotInPreProcessorContextWhenShortcutDoesNotBeginWithHash()
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         [Fact, WorkItem(839555, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/839555")]
         public async Task ShowRegionSnippetWithHashRTyped()
-            => await VerifyItemExistsAsync(@"#r$$", MockSnippetInfoService.PreProcessorSnippetShortcut.Substring(1), sourceCodeKind: SourceCodeKind.Regular);
+            => await VerifyItemExistsAsync(@"#r$$", MockSnippetInfoService.PreProcessorSnippetShortcut[1..], sourceCodeKind: SourceCodeKind.Regular);
 
         [Fact]
         public async Task SnippetsInLineSpanDirective()

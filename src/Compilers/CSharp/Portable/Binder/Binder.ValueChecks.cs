@@ -948,6 +948,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 { RefKind: RefKind.None } => Binder.CurrentMethodScope,
                 { EffectiveScope: DeclarationScope.RefScoped } => Binder.CurrentMethodScope,
+                { HasUnscopedRefAttribute: true, RefKind: RefKind.Out } => Binder.ReturnOnlyScope,
+                { HasUnscopedRefAttribute: true, IsThis: false } => Binder.CallingMethodScope,
                 _ => Binder.ReturnOnlyScope
             };
         }
@@ -2712,6 +2714,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal BoundExpression ValidateEscape(BoundExpression expr, uint escapeTo, bool isByRef, BindingDiagnosticBag diagnostics)
         {
+            // The result of escape analysis is affected by the expression's type.
+            // We can't do escape analysis on expressions which lack a type, such as 'target typed new()', until they are converted.
+            Debug.Assert(expr.Type is not null);
+
             if (isByRef)
             {
                 if (CheckRefEscape(expr.Syntax, expr, this.LocalScopeDepth, escapeTo, checkingReceiver: false, diagnostics: diagnostics))

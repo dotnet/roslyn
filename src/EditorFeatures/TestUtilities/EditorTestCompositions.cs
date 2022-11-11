@@ -47,10 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(VisualStudio.Language.Intellisense.AsyncCompletion.IAsyncCompletionBroker).Assembly,
 
                 // Microsoft.VisualStudio.CoreUtility
-                typeof(VisualStudio.Utilities.IFeatureServiceFactory).Assembly,
-
-                // Microsoft.VisualStudio.Text.Internal
-                typeof(VisualStudio.Text.Utilities.IExperimentationServiceInternal).Assembly)
+                typeof(VisualStudio.Utilities.IFeatureServiceFactory).Assembly)
             .AddParts(
                 typeof(TestSerializerService.Factory),
                 typeof(TestExportJoinableTaskContext),

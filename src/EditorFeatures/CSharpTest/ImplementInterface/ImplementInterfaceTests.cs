@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -10611,6 +10612,120 @@ public abstract class BaseTest : ITest
     void ITest.TestEnum<T>(T value)
     {
         throw new NotImplementedException();
+    }
+}",
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(58136, "https://github.com/dotnet/roslyn/issues/58136")]
+        public async Task TestStaticAbstractMembers1()
+        {
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+                LanguageVersion = LanguageVersion.Preview,
+                TestCode = @"
+using System;
+
+internal interface I
+{
+    internal static abstract int P { get; }
+
+    internal static abstract event Action E;
+
+    internal static abstract void M();
+}
+
+class C : {|CS0535:{|CS0535:{|CS0535:I|}|}|}
+{
+}
+",
+                FixedCode = @"
+using System;
+
+internal interface I
+{
+    internal static abstract int P { get; }
+
+    internal static abstract event Action E;
+
+    internal static abstract void M();
+}
+
+class C : I
+{
+    static int I.P => throw new NotImplementedException();
+
+    static event Action I.E
+    {
+        add
+        {
+            throw new NotImplementedException();
+        }
+
+        remove
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    static void I.M()
+    {
+        throw new NotImplementedException();
+    }
+}
+",
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(FeaturesResources.Implement_all_members_explicitly, codeAction.Title),
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(37374, "https://github.com/dotnet/roslyn/issues/37374")]
+        public async Task TestRefReadonly1()
+        {
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+                TestCode =
+@"using System.Collections;
+using System.Collections.Generic;
+
+public interface IRefReadOnlyList<T> : IReadOnlyList<T> where T : struct
+{
+    new ref readonly T this[int ix] { get; }
+}
+
+public struct A { };
+
+public class Class : {|CS0535:{|CS0535:{|CS0535:{|CS0535:{|CS0535:IRefReadOnlyList<A>|}|}|}|}|}
+{
+}",
+                FixedCode =
+@"using System.Collections;
+using System.Collections.Generic;
+
+public interface IRefReadOnlyList<T> : IReadOnlyList<T> where T : struct
+{
+    new ref readonly T this[int ix] { get; }
+}
+
+public struct A { };
+
+public class Class : IRefReadOnlyList<A>
+{
+    public ref readonly A this[int ix] => throw new System.NotImplementedException();
+
+    A IReadOnlyList<A>.this[int index] => throw new System.NotImplementedException();
+
+    public int Count => throw new System.NotImplementedException();
+
+    public IEnumerator<A> GetEnumerator()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        throw new System.NotImplementedException();
     }
 }",
             }.RunAsync();

@@ -531,5 +531,38 @@ class C
 }";
             await TestBraceHighlightingAsync(input);
         }
+
+        [WpfTheory, WorkItem(32791, "https://github.com/dotnet/roslyn/issues/32791")]
+        [InlineData(@"$$ /* goo */ public class C { }")]
+        [InlineData(@" $$[|/*|] goo [|*/|] public class C { }")]
+        [InlineData(@" [|/$$*|] goo [|*/|] public class C { }")]
+        [InlineData(@" /*$$ goo */ public class C { }")]
+        [InlineData(@" /* $$goo */ public class C { }")]
+        [InlineData(@" /* goo$$ */ public class C { }")]
+        [InlineData(@" /* goo $$*/ public class C { }")]
+        [InlineData(@" [|/*|] goo [|*$$/|] public class C { }")]
+        [InlineData(@" [|/*|] goo [|*/|]$$ public class C { }")]
+        [InlineData(@" /* goo */ $$public class C { }")]
+        public async Task TestBlockComments(string input)
+        {
+            await TestBraceHighlightingAsync(input);
+        }
+
+        [WpfTheory, WorkItem(32791, "https://github.com/dotnet/roslyn/issues/32791")]
+        [InlineData(@"$$ /** goo */ public class C { }")]
+        [InlineData(@" $$[|/**|] goo [|*/|] public class C { }")]
+        [InlineData(@" [|/$$**|] goo [|*/|] public class C { }")]
+        [InlineData(@" [|/*$$*|] goo [|*/|] public class C { }")]
+        [InlineData(@" /**$$ goo */ public class C { }")]
+        [InlineData(@" /** $$goo */ public class C { }")]
+        [InlineData(@" /** goo$$ */ public class C { }")]
+        [InlineData(@" /** goo $$*/ public class C { }")]
+        [InlineData(@" [|/**|] goo [|*$$/|] public class C { }")]
+        [InlineData(@" [|/**|] goo [|*/|]$$ public class C { }")]
+        [InlineData(@" /** goo */ $$public class C { }")]
+        public async Task TestDocCommentBlockComments(string input)
+        {
+            await TestBraceHighlightingAsync(input);
+        }
     }
 }

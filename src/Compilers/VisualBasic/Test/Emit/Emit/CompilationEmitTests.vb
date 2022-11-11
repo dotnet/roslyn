@@ -3284,7 +3284,7 @@ end namespace
                     ' Verify Assembly security attributes
                     Assert.Equal(2, assemblySecurityAttributes.Count)
                     Dim emittedName = MetadataTypeName.FromNamespaceAndTypeName("System.Security.Permissions", "SecurityPermissionAttribute")
-                    Dim securityPermissionAttr As NamedTypeSymbol = sourceAssembly.CorLibrary.LookupTopLevelMetadataType(emittedName, True)
+                    Dim securityPermissionAttr As NamedTypeSymbol = sourceAssembly.CorLibrary.LookupDeclaredTopLevelMetadataType(emittedName)
 
                     ' Verify <assembly: SecurityPermission(SecurityAction.RequestOptional, RemotingConfiguration:=true)>
                     Dim securityAttribute As Cci.SecurityAttribute = assemblySecurityAttributes.First()
@@ -3308,7 +3308,7 @@ end namespace
 
                     ' Get System.Security.Permissions.PrincipalPermissionAttribute
                     emittedName = MetadataTypeName.FromNamespaceAndTypeName("System.Security.Permissions", "PrincipalPermissionAttribute")
-                    Dim principalPermAttr As NamedTypeSymbol = sourceAssembly.CorLibrary.LookupTopLevelMetadataType(emittedName, True)
+                    Dim principalPermAttr As NamedTypeSymbol = sourceAssembly.CorLibrary.LookupDeclaredTopLevelMetadataType(emittedName)
                     Assert.NotNull(principalPermAttr)
 
                     ' Verify type security attributes: different security action
