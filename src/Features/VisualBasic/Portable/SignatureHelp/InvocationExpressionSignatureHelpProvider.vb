@@ -119,9 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
 
             Dim items = New List(Of SignatureHelpItem)
-            Dim accessibleMembers = ImmutableArray(Of ISymbol).Empty
-
-            accessibleMembers = GetAccessibleMembers(invocationExpression, semanticModel, within, memberGroup, cancellationToken)
+            Dim accessibleMembers = GetAccessibleMembers(invocationExpression, semanticModel, within, memberGroup, cancellationToken)
             items.AddRange(GetMemberGroupItems(accessibleMembers, document, invocationExpression, semanticModel))
 
             If expressionType.IsDelegateType() Then
