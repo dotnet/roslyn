@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            RegisterCodeFix(context, AnalyzersResources.Use_coalesce_expression_for_non_nullable_types, nameof(AnalyzersResources.Use_coalesce_expression_for_non_nullable_types));
+            RegisterCodeFix(context, AnalyzersResources.Use_coalesce_expression, nameof(AnalyzersResources.Use_coalesce_expression));
             return Task.CompletedTask;
         }
 
