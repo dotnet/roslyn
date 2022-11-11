@@ -159,12 +159,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
         private static ITypeSymbol? InferTupleType(TupleExpressionSyntax tuple, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             var compilation = semanticModel.Compilation;
+            var argCount = tuple.Arguments.Count;
 
             var baseTupleType = compilation.ValueTupleType(argCount);
             if (baseTupleType is null)
                 return null;
 
-            var argCount = tuple.Arguments.Count;
             var inferredTupleTypes = new ITypeSymbol[argCount];
 
             for (var i = 0; i < argCount; i++)
