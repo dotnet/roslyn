@@ -6894,7 +6894,6 @@ namespace NS2
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
 
                 ' trigger completion with import completion disabled
                 state.SendInvokeCompletionList()
@@ -7093,7 +7092,6 @@ public class AA
 }</Document>)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
@@ -7877,9 +7875,6 @@ namespace NS
     class ATaAaSaKa { }
 } </Document>,
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
-
-                state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
 
                 state.SendTypeChars("task")
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -10283,8 +10278,6 @@ class MyClass
                               </Document>,
                               extraExportedTypes:={GetType(ItemWithAdditionalFilterTextsProvider)}.ToList())
 
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
-
                 state.SendTypeChars(" ")
                 Await state.AssertCompletionItemsContainAll("Consolation", "Add code that write to console", "Add code that write line to console")
 
@@ -10374,7 +10367,6 @@ class MyClass
 }
                               </Document>)
 
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp), True)
                 state.SendTypeChars("if")
                 Await state.AssertSelectedCompletionItem(displayText:="if", inlineDescription:=Nothing, isHardSelected:=True)
@@ -10449,7 +10441,6 @@ class MyClass
 }
                               </Document>)
 
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp), False)
                 state.SendInvokeCompletionList()
                 ' We should still work normally w/o pythia recommender
@@ -10473,7 +10464,6 @@ class MyClass
                               </Document>,
                               extraExportedTypes:={GetType(TestPythiaDeclarationNameRecommenderImplmentation)}.ToList())
 
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp), False)
 
                 state.SendInvokeCompletionList()
