@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal sealed class AsyncQueue<TElement>
     {
         private readonly Channel<TElement> _channel = Channel.CreateUnbounded<TElement>();
-        private readonly TaskCompletionSource<bool> _whenCompleted = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         private bool _promisedNotToEnqueue;
 
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Gets a value indicating whether the queue has completed.
         /// </summary>
         public bool IsCompleted
-            => _whenCompleted.Task.IsCompleted;
+            => _channel.Reader.Completion.IsCompleted;
 
         /// <summary>
         /// The number of unconsumed elements in the queue.
@@ -69,11 +68,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <returns>Whether or not the operation succeeded.</returns>
         public bool TryComplete()
-        {
-            var result = _channel.Writer.TryComplete();
-            _whenCompleted.TrySetResult(true);
-            return result;
-        }
+            => _channel.Writer.TryComplete();
 
         /// <summary>
         /// Signals that no further elements will be enqueued.  All outstanding and future
@@ -83,9 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void Complete()
         {
             if (!TryComplete())
-            {
                 throw new InvalidOperationException($"Cannot call {nameof(Complete)} when the queue is already completed.");
-            }
         }
 
         public void PromiseNotToEnqueue()
