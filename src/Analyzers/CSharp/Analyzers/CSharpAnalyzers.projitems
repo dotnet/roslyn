@@ -73,6 +73,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyPropertyPattern\SimplifyPropertyPatternHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertProgram\ConvertToProgramMainDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\CSharpUseAutoPropertyAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\CSharpUseCoalesceExpressionForIfNullStatementCheckDiagnosticAnalyzer.cs" />
     <Compile Include="..\..\..\Analyzers\CSharp\Analyzers\UseCoalesceExpression\CSharpUseCoalesceExpressionForTernaryConditionalCheckDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\CSharpUseCoalesceExpressionForNullableTernaryConditionalCheckDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\CSharpUseCompoundAssignmentDiagnosticAnalyzer.cs" />

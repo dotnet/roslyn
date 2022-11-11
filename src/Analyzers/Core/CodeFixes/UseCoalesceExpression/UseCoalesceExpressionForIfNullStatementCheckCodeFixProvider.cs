@@ -20,6 +20,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CodeFixes.UseCoalesceExpression
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.UseCoalesceExpressionForIfNullStatementCheck), Shared]
+    [ExtensionOrder(Before = PredefinedCodeFixProviderNames.AddBraces)]
     internal class UseCoalesceExpressionForIfNullStatementCheckCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.UseCoalesceExpression
 
             SyntaxNode GetWhenNullExpression(SyntaxNode whenTrueStatement)
             {
-                if (syntaxFacts.IsAnyAssignmentStatement(whenTrueStatement))
+                if (syntaxFacts.IsSimpleAssignmentStatement(whenTrueStatement))
                 {
                     syntaxFacts.GetPartsOfAssignmentStatement(whenTrueStatement, out _, out var right);
                     return right;

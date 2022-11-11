@@ -18,13 +18,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
         TSyntaxKind,
         TExpressionSyntax,
         TStatementSyntax,
-        TIfStatementSyntax,
-        TLocalDeclarationStatement> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+        TIfStatementSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TIfStatementSyntax : TStatementSyntax
-        where TLocalDeclarationStatement : TStatementSyntax
     {
         protected AbstractUseCoalesceExpressionForIfNullCheckDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCoalesceExpressionForIfNullCheckDiagnosticId,
@@ -37,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
 
         protected abstract ISyntaxFacts GetSyntaxFacts();
         protected abstract bool IsNullCheck(TExpressionSyntax condition, [NotNullWhen(true)] out TExpressionSyntax? checkedExpression);
-        protected abstract bool TryGetEmbeddedStatement(TIfStatementSyntax ifStatement, out TStatementSyntax whenTrueStatement);
+        protected abstract bool TryGetEmbeddedStatement(TIfStatementSyntax ifStatement, [NotNullWhen(true)] out TStatementSyntax? whenTrueStatement);
         protected abstract bool HasElseBlock(TIfStatementSyntax ifStatement);
 
         protected abstract TStatementSyntax? TryGetPreviousStatement(TIfStatementSyntax ifStatement);
@@ -96,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
                 // if (v == null)
                 //    ...
 
-                if (!AnalyzeLocalDeclarationForm((TLocalDeclarationStatement)previousStatement, out expressionToCoalesce))
+                if (!AnalyzeLocalDeclarationForm(previousStatement, out expressionToCoalesce))
                     return;
             }
             else if (syntaxFacts.IsAnyAssignmentStatement(previousStatement))
@@ -114,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
-                condition.GetLocation(),
+                ifStatement.GetFirstToken().GetLocation(),
                 option.Notification.Severity,
                 ImmutableArray.Create(
                     expressionToCoalesce.GetLocation(),
@@ -123,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
                 properties: null));
 
             bool AnalyzeLocalDeclarationForm(
-                TLocalDeclarationStatement localDeclarationStatement,
+                TStatementSyntax localDeclarationStatement,
                 [NotNullWhen(true)] out TExpressionSyntax? expressionToCoalesce)
             {
                 expressionToCoalesce = null;
@@ -142,8 +140,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
                     return false;
 
                 var declarator = declarators[0];
-                var initializer = syntaxFacts.GetInitializerOfVariableDeclarator(declarator) as TExpressionSyntax;
-                if (initializer is null)
+                var equalsValue = syntaxFacts.GetInitializerOfVariableDeclarator(declarator);
+                if (syntaxFacts.GetValueOfEqualsValueClause(equalsValue) is not TExpressionSyntax initializer)
                     return false;
 
                 expressionToCoalesce = initializer;
