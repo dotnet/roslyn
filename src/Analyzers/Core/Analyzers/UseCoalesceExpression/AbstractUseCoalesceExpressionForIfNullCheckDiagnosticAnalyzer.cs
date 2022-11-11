@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -17,15 +18,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
         TSyntaxKind,
         TExpressionSyntax,
         TStatementSyntax,
-        TConditionalExpressionSyntax,
-        TBinaryExpressionSyntax,
         TIfStatementSyntax,
         TLocalDeclarationStatement> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
-        where TConditionalExpressionSyntax : TExpressionSyntax
-        where TBinaryExpressionSyntax : TExpressionSyntax
         where TIfStatementSyntax : TStatementSyntax
         where TLocalDeclarationStatement : TStatementSyntax
     {
@@ -40,6 +37,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
 
         protected abstract ISyntaxFacts GetSyntaxFacts();
         protected abstract bool IsNullCheck(TExpressionSyntax condition, [NotNullWhen(true)] out TExpressionSyntax? checkedExpression);
+        protected abstract bool TryGetEmbeddedStatement(TIfStatementSyntax ifStatement, out TStatementSyntax whenTrueStatement);
+        protected abstract bool HasElseBlock(TIfStatementSyntax ifStatement);
+
+        protected abstract TStatementSyntax? TryGetPreviousStatement(TIfStatementSyntax ifStatement);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -98,6 +99,16 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
             {
                 return;
             }
+
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
+                condition.GetLocation(),
+                option.Notification.Severity,
+                ImmutableArray.Create(
+                    previousStatement.GetLocation(),
+                    ifStatement.GetLocation(),
+                    whenTrueStatement.GetLocation()),
+                properties: null));
 
             bool AnalyzeLocalDeclarationForm(TLocalDeclarationStatement localDeclarationStatement)
             {
