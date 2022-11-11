@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNamedArguments
                 => argumentList.WithArguments(SyntaxFactory.SeparatedList(namedArguments, separators));
 
             protected override ArgumentSyntax WithName(ArgumentSyntax argument, string name)
-                => argument.WithoutTrivia().WithNameColon(SyntaxFactory.NameColon(name.ToIdentifierName()));
+                => argument.WithNameColon(SyntaxFactory.NameColon(name.ToIdentifierName()));
 
             protected override ExpressionSyntax GetArgumentExpression(ArgumentSyntax argumentSyntax)
                 => argumentSyntax.Expression;
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNamedArguments
                 => argumentList.WithArguments(SyntaxFactory.SeparatedList(namedArguments, separators));
 
             protected override AttributeArgumentSyntax WithName(AttributeArgumentSyntax argument, string name)
-                => argument.WithoutTrivia().WithNameColon(SyntaxFactory.NameColon(name.ToIdentifierName()));
+                => argument.WithNameColon(SyntaxFactory.NameColon(name.ToIdentifierName()));
 
             protected override ExpressionSyntax GetArgumentExpression(AttributeArgumentSyntax argumentSyntax)
                 => argumentSyntax.Expression;

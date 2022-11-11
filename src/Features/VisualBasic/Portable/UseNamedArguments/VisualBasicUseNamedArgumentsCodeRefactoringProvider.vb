@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNamedArguments
             End Function
 
             Protected Overrides Function WithName(argument As SimpleArgumentSyntax, name As String) As SimpleArgumentSyntax
-                Return argument.WithoutTrivia().WithNameColonEquals(SyntaxFactory.NameColonEquals(name.ToIdentifierName()))
+                Return argument.WithNameColonEquals(SyntaxFactory.NameColonEquals(name.ToIdentifierName()))
             End Function
 
             Protected Overrides Function WithArguments(argumentList As ArgumentListSyntax, namedArguments As IEnumerable(Of ArgumentSyntax), separators As IEnumerable(Of SyntaxToken)) As ArgumentListSyntax
