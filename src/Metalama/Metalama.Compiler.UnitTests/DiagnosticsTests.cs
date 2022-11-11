@@ -11,11 +11,19 @@ using Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Metalama.Compiler.UnitTests
 {
     public partial class DiagnosticsTests : CommandLineTestBase
     {
+        private readonly ITestOutputHelper _logger;
+
+        public DiagnosticsTests(ITestOutputHelper logger)
+        {
+            _logger = logger;
+        }
+
         /// <summary>
         /// Tests that warnings that stem from generated code are not reported to the user.
         /// </summary>
@@ -326,5 +334,138 @@ build_property.MetalamaTransformedCodeAnalyzers = {typeof(ReportWarningIfTwoComp
             
             Assert.DoesNotContain(ConsumeEditorConfigAnalyzer.DiagnosticId, output);
         }
+
+        
+        [Fact]
+        public void DiagnosticsCanBeSuppressedWithPragma()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+#pragma warning disable MY001          
+class C { }
+#pragma warning restore MY001                      
+class D { }
+            ");
+
+            var args = new[] { "/t:library", src.Path };
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+            var transformers = new ISourceTransformer[] { new ReportDiagnosticOnEachClassTransformer("MY001", DiagnosticSeverity.Warning, outWriter) }
+                .ToImmutableArray();
+
+            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: transformers);
+
+            var exitCode = csc.Run(outWriter);
+            var output = outWriter.ToString();
+            this._logger.WriteLine(output);
+
+            Assert.Equal(0, exitCode);
+
+            Assert.DoesNotContain("warning MY001: Found a class 'C'.", output);
+            Assert.Contains("warning MY001: Found a class 'D'.", output);
+        }
+
+        [Fact]
+        public void DiagnosticsCanBeSuppressedWithEditorConfig()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"class C { }");
+            var editorConfig = dir.CreateFile(".editorConfig").WriteAllText(@"[*.cs]
+            dotnet_diagnostic.MY001.severity = none
+            ");
+            var args = new[] { "/t:library", src.Path, $"/analyzerconfig:{editorConfig.Path}", };
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+            var transformers = new ISourceTransformer[] { new ReportDiagnosticOnEachClassTransformer("MY001", DiagnosticSeverity.Warning, outWriter) }
+                .ToImmutableArray();
+
+            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: transformers);
+
+            var exitCode = csc.Run(outWriter);
+            var output = outWriter.ToString();
+            this._logger.WriteLine(output);
+
+            Assert.Equal(0, exitCode);
+
+            Assert.DoesNotContain("warning MY001: Found a class 'C'.", output);
+        }
+
+        [Fact]
+        public void DiagnosticsCanBeSuppressedWithOption()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"class C { }");
+            
+            var args = new[] { "/t:library", src.Path, $"/nowarn:MY001" };
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+            var transformers = new ISourceTransformer[] { new ReportDiagnosticOnEachClassTransformer("MY001", DiagnosticSeverity.Warning, outWriter) }
+                .ToImmutableArray();
+
+            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: transformers);
+
+            var exitCode = csc.Run(outWriter);
+            var output = outWriter.ToString();
+            this._logger.WriteLine(output);
+
+            Assert.Equal(0, exitCode);
+
+            Assert.DoesNotContain("warning MY001: Found a class 'C'.", output);
+        }
+
+
+        [Fact]
+        public void DiagnosticsCanBeEscalatedWithEditorConfig()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"class C { }");
+            var editorConfig = dir.CreateFile(".editorConfig").WriteAllText(@"[*.cs]
+            dotnet_diagnostic.MY001.severity = error
+            ");
+            var args = new[] { "/t:library", src.Path, $"/analyzerconfig:{editorConfig.Path}", };
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+            var transformers = new ISourceTransformer[] { new ReportDiagnosticOnEachClassTransformer("MY001", DiagnosticSeverity.Warning, outWriter) }
+                .ToImmutableArray();
+
+            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: transformers);
+
+            var exitCode = csc.Run(outWriter);
+            var output = outWriter.ToString();
+            this._logger.WriteLine(output);
+
+            Assert.Equal(1, exitCode);
+
+            Assert.Contains("error MY001: Found a class 'C'.", output);
+        }
+
+        [Fact]
+        public void DiagnosticsCanBeEscalatedWithOption()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"class C { }");
+
+            var args = new[] { "/t:library", src.Path, $"/warnaserror:MY001" };
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+            var transformers = new ISourceTransformer[] { new ReportDiagnosticOnEachClassTransformer("MY001", DiagnosticSeverity.Warning, outWriter) }
+                .ToImmutableArray();
+
+            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: transformers);
+
+            var exitCode = csc.Run(outWriter);
+            var output = outWriter.ToString();
+            this._logger.WriteLine(output);
+
+            Assert.Equal(1, exitCode);
+
+            Assert.Contains("error MY001: Found a class 'C'.", output);
+        }
+
     }
 }
