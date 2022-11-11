@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             {
                 // if it's 'async TaskLike' (where TaskLike is non-generic) we do *not* want to
                 // create a return statement.  This is just the 'async' version of a 'void' method.
-                var method = semanticModel.GetDeclaredSymbol(declaration)!;
-                return method.ReturnType is INamedTypeSymbol namedType && namedType.Arity != 0;
+                var method = semanticModel.GetDeclaredSymbol(declaration);
+                return method?.ReturnType is INamedTypeSymbol namedType && namedType.Arity != 0;
             }
 
             return !declaration.ReturnType.IsVoid();
