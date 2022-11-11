@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -127,9 +128,15 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             if (logPerformanceInfo && _performanceTracker != null)
             {
-                // +1 to include project itself
-                var unitCount = documentAnalysisScope != null ? 1 : _project.DocumentIds.Count + 1;
-                _performanceTracker.AddSnapshot(analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_analyzerInfoCache), unitCount, forSpanAnalysis: _span.HasValue);
+                // Only log telemetry snapshot is we have an active telemetry session,
+                // i.e. user has not opted out of reporting telemetry.
+                var telemetryService = _project.Solution.Workspace.Services.GetRequiredService<IWorkspaceTelemetryService>();
+                if (telemetryService.HasActiveSession)
+                {
+                    // +1 to include project itself
+                    var unitCount = documentAnalysisScope != null ? 1 : _project.DocumentIds.Count + 1;
+                    _performanceTracker.AddSnapshot(analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_analyzerInfoCache), unitCount, forSpanAnalysis: _span.HasValue);
+                }
             }
 
             var builderMap = await analysisResult.ToResultBuilderMapAsync(

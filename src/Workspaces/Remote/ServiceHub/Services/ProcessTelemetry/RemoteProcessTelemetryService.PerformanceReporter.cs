@@ -58,6 +58,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
             protected override Task ExecuteAsync()
             {
+                if (!_telemetrySession.IsOptedIn)
+                    return Task.CompletedTask;
+
                 using (RoslynLogger.LogBlock(FunctionId.Diagnostics_GeneratePerformaceReport, CancellationToken))
                 {
                     foreach (var forSpanAnalysis in new[] { false, true })
