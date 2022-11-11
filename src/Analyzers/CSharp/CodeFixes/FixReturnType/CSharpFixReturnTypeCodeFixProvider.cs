@@ -159,6 +159,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
         private static ITypeSymbol? InferTupleType(TupleExpressionSyntax tuple, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             var compilation = semanticModel.Compilation;
+
+            var baseTupleType = compilation.ValueTupleType(argCount);
+            if (baseTupleType is null)
+                return null;
+
             var argCount = tuple.Arguments.Count;
             var inferredTupleTypes = new ITypeSymbol[argCount];
 
@@ -176,10 +181,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
 
                 inferredTupleTypes[i] = type is null ? semanticModel.Compilation.ObjectType : type;
             }
-
-            var baseTupleType = compilation.ValueTupleType(argCount);
-            if (baseTupleType is null)
-                return null;
 
             return baseTupleType.Construct(inferredTupleTypes);
         }
