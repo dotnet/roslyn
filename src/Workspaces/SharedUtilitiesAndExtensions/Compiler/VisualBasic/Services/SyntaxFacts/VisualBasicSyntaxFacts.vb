@@ -1911,6 +1911,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return initializer.Initializer.Initializers
         End Function
 
+        Public Function GetConditionOfIfStatement(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetConditionOfIfStatement
+            Return DirectCast(node, IfStatementSyntax).Condition
+        End Function
+
 #End Region
 
     End Class

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UseCoalesceExpressionDiagnosticId);
+            => ImmutableArray.Create(IDEDiagnosticIds.UseCoalesceExpressionForTernaryConditionalCheckDiagnosticId);
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
