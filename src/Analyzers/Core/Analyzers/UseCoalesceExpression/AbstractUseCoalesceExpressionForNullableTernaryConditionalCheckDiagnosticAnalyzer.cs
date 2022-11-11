@@ -56,9 +56,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 
             var option = context.GetAnalyzerOptions().PreferCoalesceExpression;
             if (!option.Value)
-            {
                 return;
-            }
 
             var syntaxFacts = GetSyntaxFacts();
             syntaxFacts.GetPartsOfConditionalExpression(

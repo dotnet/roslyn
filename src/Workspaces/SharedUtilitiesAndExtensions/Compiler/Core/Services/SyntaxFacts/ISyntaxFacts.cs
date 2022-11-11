@@ -543,6 +543,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         SyntaxNode GetExpressionOfRefExpression(SyntaxNode node);
         SyntaxNode? GetExpressionOfReturnStatement(SyntaxNode node);
         SyntaxNode GetExpressionOfThrowExpression(SyntaxNode node);
+        SyntaxNode? GetExpressionOfThrowStatement(SyntaxNode node);
 
         bool IsEqualsValueOfPropertyDeclaration([NotNullWhen(true)] SyntaxNode? node);
         SyntaxNode GetValueOfEqualsValueClause(SyntaxNode node);

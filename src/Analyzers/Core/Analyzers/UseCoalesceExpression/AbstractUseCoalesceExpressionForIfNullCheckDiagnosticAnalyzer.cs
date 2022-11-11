@@ -78,13 +78,25 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
             if (!TryGetEmbeddedStatement(ifStatement, out var whenTrueStatement))
                 return;
 
+            if (syntaxFacts.IsThrowStatement(whenTrueStatement))
+            {
+                if (!syntaxFacts.SupportsThrowExpression(ifStatement.SyntaxTree.Options))
+                    return;
+
+                var thrownExpression = syntaxFacts.GetExpressionOfThrowStatement(whenTrueStatement);
+                if (thrownExpression is null)
+                    return;
+            }
+
+            TExpressionSyntax? expressionToCoalesce;
+
             if (syntaxFacts.IsLocalDeclarationStatement(previousStatement))
             {
                 // var v = Expr();
                 // if (v == null)
                 //    ...
 
-                if (!AnalyzeLocalDeclarationForm((TLocalDeclarationStatement)previousStatement))
+                if (!AnalyzeLocalDeclarationForm((TLocalDeclarationStatement)previousStatement, out expressionToCoalesce))
                     return;
             }
             else if (syntaxFacts.IsAnyAssignmentStatement(previousStatement))
@@ -92,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
                 // v = Expr();
                 // if (v == null)
                 //    ...
-                if (!AnalyzeAssignmentForm(previousStatement))
+                if (!AnalyzeAssignmentForm(previousStatement, out expressionToCoalesce))
                     return;
             }
             else
@@ -105,13 +117,17 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
                 condition.GetLocation(),
                 option.Notification.Severity,
                 ImmutableArray.Create(
-                    previousStatement.GetLocation(),
+                    expressionToCoalesce.GetLocation(),
                     ifStatement.GetLocation(),
                     whenTrueStatement.GetLocation()),
                 properties: null));
 
-            bool AnalyzeLocalDeclarationForm(TLocalDeclarationStatement localDeclarationStatement)
+            bool AnalyzeLocalDeclarationForm(
+                TLocalDeclarationStatement localDeclarationStatement,
+                [NotNullWhen(true)] out TExpressionSyntax? expressionToCoalesce)
             {
+                expressionToCoalesce = null;
+
                 // var v = Expr();
                 // if (v == null)
                 //    ...
@@ -126,9 +142,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
                     return false;
 
                 var declarator = declarators[0];
-                var initializer = syntaxFacts.GetInitializerOfVariableDeclarator(declarator);
+                var initializer = syntaxFacts.GetInitializerOfVariableDeclarator(declarator) as TExpressionSyntax;
                 if (initializer is null)
                     return false;
+
+                expressionToCoalesce = initializer;
 
                 var variableName = syntaxFacts.GetIdentifierOfVariableDeclarator(declarator).ValueText;
                 if (conditionIdentifier != variableName)
@@ -165,14 +183,22 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
                 return false;
             }
 
-            bool AnalyzeAssignmentForm(TStatementSyntax assignmentStatement)
+            bool AnalyzeAssignmentForm(
+                TStatementSyntax assignmentStatement,
+                [NotNullWhen(true)] out TExpressionSyntax? expressionToCoalesce)
             {
+                expressionToCoalesce = null;
+
                 // expr = Expr();
                 // if (expr == null)
                 //    ...
 
-                syntaxFacts.GetPartsOfAssignmentStatement(assignmentStatement, out var topAssignmentLeft, out _);
+                syntaxFacts.GetPartsOfAssignmentStatement(assignmentStatement, out var topAssignmentLeft, out var topAssignmentRight);
                 if (!syntaxFacts.AreEquivalent(topAssignmentLeft, checkedExpression))
+                    return false;
+
+                expressionToCoalesce = topAssignmentRight as TExpressionSyntax;
+                if (expressionToCoalesce is null)
                     return false;
 
                 // expr = Expr();
