@@ -721,6 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.PostIncrementExpression:
                 case SyntaxKind.PostDecrementExpression:
                 case SyntaxKind.ObjectCreationExpression:
+                case SyntaxKind.ImplicitObjectCreationExpression:
                 case SyntaxKind.TypeOfExpression:
                 case SyntaxKind.DefaultExpression:
                 case SyntaxKind.CheckedExpression:
