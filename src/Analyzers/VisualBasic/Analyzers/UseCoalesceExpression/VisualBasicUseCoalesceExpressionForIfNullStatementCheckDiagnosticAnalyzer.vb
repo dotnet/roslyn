@@ -14,15 +14,24 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseCoalesceExpression
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend Class VisualBasicUseCoalesceExpressionForIfNullStatementCheckDiagnosticAnalyzer
-        Inherits AbstractUseCoalesceExpressionForIfNullCheckDiagnosticAnalyzer(Of
+        Inherits AbstractUseCoalesceExpressionForIfNullStatementCheckDiagnosticAnalyzer(Of
             SyntaxKind,
             ExpressionSyntax,
             StatementSyntax,
+            VariableDeclaratorSyntax,
             MultiLineIfBlockSyntax)
 
         Protected Overrides ReadOnly Property IfStatementKind As SyntaxKind = SyntaxKind.MultiLineIfBlock
 
         Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
+
+        Protected Overrides Function IsSingle(declarator As VariableDeclaratorSyntax) As Boolean
+            Return declarator.Names.Count = 1
+        End Function
+
+        Protected Overrides Function GetDeclarationNode(declarator As VariableDeclaratorSyntax) As SyntaxNode
+            Return declarator.Names(0)
+        End Function
 
         Protected Overrides Function GetConditionOfIfStatement(ifBlock As MultiLineIfBlockSyntax) As ExpressionSyntax
             Return ifBlock.IfStatement.Condition

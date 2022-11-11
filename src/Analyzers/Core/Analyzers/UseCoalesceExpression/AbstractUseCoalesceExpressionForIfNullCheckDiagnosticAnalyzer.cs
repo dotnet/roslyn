@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -14,17 +15,19 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
 {
-    internal abstract class AbstractUseCoalesceExpressionForIfNullCheckDiagnosticAnalyzer<
+    internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckDiagnosticAnalyzer<
         TSyntaxKind,
         TExpressionSyntax,
         TStatementSyntax,
+        TVariableDeclarator,
         TIfStatementSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
+        where TVariableDeclarator : SyntaxNode
         where TIfStatementSyntax : TStatementSyntax
     {
-        protected AbstractUseCoalesceExpressionForIfNullCheckDiagnosticAnalyzer()
+        protected AbstractUseCoalesceExpressionForIfNullStatementCheckDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCoalesceExpressionForIfNullCheckDiagnosticId,
                    EnforceOnBuildValues.UseCoalesceExpression,
                    CodeStyleOptions2.PreferCoalesceExpression,
@@ -36,10 +39,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
         protected abstract TSyntaxKind IfStatementKind { get; }
         protected abstract ISyntaxFacts SyntaxFacts { get; }
 
-        protected abstract TExpressionSyntax GetConditionOfIfStatement(TIfStatementSyntax ifStatement);
+        protected abstract bool IsSingle(TVariableDeclarator declarator);
         protected abstract bool IsNullCheck(TExpressionSyntax condition, [NotNullWhen(true)] out TExpressionSyntax? checkedExpression);
-        protected abstract bool TryGetEmbeddedStatement(TIfStatementSyntax ifStatement, [NotNullWhen(true)] out TStatementSyntax? whenTrueStatement);
         protected abstract bool HasElseBlock(TIfStatementSyntax ifStatement);
+
+        protected abstract SyntaxNode GetDeclarationNode(TVariableDeclarator declarator);
+        protected abstract TExpressionSyntax GetConditionOfIfStatement(TIfStatementSyntax ifStatement);
+        protected abstract bool TryGetEmbeddedStatement(TIfStatementSyntax ifStatement, [NotNullWhen(true)] out TStatementSyntax? whenTrueStatement);
 
         protected abstract TStatementSyntax? TryGetPreviousStatement(TIfStatementSyntax ifStatement);
 
@@ -138,7 +144,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
                 if (declarators.Count != 1)
                     return false;
 
-                var declarator = declarators[0];
+                var declarator = (TVariableDeclarator)declarators[0];
+                if (!IsSingle(declarator))
+                    return false;
+
                 var equalsValue = syntaxFacts.GetInitializerOfVariableDeclarator(declarator);
                 if (equalsValue is null)
                     return false;
@@ -157,30 +166,55 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
                 if (exprType is null || exprType.IsNonNullableValueType())
                     return false;
 
-                // var v = Expr();
-                // if (v == null)
-                //    throw ...
-                //
-                // can always convert this to `var v = Expr() ?? throw
-                if (syntaxFacts.IsThrowStatement(whenTrueStatement))
-                    return true;
+                if (!IsLegalWhenTrueStatementForAssignment(out var whenPartToAnalyze))
+                    return false;
 
-                // var v = Expr();
-                // if (v == null)
-                //    v = ...
-                //
-                // can convert if embedded statement is assigning to same variable
-                if (syntaxFacts.IsSimpleAssignmentStatement(whenTrueStatement))
+                // Looks good.  However, make sure the when-true part doesn't access this symbol.  We can't merge
+                // with the assignment then.
+                var localSymbol = (ILocalSymbol)semanticModel.GetRequiredDeclaredSymbol(GetDeclarationNode(declarator), cancellationToken);
+                foreach (var identifier in whenPartToAnalyze.DescendantNodesAndSelf())
                 {
-                    syntaxFacts.GetPartsOfAssignmentStatement(whenTrueStatement, out var left, out _);
-                    if (syntaxFacts.IsIdentifierName(left))
+                    if (syntaxFacts.IsIdentifierName(identifier) &&
+                        syntaxFacts.GetIdentifierOfIdentifierName(identifier).ValueText == localSymbol.Name)
                     {
-                        var leftName = syntaxFacts.GetIdentifierOfIdentifierName(left).ValueText;
-                        return leftName == variableName;
+                        var symbol = semanticModel.GetSymbolInfo(identifier, cancellationToken).GetAnySymbol();
+                        if (Equals(localSymbol, symbol))
+                            return false;
                     }
                 }
 
-                return false;
+                return true;
+
+                bool IsLegalWhenTrueStatementForAssignment([NotNullWhen(true)] out SyntaxNode? whenPartToAnalyze)
+                {
+                    whenPartToAnalyze = whenTrueStatement;
+
+                    // var v = Expr();
+                    // if (v == null)
+                    //    throw ...
+                    //
+                    // can always convert this to `var v = Expr() ?? throw
+                    if (syntaxFacts.IsThrowStatement(whenTrueStatement))
+                        return true;
+
+                    // var v = Expr();
+                    // if (v == null)
+                    //    v = ...
+                    //
+                    // can convert if embedded statement is assigning to same variable
+                    if (syntaxFacts.IsSimpleAssignmentStatement(whenTrueStatement))
+                    {
+                        syntaxFacts.GetPartsOfAssignmentStatement(whenTrueStatement, out var left, out var right);
+                        if (syntaxFacts.IsIdentifierName(left))
+                        {
+                            whenPartToAnalyze = right;
+                            var leftName = syntaxFacts.GetIdentifierOfIdentifierName(left).ValueText;
+                            return leftName == variableName;
+                        }
+                    }
+
+                    return false;
+                }
             }
 
             bool AnalyzeAssignmentForm(

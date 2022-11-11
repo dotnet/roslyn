@@ -18,10 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UseCoalesceExpression
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpUseCoalesceExpressionForIfNullStatementCheckDiagnosticAnalyzer :
-        AbstractUseCoalesceExpressionForIfNullCheckDiagnosticAnalyzer<
+        AbstractUseCoalesceExpressionForIfNullStatementCheckDiagnosticAnalyzer<
             SyntaxKind,
             ExpressionSyntax,
             StatementSyntax,
+            VariableDeclaratorSyntax,
             IfStatementSyntax>
     {
         protected override SyntaxKind IfStatementKind
@@ -29,6 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UseCoalesceExpression
 
         protected override ISyntaxFacts SyntaxFacts
             => CSharpSyntaxFacts.Instance;
+
+        protected override bool IsSingle(VariableDeclaratorSyntax declarator)
+            => true;
+
+        protected override SyntaxNode GetDeclarationNode(VariableDeclaratorSyntax declarator)
+            => declarator;
 
         protected override ExpressionSyntax GetConditionOfIfStatement(IfStatementSyntax ifStatement)
             => ifStatement.Condition;

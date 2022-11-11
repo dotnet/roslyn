@@ -433,5 +433,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCoalesceExpressio
                 FixedCode = text,
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task TestLocalDeclaration_NotWithReferenceToVariableInThrow()
+        {
+            var text = """
+                class C
+                {
+                    void M()
+                    {
+                        var item = FindItem() as C;
+                        if (item is null)
+                            throw new System.InvalidOperationException(nameof(item));
+                    }
+
+                    object FindItem() => null;
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = text,
+                FixedCode = text,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
     }
 }
