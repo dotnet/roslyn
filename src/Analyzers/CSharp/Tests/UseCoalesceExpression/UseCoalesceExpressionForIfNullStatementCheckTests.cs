@@ -413,5 +413,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCoalesceExpressio
                 FixedCode = text,
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task TestLocalDeclaration_NotWithValueTypeInitializer()
+        {
+            var text = """
+                class C
+                {
+                    void M()
+                    {
+                        object item = 0;
+                        if (item == null)
+                            item = null;
+                    }
+
+                    object FindItem() => null;
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = text,
+                FixedCode = text,
+            }.RunAsync();
+        }
     }
 }
