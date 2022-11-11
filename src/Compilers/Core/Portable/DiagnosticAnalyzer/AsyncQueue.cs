@@ -22,16 +22,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private bool _promisedNotToEnqueue;
 
         /// <summary>
-        /// Gets a task that transitions to a completed state when <see cref="Complete"/> or
-        /// <see cref="TryComplete"/> is called.  This transition will not happen synchronously.
-        /// 
-        /// This Task will not complete until it has completed all existing values returned
-        /// from <see cref="DequeueAsync"/>.
-        /// </summary>
-        public Task WhenCompletedTask
-            => _whenCompleted.Task;
-
-        /// <summary>
         /// Gets a value indicating whether the queue has completed.
         /// </summary>
         public bool IsCompleted

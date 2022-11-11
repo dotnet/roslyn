@@ -116,7 +116,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
 
             _queue.Complete();
-            _queue.WhenCompletedTask.Wait();
 
             // Anything left in the AsyncQueue after completion will not be handled by the client
             // and must be cleaned up by the host.
