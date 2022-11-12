@@ -3438,6 +3438,23 @@ record Program : Base
 }", "ToString()");
         }
 
+        [WpfFact, WorkItem(64887, "https://github.com/dotnet/roslyn/issues/64887")]
+        public async Task WithAttribute()
+        {
+            await VerifyItemExistsAsync("""
+                abstract class C
+                {
+                    public abstract void M();
+                }
+
+                class D : C
+                {
+                    [SomeAttribute]
+                    override $$;
+                }
+                """, "M()");
+        }
+
         private Task VerifyItemExistsAsync(string markup, string expectedItem)
         {
             return VerifyItemExistsAsync(markup, expectedItem, isComplexTextEdit: true);
