@@ -36,23 +36,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharp.UnitTests.MakeDeclarationPartial
             await new VerifyCS.Test
             {
                 TestCode = $$"""
-                partial {{declarationType}} Declaration
-                {
-                }
+                    partial {{declarationType}} Declaration
+                    {
+                    }
                 
-                {{declarationType}} {|CS0260:Declaration|}
-                {
-                }
-                """,
+                    {{declarationType}} {|CS0260:Declaration|}
+                    {
+                    }
+                    """,
                 FixedCode = $$"""
-                partial {{declarationType}} Declaration
-                {
-                }
+                    partial {{declarationType}} Declaration
+                    {
+                    }
                 
-                partial {{declarationType}} Declaration
-                {
-                }
-                """,
+                    partial {{declarationType}} Declaration
+                    {
+                    }
+                    """,
                 LanguageVersion = LanguageVersion.CSharp10
             }.RunAsync();
         }
@@ -64,27 +64,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharp.UnitTests.MakeDeclarationPartial
             await new VerifyCS.Test
             {
                 TestCode = $$"""
-                namespace TestNamespace;
+                    namespace TestNamespace;
                 
-                partial {{declarationType}} Declaration
-                {
-                }
+                    partial {{declarationType}} Declaration
+                    {
+                    }
                 
-                {{declarationType}} {|CS0260:Declaration|}
-                {
-                }
-                """,
+                    {{declarationType}} {|CS0260:Declaration|}
+                    {
+                    }
+                    """,
                 FixedCode = $$"""
-                namespace TestNamespace;
+                    namespace TestNamespace;
                 
-                partial {{declarationType}} Declaration
-                {
-                }
+                    partial {{declarationType}} Declaration
+                    {
+                    }
                 
-                partial {{declarationType}} Declaration
-                {
-                }
-                """,
+                    partial {{declarationType}} Declaration
+                    {
+                    }
+                    """,
                 LanguageVersion = LanguageVersion.CSharp10
             }.RunAsync();
         }
@@ -96,29 +96,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharp.UnitTests.MakeDeclarationPartial
             await new VerifyCS.Test
             {
                 TestCode = $$"""
-                namespace TestNamespace
-                {
-                    partial {{declarationType}} Declaration
+                    namespace TestNamespace
                     {
-                    }
+                        partial {{declarationType}} Declaration
+                        {
+                        }
                 
-                    {{declarationType}} {|CS0260:Declaration|}
-                    {
+                        {{declarationType}} {|CS0260:Declaration|}
+                        {
+                        }
                     }
-                }
-                """,
+                    """,
                 FixedCode = $$"""
-                namespace TestNamespace
-                {
-                    partial {{declarationType}} Declaration
+                    namespace TestNamespace
                     {
-                    }
+                        partial {{declarationType}} Declaration
+                        {
+                        }
                 
-                    partial {{declarationType}} Declaration
-                    {
+                        partial {{declarationType}} Declaration
+                        {
+                        }
                     }
-                }
-                """,
+                    """,
                 LanguageVersion = LanguageVersion.CSharp10
             }.RunAsync();
         }
@@ -130,35 +130,35 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharp.UnitTests.MakeDeclarationPartial
             await new VerifyCS.Test
             {
                 TestCode = $$"""
-                namespace TestNamespace
-                {
-                    partial {{declarationType}} Declaration
+                    namespace TestNamespace
                     {
+                        partial {{declarationType}} Declaration
+                        {
+                        }
                     }
-                }
                 
-                namespace TestNamespace
-                {
-                    {{declarationType}} {|CS0260:Declaration|}
+                    namespace TestNamespace
                     {
+                        {{declarationType}} {|CS0260:Declaration|}
+                        {
+                        }
                     }
-                }
-                """,
+                    """,
                 FixedCode = $$"""
-                namespace TestNamespace
-                {
-                    partial {{declarationType}} Declaration
+                    namespace TestNamespace
                     {
+                        partial {{declarationType}} Declaration
+                        {
+                        }
                     }
-                }
                 
-                namespace TestNamespace
-                {
-                    partial {{declarationType}} Declaration
+                    namespace TestNamespace
                     {
+                        partial {{declarationType}} Declaration
+                        {
+                        }
                     }
-                }
-                """,
+                    """,
                 LanguageVersion = LanguageVersion.CSharp10
             }.RunAsync();
         }
@@ -206,23 +206,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharp.UnitTests.MakeDeclarationPartial
             await new VerifyCS.Test
             {
                 TestCode = $$"""
-                public partial {{declarationType}} Declaration
-                {
-                }
+                    public partial {{declarationType}} Declaration
+                    {
+                    }
                 
-                public {{declarationType}} {|CS0260:Declaration|}
-                {
-                }
-                """,
+                    public {{declarationType}} {|CS0260:Declaration|}
+                    {
+                    }
+                    """,
                 FixedCode = $$"""
-                public partial {{declarationType}} Declaration
-                {
-                }
+                    public partial {{declarationType}} Declaration
+                    {
+                    }
                 
-                public partial {{declarationType}} Declaration
-                {
-                }
-                """,
+                    public partial {{declarationType}} Declaration
+                    {
+                    }
+                    """,
                 LanguageVersion = LanguageVersion.CSharp10
             }.RunAsync();
         }
@@ -234,29 +234,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharp.UnitTests.MakeDeclarationPartial
             await new VerifyCS.Test
             {
                 TestCode = $$"""
-                class Test
-                {
-                    public partial {{declarationType}} Declaration
+                    class Test
                     {
-                    }
+                        public partial {{declarationType}} Declaration
+                        {
+                        }
                 
-                    public {{declarationType}} {|CS0260:Declaration|}
-                    {
+                        public {{declarationType}} {|CS0260:Declaration|}
+                        {
+                        }
                     }
-                }
-                """,
+                    """,
                 FixedCode = $$"""
-                class Test
-                {
-                    public partial {{declarationType}} Declaration
+                    class Test
                     {
-                    }
+                        public partial {{declarationType}} Declaration
+                        {
+                        }
                 
-                    public partial {{declarationType}} Declaration
-                    {
+                        public partial {{declarationType}} Declaration
+                        {
+                        }
                     }
-                }
-                """,
+                    """,
                 LanguageVersion = LanguageVersion.CSharp10
             }.RunAsync();
         }
@@ -265,41 +265,41 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharp.UnitTests.MakeDeclarationPartial
         [MemberData(nameof(AllValidDeclarationTypes))]
         public async Task NestedType2(string declarationType)
         {
-            // Note: fixes here will be executed sequentially, this is not the same as fix-all
+            // Note: fixes here are executed sequentially, this is not the same as fix-all
             await new VerifyCS.Test
             {
                 TestCode = $$"""
-                partial {{declarationType}} Test
-                {
-                }
+                    partial {{declarationType}} Test
+                    {
+                    }
 
-                {{declarationType}} {|CS0260:Test|}
-                {
-                    public partial {{declarationType}} Declaration
+                    {{declarationType}} {|CS0260:Test|}
                     {
-                    }
+                        public partial {{declarationType}} Declaration
+                        {
+                        }
                 
-                    public {{declarationType}} {|CS0260:Declaration|}
-                    {
+                        public {{declarationType}} {|CS0260:Declaration|}
+                        {
+                        }
                     }
-                }
-                """,
+                    """,
                 FixedCode = $$"""
-                partial {{declarationType}} Test
-                {
-                }
+                    partial {{declarationType}} Test
+                    {
+                    }
 
-                partial {{declarationType}} Test
-                {
-                    public partial {{declarationType}} Declaration
+                    partial {{declarationType}} Test
                     {
-                    }
+                        public partial {{declarationType}} Declaration
+                        {
+                        }
                 
-                    public partial {{declarationType}} Declaration
-                    {
+                        public partial {{declarationType}} Declaration
+                        {
+                        }
                     }
-                }
-                """,
+                    """,
                 LanguageVersion = LanguageVersion.CSharp10
             }.RunAsync();
         }
