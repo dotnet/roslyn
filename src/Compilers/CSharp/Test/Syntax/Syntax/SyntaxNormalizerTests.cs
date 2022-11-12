@@ -2821,6 +2821,47 @@ class Derived : Base
                 "new SomeClass { A = 1, B = new SomeOtherClass() { D = 7, E = 0, F = new int[] { 1, 2, 3 } }, C = new { G = new List<AndAnotherClass> { new AndAnotherClass { J = 8, K = new Dictionary<int, int> { [1] = 0, [2] = 0, [3] = 0 }, L = new List<Whatever>() { } } }, H = new { }, I = new MixedClass() { [0] = new MixedClass { [0] = new MixedClass { M = 5.01m } }, M = 2.71m, [0] = new MixedClass() } } }");
         }
 
+        [Fact, WorkItem(61204, "https://github.com/dotnet/roslyn/issues/61204")]
+        public void TestNormalizeInitializers_Statements()
+        {
+            TestNormalizeStatement(
+                "var someVar=new SomeClass{A=1,B=2,C=3};", """
+                var someVar = new SomeClass
+                {
+                  A = 1,
+                  B = 2,
+                  C = 3
+                };
+                """);
+            TestNormalizeStatement(
+                "if(true){new SomeClass{A=1,B=2,C=3};}", """
+                if (true)
+                {
+                  new SomeClass
+                  {
+                    A = 1,
+                    B = 2,
+                    C = 3
+                  };
+                }
+                """);
+            TestNormalizeDeclaration(
+                "class C{void M(){new SomeClass{A=1,B=2,C=3};}}", """
+                class C
+                {
+                  void M()
+                  {
+                    new SomeClass
+                    {
+                      A = 1,
+                      B = 2,
+                      C = 3
+                    };
+                  }
+                }
+                """);
+        }
+
         private void VerifySingleLineInitializer(string text, string expected)
         {
             TestNormalizeExpression("$\"{" + text + "}\"", "$\"{" + expected + "}\"");

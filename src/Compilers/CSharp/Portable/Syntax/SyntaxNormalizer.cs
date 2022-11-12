@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 currentTokenParent.IsKind(SyntaxKind.Interpolation) ||
                 currentTokenParent?.Parent is AnonymousFunctionExpressionSyntax ||
                 IsAccessorListFollowedByInitializer(currentTokenParent) ||
-                isCloseBraceFollowedByComma(currentToken, nextToken) || // Typical case: `new A { X = new B { }, <- here }`. Should emit no breaks regardless of whether in multiline mode or not
+                isCloseBraceFollowedByCommaOrSemicolon(currentToken, nextToken) || // Typical case: `var a = new A { X = new B { }, <- here }; <- and here`. Should emit no breaks regardless of whether in multiline mode or not
                 nextToken.Parent is MemberAccessExpressionSyntax or BracketedArgumentListSyntax || // Typical cases: `new [] { ... }.Length` or `new [] { ... }[0]`. When in multiline mode still want to keep them on the same line as closing brace
                 IsInitializerInSingleLineContext(currentTokenParent))
             {
@@ -397,8 +397,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     }
             }
 
-            static bool isCloseBraceFollowedByComma(SyntaxToken currentToken, SyntaxToken nextToken)
-                => currentToken.IsKind(SyntaxKind.CloseBraceToken) && nextToken.IsKind(SyntaxKind.CommaToken);
+            static bool isCloseBraceFollowedByCommaOrSemicolon(SyntaxToken currentToken, SyntaxToken nextToken)
+                => currentToken.IsKind(SyntaxKind.CloseBraceToken) &&
+                   nextToken.Kind() is SyntaxKind.CommaToken or SyntaxKind.SemicolonToken;
         }
 
         private static int LineBreaksAfterSemicolon(SyntaxToken currentToken, SyntaxToken nextToken)
@@ -1342,7 +1343,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <item>Interpolation holes in strings</item>
         /// <item>Attribute arguments</item>
         /// <item>Normal arguments</item>
-        /// <item>Member declarations</item>
         /// </list>
         /// </summary>
         private static bool IsSingleLineInitializerContext(SyntaxNode? node)
@@ -1358,8 +1358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 if (currentParent is InterpolationSyntax
                                   or AttributeArgumentSyntax
-                                  or ArgumentSyntax
-                                  or MemberDeclarationSyntax)
+                                  or ArgumentSyntax)
                 {
                     return true;
                 }
