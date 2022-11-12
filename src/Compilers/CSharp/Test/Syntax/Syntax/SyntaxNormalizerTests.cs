@@ -2760,6 +2760,19 @@ class Derived : Base
                 """);
 
             TestNormalizeExpression(
+                "new SomeClass{Arr={1,2,3}}", """
+                new SomeClass
+                {
+                  Arr =
+                  {
+                    1,
+                    2,
+                    3
+                  }
+                }
+                """);
+
+            TestNormalizeExpression(
                 "new SomeClass{A=1,B=new SomeOtherClass(){D=7,E=\"test\",F=new int[]{1,2,3}},C=new{G=new List<AndAnotherClass>{new AndAnotherClass{J=8,K=new Dictionary<int,string>{[1]=\"test1\",[2]=\"test2\",[3]=\"test3\"},L=new List<Whatever>(){}}},H=new{},I=new MixedClass(){[\"test1\"]=new MixedClass{[\"innerTest\"]=new MixedClass{M=5.01m}},M=2.71m,[\"test2\"]=new MixedClass()}}}", """
                 new SomeClass
                 {
