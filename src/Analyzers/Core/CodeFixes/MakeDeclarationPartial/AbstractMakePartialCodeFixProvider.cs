@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.MakeDeclarationPartial
 {
     internal abstract class AbstractMakeDeclarationPartialCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        // This code fix addresses a very specific compiler error. It's unlikely there will be more than 1 of them at a time.
         protected AbstractMakeDeclarationPartialCodeFixProvider()
             : base(supportsFixAll: false)
         {
