@@ -2827,6 +2827,14 @@ class Derived : Base
             TestNormalizeDeclaration($"[SomeAttribute({text})]", $"[SomeAttribute({expected})]");
             TestNormalizeExpression($"new SomeClass({text})", $"new SomeClass({expected})");
             TestNormalizeExpression($"Call({text})", $"Call({expected})");
+            TestNormalizeDeclaration($"class C{{C():base({text}){{}}}}", $$"""
+                class C
+                {
+                  C() : base({{expected}})
+                  {
+                  }
+                }
+                """);
         }
     }
 }

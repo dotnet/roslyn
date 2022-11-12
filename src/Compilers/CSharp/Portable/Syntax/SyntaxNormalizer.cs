@@ -369,8 +369,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 currentTokenParent.IsKind(SyntaxKind.Interpolation) ||
                 currentTokenParent?.Parent is AnonymousFunctionExpressionSyntax ||
                 IsAccessorListFollowedByInitializer(currentTokenParent) ||
-                isCloseBraceFollowedByComma(currentToken, nextToken) ||
-                nextToken.Parent is MemberAccessExpressionSyntax or BracketedArgumentListSyntax ||
+                isCloseBraceFollowedByComma(currentToken, nextToken) || // Typical case: `new A { X = new B { }, <- here }`. Should emit no breaks regardless of whether in multiline mode or not
+                nextToken.Parent is MemberAccessExpressionSyntax or BracketedArgumentListSyntax || // Typical cases: `new [] { ... }.Length` or `new [] { ... }[0]`. When in multiline mode still want to keep them on the same line as closing brace
                 IsInitializerInSingleLineContext(currentTokenParent))
             {
                 return 0;
@@ -1342,6 +1342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <item>Interpolation holes in strings</item>
         /// <item>Attribute arguments</item>
         /// <item>Normal arguments</item>
+        /// <item>Member declarations</item>
         /// </list>
         /// </summary>
         private static bool IsSingleLineInitializerContext(SyntaxNode? node)
@@ -1355,7 +1356,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             while (currentParent is not null)
             {
-                if (currentParent is InterpolationSyntax or AttributeArgumentSyntax or ArgumentSyntax)
+                if (currentParent is InterpolationSyntax
+                                  or AttributeArgumentSyntax
+                                  or ArgumentSyntax
+                                  or MemberDeclarationSyntax)
                 {
                     return true;
                 }
