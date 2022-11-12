@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -32,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override DeclarationScope EffectiveScope
             => ParameterHelpers.IsRefScopedByDefault(this) ? DeclarationScope.RefScoped : DeclarationScope.Unscoped;
+        internal override bool HasUnscopedRefAttribute => false;
         internal override bool UseUpdatedEscapeRules => _containingSymbol.UseUpdatedEscapeRules;
 
         public override bool Equals(Symbol other, TypeCompareKind compareKind)
