@@ -15674,7 +15674,7 @@ class Program
             Assert.Equal("lambda expression", method.ToTestDisplayString());
             var parameters = method.GetParameters();
             Assert.Equal("R <p0>", parameters[0].ToTestDisplayString());
-            Assert.Equal("R <p1>", parameters[1].ToTestDisplayString());
+            Assert.Equal("ref R <p1>", parameters[1].ToTestDisplayString());
         }
 
         [Fact]

@@ -311,14 +311,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!unboundLambda.HasSignature || unboundLambda.ParameterCount == 0)
             {
                 // The parameters may be omitted in source, but they are still present on the symbol.
-                return parameterTypes.SelectAsArray((type, ordinal, owner) =>
+                return parameterTypes.SelectAsArray((type, ordinal, arg) =>
                                                         SynthesizedParameterSymbol.Create(
-                                                            owner,
+                                                            arg.owner,
                                                             type,
                                                             ordinal,
-                                                            RefKind.None,
+                                                            arg.refKinds[ordinal],
                                                             GeneratedNames.LambdaCopyParameterName(ordinal)), // Make sure nothing binds to this.
-                                                     this);
+                                                     (owner: this, refKinds: parameterRefKinds));
             }
 
             var builder = ArrayBuilder<ParameterSymbol>.GetInstance(unboundLambda.ParameterCount);
