@@ -1363,6 +1363,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return true;
                 }
 
+                if (currentParent is StatementSyntax
+                                  or MemberDeclarationSyntax)
+                {
+                    return false;
+                }
+
                 currentParent = currentParent.Parent;
             }
 
