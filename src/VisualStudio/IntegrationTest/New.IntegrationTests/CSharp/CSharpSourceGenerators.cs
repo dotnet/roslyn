@@ -149,6 +149,7 @@ internal static class Program
         public async Task InvokeNavigateToForGeneratedFile()
         {
             await TestServices.Shell.ShowNavigateToDialogAsync(HangMitigatingCancellationToken);
+            await Task.Delay(3000);
 
             await TestServices.Input.SendToNavigateToAsync(new InputKey[] { HelloWorldGenerator.GeneratedEnglishClassName, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
             await TestServices.Workarounds.WaitForNavigationAsync(HangMitigatingCancellationToken);
