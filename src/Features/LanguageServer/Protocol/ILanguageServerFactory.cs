@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using StreamJsonRpc;
@@ -15,6 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
             WellKnownLspServerKinds serverKind,
-            ILspServiceLogger logger);
+            ILspServiceLogger logger,
+            HostServices hostServices);
     }
 }

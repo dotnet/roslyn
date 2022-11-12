@@ -68,13 +68,13 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
     private readonly string _hostWorkspaceKind;
     private readonly ILspLogger _logger;
-    private readonly LspMiscellaneousFilesWorkspace? _lspMiscellaneousFilesWorkspace;
+    private readonly LspMiscellaneousFilesWorkspace _lspMiscellaneousFilesWorkspace;
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
     private readonly RequestTelemetryLogger _requestTelemetryLogger;
 
     public LspWorkspaceManager(
         ILspLogger logger,
-        LspMiscellaneousFilesWorkspace? lspMiscellaneousFilesWorkspace,
+        LspMiscellaneousFilesWorkspace lspMiscellaneousFilesWorkspace,
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
         RequestTelemetryLogger requestTelemetryLogger)
     {
@@ -119,7 +119,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _cachedLspSolutions.Clear();
 
         // Also remove it from our loose files workspace if it is still there.
-        _lspMiscellaneousFilesWorkspace?.TryRemoveMiscellaneousDocument(uri);
+        _lspMiscellaneousFilesWorkspace.TryRemoveMiscellaneousDocument(uri);
     }
 
     /// <summary>
@@ -200,7 +200,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // Add the document to our loose files workspace if its open.
         if (_trackedDocuments.ContainsKey(uri))
         {
-            var miscDocument = _lspMiscellaneousFilesWorkspace?.AddMiscellaneousDocument(uri, _trackedDocuments[uri], _logger);
+            var miscDocument = _lspMiscellaneousFilesWorkspace.AddMiscellaneousDocument(uri, _trackedDocuments[uri], _logger);
             if (miscDocument is not null)
                 return (_lspMiscellaneousFilesWorkspace, miscDocument.Project.Solution, miscDocument);
         }
@@ -353,7 +353,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         public TestAccessor(LspWorkspaceManager manager)
             => _manager = manager;
 
-        public LspMiscellaneousFilesWorkspace? GetLspMiscellaneousFilesWorkspace()
+        public LspMiscellaneousFilesWorkspace GetLspMiscellaneousFilesWorkspace()
             => _manager._lspMiscellaneousFilesWorkspace;
 
         public bool IsWorkspaceRegistered(Workspace workspace)
