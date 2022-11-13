@@ -2816,13 +2816,18 @@ D d = {;}
             CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // D d = {;}
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "D d = {;").WithLocation(3, 1),
-                // (3,8): error CS1513: } expected
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ";"),
-                // (3,9): error CS1022: Type or namespace definition, or end-of-file expected
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}"),
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"D d = {;}
+").WithLocation(3, 1),
+                // (3,8): error CS1003: Syntax error, ',' expected
+                // D d = {;}
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(3, 8),
+                // (3,10): error CS1002: ; expected
+                // D d = {;}
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 10),
                 // (3,7): error CS0622: Can only use array initializer expressions to assign to array types. Try using a new expression instead.
-                Diagnostic(ErrorCode.ERR_ArrayInitToNonArrayType, "{"));
+                // D d = {;}
+                Diagnostic(ErrorCode.ERR_ArrayInitToNonArrayType, "{;}").WithLocation(3, 7)
+            );
         }
 
         [WorkItem(539129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539129")]
