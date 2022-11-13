@@ -888,7 +888,7 @@ breaks
         public void TestNormalizePreprocessorDirectives()
         {
             // directive as node
-            TestNormalize(SyntaxFactory.DefineDirectiveTrivia(SyntaxFactory.Identifier("a"), false), "#define a\r\n");
+            TestNormalize(SyntaxFactory.DefineDirectiveTrivia(SyntaxFactory.Identifier("a"), false), "#define a");
 
             // directive as trivia
             TestNormalizeTrivia("  #  define a", "#define a\r\n");
@@ -919,6 +919,84 @@ namespace goo
 }
 #pragma warning restore 123
 ");
+
+            TestNormalizeDeclaration(@"#pragma warning disable 123
+class C { #pragma warning restore 123
+
+    void M1() { #pragma warning disable 123
+    } #pragma warning restore 123
+
+    void M2() { #pragma warning disable 123
+    } #pragma warning restore 123
+
+} #pragma warning disable 123
+", @"#pragma warning disable 123
+class C
+{
+#pragma warning restore 123
+  void M1()
+  {
+#pragma warning disable 123
+  }
+#pragma warning restore 123
+
+  void M2()
+  {
+#pragma warning disable 123
+  }
+#pragma warning restore 123
+}
+#pragma warning disable 123
+");
+        }
+
+        [Fact]
+        public void TestNormalizeMissingToken()
+        {
+            TestNormalizeDeclaration(@"public class C {
+    public void M() {
+        M1(() => {};
+    }
+}", @"public class C
+{
+  public void M()
+  {
+    M1(() =>
+    {
+    };
+  }
+}");
+            TestNormalizeDeclaration(@"public class C {
+    public void M() {
+        M1(() => {}}
+}", @"public class C
+{
+  public void M()
+  {
+    M1(() =>
+    {
+    }}
+}");
+
+            TestNormalizeDeclaration(@"public class C {
+    public void M() {
+        M1(() => { return 1;) }
+}", @"public class C
+{
+  public void M()
+  {
+    M1(() =>
+    {
+      return 1;
+    )}
+}");
+
+            TestNormalizeDeclaration(@"
+# pragma warning invalid 123
+void M() {}", @"#pragma warning invalid 123
+void M()
+{
+}");
         }
 
         [Fact]
@@ -961,7 +1039,7 @@ namespace goo
                     SyntaxFactory.Literal("a.txt"),
                     SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken),
                     isActive: true),
-                "#line (1, 2) - (3, 4) 5 \"a.txt\"\r\n");
+                "#line (1, 2) - (3, 4) 5 \"a.txt\"");
         }
 
         [Fact]
