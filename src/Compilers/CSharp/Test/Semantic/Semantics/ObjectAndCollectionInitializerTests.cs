@@ -2826,14 +2826,14 @@ class Program
         var d = /*<bind>*/new Dictionary<object, object>()
         {
             {""s"", 1 },
-        var x = 1/*</bind>*/;
-    }
+        var x = 1;
+    }/*</bind>*/
 }
 ";
             string expectedOperationTree = @"
-IInvalidOperation (OperationKind.Invalid, Type: Dictionary<System.Object, System.Object>, IsInvalid) (Syntax: 'new Diction ... /*</bind>*/')
+IInvalidOperation (OperationKind.Invalid, Type: Dictionary<System.Object, System.Object>, IsInvalid) (Syntax: 'new Diction ... }')
   Children(1):
-      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: Dictionary<System.Object, System.Object>, IsInvalid) (Syntax: '{ ... /*</bind>*/')
+      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: Dictionary<System.Object, System.Object>, IsInvalid) (Syntax: '{ ... }')
         Initializers(3):
             IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '{""s"", 1 }')
               Children(2):
@@ -2842,33 +2842,39 @@ IInvalidOperation (OperationKind.Invalid, Type: Dictionary<System.Object, System
             IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'var')
               Children(0)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'x = 1')
-              Left: 
+              Left:
                 IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'x')
                   Children(1):
                       IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'x')
                         Children(1):
                             IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: Dictionary<System.Object, System.Object>, IsInvalid, IsImplicit) (Syntax: 'Dictionary< ... ct, object>')
-              Right: 
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+              Right:
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1003: Syntax error, ',' expected
-                //         var x = 1/*</bind>*/;
+                // (9,13): error CS1003: Syntax error, ',' expected
+                //         var x = 1;
                 Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(9, 13),
-                // CS1513: } expected
-                //         var x = 1/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(9, 29),
-                // CS0246: The type or namespace name 'Dictionary<,>' could not be found (are you missing a using directive or an assembly reference?)
+                // (9,18): error CS1003: Syntax error, ',' expected
+                //         var x = 1;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(9, 18),
+                // (10,6): error CS1002: ; expected
+                //     }/*</bind>*/
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(10, 6),
+                // (11,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(11, 2),
+                // (6,31): error CS0246: The type or namespace name 'Dictionary<,>' could not be found (are you missing a using directive or an assembly reference?)
                 //         var d = /*<bind>*/new Dictionary<object, object>()
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Dictionary<object, object>").WithArguments("Dictionary<,>").WithLocation(6, 31),
-                // CS0747: Invalid initializer member declarator
+                // (8,13): error CS0747: Invalid initializer member declarator
                 //             {"s", 1 },
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, @"{""s"", 1 }").WithLocation(8, 13),
-                // CS0103: The name 'var' does not exist in the current context
-                //         var x = 1/*</bind>*/;
+                // (9,9): error CS0103: The name 'var' does not exist in the current context
+                //         var x = 1;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(9, 9),
-                // CS0747: Invalid initializer member declarator
-                //         var x = 1/*</bind>*/;
+                // (9,9): error CS0747: Invalid initializer member declarator
+                //         var x = 1;
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "var").WithLocation(9, 9)
             };
 
