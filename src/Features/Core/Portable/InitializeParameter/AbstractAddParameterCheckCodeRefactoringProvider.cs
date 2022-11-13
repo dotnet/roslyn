@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             if (statement is IConditionalOperation ifStatement)
             {
                 var condition = ifStatement.Condition;
-                condition = UnwrapImplicitConversion(condition);
+                condition = condition.UnwrapImplicitConversion();
 
                 if (condition is IBinaryOperation binaryOperator)
                 {
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private static bool IsNullCheck(IOperation operand1, IOperation operand2, IParameterSymbol parameter)
-            => UnwrapImplicitConversion(operand1).IsNullLiteral() && IsParameterReference(operand2, parameter);
+            => operand1.UnwrapImplicitConversion().IsNullLiteral() && IsParameterReference(operand2, parameter);
 
         private async Task<Document> AddNullCheckAsync(
             Document document,

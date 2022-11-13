@@ -173,18 +173,18 @@ namespace Roslyn.Test.Utilities
 
         internal static LSP.SymbolInformation CreateSymbolInformation(LSP.SymbolKind kind, string name, LSP.Location location, Glyph glyph, string? containerName = null)
         {
+            var imageId = glyph.GetImageId();
+
             var info = new LSP.VSSymbolInformation()
             {
                 Kind = kind,
                 Name = name,
                 Location = location,
-                Icon = VSLspExtensionConversions.GetImageIdFromGlyph(glyph)
+                Icon = new LSP.VSImageId { Guid = imageId.Guid, Id = imageId.Id },
             };
 
             if (containerName != null)
-            {
                 info.ContainerName = containerName;
-            }
 
             return info;
         }
