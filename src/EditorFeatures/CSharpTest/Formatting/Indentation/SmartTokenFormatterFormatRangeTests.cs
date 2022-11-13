@@ -2855,7 +2855,7 @@ class Program
 class Program{
     void Main()
     {
-        var f = new Goo { member:$$ }
+        var f = new Goo { member,$$ }
     }
 }";
 
@@ -2863,13 +2863,14 @@ class Program{
 class Program{
     void Main()
     {
-        var f = new Goo { member: }
+        var f = new Goo { member, }
     }
 }";
 
-            await AutoFormatOnColonAsync(
+            await AutoFormatOnMarkerAsync(
                 code,
                 expected,
+                SyntaxKind.CommaToken,
                 SyntaxKind.OpenBraceToken);
         }
 
