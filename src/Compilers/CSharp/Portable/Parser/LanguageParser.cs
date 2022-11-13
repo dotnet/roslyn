@@ -12912,29 +12912,30 @@ tryAgain:
         private PostSkipAction SkipBadInitializerListTokens<T>(ref SyntaxToken startToken, SeparatedSyntaxListBuilder<T> list, SyntaxKind expected)
             where T : CSharpSyntaxNode
         {
+            bool openBraceIsMissing = startToken.IsMissing;
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref startToken, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleExpression(),
-                abortFunc,
+                p => p.SkipBadInitializerToken(openBraceIsMissing),
                 expected);
-
-            static bool abortFunc(LanguageParser p)
-            {
-                if (p.CurrentToken.Kind == SyntaxKind.SemicolonToken)
-                {
-                    return !p.IsNextToken(lp => lp.CurrentToken.Kind == SyntaxKind.CloseBraceToken || lp.IsPossibleVariableInitializer());
-                }
-                return p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator();
-            }
         }
 
-        private T IsNextToken<T>(Func<LanguageParser, T> nextTokenParseFunc)
+        private bool SkipBadInitializerToken(bool openBraceIsMissing)
         {
-            var resetPoint = this.GetResetPoint();
-            this.EatToken();
-            T result = nextTokenParseFunc(this);
-            this.Reset(ref resetPoint);
-            this.Release(ref resetPoint);
-            return result;
+            if (!openBraceIsMissing && CurrentToken.Kind == SyntaxKind.SemicolonToken)
+            {
+                return !isNextToken(lp => lp.CurrentToken.Kind == SyntaxKind.CloseBraceToken || lp.IsPossibleVariableInitializer());
+            }
+            return CurrentToken.Kind == SyntaxKind.CloseBraceToken || IsTerminator();
+
+            bool isNextToken(Func<LanguageParser, bool> nextTokenParseFunc)
+            {
+                var resetPoint = GetResetPoint();
+                EatToken();
+                bool result = nextTokenParseFunc(this);
+                this.Reset(ref resetPoint);
+                this.Release(ref resetPoint);
+                return result;
+            }
         }
 
         private ExpressionSyntax ParseObjectInitializerNamedAssignment()
@@ -13146,19 +13147,11 @@ tryAgain:
 
         private PostSkipAction SkipBadArrayInitializerTokens(ref SyntaxToken openBrace, SeparatedSyntaxListBuilder<ExpressionSyntax> list, SyntaxKind expected)
         {
+            bool openBraceIsMissing = openBrace.IsMissing;
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref openBrace, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleVariableInitializer(),
-                abortFunc,
+                p => p.SkipBadInitializerToken(openBraceIsMissing),
                 expected);
-
-            static bool abortFunc(LanguageParser p)
-            {
-                if (p.CurrentToken.Kind == SyntaxKind.SemicolonToken)
-                {
-                    return !p.IsNextToken(lp => lp.CurrentToken.Kind == SyntaxKind.CloseBraceToken || lp.IsPossibleVariableInitializer());
-                }
-                return p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator();
-            }
         }
 
         private ExpressionSyntax ParseStackAllocExpression()
