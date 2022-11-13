@@ -5092,8 +5092,6 @@ class C
             Assert.Equal((int)ErrorCode.ERR_RbraceExpected, errors[3].Code);
         }
 
-        
-
         [Fact]
         public void TestSemicolonAfterObjectInitializerMemberComma()
         {
