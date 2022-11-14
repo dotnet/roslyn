@@ -6304,15 +6304,10 @@ tryAgain:
                 _termState = saveTerm;
             }
 
-            SyntaxToken varianceToken = null;
-            if (this.CurrentToken.Kind == SyntaxKind.InKeyword || this.CurrentToken.Kind == SyntaxKind.OutKeyword)
-            {
-                // Recognize the variance syntax, but give an error as it's
-                // only appropriate in a type parameter list.
-                varianceToken = this.EatToken();
-                varianceToken = CheckFeatureAvailability(varianceToken, MessageID.IDS_FeatureTypeVariance);
-                varianceToken = this.AddError(varianceToken, ErrorCode.ERR_IllegalVarianceSyntax);
-            }
+            // Recognize the variance syntax, but give an error as it's only appropriate in a type parameter list.
+            var varianceToken = this.CurrentToken.Kind is SyntaxKind.InKeyword or SyntaxKind.OutKeyword
+                ? this.AddError(this.EatToken(), ErrorCode.ERR_IllegalVarianceSyntax)
+                : null;
 
             var result = this.ParseType();
 
