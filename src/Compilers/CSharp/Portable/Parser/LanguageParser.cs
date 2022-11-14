@@ -11160,10 +11160,9 @@ tryAgain:
 
         private ExpressionSyntax ParseThrowExpression()
         {
-            var throwToken = this.EatToken(SyntaxKind.ThrowKeyword);
-            var thrown = this.ParseSubExpression(Precedence.Coalescing);
-            var result = _syntaxFactory.ThrowExpression(throwToken, thrown);
-            return CheckFeatureAvailability(result, MessageID.IDS_FeatureThrowExpression);
+            return _syntaxFactory.ThrowExpression(
+                this.EatToken(SyntaxKind.ThrowKeyword),
+                this.ParseSubExpression(Precedence.Coalescing));
         }
 
         private ExpressionSyntax ParseIsExpression(ExpressionSyntax leftOperand, SyntaxToken opToken)

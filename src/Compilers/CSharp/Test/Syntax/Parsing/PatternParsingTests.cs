@@ -90,25 +90,25 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "NeverReturnsFunction").WithArguments("local functions", "7.0").WithLocation(6, 14),
                 // (6,40): error CS8059: Feature 'throw expression' is not available in C# 6. Please use language version 7.0 or greater.
                 //         void NeverReturnsFunction() => throw new NullReferenceException();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw new NullReferenceException()").WithArguments("throw expression", "7.0").WithLocation(6, 40),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw").WithArguments("throw expression", "7.0").WithLocation(6, 40),
                 // (7,21): error CS8059: Feature 'throw expression' is not available in C# 6. Please use language version 7.0 or greater.
                 //         int x = b ? throw new NullReferenceException() : 1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw new NullReferenceException()").WithArguments("throw expression", "7.0").WithLocation(7, 21),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw").WithArguments("throw expression", "7.0").WithLocation(7, 21),
                 // (8,21): error CS8059: Feature 'throw expression' is not available in C# 6. Please use language version 7.0 or greater.
                 //         x = b ? 2 : throw new NullReferenceException();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw new NullReferenceException()").WithArguments("throw expression", "7.0").WithLocation(8, 21),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw").WithArguments("throw expression", "7.0").WithLocation(8, 21),
                 // (9,18): error CS8059: Feature 'throw expression' is not available in C# 6. Please use language version 7.0 or greater.
                 //         s = s ?? throw new NullReferenceException();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw new NullReferenceException()").WithArguments("throw expression", "7.0").WithLocation(9, 18),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw").WithArguments("throw expression", "7.0").WithLocation(9, 18),
                 // (11,47): error CS8059: Feature 'throw expression' is not available in C# 6. Please use language version 7.0 or greater.
                 //         throw new NullReferenceException() ?? throw new NullReferenceException() ?? throw null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw new NullReferenceException() ?? throw null").WithArguments("throw expression", "7.0").WithLocation(11, 47),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw").WithArguments("throw expression", "7.0").WithLocation(11, 47),
                 // (11,85): error CS8059: Feature 'throw expression' is not available in C# 6. Please use language version 7.0 or greater.
                 //         throw new NullReferenceException() ?? throw new NullReferenceException() ?? throw null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw null").WithArguments("throw expression", "7.0").WithLocation(11, 85),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw").WithArguments("throw expression", "7.0").WithLocation(11, 85),
                 // (13,42): error CS8059: Feature 'throw expression' is not available in C# 6. Please use language version 7.0 or greater.
                 //     public static void NeverReturns() => throw new NullReferenceException();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw new NullReferenceException()").WithArguments("throw expression", "7.0").WithLocation(13, 42)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw").WithArguments("throw expression", "7.0").WithLocation(13, 42)
                 );
         }
 
