@@ -1271,9 +1271,7 @@ class C
         [Fact]
         public void DiagnosticsWithoutExperimental()
         {
-            // Experimental nodes should only appear when experimental are
-            // turned on in parse options
-            var file = ParseFile(@"
+            var text = @"
 class c
 {
     void m()
@@ -1284,29 +1282,41 @@ class c
     {
         int local() { return 0; }
     }
-}", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+}";
+
+            var file = ParseFile(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             Assert.NotNull(file);
-            Assert.False(file.DescendantNodes().Any(n => n.Kind() == SyntaxKind.LocalFunctionStatement && !n.ContainsDiagnostics));
-            Assert.True(file.HasErrors);
-            file.SyntaxTree.GetDiagnostics().Verify(
-                // (6,13): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
-                //         int local() => 0;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "local").WithArguments("local functions", "7.0").WithLocation(6, 13),
-                // (10,13): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
-                //         int local() { return 0; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "local").WithArguments("local functions", "7.0").WithLocation(10, 13)
-                );
+            Assert.True(file.DescendantNodes().Any(n => n.Kind() == SyntaxKind.LocalFunctionStatement && !n.ContainsDiagnostics));
+            Assert.False(file.HasErrors);
+            file.SyntaxTree.GetDiagnostics().Verify();
 
             Assert.Equal(0, file.SyntaxTree.Options.Features.Count);
             var c = Assert.IsType<ClassDeclarationSyntax>(file.Members.Single());
             Assert.Equal(2, c.Members.Count);
             var m = Assert.IsType<MethodDeclarationSyntax>(c.Members[0]);
             var s1 = Assert.IsType<LocalFunctionStatementSyntax>(m.Body.Statements[0]);
-            Assert.True(s1.ContainsDiagnostics);
+            Assert.False(s1.ContainsDiagnostics);
 
             var m2 = Assert.IsType<MethodDeclarationSyntax>(c.Members[1]);
             s1 = Assert.IsType<LocalFunctionStatementSyntax>(m.Body.Statements[0]);
-            Assert.True(s1.ContainsDiagnostics);
+            Assert.False(s1.ContainsDiagnostics);
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (2,7): warning CS8981: The type name 'c' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class c
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "c").WithArguments("c").WithLocation(2, 7),
+                // (6,13): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
+                //         int local() => 0;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "local").WithArguments("local functions", "7.0").WithLocation(6, 13),
+                // (6,13): warning CS8321: The local function 'local' is declared but never used
+                //         int local() => 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(6, 13),
+                // (10,13): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
+                //         int local() { return 0; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "local").WithArguments("local functions", "7.0").WithLocation(10, 13),
+                // (10,13): warning CS8321: The local function 'local' is declared but never used
+                //         int local() { return 0; }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(10, 13));
         }
 
         [Fact]

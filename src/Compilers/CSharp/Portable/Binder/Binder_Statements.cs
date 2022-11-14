@@ -550,6 +550,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindLocalFunctionStatement(LocalFunctionStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureLocalFunctions.CheckFeatureAvailability(diagnostics, node, node.Identifier.GetLocation());
+
             // already defined symbol in containing block
             var localSymbol = this.LookupLocalFunction(node.Identifier);
 

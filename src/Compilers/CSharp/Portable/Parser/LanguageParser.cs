@@ -10399,7 +10399,6 @@ tryAgain:
             }
             this.Release(ref resetPoint);
 
-            identifier = CheckFeatureAvailability(identifier, MessageID.IDS_FeatureLocalFunctions);
             return _syntaxFactory.LocalFunctionStatement(
                 attributes,
                 modifiers,
