@@ -408,5 +408,34 @@ class Program
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
+
+        [WpfFact]
+        public async Task InsertConsoleSnippetWithPropertyNamedConsoleTest()
+        {
+            var markupBeforeCommit =
+@"class Program
+{
+    public int Console { get; set; }
+
+    public void Method()
+    {
+        $$
+    }
+}";
+
+            var expectedCodeAfterCommit =
+@"using System;
+
+class Program
+{
+    public int Console { get; set; }
+
+    public void Method()
+    {
+        Console.WriteLine($$);
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
     }
 }
