@@ -629,12 +629,12 @@ tryAgain:
             // For better error recovery when an expression is typed on a line before a switch statement,
             // the caller checks if the switch keyword is followed by an open curly brace. Only if it is
             // would we attempt to parse it as a switch expression here.
-            var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
-            var arms = this.ParseSwitchExpressionArms();
-            var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
-            var result = _syntaxFactory.SwitchExpression(governingExpression, switchKeyword, openBrace, arms, closeBrace);
-            result = this.CheckFeatureAvailability(result, MessageID.IDS_FeatureRecursivePatterns);
-            return result;
+            return _syntaxFactory.SwitchExpression(
+                governingExpression,
+                switchKeyword,
+                this.EatToken(SyntaxKind.OpenBraceToken),
+                this.ParseSwitchExpressionArms(),
+                this.EatToken(SyntaxKind.CloseBraceToken));
         }
 
         private SeparatedSyntaxList<SwitchExpressionArmSyntax> ParseSwitchExpressionArms()

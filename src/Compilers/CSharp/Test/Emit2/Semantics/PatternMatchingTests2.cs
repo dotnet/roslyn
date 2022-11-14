@@ -486,10 +486,12 @@ public class Point
     }
 }";
             CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithoutRecursivePatterns).VerifyDiagnostics(
-                // (5,17): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (5,19): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         var r = 1 switch { _ => 0, };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { _ => 0, }").WithArguments("recursive patterns", "8.0").WithLocation(5, 17)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "switch").WithArguments("recursive patterns", "8.0").WithLocation(5, 19),
+                // (5,28): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         var r = 1 switch { _ => 0, };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "_").WithArguments("recursive patterns", "8.0").WithLocation(5, 28));
 
             CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
@@ -1197,21 +1199,23 @@ class Program1
             compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(expected);
 
-            expected = new[]
-            {
+            compilation = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            compilation.VerifyDiagnostics(
                 // (5,31): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
                 //     bool M1(object o) => o is _;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(5, 31),
-                // (6,26): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (6,28): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     bool M2(object o) => o switch { 1 => true, _ => false };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "o switch { 1 => true, _ => false }").WithArguments("recursive patterns", "8.0").WithLocation(6, 26),
-                // (12,26): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "switch").WithArguments("recursive patterns", "8.0").WithLocation(6, 28),
+                // (6,48): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     bool M2(object o) => o switch { 1 => true, _ => false };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "_").WithArguments("recursive patterns", "8.0").WithLocation(6, 48),
+                // (12,28): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     bool M4(object o) => o switch { 1 => true, _ => false };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "o switch { 1 => true, _ => false }").WithArguments("recursive patterns", "8.0").WithLocation(12, 26)
-            };
-
-            compilation = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
-            compilation.VerifyDiagnostics(expected);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "switch").WithArguments("recursive patterns", "8.0").WithLocation(12, 28),
+                // (12,48): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     bool M4(object o) => o switch { 1 => true, _ => false };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "_").WithArguments("recursive patterns", "8.0").WithLocation(12, 48));
         }
 
         [Fact]

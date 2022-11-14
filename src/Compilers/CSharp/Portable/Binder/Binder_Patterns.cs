@@ -143,7 +143,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindSwitchExpression(SwitchExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
-            RoslynDebug.Assert(node is { });
+            RoslynDebug.Assert(node is not null);
+
+            MessageID.IDS_FeatureRecursivePatterns.CheckFeatureAvailability(diagnostics, node, node.SwitchKeyword.GetLocation());
+
             Binder? switchBinder = this.GetBinder(node);
             RoslynDebug.Assert(switchBinder is { });
             return switchBinder.BindSwitchExpressionCore(node, switchBinder, diagnostics);
