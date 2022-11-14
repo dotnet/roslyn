@@ -10337,12 +10337,7 @@ tryAgain:
                     case SyntaxKind.VolatileKeyword:
                         continue; // already reported earlier, no need to report again
                     case SyntaxKind.StaticKeyword:
-                        modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureStaticLocalFunctions);
-                        if ((object)modifier == modifiers[i])
-                        {
-                            continue;
-                        }
-                        break;
+                        continue;
                     case SyntaxKind.ExternKeyword:
                         modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureExternLocalFunctions);
                         if ((object)modifier == modifiers[i])

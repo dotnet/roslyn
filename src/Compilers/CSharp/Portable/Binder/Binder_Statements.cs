@@ -590,6 +590,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol.CheckForBlockAndExpressionBody(
                 node.Body, node.ExpressionBody, node, diagnostics);
 
+            foreach (var modifier in node.Modifiers)
+            {
+                if (modifier.IsKind(SyntaxKind.StaticKeyword))
+                    MessageID.IDS_FeatureStaticLocalFunctions.CheckFeatureAvailability(diagnostics, node, modifier.GetLocation());
+            }
+
             return new BoundLocalFunctionStatement(node, localSymbol, blockBody, expressionBody, hasErrors);
 
             BoundBlock runAnalysis(BoundBlock block, BindingDiagnosticBag blockDiagnostics)

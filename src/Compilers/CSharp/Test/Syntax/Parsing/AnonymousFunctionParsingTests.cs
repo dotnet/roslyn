@@ -884,15 +884,24 @@ public class C
         public void StaticLambdaPassedAsArgument()
         {
             var test = @"M1(static x => x);";
+            var testInMethod = @$"class C {{ void M() {{ {test} }} }}";
+
+            CreateCompilation(testInMethod).VerifyDiagnostics(
+                // (1,22): error CS0103: The name 'M1' does not exist in the current context
+                // class C { void M() { M1(static x => x); } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "M1").WithArguments("M1").WithLocation(1, 22));
+            CreateCompilation(testInMethod, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,22): error CS0103: The name 'M1' does not exist in the current context
+                // class C { void M() { M1(static x => x); } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "M1").WithArguments("M1").WithLocation(1, 22),
+                // (1,25): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // class C { void M() { M1(static x => x); } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 25));
 
             UsingStatement(test);
             verify();
 
-            UsingStatement(test, options: TestOptions.Regular8,
-                // (1,4): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // M1(static x => x);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 4)
-                );
+            UsingStatement(test, options: TestOptions.Regular8);
             verify();
 
             void verify()
@@ -937,15 +946,30 @@ public class C
         public void StaticLambdaPassedAsRefArgument()
         {
             var test = @"M1(ref static x => x);";
+            var testInMethod = @$"class C {{ void M() {{ {test} }} }}";
+
+            CreateCompilation(testInMethod).VerifyDiagnostics(
+                // (1,22): error CS0103: The name 'M1' does not exist in the current context
+                // class C { void M() { M1(ref static x => x); } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "M1").WithArguments("M1").WithLocation(1, 22),
+                // (1,29): error CS1510: A ref or out value must be an assignable variable
+                // class C { void M() { M1(ref static x => x); } }
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "static x => x").WithLocation(1, 29));
+            CreateCompilation(testInMethod, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,22): error CS0103: The name 'M1' does not exist in the current context
+                // class C { void M() { M1(ref static x => x); } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "M1").WithArguments("M1").WithLocation(1, 22),
+                // (1,29): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // class C { void M() { M1(ref static x => x); } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 29),
+                // (1,29): error CS1510: A ref or out value must be an assignable variable
+                // class C { void M() { M1(ref static x => x); } }
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "static x => x").WithLocation(1, 29));
 
             UsingStatement(test);
             verify();
 
-            UsingStatement(test, options: TestOptions.Regular8,
-                // (1,8): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // M1(ref static x => x);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 8)
-                );
+            UsingStatement(test, options: TestOptions.Regular8);
             verify();
 
             void verify()
@@ -991,15 +1015,24 @@ public class C
         public void StaticLambdaPassedAsLabeledArgument()
         {
             var test = @"M1(param: static x => x);";
+            var testInMethod = @$"class C {{ void M() {{ {test} }} }}";
+
+            CreateCompilation(testInMethod).VerifyDiagnostics(
+                // (1,22): error CS0103: The name 'M1' does not exist in the current context
+                // class C { void M() { M1(param: static x => x); } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "M1").WithArguments("M1").WithLocation(1, 22));
+            CreateCompilation(testInMethod, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,22): error CS0103: The name 'M1' does not exist in the current context
+                // class C { void M() { M1(param: static x => x); } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "M1").WithArguments("M1").WithLocation(1, 22),
+                // (1,32): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // class C { void M() { M1(param: static x => x); } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 32));
 
             UsingStatement(test);
             verify();
 
-            UsingStatement(test, options: TestOptions.Regular8,
-                // (1,11): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // M1(param: static x => x);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 11)
-                );
+            UsingStatement(test, options: TestOptions.Regular8);
             verify();
 
             void verify()
@@ -1052,15 +1085,24 @@ public class C
         public void StaticAnonymousFunctionPassedAsArgument()
         {
             var test = @"M1(static delegate(int x) { });";
+            var testInMethod = @$"class C {{ void M() {{ {test} }} }}";
+
+            CreateCompilation(testInMethod).VerifyDiagnostics(
+                // (1,22): error CS0103: The name 'M1' does not exist in the current context
+                // class C { void M() { M1(static delegate(int x) { }); } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "M1").WithArguments("M1").WithLocation(1, 22));
+            CreateCompilation(testInMethod, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,22): error CS0103: The name 'M1' does not exist in the current context
+                // class C { void M() { M1(static delegate(int x) { }); } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "M1").WithArguments("M1").WithLocation(1, 22),
+                // (1,25): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // class C { void M() { M1(static delegate(int x) { }); } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 25));
 
             UsingStatement(test);
             verify();
 
-            UsingStatement(test, options: TestOptions.Regular8,
-                // (1,4): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // M1(static delegate(int x) { });
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 4)
-                );
+            UsingStatement(test, options: TestOptions.Regular8);
             verify();
 
             void verify()
@@ -1115,15 +1157,24 @@ public class C
         public void StaticLambdaRankSpecifier()
         {
             var test = @"_ = new int[static x => x];";
+            var testInMethod = @$"class C {{ void M() {{ {test} }} }}";
+
+            CreateCompilation(testInMethod).VerifyDiagnostics(
+                // (1,34): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
+                // class C { void M() { _ = new int[static x => x]; } }
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "static x => x").WithArguments("lambda expression", "int").WithLocation(1, 34));
+            CreateCompilation(testInMethod, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,34): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // class C { void M() { _ = new int[static x => x]; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 34),
+                // (1,34): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
+                // class C { void M() { _ = new int[static x => x]; } }
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "static x => x").WithArguments("lambda expression", "int").WithLocation(1, 34));
 
             UsingStatement(test);
             verify();
 
-            UsingStatement(test, options: TestOptions.Regular8,
-                // (1,13): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // _ = new int[static x => x];
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 13)
-                );
+            UsingStatement(test, options: TestOptions.Regular8);
             verify();
 
             void verify()
@@ -1270,6 +1321,19 @@ public class C
         public void StaticLambdaRankSpecifier_Incomplete_03()
         {
             var test = @"_ = new int[static x =>];";
+            var testInMethod = @$"class C {{ void M() {{ {test} }} }}";
+
+            CreateCompilation(testInMethod).VerifyDiagnostics(
+                // (1,45): error CS1525: Invalid expression term ']'
+                // class C { void M() { _ = new int[static x =>]; } }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "]").WithArguments("]").WithLocation(1, 45));
+            CreateCompilation(testInMethod, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,34): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // class C { void M() { _ = new int[static x =>]; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 34),
+                // (1,45): error CS1525: Invalid expression term ']'
+                // class C { void M() { _ = new int[static x =>]; } }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "]").WithArguments("]").WithLocation(1, 45));
 
             UsingStatement(test,
                 // (1,24): error CS1525: Invalid expression term ']'
@@ -1278,13 +1342,9 @@ public class C
             verify();
 
             UsingStatement(test, options: TestOptions.Regular8,
-                // (1,13): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // _ = new int[static x =>];
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 13),
                 // (1,24): error CS1525: Invalid expression term ']'
                 // _ = new int[static x =>];
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "]").WithArguments("]").WithLocation(1, 24)
-                );
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "]").WithArguments("]").WithLocation(1, 24));
             verify();
 
             void verify()
@@ -1338,6 +1398,19 @@ public class C
         public void StaticDelegateRankSpecifier_Incomplete()
         {
             var test = @"_ = new int[static delegate];";
+            var testInMethod = @$"class C {{ void M() {{ {test} }} }}";
+
+            CreateCompilation(testInMethod).VerifyDiagnostics(
+                // (1,49): error CS1514: { expected
+                // class C { void M() { _ = new int[static delegate]; } }
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "]").WithLocation(1, 49));
+            CreateCompilation(testInMethod, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,34): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // class C { void M() { _ = new int[static delegate]; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 34),
+                // (1,49): error CS1514: { expected
+                // class C { void M() { _ = new int[static delegate]; } }
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "]").WithLocation(1, 49));
 
             UsingStatement(test,
                 // (1,28): error CS1514: { expected
@@ -1346,9 +1419,6 @@ public class C
             verify();
 
             UsingStatement(test, options: TestOptions.Regular8,
-                // (1,13): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // _ = new int[static delegate];
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 13),
                 // (1,28): error CS1514: { expected
                 // _ = new int[static delegate];
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "]").WithLocation(1, 28)
@@ -1517,6 +1587,31 @@ public class C
         public void StaticLambdaArrayInitializer_Incomplete_03()
         {
             var test = @"_ = new Action[] { static x => }";
+            var testInMethod = @$"class C {{ void M() {{ {test} }} }}";
+
+            CreateCompilation(testInMethod).VerifyDiagnostics(
+                // (1,30): error CS0246: The type or namespace name 'Action' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { void M() { _ = new Action[] { static x => } } }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Action").WithArguments("Action").WithLocation(1, 30),
+                // (1,53): error CS1525: Invalid expression term '}'
+                // class C { void M() { _ = new Action[] { static x => } } }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 53),
+                // (1,55): error CS1002: ; expected
+                // class C { void M() { _ = new Action[] { static x => } } }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 55));
+            CreateCompilation(testInMethod, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,30): error CS0246: The type or namespace name 'Action' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { void M() { _ = new Action[] { static x => } } }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Action").WithArguments("Action").WithLocation(1, 30),
+                // (1,41): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // class C { void M() { _ = new Action[] { static x => } } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 41),
+                // (1,53): error CS1525: Invalid expression term '}'
+                // class C { void M() { _ = new Action[] { static x => } } }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 53),
+                // (1,55): error CS1002: ; expected
+                // class C { void M() { _ = new Action[] { static x => } } }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 55));
 
             UsingStatement(test,
                 // (1,32): error CS1525: Invalid expression term '}'
@@ -1524,21 +1619,16 @@ public class C
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 32),
                 // (1,33): error CS1002: ; expected
                 // _ = new Action[] { static x => }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 33)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 33));
             verify();
 
             UsingStatement(test, options: TestOptions.Regular8,
-                // (1,20): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // _ = new Action[] { static x => }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 20),
                 // (1,32): error CS1525: Invalid expression term '}'
                 // _ = new Action[] { static x => }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 32),
                 // (1,33): error CS1002: ; expected
                 // _ = new Action[] { static x => }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 33)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 33));
             verify();
 
             void verify()
@@ -1601,6 +1691,31 @@ public class C
         public void StaticDelegateArrayInitializer_Incomplete()
         {
             var test = @"_ = new Action[] { static delegate }";
+            var testInMethod = @$"class C {{ void M() {{ {test} }} }}";
+
+            CreateCompilation(testInMethod).VerifyDiagnostics(
+                // (1,30): error CS0246: The type or namespace name 'Action' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { void M() { _ = new Action[] { static delegate } } }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Action").WithArguments("Action").WithLocation(1, 30),
+                // (1,57): error CS1514: { expected
+                // class C { void M() { _ = new Action[] { static delegate } } }
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "}").WithLocation(1, 57),
+                // (1,59): error CS1002: ; expected
+                // class C { void M() { _ = new Action[] { static delegate } } }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 59));
+            CreateCompilation(testInMethod, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,30): error CS0246: The type or namespace name 'Action' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { void M() { _ = new Action[] { static delegate } } }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Action").WithArguments("Action").WithLocation(1, 30),
+                // (1,41): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // class C { void M() { _ = new Action[] { static delegate } } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 41),
+                // (1,57): error CS1514: { expected
+                // class C { void M() { _ = new Action[] { static delegate } } }
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "}").WithLocation(1, 57),
+                // (1,59): error CS1002: ; expected
+                // class C { void M() { _ = new Action[] { static delegate } } }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 59));
 
             UsingStatement(test,
                 // (1,36): error CS1514: { expected
@@ -1608,21 +1723,16 @@ public class C
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "}").WithLocation(1, 36),
                 // (1,37): error CS1002: ; expected
                 // _ = new Action[] { static delegate }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 37)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 37));
             verify();
 
             UsingStatement(test, options: TestOptions.Regular8,
-                // (1,20): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // _ = new Action[] { static delegate }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 20),
                 // (1,36): error CS1514: { expected
                 // _ = new Action[] { static delegate }
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "}").WithLocation(1, 36),
                 // (1,37): error CS1002: ; expected
                 // _ = new Action[] { static delegate }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 37)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 37));
             verify();
 
             void verify()
@@ -1682,15 +1792,24 @@ public class C
         public void StaticAnonymousFunctionRankSpecifier()
         {
             var test = @"_ = new int[static delegate(int x) { }];";
+            var testInMethod = @$"class C {{ void M() {{ {test} }} }}";
+
+            CreateCompilation(testInMethod).VerifyDiagnostics(
+                // (1,34): error CS1660: Cannot convert anonymous method to type 'int' because it is not a delegate type
+                // class C { void M() { _ = new int[static delegate(int x) { }]; } }
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "static delegate(int x) { }").WithArguments("anonymous method", "int").WithLocation(1, 34));
+            CreateCompilation(testInMethod, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,34): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // class C { void M() { _ = new int[static delegate(int x) { }]; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 34),
+                // (1,34): error CS1660: Cannot convert anonymous method to type 'int' because it is not a delegate type
+                // class C { void M() { _ = new int[static delegate(int x) { }]; } }
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "static delegate(int x) { }").WithArguments("anonymous method", "int").WithLocation(1, 34));
 
             UsingStatement(test);
             verify();
 
-            UsingStatement(test, options: TestOptions.Regular8,
-                // (1,13): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // _ = new int[static delegate(int x) { }];
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 13)
-                );
+            UsingStatement(test, options: TestOptions.Regular8);
             verify();
 
             void verify()

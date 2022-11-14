@@ -1672,15 +1672,23 @@ class c
         static void F() { }
     }
 }";
-
-            var expected = new[]
-            {
-                // (5,9): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
+            CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (5,9): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         static void F() { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 9)
-            };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 9),
+                // (5,21): warning CS8321: The local function 'F' is declared but never used
+                //         static void F() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(5, 21));
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (5,21): warning CS8321: The local function 'F' is declared but never used
+                //         static void F() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(5, 21));
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (5,21): warning CS8321: The local function 'F' is declared but never used
+                //         static void F() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(5, 21));
 
-            UsingDeclaration(text, options: TestOptions.Regular7_3, expected);
+            UsingDeclaration(text, options: TestOptions.Regular7_3);
             checkNodes();
 
             UsingDeclaration(text, options: TestOptions.Regular8);
@@ -1749,17 +1757,53 @@ class c
         async static void F2() { }
     }
 }";
-
-            var expected = new[]
-            {
-                // (5,9): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
+            CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (5,9): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         static async void F1() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 9),
-                // (6,15): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (5,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         static async void F1() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F1").WithLocation(5, 27),
+                // (5,27): warning CS8321: The local function 'F1' is declared but never used
+                //         static async void F1() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F1").WithArguments("F1").WithLocation(5, 27),
+                // (6,15): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         async static void F2() { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(6, 15)
-            };
-            UsingDeclaration(text, options: TestOptions.Regular7_3, expected);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(6, 15),
+                // (6,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         async static void F2() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F2").WithLocation(6, 27),
+                // (6,27): warning CS8321: The local function 'F2' is declared but never used
+                //         async static void F2() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F2").WithArguments("F2").WithLocation(6, 27));
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (5,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         static async void F1() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F1").WithLocation(5, 27),
+                // (5,27): warning CS8321: The local function 'F1' is declared but never used
+                //         static async void F1() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F1").WithArguments("F1").WithLocation(5, 27),
+                // (6,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         async static void F2() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F2").WithLocation(6, 27),
+                // (6,27): warning CS8321: The local function 'F2' is declared but never used
+                //         async static void F2() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F2").WithArguments("F2").WithLocation(6, 27));
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (5,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         static async void F1() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F1").WithLocation(5, 27),
+                // (5,27): warning CS8321: The local function 'F1' is declared but never used
+                //         static async void F1() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F1").WithArguments("F1").WithLocation(5, 27),
+                // (6,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         async static void F2() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F2").WithLocation(6, 27),
+                // (6,27): warning CS8321: The local function 'F2' is declared but never used
+                //         async static void F2() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F2").WithArguments("F2").WithLocation(6, 27));
+
+            UsingDeclaration(text, options: TestOptions.Regular7_3);
             checkNodes();
 
             UsingDeclaration(text, options: TestOptions.Regular8);
@@ -1847,30 +1891,92 @@ class c
         static async static void F2() { }
     }
 }";
-
-            var expected = new[]
-            {
-                // (5,9): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
+            CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (5,9): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         static static void F1() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 9),
                 // (5,16): error CS1031: Type expected
                 //         static static void F1() { }
                 Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(5, 16),
-                // (5,16): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (5,16): error CS1004: Duplicate 'static' modifier
+                //         static static void F1() { }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "static").WithArguments("static").WithLocation(5, 16),
+                // (5,16): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         static static void F1() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 16),
-                // (6,9): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (5,28): warning CS8321: The local function 'F1' is declared but never used
+                //         static static void F1() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F1").WithArguments("F1").WithLocation(5, 28),
+                // (6,9): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         static async static void F2() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(6, 9),
                 // (6,22): error CS1031: Type expected
                 //         static async static void F2() { }
                 Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(6, 22),
-                // (6,22): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (6,22): error CS1004: Duplicate 'static' modifier
                 //         static async static void F2() { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(6, 22)
-            };
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "static").WithArguments("static").WithLocation(6, 22),
+                // (6,22): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(6, 22),
+                // (6,34): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F2").WithLocation(6, 34),
+                // (6,34): warning CS8321: The local function 'F2' is declared but never used
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F2").WithArguments("F2").WithLocation(6, 34));
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (5,16): error CS1031: Type expected
+                //         static static void F1() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(5, 16),
+                // (5,16): error CS1004: Duplicate 'static' modifier
+                //         static static void F1() { }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "static").WithArguments("static").WithLocation(5, 16),
+                // (5,28): warning CS8321: The local function 'F1' is declared but never used
+                //         static static void F1() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F1").WithArguments("F1").WithLocation(5, 28),
+                // (6,22): error CS1031: Type expected
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(6, 22),
+                // (6,22): error CS1004: Duplicate 'static' modifier
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "static").WithArguments("static").WithLocation(6, 22),
+                // (6,34): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F2").WithLocation(6, 34),
+                // (6,34): warning CS8321: The local function 'F2' is declared but never used
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F2").WithArguments("F2").WithLocation(6, 34));
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (5,16): error CS1031: Type expected
+                //         static static void F1() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(5, 16),
+                // (5,16): error CS1004: Duplicate 'static' modifier
+                //         static static void F1() { }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "static").WithArguments("static").WithLocation(5, 16),
+                // (5,28): warning CS8321: The local function 'F1' is declared but never used
+                //         static static void F1() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F1").WithArguments("F1").WithLocation(5, 28),
+                // (6,22): error CS1031: Type expected
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(6, 22),
+                // (6,22): error CS1004: Duplicate 'static' modifier
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "static").WithArguments("static").WithLocation(6, 22),
+                // (6,34): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F2").WithLocation(6, 34),
+                // (6,34): warning CS8321: The local function 'F2' is declared but never used
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F2").WithArguments("F2").WithLocation(6, 34));
 
-            UsingDeclaration(text, options: TestOptions.Regular7_3, expected);
+            UsingDeclaration(text, options: TestOptions.Regular7_3,
+                // (5,16): error CS1031: Type expected
+                //         static static void F1() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(5, 16),
+                // (6,22): error CS1031: Type expected
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(6, 22));
             checkNodes();
 
             UsingDeclaration(text, options: TestOptions.Regular8,
@@ -1970,8 +2076,7 @@ class c
         void static F() { }
     }
 }";
-            var expected = new[]
-            {
+            CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // (5,9): error CS1547: Keyword 'void' cannot be used in this context
                 //         void static F() { }
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 9),
@@ -1981,19 +2086,58 @@ class c
                 // (5,14): error CS1002: ; expected
                 //         void static F() { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 14),
-                // (5,14): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (5,14): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         void static F() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 14),
+                // (5,21): error CS0246: The type or namespace name 'F' could not be found (are you missing a using directive or an assembly reference?)
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "F").WithArguments("F").WithLocation(5, 21),
                 // (5,22): error CS1001: Identifier expected
                 //         void static F() { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(5, 22)
-            };
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(5, 22),
+                // (5,22): error CS0161: '()': not all code paths return a value
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("()").WithLocation(5, 22));
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (5,9): error CS1547: Keyword 'void' cannot be used in this context
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 9),
+                // (5,14): error CS1001: Identifier expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "static").WithLocation(5, 14),
+                // (5,14): error CS1002: ; expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 14),
+                // (5,21): error CS0246: The type or namespace name 'F' could not be found (are you missing a using directive or an assembly reference?)
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "F").WithArguments("F").WithLocation(5, 21),
+                // (5,22): error CS1001: Identifier expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(5, 22),
+                // (5,22): error CS0161: '()': not all code paths return a value
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("()").WithLocation(5, 22));
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (5,9): error CS1547: Keyword 'void' cannot be used in this context
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 9),
+                // (5,14): error CS1001: Identifier expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "static").WithLocation(5, 14),
+                // (5,14): error CS1002: ; expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 14),
+                // (5,21): error CS0246: The type or namespace name 'F' could not be found (are you missing a using directive or an assembly reference?)
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "F").WithArguments("F").WithLocation(5, 21),
+                // (5,22): error CS1001: Identifier expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(5, 22),
+                // (5,22): error CS0161: '()': not all code paths return a value
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("()").WithLocation(5, 22));
 
-            UsingDeclaration(text, options: TestOptions.Regular7_3, expected);
-            verify();
-
-            expected = new[]
-            {
+            UsingDeclaration(text, options: TestOptions.Regular7_3,
                 // (5,9): error CS1547: Keyword 'void' cannot be used in this context
                 //         void static F() { }
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 9),
@@ -2005,13 +2149,37 @@ class c
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 14),
                 // (5,22): error CS1001: Identifier expected
                 //         void static F() { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(5, 22)
-            };
-
-            UsingDeclaration(text, options: TestOptions.Regular8, expected);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(5, 22));
             verify();
 
-            UsingDeclaration(text, options: TestOptions.Regular9, expected);
+            UsingDeclaration(text, options: TestOptions.Regular8,
+                // (5,9): error CS1547: Keyword 'void' cannot be used in this context
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 9),
+                // (5,14): error CS1001: Identifier expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "static").WithLocation(5, 14),
+                // (5,14): error CS1002: ; expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 14),
+                // (5,22): error CS1001: Identifier expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(5, 22));
+            verify();
+
+            UsingDeclaration(text, options: TestOptions.Regular9,
+                // (5,9): error CS1547: Keyword 'void' cannot be used in this context
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 9),
+                // (5,14): error CS1001: Identifier expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "static").WithLocation(5, 14),
+                // (5,14): error CS1002: ; expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 14),
+                // (5,22): error CS1001: Identifier expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(5, 22));
             verify();
 
             void verify()
