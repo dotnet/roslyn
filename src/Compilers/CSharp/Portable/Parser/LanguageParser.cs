@@ -11829,12 +11829,11 @@ tryAgain:
             var keyword = this.EatToken();
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
             {
-                var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-                var type = this.ParseType();
-                var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-
-                keyword = CheckFeatureAvailability(keyword, MessageID.IDS_FeatureDefault);
-                return _syntaxFactory.DefaultExpression(keyword, openParen, type, closeParen);
+                return _syntaxFactory.DefaultExpression(
+                    keyword,
+                    this.EatToken(SyntaxKind.OpenParenToken),
+                    this.ParseType(),
+                    this.EatToken(SyntaxKind.CloseParenToken));
             }
             else
             {
