@@ -1776,6 +1776,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //  join var
             //  using var
             //  await using var
+            //  scoped var
 
             var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
 
@@ -1854,6 +1855,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // join |
             if (CodeAnalysis.CSharpExtensions.IsKind(token, SyntaxKind.JoinKeyword) &&
                 syntaxTree.IsValidContextForJoinClause(token.SpanStart, tokenOnLeftOfStart))
+            {
+                return true;
+            }
+
+            // scoped |
+            if ((token.IsKind(SyntaxKind.IdentifierToken) && token.Text == "scoped" && token.Parent.IsKind(SyntaxKind.IdentifierName) && token.Parent.Parent!.Kind() is SyntaxKind.VariableDeclaration or SyntaxKind.ExpressionStatement or SyntaxKind.IncompleteMember) ||
+                token.IsKind(SyntaxKind.ScopedKeyword) && token.Parent.IsKind(SyntaxKind.ScopedType))
             {
                 return true;
             }
