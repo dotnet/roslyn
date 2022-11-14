@@ -11032,11 +11032,6 @@ tryAgain:
                         rhs = this.ParseSubExpression(newPrecedence);
                     }
 
-                    if (opKind == SyntaxKind.CoalesceAssignmentExpression)
-                    {
-                        opToken = CheckFeatureAvailability(opToken, MessageID.IDS_FeatureCoalesceAssignmentExpression);
-                    }
-
                     leftOperand = _syntaxFactory.AssignmentExpression(opKind, leftOperand, opToken, rhs);
                 }
                 else if (opKind == SyntaxKind.SwitchExpression)
