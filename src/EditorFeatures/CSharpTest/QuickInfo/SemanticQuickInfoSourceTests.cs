@@ -8170,7 +8170,7 @@ $@"
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestAnonymousSynthesizedLambdaType4()
         {
-            await TestWithOptionsAsync(TestOptions.RegularNext,
+            await TestAsync(
 @"
 class C
 {
@@ -8191,7 +8191,7 @@ $@"
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestAnonymousSynthesizedLambdaType5()
         {
-            await TestWithOptionsAsync(TestOptions.RegularNext,
+            await TestAsync(
 @"
 class C
 {
@@ -8251,7 +8251,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestAnonymousSynthesizedLambdaType9()
         {
-            await TestWithOptionsAsync(TestOptions.RegularNext, """
+            await TestAsync("""
                 class C
                 {
                     void M()
@@ -8272,7 +8272,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestAnonymousSynthesizedLambdaType10()
         {
-            await TestWithOptionsAsync(TestOptions.RegularNext, """
+            await TestAsync("""
                 class C
                 {
                     void M()
