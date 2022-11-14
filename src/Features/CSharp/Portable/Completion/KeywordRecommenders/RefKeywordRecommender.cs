@@ -150,6 +150,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 case SyntaxKind.ReturnKeyword:
                     return true;
 
+                // scoped ref ...
+                case SyntaxKind.ScopedKeyword:
+                case SyntaxKind.IdentifierToken when token.Text == "scoped":
+                    return true;
+
                 // {
                 //     () => ref ...
                 // 
