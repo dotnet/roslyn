@@ -1798,6 +1798,74 @@ namespace Foo
                     inlineDescription: "Foo");
         }
 
+        [WpfFact]
+        public async Task TestAfterScoped()
+        {
+            var markup = @"
+namespace MyNamespace
+{
+    public ref struct MyRefStruct { }
+}
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            scoped $$
+        }
+    }
+}";
+
+            var expectedCodeAfterCommit = @"
+using MyNamespace;
+
+namespace MyNamespace
+{
+    public ref struct MyRefStruct { }
+}
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            scoped MyRefStruct$$
+        }
+    }
+}";
+
+            await VerifyCustomCommitProviderAsync(markup, "MyRefStruct", expectedCodeAfterCommit);
+        }
+
+        [WpfFact]
+        public async Task TestAfterScopedInTopLevel()
+        {
+            var markup = @"
+scoped $$
+
+namespace MyNamespace
+{
+    public ref struct MyRefStruct { }
+}
+";
+
+            var expectedCodeAfterCommit = @"
+using MyNamespace;
+
+scoped MyRefStruct$$
+
+namespace MyNamespace
+{
+    public ref struct MyRefStruct { }
+}
+";
+
+            await VerifyCustomCommitProviderAsync(markup, "MyRefStruct", expectedCodeAfterCommit);
+        }
+
         private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null, CompletionItemFlags? flags = null)
             => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull, isComplexTextEdit: true, flags: flags);
 

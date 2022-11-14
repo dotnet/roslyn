@@ -11896,6 +11896,50 @@ class C
             await VerifyAnyItemExistsAsync(source);
         }
 
+        [Fact]
+        public async Task AfterScopedInsideMethod()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        scoped $$
+    }
+}
+
+ref struct MyRefStruct { }
+";
+            await VerifyItemExistsAsync(MakeMarkup(source), "MyRefStruct");
+        }
+
+        [Fact]
+        public async Task AfterScopedGlobalStatement()
+        {
+            var source = @"
+scoped $$
+
+ref struct MyRefStruct { }
+";
+            await VerifyItemExistsAsync(MakeMarkup(source), "MyRefStruct");
+        }
+
+        [Fact]
+        public async Task AfterScopedInParameter()
+        {
+            var source = @"
+class C
+{
+    void M(scoped $$)
+    {
+    }
+}
+
+ref struct MyRefStruct { }
+";
+            await VerifyItemExistsAsync(MakeMarkup(source), "MyRefStruct");
+        }
+
         private static string MakeMarkup(string source, string languageVersion = "Preview")
         {
             return $$"""

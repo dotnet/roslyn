@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return
                 context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
+                context.IsTypeContext ||
                 UsingKeywordRecommender.IsUsingDirectiveContext(context, forGlobalKeyword: true, cancellationToken) ||
                 context.IsAnyExpressionContext ||
                 context.IsObjectCreationTypeContext ||
