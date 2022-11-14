@@ -55,7 +55,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // In order to provide better completion experience we need to know a type we are inheriting from.
                 // For instance, normally class cannot inherit from itself, so we need to filter it out from the list.
                 var inheritingFrom = (INamedTypeSymbol)context.SemanticModel.GetDeclaredSymbol(context.ContainingTypeDeclaration, cancellationToken)!;
-                return recommendedSymbols.NamedSymbols.SelectAsArray(s => IsValidForInheritanceContext(s, inheritingFrom, context), s => new SymbolAndSelectionInfo(Symbol: s, Preselect: false));
+                return recommendedSymbols.NamedSymbols.SelectAsArray(
+                    s => IsValidForInheritanceContext(s, inheritingFrom, context),
+                    s => new SymbolAndSelectionInfo(Symbol: s, Preselect: false));
             }
             else
             {
