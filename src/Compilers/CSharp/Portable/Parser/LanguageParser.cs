@@ -1264,7 +1264,6 @@ tryAgain:
                         }
 
                         modTok = ConvertToKeyword(this.EatToken());
-                        modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureAsync);
                         break;
 
                     case DeclarationModifiers.Required:
