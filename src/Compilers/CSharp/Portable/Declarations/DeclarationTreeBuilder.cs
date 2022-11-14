@@ -388,6 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private SingleNamespaceDeclaration VisitBaseNamespaceDeclaration(BaseNamespaceDeclarationSyntax node)
         {
             var children = VisitNamespaceChildren(node, node.Members, ((Syntax.InternalSyntax.BaseNamespaceDeclarationSyntax)node.Green).Members);
+            var options = (CSharpParseOptions)_syntaxTree.Options;
 
             bool hasUsings = node.Usings.Any();
             bool hasExterns = node.Externs.Any();
@@ -416,6 +417,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node is FileScopedNamespaceDeclarationSyntax)
             {
+                var diagnosticInfo = MessageID.IDS_FeatureFileScopedNamespace.GetFeatureAvailabilityDiagnosticInfo(options);
+                if (diagnosticInfo != null)
+                    diagnostics.Add(diagnosticInfo, node.NamespaceKeyword.GetLocation());
+
                 if (node.Parent is FileScopedNamespaceDeclarationSyntax)
                 {
                     // Happens when user writes:

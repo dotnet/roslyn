@@ -294,7 +294,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     this.ParseNamespaceBody(ref semicolon, ref body, ref initialBadNodes, SyntaxKind.FileScopedNamespaceDeclaration);
                     Debug.Assert(initialBadNodes == null); // init bad nodes should have been attached to semicolon...
 
-                    namespaceToken = CheckFeatureAvailability(namespaceToken, MessageID.IDS_FeatureFileScopedNamespace);
                     return _syntaxFactory.FileScopedNamespaceDeclaration(
                         attributeLists,
                         modifiers.ToList(),
