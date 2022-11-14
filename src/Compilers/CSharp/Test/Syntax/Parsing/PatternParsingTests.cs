@@ -8350,11 +8350,24 @@ switch (e)
         [Fact]
         public void PatternCombinators_02()
         {
-            UsingStatement("_ = e is a and b;", TestOptions.RegularWithoutPatternCombinators,
-                // (1,10): error CS8400: Feature 'and pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // _ = e is a and b;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "a and b").WithArguments("and pattern", "9.0").WithLocation(1, 10)
-                );
+            var test = "_ = e is a and b;";
+            var testInMethod = @$"class C {{ void M() {{ {test} }} }}";
+
+            CreateCompilation(testInMethod, parseOptions: TestOptions.RegularWithoutPatternCombinators).VerifyDiagnostics(
+                // (1,26): error CS0103: The name 'e' does not exist in the current context
+                // class C { void M() { _ = e is a and b; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(1, 26),
+                // (1,31): error CS0103: The name 'a' does not exist in the current context
+                // class C { void M() { _ = e is a and b; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(1, 31),
+                // (1,33): error CS8400: Feature 'and pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // class C { void M() { _ = e is a and b; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "and").WithArguments("and pattern", "9.0").WithLocation(1, 33),
+                // (1,37): error CS0103: The name 'b' does not exist in the current context
+                // class C { void M() { _ = e is a and b; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(1, 37));
+
+            UsingStatement(test, TestOptions.RegularWithoutPatternCombinators);
             N(SyntaxKind.ExpressionStatement);
             {
                 N(SyntaxKind.SimpleAssignmentExpression);

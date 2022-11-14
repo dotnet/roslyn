@@ -1840,6 +1840,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                MessageID.IDS_FeatureAndPattern.CheckFeatureAvailability(diagnostics, node, node.OperatorToken.GetLocation());
+
                 var left = BindPattern(node.Left, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
                 var leftOutputValEscape = GetValEscape(left.NarrowedType, inputValEscape);
                 var right = BindPattern(node.Right, left.NarrowedType, leftOutputValEscape, permitDesignations, hasErrors, diagnostics);

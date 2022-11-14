@@ -106,10 +106,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             PatternSyntax result = ParseNegatedPattern(precedence, afterIs, whenIsKeyword);
             while (this.CurrentToken.ContextualKind == SyntaxKind.AndKeyword)
             {
-                var orToken = ConvertToKeyword(this.EatToken());
-                var right = ParseNegatedPattern(precedence, afterIs, whenIsKeyword);
-                result = _syntaxFactory.BinaryPattern(SyntaxKind.AndPattern, result, orToken, right);
-                result = CheckFeatureAvailability(result, MessageID.IDS_FeatureAndPattern);
+                result = _syntaxFactory.BinaryPattern(
+                    SyntaxKind.AndPattern,
+                    result,
+                    ConvertToKeyword(this.EatToken()),
+                    ParseNegatedPattern(precedence, afterIs, whenIsKeyword));
             }
 
             return result;
