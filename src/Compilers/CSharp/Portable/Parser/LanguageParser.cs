@@ -9117,10 +9117,6 @@ done:;
                     decl = ParseVariableDeclaration();
 
                     var declType = decl.Type;
-                    if (declType.Kind == SyntaxKind.RefType)
-                    {
-                        declType = CheckFeatureAvailability(declType, MessageID.IDS_FeatureRefFor);
-                    }
 
                     if (scopedKeyword != null)
                     {
@@ -9257,14 +9253,6 @@ tryAgain:
 
             if (variable is DeclarationExpressionSyntax decl)
             {
-                if (decl.Type.Kind == SyntaxKind.RefType)
-                {
-                    decl = decl.Update(
-                        CheckFeatureAvailability(decl.Type, MessageID.IDS_FeatureRefForEach),
-                        decl.Designation);
-                }
-
-
                 if (decl.designation.Kind != SyntaxKind.ParenthesizedVariableDesignation)
                 {
                     // if we see a foreach declaration that isn't a deconstruction, we use the old form of foreach syntax node.
