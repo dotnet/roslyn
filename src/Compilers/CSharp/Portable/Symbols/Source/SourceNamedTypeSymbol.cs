@@ -189,10 +189,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int i = 0;
                 foreach (var tp in tpl.Parameters)
                 {
-                    if (tp.VarianceKeyword.Kind() != SyntaxKind.None &&
-                        !isInterfaceOrDelegate)
+                    if (tp.VarianceKeyword.Kind() != SyntaxKind.None)
                     {
-                        diagnostics.Add(ErrorCode.ERR_IllegalVarianceSyntax, tp.VarianceKeyword.GetLocation());
+                        if (!isInterfaceOrDelegate)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_IllegalVarianceSyntax, tp.VarianceKeyword.GetLocation());
+                        }
+                        else
+                        {
+                            MessageID.IDS_FeatureTypeVariance.CheckFeatureAvailability(diagnostics, tp, tp.VarianceKeyword.GetLocation());
+                        }
                     }
 
                     var name = typeParameterNames[i];

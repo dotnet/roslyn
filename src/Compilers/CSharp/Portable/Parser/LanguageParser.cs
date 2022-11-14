@@ -5908,14 +5908,10 @@ tryAgain:
                 _termState = saveTerm;
             }
 
-            SyntaxToken varianceToken = null;
-            if (this.CurrentToken.Kind == SyntaxKind.InKeyword ||
-                this.CurrentToken.Kind == SyntaxKind.OutKeyword)
-            {
-                varianceToken = CheckFeatureAvailability(this.EatToken(), MessageID.IDS_FeatureTypeVariance);
-            }
-
-            return _syntaxFactory.TypeParameter(attrs, varianceToken, this.ParseIdentifierToken());
+            return _syntaxFactory.TypeParameter(
+                attrs,
+                this.CurrentToken.Kind is SyntaxKind.InKeyword or SyntaxKind.OutKeyword ? EatToken() : null,
+                this.ParseIdentifierToken());
         }
 
         // Parses the parts of the names between Dots and ColonColons.
