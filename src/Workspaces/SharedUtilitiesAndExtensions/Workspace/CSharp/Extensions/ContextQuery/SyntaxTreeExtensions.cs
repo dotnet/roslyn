@@ -1861,7 +1861,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // scoped |
             if ((token.IsKind(SyntaxKind.IdentifierToken) && token.Text == "scoped" && token.Parent.IsKind(SyntaxKind.IdentifierName) && token.Parent.Parent!.Kind() is SyntaxKind.VariableDeclaration or SyntaxKind.ExpressionStatement or SyntaxKind.IncompleteMember) ||
-                token.IsKind(SyntaxKind.ScopedKeyword) && token.Parent.Kind() is SyntaxKind.ScopedType or SyntaxKind.IncompleteMember)
+                token.IsKind(SyntaxKind.ScopedKeyword) && token.Parent!.Kind() is SyntaxKind.ScopedType or SyntaxKind.IncompleteMember)
             {
                 return true;
             }
