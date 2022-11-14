@@ -51,6 +51,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             return false;
         }
-
     }
 }
