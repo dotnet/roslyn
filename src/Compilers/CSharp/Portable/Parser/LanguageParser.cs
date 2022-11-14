@@ -1090,8 +1090,8 @@ tryAgain:
                             var name = this.ParseIdentifierName();
                             var colonToken = this.EatToken(SyntaxKind.ColonToken);
                             nameColon = _syntaxFactory.NameColon(name, colonToken);
-                            nameColon = CheckFeatureAvailability(nameColon, MessageID.IDS_FeatureNamedArgument);
                         }
+
                         break;
                 }
             }
@@ -11799,7 +11799,6 @@ tryAgain:
                 var name = this.ParseIdentifierName();
                 var colon = this.EatToken(SyntaxKind.ColonToken);
                 nameColon = _syntaxFactory.NameColon(name, colon);
-                nameColon = CheckFeatureAvailability(nameColon, MessageID.IDS_FeatureNamedArgument);
             }
 
             SyntaxToken refKindKeyword = null;

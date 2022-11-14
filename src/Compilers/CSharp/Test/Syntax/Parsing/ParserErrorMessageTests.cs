@@ -6025,14 +6025,35 @@ class C
     }
 }
 ";
-            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp4)).GetDiagnostics().Verify();
-            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3)).GetDiagnostics().Verify(
+            CreateCompilation(text, parseOptions: TestOptions.Regular4).VerifyDiagnostics(
+                // (2,2): error CS0246: The type or namespace name 'AttrAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [Attr(x:1)]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Attr").WithArguments("AttrAttribute").WithLocation(2, 2),
+                // (2,2): error CS0246: The type or namespace name 'Attr' could not be found (are you missing a using directive or an assembly reference?)
+                // [Attr(x:1)]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Attr").WithArguments("Attr").WithLocation(2, 2),
+                // (7,9): error CS0103: The name 'M' does not exist in the current context
+                //         M(y:2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "M").WithArguments("M").WithLocation(7, 9));
+            CreateCompilation(text, parseOptions: TestOptions.Regular3).VerifyDiagnostics(
+                // (2,2): error CS0246: The type or namespace name 'AttrAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [Attr(x:1)]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Attr").WithArguments("AttrAttribute").WithLocation(2, 2),
+                // (2,2): error CS0246: The type or namespace name 'Attr' could not be found (are you missing a using directive or an assembly reference?)
+                // [Attr(x:1)]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Attr").WithArguments("Attr").WithLocation(2, 2),
                 // (2,7): error CS8024: Feature 'named argument' is not available in C# 3. Please use language version 4 or greater.
                 // [Attr(x:1)]
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "x:").WithArguments("named argument", "4"),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "x:").WithArguments("named argument", "4").WithLocation(2, 7),
+                // (7,9): error CS0103: The name 'M' does not exist in the current context
+                //         M(y:2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "M").WithArguments("M").WithLocation(7, 9),
                 // (7,11): error CS8024: Feature 'named argument' is not available in C# 3. Please use language version 4 or greater.
                 //         M(y:2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "y:").WithArguments("named argument", "4"));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "y:").WithArguments("named argument", "4").WithLocation(7, 11));
+
+            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp4)).GetDiagnostics().Verify();
+            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3)).GetDiagnostics().Verify();
         }
 
         [Fact]

@@ -2741,7 +2741,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // For compatibility we implement the same bug except in strict mode.
             // Note: Some others should still be rejected when ref/out present. See RefMustBeObeyed.
             RefKind refKind = origRefKind == RefKind.None || RefMustBeObeyed(isDelegateCreation, argumentSyntax) ? origRefKind : RefKind.None;
-
             BoundExpression boundArgument = BindArgumentValue(diagnostics, argumentSyntax, allowArglist, refKind);
 
             BindArgumentAndName(
@@ -2973,6 +2972,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(argumentSyntax is ArgumentSyntax || argumentSyntax is AttributeArgumentSyntax);
 
+            if (nameColonSyntax != null)
+                CheckFeatureAvailability(nameColonSyntax, MessageID.IDS_FeatureNamedArgument, diagnostics);
+
             bool hasRefKinds = result.RefKinds.Any();
             if (refKind != RefKind.None)
             {
@@ -2997,6 +2999,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasNames = result.Names.Any();
             if (nameColonSyntax != null)
             {
+
+
                 // The common case is no named arguments. So we defer all work until the first named argument is seen.
                 if (!hasNames)
                 {
