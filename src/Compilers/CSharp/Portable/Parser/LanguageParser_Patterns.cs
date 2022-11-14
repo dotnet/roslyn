@@ -347,8 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         return _syntaxFactory.ConstantPattern(expression);
                     }
 
-                    var typePattern = _syntaxFactory.TypePattern(type);
-                    return CheckFeatureAvailability(typePattern, MessageID.IDS_FeatureTypePattern);
+                    return _syntaxFactory.TypePattern(type);
                 }
             }
 
