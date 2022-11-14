@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InserForSnippetInConstructorTest()
+        public async Task InsertForSnippetInConstructorTest()
         {
             var markupBeforeCommit =
 @"class Program
