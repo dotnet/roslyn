@@ -8937,7 +8937,7 @@ done:;
                     // though it were "when".
                     whenKeyword = AddTrailingSkippedSyntax(whenKeyword, EatToken());
                 }
-                whenKeyword = CheckFeatureAvailability(whenKeyword, MessageID.IDS_FeatureExceptionFilter);
+
                 _termState |= TerminatorState.IsEndOfFilterClause;
                 var openParen = this.EatToken(SyntaxKind.OpenParenToken);
                 var filterExpression = this.ParseExpressionCore();

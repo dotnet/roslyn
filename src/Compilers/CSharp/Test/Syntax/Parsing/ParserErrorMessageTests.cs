@@ -5697,15 +5697,29 @@ public class C
     }
 }
 ";
+            CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (4,23): error CS0161: 'C.Main()': not all code paths return a value
+                //     public static int Main()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("C.Main()").WithLocation(4, 23),
+                // (6,29): warning CS7095: Filter expression is a constant 'true', consider removing the filter
+                //         try { } catch when (true) {}
+                Diagnostic(ErrorCode.WRN_FilterIsConstantTrue, "true").WithLocation(6, 29));
+            CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyDiagnostics(
+                // (4,23): error CS0161: 'C.Main()': not all code paths return a value
+                //     public static int Main()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("C.Main()").WithLocation(4, 23),
+                // (6,23): error CS8026: Feature 'exception filter' is not available in C# 5. Please use language version 6 or greater.
+                //         try { } catch when (true) {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "when").WithArguments("exception filter", "6").WithLocation(6, 23),
+                // (6,29): warning CS7095: Filter expression is a constant 'true', consider removing the filter
+                //         try { } catch when (true) {}
+                Diagnostic(ErrorCode.WRN_FilterIsConstantTrue, "true").WithLocation(6, 29));
+
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
             tree.GetDiagnostics().Verify();
 
             tree = Parse(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
-            tree.GetDiagnostics().Verify(
-    // (6,23): error CS8026: Feature 'exception filter' is not available in C# 5. Please use language version 6 or greater.
-    //         try { } catch when (true) {}
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "when").WithArguments("exception filter", "6").WithLocation(6, 23)
-                );
+            tree.GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -6387,34 +6401,63 @@ class C
         var x = $""hello world"";
     }
 }";
+            CreateCompilation(source, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (11,51): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //     public static int operator +(Goo a, Goo b) => null; // expression-bodied operator
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(11, 51),
+                // (18,18): error CS0246: The type or namespace name 'Exception' could not be found (are you missing a using directive or an assembly reference?)
+                //         } catch (Exception ex) when (ex.ToString() == null) { // exception filter
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Exception").WithArguments("Exception").WithLocation(18, 18));
+            CreateCompilation(source, parseOptions: TestOptions.Regular5).VerifyDiagnostics(
+                // (3,9): error CS8026: Feature 'readonly automatically implemented properties' is not available in C# 5. Please use language version 6 or greater.
+                //     int L { get; } = 12; // auto property initializer
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "L").WithArguments("readonly automatically implemented properties", "6").WithLocation(3, 9),
+                // (3,20): error CS8026: Feature 'auto property initializer' is not available in C# 5. Please use language version 6 or greater.
+                //     int L { get; } = 12; // auto property initializer
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=").WithArguments("auto property initializer", "6").WithLocation(3, 20),
+                // (5,13): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
+                //     int M() => 12; // expression-bodied method
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> 12").WithArguments("expression-bodied method", "6").WithLocation(5, 13),
+                // (7,11): error CS8026: Feature 'expression-bodied property' is not available in C# 5. Please use language version 6 or greater.
+                //     int N => 12; // expression-bodied property
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=>").WithArguments("expression-bodied property", "6").WithLocation(7, 11),
+                // (9,21): error CS8026: Feature 'expression-bodied indexer' is not available in C# 5. Please use language version 6 or greater.
+                //     int this[int a] => a + 1; // expression-bodied indexer
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=>").WithArguments("expression-bodied indexer", "6").WithLocation(9, 21),
+                // (11,48): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
+                //     public static int operator +(Goo a, Goo b) => null; // expression-bodied operator
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> null").WithArguments("expression-bodied method", "6").WithLocation(11, 48),
+                // (11,51): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //     public static int operator +(Goo a, Goo b) => null; // expression-bodied operator
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(11, 51),
+                // (13,49): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
+                //     public static explicit operator bool(Goo a) => false; // expression-bodied conversion operator
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> false").WithArguments("expression-bodied method", "6").WithLocation(13, 49),
+                // (18,18): error CS0246: The type or namespace name 'Exception' could not be found (are you missing a using directive or an assembly reference?)
+                //         } catch (Exception ex) when (ex.ToString() == null) { // exception filter
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Exception").WithArguments("Exception").WithLocation(18, 18),
+                // (18,32): error CS8026: Feature 'exception filter' is not available in C# 5. Please use language version 6 or greater.
+                //         } catch (Exception ex) when (ex.ToString() == null) { // exception filter
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "when").WithArguments("exception filter", "6").WithLocation(18, 32),
+                // (21,18): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
+                //         var s = o?.ToString(); // null propagating operator
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "?").WithArguments("null propagating operator", "6").WithLocation(21, 18),
+                // (22,17): error CS8026: Feature 'interpolated strings' is not available in C# 5. Please use language version 6 or greater.
+                //         var x = $"hello world";
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, @"$""hello world""").WithArguments("interpolated strings", "6").WithLocation(22, 17));
+
             SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)).GetDiagnostics().Verify();
 
             SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)).GetDiagnostics().Verify(
-    // (3,20): error CS8026: Feature 'auto property initializer' is not available in C# 5. Please use language version 6 or greater.
-    //     int L { get; } = 12; // auto property initializer
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "= 12").WithArguments("auto property initializer", "6").WithLocation(3, 20),
-    // (5,13): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
-    //     int M() => 12; // expression-bodied method
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> 12").WithArguments("expression-bodied method", "6").WithLocation(5, 13),
-    // (7,11): error CS8026: Feature 'expression-bodied property' is not available in C# 5. Please use language version 6 or greater.
-    //     int N => 12; // expression-bodied property
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> 12").WithArguments("expression-bodied property", "6").WithLocation(7, 11),
-    // (9,21): error CS8026: Feature 'expression-bodied indexer' is not available in C# 5. Please use language version 6 or greater.
-    //     int this[int a] => a + 1; // expression-bodied indexer
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> a + 1").WithArguments("expression-bodied indexer", "6").WithLocation(9, 21),
-    // (11,48): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
-    //     public static int operator +(Goo a, Goo b) => null; // expression-bodied operator
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> null").WithArguments("expression-bodied method", "6").WithLocation(11, 48),
-    // (13,49): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
-    //     public static explicit operator bool(Goo a) => false; // expression-bodied conversion operator
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> false").WithArguments("expression-bodied method", "6").WithLocation(13, 49),
-    // (18,32): error CS8026: Feature 'exception filter' is not available in C# 5. Please use language version 6 or greater.
-    //         } catch (Exception ex) when (ex.ToString() == null) { // exception filter
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "when").WithArguments("exception filter", "6").WithLocation(18, 32),
-    // (21,17): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
-    //         var s = o?.ToString(); // null propagating operator
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "o?.ToString()").WithArguments("null propagating operator", "6").WithLocation(21, 17)
-                );
+                // (5,13): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
+                //     int M() => 12; // expression-bodied method
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> 12").WithArguments("expression-bodied method", "6").WithLocation(5, 13),
+                // (11,48): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
+                //     public static int operator +(Goo a, Goo b) => null; // expression-bodied operator
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> null").WithArguments("expression-bodied method", "6").WithLocation(11, 48),
+                // (13,49): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
+                //     public static explicit operator bool(Goo a) => false; // expression-bodied conversion operator
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> false").WithArguments("expression-bodied method", "6").WithLocation(13, 49));
         }
 
         [ClrOnlyFact]

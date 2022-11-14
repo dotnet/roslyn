@@ -3270,6 +3270,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindCatchFilter(CatchFilterClauseSyntax filter, BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureExceptionFilter.CheckFeatureAvailability(diagnostics, filter, filter.WhenKeyword.GetLocation());
+
             BoundExpression boundFilter = this.BindBooleanExpression(filter.FilterExpression, diagnostics);
             if (boundFilter.ConstantValue != ConstantValue.NotAvailable)
             {
