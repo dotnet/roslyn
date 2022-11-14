@@ -394,6 +394,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (diagnosticInfo != null)
                         diagnostics.Add(diagnosticInfo, usingDirective.StaticKeyword.GetLocation());
                 }
+
+                if (usingDirective.GlobalKeyword != default)
+                {
+                    var diagnosticInfo = MessageID.IDS_FeatureGlobalUsing.GetFeatureAvailabilityDiagnosticInfo(parseOptions);
+                    if (diagnosticInfo != null)
+                        diagnostics.Add(diagnosticInfo, usingDirective.GlobalKeyword.GetLocation());
+                }
             }
         }
 

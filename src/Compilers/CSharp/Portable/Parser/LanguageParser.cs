@@ -836,13 +836,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 semicolon = this.EatToken(SyntaxKind.SemicolonToken);
             }
 
-            var usingDirective = _syntaxFactory.UsingDirective(globalToken, usingToken, staticToken, alias, name, semicolon);
-            if (globalToken != null)
-            {
-                usingDirective = CheckFeatureAvailability(usingDirective, MessageID.IDS_FeatureGlobalUsing);
-            }
-
-            return usingDirective;
+            return _syntaxFactory.UsingDirective(globalToken, usingToken, staticToken, alias, name, semicolon);
         }
 
         private bool IsPossibleGlobalAttributeDeclaration()
