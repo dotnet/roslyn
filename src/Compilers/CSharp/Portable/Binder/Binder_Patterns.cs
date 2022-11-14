@@ -1060,6 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < node.Subpatterns.Count; i++)
             {
                 var subPattern = node.Subpatterns[i];
+
                 bool isError = hasErrors || outPlaceholders.IsDefaultOrEmpty || i >= outPlaceholders.Length;
                 TypeSymbol elementType = isError ? CreateErrorType() : outPlaceholders[i].Type;
                 ParameterSymbol? parameter = null;
@@ -1082,6 +1083,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (subPattern.ExpressionColon != null)
                     {
+                        MessageID.IDS_FeatureExtendedPropertyPatterns.CheckFeatureAvailability(diagnostics, subPattern, subPattern.ExpressionColon.ColonToken.GetLocation());
+
                         diagnostics.Add(ErrorCode.ERR_IdentifierExpected, subPattern.ExpressionColon.Expression.Location);
                     }
                 }
@@ -1465,6 +1468,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundPropertySubpattern>.GetInstance(node.Subpatterns.Count);
             foreach (SubpatternSyntax p in node.Subpatterns)
             {
+                if (p.ExpressionColon is ExpressionColonSyntax)
+                    MessageID.IDS_FeatureExtendedPropertyPatterns.CheckFeatureAvailability(diagnostics, p, p.ExpressionColon.ColonToken.GetLocation());
+
                 ExpressionSyntax? expr = p.ExpressionColon?.Expression;
                 PatternSyntax pattern = p.Pattern;
                 BoundPropertySubpatternMember? member;
