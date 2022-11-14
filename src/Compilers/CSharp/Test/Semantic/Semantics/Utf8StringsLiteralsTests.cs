@@ -3122,7 +3122,7 @@ class C
             var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
 
             string blobId = ExecutionConditionUtil.IsWindows ?
-                (ExecutionConditionUtil.IsCoreClr ? "I_000026F8" : "I_000026F4") :
+                "I_000026F8" :
                 "I_00002738";
 
             verifier.VerifyTypeIL("<PrivateImplementationDetails>", @"
@@ -3168,7 +3168,7 @@ class C
 }
 ");
             string blobId = ExecutionConditionUtil.IsWindows ?
-                (ExecutionConditionUtil.IsCoreClr ? "I_000026F8" : "I_000026F4") :
+                "I_000026F8" :
                 "I_00002738";
 
             verifier.VerifyTypeIL("<PrivateImplementationDetails>", @"
