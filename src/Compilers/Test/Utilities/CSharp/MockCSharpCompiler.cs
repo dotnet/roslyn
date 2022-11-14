@@ -83,15 +83,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             // </Metalama>
         }
 
+        // <Metalama>
+        public void ResolveAnalyzersFromArguments(
+            bool skipAnalyzers,
+            out List<DiagnosticInfo> diagnostics,
+            ImmutableArray<string> transformerOrder,
+            out ImmutableArray<DiagnosticAnalyzer> analyzers,
+            out ImmutableArray<ISourceGenerator> generators,
+            out ImmutableArray<ISourceTransformer> transformers,
+            out ImmutableArray<object> plugins
+            )
+        {
+            diagnostics = new List<DiagnosticInfo>();
+            ResolveAnalyzersFromArguments(diagnostics, this.MessageProvider, skipAnalyzers, transformerOrder, out analyzers, out generators, out transformers, out plugins);
+        }
+
         public void ResolveAnalyzersFromArguments(
             bool skipAnalyzers,
             out List<DiagnosticInfo> diagnostics,
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
-            out ImmutableArray<ISourceGenerator> generators)
+            out ImmutableArray<ISourceGenerator> generators
+        )
         {
-            diagnostics = new List<DiagnosticInfo>();
-            ResolveAnalyzersFromArguments(diagnostics, this.MessageProvider, skipAnalyzers, out analyzers, out generators);
+            // <Metalama>
+            ResolveAnalyzersFromArguments(skipAnalyzers, out diagnostics, ImmutableArray<string>.Empty, out analyzers, out generators, out _, out _);
+            // </Metalama>
         }
+        // </Metalama>
 
         public Compilation CreateCompilation(
             TextWriter consoleOutput,

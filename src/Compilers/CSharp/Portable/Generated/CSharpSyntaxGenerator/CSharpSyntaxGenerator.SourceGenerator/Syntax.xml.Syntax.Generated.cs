@@ -1126,6 +1126,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ScopedType(scopedKeyword, type);
                 var annotations = GetAnnotations();
+                // <Metalama> This change is generated. See Modifications.md for details.
+                Metalama.Compiler.TreeTracker.SetAnnotationExcludeChildren(ref annotations, this);
+                // </Metalama>
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Immutable;
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -32,7 +30,8 @@ namespace Metalama.Compiler.UnitTests
 
             var args = new[] { "/t:library", src.Path };
 
-            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: (new ISourceTransformer[] { new TrivialTransformer() }).ToImmutableArray());
+            var csc = CreateCSharpCompiler(null, dir.Path, args,
+                transformers: new ISourceTransformer[] { new TrivialTransformer() });
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = csc.Run(outWriter);
@@ -72,7 +71,8 @@ namespace Metalama.Compiler.UnitTests
 
             var args = new[] { "/t:library", src.Path };
 
-            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: (new ISourceTransformer[] { new IntroductionTransformer("class Generated {}") }).ToImmutableArray());
+            var csc = CreateCSharpCompiler(null, dir.Path, args,
+                transformers: new ISourceTransformer[] { new IntroductionTransformer("class Generated {}") });
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = csc.Run(outWriter);
@@ -103,8 +103,9 @@ namespace Metalama.Compiler.UnitTests
 
             var args = new[] { "/t:library", src.Path };
 
-            
-            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: (new ISourceTransformer[] { new IntroductionTransformer(introducedCode) }).ToImmutableArray());
+
+            var csc = CreateCSharpCompiler(null, dir.Path, args,
+                transformers: new ISourceTransformer[] { new IntroductionTransformer(introducedCode) });
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = csc.Run(outWriter);
@@ -150,7 +151,8 @@ config_transformer_class_name = ConfigTestClass
 
             var args = new[] { "/t:library", $"/analyzerconfig:{editorconfig.Path}", src.Path };
 
-            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: (new ISourceTransformer[] { new ConfigTransformer() }).ToImmutableArray());
+            var csc = CreateCSharpCompiler(null, dir.Path, args,
+                transformers: new ISourceTransformer[] { new ConfigTransformer() });
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = csc.Run(outWriter);
@@ -241,7 +243,8 @@ build_property.MSBuildProjectFullPath = {projectDirectory.Path}\MyProject.csproj
 
             var args = new[] { "/t:library", $"/analyzerconfig:{analyzerConfig.Path}", src1.Path, src2.Path, "/out:lib.dll" };
 
-            var csc = CreateCSharpCompiler(null, projectDirectory.Path, args, transformers: (new ISourceTransformer[] { new DoSomethingTransformer() }).ToImmutableArray());
+            var csc = CreateCSharpCompiler(null, projectDirectory.Path, args,
+                transformers: new ISourceTransformer[] { new DoSomethingTransformer() });
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = csc.Run(outWriter);
@@ -274,7 +277,8 @@ build_property.MSBuildProjectFullPath = {projectDirectory.Path}\MyProject.csproj
 
             var args = new[] { "/t:library", src.Path, "/refout:" + dir.Path + "/" + "ref.dll"  };
 
-            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: (new ISourceTransformer[] { new AddResourceTransformer(resources) }).ToImmutableArray());
+            var csc = CreateCSharpCompiler(null, dir.Path, args,
+                transformers: new ISourceTransformer[] { new AddResourceTransformer(resources) });
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = csc.Run(outWriter);

@@ -72,6 +72,8 @@ namespace Metalama.Compiler
 
         public override int WRN_AnalyzerReferencesNewerCompiler => throw new NotImplementedException();
         
+        public override int WRN_DuplicateAnalyzerReference => throw new NotImplementedException();
+
         public override int ERR_CantReadRulesetFile => throw new NotImplementedException();
 
         public override int ERR_CompileCancelled => throw new NotImplementedException();

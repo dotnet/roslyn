@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using Microsoft.CodeAnalysis;
@@ -35,8 +34,7 @@ namespace Metalama.Compiler.UnitTests
 
             var args = new[] { "/t:library", src.Path };
 
-            var transformers = new ISourceTransformer[] { new AppendTransformer("class D { int _f; }") }
-                .ToImmutableArray();
+            var transformers = new ISourceTransformer[] { new AppendTransformer("class D { int _f; }") };
             var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: transformers);
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -61,13 +59,12 @@ namespace Metalama.Compiler.UnitTests
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
-            var transformers = new ISourceTransformer[] { new AppendTransformer("class D { }") }
-                .ToImmutableArray();
+            var transformers = new ISourceTransformer[] { new AppendTransformer("class D { }") };
             var analyzers = new DiagnosticAnalyzer[]
             {
                 new ReportDiagnosticForEachClassAnalyzer("MY001", DiagnosticSeverity.Warning, outWriter),
                 new ReportDiagnosticForEachClassAnalyzer("MY002", DiagnosticSeverity.Error, outWriter)
-            }.ToImmutableArray();
+            };
             var csc = CreateCSharpCompiler(null, dir.Path, args, analyzers: analyzers, transformers: transformers);
 
             var exitCode = csc.Run(outWriter);
@@ -101,12 +98,11 @@ namespace Metalama.Compiler.UnitTests
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
-            var transformers = new ISourceTransformer[] { new AppendTransformer("class D { }") }
-                .ToImmutableArray();
+            var transformers = new ISourceTransformer[] { new AppendTransformer("class D { }") };
             var analyzers = new DiagnosticAnalyzer[]
             {
                 new ReportDiagnosticForEachClassAnalyzer("MY001", DiagnosticSeverity.Warning, outWriter),
-            }.ToImmutableArray();
+            };
             var csc = CreateCSharpCompiler(null, dir.Path, args, analyzers: analyzers, transformers: transformers);
 
             var exitCode = csc.Run(outWriter);
@@ -135,8 +131,7 @@ namespace Metalama.Compiler.UnitTests
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
-            var transformers = new ISourceTransformer[] { new AppendTransformer("class D : Xyz { }") }
-                .ToImmutableArray();
+            var transformers = new ISourceTransformer[] { new AppendTransformer("class D : Xyz { }") };
 
             var csc = CreateCSharpCompiler(null, dir.Path, args,  transformers: transformers);
 
@@ -162,13 +157,13 @@ namespace Metalama.Compiler.UnitTests
                 new DiagnosticAnalyzer[]
                 {
                     new ReportDiagnosticForEachClassAnalyzer("MY001", DiagnosticSeverity.Warning)
-                }.ToImmutableArray();
+                };
             var transformers =
                 new ISourceTransformer[]
                 {
                     new AppendTransformer("class D { int _f; }"), new SuppressTransformer("MY001"),
                     new SuppressTransformer("CS0169")
-                }.ToImmutableArray();
+                };
             var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: transformers, analyzers: analyzers);
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -192,8 +187,7 @@ namespace Metalama.Compiler.UnitTests
 
             var args = new[] { "/t:library", src.Path };
 
-            var transformers = new ISourceTransformer[] { new AppendTransformer("class D { }") }
-                .ToImmutableArray();
+            var transformers = new ISourceTransformer[] { new AppendTransformer("class D { }") };
             var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: transformers);
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -212,9 +206,8 @@ namespace Metalama.Compiler.UnitTests
 
             var args = new[] { "/t:library", src.Path };
 
-            var transformers = ImmutableArray.Create<ISourceTransformer>(new AppendTransformer("class D { }"));
-            var analyzers =
-                ImmutableArray.Create<DiagnosticAnalyzer>(new ReportWarningIfTwoCompilationUnitMembersAnalyzer());
+            var transformers = new ISourceTransformer[] { new AppendTransformer("class D { }") };
+            var analyzers = new DiagnosticAnalyzer[] { new ReportWarningIfTwoCompilationUnitMembersAnalyzer() };
 
             var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: transformers, analyzers: analyzers);
 
@@ -246,9 +239,8 @@ build_property.MetalamaTransformedCodeAnalyzers = {transformedCodeAnalyzer.FullN
 
             var args = new[] { "/t:library", $"/analyzerconfig:{editorConfig.Path}", src.Path };
 
-            var transformers = ImmutableArray.Create<ISourceTransformer>(new AppendTransformer("class D { }"));
-            var analyzers =
-                ImmutableArray.Create<DiagnosticAnalyzer>(new ReportWarningIfTwoCompilationUnitMembersAnalyzer());
+            var transformers = new ISourceTransformer[] { new AppendTransformer("class D { }") };
+            var analyzers = new DiagnosticAnalyzer[] { new ReportWarningIfTwoCompilationUnitMembersAnalyzer() };
 
             var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: transformers, analyzers: analyzers);
 
@@ -274,9 +266,9 @@ build_property.MetalamaTransformedCodeAnalyzers = {typeof(ReportWarningIfTwoComp
 
             var args = new[] { "/t:library", $"/analyzerconfig:{analyzerConfig.Path}", src.Path };
 
-            var transformers = ImmutableArray.Create<ISourceTransformer>(new AppendTransformer("class D { }"));
+            var transformers = new ISourceTransformer[] { new AppendTransformer("class D { }") };
             var analyzers =
-                ImmutableArray.Create<DiagnosticAnalyzer>(new ReportWarningIfTwoCompilationUnitMembersAnalyzer());
+                new DiagnosticAnalyzer[] { new ReportWarningIfTwoCompilationUnitMembersAnalyzer() };
 
             var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: transformers, analyzers: analyzers);
 
@@ -298,7 +290,7 @@ build_property.MetalamaTransformedCodeAnalyzers = {typeof(ReportWarningIfTwoComp
 
             var args = new[] { "/t:library", src.Path };
 
-            var transformers = ImmutableArray.Create<ISourceTransformer>(new ChangeTreeParentAndReportTransformer());
+            var transformers = new ISourceTransformer[] { new ChangeTreeParentAndReportTransformer() };
             var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: transformers);
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -322,8 +314,11 @@ build_property.MetalamaTransformedCodeAnalyzers = {typeof(ReportWarningIfTwoComp
 
             var args = new[] { "/t:library", src.Path, $"/analyzerConfig:{editorConfig.Path}" };
 
-            var transformers = ImmutableArray.Create<ISourceTransformer>(new AppendTransformer("/* */")); 
-            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new ConsumeEditorConfigAnalyzer("dotnet_code_quality.ca1711.allowed_suffixes"));
+            var transformers = new ISourceTransformer[] { new AppendTransformer("/* */") };
+            var analyzers = new DiagnosticAnalyzer[]
+            {
+                new ConsumeEditorConfigAnalyzer("dotnet_code_quality.ca1711.allowed_suffixes")
+            };
             var csc = CreateCSharpCompiler(null, dir.Path, args, analyzers: analyzers, transformers: transformers);
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -351,8 +346,10 @@ class D { }
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
-            var transformers = new ISourceTransformer[] { new ReportDiagnosticOnEachClassTransformer("MY001", DiagnosticSeverity.Warning, outWriter) }
-                .ToImmutableArray();
+            var transformers = new ISourceTransformer[]
+            {
+                new ReportDiagnosticOnEachClassTransformer("MY001", DiagnosticSeverity.Warning, outWriter)
+            };
 
             var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: transformers);
 
@@ -378,8 +375,7 @@ class D { }
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
-            var transformers = new ISourceTransformer[] { new ReportDiagnosticOnEachClassTransformer("MY001", DiagnosticSeverity.Warning, outWriter) }
-                .ToImmutableArray();
+            var transformers = new ISourceTransformer[] { new ReportDiagnosticOnEachClassTransformer("MY001", DiagnosticSeverity.Warning, outWriter) };
 
             var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: transformers);
 
@@ -397,13 +393,15 @@ class D { }
         {
             var dir = Temp.CreateDirectory();
             var src = dir.CreateFile("temp.cs").WriteAllText(@"class C { }");
-            
+
             var args = new[] { "/t:library", src.Path, $"/nowarn:MY001" };
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
-            var transformers = new ISourceTransformer[] { new ReportDiagnosticOnEachClassTransformer("MY001", DiagnosticSeverity.Warning, outWriter) }
-                .ToImmutableArray();
+            var transformers = new ISourceTransformer[]
+            {
+                new ReportDiagnosticOnEachClassTransformer("MY001", DiagnosticSeverity.Warning, outWriter)
+            };
 
             var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: transformers);
 
@@ -429,8 +427,10 @@ class D { }
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
-            var transformers = new ISourceTransformer[] { new ReportDiagnosticOnEachClassTransformer("MY001", DiagnosticSeverity.Warning, outWriter) }
-                .ToImmutableArray();
+            var transformers = new ISourceTransformer[]
+            {
+                new ReportDiagnosticOnEachClassTransformer("MY001", DiagnosticSeverity.Warning, outWriter)
+            };
 
             var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: transformers);
 
@@ -453,8 +453,10 @@ class D { }
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
-            var transformers = new ISourceTransformer[] { new ReportDiagnosticOnEachClassTransformer("MY001", DiagnosticSeverity.Warning, outWriter) }
-                .ToImmutableArray();
+            var transformers = new ISourceTransformer[]
+            {
+                new ReportDiagnosticOnEachClassTransformer("MY001", DiagnosticSeverity.Warning, outWriter)
+            };
 
             var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: transformers);
 

@@ -1363,8 +1363,8 @@ namespace Microsoft.CodeAnalysis
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken,
             out CancellationTokenSource? analyzerCts,
-            out bool reportAnalyzer,
-            out AnalyzerDriver? analyzerDriver)
+            out AnalyzerDriver? analyzerDriver,
+            out GeneratorDriverTimingInfo? generatorTimingInfo)
         {
             IServiceProvider? serviceProvider = null;
 
@@ -1374,7 +1374,7 @@ namespace Microsoft.CodeAnalysis
                 this.CompileAndEmitImpl(touchedFilesLogger, ref compilation, analyzers, generators, transformers,
                     plugins, additionalTextFiles,
                     analyzerConfigSet, sourceFileAnalyzerConfigOptions, embeddedTexts, diagnostics,
-                    cancellationToken, out analyzerCts, out reportAnalyzer, out analyzerDriver, out serviceProvider, out var logger);
+                    cancellationToken, out analyzerCts, out analyzerDriver, out generatorTimingInfo, out serviceProvider, out var logger);
             }
             catch (Exception e) when (serviceProvider != null)
             {
@@ -1413,7 +1413,7 @@ namespace Microsoft.CodeAnalysis
             CancellationToken cancellationToken,
             out CancellationTokenSource? analyzerCts,
             out AnalyzerDriver? analyzerDriver,
-            out GeneratorDriverTimingInfo? generatorTimingInfo)
+            out GeneratorDriverTimingInfo? generatorTimingInfo,
             // <Metalama>
             out IServiceProvider? serviceProvider,
             out ILogger? logger)

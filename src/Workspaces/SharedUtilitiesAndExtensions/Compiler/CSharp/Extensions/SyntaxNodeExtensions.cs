@@ -17,8 +17,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
-
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class SyntaxNodeExtensions

@@ -2537,9 +2537,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             readOnlyKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(readOnlyKeyword);
             // </Metalama>
             // <Metalama> This change is generated. See Modifications.md for details.
-            scopedKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(scopedKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
             type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
             // </Metalama>
             return (RefTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.RefType((Syntax.InternalSyntax.SyntaxToken)refKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)readOnlyKeyword.Node, (Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
@@ -2554,6 +2551,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (scopedKeyword.Kind() != SyntaxKind.ScopedKeyword) throw new ArgumentException(nameof(scopedKeyword));
             if (type == null) throw new ArgumentNullException(nameof(type));
+            // <Metalama> This change is generated. See Modifications.md for details.
+            scopedKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(scopedKeyword);
+            // </Metalama>
+            // <Metalama> This change is generated. See Modifications.md for details.
+            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Metalama>
             return (ScopedTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.ScopedType((Syntax.InternalSyntax.SyntaxToken)scopedKeyword.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 

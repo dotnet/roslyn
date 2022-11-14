@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using Metalama.Compiler.UnitTests.ThirdParty;
@@ -67,8 +66,8 @@ build_property.MetalamaDebugTransformedCode = {(debugTransformedCode ? "True" : 
             var args = new[] { "/nologo", "/t:library", _src.Path, $"/analyzerconfig:{config.Path}" };
             var csc = CreateCSharpCompiler(null, dir.Path, args,
                 transformers: transformer == null
-                    ? ImmutableArray<ISourceTransformer>.Empty
-                    : new[] { transformer }.ToImmutableArray(),
+                    ? null
+                    : new[] { transformer },
                 bypassLicensing: false);
 
             return csc;
