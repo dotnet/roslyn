@@ -996,5 +996,43 @@ $$");
     }
 }");
         }
+
+        [Fact]
+        public async Task TestAfterScoped()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    void M()
+    {
+        scoped $$
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestInParameterAfterScoped()
+        {
+            await VerifyKeywordAsync("""
+                class C
+                {
+                    void M(scoped $$)
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestInAnonymousMethodParameterAfterScoped()
+        {
+            await VerifyKeywordAsync("""
+                class C
+                {
+                    void M()
+                    {
+                        var x = delegate (scoped $$) { };
+                    }
+                }
+                """);
+        }
     }
 }
