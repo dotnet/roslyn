@@ -12992,7 +12992,6 @@ tryAgain:
         private ImplicitArrayCreationExpressionSyntax ParseImplicitlyTypedArrayCreation()
         {
             var @new = this.EatToken(SyntaxKind.NewKeyword);
-            @new = CheckFeatureAvailability(@new, MessageID.IDS_FeatureImplicitArray);
             var openBracket = this.EatToken(SyntaxKind.OpenBracketToken);
 
             var commas = _pool.Allocate();

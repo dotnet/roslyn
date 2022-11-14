@@ -5598,14 +5598,26 @@ class C
     }
 }
 ";
+            CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyDiagnostics(
+                // (6,17): error CS0826: No best type found for implicitly-typed array
+                //         var q = new [] { };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new [] { }").WithLocation(6, 17));
+            CreateCompilation(text, parseOptions: TestOptions.Regular2).VerifyDiagnostics(
+                // (6,9): error CS8023: Feature 'implicitly typed local variable' is not available in C# 2. Please use language version 3 or greater.
+                //         var q = new [] { };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "var").WithArguments("implicitly typed local variable", "3").WithLocation(6, 9),
+                // (6,17): error CS8023: Feature 'implicitly typed array' is not available in C# 2. Please use language version 3 or greater.
+                //         var q = new [] { };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "new").WithArguments("implicitly typed array", "3").WithLocation(6, 17),
+                // (6,17): error CS0826: No best type found for implicitly-typed array
+                //         var q = new [] { };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new [] { }").WithLocation(6, 17));
+
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
-            tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
-                // (6,17): error CS8023: Feature 'implicitly typed array' is not available in C# 2. Please use language version 3 or greater.
-                //         var q = new [] { };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "new").WithArguments("implicitly typed array", "3"));
+            tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
         }
 
         [Fact]
