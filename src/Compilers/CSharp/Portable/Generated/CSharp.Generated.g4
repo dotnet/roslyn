@@ -1349,13 +1349,13 @@ base_parameter
   | parameter
   ;
 
-character_literal_token
-  : /* see lexical specification */
-  ;
-
 expression_or_pattern
   : expression
   | pattern
+  ;
+
+character_literal_token
+  : /* see lexical specification */
   ;
 
 identifier_token
