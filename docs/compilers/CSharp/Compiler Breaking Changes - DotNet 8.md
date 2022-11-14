@@ -4,7 +4,7 @@
 
 ***Introduced in Visual Studio 2022 version 17.5***
 
-In C# 11 or earlier, delegate types inferred from methods ignored default parameter values and `params` modifiers
+In .NET SDK 7.0.100 or earlier, delegate types inferred from methods ignored default parameter values and `params` modifiers
 as demonstrated in the following code:
 
 ```csharp
@@ -14,7 +14,7 @@ DoAction(action, 1); // ok
 void DoAction(System.Action<int, int[]> a, int p) => a(p, new[] { p });
 ```
 
-In C# 12 or later, such methods are inferred as anonymous synthesized delegate types
+In .NET SDK 7.0.200 or later, such methods are inferred as anonymous synthesized delegate types
 with the same default parameter values and `params` modifiers.
 This change can break the code above as demonstrated below:
 
