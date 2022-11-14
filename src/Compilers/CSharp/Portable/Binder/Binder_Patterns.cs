@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return node switch
             {
-                DiscardPatternSyntax p => BindDiscardPattern(p, inputType),
+                DiscardPatternSyntax p => BindDiscardPattern(p, inputType, diagnostics),
                 DeclarationPatternSyntax p => BindDeclarationPattern(p, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics),
                 ConstantPatternSyntax p => BindConstantPatternWithFallbackToTypePattern(p, inputType, hasErrors, diagnostics),
                 RecursivePatternSyntax p => BindRecursivePattern(p, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics),
@@ -388,8 +388,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return !hasErrors && !lengthAccess.HasErrors && !indexerAccess.HasErrors;
         }
 
-        private static BoundPattern BindDiscardPattern(DiscardPatternSyntax node, TypeSymbol inputType)
+        private static BoundPattern BindDiscardPattern(DiscardPatternSyntax node, TypeSymbol inputType, BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureRecursivePatterns.CheckFeatureAvailability(diagnostics, node);
             return new BoundDiscardPattern(node, inputType: inputType, narrowedType: inputType);
         }
 
@@ -955,6 +956,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureRecursivePatterns.CheckFeatureAvailability(diagnostics, node);
+
             if (inputType.IsPointerOrFunctionPointer())
             {
                 diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, node.Location);
@@ -1365,6 +1368,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     {
+                        MessageID.IDS_FeatureRecursivePatterns.CheckFeatureAvailability(diagnostics, node);
+
                         var tupleDesignation = (ParenthesizedVariableDesignationSyntax)node;
                         var subPatterns = ArrayBuilder<BoundPositionalSubpattern>.GetInstance(tupleDesignation.Variables.Count);
                         MethodSymbol? deconstructMethod = null;

@@ -1996,11 +1996,25 @@ case KeyValuePair<String, DateTime>[] pairs2:
         [Fact]
         public void RecursivePattern_01()
         {
-            UsingStatement(@"switch (e) { case T(X: 3, Y: 4){L: 5} p: ; }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
-                // switch (e) { case T(X: 3, Y: 4){L: 5} p: ; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "T(X: 3, Y: 4){L: 5} p").WithArguments("recursive patterns", "8.0").WithLocation(1, 19)
-                );
+
+            var test = @"switch (e) { case T(X: 3, Y: 4){L: 5} p: ; }";
+            var testWithStatement = @$"class C {{ void M() {{ {test} }} }}";
+
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.RegularWithoutRecursivePatterns).VerifyDiagnostics(
+                // (1,30): error CS0103: The name 'e' does not exist in the current context
+                // class C { void M() { switch (e) { case T(X: 3, Y: 4){L: 5} p: ; } } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(1, 30),
+                // (1,35): error CS8070: Control cannot fall out of switch from final case label ('case T(X: 3, Y: 4){L: 5} p:')
+                // class C { void M() { switch (e) { case T(X: 3, Y: 4){L: 5} p: ; } } }
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case T(X: 3, Y: 4){L: 5} p:").WithArguments("case T(X: 3, Y: 4){L: 5} p:").WithLocation(1, 35),
+                // (1,40): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // class C { void M() { switch (e) { case T(X: 3, Y: 4){L: 5} p: ; } } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "T(X: 3, Y: 4){L: 5} p").WithArguments("recursive patterns", "8.0").WithLocation(1, 40),
+                // (1,40): error CS0246: The type or namespace name 'T' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { void M() { switch (e) { case T(X: 3, Y: 4){L: 5} p: ; } } }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("T").WithLocation(1, 40));
+
+            UsingStatement(test, TestOptions.RegularWithoutRecursivePatterns);
             N(SyntaxKind.SwitchStatement);
             {
                 N(SyntaxKind.SwitchKeyword);
@@ -2107,10 +2121,30 @@ case KeyValuePair<String, DateTime>[] pairs2:
         [Fact]
         public void BrokenPattern_06()
         {
-            UsingStatement(@"switch (e) { case (: ; }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
-                // switch (e) { case (: ; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(: ").WithArguments("recursive patterns", "8.0").WithLocation(1, 19),
+            var test = @"switch (e) { case (: ; }";
+            var testInMethod = @$"class C {{ void M() {{ {test} }} }}";
+
+            CreateCompilation(testInMethod, parseOptions: TestOptions.RegularWithoutRecursivePatterns).VerifyDiagnostics(
+                // (1,30): error CS0103: The name 'e' does not exist in the current context
+                // class C { void M() { switch (e) { case (: ; } } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(1, 30),
+                // (1,35): error CS8070: Control cannot fall out of switch from final case label ('case (: ')
+                // class C { void M() { switch (e) { case (: ; } } }
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case (: ").WithArguments("case (: ").WithLocation(1, 35),
+                // (1,40): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // class C { void M() { switch (e) { case (: ; } } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(: ").WithArguments("recursive patterns", "8.0").WithLocation(1, 40),
+                // (1,41): error CS1001: Identifier expected
+                // class C { void M() { switch (e) { case (: ; } } }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ":").WithLocation(1, 41),
+                // (1,43): error CS1026: ) expected
+                // class C { void M() { switch (e) { case (: ; } } }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 43),
+                // (1,43): error CS1003: Syntax error, ':' expected
+                // class C { void M() { switch (e) { case (: ; } } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":").WithLocation(1, 43));
+
+            UsingStatement(test, TestOptions.RegularWithoutRecursivePatterns,
                 // (1,20): error CS1001: Identifier expected
                 // switch (e) { case (: ; }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ":").WithLocation(1, 20),
@@ -2119,8 +2153,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 22),
                 // (1,22): error CS1003: Syntax error, ':' expected
                 // switch (e) { case (: ; }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":").WithLocation(1, 22)
-            );
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":").WithLocation(1, 22));
             N(SyntaxKind.SwitchStatement);
             {
                 N(SyntaxKind.SwitchKeyword);
@@ -2159,10 +2192,30 @@ case KeyValuePair<String, DateTime>[] pairs2:
         [Fact]
         public void BrokenPattern_07()
         {
-            UsingStatement(@"switch (e) { case (", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
-                // switch (e) { case (
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(").WithArguments("recursive patterns", "8.0").WithLocation(1, 19),
+            var test = @"switch (e) { case (";
+            var testInMethod = @$"class C {{ void M() {{ {test} }} }}";
+
+            CreateCompilation(testInMethod, parseOptions: TestOptions.RegularWithoutRecursivePatterns).VerifyDiagnostics(
+                // (1,30): error CS0103: The name 'e' does not exist in the current context
+                // class C { void M() { switch (e) { case ( } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(1, 30),
+                // (1,35): error CS8070: Control cannot fall out of switch from final case label ('case ( ')
+                // class C { void M() { switch (e) { case ( } }
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case ( ").WithArguments("case ( ").WithLocation(1, 35),
+                // (1,40): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // class C { void M() { switch (e) { case ( } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "( ").WithArguments("recursive patterns", "8.0").WithLocation(1, 40),
+                // (1,42): error CS1026: ) expected
+                // class C { void M() { switch (e) { case ( } }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(1, 42),
+                // (1,42): error CS1003: Syntax error, ':' expected
+                // class C { void M() { switch (e) { case ( } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(":").WithLocation(1, 42),
+                // (1,45): error CS1513: } expected
+                // class C { void M() { switch (e) { case ( } }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 45));
+
+            UsingStatement(test, TestOptions.RegularWithoutRecursivePatterns,
                 // (1,20): error CS1026: ) expected
                 // switch (e) { case (
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 20),
@@ -2352,11 +2405,21 @@ case KeyValuePair<String, DateTime>[] pairs2:
         [Fact]
         public void EmptySwitchExpression()
         {
-            UsingExpression("1 switch {}", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,1): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
-                // 1 switch {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch {}").WithArguments("recursive patterns", "8.0").WithLocation(1, 1)
-                );
+            var test = "1 switch {}";
+            var testInMethod = @$"class C {{ void M() {{ var v = {test}; }} }}";
+
+            CreateCompilation(testInMethod, parseOptions: TestOptions.RegularWithoutRecursivePatterns).VerifyDiagnostics(
+                // (1,32): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // class C { void M() { var v = 1 switch {}; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "switch").WithArguments("recursive patterns", "8.0").WithLocation(1, 32),
+                // (1,32): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                // class C { void M() { var v = 1 switch {}; } }
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(1, 32),
+                // (1,32): error CS8506: No best type was found for the switch expression.
+                // class C { void M() { var v = 1 switch {}; } }
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(1, 32));
+
+            UsingExpression(test, TestOptions.RegularWithoutRecursivePatterns);
             N(SyntaxKind.SwitchExpression);
             {
                 N(SyntaxKind.NumericLiteralExpression);
@@ -2373,11 +2436,27 @@ case KeyValuePair<String, DateTime>[] pairs2:
         [Fact]
         public void SwitchExpression01()
         {
-            UsingExpression("1 switch {a => b, c => d}", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,1): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
-                // 1 switch {a => b, c => d}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch {a => b, c => d}").WithArguments("recursive patterns", "8.0").WithLocation(1, 1)
-                );
+            var test = "1 switch {a => b, c => d}";
+            var testWithStatement = @$"class C {{ void M() {{ var v = {test}; }} }}";
+
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.RegularWithoutRecursivePatterns).VerifyDiagnostics(
+                // (1,32): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // class C { void M() { var v = 1 switch {a => b, c => d}; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "switch").WithArguments("recursive patterns", "8.0").WithLocation(1, 32),
+                // (1,40): error CS0103: The name 'a' does not exist in the current context
+                // class C { void M() { var v = 1 switch {a => b, c => d}; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(1, 40),
+                // (1,45): error CS0103: The name 'b' does not exist in the current context
+                // class C { void M() { var v = 1 switch {a => b, c => d}; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(1, 45),
+                // (1,48): error CS0103: The name 'c' does not exist in the current context
+                // class C { void M() { var v = 1 switch {a => b, c => d}; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "c").WithArguments("c").WithLocation(1, 48),
+                // (1,53): error CS0103: The name 'd' does not exist in the current context
+                // class C { void M() { var v = 1 switch {a => b, c => d}; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(1, 53));
+
+            UsingExpression(test, TestOptions.RegularWithoutRecursivePatterns);
             N(SyntaxKind.SwitchExpression);
             {
                 N(SyntaxKind.NumericLiteralExpression);
@@ -2425,17 +2504,33 @@ case KeyValuePair<String, DateTime>[] pairs2:
         [Fact]
         public void SwitchExpression02()
         {
-            UsingExpression("1 switch { a?b:c => d }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,1): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
-                // 1 switch { a?b:c => d }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { a?b:c => d }").WithArguments("recursive patterns", "8.0").WithLocation(1, 1),
+            var test = "1 switch { a?b:c => d }";
+            var testWithStatement = @$"class C {{ void M() {{ var v = {test}; }} }}";
+
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.RegularWithoutRecursivePatterns).VerifyDiagnostics(
+                // (1,32): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // class C { void M() { var v = 1 switch { a?b:c => d }; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "switch").WithArguments("recursive patterns", "8.0").WithLocation(1, 32),
+                // (1,41): error CS0103: The name 'a' does not exist in the current context
+                // class C { void M() { var v = 1 switch { a?b:c => d }; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(1, 41),
+                // (1,42): error CS1003: Syntax error, '=>' expected
+                // class C { void M() { var v = 1 switch { a?b:c => d }; } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments("=>").WithLocation(1, 42),
+                // (1,42): error CS1525: Invalid expression term '?'
+                // class C { void M() { var v = 1 switch { a?b:c => d }; } }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(1, 42),
+                // (1,43): error CS0103: The name 'b' does not exist in the current context
+                // class C { void M() { var v = 1 switch { a?b:c => d }; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(1, 43));
+
+            UsingExpression(test, TestOptions.RegularWithoutRecursivePatterns,
                 // (1,13): error CS1003: Syntax error, '=>' expected
                 // 1 switch { a?b:c => d }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments("=>").WithLocation(1, 13),
                 // (1,13): error CS1525: Invalid expression term '?'
                 // 1 switch { a?b:c => d }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(1, 13)
-                );
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(1, 13));
             N(SyntaxKind.SwitchExpression);
             {
                 N(SyntaxKind.NumericLiteralExpression);
@@ -2488,11 +2583,36 @@ case KeyValuePair<String, DateTime>[] pairs2:
         [Fact]
         public void SwitchExpression03()
         {
-            UsingExpression("1 switch { (a, b, c) => d }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,1): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
-                // 1 switch { (a, b, c) => d }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { (a, b, c) => d }").WithArguments("recursive patterns", "8.0").WithLocation(1, 1)
-                );
+            var test = "1 switch { (a, b, c) => d }";
+            var testWithStatement = @$"class C {{ void M() {{ var v = {test}; }} }}";
+
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.RegularWithoutRecursivePatterns).VerifyDiagnostics(
+                // (1,32): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // class C { void M() { var v = 1 switch { (a, b, c) => d }; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "switch").WithArguments("recursive patterns", "8.0").WithLocation(1, 32),
+                // (1,41): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // class C { void M() { var v = 1 switch { (a, b, c) => d }; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(a, b, c)").WithArguments("recursive patterns", "8.0").WithLocation(1, 41),
+                // (1,41): error CS1061: 'int' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+                // class C { void M() { var v = 1 switch { (a, b, c) => d }; } }
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(a, b, c)").WithArguments("int", "Deconstruct").WithLocation(1, 41),
+                // (1,41): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'int', with 3 out parameters and a void return type.
+                // class C { void M() { var v = 1 switch { (a, b, c) => d }; } }
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(a, b, c)").WithArguments("int", "3").WithLocation(1, 41),
+                // (1,42): error CS0103: The name 'a' does not exist in the current context
+                // class C { void M() { var v = 1 switch { (a, b, c) => d }; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(1, 42),
+                // (1,45): error CS0103: The name 'b' does not exist in the current context
+                // class C { void M() { var v = 1 switch { (a, b, c) => d }; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(1, 45),
+                // (1,48): error CS0103: The name 'c' does not exist in the current context
+                // class C { void M() { var v = 1 switch { (a, b, c) => d }; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "c").WithArguments("c").WithLocation(1, 48),
+                // (1,54): error CS0103: The name 'd' does not exist in the current context
+                // class C { void M() { var v = 1 switch { (a, b, c) => d }; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(1, 54));
+
+            UsingExpression("1 switch { (a, b, c) => d }", TestOptions.RegularWithoutRecursivePatterns);
             N(SyntaxKind.SwitchExpression);
             {
                 N(SyntaxKind.NumericLiteralExpression);
@@ -2557,12 +2677,41 @@ case KeyValuePair<String, DateTime>[] pairs2:
         [Fact]
         public void BrokenRecursivePattern01()
         {
+            var test = "switch (e) { case T( : Q x = n; break; } ";
+            var testWithStatement = @$"class C {{ void M() {{ {test} }} }}";
+
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.RegularWithoutRecursivePatterns).VerifyDiagnostics(
+                // (1,30): error CS0103: The name 'e' does not exist in the current context
+                // class C { void M() { switch (e) { case T( : Q x = n; break; }  } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(1, 30),
+                // (1,40): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // class C { void M() { switch (e) { case T( : Q x = n; break; }  } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "T( : Q x ").WithArguments("recursive patterns", "8.0").WithLocation(1, 40),
+                // (1,40): error CS0246: The type or namespace name 'T' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { void M() { switch (e) { case T( : Q x = n; break; }  } }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("T").WithLocation(1, 40),
+                // (1,43): error CS1001: Identifier expected
+                // class C { void M() { switch (e) { case T( : Q x = n; break; }  } }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ":").WithLocation(1, 43),
+                // (1,45): error CS0246: The type or namespace name 'Q' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { void M() { switch (e) { case T( : Q x = n; break; }  } }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Q").WithArguments("Q").WithLocation(1, 45),
+                // (1,49): error CS1026: ) expected
+                // class C { void M() { switch (e) { case T( : Q x = n; break; }  } }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "=").WithLocation(1, 49),
+                // (1,49): error CS1003: Syntax error, ':' expected
+                // class C { void M() { switch (e) { case T( : Q x = n; break; }  } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(":").WithLocation(1, 49),
+                // (1,49): error CS1525: Invalid expression term '='
+                // class C { void M() { switch (e) { case T( : Q x = n; break; }  } }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(1, 49),
+                // (1,51): error CS0103: The name 'n' does not exist in the current context
+                // class C { void M() { switch (e) { case T( : Q x = n; break; }  } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "n").WithArguments("n").WithLocation(1, 51));
+
             // This put the parser into an infinite loop at one time. The precise diagnostics and nodes
             // are not as important as the fact that it terminates.
-            UsingStatement("switch (e) { case T( : Q x = n; break; } ", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
-                // switch (e) { case T( : Q x = n; break; } 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "T( : Q x = n").WithArguments("recursive patterns", "8.0").WithLocation(1, 19),
+            UsingStatement(test, TestOptions.RegularWithoutRecursivePatterns,
                 // (1,22): error CS1001: Identifier expected
                 // switch (e) { case T( : Q x = n; break; } 
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ":").WithLocation(1, 22),

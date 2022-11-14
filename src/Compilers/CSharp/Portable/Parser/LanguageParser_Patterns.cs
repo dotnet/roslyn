@@ -21,24 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         private CSharpSyntaxNode ParseTypeOrPatternForIsOperator()
         {
-            return CheckRecursivePatternFeature(ParseTypeOrPatternForIsOperatorCore());
-        }
-
-        private CSharpSyntaxNode CheckRecursivePatternFeature(CSharpSyntaxNode node)
-        {
-            switch (node.Kind)
-            {
-                case SyntaxKind.RecursivePattern:
-                case SyntaxKind.DiscardPattern:
-                case SyntaxKind.VarPattern when ((VarPatternSyntax)node).Designation.Kind == SyntaxKind.ParenthesizedVariableDesignation:
-                    return this.CheckFeatureAvailability(node, MessageID.IDS_FeatureRecursivePatterns);
-                default:
-                    return node;
-            }
-        }
-
-        private CSharpSyntaxNode ParseTypeOrPatternForIsOperatorCore()
-        {
             var pattern = ParsePattern(GetPrecedence(SyntaxKind.IsPatternExpression), afterIs: true);
             return pattern switch
             {
@@ -460,11 +442,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         private CSharpSyntaxNode ParseExpressionOrPatternForSwitchStatement()
-        {
-            return CheckRecursivePatternFeature(ParseExpressionOrPatternForSwitchStatementCore());
-        }
-
-        private CSharpSyntaxNode ParseExpressionOrPatternForSwitchStatementCore()
         {
             var pattern = ParsePattern(Precedence.Conditional, whenIsKeyword: true);
             return ConvertPatternToExpressionIfPossible(pattern);
