@@ -594,6 +594,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (modifier.IsKind(SyntaxKind.StaticKeyword))
                     MessageID.IDS_FeatureStaticLocalFunctions.CheckFeatureAvailability(diagnostics, node, modifier.GetLocation());
+                else if (modifier.IsKind(SyntaxKind.ExternKeyword))
+                    MessageID.IDS_FeatureExternLocalFunctions.CheckFeatureAvailability(diagnostics, node, modifier.GetLocation());
             }
 
             return new BoundLocalFunctionStatement(node, localSymbol, blockBody, expressionBody, hasErrors);

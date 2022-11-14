@@ -10339,23 +10339,21 @@ tryAgain:
                     case SyntaxKind.StaticKeyword:
                         continue;
                     case SyntaxKind.ExternKeyword:
-                        modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureExternLocalFunctions);
-                        if ((object)modifier == modifiers[i])
-                        {
-                            continue;
-                        }
-                        break;
+                        continue;
                     default:
                         modifier = this.AddError(modifier, ErrorCode.ERR_BadMemberFlag, modifier.Text);
                         break;
                 }
+
                 if (badBuilder == null)
                 {
                     badBuilder = _pool.Allocate();
                     badBuilder.AddRange(modifiers);
                 }
+
                 badBuilder[i] = modifier;
             }
+
             if (badBuilder != null)
             {
                 modifiers = badBuilder.ToList();

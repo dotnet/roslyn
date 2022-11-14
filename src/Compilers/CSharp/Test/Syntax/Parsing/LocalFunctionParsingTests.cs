@@ -693,13 +693,34 @@ class C
     }
 }";
 
+            CreateCompilation(code, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (6,21): error CS8112: Local function 'local()' must declare a body because it is not marked 'static extern'.
+                //         extern void local();
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "local").WithArguments("local()").WithLocation(6, 21),
+                // (6,21): warning CS0626: Method, operator, or accessor 'local()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //         extern void local();
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "local").WithArguments("local()").WithLocation(6, 21),
+                // (6,21): warning CS8321: The local function 'local' is declared but never used
+                //         extern void local();
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(6, 21));
+            CreateCompilation(code, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (6,9): error CS8400: Feature 'extern local functions' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         extern void local();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "extern").WithArguments("extern local functions", "9.0").WithLocation(6, 9),
+                // (6,21): error CS8112: Local function 'local()' must declare a body because it is not marked 'static extern'.
+                //         extern void local();
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "local").WithArguments("local()").WithLocation(6, 21),
+                // (6,21): warning CS0626: Method, operator, or accessor 'local()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //         extern void local();
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "local").WithArguments("local()").WithLocation(6, 21),
+                // (6,21): warning CS8321: The local function 'local' is declared but never used
+                //         extern void local();
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(6, 21));
+
             UsingTree(code, TestOptions.Regular9).GetDiagnostics().Verify();
             verifyTree();
 
-            UsingTree(code, TestOptions.Regular8,
-                // (6,9): error CS8400: Feature 'extern local functions' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         extern void local();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "extern").WithArguments("extern local functions", "9.0").WithLocation(6, 9));
+            UsingTree(code, TestOptions.Regular8);
             verifyTree();
 
             void verifyTree()
@@ -764,14 +785,28 @@ class C
         extern void local() { }
     }
 }";
+            CreateCompilation(code, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (6,21): error CS0179: 'local()' cannot be extern and declare a body
+                //         extern void local() { }
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "local").WithArguments("local()").WithLocation(6, 21),
+                // (6,21): warning CS8321: The local function 'local' is declared but never used
+                //         extern void local() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(6, 21));
+            CreateCompilation(code, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (6,9): error CS8400: Feature 'extern local functions' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         extern void local() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "extern").WithArguments("extern local functions", "9.0").WithLocation(6, 9),
+                // (6,21): error CS0179: 'local()' cannot be extern and declare a body
+                //         extern void local() { }
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "local").WithArguments("local()").WithLocation(6, 21),
+                // (6,21): warning CS8321: The local function 'local' is declared but never used
+                //         extern void local() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(6, 21));
 
             UsingTree(code, TestOptions.Regular9).GetDiagnostics().Verify();
             verifyTree();
 
-            UsingTree(code, TestOptions.Regular8,
-                // (6,9): error CS8400: Feature 'extern local functions' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         extern void local() { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "extern").WithArguments("extern local functions", "9.0").WithLocation(6, 9));
+            UsingTree(code, TestOptions.Regular8);
             verifyTree();
 
             void verifyTree()
