@@ -24354,10 +24354,9 @@ class Program
             CreateCompilationWithMscorlib45(text,
                 new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef },
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
-    // (8,46): error CS8026: Feature 'dictionary initializer' is not available in C# 5. Please use language version 6 or greater.
-    //         var s = new Dictionary<int, int> () {[1] = 2};
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "[1] = 2").WithArguments("dictionary initializer", "6").WithLocation(8, 46)
-               );
+                    // (8,46): error CS8026: Feature 'dictionary initializer' is not available in C# 5. Please use language version 6 or greater.
+                    //         var s = new Dictionary<int, int> () {[1] = 2};
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "[").WithArguments("dictionary initializer", "6").WithLocation(8, 46));
         }
 
         [Fact]

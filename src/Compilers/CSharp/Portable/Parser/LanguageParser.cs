@@ -12861,9 +12861,7 @@ tryAgain:
                 // [...] = ref <expr>
                 // [...] = <expr>
                 isObjectInitializer = true;
-                var initializer = this.ParseDictionaryInitializer();
-                initializer = CheckFeatureAvailability(initializer, MessageID.IDS_FeatureDictionaryInitializer);
-                return initializer;
+                return this.ParseDictionaryInitializer();
             }
             else if (this.IsNamedAssignment())
             {
@@ -12907,7 +12905,7 @@ tryAgain:
             return _syntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, identifier, equal, expression);
         }
 
-        private ExpressionSyntax ParseDictionaryInitializer()
+        private AssignmentExpressionSyntax ParseDictionaryInitializer()
         {
             var arguments = this.ParseBracketedArgumentList();
             var equal = this.EatToken(SyntaxKind.EqualsToken);
