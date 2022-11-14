@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static readonly HashSet<string> s_builtInSnippetsWithoutReplacement = new()
         {
             "#if", "#region", "Attribute", "checked", "do", "else", "enum", "equals", "Exception",
-            "for", "forr", "indexer", "invoke", "iterindex", "iterator", "lock", "mbox",
+            "forr", "indexer", "invoke", "iterindex", "iterator", "lock", "mbox",
             "namespace", "propa", "propdp", "propfull", "propg", "sim", "svm", "switch", "testc", "testm",
             "try", "tryf", "unchecked", "unsafe", "using", "~"
         };

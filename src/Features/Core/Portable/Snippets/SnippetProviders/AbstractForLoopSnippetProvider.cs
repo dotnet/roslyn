@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.Snippets
     {
         protected abstract Task<SyntaxNode> CreateForLoopStatementSyntaxAsync(Document document, int position, CancellationToken cancellationToken);
 
-        public override string SnippetIdentifier => "for";
-        public override string SnippetDescription => FeaturesResources.for_loop;
+        public override string Identifier => "for";
+        public override string Description => FeaturesResources.for_loop;
 
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
