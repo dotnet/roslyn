@@ -2779,6 +2779,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindArgumentValue(BindingDiagnosticBag diagnostics, ArgumentSyntax argumentSyntax, bool allowArglist, RefKind refKind)
         {
+            if (argumentSyntax.RefKindKeyword.IsKind(SyntaxKind.InKeyword))
+                MessageID.IDS_FeatureReadOnlyReferences.CheckFeatureAvailability(diagnostics, argumentSyntax, argumentSyntax.RefKindKeyword.GetLocation());
+
             if (argumentSyntax.Expression.Kind() == SyntaxKind.DeclarationExpression)
             {
                 var declarationExpression = (DeclarationExpressionSyntax)argumentSyntax.Expression;

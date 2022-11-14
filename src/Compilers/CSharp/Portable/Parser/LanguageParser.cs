@@ -11763,11 +11763,6 @@ tryAgain:
             }
             else
             {
-                if (refKindKeyword?.Kind == SyntaxKind.InKeyword)
-                {
-                    refKindKeyword = this.CheckFeatureAvailability(refKindKeyword, MessageID.IDS_FeatureReadOnlyReferences);
-                }
-
                 // According to Language Specification, section 7.6.7 Element access
                 //      The argument-list of an element-access is not allowed to contain ref or out arguments.
                 // However, we actually do support ref indexing of indexed properties in COM interop
