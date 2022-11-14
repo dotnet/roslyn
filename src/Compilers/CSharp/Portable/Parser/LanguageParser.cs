@@ -4592,11 +4592,12 @@ tryAgain:
                 // If we didn't already consume an equals sign as part of !!=, then try to scan one out now.
                 equalsToken ??= TryEatToken(SyntaxKind.EqualsToken);
 
-                var equalsValueClause = equalsToken == null
-                    ? null
-                    : CheckFeatureAvailability(_syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore()), MessageID.IDS_FeatureOptionalParameter);
-
-                return _syntaxFactory.Parameter(attributes, modifiers.ToList(), type, identifier, equalsValueClause);
+                return _syntaxFactory.Parameter(
+                    attributes,
+                    modifiers.ToList(),
+                    type,
+                    identifier,
+                    equalsToken == null ? null : _syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore()));
             }
             finally
             {

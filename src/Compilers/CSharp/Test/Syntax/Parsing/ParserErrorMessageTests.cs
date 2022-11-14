@@ -6151,11 +6151,14 @@ class C
     void M(int x = 1) { }
 }
 ";
-            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp4)).GetDiagnostics().Verify();
-            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3)).GetDiagnostics().Verify(
+            CreateCompilation(text, parseOptions: TestOptions.Regular4).VerifyDiagnostics();
+            CreateCompilation(text, parseOptions: TestOptions.Regular3).VerifyDiagnostics(
                 // (4,18): error CS8024: Feature 'optional parameter' is not available in C# 3. Please use language version 4 or greater.
                 //     void M(int x = 1) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "= 1").WithArguments("optional parameter", "4"));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "=").WithArguments("optional parameter", "4").WithLocation(4, 18));
+
+            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp4)).GetDiagnostics().Verify();
+            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3)).GetDiagnostics().Verify();
         }
 
         [Fact]
