@@ -1755,6 +1755,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isDisjunction = node.Kind() == SyntaxKind.OrPattern;
             if (isDisjunction)
             {
+                MessageID.IDS_FeatureOrPattern.CheckFeatureAvailability(diagnostics, node, node.OperatorToken.GetLocation());
+
                 permitDesignations = false; // prevent designators under 'or'
                 var left = BindPattern(node.Left, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
                 var right = BindPattern(node.Right, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);

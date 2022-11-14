@@ -8288,11 +8288,24 @@ switch (e)
         [Fact]
         public void PatternCombinators_01()
         {
-            UsingStatement("_ = e is a or b;", TestOptions.RegularWithoutPatternCombinators,
-                // (1,10): error CS8400: Feature 'or pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // _ = e is a or b;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "a or b").WithArguments("or pattern", "9.0").WithLocation(1, 10)
-                );
+            var test = "_ = e is a or b;";
+            var testInMethod = @$"class C {{ void M() {{ {test} }} }}";
+
+            CreateCompilation(testInMethod, parseOptions: TestOptions.RegularWithoutPatternCombinators).VerifyDiagnostics(
+                // (1,26): error CS0103: The name 'e' does not exist in the current context
+                // class C { void M() { _ = e is a or b; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(1, 26),
+                // (1,31): error CS0103: The name 'a' does not exist in the current context
+                // class C { void M() { _ = e is a or b; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(1, 31),
+                // (1,33): error CS8400: Feature 'or pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // class C { void M() { _ = e is a or b; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "or").WithArguments("or pattern", "9.0").WithLocation(1, 33),
+                // (1,36): error CS0103: The name 'b' does not exist in the current context
+                // class C { void M() { _ = e is a or b; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(1, 36));
+
+            UsingStatement(test, TestOptions.RegularWithoutPatternCombinators);
             N(SyntaxKind.ExpressionStatement);
             {
                 N(SyntaxKind.SimpleAssignmentExpression);
@@ -8470,27 +8483,47 @@ switch (e)
         [Fact]
         public void PatternCombinators_05()
         {
-            UsingStatement(
-@"_ = e switch {
+            var test = @"_ = e switch {
     a or b => 1,
     c and d => 2,
     not e => 3,
     not null => 4,
-};",
-                TestOptions.RegularWithoutPatternCombinators,
-                // (2,5): error CS8400: Feature 'or pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
+};";
+            var testInMethod = @$"class C {{ void M() {{ {test} }} }}";
+
+            CreateCompilation(testInMethod, parseOptions: TestOptions.RegularWithoutPatternCombinators).VerifyDiagnostics(
+                // (1,26): error CS0103: The name 'e' does not exist in the current context
+                // class C { void M() { _ = e switch {
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(1, 26),
+                // (2,5): error CS0103: The name 'a' does not exist in the current context
                 //     a or b => 1,
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "a or b").WithArguments("or pattern", "9.0").WithLocation(2, 5),
-                // (3,5): error CS8400: Feature 'and pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(2, 5),
+                // (2,7): error CS8400: Feature 'or pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //     a or b => 1,
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "or").WithArguments("or pattern", "9.0").WithLocation(2, 7),
+                // (2,10): error CS0103: The name 'b' does not exist in the current context
+                //     a or b => 1,
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(2, 10),
+                // (3,5): error CS0103: The name 'c' does not exist in the current context
                 //     c and d => 2,
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "c and d").WithArguments("and pattern", "9.0").WithLocation(3, 5),
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "c").WithArguments("c").WithLocation(3, 5),
+                // (3,7): error CS8400: Feature 'and pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //     c and d => 2,
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "and").WithArguments("and pattern", "9.0").WithLocation(3, 7),
+                // (3,11): error CS0103: The name 'd' does not exist in the current context
+                //     c and d => 2,
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(3, 11),
                 // (4,5): error CS8400: Feature 'not pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     not e => 3,
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "not e").WithArguments("not pattern", "9.0").WithLocation(4, 5),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "not").WithArguments("not pattern", "9.0").WithLocation(4, 5),
+                // (4,9): error CS0103: The name 'e' does not exist in the current context
+                //     not e => 3,
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(4, 9),
                 // (5,5): error CS8400: Feature 'not pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     not null => 4,
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "not null").WithArguments("not pattern", "9.0").WithLocation(5, 5)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "not").WithArguments("not pattern", "9.0").WithLocation(5, 5));
+
+            UsingStatement(test, TestOptions.RegularWithoutPatternCombinators);
             N(SyntaxKind.ExpressionStatement);
             {
                 N(SyntaxKind.SimpleAssignmentExpression);

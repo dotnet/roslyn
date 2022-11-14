@@ -60,10 +60,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             PatternSyntax result = ParseConjunctivePattern(precedence, afterIs, whenIsKeyword);
             while (this.CurrentToken.ContextualKind == SyntaxKind.OrKeyword)
             {
-                var orToken = ConvertToKeyword(this.EatToken());
-                var right = ParseConjunctivePattern(precedence, afterIs, whenIsKeyword);
-                result = _syntaxFactory.BinaryPattern(SyntaxKind.OrPattern, result, orToken, right);
-                result = CheckFeatureAvailability(result, MessageID.IDS_FeatureOrPattern);
+                result = _syntaxFactory.BinaryPattern(
+                    SyntaxKind.OrPattern,
+                    result,
+                    ConvertToKeyword(this.EatToken()),
+                    ParseConjunctivePattern(precedence, afterIs, whenIsKeyword));
             }
 
             return result;
