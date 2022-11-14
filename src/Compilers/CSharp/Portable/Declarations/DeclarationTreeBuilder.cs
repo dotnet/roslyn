@@ -369,7 +369,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var globalAliasedQuickAttributes = GetQuickAttributes(compilationUnit.Usings, global: true);
 
-            CheckExternAliases(parseOptions, diagnostics, compilationUnit.Externs);
+            CheckUsings(parseOptions, diagnostics, compilationUnit.Usings);
+            CheckExterns(parseOptions, diagnostics, compilationUnit.Externs);
 
             return new RootSingleNamespaceDeclaration(
                 hasGlobalUsings: hasGlobalUsings,
@@ -383,7 +384,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 globalAliasedQuickAttributes);
         }
 
-        private static void CheckExternAliases(CSharpParseOptions parseOptions, DiagnosticBag diagnostics, SyntaxList<ExternAliasDirectiveSyntax> externs)
+        private static void CheckUsings(CSharpParseOptions parseOptions, DiagnosticBag diagnostics, SyntaxList<UsingDirectiveSyntax> usings)
+        {
+            foreach (var usingDirective in usings)
+            {
+                if (usingDirective.StaticKeyword != default)
+                {
+                    var diagnosticInfo = MessageID.IDS_FeatureUsingStatic.GetFeatureAvailabilityDiagnosticInfo(parseOptions);
+                    if (diagnosticInfo != null)
+                        diagnostics.Add(diagnosticInfo, usingDirective.StaticKeyword.GetLocation());
+                }
+            }
+        }
+
+        private static void CheckExterns(CSharpParseOptions parseOptions, DiagnosticBag diagnostics, SyntaxList<ExternAliasDirectiveSyntax> externs)
         {
             foreach (var externAlias in externs)
             {
@@ -511,7 +525,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            CheckExternAliases(parseOptions, diagnostics, node.Externs);
+            CheckUsings(parseOptions, diagnostics, node.Usings);
+            CheckExterns(parseOptions, diagnostics, node.Externs);
 
             // NOTE: *Something* has to happen for alias-qualified names.  It turns out that we
             // just grab the part after the colons (via GetUnqualifiedName, below).  This logic

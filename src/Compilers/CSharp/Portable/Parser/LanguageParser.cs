@@ -832,15 +832,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     //probably supposed to be an identifier
                     name = AddTrailingSkippedSyntax(name, this.EatToken());
                 }
+
                 semicolon = this.EatToken(SyntaxKind.SemicolonToken);
             }
 
             var usingDirective = _syntaxFactory.UsingDirective(globalToken, usingToken, staticToken, alias, name, semicolon);
-            if (staticToken != null)
-            {
-                usingDirective = CheckFeatureAvailability(usingDirective, MessageID.IDS_FeatureUsingStatic);
-            }
-
             if (globalToken != null)
             {
                 usingDirective = CheckFeatureAvailability(usingDirective, MessageID.IDS_FeatureGlobalUsing);
