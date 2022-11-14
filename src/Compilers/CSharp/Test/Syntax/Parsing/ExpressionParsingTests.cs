@@ -732,11 +732,29 @@ class C
 
             Assert.NotNull(expr);
             Assert.Equal(text, expr.ToString());
-            Assert.Equal(1, expr.Errors().Length);
+            Assert.Equal(0, expr.Errors().Length);
 
             var e = (ConditionalAccessExpressionSyntax)expr;
             Assert.Equal("a.b", e.Expression.ToString());
             Assert.Equal(".c.d?[1]?.e()?.f", e.WhenNotNull.ToString());
+
+            var testWithStatement = @$"class C {{ void M() {{ var v = {text}; }} }}";
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular5).VerifyDiagnostics(
+                // (1,30): error CS0103: The name 'a' does not exist in the current context
+                // class C { void M() { var v = a.b?.c.d?[1]?.e()?.f; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(1, 30),
+                // (1,33): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
+                // class C { void M() { var v = a.b?.c.d?[1]?.e()?.f; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "?").WithArguments("null propagating operator", "6").WithLocation(1, 33),
+                // (1,38): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
+                // class C { void M() { var v = a.b?.c.d?[1]?.e()?.f; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "?").WithArguments("null propagating operator", "6").WithLocation(1, 38),
+                // (1,42): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
+                // class C { void M() { var v = a.b?.c.d?[1]?.e()?.f; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "?").WithArguments("null propagating operator", "6").WithLocation(1, 42),
+                // (1,47): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
+                // class C { void M() { var v = a.b?.c.d?[1]?.e()?.f; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "?").WithArguments("null propagating operator", "6").WithLocation(1, 47));
         }
 
         [Fact]

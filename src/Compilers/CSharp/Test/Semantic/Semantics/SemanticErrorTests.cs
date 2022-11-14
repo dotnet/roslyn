@@ -23930,13 +23930,12 @@ class Program
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
-                // (14,18): error CS8026: Feature 'null propagation operator' is not available in C# 5. Please use language version 6 or greater.
+                // (14,23): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
                 //         var x1 = p.P1 ?.ToString;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "p.P1 ?.ToString").WithArguments("null propagating operator", "6").WithLocation(14, 18),
-                // (14,24): error CS8977: 'method group' cannot be made nullable.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "?").WithArguments("null propagating operator", "6").WithLocation(14, 23),
+                // (14,24): error CS8978: 'method group' cannot be made nullable.
                 //         var x1 = p.P1 ?.ToString;
-                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".ToString").WithArguments("method group").WithLocation(14, 24)
-                );
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".ToString").WithArguments("method group").WithLocation(14, 24));
         }
 
         [Fact]

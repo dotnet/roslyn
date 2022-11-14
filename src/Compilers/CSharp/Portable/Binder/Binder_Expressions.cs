@@ -9137,6 +9137,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundConditionalAccess BindConditionalAccessExpression(ConditionalAccessExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureNullPropagatingOperator.CheckFeatureAvailability(diagnostics, node, node.OperatorToken.GetLocation());
+
             BoundExpression receiver = BindConditionalAccessReceiver(node, diagnostics);
 
             var conditionalAccessBinder = new BinderWithConditionalReceiver(this, receiver);

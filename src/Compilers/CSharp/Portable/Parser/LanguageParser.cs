@@ -11495,10 +11495,10 @@ tryAgain:
                     case SyntaxKind.QuestionToken:
                         if (CanStartConsequenceExpression(this.PeekToken(1).Kind))
                         {
-                            var qToken = this.EatToken();
-                            var consequence = ParseConsequenceSyntax();
-                            expr = _syntaxFactory.ConditionalAccessExpression(expr, qToken, consequence);
-                            expr = CheckFeatureAvailability(expr, MessageID.IDS_FeatureNullPropagatingOperator);
+                            expr = _syntaxFactory.ConditionalAccessExpression(
+                                expr,
+                                this.EatToken(),
+                                ParseConsequenceSyntax());
                             break;
                         }
 
