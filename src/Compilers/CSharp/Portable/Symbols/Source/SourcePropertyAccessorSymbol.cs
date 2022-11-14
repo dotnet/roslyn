@@ -170,8 +170,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.CheckModifiers(location, hasBody: true, isAutoPropertyOrExpressionBodied: true, diagnostics: diagnostics);
 
-            if (syntax != null && property.IsIndexer)
-                MessageID.IDS_FeatureExpressionBodiedIndexer.CheckFeatureAvailability(diagnostics, syntax, syntax.ArrowToken.GetLocation());
+            if (syntax != null)
+            {
+                if (property.IsIndexer)
+                    MessageID.IDS_FeatureExpressionBodiedIndexer.CheckFeatureAvailability(diagnostics, syntax, syntax.ArrowToken.GetLocation());
+                else
+                    MessageID.IDS_FeatureExpressionBodiedProperty.CheckFeatureAvailability(diagnostics, syntax, syntax.ArrowToken.GetLocation());
+            }
         }
 
 #nullable enable
