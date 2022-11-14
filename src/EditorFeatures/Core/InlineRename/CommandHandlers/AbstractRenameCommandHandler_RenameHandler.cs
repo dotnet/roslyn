@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
             if (!caretPoint.HasValue)
             {
-                await ShowErrorDialogAsync(workspace, EditorFeaturesResources.You_must_rename_an_identifier).ConfigureAwait(false);
+                await ShowErrorDialogAsync(workspace, FeaturesResources.You_must_rename_an_identifier).ConfigureAwait(false);
                 return;
             }
 
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             if (document == null)
             {
-                await ShowErrorDialogAsync(workspace, EditorFeaturesResources.You_must_rename_an_identifier).ConfigureAwait(false);
+                await ShowErrorDialogAsync(workspace, FeaturesResources.You_must_rename_an_identifier).ConfigureAwait(false);
                 return;
             }
 
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // There can be zero selectedSpans in projection scenarios.
             if (selectedSpans.Count != 1)
             {
-                await ShowErrorDialogAsync(workspace, EditorFeaturesResources.You_must_rename_an_identifier).ConfigureAwait(false);
+                await ShowErrorDialogAsync(workspace, FeaturesResources.You_must_rename_an_identifier).ConfigureAwait(false);
                 return;
             }
 

@@ -697,7 +697,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private sealed partial class BaseMethodWrapperSymbol : SynthesizedMethodBaseSymbol
         {
             internal BaseMethodWrapperSymbol(NamedTypeSymbol containingType, MethodSymbol methodBeingWrapped, SyntaxNode syntax, string name)
-                : base(containingType, methodBeingWrapped, syntax.SyntaxTree.GetReference(syntax), syntax.GetLocation(), name, DeclarationModifiers.Private)
+                : base(containingType, methodBeingWrapped, syntax.SyntaxTree.GetReference(syntax), syntax.GetLocation(), name, DeclarationModifiers.Private,
+                      isIterator: false)
             {
                 Debug.Assert(containingType.ContainingModule is SourceModuleSymbol);
                 Debug.Assert(ReferenceEquals(methodBeingWrapped, methodBeingWrapped.ConstructedFrom));
@@ -724,17 +725,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 AddSynthesizedAttribute(ref attributes, this.DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor));
             }
-
-            internal override TypeWithAnnotations IteratorElementTypeWithAnnotations
-            {
-                get
-                {
-                    // BaseMethodWrapperSymbol should not be rewritten by the IteratorRewriter
-                    return default;
-                }
-            }
-
-            internal override bool IsIterator => false;
         }
     }
 }

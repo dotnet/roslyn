@@ -19,10 +19,9 @@ namespace Microsoft.CodeAnalysis.Completion
         public SnippetsRule SnippetsBehavior { get; init; } = SnippetsRule.Default;
         public bool HideAdvancedMembers { get; init; } = false;
         public bool ShowNameSuggestions { get; init; } = true;
-        public bool? ShowItemsFromUnimportedNamespaces { get; init; } = null;
+        public bool? ShowItemsFromUnimportedNamespaces { get; init; } = true;
         public bool UnnamedSymbolCompletionDisabled { get; init; } = false;
         public bool TargetTypedCompletionFilter { get; init; } = false;
-        public bool TypeImportCompletion { get; init; } = false;
         public bool ProvideDateAndTimeCompletions { get; init; } = true;
         public bool ProvideRegexCompletions { get; init; } = true;
         public bool ForceExpandedCompletionIndexCreation { get; init; } = false;
@@ -43,14 +42,9 @@ namespace Microsoft.CodeAnalysis.Completion
 
         /// <summary>
         /// Whether items from unimported namespaces should be included in the completion list.
-        /// This takes into consideration the experiment we are running in addition to the value
-        /// from user facing options.
         /// </summary>
-        public bool ShouldShowItemsFromUnimportedNamespaces()
-        {
-            // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
-            return ShowItemsFromUnimportedNamespaces ?? TypeImportCompletion;
-        }
+        public bool ShouldShowItemsFromUnimportedNamespaces
+            => !ShowItemsFromUnimportedNamespaces.HasValue || ShowItemsFromUnimportedNamespaces.Value;
 
         /// <summary>
         /// Whether items from new snippet experience should be included in the completion list.

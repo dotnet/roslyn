@@ -1090,7 +1090,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal virtual TypeWithAnnotations IteratorElementTypeWithAnnotations
         {
             get { return default; }
-            set { throw ExceptionUtilities.Unreachable(); }
         }
 
         /// <summary>
