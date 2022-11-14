@@ -213,7 +213,7 @@ $$"));
         public async Task TestNotInForEachRefLoop2()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"foreach (ref v$$ x"));
+@"foreach (ref s$$ x"));
         }
 
         [Fact]
@@ -234,7 +234,7 @@ $$"));
         public async Task TestNotInForRefLoop1()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"for (ref v$$"));
+@"for (ref s$$"));
         }
 
         [Fact]
@@ -248,7 +248,7 @@ $$"));
         public async Task TestNotInForRefReadonlyLoop1()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"for (ref readonly v$$"));
+@"for (ref readonly s$$"));
         }
 
         [Fact]
