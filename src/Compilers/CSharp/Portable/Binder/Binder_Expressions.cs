@@ -2784,6 +2784,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (argumentSyntax.Expression.Kind() == SyntaxKind.DeclarationExpression)
             {
+                if (argumentSyntax.RefKindKeyword.IsKind(SyntaxKind.OutKeyword))
+                    MessageID.IDS_FeatureOutVar.CheckFeatureAvailability(diagnostics, argumentSyntax, argumentSyntax.RefKindKeyword.GetLocation());
+
                 var declarationExpression = (DeclarationExpressionSyntax)argumentSyntax.Expression;
                 if (declarationExpression.IsOutDeclaration())
                 {

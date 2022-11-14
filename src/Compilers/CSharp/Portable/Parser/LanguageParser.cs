@@ -11101,7 +11101,7 @@ tryAgain:
             return leftOperand;
         }
 
-        private ExpressionSyntax ParseDeclarationExpression(ParseTypeMode mode, MessageID feature, bool isScoped)
+        private DeclarationExpressionSyntax ParseDeclarationExpression(ParseTypeMode mode, MessageID feature, bool isScoped)
         {
             SyntaxToken scopedKeyword = null;
 
@@ -11769,8 +11769,8 @@ tryAgain:
                 // scenarios, and when indexing an object of static type "dynamic". So we enforce
                 // that the ref/out of the argument must match the parameter when binding the argument list.
 
-                expression = (refKindKeyword?.Kind == SyntaxKind.OutKeyword)
-                    ? ParseExpressionOrDeclaration(ParseTypeMode.Normal, feature: MessageID.IDS_FeatureOutVar, permitTupleDesignation: false)
+                expression = refKindKeyword?.Kind == SyntaxKind.OutKeyword
+                    ? ParseExpressionOrDeclaration(ParseTypeMode.Normal, feature: 0, permitTupleDesignation: false)
                     : ParseSubExpression(Precedence.Expression);
             }
 
