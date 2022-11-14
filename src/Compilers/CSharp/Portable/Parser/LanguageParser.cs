@@ -2094,8 +2094,7 @@ tryAgain:
 
                     return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint, classToken, questionToken);
                 case SyntaxKind.DefaultKeyword:
-                    var defaultToken = this.EatToken();
-                    return CheckFeatureAvailability(_syntaxFactory.DefaultConstraint(defaultToken), MessageID.IDS_FeatureDefaultTypeParameterConstraint);
+                    return _syntaxFactory.DefaultConstraint(this.EatToken());
                 case SyntaxKind.EnumKeyword:
                     {
                         var missingType = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_NoEnumConstraint);
