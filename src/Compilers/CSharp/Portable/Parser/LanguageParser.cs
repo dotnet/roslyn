@@ -9664,10 +9664,11 @@ tryAgain:
 
                             if (node is PatternSyntax pat)
                             {
-                                var whenClause = ParseWhenClause(Precedence.Expression);
-                                colon = this.EatToken(SyntaxKind.ColonToken);
-                                label = _syntaxFactory.CasePatternSwitchLabel(specifier, pat, whenClause, colon);
-                                label = CheckFeatureAvailability(label, MessageID.IDS_FeaturePatternMatching);
+                                label = _syntaxFactory.CasePatternSwitchLabel(
+                                    specifier,
+                                    pat,
+                                    ParseWhenClause(Precedence.Expression),
+                                    this.EatToken(SyntaxKind.ColonToken));
                             }
                             else
                             {
