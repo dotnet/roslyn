@@ -3753,7 +3753,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>'{0}' does not implement '{1}'</value>
   </data>
   <data name="ERR_TaskRetNoObjectRequired" xml:space="preserve">
-    <value>Since '{0}' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task&lt;T&gt;'?</value>
+    <value>Since '{0}' is an async method that returns '{1}', a return keyword must not be followed by an object expression</value>
   </data>
   <data name="ERR_BadAsyncReturn" xml:space="preserve">
     <value>The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, IAsyncEnumerable&lt;T&gt;, or IAsyncEnumerator&lt;T&gt;</value>
@@ -4807,7 +4807,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Anonymous function converted to a void returning delegate cannot return a value</value>
   </data>
   <data name="ERR_TaskRetNoObjectRequiredLambda" xml:space="preserve">
-    <value>Async lambda expression converted to a 'Task' returning delegate cannot return a value. Did you intend to return 'Task&lt;T&gt;'?</value>
+    <value>Async lambda expression converted to a '{0}' returning delegate cannot return a value</value>
   </data>
   <data name="WRN_AnalyzerCannotBeCreated" xml:space="preserve">
     <value>An instance of analyzer {0} cannot be created from {1} : {2}.</value>

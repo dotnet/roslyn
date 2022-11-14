@@ -11772,6 +11772,21 @@ class Program
 }");
         }
 
+        [Fact, WorkItem(64656, "https://github.com/dotnet/roslyn/issues/64656")]
+        public void UsingStatic_DelegateInference()
+        {
+            var source = """
+                using static A;
+                var f = M;
+                f();
+                static class A
+                {
+                    public static void M() => System.Console.WriteLine("A.M()");
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: "A.M()").VerifyDiagnostics();
+        }
+
         [Fact]
         public void LambdaWithDefaultParameter()
         {

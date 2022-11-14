@@ -186,6 +186,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override DeclarationScope EffectiveScope => _scope;
 
+        internal sealed override bool HasUnscopedRefAttribute => false;
+
         internal sealed override bool UseUpdatedEscapeRules => _container?.UseUpdatedEscapeRules ?? false;
     }
 

@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var variableInitializer = declarator.Initializer ?? declaration.Initializer;
             if (variableInitializer?.Value != null)
             {
-                var unwrapped = UnwrapImplicitConversion(variableInitializer.Value);
+                var unwrapped = variableInitializer.Value.UnwrapImplicitConversion();
                 // the variable has to either not have an initializer, or it needs to be basic
                 // literal/default expression.
                 if (unwrapped is not ILiteralOperation and
