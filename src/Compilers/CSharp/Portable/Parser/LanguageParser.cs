@@ -9546,8 +9546,6 @@ tryAgain:
             ExpressionSyntax arg = null;
             SyntaxKind kind;
 
-            yieldToken = CheckFeatureAvailability(yieldToken, MessageID.IDS_FeatureIterators);
-
             if (this.CurrentToken.Kind == SyntaxKind.BreakKeyword)
             {
                 kind = SyntaxKind.YieldBreakStatement;

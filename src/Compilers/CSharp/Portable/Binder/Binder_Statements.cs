@@ -213,8 +213,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                            boundBody);
         }
 
-        private void CheckRequiredLangVersionForAsyncIteratorMethods(BindingDiagnosticBag diagnostics)
+        private void CheckRequiredLangVersionForIteratorMethods(YieldStatementSyntax statement, BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureIterators.CheckFeatureAvailability(diagnostics, statement, statement.YieldKeyword.GetLocation());
+
             var method = (MethodSymbol)this.ContainingMemberOrLambda;
             if (method.IsAsync)
             {
@@ -268,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_YieldNotAllowedInScript, node.YieldKeyword);
             }
 
-            CheckRequiredLangVersionForAsyncIteratorMethods(diagnostics);
+            CheckRequiredLangVersionForIteratorMethods(node, diagnostics);
             return new BoundYieldReturnStatement(node, argument);
         }
 
@@ -284,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ValidateYield(node, diagnostics);
-            CheckRequiredLangVersionForAsyncIteratorMethods(diagnostics);
+            CheckRequiredLangVersionForIteratorMethods(node, diagnostics);
             return new BoundYieldBreakStatement(node);
         }
 
