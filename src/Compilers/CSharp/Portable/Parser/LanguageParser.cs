@@ -13311,7 +13311,6 @@ tryAgain:
                 {
                     var paramList = this.ParseLambdaParameterList();
                     var arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
-                    arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
                     var (block, expression) = ParseLambdaBody();
 
                     return _syntaxFactory.ParenthesizedLambdaExpression(
@@ -13342,11 +13341,6 @@ tryAgain:
                     {
                         // Case x=>, x =>
                         arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
-                    }
-
-                    if (arrow != null)
-                    {
-                        arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
                     }
 
                     var parameter = _syntaxFactory.Parameter(

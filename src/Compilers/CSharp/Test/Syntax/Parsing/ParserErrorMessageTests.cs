@@ -5654,14 +5654,26 @@ class C
     }
 }
 ";
+            CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyDiagnostics(
+                // (6,17): error CS8026: Feature 'inferred delegate type' is not available in C# 5. Please use language version 10.0 or greater.
+                //         var q = a => b;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "a => b").WithArguments("inferred delegate type", "10.0").WithLocation(6, 17));
+            CreateCompilation(text, parseOptions: TestOptions.Regular2).VerifyDiagnostics(
+                // (6,9): error CS8023: Feature 'implicitly typed local variable' is not available in C# 2. Please use language version 3 or greater.
+                //         var q = a => b;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "var").WithArguments("implicitly typed local variable", "3").WithLocation(6, 9),
+                // (6,17): error CS8023: Feature 'inferred delegate type' is not available in C# 2. Please use language version 10.0 or greater.
+                //         var q = a => b;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "a => b").WithArguments("inferred delegate type", "10.0").WithLocation(6, 17),
+                // (6,19): error CS8023: Feature 'lambda expression' is not available in C# 2. Please use language version 3 or greater.
+                //         var q = a => b;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "=>").WithArguments("lambda expression", "3").WithLocation(6, 19));
+
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
-            tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
-                // (6,19): error CS8023: Feature 'lambda expression' is not available in C# 2. Please use language version 3 or greater.
-                //         var q = a => b;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "=>").WithArguments("lambda expression", "3"));
+            tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
         }
 
         [Fact]

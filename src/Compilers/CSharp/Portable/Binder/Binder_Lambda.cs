@@ -53,6 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (syntax is LambdaExpressionSyntax lambdaSyntax)
             {
+                MessageID.IDS_FeatureLambda.CheckFeatureAvailability(diagnostics, syntax, lambdaSyntax.ArrowToken.GetLocation());
+
                 checkAttributes(syntax, lambdaSyntax.AttributeLists, diagnostics);
             }
 
