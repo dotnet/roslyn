@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InserForfSnippetInConstructorTest()
+        public async Task InserForSnippetInConstructorTest()
         {
             var markupBeforeCommit =
 @"class Program
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InsertForSnippettInLocalFunctionTest()
+        public async Task InsertForSnippetInLocalFunctionTest()
         {
             var markupBeforeCommit =
 @"class Program
@@ -212,7 +212,7 @@ static void Main(string[] args)
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InsertIfSnippetInParenthesizedLambdaExpressionTest()
+        public async Task InsertForSnippetInParenthesizedLambdaExpressionTest()
         {
             var markupBeforeCommit =
 @"Func<int, int, bool> testForEquality = (x, y) =>
