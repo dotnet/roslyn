@@ -9,6 +9,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.CSharp
+Imports Microsoft.CodeAnalysis.CSharp.ExternalAccess.Pythia.Api
 Imports Microsoft.CodeAnalysis.CSharp.Formatting
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
@@ -5911,7 +5912,33 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        Public Async Function AfterIdentifierInCaseLabel(showCompletionInArgumentLists As Boolean) As Task
+        Public Async Function AfterIdentifierInCaseLabel1(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case Identifier $$
+        }
+    }
+}
+                              </Document>,
+                  showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("w")
+                Await state.AssertSelectedCompletionItem(displayText:="when", isHardSelected:=False)
+
+                state.SendBackspace()
+                state.SendTypeChars("i")
+                Await state.AssertSelectedCompletionItem(displayText:="identifier", isHardSelected:=False)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function AfterIdentifierInCaseLabel2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class C
@@ -5927,13 +5954,7 @@ class C
                               </Document>,
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
-                state.SendTypeChars("w")
-                Await state.AssertSelectedCompletionItem(displayText:="when", isHardSelected:=False)
-
-                state.SendBackspace()
-                state.SendTypeChars("i")
-                Await state.AssertSelectedCompletionItem(displayText:="identifier", isHardSelected:=False)
-
+                Await state.AssertNoCompletionSession()
             End Using
         End Function
 
@@ -5962,7 +5983,6 @@ class C
                 state.SendBackspace()
                 state.SendTypeChars("i")
                 Await state.AssertSelectedCompletionItem(displayText:="identifier", isHardSelected:=False)
-
             End Using
         End Function
 
@@ -5991,7 +6011,6 @@ class C
                 state.SendBackspace()
                 state.SendTypeChars("i")
                 Await state.AssertSelectedCompletionItem(displayText:="identifier", isHardSelected:=False)
-
             End Using
         End Function
 
@@ -6019,7 +6038,6 @@ class C
                 state.SendBackspace()
                 state.SendTypeChars("w")
                 Await state.AssertSelectedCompletionItem(displayText:="when", isHardSelected:=False)
-
             End Using
         End Function
 
@@ -6042,7 +6060,6 @@ class C
 
                 state.SendTypeChars("w")
                 Await state.AssertSelectedCompletionItem(displayText:="when", isHardSelected:=True)
-
             End Using
         End Function
 
@@ -6877,7 +6894,6 @@ namespace NS2
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
 
                 ' trigger completion with import completion disabled
                 state.SendInvokeCompletionList()
@@ -7076,7 +7092,6 @@ public class AA
 }</Document>)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
@@ -7860,9 +7875,6 @@ namespace NS
     class ATaAaSaKa { }
 } </Document>,
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
-
-                state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
 
                 state.SendTypeChars("task")
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -10266,8 +10278,6 @@ class MyClass
                               </Document>,
                               extraExportedTypes:={GetType(ItemWithAdditionalFilterTextsProvider)}.ToList())
 
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
-
                 state.SendTypeChars(" ")
                 Await state.AssertCompletionItemsContainAll("Consolation", "Add code that write to console", "Add code that write line to console")
 
@@ -10357,12 +10367,11 @@ class MyClass
 }
                               </Document>)
 
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp), True)
-                state.SendTypeChars("cw")
-                Await state.AssertSelectedCompletionItem(displayText:="cw", inlineDescription:=Nothing, isHardSelected:=True)
+                state.SendTypeChars("if")
+                Await state.AssertSelectedCompletionItem(displayText:="if", inlineDescription:=Nothing, isHardSelected:=True)
                 state.SendDownKey()
-                Await state.AssertSelectedCompletionItem(displayText:="cw", inlineDescription:="Console.WriteLine", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="if", description:="if statement" & vbCrLf & "Code snippet for 'if statement'", inlineDescription:="if statement", isHardSelected:=True)
             End Using
         End Function
 
@@ -10416,6 +10425,74 @@ namespace NS
 
             End Using
         End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestDeclarationNameSuggestionDoNotCrash() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+using System;
+class MyClass
+{
+    public void MyMethod()
+    {
+        ArgumentException $$
+    }
+}
+                              </Document>)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp), False)
+                state.SendInvokeCompletionList()
+                ' We should still work normally w/o pythia recommender
+                Await state.AssertCompletionItemsContainAll("argumentException", "exception")
+            End Using
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestDeclarationNameSuggestionWithPythiaRecommender() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+using System;
+class MyClass
+{
+    public void MyMethod()
+    {
+        ArgumentException $$
+    }
+}
+                              </Document>,
+                              extraExportedTypes:={GetType(TestPythiaDeclarationNameRecommenderImplmentation)}.ToList())
+
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp), False)
+
+                state.SendInvokeCompletionList()
+                Dim computedItems = (Await state.GetCompletionSession()).GetComputedItems(CancellationToken.None)
+
+                Assert.NotNull(computedItems.SuggestionItem)
+
+                Dim firstItem = computedItems.Items.First()
+                Assert.Equal("PythiaRecommendName", firstItem.DisplayText)
+                Assert.True({"PythiaRecommendName", "argumentException", "exception"}.All(Function(v) computedItems.Items.Any(Function(i) i.DisplayText = v)))
+            End Using
+        End Function
+
+        <Export(GetType(IPythiaDeclarationNameRecommenderImplementation))>
+        <[Shared]>
+        <PartNotDiscoverable>
+        Private Class TestPythiaDeclarationNameRecommenderImplmentation
+            Implements IPythiaDeclarationNameRecommenderImplementation
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+            End Sub
+
+            Public Function ProvideRecommendationsAsync(context As PythiaDeclarationNameContext, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of String)) Implements IPythiaDeclarationNameRecommenderImplementation.ProvideRecommendationsAsync
+                Dim result = ImmutableArray.Create("PythiaRecommendName")
+                Return Task.FromResult(result)
+            End Function
+        End Class
 
         <WpfFact, WorkItem(40393, "https://github.com/dotnet/roslyn/issues/40393")>
         Public Async Function TestAfterUsingStatement1() As Task
@@ -10505,6 +10582,230 @@ class Goo
                 state.SendTab()
                 Await state.WaitForAsynchronousOperationsAsync()
                 state.AssertMatchesTextStartingAtLine(7, "[Test(argument:)]")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem(39689, "https://github.com/dotnet/roslyn/issues/39689")>
+        Public Async Function TestFilteringOfExtensionMethodsWithConstraints1() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System;
+
+public interface ISomeInterface&lt;T&gt;
+{
+}
+
+public static class Extensions
+{       
+    public static bool SomeExtMethod&lt;T1, T2&gt;(this T1 builder, T2 x)
+        where T1 : ISomeInterface&lt;T2&gt;
+    {
+        return true;
+    }
+}
+public class Bar
+{
+    void M(string[] s)
+    {
+        s.$$
+    }
+}
+                </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsDoNotContainAny("SomeExtMethod")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem(39689, "https://github.com/dotnet/roslyn/issues/39689")>
+        Public Async Function TestFilteringOfExtensionMethodsWithConstraints2() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System;
+
+public interface ISomeInterface&lt;T&gt;
+{
+}
+
+public static class Extensions
+{       
+    public static bool SomeExtMethod&lt;T1, T2&gt;(this T1 builder, T2 x)
+        where T1 : ISomeInterface&lt;T2&gt;
+    {
+        return true;
+    }
+}
+public class Bar : ISomeInterface&lt;int&gt;
+{
+    void M(Bar s)
+    {
+        s.$$
+    }
+}
+                </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("SomeExtMethod", displayTextSuffix:="<>")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem(39689, "https://github.com/dotnet/roslyn/issues/39689")>
+        Public Async Function TestFilteringOfExtensionMethodsWithConstraints3() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System;
+
+public interface ISomeInterface&lt;T&gt;
+{
+}
+
+public static class Extensions
+{       
+    public static bool SomeExtMethod&lt;T1, T2&gt;(this T1 builder, T2 x)
+        where T1 : ISomeInterface&lt;T2&gt;
+    {
+        return true;
+    }
+}
+public class Bar&lt;T&gt; : ISomeInterface&lt;T&gt;
+{
+    void M(Bar&lt;T&gt; s)
+    {
+        s.$$
+    }
+}
+                </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("SomeExtMethod", displayTextSuffix:="<>")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem(39689, "https://github.com/dotnet/roslyn/issues/39689")>
+        Public Async Function TestFilteringOfExtensionMethodsWithConstraints4() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System;
+
+public interface ISomeInterface&lt;T&gt;
+{
+}
+
+public static class Extensions
+{       
+    public static bool SomeExtMethod&lt;T1, T2&gt;(this T1 builder, T2 x)
+        where T1 : ISomeInterface&lt;T2&gt;
+    {
+        return true;
+    }
+}
+public class Bar&lt;T&gt;
+{
+    void M(ISomeInterface&lt;T&gt; s)
+    {
+        s.$$
+    }
+}
+                </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("SomeExtMethod", displayTextSuffix:="<>")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem(39689, "https://github.com/dotnet/roslyn/issues/39689")>
+        Public Async Function TestFilteringOfExtensionMethodsWithConstraints5() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System;
+
+public interface ISomeInterface&lt;T&gt;
+{
+}
+
+public static class Extensions
+{       
+    public static bool SomeExtMethod&lt;T1, T2&gt;(this T1 builder, T2 x)
+        where T1 : ISomeInterface&lt;T2&gt;
+    {
+        return true;
+    }
+}
+public class Bar&lt;T&gt;
+{
+    void M(ISomeInterface&lt;int&gt; s)
+    {
+        s.$$
+    }
+}
+                </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("SomeExtMethod", displayTextSuffix:="<>")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem(39689, "https://github.com/dotnet/roslyn/issues/39689")>
+        Public Async Function TestFilteringOfExtensionMethodsWithConstraints6() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System;
+
+public interface ISomeInterface&lt;T&gt;
+{
+}
+
+public static class Extensions
+{       
+    public static bool SomeExtMethod&lt;T1, T2&gt;(this T1 builder, T2 x)
+        where T1 : T2
+    {
+        return true;
+    }
+}
+public class Bar&lt;T&gt;
+{
+    void M(string[] s)
+    {
+        s.$$
+    }
+}
+                </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("SomeExtMethod", displayTextSuffix:="<>")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem(39689, "https://github.com/dotnet/roslyn/issues/39689")>
+        Public Async Function TestFilteringOfExtensionMethodsWithConstraints7() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System;
+
+public interface ISomeInterface&lt;T&gt;
+{
+}
+
+public static class Extensions
+{       
+    public static bool SomeExtMethod&lt;T1, T2&gt;(this T1 builder, T2 x)
+        where T1 : ISomeInterface&lt;T2&gt;
+    {
+        return true;
+    }
+}
+public class Bar&lt;T&gt; : ISomeInterface&lt;T&gt;
+{
+    void M(Bar&lt;int&gt; s)
+    {
+        s.$$
+    }
+}
+                </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("SomeExtMethod", displayTextSuffix:="<>")
             End Using
         End Function
     End Class

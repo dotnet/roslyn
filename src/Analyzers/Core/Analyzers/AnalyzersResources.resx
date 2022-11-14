@@ -241,11 +241,8 @@
   <data name="Convert_to_conditional_expression" xml:space="preserve">
     <value>Convert to conditional expression</value>
   </data>
-  <data name="Use_coalesce_expression_for_non_nullable_types" xml:space="preserve">
-    <value>Use coalesce expression for non-nullable types</value>
-  </data>
-  <data name="Use_coalesce_expression_for_nullable_types" xml:space="preserve">
-    <value>Use coalesce expression for nullable types</value>
+  <data name="Use_coalesce_expression" xml:space="preserve">
+    <value>Use coalesce expression</value>
   </data>
   <data name="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime" xml:space="preserve">
     <value>Changes to expression trees may result in behavior changes at runtime</value>
@@ -375,5 +372,8 @@
   </data>
   <data name="Remove_accessibility_modifiers" xml:space="preserve">
     <value>Remove accessibility modifiers</value>
+  </data>
+  <data name="Simplify_check" xml:space="preserve">
+    <value>Simplify check</value>
   </data>
 </root>
