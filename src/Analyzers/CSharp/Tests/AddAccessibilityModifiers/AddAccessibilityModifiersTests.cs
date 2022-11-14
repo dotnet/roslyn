@@ -715,6 +715,7 @@ class C
 {
     int field;
 }
+
 ";
 
             var test = new VerifyCS.Test
