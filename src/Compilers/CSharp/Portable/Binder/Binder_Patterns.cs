@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindIsPatternExpression(IsPatternExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeaturePatternMatching.CheckFeatureAvailability(diagnostics, node, node.IsKeyword.GetLocation());
+
             BoundExpression expression = BindRValueWithoutTargetType(node.Expression, diagnostics);
             bool hasErrors = IsOperandErrors(node, ref expression, diagnostics);
             TypeSymbol? expressionType = expression.Type;

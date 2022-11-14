@@ -11168,16 +11168,12 @@ tryAgain:
         private ExpressionSyntax ParseIsExpression(ExpressionSyntax leftOperand, SyntaxToken opToken)
         {
             var node = this.ParseTypeOrPatternForIsOperator();
-            switch (node)
+            return node switch
             {
-                case PatternSyntax pattern:
-                    var result = _syntaxFactory.IsPatternExpression(leftOperand, opToken, pattern);
-                    return CheckFeatureAvailability(result, MessageID.IDS_FeaturePatternMatching);
-                case TypeSyntax type:
-                    return _syntaxFactory.BinaryExpression(SyntaxKind.IsExpression, leftOperand, opToken, type);
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(node);
-            }
+                PatternSyntax pattern => _syntaxFactory.IsPatternExpression(leftOperand, opToken, pattern),
+                TypeSyntax type => _syntaxFactory.BinaryExpression(SyntaxKind.IsExpression, leftOperand, opToken, type),
+                _ => throw ExceptionUtilities.UnexpectedValue(node),
+            };
         }
 
         private ExpressionSyntax ParseTerm(Precedence precedence)
