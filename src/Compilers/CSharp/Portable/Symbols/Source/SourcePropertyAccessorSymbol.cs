@@ -169,6 +169,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation, diagnostics, location);
 
             this.CheckModifiers(location, hasBody: true, isAutoPropertyOrExpressionBodied: true, diagnostics: diagnostics);
+
+            if (syntax != null && property.IsIndexer)
+                MessageID.IDS_FeatureExpressionBodiedIndexer.CheckFeatureAvailability(diagnostics, syntax, syntax.ArrowToken.GetLocation());
         }
 
 #nullable enable

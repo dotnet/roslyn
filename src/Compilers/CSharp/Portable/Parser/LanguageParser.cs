@@ -3795,7 +3795,6 @@ parse_member_name:;
             if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken)
             {
                 expressionBody = this.ParseArrowExpressionClause();
-                expressionBody = CheckFeatureAvailability(expressionBody, MessageID.IDS_FeatureExpressionBodiedIndexer);
                 semicolon = this.EatToken(SyntaxKind.SemicolonToken);
             }
             else
@@ -3814,7 +3813,6 @@ parse_member_name:;
                 && semicolon == null)
             {
                 expressionBody = this.ParseArrowExpressionClause();
-                expressionBody = CheckFeatureAvailability(expressionBody, MessageID.IDS_FeatureExpressionBodiedIndexer);
                 semicolon = this.EatToken(SyntaxKind.SemicolonToken);
             }
 

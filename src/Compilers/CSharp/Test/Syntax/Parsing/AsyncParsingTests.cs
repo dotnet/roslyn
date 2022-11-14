@@ -2467,11 +2467,23 @@ namespace",
         [WorkItem(16044, "https://github.com/dotnet/roslyn/issues/16044")]
         public void AsyncAsType_Indexer_ExpressionBody_ErrorCase()
         {
-            UsingTree("interface async { async this[async i] => null; }",
+            var text = "interface async { async this[async i] => null; }";
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyDiagnostics(
+                // (1,11): warning CS8981: The type name 'async' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // interface async { async this[async i] => null; }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "async").WithArguments("async").WithLocation(1, 11),
                 // (1,39): error CS8026: Feature 'expression-bodied indexer' is not available in C# 5. Please use language version 6 or greater.
                 // interface async { async this[async i] => null; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> null").WithArguments("expression-bodied indexer", "6").WithLocation(1, 39)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=>").WithArguments("expression-bodied indexer", "6").WithLocation(1, 39),
+                // (1,42): error CS8026: Feature 'default interface implementation' is not available in C# 5. Please use language version 8.0 or greater.
+                // interface async { async this[async i] => null; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "null").WithArguments("default interface implementation", "8.0").WithLocation(1, 42),
+                // (1,42): error CS8701: Target runtime doesn't support default interface implementation.
+                // interface async { async this[async i] => null; }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "null").WithLocation(1, 42));
+
+            UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
