@@ -9011,10 +9011,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (parameters.Any(p => p.EffectiveScope != DeclarationScope.Unscoped) ?
                 parameters.SelectAsArray(p => p.EffectiveScope) :
                 default);
-            var parameterDefaultValues = syntax.IsFeatureEnabled(MessageID.IDS_FeatureLambdaOptionalParameters) && parameters.Any(p => p.HasExplicitDefaultValue) ?
+            var parameterDefaultValues = parameters.Any(p => p.HasExplicitDefaultValue) ?
                 parameters.SelectAsArray(p => p.ExplicitDefaultConstantValue) :
                 default;
-            var hasParamsArray = syntax.IsFeatureEnabled(MessageID.IDS_FeatureLambdaParamsArray) && parameters is [.., { IsParams: true }];
+            var hasParamsArray = parameters is [.., { IsParams: true }];
 
             Debug.Assert(ContainingMemberOrLambda is { });
             Debug.Assert(parameterRefKinds.IsDefault || parameterRefKinds.Length == parameterTypes.Length);
