@@ -92,8 +92,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            var isAsync = syntax.Modifiers.Any(SyntaxKind.AsyncKeyword);
-            var isStatic = syntax.Modifiers.Any(SyntaxKind.StaticKeyword);
+            bool isAsync = false;
+            bool isStatic = false;
+
+            foreach (var modifier in syntax.Modifiers)
+            {
+                if (modifier.IsKind(SyntaxKind.AsyncKeyword))
+                {
+                    MessageID.IDS_FeatureAsync.CheckFeatureAvailability(diagnostics, syntax, modifier.GetLocation());
+                    isAsync = true;
+                }
+                else if (modifier.IsKind(SyntaxKind.StaticKeyword))
+                {
+                    MessageID.IDS_FeatureStaticAnonymousFunction.CheckFeatureAvailability(diagnostics, syntax, modifier.GetLocation());
+                    isStatic = true;
+                }
+            }
 
             if (parameterSyntaxList != null)
             {

@@ -13212,18 +13212,14 @@ tryAgain:
             {
                 if (this.CurrentToken.Kind == SyntaxKind.StaticKeyword)
                 {
-                    var staticKeyword = this.EatToken(SyntaxKind.StaticKeyword);
-                    staticKeyword = CheckFeatureAvailability(staticKeyword, MessageID.IDS_FeatureStaticAnonymousFunction);
-                    modifiers.Add(staticKeyword);
+                    modifiers.Add(this.EatToken(SyntaxKind.StaticKeyword));
                     continue;
                 }
 
                 if (this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword &&
                     IsAnonymousFunctionAsyncModifier())
                 {
-                    var asyncToken = this.EatContextualToken(SyntaxKind.AsyncKeyword);
-                    asyncToken = CheckFeatureAvailability(asyncToken, MessageID.IDS_FeatureAsync);
-                    modifiers.Add(asyncToken);
+                    modifiers.Add(this.EatContextualToken(SyntaxKind.AsyncKeyword));
                     continue;
                 }
 
