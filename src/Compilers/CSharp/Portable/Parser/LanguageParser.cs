@@ -13167,7 +13167,6 @@ tryAgain:
                 }
 
                 var @delegate = this.EatToken(SyntaxKind.DelegateKeyword);
-                @delegate = CheckFeatureAvailability(@delegate, MessageID.IDS_FeatureAnonDelegates);
 
                 ParameterListSyntax parameterList = null;
                 if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)

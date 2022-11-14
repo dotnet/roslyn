@@ -81,11 +81,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // delegate (int x) { }
                     // delegate { }
                     var anon = (AnonymousMethodExpressionSyntax)syntax;
+                    MessageID.IDS_FeatureAnonDelegates.CheckFeatureAvailability(diagnostics, anon, anon.DelegateKeyword.GetLocation());
+
                     hasSignature = anon.ParameterList != null;
                     if (hasSignature)
                     {
                         parameterSyntaxList = anon.ParameterList!.Parameters;
                     }
+
                     break;
             }
 
