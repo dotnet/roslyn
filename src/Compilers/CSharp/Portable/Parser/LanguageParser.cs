@@ -4739,9 +4739,7 @@ tryAgain:
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.FixedKeyword);
 
-            var fixedToken = this.EatToken();
-            fixedToken = CheckFeatureAvailability(fixedToken, MessageID.IDS_FeatureFixedBuffer);
-            modifiers.Add(fixedToken);
+            modifiers.Add(this.EatToken());
 
             var type = this.ParseType();
 
