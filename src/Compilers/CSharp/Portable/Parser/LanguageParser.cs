@@ -13117,7 +13117,6 @@ tryAgain:
         private ExpressionSyntax ParseImplicitlyTypedStackAllocExpression()
         {
             var @stackalloc = this.EatToken(SyntaxKind.StackAllocKeyword);
-            @stackalloc = CheckFeatureAvailability(@stackalloc, MessageID.IDS_FeatureStackAllocInitializer);
             var openBracket = this.EatToken(SyntaxKind.OpenBracketToken);
 
             int lastTokenPosition = -1;
@@ -13146,16 +13145,10 @@ tryAgain:
 
         private ExpressionSyntax ParseRegularStackAllocExpression()
         {
-            var @stackalloc = this.EatToken(SyntaxKind.StackAllocKeyword);
-            var elementType = this.ParseType();
-            InitializerExpressionSyntax initializer = null;
-            if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
-            {
-                @stackalloc = CheckFeatureAvailability(@stackalloc, MessageID.IDS_FeatureStackAllocInitializer);
-                initializer = this.ParseArrayInitializer();
-            }
-
-            return _syntaxFactory.StackAllocArrayCreationExpression(@stackalloc, elementType, initializer);
+            return _syntaxFactory.StackAllocArrayCreationExpression(
+                this.EatToken(SyntaxKind.StackAllocKeyword),
+                this.ParseType(),
+                this.CurrentToken.Kind == SyntaxKind.OpenBraceToken ? this.ParseArrayInitializer() : null);
         }
 
         private AnonymousMethodExpressionSyntax ParseAnonymousMethodExpression()

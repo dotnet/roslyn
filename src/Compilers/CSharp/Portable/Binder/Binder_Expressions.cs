@@ -3365,6 +3365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return BindStackAllocWithInitializer(
                 node,
+                node.StackAllocKeyword,
                 initializer,
                 type: GetStackAllocType(node, TypeWithAnnotations.Create(bestType), diagnostics, out bool hasErrors),
                 elementType: bestType,
@@ -3767,9 +3768,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            return node.Initializer == null
+            return node.Initializer is null
                 ? new BoundStackAllocArrayCreation(node, elementType.Type, count, initializerOpt: null, type, hasErrors: hasErrors)
-                : BindStackAllocWithInitializer(node, node.Initializer, type, elementType.Type, count, diagnostics, hasErrors);
+                : BindStackAllocWithInitializer(node, node.StackAllocKeyword, node.Initializer, type, elementType.Type, count, diagnostics, hasErrors);
         }
 
         private bool ReportBadStackAllocPosition(SyntaxNode node, BindingDiagnosticBag diagnostics)
@@ -3855,6 +3856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindStackAllocWithInitializer(
             SyntaxNode node,
+            SyntaxToken stackAllocKeyword,
             InitializerExpressionSyntax initSyntax,
             TypeSymbol type,
             TypeSymbol elementType,
@@ -3864,6 +3866,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> boundInitExprOpt = default)
         {
             Debug.Assert(node.IsKind(SyntaxKind.ImplicitStackAllocArrayCreationExpression) || node.IsKind(SyntaxKind.StackAllocArrayCreationExpression));
+
+            MessageID.IDS_FeatureStackAllocInitializer.CheckFeatureAvailability(diagnostics, node, stackAllocKeyword.GetLocation());
 
             if (boundInitExprOpt.IsDefault)
             {
