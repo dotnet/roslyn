@@ -20861,7 +20861,7 @@ Position set for item '-2'
 
         [Fact]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
-        public void GenericTypeParameterAsReceiver_Assignment_Conditional_Class()
+        public void GenericTypeParameterAsReceiver_Assignment_Conditional_Property_Class()
         {
             var source = @"
 using System;
@@ -20988,7 +20988,7 @@ Position set for item '-2'
 
         [Fact]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
-        public void GenericTypeParameterAsReceiver_Assignment_Conditional_Struct()
+        public void GenericTypeParameterAsReceiver_Assignment_Conditional_Property_Struct()
         {
             var source = @"
 using System;
@@ -21084,7 +21084,7 @@ Position set for item '-2'
 
         [Fact]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
-        public void GenericTypeParameterAsReceiver_Assignment_Conditional_Class_Ref()
+        public void GenericTypeParameterAsReceiver_Assignment_Conditional_Property_Class_Ref()
         {
             var source = @"
 using System;
@@ -21211,7 +21211,103 @@ Position set for item '-2'
 
         [Fact]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
-        public void GenericTypeParameterAsReceiver_Assignment_Conditional_Class_Async_01()
+        public void GenericTypeParameterAsReceiver_Assignment_Conditional_Property_Struct_Ref()
+        {
+            var source = @"
+using System;
+
+interface IMoveable
+{
+    int? Position {get;set;}
+}
+
+struct Item : IMoveable
+{
+    public string Name {get; set;}
+
+    public int? Position
+    {
+        get
+        {
+            Console.WriteLine(""Position get for item '{0}'"", Name);
+            return null;
+        }
+        set
+        {
+            Console.WriteLine(""Position set for item '{0}'"", Name);
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item {Name = ""1""};
+        Shift1(ref item1);
+
+        var item2 = new Item {Name = ""2""};
+        Shift2(ref item2);
+    }
+
+    static void Shift1<T>(ref T item) where T : struct, IMoveable
+    {
+        item.Position ??= GetOffset(ref item);
+    }
+
+    static void Shift2<T>(ref T item) where T : IMoveable
+    {
+        item.Position ??= GetOffset(ref item);
+    }
+    
+    static int value = 0;
+    static int? GetOffset<T>(ref T item)
+    {
+        item = (T)(IMoveable)new Item {Name = (--value).ToString()};
+        return 0;
+    }
+}
+";
+
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"
+Position get for item '1'
+Position set for item '-1'
+Position get for item '2'
+Position set for item '-2'
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Shift1<T>",
+@"
+{
+  // Code size       45 (0x2d)
+  .maxstack  3
+  .locals init (T& V_0,
+                int? V_1,
+                int? V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  constrained. ""T""
+  IL_0009:  callvirt   ""int? IMoveable.Position.get""
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  call       ""bool int?.HasValue.get""
+  IL_0016:  brtrue.s   IL_002c
+  IL_0018:  ldloc.0
+  IL_0019:  ldarg.0
+  IL_001a:  call       ""int? Program.GetOffset<T>(ref T)""
+  IL_001f:  dup
+  IL_0020:  stloc.2
+  IL_0021:  constrained. ""T""
+  IL_0027:  callvirt   ""void IMoveable.Position.set""
+  IL_002c:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
+        public void GenericTypeParameterAsReceiver_Assignment_Conditional_Property_Class_Async_01()
         {
             var source = @"
 using System;
@@ -21487,7 +21583,7 @@ Position set for item '-2'
 
         [Fact]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
-        public void GenericTypeParameterAsReceiver_Assignment_Conditional_Struct_Async_01()
+        public void GenericTypeParameterAsReceiver_Assignment_Conditional_Property_Struct_Async_01()
         {
             var source = @"
 using System;
@@ -21657,7 +21753,7 @@ Position set for item '-2'
 
         [Fact]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
-        public void GenericTypeParameterAsReceiver_Assignment_Conditional_Class_Async_02()
+        public void GenericTypeParameterAsReceiver_Assignment_Conditional_Property_Class_Async_02()
         {
             var source = @"
 using System;
@@ -22015,7 +22111,7 @@ Position set for item '-2'
 
         [Fact]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
-        public void GenericTypeParameterAsReceiver_Assignment_Conditional_Struct_Async_02()
+        public void GenericTypeParameterAsReceiver_Assignment_Conditional_Property_Struct_Async_02()
         {
             var source = @"
 using System;
@@ -25035,6 +25131,1574 @@ Position set for item '-2'
   IL_0122:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
   IL_0127:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_012c:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
+        public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Class()
+        {
+            var source = @"
+using System;
+
+interface IMoveable
+{
+    int? this[int x] {get;set;}
+}
+
+class Item : IMoveable
+{
+    public string Name {get; set;}
+
+    public int? this[int x]
+    {
+        get
+        {
+            Console.WriteLine(""Position get for item '{0}'"", Name);
+            return null;
+        }
+        set
+        {
+            Console.WriteLine(""Position set for item '{0}'"", Name);
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item {Name = ""1""};
+        Shift1(item1);
+
+        var item2 = new Item {Name = ""2""};
+        Shift2(item2);
+    }
+
+    static void Shift1<T>(T item) where T : class, IMoveable
+    {
+        item[GetOffset(ref item)] ??= 1;
+    }
+
+    static void Shift2<T>(T item) where T : IMoveable
+    {
+        item[GetOffset(ref item)] ??= 1;
+    }
+    
+    static int value = 0;
+    static int GetOffset<T>(ref T item)
+    {
+        item = (T)(IMoveable)new Item {Name = (--value).ToString()};
+        return 0;
+    }
+}
+";
+
+            // Wrong output
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"
+Position get for item '-1'
+Position set for item '-1'
+Position get for item '-2'
+Position set for item '-2'
+").VerifyDiagnostics();
+
+            // Wrong IL
+            verifier.VerifyIL("Program.Shift1<T>",
+@"
+{
+  // Code size       68 (0x44)
+  .maxstack  4
+  .locals init (T& V_0,
+                int V_1,
+                int? V_2,
+                int V_3,
+                int? V_4)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  stloc.0
+  IL_0003:  ldarga.s   V_0
+  IL_0005:  call       ""int Program.GetOffset<T>(ref T)""
+  IL_000a:  stloc.1
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  constrained. ""T""
+  IL_0013:  callvirt   ""int? IMoveable.this[int].get""
+  IL_0018:  stloc.2
+  IL_0019:  ldloca.s   V_2
+  IL_001b:  call       ""int int?.GetValueOrDefault()""
+  IL_0020:  stloc.3
+  IL_0021:  ldloca.s   V_2
+  IL_0023:  call       ""bool int?.HasValue.get""
+  IL_0028:  brtrue.s   IL_0043
+  IL_002a:  ldc.i4.1
+  IL_002b:  stloc.3
+  IL_002c:  ldloc.0
+  IL_002d:  ldloc.1
+  IL_002e:  ldloca.s   V_4
+  IL_0030:  ldloc.3
+  IL_0031:  call       ""int?..ctor(int)""
+  IL_0036:  ldloc.s    V_4
+  IL_0038:  constrained. ""T""
+  IL_003e:  callvirt   ""void IMoveable.this[int].set""
+  IL_0043:  ret
+}
+");
+
+            // Wrong IL
+            verifier.VerifyIL("Program.Shift2<T>",
+@"
+{
+  // Code size       68 (0x44)
+  .maxstack  4
+  .locals init (T& V_0,
+                int V_1,
+                int? V_2,
+                int V_3,
+                int? V_4)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  stloc.0
+  IL_0003:  ldarga.s   V_0
+  IL_0005:  call       ""int Program.GetOffset<T>(ref T)""
+  IL_000a:  stloc.1
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  constrained. ""T""
+  IL_0013:  callvirt   ""int? IMoveable.this[int].get""
+  IL_0018:  stloc.2
+  IL_0019:  ldloca.s   V_2
+  IL_001b:  call       ""int int?.GetValueOrDefault()""
+  IL_0020:  stloc.3
+  IL_0021:  ldloca.s   V_2
+  IL_0023:  call       ""bool int?.HasValue.get""
+  IL_0028:  brtrue.s   IL_0043
+  IL_002a:  ldc.i4.1
+  IL_002b:  stloc.3
+  IL_002c:  ldloc.0
+  IL_002d:  ldloc.1
+  IL_002e:  ldloca.s   V_4
+  IL_0030:  ldloc.3
+  IL_0031:  call       ""int?..ctor(int)""
+  IL_0036:  ldloc.s    V_4
+  IL_0038:  constrained. ""T""
+  IL_003e:  callvirt   ""void IMoveable.this[int].set""
+  IL_0043:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
+        public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Struct()
+        {
+            var source = @"
+using System;
+
+interface IMoveable
+{
+    int? this[int x] {get;set;}
+}
+
+struct Item : IMoveable
+{
+    public string Name {get; set;}
+
+    public int? this[int x]
+    {
+        get
+        {
+            Console.WriteLine(""Position get for item '{0}'"", Name);
+            return null;
+        }
+        set
+        {
+            Console.WriteLine(""Position set for item '{0}'"", Name);
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item {Name = ""1""};
+        Shift1(item1);
+
+        var item2 = new Item {Name = ""2""};
+        Shift2(item2);
+    }
+
+    static void Shift1<T>(T item) where T : struct, IMoveable
+    {
+        item[GetOffset(ref item)] ??= 1;
+    }
+
+    static void Shift2<T>(T item) where T : IMoveable
+    {
+        item[GetOffset(ref item)] ??= 1;
+    }
+    
+    static int value = 0;
+    static int GetOffset<T>(ref T item)
+    {
+        item = (T)(IMoveable)new Item {Name = (--value).ToString()};
+        return 0;
+    }
+}
+";
+
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"
+Position get for item '-1'
+Position set for item '-1'
+Position get for item '-2'
+Position set for item '-2'
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Shift1<T>",
+@"
+{
+  // Code size       68 (0x44)
+  .maxstack  4
+  .locals init (T& V_0,
+                int V_1,
+                int? V_2,
+                int V_3,
+                int? V_4)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  stloc.0
+  IL_0003:  ldarga.s   V_0
+  IL_0005:  call       ""int Program.GetOffset<T>(ref T)""
+  IL_000a:  stloc.1
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  constrained. ""T""
+  IL_0013:  callvirt   ""int? IMoveable.this[int].get""
+  IL_0018:  stloc.2
+  IL_0019:  ldloca.s   V_2
+  IL_001b:  call       ""int int?.GetValueOrDefault()""
+  IL_0020:  stloc.3
+  IL_0021:  ldloca.s   V_2
+  IL_0023:  call       ""bool int?.HasValue.get""
+  IL_0028:  brtrue.s   IL_0043
+  IL_002a:  ldc.i4.1
+  IL_002b:  stloc.3
+  IL_002c:  ldloc.0
+  IL_002d:  ldloc.1
+  IL_002e:  ldloca.s   V_4
+  IL_0030:  ldloc.3
+  IL_0031:  call       ""int?..ctor(int)""
+  IL_0036:  ldloc.s    V_4
+  IL_0038:  constrained. ""T""
+  IL_003e:  callvirt   ""void IMoveable.this[int].set""
+  IL_0043:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
+        public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Class_Ref()
+        {
+            var source = @"
+using System;
+
+interface IMoveable
+{
+    int? this[int x] {get;set;}
+}
+
+class Item : IMoveable
+{
+    public string Name {get; set;}
+
+    public int? this[int x]
+    {
+        get
+        {
+            Console.WriteLine(""Position get for item '{0}'"", Name);
+            return null;
+        }
+        set
+        {
+            Console.WriteLine(""Position set for item '{0}'"", Name);
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item {Name = ""1""};
+        Shift1(ref item1);
+
+        var item2 = new Item {Name = ""2""};
+        Shift2(ref item2);
+    }
+
+    static void Shift1<T>(ref T item) where T : class, IMoveable
+    {
+        item[GetOffset(ref item)] ??= 1;
+    }
+
+    static void Shift2<T>(ref T item) where T : IMoveable
+    {
+        item[GetOffset(ref item)] ??= 1;
+    }
+    
+    static int value = 0;
+    static int GetOffset<T>(ref T item)
+    {
+        item = (T)(IMoveable)new Item {Name = (--value).ToString()};
+        return 0;
+    }
+}
+";
+
+            // Wrong output
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"
+Position get for item '-1'
+Position set for item '-1'
+Position get for item '-2'
+Position set for item '-2'
+").VerifyDiagnostics();
+
+            // Wrong IL
+            verifier.VerifyIL("Program.Shift1<T>",
+@"
+{
+  // Code size       66 (0x42)
+  .maxstack  4
+  .locals init (T& V_0,
+                int V_1,
+                int? V_2,
+                int V_3,
+                int? V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.0
+  IL_0003:  call       ""int Program.GetOffset<T>(ref T)""
+  IL_0008:  stloc.1
+  IL_0009:  ldloc.0
+  IL_000a:  ldloc.1
+  IL_000b:  constrained. ""T""
+  IL_0011:  callvirt   ""int? IMoveable.this[int].get""
+  IL_0016:  stloc.2
+  IL_0017:  ldloca.s   V_2
+  IL_0019:  call       ""int int?.GetValueOrDefault()""
+  IL_001e:  stloc.3
+  IL_001f:  ldloca.s   V_2
+  IL_0021:  call       ""bool int?.HasValue.get""
+  IL_0026:  brtrue.s   IL_0041
+  IL_0028:  ldc.i4.1
+  IL_0029:  stloc.3
+  IL_002a:  ldloc.0
+  IL_002b:  ldloc.1
+  IL_002c:  ldloca.s   V_4
+  IL_002e:  ldloc.3
+  IL_002f:  call       ""int?..ctor(int)""
+  IL_0034:  ldloc.s    V_4
+  IL_0036:  constrained. ""T""
+  IL_003c:  callvirt   ""void IMoveable.this[int].set""
+  IL_0041:  ret
+}
+");
+
+            // Wrong IL
+            verifier.VerifyIL("Program.Shift2<T>",
+@"
+{
+  // Code size       66 (0x42)
+  .maxstack  4
+  .locals init (T& V_0,
+                int V_1,
+                int? V_2,
+                int V_3,
+                int? V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.0
+  IL_0003:  call       ""int Program.GetOffset<T>(ref T)""
+  IL_0008:  stloc.1
+  IL_0009:  ldloc.0
+  IL_000a:  ldloc.1
+  IL_000b:  constrained. ""T""
+  IL_0011:  callvirt   ""int? IMoveable.this[int].get""
+  IL_0016:  stloc.2
+  IL_0017:  ldloca.s   V_2
+  IL_0019:  call       ""int int?.GetValueOrDefault()""
+  IL_001e:  stloc.3
+  IL_001f:  ldloca.s   V_2
+  IL_0021:  call       ""bool int?.HasValue.get""
+  IL_0026:  brtrue.s   IL_0041
+  IL_0028:  ldc.i4.1
+  IL_0029:  stloc.3
+  IL_002a:  ldloc.0
+  IL_002b:  ldloc.1
+  IL_002c:  ldloca.s   V_4
+  IL_002e:  ldloc.3
+  IL_002f:  call       ""int?..ctor(int)""
+  IL_0034:  ldloc.s    V_4
+  IL_0036:  constrained. ""T""
+  IL_003c:  callvirt   ""void IMoveable.this[int].set""
+  IL_0041:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
+        public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Struct_Ref()
+        {
+            var source = @"
+using System;
+
+interface IMoveable
+{
+    int? this[int x] {get;set;}
+}
+
+struct Item : IMoveable
+{
+    public string Name {get; set;}
+
+    public int? this[int x]
+    {
+        get
+        {
+            Console.WriteLine(""Position get for item '{0}'"", Name);
+            return null;
+        }
+        set
+        {
+            Console.WriteLine(""Position set for item '{0}'"", Name);
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item {Name = ""1""};
+        Shift1(ref item1);
+
+        var item2 = new Item {Name = ""2""};
+        Shift2(ref item2);
+    }
+
+    static void Shift1<T>(ref T item) where T : struct, IMoveable
+    {
+        item[GetOffset(ref item)] ??= 1;
+    }
+
+    static void Shift2<T>(ref T item) where T : IMoveable
+    {
+        item[GetOffset(ref item)] ??= 1;
+    }
+    
+    static int value = 0;
+    static int GetOffset<T>(ref T item)
+    {
+        item = (T)(IMoveable)new Item {Name = (--value).ToString()};
+        return 0;
+    }
+}
+";
+
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"
+Position get for item '-1'
+Position set for item '-1'
+Position get for item '-2'
+Position set for item '-2'
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Shift1<T>",
+@"
+{
+  // Code size       66 (0x42)
+  .maxstack  4
+  .locals init (T& V_0,
+                int V_1,
+                int? V_2,
+                int V_3,
+                int? V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.0
+  IL_0003:  call       ""int Program.GetOffset<T>(ref T)""
+  IL_0008:  stloc.1
+  IL_0009:  ldloc.0
+  IL_000a:  ldloc.1
+  IL_000b:  constrained. ""T""
+  IL_0011:  callvirt   ""int? IMoveable.this[int].get""
+  IL_0016:  stloc.2
+  IL_0017:  ldloca.s   V_2
+  IL_0019:  call       ""int int?.GetValueOrDefault()""
+  IL_001e:  stloc.3
+  IL_001f:  ldloca.s   V_2
+  IL_0021:  call       ""bool int?.HasValue.get""
+  IL_0026:  brtrue.s   IL_0041
+  IL_0028:  ldc.i4.1
+  IL_0029:  stloc.3
+  IL_002a:  ldloc.0
+  IL_002b:  ldloc.1
+  IL_002c:  ldloca.s   V_4
+  IL_002e:  ldloc.3
+  IL_002f:  call       ""int?..ctor(int)""
+  IL_0034:  ldloc.s    V_4
+  IL_0036:  constrained. ""T""
+  IL_003c:  callvirt   ""void IMoveable.this[int].set""
+  IL_0041:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
+        public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Class_Async_01()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+interface IMoveable
+{
+    int? this[int x] {get;set;}
+}
+
+class Item : IMoveable
+{
+    public string Name {get; set;}
+
+    public int? this[int x]
+    {
+        get
+        {
+            Console.WriteLine(""Position get for item '{0}'"", Name);
+            return null;
+        }
+        set
+        {
+            Console.WriteLine(""Position set for item '{0}'"", Name);
+        }
+    }
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        var item1 = new Item {Name = ""1""};
+        await Shift1(item1);
+
+        var item2 = new Item {Name = ""2""};
+        await Shift2(item2);
+    }
+
+    static async Task Shift1<T>(T item) where T : class, IMoveable
+    {
+        item[await GetOffsetAsync(GetOffset(ref item))] ??= 1;
+    }
+
+    static async Task Shift2<T>(T item) where T : IMoveable
+    {
+        item[await GetOffsetAsync(GetOffset(ref item))] ??= 1;
+    }
+    
+    static int value = 0;
+    static int GetOffset<T>(ref T item)
+    {
+        item = (T)(IMoveable)new Item {Name = (--value).ToString()};
+        return 0;
+    }
+
+#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+    static async Task<int> GetOffsetAsync(int i)
+    {
+        return i;
+    }
+}
+";
+
+            // Wrong output
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"
+Position get for item '-1'
+Position set for item '-1'
+Position get for item '-2'
+Position set for item '-2'
+").VerifyDiagnostics();
+
+
+            verifier.VerifyIL("Program.<Shift1>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"
+{
+  // Code size      225 (0xe1)
+  .maxstack  4
+  .locals init (int V_0,
+                int V_1,
+                int? V_2,
+                int V_3,
+                System.Runtime.CompilerServices.TaskAwaiter<int> V_4,
+                int? V_5,
+                System.Exception V_6)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_004e
+    IL_000a:  ldarg.0
+    IL_000b:  ldflda     ""T Program.<Shift1>d__1<T>.item""
+    IL_0010:  call       ""int Program.GetOffset<T>(ref T)""
+    IL_0015:  call       ""System.Threading.Tasks.Task<int> Program.GetOffsetAsync(int)""
+    IL_001a:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_001f:  stloc.s    V_4
+    IL_0021:  ldloca.s   V_4
+    IL_0023:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_0028:  brtrue.s   IL_006b
+    IL_002a:  ldarg.0
+    IL_002b:  ldc.i4.0
+    IL_002c:  dup
+    IL_002d:  stloc.0
+    IL_002e:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+    IL_0033:  ldarg.0
+    IL_0034:  ldloc.s    V_4
+    IL_0036:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift1>d__1<T>.<>u__1""
+    IL_003b:  ldarg.0
+    IL_003c:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
+    IL_0041:  ldloca.s   V_4
+    IL_0043:  ldarg.0
+    IL_0044:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<Shift1>d__1<T>>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<Shift1>d__1<T>)""
+    IL_0049:  leave      IL_00e0
+    IL_004e:  ldarg.0
+    IL_004f:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift1>d__1<T>.<>u__1""
+    IL_0054:  stloc.s    V_4
+    IL_0056:  ldarg.0
+    IL_0057:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift1>d__1<T>.<>u__1""
+    IL_005c:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_0062:  ldarg.0
+    IL_0063:  ldc.i4.m1
+    IL_0064:  dup
+    IL_0065:  stloc.0
+    IL_0066:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+    IL_006b:  ldloca.s   V_4
+    IL_006d:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_0072:  stloc.1
+    IL_0073:  ldarg.0
+    IL_0074:  ldfld      ""T Program.<Shift1>d__1<T>.item""
+    IL_0079:  box        ""T""
+    IL_007e:  ldloc.1
+    IL_007f:  callvirt   ""int? IMoveable.this[int].get""
+    IL_0084:  stloc.2
+    IL_0085:  ldloca.s   V_2
+    IL_0087:  call       ""int int?.GetValueOrDefault()""
+    IL_008c:  stloc.3
+    IL_008d:  ldloca.s   V_2
+    IL_008f:  call       ""bool int?.HasValue.get""
+    IL_0094:  brtrue.s   IL_00b2
+    IL_0096:  ldc.i4.1
+    IL_0097:  stloc.3
+    IL_0098:  ldarg.0
+    IL_0099:  ldfld      ""T Program.<Shift1>d__1<T>.item""
+    IL_009e:  box        ""T""
+    IL_00a3:  ldloc.1
+    IL_00a4:  ldloc.3
+    IL_00a5:  newobj     ""int?..ctor(int)""
+    IL_00aa:  dup
+    IL_00ab:  stloc.s    V_5
+    IL_00ad:  callvirt   ""void IMoveable.this[int].set""
+    IL_00b2:  leave.s    IL_00cd
+  }
+  catch System.Exception
+  {
+    IL_00b4:  stloc.s    V_6
+    IL_00b6:  ldarg.0
+    IL_00b7:  ldc.i4.s   -2
+    IL_00b9:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+    IL_00be:  ldarg.0
+    IL_00bf:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
+    IL_00c4:  ldloc.s    V_6
+    IL_00c6:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00cb:  leave.s    IL_00e0
+  }
+  IL_00cd:  ldarg.0
+  IL_00ce:  ldc.i4.s   -2
+  IL_00d0:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+  IL_00d5:  ldarg.0
+  IL_00d6:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
+  IL_00db:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00e0:  ret
+}
+");
+
+            // Wrong IL
+            verifier.VerifyIL("Program.<Shift2>d__2<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"
+{
+  // Code size      227 (0xe3)
+  .maxstack  4
+  .locals init (int V_0,
+                int V_1,
+                int? V_2,
+                int V_3,
+                System.Runtime.CompilerServices.TaskAwaiter<int> V_4,
+                int? V_5,
+                System.Exception V_6)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<Shift2>d__2<T>.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_004e
+    IL_000a:  ldarg.0
+    IL_000b:  ldflda     ""T Program.<Shift2>d__2<T>.item""
+    IL_0010:  call       ""int Program.GetOffset<T>(ref T)""
+    IL_0015:  call       ""System.Threading.Tasks.Task<int> Program.GetOffsetAsync(int)""
+    IL_001a:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_001f:  stloc.s    V_4
+    IL_0021:  ldloca.s   V_4
+    IL_0023:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_0028:  brtrue.s   IL_006b
+    IL_002a:  ldarg.0
+    IL_002b:  ldc.i4.0
+    IL_002c:  dup
+    IL_002d:  stloc.0
+    IL_002e:  stfld      ""int Program.<Shift2>d__2<T>.<>1__state""
+    IL_0033:  ldarg.0
+    IL_0034:  ldloc.s    V_4
+    IL_0036:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift2>d__2<T>.<>u__1""
+    IL_003b:  ldarg.0
+    IL_003c:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift2>d__2<T>.<>t__builder""
+    IL_0041:  ldloca.s   V_4
+    IL_0043:  ldarg.0
+    IL_0044:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<Shift2>d__2<T>>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<Shift2>d__2<T>)""
+    IL_0049:  leave      IL_00e2
+    IL_004e:  ldarg.0
+    IL_004f:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift2>d__2<T>.<>u__1""
+    IL_0054:  stloc.s    V_4
+    IL_0056:  ldarg.0
+    IL_0057:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift2>d__2<T>.<>u__1""
+    IL_005c:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_0062:  ldarg.0
+    IL_0063:  ldc.i4.m1
+    IL_0064:  dup
+    IL_0065:  stloc.0
+    IL_0066:  stfld      ""int Program.<Shift2>d__2<T>.<>1__state""
+    IL_006b:  ldloca.s   V_4
+    IL_006d:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_0072:  stloc.1
+    IL_0073:  ldarg.0
+    IL_0074:  ldflda     ""T Program.<Shift2>d__2<T>.item""
+    IL_0079:  ldloc.1
+    IL_007a:  constrained. ""T""
+    IL_0080:  callvirt   ""int? IMoveable.this[int].get""
+    IL_0085:  stloc.2
+    IL_0086:  ldloca.s   V_2
+    IL_0088:  call       ""int int?.GetValueOrDefault()""
+    IL_008d:  stloc.3
+    IL_008e:  ldloca.s   V_2
+    IL_0090:  call       ""bool int?.HasValue.get""
+    IL_0095:  brtrue.s   IL_00b4
+    IL_0097:  ldc.i4.1
+    IL_0098:  stloc.3
+    IL_0099:  ldarg.0
+    IL_009a:  ldflda     ""T Program.<Shift2>d__2<T>.item""
+    IL_009f:  ldloc.1
+    IL_00a0:  ldloc.3
+    IL_00a1:  newobj     ""int?..ctor(int)""
+    IL_00a6:  dup
+    IL_00a7:  stloc.s    V_5
+    IL_00a9:  constrained. ""T""
+    IL_00af:  callvirt   ""void IMoveable.this[int].set""
+    IL_00b4:  leave.s    IL_00cf
+  }
+  catch System.Exception
+  {
+    IL_00b6:  stloc.s    V_6
+    IL_00b8:  ldarg.0
+    IL_00b9:  ldc.i4.s   -2
+    IL_00bb:  stfld      ""int Program.<Shift2>d__2<T>.<>1__state""
+    IL_00c0:  ldarg.0
+    IL_00c1:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift2>d__2<T>.<>t__builder""
+    IL_00c6:  ldloc.s    V_6
+    IL_00c8:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00cd:  leave.s    IL_00e2
+  }
+  IL_00cf:  ldarg.0
+  IL_00d0:  ldc.i4.s   -2
+  IL_00d2:  stfld      ""int Program.<Shift2>d__2<T>.<>1__state""
+  IL_00d7:  ldarg.0
+  IL_00d8:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift2>d__2<T>.<>t__builder""
+  IL_00dd:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00e2:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
+        public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Struct_Async_01()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+interface IMoveable
+{
+    int? this[int x] {get;set;}
+}
+
+struct Item : IMoveable
+{
+    public string Name {get; set;}
+
+    public int? this[int x]
+    {
+        get
+        {
+            Console.WriteLine(""Position get for item '{0}'"", Name);
+            return null;
+        }
+        set
+        {
+            Console.WriteLine(""Position set for item '{0}'"", Name);
+        }
+    }
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        var item1 = new Item {Name = ""1""};
+        await Shift1(item1);
+
+        var item2 = new Item {Name = ""2""};
+        await Shift2(item2);
+    }
+
+    static async Task Shift1<T>(T item) where T : struct, IMoveable
+    {
+        item[await GetOffsetAsync(GetOffset(ref item))] ??= 1;
+    }
+
+    static async Task Shift2<T>(T item) where T : IMoveable
+    {
+        item[await GetOffsetAsync(GetOffset(ref item))] ??= 1;
+    }
+    
+    static int value = 0;
+    static int GetOffset<T>(ref T item)
+    {
+        item = (T)(IMoveable)new Item {Name = (--value).ToString()};
+        return 0;
+    }
+
+#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+    static async Task<int> GetOffsetAsync(int i)
+    {
+        return i;
+    }
+}
+";
+
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"
+Position get for item '-1'
+Position set for item '-1'
+Position get for item '-2'
+Position set for item '-2'
+").VerifyDiagnostics();
+
+
+            verifier.VerifyIL("Program.<Shift1>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"
+{
+  // Code size      227 (0xe3)
+  .maxstack  4
+  .locals init (int V_0,
+                int V_1,
+                int? V_2,
+                int V_3,
+                System.Runtime.CompilerServices.TaskAwaiter<int> V_4,
+                int? V_5,
+                System.Exception V_6)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_004e
+    IL_000a:  ldarg.0
+    IL_000b:  ldflda     ""T Program.<Shift1>d__1<T>.item""
+    IL_0010:  call       ""int Program.GetOffset<T>(ref T)""
+    IL_0015:  call       ""System.Threading.Tasks.Task<int> Program.GetOffsetAsync(int)""
+    IL_001a:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_001f:  stloc.s    V_4
+    IL_0021:  ldloca.s   V_4
+    IL_0023:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_0028:  brtrue.s   IL_006b
+    IL_002a:  ldarg.0
+    IL_002b:  ldc.i4.0
+    IL_002c:  dup
+    IL_002d:  stloc.0
+    IL_002e:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+    IL_0033:  ldarg.0
+    IL_0034:  ldloc.s    V_4
+    IL_0036:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift1>d__1<T>.<>u__1""
+    IL_003b:  ldarg.0
+    IL_003c:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
+    IL_0041:  ldloca.s   V_4
+    IL_0043:  ldarg.0
+    IL_0044:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<Shift1>d__1<T>>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<Shift1>d__1<T>)""
+    IL_0049:  leave      IL_00e2
+    IL_004e:  ldarg.0
+    IL_004f:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift1>d__1<T>.<>u__1""
+    IL_0054:  stloc.s    V_4
+    IL_0056:  ldarg.0
+    IL_0057:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift1>d__1<T>.<>u__1""
+    IL_005c:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_0062:  ldarg.0
+    IL_0063:  ldc.i4.m1
+    IL_0064:  dup
+    IL_0065:  stloc.0
+    IL_0066:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+    IL_006b:  ldloca.s   V_4
+    IL_006d:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_0072:  stloc.1
+    IL_0073:  ldarg.0
+    IL_0074:  ldflda     ""T Program.<Shift1>d__1<T>.item""
+    IL_0079:  ldloc.1
+    IL_007a:  constrained. ""T""
+    IL_0080:  callvirt   ""int? IMoveable.this[int].get""
+    IL_0085:  stloc.2
+    IL_0086:  ldloca.s   V_2
+    IL_0088:  call       ""int int?.GetValueOrDefault()""
+    IL_008d:  stloc.3
+    IL_008e:  ldloca.s   V_2
+    IL_0090:  call       ""bool int?.HasValue.get""
+    IL_0095:  brtrue.s   IL_00b4
+    IL_0097:  ldc.i4.1
+    IL_0098:  stloc.3
+    IL_0099:  ldarg.0
+    IL_009a:  ldflda     ""T Program.<Shift1>d__1<T>.item""
+    IL_009f:  ldloc.1
+    IL_00a0:  ldloc.3
+    IL_00a1:  newobj     ""int?..ctor(int)""
+    IL_00a6:  dup
+    IL_00a7:  stloc.s    V_5
+    IL_00a9:  constrained. ""T""
+    IL_00af:  callvirt   ""void IMoveable.this[int].set""
+    IL_00b4:  leave.s    IL_00cf
+  }
+  catch System.Exception
+  {
+    IL_00b6:  stloc.s    V_6
+    IL_00b8:  ldarg.0
+    IL_00b9:  ldc.i4.s   -2
+    IL_00bb:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+    IL_00c0:  ldarg.0
+    IL_00c1:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
+    IL_00c6:  ldloc.s    V_6
+    IL_00c8:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00cd:  leave.s    IL_00e2
+  }
+  IL_00cf:  ldarg.0
+  IL_00d0:  ldc.i4.s   -2
+  IL_00d2:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+  IL_00d7:  ldarg.0
+  IL_00d8:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
+  IL_00dd:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00e2:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
+        public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Class_Async_02()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+interface IMoveable
+{
+    int? this[int x] {get;set;}
+}
+
+class Item : IMoveable
+{
+    public string Name {get; set;}
+
+    public int? this[int x]
+    {
+        get
+        {
+            Console.WriteLine(""Position get for item '{0}'"", Name);
+            return null;
+        }
+        set
+        {
+            Console.WriteLine(""Position set for item '{0}'"", Name);
+        }
+    }
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        var item1 = new Item {Name = ""1""};
+        await Shift1(item1);
+
+        var item2 = new Item {Name = ""2""};
+        await Shift2(item2);
+    }
+
+    static async Task Shift1<T>(T item) where T : class, IMoveable
+    {
+        await Task.Yield();
+        item[await GetOffsetAsync(GetOffset(ref item))] ??= 1;
+    }
+
+    static async Task Shift2<T>(T item) where T : IMoveable
+    {
+        await Task.Yield();
+        item[await GetOffsetAsync(GetOffset(ref item))] ??= 1;
+    }
+    
+    static int value = 0;
+    static int GetOffset<T>(ref T item)
+    {
+        item = (T)(IMoveable)new Item {Name = (--value).ToString()};
+        return 0;
+    }
+
+#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+    static async Task<int> GetOffsetAsync(int i)
+    {
+        return i;
+    }
+}
+";
+
+            // Wrong output
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"
+Position get for item '-1'
+Position set for item '-1'
+Position get for item '-2'
+Position set for item '-2'
+").VerifyDiagnostics();
+
+
+            verifier.VerifyIL("Program.<Shift1>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"
+{
+  // Code size      329 (0x149)
+  .maxstack  4
+  .locals init (int V_0,
+                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
+                System.Runtime.CompilerServices.YieldAwaitable V_2,
+                int V_3,
+                int? V_4,
+                int V_5,
+                System.Runtime.CompilerServices.TaskAwaiter<int> V_6,
+                int? V_7,
+                System.Exception V_8)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_004b
+    IL_000a:  ldloc.0
+    IL_000b:  ldc.i4.1
+    IL_000c:  beq        IL_00b2
+    IL_0011:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
+    IL_0016:  stloc.2
+    IL_0017:  ldloca.s   V_2
+    IL_0019:  call       ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()""
+    IL_001e:  stloc.1
+    IL_001f:  ldloca.s   V_1
+    IL_0021:  call       ""bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get""
+    IL_0026:  brtrue.s   IL_0067
+    IL_0028:  ldarg.0
+    IL_0029:  ldc.i4.0
+    IL_002a:  dup
+    IL_002b:  stloc.0
+    IL_002c:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+    IL_0031:  ldarg.0
+    IL_0032:  ldloc.1
+    IL_0033:  stfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Shift1>d__1<T>.<>u__1""
+    IL_0038:  ldarg.0
+    IL_0039:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
+    IL_003e:  ldloca.s   V_1
+    IL_0040:  ldarg.0
+    IL_0041:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, Program.<Shift1>d__1<T>>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref Program.<Shift1>d__1<T>)""
+    IL_0046:  leave      IL_0148
+    IL_004b:  ldarg.0
+    IL_004c:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Shift1>d__1<T>.<>u__1""
+    IL_0051:  stloc.1
+    IL_0052:  ldarg.0
+    IL_0053:  ldflda     ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Shift1>d__1<T>.<>u__1""
+    IL_0058:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
+    IL_005e:  ldarg.0
+    IL_005f:  ldc.i4.m1
+    IL_0060:  dup
+    IL_0061:  stloc.0
+    IL_0062:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+    IL_0067:  ldloca.s   V_1
+    IL_0069:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
+    IL_006e:  ldarg.0
+    IL_006f:  ldflda     ""T Program.<Shift1>d__1<T>.item""
+    IL_0074:  call       ""int Program.GetOffset<T>(ref T)""
+    IL_0079:  call       ""System.Threading.Tasks.Task<int> Program.GetOffsetAsync(int)""
+    IL_007e:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_0083:  stloc.s    V_6
+    IL_0085:  ldloca.s   V_6
+    IL_0087:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_008c:  brtrue.s   IL_00cf
+    IL_008e:  ldarg.0
+    IL_008f:  ldc.i4.1
+    IL_0090:  dup
+    IL_0091:  stloc.0
+    IL_0092:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+    IL_0097:  ldarg.0
+    IL_0098:  ldloc.s    V_6
+    IL_009a:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift1>d__1<T>.<>u__2""
+    IL_009f:  ldarg.0
+    IL_00a0:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
+    IL_00a5:  ldloca.s   V_6
+    IL_00a7:  ldarg.0
+    IL_00a8:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<Shift1>d__1<T>>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<Shift1>d__1<T>)""
+    IL_00ad:  leave      IL_0148
+    IL_00b2:  ldarg.0
+    IL_00b3:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift1>d__1<T>.<>u__2""
+    IL_00b8:  stloc.s    V_6
+    IL_00ba:  ldarg.0
+    IL_00bb:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift1>d__1<T>.<>u__2""
+    IL_00c0:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_00c6:  ldarg.0
+    IL_00c7:  ldc.i4.m1
+    IL_00c8:  dup
+    IL_00c9:  stloc.0
+    IL_00ca:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+    IL_00cf:  ldloca.s   V_6
+    IL_00d1:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_00d6:  stloc.3
+    IL_00d7:  ldarg.0
+    IL_00d8:  ldfld      ""T Program.<Shift1>d__1<T>.item""
+    IL_00dd:  box        ""T""
+    IL_00e2:  ldloc.3
+    IL_00e3:  callvirt   ""int? IMoveable.this[int].get""
+    IL_00e8:  stloc.s    V_4
+    IL_00ea:  ldloca.s   V_4
+    IL_00ec:  call       ""int int?.GetValueOrDefault()""
+    IL_00f1:  stloc.s    V_5
+    IL_00f3:  ldloca.s   V_4
+    IL_00f5:  call       ""bool int?.HasValue.get""
+    IL_00fa:  brtrue.s   IL_011a
+    IL_00fc:  ldc.i4.1
+    IL_00fd:  stloc.s    V_5
+    IL_00ff:  ldarg.0
+    IL_0100:  ldfld      ""T Program.<Shift1>d__1<T>.item""
+    IL_0105:  box        ""T""
+    IL_010a:  ldloc.3
+    IL_010b:  ldloc.s    V_5
+    IL_010d:  newobj     ""int?..ctor(int)""
+    IL_0112:  dup
+    IL_0113:  stloc.s    V_7
+    IL_0115:  callvirt   ""void IMoveable.this[int].set""
+    IL_011a:  leave.s    IL_0135
+  }
+  catch System.Exception
+  {
+    IL_011c:  stloc.s    V_8
+    IL_011e:  ldarg.0
+    IL_011f:  ldc.i4.s   -2
+    IL_0121:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+    IL_0126:  ldarg.0
+    IL_0127:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
+    IL_012c:  ldloc.s    V_8
+    IL_012e:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_0133:  leave.s    IL_0148
+  }
+  IL_0135:  ldarg.0
+  IL_0136:  ldc.i4.s   -2
+  IL_0138:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+  IL_013d:  ldarg.0
+  IL_013e:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
+  IL_0143:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_0148:  ret
+}
+");
+
+            // Wrong IL
+            verifier.VerifyIL("Program.<Shift2>d__2<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"
+{
+  // Code size      331 (0x14b)
+  .maxstack  4
+  .locals init (int V_0,
+                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
+                System.Runtime.CompilerServices.YieldAwaitable V_2,
+                int V_3,
+                int? V_4,
+                int V_5,
+                System.Runtime.CompilerServices.TaskAwaiter<int> V_6,
+                int? V_7,
+                System.Exception V_8)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<Shift2>d__2<T>.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_004b
+    IL_000a:  ldloc.0
+    IL_000b:  ldc.i4.1
+    IL_000c:  beq        IL_00b2
+    IL_0011:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
+    IL_0016:  stloc.2
+    IL_0017:  ldloca.s   V_2
+    IL_0019:  call       ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()""
+    IL_001e:  stloc.1
+    IL_001f:  ldloca.s   V_1
+    IL_0021:  call       ""bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get""
+    IL_0026:  brtrue.s   IL_0067
+    IL_0028:  ldarg.0
+    IL_0029:  ldc.i4.0
+    IL_002a:  dup
+    IL_002b:  stloc.0
+    IL_002c:  stfld      ""int Program.<Shift2>d__2<T>.<>1__state""
+    IL_0031:  ldarg.0
+    IL_0032:  ldloc.1
+    IL_0033:  stfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Shift2>d__2<T>.<>u__1""
+    IL_0038:  ldarg.0
+    IL_0039:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift2>d__2<T>.<>t__builder""
+    IL_003e:  ldloca.s   V_1
+    IL_0040:  ldarg.0
+    IL_0041:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, Program.<Shift2>d__2<T>>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref Program.<Shift2>d__2<T>)""
+    IL_0046:  leave      IL_014a
+    IL_004b:  ldarg.0
+    IL_004c:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Shift2>d__2<T>.<>u__1""
+    IL_0051:  stloc.1
+    IL_0052:  ldarg.0
+    IL_0053:  ldflda     ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Shift2>d__2<T>.<>u__1""
+    IL_0058:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
+    IL_005e:  ldarg.0
+    IL_005f:  ldc.i4.m1
+    IL_0060:  dup
+    IL_0061:  stloc.0
+    IL_0062:  stfld      ""int Program.<Shift2>d__2<T>.<>1__state""
+    IL_0067:  ldloca.s   V_1
+    IL_0069:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
+    IL_006e:  ldarg.0
+    IL_006f:  ldflda     ""T Program.<Shift2>d__2<T>.item""
+    IL_0074:  call       ""int Program.GetOffset<T>(ref T)""
+    IL_0079:  call       ""System.Threading.Tasks.Task<int> Program.GetOffsetAsync(int)""
+    IL_007e:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_0083:  stloc.s    V_6
+    IL_0085:  ldloca.s   V_6
+    IL_0087:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_008c:  brtrue.s   IL_00cf
+    IL_008e:  ldarg.0
+    IL_008f:  ldc.i4.1
+    IL_0090:  dup
+    IL_0091:  stloc.0
+    IL_0092:  stfld      ""int Program.<Shift2>d__2<T>.<>1__state""
+    IL_0097:  ldarg.0
+    IL_0098:  ldloc.s    V_6
+    IL_009a:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift2>d__2<T>.<>u__2""
+    IL_009f:  ldarg.0
+    IL_00a0:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift2>d__2<T>.<>t__builder""
+    IL_00a5:  ldloca.s   V_6
+    IL_00a7:  ldarg.0
+    IL_00a8:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<Shift2>d__2<T>>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<Shift2>d__2<T>)""
+    IL_00ad:  leave      IL_014a
+    IL_00b2:  ldarg.0
+    IL_00b3:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift2>d__2<T>.<>u__2""
+    IL_00b8:  stloc.s    V_6
+    IL_00ba:  ldarg.0
+    IL_00bb:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift2>d__2<T>.<>u__2""
+    IL_00c0:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_00c6:  ldarg.0
+    IL_00c7:  ldc.i4.m1
+    IL_00c8:  dup
+    IL_00c9:  stloc.0
+    IL_00ca:  stfld      ""int Program.<Shift2>d__2<T>.<>1__state""
+    IL_00cf:  ldloca.s   V_6
+    IL_00d1:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_00d6:  stloc.3
+    IL_00d7:  ldarg.0
+    IL_00d8:  ldflda     ""T Program.<Shift2>d__2<T>.item""
+    IL_00dd:  ldloc.3
+    IL_00de:  constrained. ""T""
+    IL_00e4:  callvirt   ""int? IMoveable.this[int].get""
+    IL_00e9:  stloc.s    V_4
+    IL_00eb:  ldloca.s   V_4
+    IL_00ed:  call       ""int int?.GetValueOrDefault()""
+    IL_00f2:  stloc.s    V_5
+    IL_00f4:  ldloca.s   V_4
+    IL_00f6:  call       ""bool int?.HasValue.get""
+    IL_00fb:  brtrue.s   IL_011c
+    IL_00fd:  ldc.i4.1
+    IL_00fe:  stloc.s    V_5
+    IL_0100:  ldarg.0
+    IL_0101:  ldflda     ""T Program.<Shift2>d__2<T>.item""
+    IL_0106:  ldloc.3
+    IL_0107:  ldloc.s    V_5
+    IL_0109:  newobj     ""int?..ctor(int)""
+    IL_010e:  dup
+    IL_010f:  stloc.s    V_7
+    IL_0111:  constrained. ""T""
+    IL_0117:  callvirt   ""void IMoveable.this[int].set""
+    IL_011c:  leave.s    IL_0137
+  }
+  catch System.Exception
+  {
+    IL_011e:  stloc.s    V_8
+    IL_0120:  ldarg.0
+    IL_0121:  ldc.i4.s   -2
+    IL_0123:  stfld      ""int Program.<Shift2>d__2<T>.<>1__state""
+    IL_0128:  ldarg.0
+    IL_0129:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift2>d__2<T>.<>t__builder""
+    IL_012e:  ldloc.s    V_8
+    IL_0130:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_0135:  leave.s    IL_014a
+  }
+  IL_0137:  ldarg.0
+  IL_0138:  ldc.i4.s   -2
+  IL_013a:  stfld      ""int Program.<Shift2>d__2<T>.<>1__state""
+  IL_013f:  ldarg.0
+  IL_0140:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift2>d__2<T>.<>t__builder""
+  IL_0145:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_014a:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
+        public void GenericTypeParameterAsReceiver_Assignment_Conditional_Indexer_Struct_Async_02()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+interface IMoveable
+{
+    int? this[int x] {get;set;}
+}
+
+struct Item : IMoveable
+{
+    public string Name {get; set;}
+
+    public int? this[int x]
+    {
+        get
+        {
+            Console.WriteLine(""Position get for item '{0}'"", Name);
+            return null;
+        }
+        set
+        {
+            Console.WriteLine(""Position set for item '{0}'"", Name);
+        }
+    }
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        var item1 = new Item {Name = ""1""};
+        await Shift1(item1);
+
+        var item2 = new Item {Name = ""2""};
+        await Shift2(item2);
+    }
+
+    static async Task Shift1<T>(T item) where T : struct, IMoveable
+    {
+        await Task.Yield();
+        item[await GetOffsetAsync(GetOffset(ref item))] ??= 1;
+    }
+
+    static async Task Shift2<T>(T item) where T : IMoveable
+    {
+        await Task.Yield();
+        item[await GetOffsetAsync(GetOffset(ref item))] ??= 1;
+    }
+    
+    static int value = 0;
+    static int GetOffset<T>(ref T item)
+    {
+        item = (T)(IMoveable)new Item {Name = (--value).ToString()};
+        return 0;
+    }
+
+#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+    static async Task<int> GetOffsetAsync(int i)
+    {
+        return i;
+    }
+}
+";
+
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"
+Position get for item '-1'
+Position set for item '-1'
+Position get for item '-2'
+Position set for item '-2'
+").VerifyDiagnostics();
+
+
+            verifier.VerifyIL("Program.<Shift1>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"
+{
+  // Code size      331 (0x14b)
+  .maxstack  4
+  .locals init (int V_0,
+                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
+                System.Runtime.CompilerServices.YieldAwaitable V_2,
+                int V_3,
+                int? V_4,
+                int V_5,
+                System.Runtime.CompilerServices.TaskAwaiter<int> V_6,
+                int? V_7,
+                System.Exception V_8)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_004b
+    IL_000a:  ldloc.0
+    IL_000b:  ldc.i4.1
+    IL_000c:  beq        IL_00b2
+    IL_0011:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
+    IL_0016:  stloc.2
+    IL_0017:  ldloca.s   V_2
+    IL_0019:  call       ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()""
+    IL_001e:  stloc.1
+    IL_001f:  ldloca.s   V_1
+    IL_0021:  call       ""bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get""
+    IL_0026:  brtrue.s   IL_0067
+    IL_0028:  ldarg.0
+    IL_0029:  ldc.i4.0
+    IL_002a:  dup
+    IL_002b:  stloc.0
+    IL_002c:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+    IL_0031:  ldarg.0
+    IL_0032:  ldloc.1
+    IL_0033:  stfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Shift1>d__1<T>.<>u__1""
+    IL_0038:  ldarg.0
+    IL_0039:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
+    IL_003e:  ldloca.s   V_1
+    IL_0040:  ldarg.0
+    IL_0041:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, Program.<Shift1>d__1<T>>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref Program.<Shift1>d__1<T>)""
+    IL_0046:  leave      IL_014a
+    IL_004b:  ldarg.0
+    IL_004c:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Shift1>d__1<T>.<>u__1""
+    IL_0051:  stloc.1
+    IL_0052:  ldarg.0
+    IL_0053:  ldflda     ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<Shift1>d__1<T>.<>u__1""
+    IL_0058:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
+    IL_005e:  ldarg.0
+    IL_005f:  ldc.i4.m1
+    IL_0060:  dup
+    IL_0061:  stloc.0
+    IL_0062:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+    IL_0067:  ldloca.s   V_1
+    IL_0069:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
+    IL_006e:  ldarg.0
+    IL_006f:  ldflda     ""T Program.<Shift1>d__1<T>.item""
+    IL_0074:  call       ""int Program.GetOffset<T>(ref T)""
+    IL_0079:  call       ""System.Threading.Tasks.Task<int> Program.GetOffsetAsync(int)""
+    IL_007e:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_0083:  stloc.s    V_6
+    IL_0085:  ldloca.s   V_6
+    IL_0087:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_008c:  brtrue.s   IL_00cf
+    IL_008e:  ldarg.0
+    IL_008f:  ldc.i4.1
+    IL_0090:  dup
+    IL_0091:  stloc.0
+    IL_0092:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+    IL_0097:  ldarg.0
+    IL_0098:  ldloc.s    V_6
+    IL_009a:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift1>d__1<T>.<>u__2""
+    IL_009f:  ldarg.0
+    IL_00a0:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
+    IL_00a5:  ldloca.s   V_6
+    IL_00a7:  ldarg.0
+    IL_00a8:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<Shift1>d__1<T>>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<Shift1>d__1<T>)""
+    IL_00ad:  leave      IL_014a
+    IL_00b2:  ldarg.0
+    IL_00b3:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift1>d__1<T>.<>u__2""
+    IL_00b8:  stloc.s    V_6
+    IL_00ba:  ldarg.0
+    IL_00bb:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift1>d__1<T>.<>u__2""
+    IL_00c0:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_00c6:  ldarg.0
+    IL_00c7:  ldc.i4.m1
+    IL_00c8:  dup
+    IL_00c9:  stloc.0
+    IL_00ca:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+    IL_00cf:  ldloca.s   V_6
+    IL_00d1:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_00d6:  stloc.3
+    IL_00d7:  ldarg.0
+    IL_00d8:  ldflda     ""T Program.<Shift1>d__1<T>.item""
+    IL_00dd:  ldloc.3
+    IL_00de:  constrained. ""T""
+    IL_00e4:  callvirt   ""int? IMoveable.this[int].get""
+    IL_00e9:  stloc.s    V_4
+    IL_00eb:  ldloca.s   V_4
+    IL_00ed:  call       ""int int?.GetValueOrDefault()""
+    IL_00f2:  stloc.s    V_5
+    IL_00f4:  ldloca.s   V_4
+    IL_00f6:  call       ""bool int?.HasValue.get""
+    IL_00fb:  brtrue.s   IL_011c
+    IL_00fd:  ldc.i4.1
+    IL_00fe:  stloc.s    V_5
+    IL_0100:  ldarg.0
+    IL_0101:  ldflda     ""T Program.<Shift1>d__1<T>.item""
+    IL_0106:  ldloc.3
+    IL_0107:  ldloc.s    V_5
+    IL_0109:  newobj     ""int?..ctor(int)""
+    IL_010e:  dup
+    IL_010f:  stloc.s    V_7
+    IL_0111:  constrained. ""T""
+    IL_0117:  callvirt   ""void IMoveable.this[int].set""
+    IL_011c:  leave.s    IL_0137
+  }
+  catch System.Exception
+  {
+    IL_011e:  stloc.s    V_8
+    IL_0120:  ldarg.0
+    IL_0121:  ldc.i4.s   -2
+    IL_0123:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+    IL_0128:  ldarg.0
+    IL_0129:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
+    IL_012e:  ldloc.s    V_8
+    IL_0130:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_0135:  leave.s    IL_014a
+  }
+  IL_0137:  ldarg.0
+  IL_0138:  ldc.i4.s   -2
+  IL_013a:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+  IL_013f:  ldarg.0
+  IL_0140:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
+  IL_0145:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_014a:  ret
 }
 ");
         }
