@@ -345,6 +345,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasUsings = false;
             bool hasGlobalUsings = false;
             bool reportedGlobalUsingOutOfOrder = false;
+            var parseOptions = (CSharpParseOptions)_syntaxTree.Options;
+
             var diagnostics = DiagnosticBag.GetInstance();
 
             foreach (var directive in compilationUnit.Usings)
@@ -367,6 +369,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var globalAliasedQuickAttributes = GetQuickAttributes(compilationUnit.Usings, global: true);
 
+            CheckExternAliases(parseOptions, diagnostics, compilationUnit.Externs);
+
             return new RootSingleNamespaceDeclaration(
                 hasGlobalUsings: hasGlobalUsings,
                 hasUsings: hasUsings,
@@ -379,6 +383,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 globalAliasedQuickAttributes);
         }
 
+        private static void CheckExternAliases(CSharpParseOptions parseOptions, DiagnosticBag diagnostics, SyntaxList<ExternAliasDirectiveSyntax> externs)
+        {
+            foreach (var externAlias in externs)
+            {
+                var diagnosticInfo = MessageID.IDS_FeatureExternAlias.GetFeatureAvailabilityDiagnosticInfo(parseOptions);
+                if (diagnosticInfo != null)
+                    diagnostics.Add(diagnosticInfo, externAlias.ExternKeyword.GetLocation());
+            }
+        }
+
         public override SingleNamespaceOrTypeDeclaration VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node)
             => this.VisitBaseNamespaceDeclaration(node);
 
@@ -388,14 +402,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private SingleNamespaceDeclaration VisitBaseNamespaceDeclaration(BaseNamespaceDeclarationSyntax node)
         {
             var children = VisitNamespaceChildren(node, node.Members, ((Syntax.InternalSyntax.BaseNamespaceDeclarationSyntax)node.Green).Members);
-            var options = (CSharpParseOptions)_syntaxTree.Options;
+            var parseOptions = (CSharpParseOptions)_syntaxTree.Options;
 
             bool hasUsings = node.Usings.Any();
             bool hasExterns = node.Externs.Any();
             NameSyntax name = node.Name;
             CSharpSyntaxNode currentNode = node;
-            QualifiedNameSyntax dotted;
-            while ((dotted = name as QualifiedNameSyntax) != null)
+            while (name is QualifiedNameSyntax dotted)
             {
                 var ns = SingleNamespaceDeclaration.Create(
                     name: dotted.Right.Identifier.ValueText,
@@ -406,8 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     children: children,
                     diagnostics: ImmutableArray<Diagnostic>.Empty);
 
-                var nsDeclaration = new[] { ns };
-                children = nsDeclaration.AsImmutableOrNull<SingleNamespaceOrTypeDeclaration>();
+                children = ImmutableArray.Create<SingleNamespaceOrTypeDeclaration>(ns);
                 currentNode = name = dotted.Left;
                 hasUsings = false;
                 hasExterns = false;
@@ -417,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node is FileScopedNamespaceDeclarationSyntax)
             {
-                var diagnosticInfo = MessageID.IDS_FeatureFileScopedNamespace.GetFeatureAvailabilityDiagnosticInfo(options);
+                var diagnosticInfo = MessageID.IDS_FeatureFileScopedNamespace.GetFeatureAvailabilityDiagnosticInfo(parseOptions);
                 if (diagnosticInfo != null)
                     diagnostics.Add(diagnosticInfo, node.NamespaceKeyword.GetLocation());
 
@@ -498,6 +510,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 }
             }
+
+            CheckExternAliases(parseOptions, diagnostics, node.Externs);
 
             // NOTE: *Something* has to happen for alias-qualified names.  It turns out that we
             // just grab the part after the colons (via GetUnqualifiedName, below).  This logic

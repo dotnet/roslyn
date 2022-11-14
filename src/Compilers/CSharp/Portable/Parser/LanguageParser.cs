@@ -764,15 +764,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ExternKeyword);
 
-            var externToken = this.EatToken(SyntaxKind.ExternKeyword);
-            var aliasToken = this.EatContextualToken(SyntaxKind.AliasKeyword);
-            externToken = CheckFeatureAvailability(externToken, MessageID.IDS_FeatureExternAlias);
-
-            var name = this.ParseIdentifierToken();
-
-            var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
-
-            return _syntaxFactory.ExternAliasDirective(externToken, aliasToken, name, semicolon);
+            return _syntaxFactory.ExternAliasDirective(
+                this.EatToken(SyntaxKind.ExternKeyword),
+                this.EatContextualToken(SyntaxKind.AliasKeyword),
+                this.ParseIdentifierToken(),
+                this.EatToken(SyntaxKind.SemicolonToken));
         }
 
         private NameEqualsSyntax ParseNameEquals()
