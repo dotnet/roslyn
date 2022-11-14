@@ -5565,10 +5565,16 @@ class C
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
-            tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
+            tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyDiagnostics();
+            CreateCompilation(text, parseOptions: TestOptions.Regular2).VerifyDiagnostics(
+                // (6,9): error CS8023: Feature 'implicitly typed local variable' is not available in C# 2. Please use language version 3 or greater.
+                //         var q = new { };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "var").WithArguments("implicitly typed local variable", "3").WithLocation(6, 9),
                 // (6,17): error CS8023: Feature 'anonymous types' is not available in C# 2. Please use language version 3 or greater.
                 //         var q = new { };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "new").WithArguments("anonymous types", "3"));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "new").WithArguments("anonymous types", "3").WithLocation(6, 17));
         }
 
         [Fact]

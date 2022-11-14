@@ -12523,7 +12523,6 @@ tryAgain:
         {
             Debug.Assert(IsAnonymousType());
             var @new = this.EatToken(SyntaxKind.NewKeyword);
-            @new = CheckFeatureAvailability(@new, MessageID.IDS_FeatureAnonymousTypes);
 
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.OpenBraceToken);
 
