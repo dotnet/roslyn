@@ -13666,7 +13666,6 @@ tryAgain:
         {
             this.EnterQuery();
             var fc = this.ParseFromClause();
-            fc = CheckFeatureAvailability(fc, MessageID.IDS_FeatureQueryExpression);
             if (precedence > Precedence.Assignment)
             {
                 fc = this.AddError(fc, ErrorCode.WRN_PrecedenceInversion, SyntaxFacts.GetText(SyntaxKind.FromKeyword));
@@ -13745,7 +13744,6 @@ tryAgain:
         {
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.FromKeyword);
             var @from = this.EatContextualToken(SyntaxKind.FromKeyword);
-            @from = CheckFeatureAvailability(@from, MessageID.IDS_FeatureQueryExpression);
 
             TypeSyntax type = null;
             if (this.PeekToken(1).Kind != SyntaxKind.InKeyword)

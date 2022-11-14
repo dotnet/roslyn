@@ -5545,17 +5545,26 @@ class C
     }
 }
 ";
+            CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyDiagnostics(
+                // (6,27): error CS0103: The name 'b' does not exist in the current context
+                //         var q = from a in b
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b"));
+            CreateCompilation(text, parseOptions: TestOptions.Regular2).VerifyDiagnostics(
+                // (6,9): error CS8023: Feature 'implicitly typed local variable' is not available in C# 2. Please use language version 3 or greater.
+                //         var q = from a in b
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "var").WithArguments("implicitly typed local variable", "3").WithLocation(6, 9),
+                // (6,17): error CS8023: Feature 'query expression' is not available in C# 2. Please use language version 3 or greater.
+                //         var q = from a in b
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "from").WithArguments("query expression", "3").WithLocation(6, 17),
+                // (6,27): error CS0103: The name 'b' does not exist in the current context
+                //         var q = from a in b
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(6, 27));
+
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
-            tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
-                // (6,17): error CS8023: Feature 'query expression' is not available in C# 2. Please use language version 3 or greater.
-                //         var q = from a in b
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "from a in b").WithArguments("query expression", "3"),
-                // (6,17): error CS8023: Feature 'query expression' is not available in C# 2. Please use language version 3 or greater.
-                //         var q = from a in b
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "from").WithArguments("query expression", "3"));
+            tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
         }
 
         [Fact]
