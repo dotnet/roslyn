@@ -70,8 +70,8 @@ namespace Microsoft.CodeAnalysis.Snippets
 
             var invocation = isAsync
                 ? generator.AwaitExpression(generator.InvocationExpression(
-                    generator.MemberAccessExpression(generator.MemberAccessExpression(generator.IdentifierName(nameof(Console)), generator.IdentifierName(nameof(Console.Out))), "WriteLineAsync")))
-                : generator.InvocationExpression(generator.MemberAccessExpression(generator.IdentifierName(nameof(Console)), "WriteLine"));
+                    generator.MemberAccessExpression(generator.MemberAccessExpression(generator.IdentifierName(nameof(Console)), generator.IdentifierName(nameof(Console.Out))), nameof(Console.Out.WriteLineAsync))))
+                : generator.InvocationExpression(generator.MemberAccessExpression(generator.IdentifierName(nameof(Console)), nameof(Console.WriteLine)));
             var expressionStatement = generator.ExpressionStatement(invocation);
 
             // Need to normalize the whitespace for the asynchronous case because it doesn't insert a space following the await
