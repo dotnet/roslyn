@@ -609,6 +609,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private SingleNamespaceOrTypeDeclaration VisitTypeDeclaration(TypeDeclarationSyntax node, DeclarationKind kind)
         {
+            var parseOptions = (CSharpParseOptions)_syntaxTree.Options;
+
             SingleTypeDeclaration.TypeDeclarationFlags declFlags = node.AttributeLists.Any() ?
                 SingleTypeDeclaration.TypeDeclarationFlags.HasAnyAttributes :
                 SingleTypeDeclaration.TypeDeclarationFlags.None;
@@ -636,6 +638,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
             var quickAttributes = DeclarationTreeBuilder.GetQuickAttributes(node.AttributeLists);
+
+            foreach (var modifier in node.Modifiers)
+            {
+                if (modifier.IsKind(SyntaxKind.StaticKeyword) && kind == DeclarationKind.Class)
+                {
+                    var diagnosticInfo = MessageID.IDS_FeatureStaticClasses.GetFeatureAvailabilityDiagnosticInfo(parseOptions);
+                    if (diagnosticInfo != null)
+                        diagnostics.Add(diagnosticInfo, modifier.GetLocation());
+                }
+            }
 
             return new SingleTypeDeclaration(
                 kind: kind,
