@@ -170,7 +170,7 @@ $$"));
         [Fact]
         public async Task TestInForEach()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"foreach ($$"));
         }
 
@@ -182,14 +182,14 @@ $$"));
         }
 
         [Fact]
-        public async Task TestNotInAwaitForEach()
+        public async Task TestInAwaitForEach()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"await foreach ($$"));
         }
 
         [Fact]
-        public async Task TestNotInAwaitForEach2()
+        public async Task TestNotInAwaitForEach()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"await foreach (var $$"));

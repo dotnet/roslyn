@@ -39,10 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             var token = context.TargetToken;
             switch (token.Kind())
             {
-                //     for (scoped ref var x ...
+                // for (scoped ref var x ...
+                // foreach (scoped ...
                 case SyntaxKind.OpenParenToken:
                     var previous = token.GetPreviousToken(includeSkipped: true);
-                    return previous.IsKind(SyntaxKind.ForKeyword);
+                    return previous.Kind() is SyntaxKind.ForKeyword or SyntaxKind.ForEachKeyword;
 
                 // M(out scoped ..)
                 case SyntaxKind.OutKeyword:
