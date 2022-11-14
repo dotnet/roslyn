@@ -409,6 +409,10 @@ class Program
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
+        /// <summary>
+        /// We want to fix this case and insert the fully qualified namespace
+        /// in a future fix.
+        /// </summary>
         [WpfFact]
         public async Task InsertConsoleSnippetWithPropertyNamedConsoleTest()
         {
