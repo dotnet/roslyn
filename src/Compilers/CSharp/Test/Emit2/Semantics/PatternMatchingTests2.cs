@@ -780,20 +780,19 @@ class Program
             compilation.VerifyDiagnostics(
                 // (8,18): error CS8400: Feature 'parenthesized pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         if (t is (int x)) { }                           // error 1
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int x)").WithArguments("parenthesized pattern", "9.0").WithLocation(8, 18),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(").WithArguments("parenthesized pattern", "9.0").WithLocation(8, 18),
                 // (8,19): error CS8121: An expression of type 'ValueTuple<int>' cannot be handled by a pattern of type 'int'.
                 //         if (t is (int x)) { }                           // error 1
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("System.ValueTuple<int>", "int").WithLocation(8, 19),
                 // (9,27): error CS8400: Feature 'parenthesized pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         switch (t) { case (_): break; }                 // error 2
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(_)").WithArguments("parenthesized pattern", "9.0").WithLocation(9, 27),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(").WithArguments("parenthesized pattern", "9.0").WithLocation(9, 27),
                 // (10,28): error CS8400: Feature 'parenthesized pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         var u = t switch { (int y) => y, _ => 2 };      // error 3
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int y)").WithArguments("parenthesized pattern", "9.0").WithLocation(10, 28),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(").WithArguments("parenthesized pattern", "9.0").WithLocation(10, 28),
                 // (10,29): error CS8121: An expression of type 'ValueTuple<int>' cannot be handled by a pattern of type 'int'.
                 //         var u = t switch { (int y) => y, _ => 2 };      // error 3
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("System.ValueTuple<int>", "int").WithLocation(10, 29)
-                );
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("System.ValueTuple<int>", "int").WithLocation(10, 29));
         }
 
         [Fact]

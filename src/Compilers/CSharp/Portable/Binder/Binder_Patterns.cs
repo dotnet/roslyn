@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ConstantPatternSyntax p => BindConstantPatternWithFallbackToTypePattern(p, inputType, hasErrors, diagnostics),
                 RecursivePatternSyntax p => BindRecursivePattern(p, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics),
                 VarPatternSyntax p => BindVarPattern(p, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics),
-                ParenthesizedPatternSyntax p => BindPattern(p.Pattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics, underIsPattern),
+                ParenthesizedPatternSyntax p => BindParenthesizedPattern(p, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics, underIsPattern),
                 BinaryPatternSyntax p => BindBinaryPattern(p, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics),
                 UnaryPatternSyntax p => BindUnaryPattern(p, inputType, inputValEscape, hasErrors, diagnostics, underIsPattern),
                 RelationalPatternSyntax p => BindRelationalPattern(p, inputType, hasErrors, diagnostics),
@@ -183,6 +183,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SlicePatternSyntax p => BindSlicePattern(p, inputType, inputValEscape, permitDesignations, ref hasErrors, misplaced: true, diagnostics),
                 _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
             };
+        }
+
+        private BoundPattern BindParenthesizedPattern(
+            ParenthesizedPatternSyntax node,
+            TypeSymbol inputType,
+            uint inputValEscape,
+            bool permitDesignations,
+            bool hasErrors,
+            BindingDiagnosticBag diagnostics,
+            bool underIsPattern)
+        {
+            MessageID.IDS_FeatureParenthesizedPattern.CheckFeatureAvailability(diagnostics, node, node.OpenParenToken.GetLocation());
+            return BindPattern(node.Pattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics, underIsPattern);
         }
 
         private BoundPattern BindSlicePattern(
