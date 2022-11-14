@@ -328,11 +328,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case MethodKind.StaticConstructor:
                             break;
                         case MethodKind.Destructor:
-                        case MethodKind.Conversion:
                             // If we're using the metadata format, then include the return type.
                             // Otherwise we eschew it since it is redundant in a conversion
                             // signature.
                             if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames))
+                            {
+                                goto default;
+                            }
+
+                            break;
+
+                        case MethodKind.Conversion:
+                            // If we're using the metadata format, then include the return type.
+                            // Otherwise we eschew it since it is redundant in a conversion
+                            // signature.
+                            if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) ||
+                                tryGetUserDefinedOperatorTokenKind(symbol.MetadataName) == SyntaxKind.None)
                             {
                                 goto default;
                             }
@@ -503,11 +514,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (sourceUserDefinedOperatorSymbolBase is SourceUserDefinedConversionSymbol)
                             {
-                                addUserDefinedConversionName(symbol, operatorName);
+                                addUserDefinedConversionName(symbol, tryGetUserDefinedConversionTokenKind(operatorName), operatorName);
                             }
                             else
                             {
-                                addUserDefinedOperatorName(symbol, operatorName);
+                                addUserDefinedOperatorName(symbol, tryGetUserDefinedOperatorTokenKind(operatorName), operatorName);
                             }
                             break;
                         }
@@ -525,7 +536,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            addUserDefinedOperatorName(symbol, symbol.MetadataName);
+                            SyntaxKind operatorKind = tryGetUserDefinedOperatorTokenKind(symbol.MetadataName);
+
+                            if (operatorKind == SyntaxKind.None)
+                            {
+                                builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, symbol.Name));
+                            }
+                            else
+                            {
+                                addUserDefinedOperatorName(symbol, operatorKind, symbol.MetadataName);
+                            }
                         }
                         break;
                     }
@@ -537,7 +557,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            addUserDefinedConversionName(symbol, symbol.MetadataName);
+                            SyntaxKind conversionKind = tryGetUserDefinedConversionTokenKind(symbol.MetadataName);
+
+                            if (conversionKind == SyntaxKind.None)
+                            {
+                                builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, symbol.Name));
+                            }
+                            else
+                            {
+                                addUserDefinedConversionName(symbol, conversionKind, symbol.MetadataName);
+                            }
                         }
                         break;
                     }
@@ -611,15 +640,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var param in symbol.Parameters)
                 {
-                    // https://github.com/dotnet/roslyn/issues/61647: Use public API.
-                    Debug.Assert((param as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>().Scope switch
-                    {
-                        null => true,
-                        DeclarationScope.Unscoped => param.RefKind != RefKind.Out,
-                        DeclarationScope.RefScoped => param.RefKind == RefKind.Out,
-                        _ => false,
-                    });
-
                     AddParameterRefKind(param.RefKind);
 
                     AddCustomModifiersIfNeeded(param.RefCustomModifiers);
@@ -650,16 +670,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddPunctuation(SyntaxKind.GreaterThanToken);
             }
 
-            void addUserDefinedOperatorName(IMethodSymbol symbol, string operatorName)
+            static SyntaxKind tryGetUserDefinedOperatorTokenKind(string operatorName)
             {
+                if (operatorName == WellKnownMemberNames.TrueOperatorName)
+                {
+                    return SyntaxKind.TrueKeyword;
+                }
+                else if (operatorName == WellKnownMemberNames.FalseOperatorName)
+                {
+                    return SyntaxKind.FalseKeyword;
+                }
+                else
+                {
+                    return SyntaxFacts.GetOperatorKind(operatorName);
+                }
+            }
+
+            void addUserDefinedOperatorName(IMethodSymbol symbol, SyntaxKind operatorKind, string operatorName)
+            {
+                Debug.Assert(operatorKind != SyntaxKind.None);
+
                 AddKeyword(SyntaxKind.OperatorKeyword);
                 AddSpace();
 
-                if (operatorName == WellKnownMemberNames.TrueOperatorName)
+                if (operatorKind == SyntaxKind.TrueKeyword)
                 {
                     AddKeyword(SyntaxKind.TrueKeyword);
                 }
-                else if (operatorName == WellKnownMemberNames.FalseOperatorName)
+                else if (operatorKind == SyntaxKind.FalseKeyword)
                 {
                     AddKeyword(SyntaxKind.FalseKeyword);
                 }
@@ -672,40 +710,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol,
-                        SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(operatorName))));
+                        SyntaxFacts.GetText(operatorKind)));
                 }
             }
 
-            void addUserDefinedConversionName(IMethodSymbol symbol, string operatorName)
+            static SyntaxKind tryGetUserDefinedConversionTokenKind(string operatorName)
             {
-                // "System.IntPtr.explicit operator System.IntPtr(int)"
-
-                bool isChecked = false;
-
-                if (operatorName == WellKnownMemberNames.ExplicitConversionName)
+                if (operatorName is WellKnownMemberNames.ExplicitConversionName or WellKnownMemberNames.CheckedExplicitConversionName)
                 {
-                    AddKeyword(SyntaxKind.ExplicitKeyword);
-                }
-                else if (operatorName == WellKnownMemberNames.CheckedExplicitConversionName)
-                {
-                    isChecked = true;
-                    AddKeyword(SyntaxKind.ExplicitKeyword);
+                    return SyntaxKind.ExplicitKeyword;
                 }
                 else if (operatorName == WellKnownMemberNames.ImplicitConversionName)
                 {
-                    AddKeyword(SyntaxKind.ImplicitKeyword);
+                    return SyntaxKind.ImplicitKeyword;
                 }
                 else
                 {
-                    builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol,
-                        SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(operatorName))));
+                    return SyntaxKind.None;
                 }
+            }
+
+            void addUserDefinedConversionName(IMethodSymbol symbol, SyntaxKind conversionKind, string operatorName)
+            {
+                // "System.IntPtr.explicit operator System.IntPtr(int)"
+
+                Debug.Assert(conversionKind != SyntaxKind.None);
+                AddKeyword(conversionKind);
 
                 AddSpace();
                 AddKeyword(SyntaxKind.OperatorKeyword);
                 AddSpace();
 
-                if (isChecked)
+                if (operatorName == WellKnownMemberNames.CheckedExplicitConversionName)
                 {
                     AddKeyword(SyntaxKind.CheckedKeyword);
                     AddSpace();
@@ -779,8 +815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddParameterRefKindIfNeeded(symbol);
                 AddCustomModifiersIfNeeded(symbol.RefCustomModifiers, leadingSpace: false, trailingSpace: true);
 
-                // https://github.com/dotnet/roslyn/issues/61647: Use public API.
-                if ((symbol as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>().Scope == DeclarationScope.ValueScoped &&
+                if (symbol.ScopedKind == ScopedKind.ScopedValue &&
                     format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
                 {
                     AddKeyword(SyntaxKind.ScopedKeyword);
@@ -824,6 +859,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddPunctuation(SyntaxKind.CloseBracketToken);
             }
         }
+
+#nullable enable
 
         private static bool CanAddConstant(ITypeSymbol type, object value)
         {
@@ -1078,13 +1115,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
             {
-                // https://github.com/dotnet/roslyn/issues/61647: Use public API.
-                if ((symbol as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>().Scope == DeclarationScope.RefScoped &&
-                    symbol.RefKind != RefKind.Out &&
+                if (symbol.ScopedKind == ScopedKind.ScopedRef &&
+                    !symbol.IsThis &&
                     format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
                 {
-                    AddKeyword(SyntaxKind.ScopedKeyword);
-                    AddSpace();
+                    var parameter = (symbol as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>();
+                    if (parameter is null || !ParameterHelpers.IsRefScopedByDefault(parameter))
+                    {
+                        AddKeyword(SyntaxKind.ScopedKeyword);
+                        AddSpace();
+                    }
                 }
 
                 AddParameterRefKind(symbol.RefKind);

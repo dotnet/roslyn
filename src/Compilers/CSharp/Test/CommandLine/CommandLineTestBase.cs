@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -45,24 +44,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             }
         }
 
-        internal CSharpCommandLineArguments DefaultParse(IEnumerable<string> args, string baseDirectory, string sdkDirectory = null, string additionalReferenceDirectories = null)
+        internal CSharpCommandLineArguments DefaultParse(IEnumerable<string> args, string baseDirectory, string? sdkDirectory = null, string? additionalReferenceDirectories = null)
         {
             sdkDirectory = sdkDirectory ?? SdkDirectory;
             return CSharpCommandLineParser.Default.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);
         }
 
-        internal MockCSharpCompiler CreateCSharpCompiler(string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, AnalyzerAssemblyLoader loader = null, GeneratorDriverCache driverCache = null)
+        internal MockCSharpCompiler CreateCSharpCompiler(string[] args, DiagnosticAnalyzer[]? analyzers = null, ISourceGenerator[]? generators = null, AnalyzerAssemblyLoader? loader = null, GeneratorDriverCache? driverCache = null)
         {
             // <Metalama>
             return CreateCSharpCompiler(null, WorkingDirectory, args, analyzers, generators, default, loader, driverCache);
             // </Metalama>
         }
 
-        internal MockCSharpCompiler CreateCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null, GeneratorDriverCache driverCache = null, bool bypassLicensing = true)
+        // <Metalama /> Method signature modified.
+        internal MockCSharpCompiler CreateCSharpCompiler(string? responseFile, string workingDirectory, string[] args, DiagnosticAnalyzer[]? analyzers = null, ISourceGenerator[]? generators = null, ISourceTransformer[]? transformers = null, AnalyzerAssemblyLoader? loader = null, GeneratorDriverCache? driverCache = null, bool bypassLicensing = true)
         {
             var buildPaths = RuntimeUtilities.CreateBuildPaths(workingDirectory, sdkDirectory: SdkDirectory);
             // <Metalama>
-            return new MockCSharpCompiler(responseFile, buildPaths, args, analyzers, generators, transformers, loader, driverCache, bypassLicensing);
+            return new MockCSharpCompiler(responseFile, buildPaths, args, analyzers.AsImmutableOrEmpty(), generators.AsImmutableOrEmpty(), transformers.AsImmutableOrEmpty(), loader, driverCache, bypassLicensing);
             // </Metalama>
         }
     }

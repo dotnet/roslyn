@@ -290,9 +290,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Creates a token with kind IdentifierToken containing the specified text.
-        /// <param name="text">The raw text of the identifier name, including any escapes or leading '@'
-        /// character.</param>
         /// </summary>
+        /// <param name="text">The raw text of the identifier name, including any escapes or leading '@' character.</param>        
         public static SyntaxToken Identifier(string text)
         {
             return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Identifier(ElasticMarker.UnderlyingNode, text, ElasticMarker.UnderlyingNode));

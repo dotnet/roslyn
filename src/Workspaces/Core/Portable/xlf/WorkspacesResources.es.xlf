@@ -67,6 +67,11 @@
         <target state="translated">Error al leer el contenido del archivo de origen "{0}"--"{1}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="Failed_to_resolve_rename_conflicts">
+        <source>Failed to resolve rename conflicts</source>
+        <target state="translated">No se pudieron resolver los conflictos de cambio de nombre</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FixAllScope_ContainingType_and_FixAllScope_ContainingMember_are_not_supported_with_this_constructor">
         <source>'FixAllScope.ContainingType' and 'FixAllScope.ContainingMember' are not supported with this constructor</source>
         <target state="translated">'FixAllScope.ContainingType' y 'FixAllScope.ContainingMember' no se admiten con este constructor</target>
@@ -445,11 +450,6 @@
       <trans-unit id="Specified_path_must_be_absolute">
         <source>Specified path must be absolute.</source>
         <target state="translated">La ruta de acceso especificada debe ser absoluta.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Name_can_be_simplified">
-        <source>Name can be simplified.</source>
-        <target state="translated">El nombre se puede simplificar.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_identifier">

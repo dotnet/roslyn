@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             // Set the flag to true by default if we're showing the option.
             _isReplacementTextValid = true;
-            ComputeDefaultRenameFileFlag();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -58,14 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             _isReplacementTextValid = isReplacementTextValid;
-            ComputeDefaultRenameFileFlag();
             NotifyPropertyChanged(nameof(AllowFileRename));
-        }
-
-        private void ComputeDefaultRenameFileFlag()
-        {
-            // If replacementText is invalid, we won't rename the file.
-            DefaultRenameFileFlag = _isReplacementTextValid && AllowFileRename && _session.Options.RenameFile;
         }
 
         private void OnReplacementsComputed(object sender, IInlineRenameReplacementInfo result)

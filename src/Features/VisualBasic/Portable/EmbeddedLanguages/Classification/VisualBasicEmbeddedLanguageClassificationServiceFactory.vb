@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
     <ExportLanguageService(GetType(IEmbeddedLanguageClassificationService), LanguageNames.VisualBasic), [Shared]>

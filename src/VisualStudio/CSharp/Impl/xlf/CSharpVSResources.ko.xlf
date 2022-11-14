@@ -182,6 +182,11 @@
         <target state="translated">가져오지 않은 네임스페이스의 항목 표시</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_new_snippet_experience_experimental">
+        <source>Show new snippet experience (experimental)</source>
+        <target state="translated">새 코드 조각 환경 표시(실험적)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
         <source>Show remarks in Quick Info</source>
         <target state="translated">요약 정보에 설명 표시</target>

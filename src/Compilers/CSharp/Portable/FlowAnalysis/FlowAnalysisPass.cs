@@ -113,11 +113,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundStatement>.GetInstance(implicitlyInitializedFields.Length);
             foreach (var field in implicitlyInitializedFields)
             {
-                builder.Add(
-                    F.ExpressionStatement(
-                        F.AssignmentExpression(
-                            F.Field(F.This(), field),
-                            F.Default(field.Type))));
+                if (field.RefKind == RefKind.None)
+                {
+                    // field = default(T);
+                    builder.Add(
+                        F.ExpressionStatement(
+                            F.AssignmentExpression(
+                                F.Field(F.This(), field),
+                                F.Default(field.Type))));
+                }
+                else
+                {
+                    // field = ref *default(T*);
+                    builder.Add(
+                        F.ExpressionStatement(
+                            F.AssignmentExpression(
+                                F.Field(F.This(), field),
+                                F.NullRef(field.TypeWithAnnotations),
+                                isRef: true)));
+                }
             }
             var initializations = F.HiddenSequencePoint(F.Block(builder.ToImmutableAndFree()));
 

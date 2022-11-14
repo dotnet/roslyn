@@ -110,9 +110,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function GenerateAwaitForIncompleteTask(awaiterTemp As LocalSymbol) As BoundBlock
-                Dim stateNumber As Integer = 0
+                Dim state As StateMachineState = 0
                 Dim resumeLabel As GeneratedLabelSymbol = Nothing
-                AddResumableState(awaiterTemp.GetDeclaratorSyntax(), stateNumber, resumeLabel)
+                AddResumableState(awaiterTemp.GetDeclaratorSyntax(), state, resumeLabel)
 
                 Dim awaiterType As TypeSymbol = awaiterTemp.Type
                 Dim awaiterFieldType As TypeSymbol = awaiterType
@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 blockBuilder.Add(
                     Me.F.Assignment(
                         Me.F.Field(Me.F.Me(), Me.StateField, True),
-                        Me.F.AssignmentExpression(Me.F.Local(Me.CachedState, True), Me.F.Literal(stateNumber))))
+                        Me.F.AssignmentExpression(Me.F.Local(Me.CachedState, True), Me.F.Literal(state))))
 
                 ' Emit Await yield point to be injected into PDB
                 blockBuilder.Add(Me.F.NoOp(NoOpStatementFlavor.AwaitYieldPoint))
@@ -253,7 +253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 blockBuilder.Add(
                     Me.F.Assignment(
                         Me.F.Field(Me.F.Me(), Me.StateField, True),
-                        Me.F.AssignmentExpression(Me.F.Local(Me.CachedState, True), Me.F.Literal(StateMachineStates.NotStartedStateMachine))))
+                        Me.F.AssignmentExpression(Me.F.Local(Me.CachedState, True), Me.F.Literal(StateMachineState.NotStartedOrRunningState))))
 
                 ' STMT:   $awaiterTemp = Me.$awaiter
                 '  or   

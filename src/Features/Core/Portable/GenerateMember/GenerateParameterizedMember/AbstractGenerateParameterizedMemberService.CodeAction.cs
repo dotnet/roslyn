@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var syntaxFactory = _document.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language).GetService<SyntaxGenerator>();
+                var syntaxFactory = _document.Project.Solution.Services.GetLanguageServices(_state.TypeToGenerateIn.Language).GetService<SyntaxGenerator>();
 
                 if (_generateProperty)
                 {

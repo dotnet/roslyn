@@ -37,11 +37,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DiagnosticsSquiggleTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
+            IDiagnosticAnalyzerService analyzerService,
             IGlobalOptionService globalOptions,
             [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, diagnosticService, globalOptions, visibilityTracker, listenerProvider)
+            : base(threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listenerProvider)
         {
+        }
+
+        protected internal override bool SupportsDignosticMode(DiagnosticMode mode)
+        {
+            // We only support push diagnostics.  When pull diagnostics are on, squiggles are handled by the lsp client.
+            return mode == DiagnosticMode.Push;
         }
 
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)

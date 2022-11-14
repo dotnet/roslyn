@@ -1043,14 +1043,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return node.Parent.FirstAncestorOrSelf(Of TypeBlockSyntax)() ' TODO: EnbumBlock?
         End Function
 
-        Friend Overrides Function TryGetAssociatedMemberDeclaration(node As SyntaxNode, <Out> ByRef declaration As SyntaxNode) As Boolean
+        Friend Overrides Function TryGetAssociatedMemberDeclaration(node As SyntaxNode, editKind As EditKind, <Out> ByRef declaration As SyntaxNode) As Boolean
             If node.IsKind(SyntaxKind.Parameter, SyntaxKind.TypeParameter) Then
                 Contract.ThrowIfFalse(node.IsParentKind(SyntaxKind.ParameterList, SyntaxKind.TypeParameterList))
                 declaration = node.Parent.Parent
                 Return True
             End If
 
-            If node.IsParentKind(SyntaxKind.PropertyBlock, SyntaxKind.EventBlock) Then
+            ' We allow deleting event and property accessors, so don't associate them
+            If editKind <> EditKind.Delete AndAlso node.IsParentKind(SyntaxKind.PropertyBlock, SyntaxKind.EventBlock) Then
                 declaration = node.Parent
                 Return True
             End If

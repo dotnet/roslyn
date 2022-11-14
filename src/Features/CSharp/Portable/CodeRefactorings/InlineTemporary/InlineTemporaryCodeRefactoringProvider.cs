@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, _, cancellationToken) = context;
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
@@ -108,17 +108,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             if (IsInDeconstructionAssignmentLeft(identifierNode))
                 return true;
 
-            if (identifierNode.IsParentKind(SyntaxKind.Argument, out ArgumentSyntax argument))
+            if (identifierNode?.Parent is ArgumentSyntax argument)
             {
                 if (argument.RefOrOutKeyword.Kind() != SyntaxKind.None)
                     return true;
             }
-            else if (identifierNode.Parent.IsKind(
-                SyntaxKind.PreDecrementExpression,
-                SyntaxKind.PreIncrementExpression,
-                SyntaxKind.PostDecrementExpression,
-                SyntaxKind.PostIncrementExpression,
-                SyntaxKind.AddressOfExpression))
+            else if (identifierNode.Parent.Kind() is
+                SyntaxKind.PreDecrementExpression or
+                SyntaxKind.PreIncrementExpression or
+                SyntaxKind.PostDecrementExpression or
+                SyntaxKind.PostIncrementExpression or
+                SyntaxKind.AddressOfExpression)
             {
                 return true;
             }
@@ -136,8 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
         private static async Task<Document> InlineTemporaryAsync(Document document, VariableDeclaratorSyntax declarator, CancellationToken cancellationToken)
         {
-            var workspace = document.Project.Solution.Workspace;
-
             // Create the expression that we're actually going to inline.
             var expressionToInline = await CreateExpressionToInlineAsync(document, declarator, cancellationToken).ConfigureAwait(false);
             expressionToInline = expressionToInline.Parenthesize().WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation, ExpressionAnnotation);
@@ -243,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             // After refactoring:
             //     M().P = 0;
             //     var x = M();
-            if (descendantNodesAndSelf.Any(n => n.IsKind(SyntaxKind.ObjectCreationExpression, SyntaxKind.InvocationExpression)))
+            if (descendantNodesAndSelf.Any(n => n.Kind() is SyntaxKind.ObjectCreationExpression or SyntaxKind.InvocationExpression))
             {
                 return true;
             }
@@ -330,13 +328,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             var leadingTrivia = localDeclaration
                 .GetLeadingTrivia()
                 .Reverse()
-                .SkipWhile(t => t.MatchesKind(SyntaxKind.WhitespaceTrivia))
+                .SkipWhile(t => t.IsKind(SyntaxKind.WhitespaceTrivia))
                 .Reverse()
                 .ToSyntaxTriviaList();
 
             var trailingTrivia = localDeclaration
                 .GetTrailingTrivia()
-                .SkipWhile(t => t.MatchesKind(SyntaxKind.WhitespaceTrivia, SyntaxKind.EndOfLineTrivia))
+                .SkipWhile(t => t is (kind: SyntaxKind.WhitespaceTrivia or SyntaxKind.EndOfLineTrivia))
                 .ToSyntaxTriviaList();
 
             var newLeadingTrivia = leadingTrivia.Concat(trailingTrivia);
@@ -351,14 +349,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             // If the local is parented by a label statement, we can't remove this statement. Instead,
             // we'll replace the local declaration with an empty expression statement.
-            if (newLocalDeclaration.IsParentKind(SyntaxKind.LabeledStatement, out LabeledStatementSyntax labeledStatement))
+            if (newLocalDeclaration?.Parent is LabeledStatementSyntax labeledStatement)
             {
                 var newLabeledStatement = labeledStatement.ReplaceNode(newLocalDeclaration, SyntaxFactory.ParseStatement(""));
                 return newScope.ReplaceNode(labeledStatement, newLabeledStatement);
             }
 
             // If the local is parented by a global statement, we need to remove the parent global statement.
-            if (newLocalDeclaration.IsParentKind(SyntaxKind.GlobalStatement, out GlobalStatementSyntax globalStatement))
+            if (newLocalDeclaration?.Parent is GlobalStatementSyntax globalStatement)
             {
                 return newScope.RemoveNode(globalStatement, SyntaxRemoveOptions.KeepNoTrivia);
             }
@@ -386,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 var type = localSymbol.Type.GenerateTypeSyntax();
                 return SyntaxFactory.ObjectCreationExpression(implicitCreation.NewKeyword, type, implicitCreation.ArgumentList, implicitCreation.Initializer);
             }
-            else if (expression.IsKind(SyntaxKind.ArrayInitializerExpression, out InitializerExpressionSyntax arrayInitializer))
+            else if (expression is InitializerExpressionSyntax(SyntaxKind.ArrayInitializerExpression) arrayInitializer)
             {
                 // If this is an array initializer, we need to transform it into an array creation
                 // expression for inlining.
@@ -425,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
         private static bool IsInDeconstructionAssignmentLeft(ExpressionSyntax node)
         {
             var parent = node.Parent;
-            while (parent.IsKind(SyntaxKind.ParenthesizedExpression, SyntaxKind.CastExpression))
+            while (parent.Kind() is SyntaxKind.ParenthesizedExpression or SyntaxKind.CastExpression)
                 parent = parent.Parent;
 
             while (parent.IsKind(SyntaxKind.Argument))
@@ -435,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 {
                     return false;
                 }
-                else if (parent.IsParentKind(SyntaxKind.SimpleAssignmentExpression, out AssignmentExpressionSyntax assignment))
+                else if (parent?.Parent is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) assignment)
                 {
                     return assignment.Left == parent;
                 }

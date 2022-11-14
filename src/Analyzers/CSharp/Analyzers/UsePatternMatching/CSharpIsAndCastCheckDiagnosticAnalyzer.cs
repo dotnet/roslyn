@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             : base(IDEDiagnosticIds.InlineIsTypeCheckId,
                    EnforceOnBuildValues.InlineIsType,
                    CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -165,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return false;
             }
 
-            if (!ifStatement.Statement.IsKind(SyntaxKind.Block, out BlockSyntax? ifBlock))
+            if (ifStatement.Statement is not BlockSyntax ifBlock)
             {
                 return false;
             }

@@ -36,78 +36,95 @@ pr:
       - eng/config/PublishData.json
       - .vscode/*
       - .github/*
-      - .devcontainer/
+      - .devcontainer/*
       - .git-blame-ignore-revs
       - .vsconfig
       - CODE-OF-CONDUCT.md
       - CONTRIBUTING.md
       - README.md
-
-variables:
+      - src/Compilers/*
+ 
+parameters:
 - name: poolName
-  value: NetCore-Svc-Public
+  displayName: Pool Name
+  type: string
+  default: NetCore-Public
+  values:
+  - NetCore-Public
+  - NetCore-Svc-Public
 - name: queueName
-  value: windows.vs2022.amd64.open 
+  displayName: Queue Name
+  type: string
+  default: windows.vs2022preview.amd64.open
+  values:
+  - windows.vs2022.amd64.open
+  - windows.vs2022.scout.amd64.open
+  - windows.vs2022preview.amd64.open
+  - windows.vs2022preview.scout.amd64.open
+- name: timeout
+  displayName: Timeout in Minutes
+  type: number
+  default: 150
 
-jobs:
-- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-  - job: VS_Integration_Debug_32
+stages:
+- stage: Debug_Integration
+  dependsOn: []
+  variables:
+  - name: XUNIT_LOGS
+    value: $(Build.SourcesDirectory)\artifacts\log\Debug
+  jobs:
+  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+    - job: VS_Integration_Debug_32
+      pool:
+        name: ${{ parameters.poolName }}
+        demands: ImageOverride -equals ${{ parameters.queueName }}
+      timeoutInMinutes: ${{ parameters.timeout }}
+      steps:
+        - template: eng/pipelines/test-integration-job.yml
+          parameters:
+            configuration: Debug
+            oop64bit: false
+            lspEditor: false
+
+  - job: VS_Integration_Debug_64
     pool:
-      name: $(poolName)
-      demands: ImageOverride -equals $(queueName)
-    timeoutInMinutes: 150
-    variables:
-      - name: XUNIT_LOGS
-        value: $(Build.SourcesDirectory)\artifacts\log\Debug
+      name: ${{ parameters.poolName }}
+      demands: ImageOverride -equals ${{ parameters.queueName }}
+    timeoutInMinutes: ${{ parameters.timeout }}
     steps:
       - template: eng/pipelines/test-integration-job.yml
         parameters:
           configuration: Debug
-          oop64bit: false
+          oop64bit: true
           lspEditor: false
 
-- job: VS_Integration_Debug_64
-  pool:
-    name: $(poolName)
-    demands: ImageOverride -equals $(queueName)
-  timeoutInMinutes: 150
+- stage: Release_Integration
+  dependsOn: []
   variables:
-    - name: XUNIT_LOGS
-      value: $(Build.SourcesDirectory)\artifacts\log\Debug
-  steps:
-    - template: eng/pipelines/test-integration-job.yml
-      parameters:
-        configuration: Debug
-        oop64bit: true
-        lspEditor: false
-
-- job: VS_Integration_Release_32
-  pool:
-    name: $(poolName)
-    demands: ImageOverride -equals $(queueName)
-  timeoutInMinutes: 150
-  variables:
-    - name: XUNIT_LOGS
-      value: $(Build.SourcesDirectory)\artifacts\log\Release
-  steps:
-    - template: eng/pipelines/test-integration-job.yml
-      parameters:
-        configuration: Release
-        oop64bit: false
-        lspEditor: false
-
-- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-  - job: VS_Integration_Release_64
+  - name: XUNIT_LOGS
+    value: $(Build.SourcesDirectory)\artifacts\log\Release
+  jobs:
+  - job: VS_Integration_Release_32
     pool:
-      name: $(poolName)
-      demands: ImageOverride -equals $(queueName)
-    timeoutInMinutes: 150
-    variables:
-      - name: XUNIT_LOGS
-        value: $(Build.SourcesDirectory)\artifacts\log\Release
+      name: ${{ parameters.poolName }}
+      demands: ImageOverride -equals ${{ parameters.queueName }}
+    timeoutInMinutes: ${{ parameters.timeout }}
     steps:
       - template: eng/pipelines/test-integration-job.yml
         parameters:
           configuration: Release
-          oop64bit: true
+          oop64bit: false
           lspEditor: false
+
+  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+    - job: VS_Integration_Release_64
+      pool:
+        name: ${{ parameters.poolName }}
+        demands: ImageOverride -equals ${{ parameters.queueName }}
+      timeoutInMinutes: ${{ parameters.timeout }}
+      steps:
+        - template: eng/pipelines/test-integration-job.yml
+          parameters:
+            configuration: Release
+            oop64bit: true
+            lspEditor: false

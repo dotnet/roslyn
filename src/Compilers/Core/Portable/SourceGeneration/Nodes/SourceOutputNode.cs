@@ -43,12 +43,12 @@ namespace Microsoft.CodeAnalysis
             {
                 if (graphState.DriverState.TrackIncrementalSteps)
                 {
-                    return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, stepName);
+                    return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, stepName, EqualityComparer<TOutput>.Default);
                 }
                 return previousTable;
             }
 
-            var nodeTable = graphState.CreateTableBuilder(previousTable, stepName);
+            var nodeTable = graphState.CreateTableBuilder(previousTable, stepName, EqualityComparer<TOutput>.Default);
             foreach (var entry in sourceTable)
             {
                 var inputs = nodeTable.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;

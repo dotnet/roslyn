@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
         End Sub
 
         Public Overrides Function ShouldUpdateAccessibilityModifier(
-                accessibilityFacts As CodeAnalysis.LanguageServices.IAccessibilityFacts,
+                accessibilityFacts As CodeAnalysis.LanguageService.IAccessibilityFacts,
                 member As StatementSyntax,
                 [option] As AccessibilityModifiersRequired,
                 ByRef name As SyntaxToken) As Boolean

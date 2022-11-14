@@ -42,6 +42,8 @@ Below are the versions of the language available in the NuGet packages. Remember
 
 See the [history of C# language features](https://github.com/dotnet/csharplang/blob/main/Language-Version-History.md) for more details.
 
+See the [.NET SDK, MSBuild, and Visual Studio versioning](https://docs.microsoft.com/dotnet/core/porting/versioning-sdk-msbuild-vs#lifecycle) docs page for details of SDK versioning. 
+
 ## Other packages
 
 A few other packages are relevant or related to Roslyn, but are not produced from the Roslyn repo.

@@ -14,18 +14,13 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The expression has not been analyzed, or the syntax is
         /// not an expression (such as a statement).
+        /// <para>There are a few different reasons the expression could have not been analyzed:
+        /// </para>
+        /// <list type="number">
+        /// <item><description>The symbol producing the expression comes from a method that has not been annotated, such as invoking a C# 7.3 or earlier method, or a method in this compilation that is in a disabled context.</description></item>
+        /// <item><description>Nullable is completely disabled in this compilation.</description></item>
+        /// </list>
         /// </summary>
-        /// <remarks>
-        /// There are a few different reasons the expression could
-        /// have not been analyzed:
-        ///     1) The symbol producing the expression comes from
-        ///        a method that has not been annotated, such as
-        ///        invoking a C# 7.3 or earlier method, or a
-        ///        method in this compilation that is in a disabled
-        ///        context.
-        ///     2) Nullable is completely disabled in this
-        ///        compilation.
-        /// </remarks>
         None = 0,
         /// <summary>
         /// The expression is not annotated (does not have a ?).

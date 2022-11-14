@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -11,16 +9,17 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
+    [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public class ElseKeywordRecommenderTests : KeywordRecommenderTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAtRoot_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterClass_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterGlobalStatement_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
@@ -36,7 +35,7 @@ $$");
 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
@@ -44,21 +43,21 @@ $$");
 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
 @"using Goo = $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInGlobalUsingAlias()
         {
             await VerifyAbsenceAsync(
 @"global using Goo = $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInPreprocessor1()
         {
             await VerifyAbsenceAsync(
@@ -66,7 +65,7 @@ $$");
 #if $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInPreprocessorFollowedBySkippedTokens()
         {
             await VerifyKeywordAsync(
@@ -76,28 +75,28 @@ dasd
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInEmptyStatement()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterHash()
         {
             await VerifyKeywordAsync(
 @"#$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterHashAndSpace()
         {
             await VerifyKeywordAsync(
 @"# $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterIf()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -105,7 +104,7 @@ dasd
 $$"));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
@@ -117,7 +116,7 @@ $@"if (true)
 $$"));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
@@ -130,7 +129,7 @@ $$
 else"));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
@@ -143,7 +142,7 @@ $@"if (true)
     $$"));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
@@ -157,8 +156,7 @@ $@"if (true)
     else"));
         }
 
-        [WorkItem(25336, "https://github.com/dotnet/roslyn/issues/25336")]
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory, WorkItem(25336, "https://github.com/dotnet/roslyn/issues/25336")]
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
@@ -173,8 +171,7 @@ $@"if (true)
 $$"));
         }
 
-        [WorkItem(25336, "https://github.com/dotnet/roslyn/issues/25336")]
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory, WorkItem(25336, "https://github.com/dotnet/roslyn/issues/25336")]
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
@@ -190,7 +187,7 @@ $$
 else"));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
@@ -207,7 +204,7 @@ else
 $$"));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
@@ -220,7 +217,7 @@ else
     $$"));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
@@ -234,7 +231,7 @@ else
 $$"));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
@@ -249,7 +246,7 @@ else
     $$"));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
@@ -265,7 +262,7 @@ else
     else"));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
@@ -282,7 +279,7 @@ else
 $$"));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
@@ -299,7 +296,7 @@ $@"while (true)
     $$"));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
@@ -317,7 +314,7 @@ $@"while (true)
     else"));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
@@ -336,7 +333,7 @@ $@"while (true)
 $$"));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [InlineData("Console")]
         [InlineData("Console.")]
         [InlineData("Console.WriteLine(")]
@@ -356,7 +353,7 @@ $@"if (true)
 $$"));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [InlineData("Console")]
         [InlineData("Console.")]
         [InlineData("Console.WriteLine(")]
@@ -377,7 +374,7 @@ $@"if (true)
     $$"));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [InlineData("Console")]
         [InlineData("Console.")]
         [InlineData("Console.WriteLine(")]
@@ -400,7 +397,7 @@ $@"if (true)
 $$"));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
@@ -415,7 +412,7 @@ $@"if (true)
 $$"));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
@@ -431,7 +428,7 @@ $$
 else"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInsideStatement()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -440,7 +437,7 @@ else"));
 "));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterSkippedToken()
         {
             await VerifyAbsenceAsync(AddInsideMethod(

@@ -342,7 +342,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             // Format document
             var unformattedText = await addedDocument.GetTextAsync(cancellationToken).ConfigureAwait(true);
-            var formattedRoot = Formatter.Format(rootToFormat, workspace.Services, cleanupOptions.FormattingOptions, cancellationToken);
+            var formattedRoot = Formatter.Format(rootToFormat, workspace.Services.SolutionServices, cleanupOptions.FormattingOptions, cancellationToken);
             var formattedText = formattedRoot.GetText(unformattedText.Encoding, unformattedText.ChecksumAlgorithm);
 
             // Ensure the line endings are normalized. The formatter doesn't touch everything if it doesn't need to.

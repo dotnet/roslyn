@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Options
 
             var codeStyleOption = new CodeStyleOption<T>(option.DefaultValue);
             var optionDefinition = new OptionDefinition(option.Feature, option.Group, option.Name,
-                defaultValue: codeStyleOption, type: typeof(CodeStyleOption<T>), isPerLanguage: false);
+                defaultValue: codeStyleOption, type: typeof(CodeStyleOption<T>));
             return new Option<CodeStyleOption<T>>(optionDefinition, option.StorageLocations.As<OptionStorageLocation>());
         }
 
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Options
 
             var codeStyleOption = new CodeStyleOption<T>(option.DefaultValue);
             var optionDefinition = new OptionDefinition(option.Feature, option.Group, option.Name,
-                defaultValue: codeStyleOption, type: typeof(CodeStyleOption<T>), isPerLanguage: true);
+                defaultValue: codeStyleOption, type: typeof(CodeStyleOption<T>));
             return new PerLanguageOption<CodeStyleOption<T>>(optionDefinition, option.StorageLocations.As<OptionStorageLocation>());
         }
     }

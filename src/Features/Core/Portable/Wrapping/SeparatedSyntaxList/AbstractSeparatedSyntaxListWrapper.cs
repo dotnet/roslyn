@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             Document document, int position, SyntaxNode declaration, SyntaxWrappingOptions options, bool containsSyntaxError, CancellationToken cancellationToken)
         {
             var listSyntax = TryGetApplicableList(declaration);
-            if (listSyntax == null)
+            if (listSyntax == null || listSyntax.Span.IsEmpty)
                 return null;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

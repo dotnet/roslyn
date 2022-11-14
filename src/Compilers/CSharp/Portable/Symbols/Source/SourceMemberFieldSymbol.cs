@@ -46,7 +46,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected void TypeChecks(TypeSymbol type, BindingDiagnosticBag diagnostics)
         {
-            if (type.IsStatic)
+            if (type.HasFileLocalTypes() && !ContainingType.HasFileLocalTypes())
+            {
+                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, this.ErrorLocation, type, ContainingType);
+            }
+            else if (type.IsStatic)
             {
                 // Cannot declare a variable of static type '{0}'
                 diagnostics.Add(ErrorCode.ERR_VarDeclIsStaticClass, this.ErrorLocation, type);
@@ -162,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var errorLocation = new SourceLocation(firstIdentifier);
             DeclarationModifiers result = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
-                isForTypeDeclaration: false, isForInterfaceMember: isInterface,
+                isOrdinaryMethod: false, isForInterfaceMember: isInterface,
                 modifiers, defaultAccess, allowedModifiers, errorLocation, diagnostics, out modifierErrors);
 
             if ((result & DeclarationModifiers.Abstract) != 0)
@@ -439,12 +443,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var declarator = VariableDeclaratorNode;
             var fieldSyntax = GetFieldDeclaration(declarator);
             var typeSyntax = fieldSyntax.Declaration.Type;
-
             var compilation = this.DeclaringCompilation;
 
             var diagnostics = BindingDiagnosticBag.GetInstance();
             RefKind refKind = RefKind.None;
             TypeWithAnnotations type;
+
+            if (typeSyntax is ScopedTypeSyntax scopedType)
+            {
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, ErrorLocation, SyntaxFacts.GetText(SyntaxKind.ScopedKeyword));
+            }
 
             // When we have multiple declarators, we report the type diagnostics on only the first.
             var diagnosticsForFirstDeclarator = BindingDiagnosticBag.GetInstance();
@@ -475,15 +483,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 binder = binder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
                 if (!ContainingType.IsScriptClass)
                 {
-                    var typeOnly = typeSyntax.SkipRef(out refKind);
+                    var typeOnly = typeSyntax.SkipScoped(out _).SkipRef(out refKind);
                     Debug.Assert(refKind is RefKind.None or RefKind.Ref or RefKind.RefReadOnly);
                     type = binder.BindType(typeOnly, diagnosticsForFirstDeclarator);
                     if (refKind != RefKind.None)
                     {
-                        MessageID.IDS_FeatureRefFields.CheckFeatureAvailability(diagnostics, compilation, typeSyntax.Location);
+                        MessageID.IDS_FeatureRefFields.CheckFeatureAvailability(diagnostics, compilation, typeSyntax.SkipScoped(out _).Location);
+                        if (!compilation.Assembly.RuntimeSupportsByRefFields)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, ErrorLocation);
+                        }
+
+                        if (!containingType.IsRefLikeType)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_RefFieldInNonRefStruct, ErrorLocation);
+                        }
                         if (type.Type?.IsRefLikeType == true)
                         {
-                            diagnostics.Add(ErrorCode.ERR_RefFieldCannotReferToRefStruct, typeSyntax.Location);
+                            diagnostics.Add(ErrorCode.ERR_RefFieldCannotReferToRefStruct, typeSyntax.SkipScoped(out _).Location);
                         }
                     }
                 }

@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var reference = analyzerReference ?? new MockAnalyzerReference();
             var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
             document = project.Documents.Single();
-            extensionManager = (EditorLayerExtensionManager.ExtensionManager)document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+            extensionManager = (EditorLayerExtensionManager.ExtensionManager)document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
         }
 
         private static IEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> CreateFixers()

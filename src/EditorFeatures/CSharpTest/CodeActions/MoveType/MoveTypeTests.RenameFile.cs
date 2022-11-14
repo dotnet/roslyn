@@ -11,9 +11,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
     public partial class MoveTypeTests : CSharpMoveTypeTestsBase
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public async Task SingleClassInFile_RenameFile()
         {
             var code =
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public async Task MoreThanOneTypeInFile_RenameFile()
         {
             var code =
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
         }
 
         [WorkItem(16284, "https://github.com/dotnet/roslyn/issues/16284")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public async Task MoreThanOneTypeInFile_RenameFile_InnerType()
         {
             var code =
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public async Task TestRenameFileWithFolders()
         {
             var code =
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
                 destinationDocumentContainers: new[] { "A", "B" });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public async Task TestMissing_TypeNameMatchesFileName_RenameFile()
         {
             // testworkspace creates files like test1.cs, test2.cs and so on.. 
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             await TestRenameFileToMatchTypeAsync(code, expectedCodeAction: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public async Task TestMissing_MultipleTopLevelTypesInFileAndAtleastOneMatchesFileName_RenameFile()
         {
             var code =
@@ -96,7 +97,7 @@ class test1 { }";
             await TestRenameFileToMatchTypeAsync(code, expectedCodeAction: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public async Task MultipleTopLevelTypesInFileAndNoneMatchFileName_RenameFile()
         {
             var code =
@@ -108,7 +109,7 @@ class Class2 { }";
             await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public async Task MultipleTopLevelTypesInFileAndNoneMatchFileName2_RenameFile()
         {
             var code =
@@ -120,7 +121,7 @@ class Class2 { }";
             await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public async Task NestedFile_Simple_RenameFile()
         {
             var code =
@@ -134,7 +135,7 @@ class Class2 { }";
             await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public async Task NestedFile_DottedName_RenameFile()
         {
             var code =

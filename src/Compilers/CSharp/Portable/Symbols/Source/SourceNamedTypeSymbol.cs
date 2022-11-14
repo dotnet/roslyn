@@ -14,6 +14,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -1605,6 +1606,26 @@ next:;
                 AddSynthesizedAttribute(
                     ref attributes,
                     compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor));
+            }
+
+            // Add MetadataUpdateOriginalTypeAttribute when a reloadable type is emitted to EnC delta
+            if (moduleBuilder.EncSymbolChanges?.IsReplaced(((ISymbolInternal)this).GetISymbol()) == true)
+            {
+                // Note that we use this source named type symbol in the attribute argument (of System.Type).
+                // We do not have access to the original symbol from this compilation. However, System.Type
+                // is encoded in the attribute as a string containing a fully qualified type name.
+                // The name of the current type symbol as provided by ISymbol.Name is the same as the name of
+                // the original type symbol that is being replaced by this type symbol.
+                // The "#{generation}" suffix is appended to the TypeDef name in the metadata writer,
+                // but not to the attribute value.
+                var originalType = this;
+
+                AddSynthesizedAttribute(
+                    ref attributes,
+                    compilation.TrySynthesizeAttribute(
+                        WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
+                        ImmutableArray.Create(new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type), TypedConstantKind.Type, originalType)),
+                        isOptionalUse: true));
             }
         }
 

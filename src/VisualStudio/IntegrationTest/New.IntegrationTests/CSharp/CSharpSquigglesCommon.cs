@@ -20,7 +20,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63042")]
         public virtual async Task VerifySyntaxErrorSquiggles()
         {
             await TestServices.Editor.SetTextAsync(@"using System;
@@ -56,7 +56,7 @@ namespace ConsoleApplication1
               HangMitigatingCancellationToken);
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/61367")]
         public virtual async Task VerifySemanticErrorSquiggles()
         {
             await TestServices.Editor.SetTextAsync(@"using System;

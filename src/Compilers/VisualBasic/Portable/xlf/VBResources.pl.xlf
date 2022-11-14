@@ -558,6 +558,16 @@
         <target state="translated">Atrybut CallerArgumentExpressionAttribute zastosowany do parametru nie będzie działać, ponieważ jest to odwołanie samodzielne.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference">
+        <source>Analyzer reference '{0}' specified multiple times</source>
+        <target state="translated">Odwołanie analizatora „{0}” określono wiele razy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
+        <source>Analyzer reference specified multiple times</source>
+        <target state="translated">Odwołanie do analizatora określono wiele razy</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
         <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
         <target state="translated">Generator „{0}” nie mógł wygenerować źródła. W rezultacie nie będzie on współtworzyć danych wyjściowych i mogą wystąpić błędy kompilacji. Typ wyjątku: „{1}”, komunikat: „{2}”</target>

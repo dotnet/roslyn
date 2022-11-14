@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// expected to be.  Namely, multiple client can be calling <see cref="IProgress{T}.Report(T)"/> on it at the same
     /// time.  This is safe, though the order that the items are reported in when called concurrently is not specified.
     /// </summary>
-    internal struct BufferedProgress<T> : IProgress<T[]>, IProgress<T>, IDisposable
+    internal readonly struct BufferedProgress<T> : IProgress<T[]>, IProgress<T>, IDisposable
     {
         /// <summary>
         /// The progress stream to report results to.  May be <see langword="null"/> for clients that do not support streaming.

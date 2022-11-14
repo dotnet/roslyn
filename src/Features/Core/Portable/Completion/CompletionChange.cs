@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
@@ -40,8 +41,16 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public bool IncludesCommitCharacter { get; }
 
+        internal ImmutableDictionary<string, string> Properties { get; }
+
         private CompletionChange(
             TextChange textChange, ImmutableArray<TextChange> textChanges, int? newPosition, bool includesCommitCharacter)
+            : this(textChange, textChanges, newPosition, includesCommitCharacter, ImmutableDictionary<string, string>.Empty)
+        {
+        }
+
+        private CompletionChange(
+            TextChange textChange, ImmutableArray<TextChange> textChanges, int? newPosition, bool includesCommitCharacter, ImmutableDictionary<string, string> properties)
         {
             TextChange = textChange;
             NewPosition = newPosition;
@@ -49,6 +58,7 @@ namespace Microsoft.CodeAnalysis.Completion
             TextChanges = textChanges.NullToEmpty();
             if (TextChanges.IsEmpty)
                 TextChanges = ImmutableArray.Create(textChange);
+            Properties = properties;
         }
 
         /// <summary>
@@ -95,6 +105,16 @@ namespace Microsoft.CodeAnalysis.Completion
             bool includesCommitCharacter = false)
         {
             return new CompletionChange(textChange, textChanges, newPosition, includesCommitCharacter);
+        }
+
+        internal static CompletionChange Create(
+            TextChange textChange,
+            ImmutableArray<TextChange> textChanges,
+            ImmutableDictionary<string, string> properties,
+            int? newPosition,
+            bool includesCommitCharacter)
+        {
+            return new CompletionChange(textChange, textChanges, newPosition, includesCommitCharacter, properties);
         }
 
         /// <summary>

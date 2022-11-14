@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
         internal static ServiceDescriptor ServiceDescriptor { get; } = ServiceDescriptor.CreateInProcServiceDescriptor(ServiceDescriptors.ComponentName, ServiceName, suffix: "", ServiceDescriptors.GetFeatureDisplayName);
 
-        private readonly HostWorkspaceServices _services;
+        private readonly SolutionServices _services;
 
-        public SolutionAssetProvider(HostWorkspaceServices services)
+        public SolutionAssetProvider(SolutionServices services)
         {
             _services = services;
         }

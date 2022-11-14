@@ -1364,7 +1364,6 @@ class Derived : Base
         {
             TestNormalizeStatement("scoped  R  x  ;", "scoped R x;");
             TestNormalizeStatement("scoped  ref  R  y  ;", "scoped ref R y;");
-            TestNormalizeStatement("ref  scoped  R  z  ;", "ref scoped R z;");
         }
     }
 }

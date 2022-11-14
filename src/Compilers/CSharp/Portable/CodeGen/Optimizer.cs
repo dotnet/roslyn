@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     // represents a span of a value between definition and use.
     // start/end positions are specified in terms of global node count as visited by 
     // StackOptimizer visitors. (i.e. recursive walk not looking into constants)
-    internal struct LocalDefUseSpan
+    internal readonly struct LocalDefUseSpan
     {
         public readonly int Start;
         public readonly int End;

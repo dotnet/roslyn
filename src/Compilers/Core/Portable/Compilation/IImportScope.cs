@@ -81,11 +81,15 @@ public readonly struct ImportedNamespaceOrType
 {
     public INamespaceOrTypeSymbol NamespaceOrType { get; }
 
+
+#pragma warning disable CA1200 // Avoid using cref tags with a prefix
     /// <summary>
-    /// Location in source where the <c>using</c> directive or <c>Imports</c> clause was declared. Will never be
-    /// null for C#, may be null for Visual Basic for a project-level import directive.
+    /// Location in source where the <c>using</c> directive or <c>Imports</c> clause was declared. May be null for
+    /// Visual Basic for a project-level import directive, or for a C# global using provided directly through <see
+    /// cref="P:Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.Usings"/>.
     /// </summary>
     public SyntaxReference? DeclaringSyntaxReference { get; }
+#pragma warning restore CA1200 // Avoid using cref tags with a prefix
 
     internal ImportedNamespaceOrType(INamespaceOrTypeSymbol namespaceOrType, SyntaxReference? declaringSyntaxReference)
     {

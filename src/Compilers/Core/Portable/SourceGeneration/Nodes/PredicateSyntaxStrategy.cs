@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis
                 _comparer = comparer;
                 _key = key;
                 _filterTable = table.GetStateTableOrEmpty<SyntaxNode>(_owner._filterKey).ToBuilder(stepName: null, trackIncrementalSteps);
-                _transformTable = table.GetStateTableOrEmpty<T>(_key).ToBuilder(_name, trackIncrementalSteps);
+                _transformTable = table.GetStateTableOrEmpty<T>(_key).ToBuilder(_name, trackIncrementalSteps, _comparer);
             }
 
             public void SaveStateAndFree(StateTableStore.Builder tables)
@@ -69,12 +69,10 @@ namespace Microsoft.CodeAnalysis
                 if (state == EntryState.Removed)
                 {
                     // mark both syntax *and* transform nodes removed
-                    if (_filterTable.TryRemoveEntries(TimeSpan.Zero, noInputStepsStepInfo, out ImmutableArray<SyntaxNode> removedNodes))
+                    if (_filterTable.TryRemoveEntries(TimeSpan.Zero, noInputStepsStepInfo, out var removedNodes))
                     {
-                        for (int i = 0; i < removedNodes.Length; i++)
-                        {
+                        for (int i = 0; i < removedNodes.Count; i++)
                             _transformTable.TryRemoveEntries(TimeSpan.Zero, noInputStepsStepInfo);
-                        }
                     }
                 }
                 else

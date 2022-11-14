@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.PlatformUI;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
@@ -136,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
 
         private void ToggleCheckSelection()
         {
-            var selectedItems = Members.SelectedItems.OfType<PickMembersDialogViewModel.MemberSymbolViewModel>().ToArray();
+            var selectedItems = Members.SelectedItems.OfType<MemberSymbolViewModel>().ToArray();
             var allChecked = selectedItems.All(m => m.IsChecked);
             foreach (var item in selectedItems)
             {
@@ -158,9 +159,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
 
             public Button CancelButton => _dialog.CancelButton;
 
-            public DialogButton UpButton => _dialog.UpButton;
+            public Button UpButton => _dialog.UpButton;
 
-            public DialogButton DownButton => _dialog.DownButton;
+            public Button DownButton => _dialog.DownButton;
 
             public AutomationDelegatingListView Members => _dialog.Members;
         }

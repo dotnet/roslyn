@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
         public TestAccessor GetTestAccessor()
             => new TestAccessor(this);
 
-        public struct TestAccessor
+        public readonly struct TestAccessor
         {
             private readonly WpfTextBufferVisibilityTracker _visibilityTracker;
 

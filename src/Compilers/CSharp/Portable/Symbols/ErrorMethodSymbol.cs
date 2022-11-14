@@ -284,5 +284,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
         }
+
+        internal sealed override bool HasUnscopedRefAttribute => false;
+
+        internal sealed override bool UseUpdatedEscapeRules => false;
     }
 }

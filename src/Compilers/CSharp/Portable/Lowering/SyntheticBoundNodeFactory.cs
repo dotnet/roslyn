@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class SyntheticBinderImpl : BuckStopsHereBinder
         {
             private readonly SyntheticBoundNodeFactory _factory;
-            internal SyntheticBinderImpl(SyntheticBoundNodeFactory factory) : base(factory.Compilation)
+            internal SyntheticBinderImpl(SyntheticBoundNodeFactory factory) : base(factory.Compilation, associatedFileIdentifier: null)
             {
                 _factory = factory;
             }
@@ -659,6 +659,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundLiteral(Syntax, ConstantValue.Create(value), SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32)) { WasCompilerGenerated = true };
         }
 
+        public BoundLiteral Literal(StateMachineState value)
+            => Literal((int)value);
+
         public BoundLiteral Literal(uint value)
         {
             return new BoundLiteral(Syntax, ConstantValue.Create(value), SpecialType(Microsoft.CodeAnalysis.SpecialType.System_UInt32)) { WasCompilerGenerated = true };
@@ -955,26 +958,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// An internal helper class for building a switch statement.
         /// </summary>
-        internal class SyntheticSwitchSection
+        internal readonly struct SyntheticSwitchSection
         {
             public readonly ImmutableArray<int> Values;
             public readonly ImmutableArray<BoundStatement> Statements;
-            public SyntheticSwitchSection(ImmutableArray<int> Values, ImmutableArray<BoundStatement> Statements)
+
+            public SyntheticSwitchSection(ImmutableArray<int> values, ImmutableArray<BoundStatement> statements)
             {
-                this.Values = Values;
-                this.Statements = Statements;
+                Values = values;
+                Statements = statements;
             }
         }
 
         public SyntheticSwitchSection SwitchSection(int value, params BoundStatement[] statements)
-        {
-            return new SyntheticSwitchSection(ImmutableArray.Create(value), ImmutableArray.Create(statements));
-        }
+            => SwitchSection(ImmutableArray.Create(value), statements);
 
-        public SyntheticSwitchSection SwitchSection(List<int> values, params BoundStatement[] statements)
-        {
-            return new SyntheticSwitchSection(ImmutableArray.CreateRange(values), ImmutableArray.Create(statements));
-        }
+        public SyntheticSwitchSection SwitchSection(ImmutableArray<int> values, params BoundStatement[] statements)
+            => new(values, ImmutableArray.Create(statements));
 
         /// <summary>
         /// Produce an int switch.
@@ -1141,6 +1141,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Null(TypeSymbol type)
         {
             return Null(type, Syntax);
+        }
+
+        // Produce a ByRef null of given type, like `ref T Unsafe.NullRef<T>()`.
+        public BoundExpression NullRef(TypeWithAnnotations type)
+        {
+            // *default(T*)
+            return new BoundPointerIndirectionOperator(Syntax, Default(new PointerTypeSymbol(type)), refersToLocation: false, type.Type);
         }
 
         public static BoundExpression Null(TypeSymbol type, SyntaxNode syntax)

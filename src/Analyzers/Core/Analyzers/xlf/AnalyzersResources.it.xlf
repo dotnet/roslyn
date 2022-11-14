@@ -167,6 +167,11 @@
         <target state="translated">I modificatori non sono ordinati</target>
         <note />
       </trans-unit>
+      <trans-unit id="Name_can_be_simplified">
+        <source>Name can be simplified</source>
+        <target state="translated">Il nome può essere semplificato</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Namespace_0_does_not_match_folder_structure_expected_1">
         <source>Namespace "{0}" does not match folder structure, expected "{1}"</source>
         <target state="translated">La parola chiave namespace "{0}" non corrisponde alla struttura di cartelle. Valore previsto: "{1}"</target>
@@ -305,6 +310,16 @@
       <trans-unit id="Simplify_LINQ_expression">
         <source>Simplify LINQ expression</source>
         <target state="translated">Semplifica l'espressione LINQ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Member_Access">
+        <source>Simplify Member Access</source>
+        <target state="translated">Semplifica accesso membri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Names">
+        <source>Simplify Names</source>
+        <target state="translated">Semplifica nomi</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">

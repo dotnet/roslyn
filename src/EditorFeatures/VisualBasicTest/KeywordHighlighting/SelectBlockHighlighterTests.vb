@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.VisualBasic.KeywordHighlighting
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlighting
+    <Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
     Public Class SelectBlockHighlighterTests
         Inherits AbstractVisualBasicKeywordHighlighterTests
 
@@ -12,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return GetType(SelectBlockHighlighter)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestSelectBlock1() As Task
             Await TestAsync(<Text>
 Class C
@@ -29,7 +30,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestSelectBlock2() As Task
             Await TestAsync(<Text>
 Class C
@@ -46,7 +47,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestSelectBlock3() As Task
             Await TestAsync(<Text>
 Class C
@@ -63,7 +64,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestSelectBlock4() As Task
             Await TestAsync(<Text>
 Class C
@@ -80,7 +81,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestSelectBlock5() As Task
             Await TestAsync(<Text>
 Class C
@@ -97,7 +98,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestSelectBlock6() As Task
             Await TestAsync(<Text>
 Class C

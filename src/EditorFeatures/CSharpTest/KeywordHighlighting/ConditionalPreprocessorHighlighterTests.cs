@@ -12,12 +12,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 {
+    [Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
     public class ConditionalPreprocessorHighlighterTests : AbstractCSharpKeywordHighlighterTests
     {
         internal override Type GetHighlighterType()
             => typeof(ConditionalPreprocessorHighlighter);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExample1_1()
         {
             await TestAsync(
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExample1_2()
         {
             await TestAsync(
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExample2_1()
         {
             await TestAsync(
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExample2_2()
         {
             await TestAsync(
@@ -141,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExample2_3()
         {
             await TestAsync(
@@ -172,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExample4_1()
         {
             await TestAsync(
@@ -194,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExample4_2()
         {
             await TestAsync(
@@ -216,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExample4_3()
         {
             await TestAsync(
@@ -238,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExample4_4()
         {
             await TestAsync(
