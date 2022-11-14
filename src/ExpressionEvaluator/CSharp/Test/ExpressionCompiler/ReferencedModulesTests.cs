@@ -1257,7 +1257,8 @@ IL_0030:  ret
 public class Private2
 {
 }";
-            var compLib = CreateCompilation(sourceLib, assemblyName: "System.Private.Library");
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var compLib = CreateCompilation(sourceLib, assemblyName: "System.Private.Library", parseOptions: parseOptions);
             compLib.VerifyDiagnostics();
             var refLib = compLib.EmitToImageReference();
 
@@ -1276,7 +1277,7 @@ namespace System
 }";
             // Create a custom corlib with a reference to compilation
             // above and a reference to the actual mscorlib.
-            var compCorLib = CreateEmptyCompilation(sourceCorLib, assemblyName: CorLibAssemblyName, references: new[] { MscorlibRef, refLib });
+            var compCorLib = CreateEmptyCompilation(sourceCorLib, assemblyName: CorLibAssemblyName, references: new[] { MscorlibRef, refLib }, parseOptions: parseOptions);
             compCorLib.VerifyDiagnostics();
             var objectType = compCorLib.SourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Object");
             Assert.NotNull(objectType.BaseType());
@@ -1312,7 +1313,7 @@ namespace System
     {
     }
 }";
-                var comp = CreateEmptyCompilation(source, options: TestOptions.DebugDll, references: new[] { refLib, AssemblyMetadata.Create(module).GetReference() });
+                var comp = CreateEmptyCompilation(source, options: TestOptions.DebugDll, references: new[] { refLib, AssemblyMetadata.Create(module).GetReference() }, parseOptions: parseOptions);
                 comp.VerifyDiagnostics();
 
                 using (var runtime = RuntimeInstance.Create(new[] { comp.ToModuleInstance(), moduleInstance }))

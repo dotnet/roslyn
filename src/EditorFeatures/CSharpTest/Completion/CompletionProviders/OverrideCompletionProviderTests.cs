@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -468,11 +467,123 @@ public class a
 
 public class b : a
 {
-     internal protected override $$ 
+    internal protected override $$ 
 }";
 
             await VerifyItemIsAbsentAsync(internalprotected, "bar()");
             await VerifyItemExistsAsync(internalprotected, "goo()");
+        }
+
+        [WpfFact, WorkItem(64821, "https://github.com/dotnet/roslyn/issues/64821")]
+        public async Task FilterAccessibility1()
+        {
+            var test1 = @"
+public class a
+{
+    private protected virtual void goo() { }
+}
+
+public class b : a
+{
+    private override $$
+}";
+
+            await VerifyItemExistsAsync(test1, "goo()");
+
+            test1 = @"
+public class a
+{
+    private protected virtual void goo() { }
+}
+
+public class b : a
+{
+    protected override $$
+}";
+
+            await VerifyItemExistsAsync(test1, "goo()");
+
+            test1 = @"
+public class a
+{
+    private protected virtual void goo() { }
+}
+
+public class b : a
+{
+    private protected override $$
+}";
+
+            await VerifyItemExistsAsync(test1, "goo()");
+
+            test1 = @"
+public class a
+{
+    private protected virtual void goo() { }
+}
+
+public class b : a
+{
+    protected private override $$
+}";
+
+            await VerifyItemExistsAsync(test1, "goo()");
+        }
+
+        [WpfFact, WorkItem(64821, "https://github.com/dotnet/roslyn/issues/64821")]
+        public async Task FilterAccessibility2()
+        {
+            var test1 = @"
+public class a
+{
+    protected internal virtual void goo() { }
+}
+
+public class b : a
+{
+    protected override $$
+}";
+
+            await VerifyItemExistsAsync(test1, "goo()");
+
+            test1 = @"
+public class a
+{
+    protected internal virtual void goo() { }
+}
+
+public class b : a
+{
+    internal override $$
+}";
+
+            await VerifyItemExistsAsync(test1, "goo()");
+
+            test1 = @"
+public class a
+{
+    protected internal virtual void goo() { }
+}
+
+public class b : a
+{
+    protected internal override $$
+}";
+
+            await VerifyItemExistsAsync(test1, "goo()");
+
+            test1 = @"
+public class a
+{
+    protected internal virtual void goo() { }
+}
+
+public class b : a
+{
+    internal protected override $$
+}";
+
+            await VerifyItemExistsAsync(test1, "goo()");
         }
 
         [WpfFact]
@@ -2363,7 +2474,7 @@ End Class
     
 </Workspace>", LanguageNames.CSharp, csharpFile, LanguageNames.VisualBasic, vbFile);
 
-            using var testWorkspace = TestWorkspace.Create(xmlString, exportProvider: ExportProvider);
+            using var testWorkspace = TestWorkspace.Create(xmlString, composition: GetComposition());
             var testDocument = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument");
 
             Contract.ThrowIfNull(testDocument.CursorPosition);
@@ -2620,7 +2731,7 @@ int bar;
     </Project>
 </Workspace>", LanguageNames.CSharp, file1, file2);
 
-            using var testWorkspace = TestWorkspace.Create(xmlString, exportProvider: ExportProvider);
+            using var testWorkspace = TestWorkspace.Create(xmlString, composition: GetComposition());
             var testDocument = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument2");
 
             Contract.ThrowIfNull(testDocument.CursorPosition);
@@ -2676,7 +2787,7 @@ int bar;
     </Project>
 </Workspace>", LanguageNames.CSharp, file2, file1);
 
-            using var testWorkspace = TestWorkspace.Create(xmlString, exportProvider: ExportProvider);
+            using var testWorkspace = TestWorkspace.Create(xmlString, composition: GetComposition());
             var testDocument = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument");
 
             Contract.ThrowIfNull(testDocument.CursorPosition);
@@ -2963,7 +3074,7 @@ namespace ConsoleApplication46
         override $$
     }
 }";
-            using var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }, exportProvider: ExportProvider);
+            using var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }, composition: GetComposition());
             var provider = new OverrideCompletionProvider();
             var testDocument = workspace.Documents.Single();
             var document = workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);
@@ -3091,7 +3202,7 @@ namespace ClassLibrary7
             // P1 has a metadata reference to P3 and therefore doesn't get the transitive
             // reference to P2. If we try to override Goo, the missing "Missing" type will
             // prevent round tripping the symbolkey.
-            using var workspace = TestWorkspace.Create(text, exportProvider: ExportProvider);
+            using var workspace = TestWorkspace.Create(text, composition: GetComposition());
             var compilation = await workspace.CurrentSolution.Projects.First(p => p.Name == "P3").GetCompilationAsync();
 
             // CompilationExtensions is in the Microsoft.CodeAnalysis.Test.Utilities namespace 
@@ -3129,7 +3240,7 @@ public class SomeClass : Base
     </Project>
 </Workspace>");
 
-            using var workspace = TestWorkspace.Create(source, exportProvider: ExportProvider);
+            using var workspace = TestWorkspace.Create(source, composition: GetComposition());
             var before = @"
 public abstract class Base
 {

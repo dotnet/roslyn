@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var scope = DeclaredScope(i);
                 var type = ParameterTypeWithAnnotations(i);
                 if (scope == DeclarationScope.Unscoped &&
-                    ParameterHelpers.IsRefScopedByDefault(Binder.UseUpdatedEscapeRules, refKind, type))
+                    ParameterHelpers.IsRefScopedByDefault(Binder.UseUpdatedEscapeRules, refKind))
                 {
                     scope = DeclarationScope.RefScoped;
                     if (_unboundLambda.ParameterAttributes(i).Any())

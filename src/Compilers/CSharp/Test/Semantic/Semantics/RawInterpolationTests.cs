@@ -980,7 +980,7 @@ class Program {
         }
     }
 }";
-        CreateEmptyCompilation(text, options: TestOptions.DebugExe)
+        CreateEmptyCompilation(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugExe)
         .VerifyEmitDiagnostics(new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "x.y"),
             // (15,21): error CS0117: 'string' does not contain a definition for 'Format'
             //             var s = $"""X = { 1 } """;
@@ -1012,7 +1012,7 @@ class Program {
         }
     }
 }";
-        CreateEmptyCompilation(text, options: TestOptions.DebugExe)
+        CreateEmptyCompilation(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugExe)
         .VerifyEmitDiagnostics(new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "x.y"),
             // (17,21): error CS0029: Cannot implicitly convert type 'bool' to 'string'
             //             var s = $"""X = { 1 } """;
@@ -1056,7 +1056,7 @@ class Program {
         }
     }
 }";
-        var comp = CreateEmptyCompilation(text, options: Test.Utilities.TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        var comp = CreateEmptyCompilation(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: Test.Utilities.TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         var compilation = CompileAndVerify(comp, verify: Verification.Fails);
         compilation.VerifyIL("System.Program.Main",
 @"{

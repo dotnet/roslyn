@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.Text
             return SnapshotSourceText.From(textBufferCloneServiceOpt, textSnapshot);
         }
 
-        internal static SourceText AsRoslynText(this ITextSnapshot textSnapshot, ITextBufferCloneService textBufferCloneServiceOpt, Encoding? encoding)
-            => new SnapshotSourceText.ClosedSnapshotSourceText(textBufferCloneServiceOpt, ((ITextSnapshot2)textSnapshot).TextImage, encoding);
+        internal static SourceText AsRoslynText(this ITextSnapshot textSnapshot, ITextBufferCloneService textBufferCloneServiceOpt, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm)
+            => new SnapshotSourceText.ClosedSnapshotSourceText(textBufferCloneServiceOpt, ((ITextSnapshot2)textSnapshot).TextImage, encoding, checksumAlgorithm);
 
         /// <summary>
         /// Gets the workspace corresponding to the text buffer.
@@ -76,6 +76,9 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public static Document? GetOpenDocumentInCurrentContextWithChanges(this ITextSnapshot text)
             => text.AsText().GetOpenDocumentInCurrentContextWithChanges();
+
+        internal static TextDocument? GetOpenTextDocumentInCurrentContextWithChanges(this ITextSnapshot text)
+            => text.AsText().GetOpenTextDocumentInCurrentContextWithChanges();
 
         /// <summary>
         /// Gets the <see cref="Document"/>s from the corresponding <see cref="Workspace.CurrentSolution"/> that are associated with the <see cref="ITextBuffer"/>.

@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 BinderFlags.IgnoreAccessibility |
                 BinderFlags.UnsafeRegion |
                 BinderFlags.UncheckedRegion |
-                BinderFlags.AllowManagedAddressOf |
+                BinderFlags.AllowMoveableAddressOf |
                 BinderFlags.AllowAwaitInUnsafeContext |
                 BinderFlags.IgnoreCorLibraryDuplicatedTypes);
     }

@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // might get false positives.  But that's fine as we still use 'tpeMatches' to make sure the match is
             // correct.
             var symbolTreeInfo = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
-                project.Solution, reference, cancellationToken).ConfigureAwait(false);
+                project.Solution, reference, checksum: null, cancellationToken).ConfigureAwait(false);
 
             Contract.ThrowIfNull(symbolTreeInfo);
 

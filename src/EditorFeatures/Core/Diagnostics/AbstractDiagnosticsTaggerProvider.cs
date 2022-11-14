@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -97,18 +98,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (document == null)
                 return;
 
-            var editorSnapshot = spanToTag.SnapshotSpan.Snapshot;
+            var snapshot = spanToTag.SnapshotSpan.Snapshot;
 
             var workspace = document.Project.Solution.Workspace;
 
             // See if we've marked any spans as those we want to suppress diagnostics for.
             // This can happen for buffers used in the preview workspace where some feature
             // is generating code that it doesn't want errors shown for.
-            var buffer = editorSnapshot.TextBuffer;
+            var buffer = snapshot.TextBuffer;
             var suppressedDiagnosticsSpans = (NormalizedSnapshotSpanCollection?)null;
             buffer?.Properties.TryGetProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, out suppressedDiagnosticsSpans);
 
-            var sourceText = editorSnapshot.AsText();
+            var sourceText = snapshot.AsText();
 
             try
             {
@@ -133,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         //    editorSnapshot.
 
                         var diagnosticSpans = this.GetLocationsToTag(diagnosticData)
-                            .Select(location => GetDiagnosticSnapshotSpan(location, editorSnapshot, sourceText));
+                            .Select(loc => loc.UnmappedFileSpan.GetClampedTextSpan(sourceText).ToSnapshotSpan(snapshot));
                         foreach (var diagnosticSpan in diagnosticSpans)
                         {
                             if (diagnosticSpan.IntersectsWith(requestedSpan) && !IsSuppressed(suppressedDiagnosticsSpans, diagnosticSpan))
@@ -153,9 +154,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // occasions
                 return;
             }
-
-            static SnapshotSpan GetDiagnosticSnapshotSpan(DiagnosticDataLocation diagnosticDataLocation, ITextSnapshot editorSnapshot, SourceText sourceText)
-                => DiagnosticData.GetExistingOrCalculatedTextSpan(diagnosticDataLocation, sourceText).ToSnapshotSpan(editorSnapshot);
         }
 
         private static bool IsSuppressed(NormalizedSnapshotSpanCollection? suppressedSpans, SnapshotSpan span)

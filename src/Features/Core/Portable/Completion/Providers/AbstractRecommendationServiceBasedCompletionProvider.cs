@@ -22,12 +22,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         where TSyntaxContext : SyntaxContext
     {
         protected abstract Task<bool> ShouldPreselectInferredTypesAsync(CompletionContext? completionContext, int position, CompletionOptions options, CancellationToken cancellationToken);
-        protected abstract CompletionItemRules GetCompletionItemRules(ImmutableArray<(ISymbol symbol, bool preselect)> symbols, TSyntaxContext context);
+        protected abstract CompletionItemRules GetCompletionItemRules(ImmutableArray<SymbolAndSelectionInfo> symbols, TSyntaxContext context);
         protected abstract CompletionItemSelectionBehavior PreselectedItemSelectionBehavior { get; }
         protected abstract bool IsInstrinsic(ISymbol symbol);
         protected abstract bool IsTriggerOnDot(SyntaxToken token, int characterPosition);
 
-        protected sealed override async Task<ImmutableArray<(ISymbol symbol, bool preselect)>> GetSymbolsAsync(
+        protected abstract string GetFilterText(ISymbol symbol, string displayText, TSyntaxContext context);
+
+        protected sealed override async Task<ImmutableArray<SymbolAndSelectionInfo>> GetSymbolsAsync(
             CompletionContext? completionContext, TSyntaxContext context, int position, CompletionOptions options, CancellationToken cancellationToken)
         {
             var recommendationOptions = options.ToRecommendationServiceOptions();
@@ -40,22 +42,22 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var taskType = context.SemanticModel.Compilation.TaskType();
                 return recommendedSymbols.NamedSymbols.SelectAsArray(
                     s => IsValidForTaskLikeTypeOnlyContext(s, context),
-                    s => (s, preselect: s.OriginalDefinition.Equals(taskType)));
+                    s => new SymbolAndSelectionInfo(Symbol: s, Preselect: s.OriginalDefinition.Equals(taskType)));
             }
             else if (context.IsGenericConstraintContext)
             {
                 // Just filter valid symbols. Nothing to preselect
-                return recommendedSymbols.NamedSymbols.SelectAsArray(IsValidForGenericConstraintContext, s => (s, preselect: false));
+                return recommendedSymbols.NamedSymbols.SelectAsArray(IsValidForGenericConstraintContext, s => new SymbolAndSelectionInfo(Symbol: s, Preselect: false));
             }
             else
             {
                 var shouldPreselectInferredTypes = await ShouldPreselectInferredTypesAsync(completionContext, position, options, cancellationToken).ConfigureAwait(false);
                 if (!shouldPreselectInferredTypes)
-                    return recommendedSymbols.NamedSymbols.SelectAsArray(s => (s, preselect: false));
+                    return recommendedSymbols.NamedSymbols.SelectAsArray(s => new SymbolAndSelectionInfo(Symbol: s, Preselect: false));
 
                 var inferredTypes = context.InferredTypes.Where(t => t.SpecialType != SpecialType.System_Void).ToSet();
 
-                using var _ = ArrayBuilder<(ISymbol symbol, bool preselect)>.GetInstance(out var result);
+                using var _ = ArrayBuilder<SymbolAndSelectionInfo>.GetInstance(out var result);
 
                 foreach (var symbol in recommendedSymbols.NamedSymbols)
                 {
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     // ignore nullability for purposes of preselection -- if a method is returning a string? but we've
                     // inferred we're assigning to a string or vice versa we'll still count those as the same.
                     var preselect = inferredTypes.Contains(GetSymbolType(symbol), SymbolEqualityComparer.Default) && !IsInstrinsic(symbol);
-                    result.Add((symbol, preselect));
+                    result.Add(new SymbolAndSelectionInfo(symbol, preselect));
                 }
 
                 return result.ToImmutable();
@@ -129,14 +131,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string displayText,
             string displayTextSuffix,
             string insertionText,
-            ImmutableArray<(ISymbol symbol, bool preselect)> symbols,
+            ImmutableArray<SymbolAndSelectionInfo> symbols,
             TSyntaxContext context,
             SupportedPlatformData? supportedPlatformData)
         {
             var rules = GetCompletionItemRules(symbols, context);
 
-            var preselect = symbols.Any(static t => t.preselect);
-            var matchPriority = preselect ? ComputeSymbolMatchPriority(symbols[0].symbol) : MatchPriority.Default;
+            var preselect = symbols.Any(static t => t.Preselect);
+            var matchPriority = preselect ? ComputeSymbolMatchPriority(symbols[0].Symbol) : MatchPriority.Default;
             rules = rules.WithMatchPriority(matchPriority);
 
             if (ShouldSoftSelectInArgumentList(completionContext, context, preselect))
@@ -155,11 +157,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SymbolCompletionItem.CreateWithNameAndKind(
                 displayText: displayText,
                 displayTextSuffix: displayTextSuffix,
-                symbols: symbols.SelectAsArray(t => t.symbol),
+                symbols: symbols.SelectAsArray(t => t.Symbol),
                 rules: rules,
                 contextPosition: context.Position,
                 insertionText: insertionText,
-                filterText: GetFilterText(symbols[0].symbol, displayText, context),
+                filterText: GetFilterText(symbols[0].Symbol, displayText, context),
                 supportedPlatforms: supportedPlatformData);
         }
 
@@ -227,16 +229,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                             bestSymbols = bestSymbols.Insert(0, firstMatch);
                         }
 
-                        return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols.SelectAsArray(t => t.symbol), document, context.SemanticModel, displayOptions, cancellationToken).ConfigureAwait(false);
+                        return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols.SelectAsArray(t => t.Symbol), document, context.SemanticModel, displayOptions, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
 
             return CompletionDescription.Empty;
 
-            static bool SymbolMatches((ISymbol symbol, bool preselect) tuple, string? name, SymbolKind? kind, bool isGeneric)
+            static bool SymbolMatches(SymbolAndSelectionInfo info, string? name, SymbolKind? kind, bool isGeneric)
             {
-                return kind != null && tuple.symbol.Kind == kind && tuple.symbol.Name == name && isGeneric == tuple.symbol.GetArity() > 0;
+                return kind != null && info.Symbol.Kind == kind && info.Symbol.Name == name && isGeneric == info.Symbol.GetArity() > 0;
             }
         }
 

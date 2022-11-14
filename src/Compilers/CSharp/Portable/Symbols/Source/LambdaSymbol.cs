@@ -346,8 +346,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     type = parameterTypes[p];
                     refKind = parameterRefKinds[p];
-                    // https://github.com/dotnet/roslyn/issues/62080: DeclarationScope should be taken from delegate signature.
-                    // We probably should propagate effective scope from the target delegate and make sure parameter symbol doesn't adjust it in any way.
                     scope = DeclarationScope.Unscoped;
                 }
                 else
@@ -412,10 +410,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
-        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
+        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable();
 
         protected override void NoteAttributesComplete(bool forReturnType)
         {

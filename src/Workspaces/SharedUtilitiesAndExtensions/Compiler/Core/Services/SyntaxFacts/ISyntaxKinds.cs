@@ -151,6 +151,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int? OrPattern { get; }
         int? ParenthesizedPattern { get; }
         int? RecursivePattern { get; }
+        int? RelationalPattern { get; }
         int? TypePattern { get; }
         int? VarPattern { get; }
 
@@ -168,6 +169,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int ReturnStatement { get; }
         int ThrowStatement { get; }
         int UsingStatement { get; }
+        int WhileStatement { get; }
         int YieldReturnStatement { get; }
 
         #endregion
@@ -176,8 +178,11 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         int Attribute { get; }
         int ClassDeclaration { get; }
+        int ConstructorDeclaration { get; }
+        int InterfaceDeclaration { get; }
         int? RecordDeclaration { get; }
         int? RecordStructDeclaration { get; }
+        int? StructDeclaration { get; }
         int Parameter { get; }
         int TypeConstraint { get; }
         int VariableDeclarator { get; }
@@ -198,6 +203,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         #region other
 
+        int? ImplicitElementAccess { get; }
         int Interpolation { get; }
         int InterpolatedStringText { get; }
         int? IndexerMemberCref { get; }

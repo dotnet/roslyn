@@ -6,15 +6,17 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator</RootNamespace>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net6.0;net472</TargetFrameworks>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
 
     <!-- We want to pack this entire project and it's dependencies as a tool in the tools/ subdirectory -->
     <IsPackable>true</IsPackable>
     <IsTool>true</IsTool>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
     <ContentTargetFolders>tools</ContentTargetFolders>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
 
     <!-- Suppress warning that we don't have anything in lib/ref folders, because since this is a tool there won't be anything there -->
     <NoWarn>$(NoWarn);NU5128</NoWarn>
@@ -28,16 +30,24 @@
     For more information about LSIF, see https://code.visualstudio.com/blogs/2019/02/19/lsif</PackageDescription>
 
     <IsShipping>false</IsShipping>
+
+    <!-- Don't include other languages; at this point we don't have a end-to-end experience for LSIF indexing in other languages,
+         but until then we can save the download/deploy cost for each indexing job. -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
 
-  <Target Name="_GetFilesToPackage" DependsOnTargets="ResolveReferences">
+  <Target Name="_GetFilesToPackage" DependsOnTargets="ResolveReferences;BuiltProjectOutputGroup">
     <ItemGroup>
-      <!-- Include all dependencies; the DestinationSubDierctory is to handle culture-specific resource files that should be placed in
+      <!-- Include all dependencies; the DestinationSubDirectory is to handle culture-specific resource files that should be placed in
            subdirectories -->
-      <TfmSpecificPackageFile Include="@(ReferenceCopyLocalPaths)" PackagePath="tools\%(ReferenceCopyLocalPaths.DestinationSubDirectory)" />
 
-      <!-- Include our app.config with generated binding redirects -->
-      <TfmSpecificPackageFile Include="@(AppConfigWithTargetPath)" PackagePath="tools" />
+      <!-- HACK: Setting SatelliteResourceLanguages still seems to be bringing satellite resources from other project references along,
+           so we'll filter this in the condition here. --> 
+      <TfmSpecificPackageFile Include="@(ReferenceCopyLocalPaths)"
+                              PackagePath="tools\$(TargetFramework)\any\%(ReferenceCopyLocalPaths.DestinationSubDirectory)"
+                              Condition="'%(ReferenceCopyLocalPaths.DestinationSubDirectory)' == '' and '%(Extension)' != '.pdb' and '%(Extension)' != '.xml'" />
+
+      <TfmSpecificPackageFile Include="@(BuiltProjectOutputGroupOutput)" PackagePath="tools\$(TargetFramework)\any" />
     </ItemGroup>
   </Target>
 
@@ -57,7 +67,14 @@
     <PackageReference Include="Microsoft.Build.Framework" Version="$(RefOnlyMicrosoftBuildFrameworkVersion)" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(RefOnlyMicrosoftBuildTasksCoreVersion)" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="$(RefOnlyMicrosoftBuildUtilitiesCoreVersion)" ExcludeAssets="runtime" PrivateAssets="all" />
+
+    <!-- Work around https://github.com/dotnet/msbuild/issues/7873; without this we won't have a new enough System.Memory and we'll get
+         method missing exceptions when we are running with some newer MSBuild versions. -->
+    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
   </ItemGroup>
+
+  <!-- Since we may be loading analyzers in-process, we need to have the appropriate binding redirects in place -->
+  <Import Project="$(RepositoryEngineeringDir)targets\GenerateCompilerExecutableBindingRedirects.targets" />
 
   <ItemGroup>
     <None Include=".editorconfig" />

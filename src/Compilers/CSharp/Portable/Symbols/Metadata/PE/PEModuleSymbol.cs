@@ -41,13 +41,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         private readonly PENamespaceSymbol _globalNamespace;
 
+#nullable enable
+
         /// <summary>
         /// Cache the symbol for well-known type System.Type because we use it frequently
         /// (for attributes).
         /// </summary>
-        private NamedTypeSymbol _lazySystemTypeSymbol;
-        private NamedTypeSymbol _lazyEventRegistrationTokenSymbol;
-        private NamedTypeSymbol _lazyEventRegistrationTokenTableSymbol;
+        private NamedTypeSymbol? _lazySystemTypeSymbol;
+        private NamedTypeSymbol? _lazyEventRegistrationTokenSymbol;
+        private NamedTypeSymbol? _lazyEventRegistrationTokenTableSymbol;
+
+#nullable disable
 
         /// <summary>
         /// The same value as ConcurrentDictionary.DEFAULT_CAPACITY
@@ -144,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -533,11 +537,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+#nullable enable
+
         internal NamedTypeSymbol EventRegistrationToken
         {
             get
             {
-                if ((object)_lazyEventRegistrationTokenSymbol == null)
+                if ((object?)_lazyEventRegistrationTokenSymbol == null)
                 {
                     Interlocked.CompareExchange(ref _lazyEventRegistrationTokenSymbol,
                                                 GetTypeSymbolForWellKnownType(
@@ -554,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if ((object)_lazyEventRegistrationTokenTableSymbol == null)
+                if ((object?)_lazyEventRegistrationTokenTableSymbol == null)
                 {
                     Interlocked.CompareExchange(ref _lazyEventRegistrationTokenTableSymbol,
                                                 GetTypeSymbolForWellKnownType(
@@ -571,7 +577,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if ((object)_lazySystemTypeSymbol == null)
+                if ((object?)_lazySystemTypeSymbol == null)
                 {
                     Interlocked.CompareExchange(ref _lazySystemTypeSymbol,
                                                 GetTypeSymbolForWellKnownType(WellKnownType.System_Type),
@@ -586,23 +592,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             MetadataTypeName emittedName = MetadataTypeName.FromFullName(type.GetMetadataName(), useCLSCompliantNameArityEncoding: true);
             // First, check this module
-            NamedTypeSymbol currentModuleResult = this.LookupTopLevelMetadataType(ref emittedName);
+            NamedTypeSymbol? currentModuleResult = this.LookupTopLevelMetadataType(ref emittedName);
+            Debug.Assert(currentModuleResult?.IsErrorType() != true);
 
-            if (IsAcceptableSystemTypeSymbol(currentModuleResult))
+            if (currentModuleResult is not null)
             {
+                Debug.Assert(isAcceptableSystemTypeSymbol(currentModuleResult));
+
                 // It doesn't matter if there's another of this type in a referenced assembly -
                 // we prefer the one in the current module.
                 return currentModuleResult;
             }
 
             // If we didn't find it in this module, check the referenced assemblies
-            NamedTypeSymbol referencedAssemblyResult = null;
+            NamedTypeSymbol? referencedAssemblyResult = null;
             foreach (AssemblySymbol assembly in this.GetReferencedAssemblySymbols())
             {
-                NamedTypeSymbol currResult = assembly.LookupTopLevelMetadataType(ref emittedName, digThroughForwardedTypes: true);
-                if (IsAcceptableSystemTypeSymbol(currResult))
+                NamedTypeSymbol currResult = assembly.LookupDeclaredOrForwardedTopLevelMetadataType(ref emittedName, visitedAssemblies: null);
+                if (isAcceptableSystemTypeSymbol(currResult))
                 {
-                    if ((object)referencedAssemblyResult == null)
+                    if ((object?)referencedAssemblyResult == null)
                     {
                         referencedAssemblyResult = currResult;
                     }
@@ -621,20 +630,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            if ((object)referencedAssemblyResult != null)
+            if ((object?)referencedAssemblyResult != null)
             {
-                Debug.Assert(IsAcceptableSystemTypeSymbol(referencedAssemblyResult));
+                Debug.Assert(isAcceptableSystemTypeSymbol(referencedAssemblyResult));
                 return referencedAssemblyResult;
             }
 
-            Debug.Assert((object)currentModuleResult != null);
-            return currentModuleResult;
+            return new MissingMetadataTypeSymbol.TopLevel(this, ref emittedName);
+
+            static bool isAcceptableSystemTypeSymbol(NamedTypeSymbol candidate)
+            {
+                return candidate.Kind != SymbolKind.ErrorType || !(candidate is MissingMetadataTypeSymbol);
+            }
         }
 
-        private static bool IsAcceptableSystemTypeSymbol(NamedTypeSymbol candidate)
-        {
-            return candidate.Kind != SymbolKind.ErrorType || !(candidate is MissingMetadataTypeSymbol);
-        }
+#nullable disable
 
         internal override bool HasAssemblyCompilationRelaxationsAttribute
         {
@@ -659,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 // not used by the compiler
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -668,25 +678,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get { return null; }
         }
 
-        internal NamedTypeSymbol LookupTopLevelMetadataType(ref MetadataTypeName emittedName, out bool isNoPiaLocalType)
-        {
-            NamedTypeSymbol result;
-            PENamespaceSymbol scope = (PENamespaceSymbol)this.GlobalNamespace.LookupNestedNamespace(emittedName.NamespaceSegments);
+#nullable enable
 
-            if ((object)scope == null)
+        internal NamedTypeSymbol LookupTopLevelMetadataTypeWithNoPiaLocalTypeUnification(ref MetadataTypeName emittedName, out bool isNoPiaLocalType)
+        {
+            NamedTypeSymbol? result;
+            var scope = (PENamespaceSymbol?)this.GlobalNamespace.LookupNestedNamespace(emittedName.NamespaceSegments);
+
+            if ((object?)scope == null)
             {
                 // We failed to locate the namespace
-                isNoPiaLocalType = false;
-                result = new MissingMetadataTypeSymbol.TopLevel(this, ref emittedName);
+                result = null;
             }
             else
             {
-                result = scope.LookupMetadataType(ref emittedName, out isNoPiaLocalType);
-                Debug.Assert((object)result != null);
+                result = scope.LookupMetadataType(ref emittedName);
+                Debug.Assert(result?.IsErrorType() != true);
+
+                if (result is null)
+                {
+                    result = scope.UnifyIfNoPiaLocalType(ref emittedName);
+                    if (result is not null)
+                    {
+                        isNoPiaLocalType = true;
+                        return result;
+                    }
+                }
             }
 
-            return result;
+            isNoPiaLocalType = false;
+            return result ?? new MissingMetadataTypeSymbol.TopLevel(this, ref emittedName);
         }
+
+#nullable disable
 
         /// <summary>
         /// Returns a tuple of the assemblies this module forwards the given type to.
@@ -717,6 +741,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return (firstSymbol, secondSymbol);
         }
 
+#nullable enable
+
         internal IEnumerable<NamedTypeSymbol> GetForwardedTypes()
         {
             foreach (KeyValuePair<string, (int FirstIndex, int SecondIndex)> forwarder in Module.GetForwardedTypes())
@@ -736,11 +762,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
                 else
                 {
-                    yield return firstSymbol.LookupTopLevelMetadataType(ref name, digThroughForwardedTypes: true);
+                    yield return firstSymbol.LookupDeclaredOrForwardedTopLevelMetadataType(ref name, visitedAssemblies: null);
                 }
             }
         }
 
+#nullable disable
         public override ModuleMetadata GetMetadata() => _module.GetNonDisposableMetadata();
 
         internal bool ShouldDecodeNullableAttributes(Symbol symbol)
@@ -811,48 +838,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private bool CalculateUseUpdatedRules()
         {
             // [RefSafetyRules(version)], regardless of version.
-            if (_module.HasRefSafetyRulesAttribute(Token, out _))
-            {
-                return true;
-            }
-
-            // System.Runtime { ver: 7.0 }
-            if (IsOrReferencesSystemRuntimeCorLibrary(_module, out var corlibVersion) && corlibVersion is { Major: 7, Minor: 0 })
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool IsOrReferencesSystemRuntimeCorLibrary(PEModule module, out Version? version)
-        {
-            const string corlibName = "System.Runtime";
-
-            AssemblyIdentity? identity;
-            try
-            {
-                identity = module.ReadAssemblyIdentityOrThrow();
-            }
-            catch (BadImageFormatException)
-            {
-                identity = null;
-            }
-            if (identity?.Name == corlibName)
-            {
-                version = identity.Version;
-                return true;
-            }
-
-            var assemblyHandle = module.GetAssemblyRef(corlibName);
-            if (!assemblyHandle.IsNil)
-            {
-                version = module.GetAssemblyRef(assemblyHandle).Version;
-                return true;
-            }
-
-            version = null;
-            return false;
+            return _module.HasRefSafetyRulesAttribute(Token, out _);
         }
     }
 }

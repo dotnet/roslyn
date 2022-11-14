@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -233,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     solution = initProject.Solution.AddDocument(
                         DocumentId.CreateNewId(initializationScriptProjectId, debugName: initializationScriptPath),
                         Path.GetFileName(initializationScriptPath),
-                        new FileTextLoader(initializationScriptPath, defaultEncoding: null));
+                        new WorkspaceFileTextLoader(solution.Services, initializationScriptPath, defaultEncoding: null));
                 }
 
                 var newSubmissionProject = CreateSubmissionProjectNoLock(solution, _currentSubmissionProjectId, _lastSuccessfulSubmissionProjectId, languageName, imports, references);
@@ -289,18 +290,21 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             solution = solution.AddProject(
                 ProjectInfo.Create(
-                    newSubmissionProjectId,
-                    VersionStamp.Create(),
-                    name: name,
-                    assemblyName: name,
-                    language: languageName,
+                    new ProjectInfo.ProjectAttributes(
+                        id: newSubmissionProjectId,
+                        version: VersionStamp.Create(),
+                        name: name,
+                        assemblyName: name,
+                        language: languageName,
+                        compilationOutputFilePaths: default,
+                        checksumAlgorithm: SourceHashAlgorithms.Default,
+                        isSubmission: true),
                     compilationOptions: compilationOptions,
                     parseOptions: _languageInfo.ParseOptions,
                     documents: null,
                     projectReferences: null,
                     metadataReferences: references,
-                    hostObjectType: typeof(InteractiveScriptGlobals),
-                    isSubmission: true));
+                    hostObjectType: typeof(InteractiveScriptGlobals)));
 
             if (previousSubmissionProjectId != null)
             {
@@ -348,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

@@ -33,11 +33,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 var eoln = str.IndexOf(LineSeparator, i, StringComparison.Ordinal);
                 if (eoln < 0)
                 {
-                    yield return str.Substring(i);
+                    yield return str[i..];
                     yield break;
                 }
 
-                yield return str.Substring(i, eoln - i);
+                yield return str[i..eoln];
                 i = eoln + LineSeparator.Length;
             }
         }

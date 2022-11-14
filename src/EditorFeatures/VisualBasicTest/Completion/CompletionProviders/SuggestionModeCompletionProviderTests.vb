@@ -362,7 +362,7 @@ End Class</a>
             MarkupTestFile.GetPosition(markup.NormalizedValue, code, position)
 
             Using workspaceFixture = New VisualBasicTestWorkspaceFixture()
-                workspaceFixture.GetWorkspace(ExportProvider)
+                workspaceFixture.GetWorkspace(GetComposition())
                 Dim document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular)
 
                 Dim options As CompletionOptions
@@ -390,7 +390,7 @@ End Class</a>
             triggerInfo = If(triggerInfo, CompletionTrigger.CreateInsertionTrigger("a"c))
 
             Dim service = GetCompletionService(document.Project)
-            Dim provider = Assert.Single(service.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty))
+            Dim provider = Assert.Single(service.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty))
             Dim context = Await service.GetTestAccessor().GetContextAsync(
                 provider, document, position, triggerInfo.Value, options, CancellationToken.None)
 

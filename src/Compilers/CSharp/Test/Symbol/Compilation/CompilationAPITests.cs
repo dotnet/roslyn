@@ -3179,7 +3179,7 @@ class C
             script.VerifyDiagnostics(
                 // (1,8): error CS4016: Since this is an async method, the return expression must be of type 'int' rather than 'Task<int>'
                 // return System.Threading.Tasks.Task.FromResult(42);
-                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "System.Threading.Tasks.Task.FromResult(42)").WithArguments("int").WithLocation(1, 8));
+                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "System.Threading.Tasks.Task.FromResult(42)").WithArguments("int", "System.Threading.Tasks.Task<int>").WithLocation(1, 8));
             Assert.True(script.HasSubmissionResult());
         }
 
@@ -3542,10 +3542,11 @@ namespace System
 public class C {}
 ";
 
-            var corlib = CreateEmptyCompilation(corlibSource);
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var corlib = CreateEmptyCompilation(corlibSource, parseOptions: parseOptions);
             var corlibReference = corlib.EmitToImageReference();
 
-            var other = CreateEmptyCompilation(@"public class C {}", new[] { corlibReference });
+            var other = CreateEmptyCompilation(@"public class C {}", new[] { corlibReference }, parseOptions: parseOptions);
             var otherReference = other.EmitToImageReference();
 
             var current = CreateEmptyCompilation(@"public class C {}", new[] { otherReference, corlibReference });
@@ -3576,10 +3577,11 @@ namespace System
 public class C {}
 ";
 
-            var corlib = CreateEmptyCompilation(corlibSource);
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var corlib = CreateEmptyCompilation(corlibSource, parseOptions: parseOptions);
             var corlibReference = corlib.EmitToImageReference(aliases: ImmutableArray.Create("corlib"));
 
-            var current = CreateEmptyCompilation(@"", new[] { corlibReference });
+            var current = CreateEmptyCompilation(@"", new[] { corlibReference }, parseOptions: parseOptions);
             current.VerifyDiagnostics();
 
             var type = ((Compilation)current).GetTypeByMetadataName("C");
@@ -3600,10 +3602,11 @@ namespace System
 }
 ";
 
-            var corlib = CreateEmptyCompilation(corlibSource);
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var corlib = CreateEmptyCompilation(corlibSource, parseOptions: parseOptions);
             var corlibReference = corlib.EmitToImageReference();
 
-            var other = CreateEmptyCompilation(@"public class C {}", new[] { corlibReference });
+            var other = CreateEmptyCompilation(@"public class C {}", new[] { corlibReference }, parseOptions: parseOptions);
             var otherReference = other.EmitToImageReference(aliases: ImmutableArray.Create("other"));
 
             var current = CreateEmptyCompilation(@"", new[] { otherReference, corlibReference });

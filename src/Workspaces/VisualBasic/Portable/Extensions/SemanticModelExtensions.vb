@@ -116,19 +116,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             ' parameter.  If we have an expression that has a name as part of it
             ' then we try to use that part.
             Dim current = expression
+            Dim returnType As ITypeSymbol = Nothing
 
-            While True
-                current = current.WalkDownParentheses()
-                If current.Kind = SyntaxKind.IdentifierName Then
-                    Return (DirectCast(current, IdentifierNameSyntax)).Identifier.ValueText.ToCamelCase()
-                ElseIf TypeOf current Is MemberAccessExpressionSyntax Then
-                    Return (DirectCast(current, MemberAccessExpressionSyntax)).Name.Identifier.ValueText.ToCamelCase()
-                ElseIf TypeOf current Is CastExpressionSyntax Then
-                    current = (DirectCast(current, CastExpressionSyntax)).Expression
-                Else
-                    Exit While
-                End If
-            End While
+            ' If we have an implicitly callable expression (like `WriteLine(SomeMethod)`) we don't want to generate
+            ' `someMethod` as the name of the parameter.  Just fallback to our default naming strategy.
+            If Not IsImplicitlyCallable(expression, semanticModel, cancellationToken, returnType) Then
+                While True
+                    current = current.WalkDownParentheses()
+                    If current.Kind = SyntaxKind.IdentifierName Then
+                        Return (DirectCast(current, IdentifierNameSyntax)).Identifier.ValueText.ToCamelCase()
+                    ElseIf TypeOf current Is MemberAccessExpressionSyntax Then
+                        Return (DirectCast(current, MemberAccessExpressionSyntax)).Name.Identifier.ValueText.ToCamelCase()
+                    ElseIf TypeOf current Is CastExpressionSyntax Then
+                        current = (DirectCast(current, CastExpressionSyntax)).Expression
+                    Else
+                        Exit While
+                    End If
+                End While
+            End If
 
             ' there was nothing in the expression to signify a name.  If we're in an argument
             ' location, then try to choose a name based on the argument name.

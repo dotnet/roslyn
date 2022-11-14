@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e) && false)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -156,7 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e) && false)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

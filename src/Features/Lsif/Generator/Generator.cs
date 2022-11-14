@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,9 @@ using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracking;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using LspProtocol = Microsoft.VisualStudio.LanguageServer.Protocol;
 using Methods = Microsoft.VisualStudio.LanguageServer.Protocol.Methods;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
@@ -30,6 +33,21 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         private const bool DocumentSymbolProvider = false;
         private const bool FoldingRangeProvider = true;
         private const bool DiagnosticProvider = false;
+
+        private static readonly LspProtocol.ClientCapabilities LspClientCapabilities = new()
+        {
+            TextDocument = new LspProtocol.TextDocumentClientCapabilities()
+            {
+                Hover = new LspProtocol.HoverSetting()
+                {
+                    ContentFormat = new[]
+                    {
+                        LspProtocol.MarkupKind.PlainText,
+                        LspProtocol.MarkupKind.Markdown,
+                    }
+                }
+            }
+        };
 
         private readonly ILsifJsonWriter _lsifJsonWriter;
         private readonly IdFactory _idFactory = new IdFactory();
@@ -51,7 +69,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
         public async Task GenerateForCompilationAsync(Compilation compilation, string projectPath, LanguageServices languageServices, GeneratorOptions options)
         {
-            var projectVertex = new Graph.LsifProject(kind: GetLanguageKind(compilation.Language), new Uri(projectPath), _idFactory);
+            var projectVertex = new Graph.LsifProject(
+                kind: GetLanguageKind(compilation.Language),
+                new Uri(projectPath),
+                Path.GetFileNameWithoutExtension(projectPath),
+                _idFactory);
+
             _lsifJsonWriter.Write(projectVertex);
             _lsifJsonWriter.Write(new Event(Event.EventKind.Begin, projectVertex.GetId(), _idFactory));
 
@@ -220,7 +243,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     // SymbolFinder.FindSymbolAtPositionAsync where if a token is both a reference and definition we'll prefer the
                     // definition. Once we start supporting hover we'll have to remove the "original definition" part of this, since
                     // since we show different contents for different constructed types there.
-                    var symbolForLinkedResultSet = (declaredSymbol ?? referencedSymbol)!.OriginalDefinition;
+                    var symbolForLinkedResultSet = (declaredSymbol ?? referencedSymbol)!.GetOriginalUnreducedDefinition();
                     var symbolForLinkedResultSetId = symbolResultsTracker.GetResultSetIdForSymbol(symbolForLinkedResultSet);
                     lsifJsonWriter.Write(Edge.Create("next", lazyRangeVertex.Value.GetId(), symbolForLinkedResultSetId, idFactory));
 
@@ -228,6 +251,45 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     {
                         var definitionResultsId = symbolResultsTracker.GetResultIdForSymbol(declaredSymbol, Methods.TextDocumentDefinitionName, () => new DefinitionResult(idFactory));
                         lsifJsonWriter.Write(new Item(definitionResultsId.As<DefinitionResult, Vertex>(), lazyRangeVertex.Value.GetId(), documentVertex.GetId(), idFactory));
+
+                        // If this declared symbol also implements an interface member, we count this as a definition of the interface member as well.
+                        // Note in C# there are estoeric cases where a method can implement an interface member even though the containing type does not
+                        // implement the interface, for example in this case:
+                        //
+                        //     interface I { void M(); }
+                        //     class Base { public void M() { } }
+                        //     class Derived : Base, I { }
+                        //
+                        // We don't worry about supporting these cases here.
+                        var implementedMembers = declaredSymbol.ExplicitOrImplicitInterfaceImplementations();
+
+                        foreach (var implementedMember in implementedMembers)
+                            MarkImplementationOfSymbol(implementedMember);
+
+                        // If this overrides a method, we'll also mark it the same way. We want to chase to the base virtual method, skipping over intermediate
+                        // methods so that way all overrides of the same method point to the same virtual method
+                        if (declaredSymbol.IsOverride)
+                        {
+                            var overridenMember = declaredSymbol.GetOverriddenMember();
+
+                            while (overridenMember?.GetOverriddenMember() != null)
+                                overridenMember = overridenMember.GetOverriddenMember();
+
+                            if (overridenMember != null)
+                                MarkImplementationOfSymbol(overridenMember);
+                        }
+
+                        void MarkImplementationOfSymbol(ISymbol baseMember)
+                        {
+                            // First we create a definition link for the reference results for the base member
+                            var referenceResultsId = symbolResultsTracker.GetResultSetReferenceResultId(baseMember.OriginalDefinition, idFactory);
+                            lsifJsonWriter.Write(new Item(referenceResultsId.As<ReferenceResult, Vertex>(), lazyRangeVertex.Value.GetId(), documentVertex.GetId(), idFactory, property: "definitions"));
+
+                            // Then also link the result set for the method to the moniker that it implements
+                            referenceResultsId = symbolResultsTracker.GetResultSetReferenceResultId(declaredSymbol.OriginalDefinition, idFactory);
+                            var implementedMemberMoniker = symbolResultsTracker.GetResultIdForSymbol<Moniker>(baseMember.OriginalDefinition, "moniker", () => throw new Exception("When we produced the resultSet, we should have already created a moniker for it."));
+                            lsifJsonWriter.Write(new Item(referenceResultsId.As<ReferenceResult, Vertex>(), implementedMemberMoniker, documentVertex.GetId(), idFactory, property: "referenceLinks"));
+                        }
                     }
 
                     if (referencedSymbol != null)
@@ -236,7 +298,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                         // symbol but the range can point a different symbol's resultSet. This can happen if the token is
                         // both a definition of a symbol (where we will point to the definition) but also a reference to some
                         // other symbol.
-                        var referenceResultsId = symbolResultsTracker.GetResultIdForSymbol(referencedSymbol.OriginalDefinition, Methods.TextDocumentReferencesName, () => new ReferenceResult(idFactory));
+                        var referenceResultsId = symbolResultsTracker.GetResultSetReferenceResultId(referencedSymbol.GetOriginalUnreducedDefinition(), idFactory);
                         lsifJsonWriter.Write(new Item(referenceResultsId.As<ReferenceResult, Vertex>(), lazyRangeVertex.Value.GetId(), documentVertex.GetId(), idFactory, property: "references"));
                     }
 
@@ -245,7 +307,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     // See https://github.com/Microsoft/language-server-protocol/blob/main/indexFormat/specification.md#resultset for an example.
                     if (symbolResultsTracker.ResultSetNeedsInformationalEdgeAdded(symbolForLinkedResultSet, Methods.TextDocumentHoverName))
                     {
-                        var hover = await HoverHandler.GetHoverAsync(semanticModel, syntaxToken.SpanStart, options.SymbolDescriptionOptions, languageServices, CancellationToken.None);
+                        var hover = await HoverHandler.GetHoverAsync(
+                            semanticModel, syntaxToken.SpanStart, options.SymbolDescriptionOptions, languageServices, LspClientCapabilities, CancellationToken.None);
                         if (hover != null)
                         {
                             var hoverResult = new HoverResult(hover, idFactory);

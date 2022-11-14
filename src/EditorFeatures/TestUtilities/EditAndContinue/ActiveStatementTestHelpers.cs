@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             ActiveStatementFlags[]? flags = null)
         {
             return ActiveStatementsDescription.GetActiveStatementDebugInfos(
-                (source, path) => SyntaxFactory.ParseSyntaxTree(source, path: path),
+                (source, path) => SyntaxFactory.ParseSyntaxTree(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default), path: path),
                 markedSources,
                 filePaths,
                 extension: ".cs",
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 }
 
                 var end = src.IndexOf(endStr, start + startStr.Length) + endStr.Length;
-                src = src.Substring(0, start) + src.Substring(end);
+                src = src[..start] + src[end..];
             }
         }
 
@@ -71,11 +71,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                 var startOfLineCount = start + startStr.Length;
                 var endOfLineCount = src.IndexOf(']', startOfLineCount);
-                var lineCount = int.Parse(src.Substring(startOfLineCount, endOfLineCount - startOfLineCount));
+                var lineCount = int.Parse(src[startOfLineCount..endOfLineCount]);
 
                 var end = src.IndexOf(endStr, endOfLineCount) + endStr.Length;
 
-                src = src.Substring(0, start) + string.Join("", Enumerable.Repeat(Environment.NewLine, lineCount)) + src.Substring(end);
+                src = src[..start] + string.Join("", Enumerable.Repeat(Environment.NewLine, lineCount)) + src[end..];
             }
         }
 

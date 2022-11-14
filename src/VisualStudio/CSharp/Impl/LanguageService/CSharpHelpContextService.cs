@@ -303,7 +303,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.LessThanToken, SyntaxKind.GreaterThanToken))
+            if (token.Kind() is SyntaxKind.LessThanToken or SyntaxKind.GreaterThanToken)
             {
                 if (token.Parent.IsKind(SyntaxKind.FunctionPointerParameterList))
                 {
@@ -324,7 +324,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.LessThanToken, SyntaxKind.GreaterThanToken) && token.Parent.IsKind(SyntaxKind.TypeParameterList, SyntaxKind.TypeArgumentList))
+            if (token.Kind() is SyntaxKind.LessThanToken or SyntaxKind.GreaterThanToken &&
+                token.Parent is (kind: SyntaxKind.TypeParameterList or SyntaxKind.TypeArgumentList))
             {
                 text = Keyword("generics");
                 return true;
@@ -450,10 +451,25 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 }
             }
 
-            if (token.IsKind(SyntaxKind.DefaultKeyword) && token.Parent is DefaultSwitchLabelSyntax)
+            if (token.IsKind(SyntaxKind.DefaultKeyword))
             {
-                text = Keyword("defaultcase");
-                return true;
+                if (token.Parent is DefaultConstraintSyntax)
+                {
+                    text = Keyword("defaultconstraint");
+                    return true;
+                }
+
+                if (token.Parent is DefaultSwitchLabelSyntax or GotoStatementSyntax)
+                {
+                    text = Keyword("defaultcase");
+                    return true;
+                }
+
+                if (token.Parent is LineDirectiveTriviaSyntax)
+                {
+                    text = Keyword("defaultline");
+                    return true;
+                }
             }
 
             if (token.IsKind(SyntaxKind.ClassKeyword) && token.Parent is ClassOrStructConstraintSyntax)

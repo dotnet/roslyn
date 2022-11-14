@@ -19,17 +19,17 @@
       </trans-unit>
       <trans-unit id="BadBuiltInOps1">
         <source>Illegal built-in operator name '{0}'</source>
-        <target state="new">Illegal built-in operator name '{0}'</target>
+        <target state="translated">Neplatný předdefinovaný název operátoru {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="BadBuiltInOps2">
         <source>Unsupported built-in operator: {0}</source>
-        <target state="new">Unsupported built-in operator: {0}</target>
+        <target state="translated">Nepodporovaný předdefinovaný operátor: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="BadBuiltInOps3">
         <source>'{0}' was not a valid built-in operator name</source>
-        <target state="new">'{0}' was not a valid built-in operator name</target>
+        <target state="translated">{0} nebyl platný předdefinovaný název operátoru</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
@@ -66,12 +66,12 @@
       </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
         <source>Generator</source>
-        <target state="new">Generator</target>
+        <target state="translated">Generátor</target>
         <note />
       </trans-unit>
       <trans-unit id="GeneratorTotalExecutionTime">
         <source>Total generator execution time: {0} seconds.</source>
-        <target state="new">Total generator execution time: {0} seconds.</target>
+        <target state="translated">Celková doba spuštění generátoru: {0} sekund.</target>
         <note />
       </trans-unit>
       <trans-unit id="HintNameInvalidChar">
