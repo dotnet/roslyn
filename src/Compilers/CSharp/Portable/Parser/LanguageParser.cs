@@ -12747,6 +12747,7 @@ tryAgain:
                     }
                 }
             }
+
             var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
 
             var initializer = _syntaxFactory.InitializerExpression(
@@ -12754,8 +12755,6 @@ tryAgain:
                 openBrace,
                 _pool.ToListAndFree(list),
                 closeBrace);
-
-            withKeyword = CheckFeatureAvailability(withKeyword, MessageID.IDS_FeatureRecords);
 
             var result = _syntaxFactory.WithExpression(
                 receiverExpression,

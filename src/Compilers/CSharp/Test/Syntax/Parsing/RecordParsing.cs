@@ -1180,12 +1180,16 @@ class C
 {
     int x = 0 with {};
 }";
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Regular8);
-            tree.GetDiagnostics().Verify(
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (4,13): error CS8400: Feature 'with on structs' is not available in C# 8.0. Please use language version 10.0 or greater.
+                //     int x = 0 with {};
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "0 with {}").WithArguments("with on structs", "10.0").WithLocation(4, 13),
                 // (4,15): error CS8400: Feature 'records' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     int x = 0 with {};
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "with").WithArguments("records", "9.0").WithLocation(4, 15)
-            );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "with").WithArguments("records", "9.0").WithLocation(4, 15));
+
+            var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Regular8);
+            tree.GetDiagnostics().Verify();
         }
 
         [Fact]
