@@ -10839,10 +10839,9 @@ tryAgain:
             else if (IsAwaitExpression())
             {
                 newPrecedence = GetPrecedence(SyntaxKind.AwaitExpression);
-                var awaitToken = this.EatContextualToken(SyntaxKind.AwaitKeyword);
-                awaitToken = CheckFeatureAvailability(awaitToken, MessageID.IDS_FeatureAsync);
-                var operand = this.ParseSubExpression(newPrecedence);
-                leftOperand = _syntaxFactory.AwaitExpression(awaitToken, operand);
+                leftOperand = _syntaxFactory.AwaitExpression(
+                    this.EatContextualToken(SyntaxKind.AwaitKeyword),
+                    this.ParseSubExpression(newPrecedence));
             }
             else if (this.IsQueryExpression(mayBeVariableDeclaration: false, mayBeMemberDeclaration: false))
             {
