@@ -637,13 +637,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
-            var quickAttributes = DeclarationTreeBuilder.GetQuickAttributes(node.AttributeLists);
+            var quickAttributes = GetQuickAttributes(node.AttributeLists);
 
             foreach (var modifier in node.Modifiers)
             {
                 if (modifier.IsKind(SyntaxKind.StaticKeyword) && kind == DeclarationKind.Class)
                 {
                     var diagnosticInfo = MessageID.IDS_FeatureStaticClasses.GetFeatureAvailabilityDiagnosticInfo(parseOptions);
+                    if (diagnosticInfo != null)
+                        diagnostics.Add(diagnosticInfo, modifier.GetLocation());
+                }
+                else if (modifier.IsKind(SyntaxKind.ReadOnlyKeyword) && kind is DeclarationKind.Struct or DeclarationKind.RecordStruct)
+                {
+                    var diagnosticInfo = MessageID.IDS_FeatureReadOnlyStructs.GetFeatureAvailabilityDiagnosticInfo(parseOptions);
                     if (diagnosticInfo != null)
                         diagnostics.Add(diagnosticInfo, modifier.GetLocation());
                 }
