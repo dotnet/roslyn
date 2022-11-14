@@ -3307,8 +3307,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'pt
             comp.VerifyDiagnostics(
                 // (7,9): error CS8370: Feature 'function pointers' is not available in C# 7.3. Please use language version 9.0 or greater.
                 //         delegate*<void> ptr = null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "delegate*<void>").WithArguments("function pointers", "9.0").WithLocation(7, 9)
-            );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "delegate").WithArguments("function pointers", "9.0").WithLocation(7, 9));
         }
 
         [Fact]

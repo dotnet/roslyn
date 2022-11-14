@@ -7677,19 +7677,16 @@ done:;
                     }
                 }
 
-                SyntaxToken greaterThanToken;
-                if (lessThanToken.IsMissing && CurrentToken.Kind == SyntaxKind.CloseParenToken)
-                {
-                    greaterThanToken = EatTokenAsKind(SyntaxKind.GreaterThanToken);
-                }
-                else
-                {
-                    greaterThanToken = EatToken(SyntaxKind.GreaterThanToken);
-                }
-
-                var funcPointer = SyntaxFactory.FunctionPointerType(@delegate, asterisk, callingConvention, SyntaxFactory.FunctionPointerParameterList(lessThanToken, types, greaterThanToken));
-                funcPointer = CheckFeatureAvailability(funcPointer, MessageID.IDS_FeatureFunctionPointers);
-                return funcPointer;
+                return SyntaxFactory.FunctionPointerType(
+                    @delegate,
+                    asterisk,
+                    callingConvention,
+                    SyntaxFactory.FunctionPointerParameterList(
+                        lessThanToken,
+                        types,
+                        lessThanToken.IsMissing && CurrentToken.Kind == SyntaxKind.CloseParenToken
+                            ? EatTokenAsKind(SyntaxKind.GreaterThanToken)
+                            : EatToken(SyntaxKind.GreaterThanToken)));
             }
             finally
             {

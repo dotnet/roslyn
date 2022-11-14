@@ -597,14 +597,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var type = "delegate*<void>";
 
             var parsedWith8 = SyntaxFactory.ParseTypeName(type, options: TestOptions.Regular8);
-            parsedWith8.GetDiagnostics().Verify(
-                // (1,1): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // delegate*<void>
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate*<void>").WithArguments("function pointers", "9.0").WithLocation(1, 1)
-            );
+            parsedWith8.GetDiagnostics().Verify();
 
             var parsedWithPreview = SyntaxFactory.ParseTypeName(type, options: TestOptions.Regular9);
             parsedWithPreview.GetDiagnostics().Verify();
+
+            CreateCompilation(type, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,15): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">").WithLocation(1, 15));
+
+            CreateCompilation(type, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,15): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">").WithLocation(1, 15));
+
+            type = "unsafe class C { delegate*<void> x; }";
+
+            CreateCompilation(type, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // unsafe class C { delegate*<void> x; }
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(1, 14),
+                // (1,18): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // unsafe class C { delegate*<void> x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate").WithArguments("function pointers", "9.0").WithLocation(1, 18),
+                // (1,34): warning CS0169: The field 'C.x' is never used
+                // unsafe class C { delegate*<void> x; }
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("C.x").WithLocation(1, 34));
+
+            CreateCompilation(type, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // unsafe class C { delegate*<void> x; }
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(1, 14),
+                // (1,34): warning CS0169: The field 'C.x' is never used
+                // unsafe class C { delegate*<void> x; }
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("C.x").WithLocation(1, 34));
         }
     }
 }
