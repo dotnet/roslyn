@@ -8412,11 +8412,21 @@ switch (e)
         [Fact]
         public void PatternCombinators_03()
         {
-            UsingStatement("_ = e is not b;", TestOptions.RegularWithoutPatternCombinators,
-                // (1,10): error CS8400: Feature 'not pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // _ = e is not b;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "not b").WithArguments("not pattern", "9.0").WithLocation(1, 10)
-                );
+            var test = "_ = e is not b;";
+            var testInMethod = @$"class C {{ void M() {{ {test} }} }}";
+
+            CreateCompilation(testInMethod, parseOptions: TestOptions.RegularWithoutPatternCombinators).VerifyDiagnostics(
+                // (1,26): error CS0103: The name 'e' does not exist in the current context
+                // class C { void M() { _ = e is not b; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(1, 26),
+                // (1,31): error CS8400: Feature 'not pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // class C { void M() { _ = e is not b; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "not").WithArguments("not pattern", "9.0").WithLocation(1, 31),
+                // (1,35): error CS0103: The name 'b' does not exist in the current context
+                // class C { void M() { _ = e is not b; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(1, 35));
+
+            UsingStatement(test, TestOptions.RegularWithoutPatternCombinators);
             N(SyntaxKind.ExpressionStatement);
             {
                 N(SyntaxKind.SimpleAssignmentExpression);
@@ -8454,11 +8464,18 @@ switch (e)
         [Fact]
         public void PatternCombinators_04()
         {
-            UsingStatement("_ = e is not null;", TestOptions.RegularWithoutPatternCombinators,
-                // (1,10): error CS8400: Feature 'not pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // _ = e is not null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "not null").WithArguments("not pattern", "9.0").WithLocation(1, 10)
-                );
+            var test = "_ = e is not null;";
+            var testInMethod = @$"class C {{ void M() {{ {test} }} }}";
+
+            CreateCompilation(testInMethod, parseOptions: TestOptions.RegularWithoutPatternCombinators).VerifyDiagnostics(
+                // (1,26): error CS0103: The name 'e' does not exist in the current context
+                // class C { void M() { _ = e is not null; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(1, 26),
+                // (1,31): error CS8400: Feature 'not pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // class C { void M() { _ = e is not null; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "not").WithArguments("not pattern", "9.0").WithLocation(1, 31));
+
+            UsingStatement(test, TestOptions.RegularWithoutPatternCombinators);
             N(SyntaxKind.ExpressionStatement);
             {
                 N(SyntaxKind.SimpleAssignmentExpression);
@@ -8659,35 +8676,54 @@ switch (e)
         [Fact]
         public void RelationalPattern_01()
         {
-            UsingStatement(
-@"_ = e switch {
+            var test = @"_ = e switch {
     < 0 => 0,
     <= 1 => 1,
     > 2 => 2,
     >= 3 => 3,
     == 4 => 4,
     != 5 => 5,
-};",
-                TestOptions.RegularWithoutPatternCombinators,
+};";
+            CreateCompilation(test, parseOptions: TestOptions.RegularWithoutPatternCombinators).VerifyDiagnostics(
+                // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // _ = e switch {
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, @"_ = e switch {
+    < 0 => 0,
+    <= 1 => 1,
+    > 2 => 2,
+    >= 3 => 3,
+    == 4 => 4,
+    != 5 => 5,
+};").WithArguments("top-level statements", "9.0").WithLocation(1, 1),
+                // (1,5): error CS0103: The name 'e' does not exist in the current context
+                // _ = e switch {
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(1, 5),
                 // (2,5): error CS8400: Feature 'relational pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     < 0 => 0,
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "< 0").WithArguments("relational pattern", "9.0").WithLocation(2, 5),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "<").WithArguments("relational pattern", "9.0").WithLocation(2, 5),
                 // (3,5): error CS8400: Feature 'relational pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     <= 1 => 1,
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "<= 1").WithArguments("relational pattern", "9.0").WithLocation(3, 5),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "<=").WithArguments("relational pattern", "9.0").WithLocation(3, 5),
                 // (4,5): error CS8400: Feature 'relational pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     > 2 => 2,
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "> 2").WithArguments("relational pattern", "9.0").WithLocation(4, 5),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, ">").WithArguments("relational pattern", "9.0").WithLocation(4, 5),
                 // (5,5): error CS8400: Feature 'relational pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     >= 3 => 3,
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, ">= 3").WithArguments("relational pattern", "9.0").WithLocation(5, 5),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, ">=").WithArguments("relational pattern", "9.0").WithLocation(5, 5),
                 // (6,5): error CS8400: Feature 'relational pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     == 4 => 4,
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "== 4").WithArguments("relational pattern", "9.0").WithLocation(6, 5),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "==").WithArguments("relational pattern", "9.0").WithLocation(6, 5),
+                // (6,5): error CS1525: Invalid expression term '=='
+                //     == 4 => 4,
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "==").WithArguments("==").WithLocation(6, 5),
                 // (7,5): error CS8400: Feature 'relational pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     != 5 => 5,
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "!= 5").WithArguments("relational pattern", "9.0").WithLocation(7, 5)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "!=").WithArguments("relational pattern", "9.0").WithLocation(7, 5),
+                // (7,5): error CS1525: Invalid expression term '!='
+                //     != 5 => 5,
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!=").WithArguments("!=").WithLocation(7, 5));
+
+            UsingStatement(test, TestOptions.RegularWithoutPatternCombinators);
             N(SyntaxKind.ExpressionStatement);
             {
                 N(SyntaxKind.SimpleAssignmentExpression);

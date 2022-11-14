@@ -1647,6 +1647,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureRelationalPattern.CheckFeatureAvailability(diagnostics, node, node.OperatorToken.GetLocation());
+
             BoundExpression value = BindExpressionForPattern(inputType, node.Expression, ref hasErrors, diagnostics, out var constantValueOpt, out _, out Conversion patternConversion);
             ExpressionSyntax innerExpression = SkipParensAndNullSuppressions(node.Expression, diagnostics, ref hasErrors);
             RoslynDebug.Assert(value.Type is { });
@@ -1739,6 +1741,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             bool underIsPattern)
         {
+            MessageID.IDS_FeatureNotPattern.CheckFeatureAvailability(diagnostics, node, node.OperatorToken.GetLocation());
+
             bool permitDesignations = underIsPattern; // prevent designators under 'not' except under an is-pattern
             var subPattern = BindPattern(node.Pattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics, underIsPattern);
             return new BoundNegatedPattern(node, subPattern, inputType: inputType, narrowedType: inputType, hasErrors);

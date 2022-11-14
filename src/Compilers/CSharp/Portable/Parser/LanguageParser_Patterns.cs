@@ -159,10 +159,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             if (this.CurrentToken.ContextualKind == SyntaxKind.NotKeyword)
             {
-                var notToken = ConvertToKeyword(this.EatToken());
-                var pattern = ParseNegatedPattern(precedence, afterIs, whenIsKeyword);
-                var result = _syntaxFactory.UnaryPattern(notToken, pattern);
-                return CheckFeatureAvailability(result, MessageID.IDS_FeatureNotPattern);
+                return _syntaxFactory.UnaryPattern(
+                    ConvertToKeyword(this.EatToken()),
+                    ParseNegatedPattern(precedence, afterIs, whenIsKeyword));
             }
             else
             {
@@ -204,11 +203,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.EqualsEqualsToken:
                 case SyntaxKind.ExclamationEqualsToken:
                     // this is a relational pattern.
-                    var relationalToken = this.EatToken();
                     Debug.Assert(precedence < Precedence.Shift);
-                    var expression = this.ParseSubExpression(Precedence.Relational);
-                    var result = _syntaxFactory.RelationalPattern(relationalToken, expression);
-                    return CheckFeatureAvailability(result, MessageID.IDS_FeatureRelationalPattern);
+                    return _syntaxFactory.RelationalPattern(
+                        this.EatToken(),
+                        this.ParseSubExpression(Precedence.Relational));
             }
 
             var resetPoint = this.GetResetPoint();
