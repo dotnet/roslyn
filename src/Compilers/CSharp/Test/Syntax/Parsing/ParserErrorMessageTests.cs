@@ -2721,7 +2721,10 @@ namespace x
             CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (7,21): error CS8400: Feature 'target-typed object creation' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //             var e = new ();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(7, 21));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(7, 21),
+                // (7,21): error CS8754: There is no target type for 'new()'
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new ()").WithArguments("new()").WithLocation(7, 21));
         }
 
         [Fact]
@@ -2772,7 +2775,10 @@ namespace x
             CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
                 // (7,21): error CS8059: Feature 'target-typed object creation' is not available in C# 6. Please use language version 9.0 or greater.
                 //             var e = new ();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "new").WithArguments("target-typed object creation", "9.0").WithLocation(7, 21));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "new").WithArguments("target-typed object creation", "9.0").WithLocation(7, 21),
+                // (7,21): error CS8754: There is no target type for 'new()'
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new ()").WithArguments("new()").WithLocation(7, 21));
         }
 
         [Fact]
@@ -2792,7 +2798,10 @@ namespace x
             CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
                 // (7,21): error CS8107: Feature 'target-typed object creation' is not available in C# 7.0. Please use language version 9.0 or greater.
                 //             var e = new ();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "new").WithArguments("target-typed object creation", "9.0").WithLocation(7, 21));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "new").WithArguments("target-typed object creation", "9.0").WithLocation(7, 21),
+                // (7,21): error CS8754: There is no target type for 'new()'
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new ()").WithArguments("new()").WithLocation(7, 21));
         }
 
         [WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]

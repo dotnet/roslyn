@@ -12624,11 +12624,7 @@ tryAgain:
             TypeSyntax type = null;
             InitializerExpressionSyntax initializer = null;
 
-            if (IsImplicitObjectCreation())
-            {
-                @new = CheckFeatureAvailability(@new, MessageID.IDS_FeatureImplicitObjectCreation);
-            }
-            else
+            if (!IsImplicitObjectCreation())
             {
                 type = this.ParseType(ParseTypeMode.NewExpression);
                 if (type.Kind == SyntaxKind.ArrayType)
