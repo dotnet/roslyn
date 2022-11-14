@@ -11023,10 +11023,9 @@ tryAgain:
                         // check for lambda expression with explicit ref return type: `ref int () => { ... }`
                         !this.IsPossibleLambdaExpression(newPrecedence))
                     {
-                        var refKeyword = this.EatToken();
-                        rhs = this.ParseExpressionCore();
-                        rhs = _syntaxFactory.RefExpression(refKeyword, rhs);
-                        rhs = CheckFeatureAvailability(rhs, MessageID.IDS_FeatureRefReassignment);
+                        rhs = _syntaxFactory.RefExpression(
+                            this.EatToken(),
+                            this.ParseExpressionCore());
                     }
                     else
                     {

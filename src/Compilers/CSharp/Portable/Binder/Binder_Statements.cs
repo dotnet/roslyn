@@ -1455,11 +1455,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ExpressionSyntax rhsExpr;
             bool isRef = false;
 
-            if (node.Right.Kind() == SyntaxKind.RefExpression)
+            if (node.Right is RefExpressionSyntax refExpression)
             {
+                MessageID.IDS_FeatureRefReassignment.CheckFeatureAvailability(diagnostics, refExpression, refExpression.RefKeyword.GetLocation());
+
                 isRef = true;
                 lhsKind = BindValueKind.RefAssignable;
-                rhsExpr = ((RefExpressionSyntax)node.Right).Expression;
+                rhsExpr = refExpression.Expression;
             }
             else
             {
