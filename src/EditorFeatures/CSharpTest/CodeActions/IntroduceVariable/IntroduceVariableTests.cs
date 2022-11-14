@@ -7941,7 +7941,7 @@ class C
     }
 
     static void H(Delegate d) { }
-}", parseOptions: TestOptions.RegularNext);
+}");
         }
 
         [Fact]
@@ -7972,7 +7972,7 @@ class C
     }
 
     static void H(Delegate d) { }
-}", parseOptions: TestOptions.RegularNext);
+}");
         }
     }
 }
