@@ -5848,7 +5848,6 @@ tryAgain:
             {
                 var parameters = _pool.AllocateSeparated<TypeParameterSyntax>();
                 var open = this.EatToken(SyntaxKind.LessThanToken);
-                open = CheckFeatureAvailability(open, MessageID.IDS_FeatureGenerics);
 
                 // first parameter
                 parameters.Add(this.ParseTypeParameter());
