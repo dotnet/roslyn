@@ -325,6 +325,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool CheckFeatureAvailability(
             this MessageID feature,
+            DiagnosticBag diagnostics,
+            SyntaxNode syntax,
+            Location? location = null)
+        {
+            var diag = GetFeatureAvailabilityDiagnosticInfo(feature, (CSharpParseOptions)syntax.SyntaxTree.Options);
+            if (diag is object)
+            {
+                diagnostics.Add(diag, location ?? syntax.GetLocation());
+                return false;
+            }
+            return true;
+        }
+
+        internal static bool CheckFeatureAvailability(
+            this MessageID feature,
             BindingDiagnosticBag diagnostics,
             Compilation compilation,
             Location location)

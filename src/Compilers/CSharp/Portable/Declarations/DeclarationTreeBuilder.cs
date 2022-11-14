@@ -345,7 +345,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasUsings = false;
             bool hasGlobalUsings = false;
             bool reportedGlobalUsingOutOfOrder = false;
-            var parseOptions = (CSharpParseOptions)_syntaxTree.Options;
 
             var diagnostics = DiagnosticBag.GetInstance();
 
@@ -369,8 +368,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var globalAliasedQuickAttributes = GetQuickAttributes(compilationUnit.Usings, global: true);
 
-            CheckUsings(parseOptions, diagnostics, compilationUnit.Usings);
-            CheckExterns(parseOptions, diagnostics, compilationUnit.Externs);
+            CheckUsings(diagnostics, compilationUnit.Usings);
+            CheckExterns(diagnostics, compilationUnit.Externs);
 
             return new RootSingleNamespaceDeclaration(
                 hasGlobalUsings: hasGlobalUsings,
@@ -384,34 +383,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 globalAliasedQuickAttributes);
         }
 
-        private static void CheckUsings(CSharpParseOptions parseOptions, DiagnosticBag diagnostics, SyntaxList<UsingDirectiveSyntax> usings)
+        private static void CheckUsings(DiagnosticBag diagnostics, SyntaxList<UsingDirectiveSyntax> usings)
         {
             foreach (var usingDirective in usings)
             {
                 if (usingDirective.StaticKeyword != default)
-                {
-                    var diagnosticInfo = MessageID.IDS_FeatureUsingStatic.GetFeatureAvailabilityDiagnosticInfo(parseOptions);
-                    if (diagnosticInfo != null)
-                        diagnostics.Add(diagnosticInfo, usingDirective.StaticKeyword.GetLocation());
-                }
+                    MessageID.IDS_FeatureUsingStatic.CheckFeatureAvailability(diagnostics, usingDirective, usingDirective.StaticKeyword.GetLocation());
 
                 if (usingDirective.GlobalKeyword != default)
-                {
-                    var diagnosticInfo = MessageID.IDS_FeatureGlobalUsing.GetFeatureAvailabilityDiagnosticInfo(parseOptions);
-                    if (diagnosticInfo != null)
-                        diagnostics.Add(diagnosticInfo, usingDirective.GlobalKeyword.GetLocation());
-                }
+                    MessageID.IDS_FeatureGlobalUsing.CheckFeatureAvailability(diagnostics, usingDirective, usingDirective.GlobalKeyword.GetLocation());
             }
         }
 
-        private static void CheckExterns(CSharpParseOptions parseOptions, DiagnosticBag diagnostics, SyntaxList<ExternAliasDirectiveSyntax> externs)
+        private static void CheckExterns(DiagnosticBag diagnostics, SyntaxList<ExternAliasDirectiveSyntax> externs)
         {
             foreach (var externAlias in externs)
-            {
-                var diagnosticInfo = MessageID.IDS_FeatureExternAlias.GetFeatureAvailabilityDiagnosticInfo(parseOptions);
-                if (diagnosticInfo != null)
-                    diagnostics.Add(diagnosticInfo, externAlias.ExternKeyword.GetLocation());
-            }
+                MessageID.IDS_FeatureExternAlias.CheckFeatureAvailability(diagnostics, externAlias, externAlias.ExternKeyword.GetLocation());
         }
 
         public override SingleNamespaceOrTypeDeclaration VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node)
@@ -423,7 +410,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private SingleNamespaceDeclaration VisitBaseNamespaceDeclaration(BaseNamespaceDeclarationSyntax node)
         {
             var children = VisitNamespaceChildren(node, node.Members, ((Syntax.InternalSyntax.BaseNamespaceDeclarationSyntax)node.Green).Members);
-            var parseOptions = (CSharpParseOptions)_syntaxTree.Options;
 
             bool hasUsings = node.Usings.Any();
             bool hasExterns = node.Externs.Any();
@@ -450,9 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node is FileScopedNamespaceDeclarationSyntax)
             {
-                var diagnosticInfo = MessageID.IDS_FeatureFileScopedNamespace.GetFeatureAvailabilityDiagnosticInfo(parseOptions);
-                if (diagnosticInfo != null)
-                    diagnostics.Add(diagnosticInfo, node.NamespaceKeyword.GetLocation());
+                MessageID.IDS_FeatureFileScopedNamespace.CheckFeatureAvailability(diagnostics, node, node.NamespaceKeyword.GetLocation());
 
                 if (node.Parent is FileScopedNamespaceDeclarationSyntax)
                 {
@@ -532,8 +516,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            CheckUsings(parseOptions, diagnostics, node.Usings);
-            CheckExterns(parseOptions, diagnostics, node.Externs);
+            CheckUsings(diagnostics, node.Usings);
+            CheckExterns(diagnostics, node.Externs);
 
             // NOTE: *Something* has to happen for alias-qualified names.  It turns out that we
             // just grab the part after the colons (via GetUnqualifiedName, below).  This logic
@@ -609,8 +593,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private SingleNamespaceOrTypeDeclaration VisitTypeDeclaration(TypeDeclarationSyntax node, DeclarationKind kind)
         {
-            var parseOptions = (CSharpParseOptions)_syntaxTree.Options;
-
             SingleTypeDeclaration.TypeDeclarationFlags declFlags = node.AttributeLists.Any() ?
                 SingleTypeDeclaration.TypeDeclarationFlags.HasAnyAttributes :
                 SingleTypeDeclaration.TypeDeclarationFlags.None;
@@ -643,15 +625,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (modifier.IsKind(SyntaxKind.StaticKeyword) && kind == DeclarationKind.Class)
                 {
-                    var diagnosticInfo = MessageID.IDS_FeatureStaticClasses.GetFeatureAvailabilityDiagnosticInfo(parseOptions);
-                    if (diagnosticInfo != null)
-                        diagnostics.Add(diagnosticInfo, modifier.GetLocation());
+                    MessageID.IDS_FeatureStaticClasses.CheckFeatureAvailability(diagnostics, node, modifier.GetLocation());
                 }
                 else if (modifier.IsKind(SyntaxKind.ReadOnlyKeyword) && kind is DeclarationKind.Struct or DeclarationKind.RecordStruct)
                 {
-                    var diagnosticInfo = MessageID.IDS_FeatureReadOnlyStructs.GetFeatureAvailabilityDiagnosticInfo(parseOptions);
-                    if (diagnosticInfo != null)
-                        diagnostics.Add(diagnosticInfo, modifier.GetLocation());
+                    MessageID.IDS_FeatureReadOnlyStructs.CheckFeatureAvailability(diagnostics, node, modifier.GetLocation());
+                }
+                else if (modifier.IsKind(SyntaxKind.RefKeyword) && kind is DeclarationKind.Struct or DeclarationKind.RecordStruct)
+                {
+                    MessageID.IDS_FeatureRefStructs.CheckFeatureAvailability(diagnostics, node, modifier.GetLocation());
                 }
             }
 

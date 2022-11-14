@@ -1233,7 +1233,6 @@ tryAgain:
                                  isStructOrRecordKeyword(PeekToken(2))))
                             {
                                 modTok = this.EatToken();
-                                modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureRefStructs);
                             }
                             else if (forAccessors && this.IsPossibleAccessorModifier())
                             {
