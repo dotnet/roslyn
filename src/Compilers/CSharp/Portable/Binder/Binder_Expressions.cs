@@ -6091,6 +6091,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // bug.Assert(node.Kind == SyntaxKind.LiteralExpression);
 
+            if (node.Kind() is SyntaxKind.NumericLiteralExpression)
+            {
+                var token = node.Token;
+                var text = node.Token.Text;
+                if (text.EndsWith("l", StringComparison.Ordinal))
+                {
+                    diagnostics.Add(new CSDiagnosticInfo(ErrorCode.WRN_LowercaseEllSuffix), Location.Create(node.SyntaxTree, new TextSpan(token.Span.End - 1, 1)));
+                }
+                else if (text.EndsWith("lu", StringComparison.Ordinal) || text.EndsWith("lU", StringComparison.Ordinal))
+                {
+                    diagnostics.Add(new CSDiagnosticInfo(ErrorCode.WRN_LowercaseEllSuffix), Location.Create(node.SyntaxTree, new TextSpan(token.Span.End - 2, 1)));
+                }
+            }
+
             var value = node.Token.Value;
 
             ConstantValue cv;
