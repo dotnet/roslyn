@@ -284,9 +284,9 @@ ref struct R<T>
 
 ## Method ref struct return escape analysis depends on ref escape of ref arguments
 
-***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.3.***
+***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.4.***
 
-With language version C# 11 or later, or with .NET 7.0 or later, the return value of a method invocation that returns a `ref struct` is only _safe-to-escape_ if all the `ref` and `in` arguments to the method invocation are _ref-safe-to-escape_. _The `in` arguments may include implicit default parameter values._
+With language version C# 11 or later, or with .NET 7.0 or later, a `ref struct` returned from a method invocation, either as a return value or in an `out` parameters, is only _safe-to-escape_ if all the `ref` and `in` arguments to the method invocation are _ref-safe-to-escape_. _The `in` arguments may include implicit default parameter values._
 
 ```csharp
 ref struct R { }
