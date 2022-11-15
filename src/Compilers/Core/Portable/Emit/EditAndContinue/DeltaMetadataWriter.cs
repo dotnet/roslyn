@@ -547,8 +547,9 @@ namespace Microsoft.CodeAnalysis.Emit
                 var deletedTypeMembers = ImmutableDictionary.CreateBuilder<IMethodDefinition, DeletedMethodDefinition>(ReferenceEqualityComparer.Instance);
                 foreach (var methodDef in deletedMethods)
                 {
+                    var overriddenMemberDef = _changes.TryGetBaseImplementationDefinition(methodDef) as IMethodDefinition;
                     var oldMethodDef = (IMethodDefinition)methodDef.GetCciAdapter();
-                    deletedTypeMembers.Add(oldMethodDef, new DeletedMethodDefinition(oldMethodDef, typeDef, _typesUsedByDeletedMembers));
+                    deletedTypeMembers.Add(oldMethodDef, new DeletedMethodDefinition(oldMethodDef, typeDef, _typesUsedByDeletedMembers, overriddenMemberDef));
                 }
 
                 _deletedTypeMembers.Add(typeDef, deletedTypeMembers.ToImmutableDictionary());

@@ -423,6 +423,41 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
+        /// <summary>
+        /// Gets the base definition for the specified symbol, if there is one, and it has an implementation
+        /// that is callable.
+        /// </summary>
+        public IDefinition? TryGetBaseImplementationDefinition(ISymbolInternal symbolInternal)
+        {
+            var symbol = symbolInternal.GetISymbol();
+
+            ISymbol? baseSymbol;
+            if (symbol is IMethodSymbol method)
+            {
+                baseSymbol = method.OverriddenMethod;
+            }
+            else if (symbol is IPropertySymbol property)
+            {
+                baseSymbol = property.OverriddenProperty;
+            }
+            else if (symbol is IEventSymbol @event)
+            {
+                baseSymbol = @event.OverriddenEvent;
+            }
+            else
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            // We only want to return base definitions that are actually callable
+            if (baseSymbol is null || baseSymbol.IsAbstract)
+            {
+                return null;
+            }
+
+            return GetISymbolInternalOrNull(baseSymbol)?.GetCciAdapter() as IDefinition;
+        }
+
         protected abstract ISymbolInternal? GetISymbolInternalOrNull(ISymbol symbol);
 
         public IEnumerable<INamespaceTypeDefinition> GetTopLevelSourceTypeDefinitions(EmitContext context)

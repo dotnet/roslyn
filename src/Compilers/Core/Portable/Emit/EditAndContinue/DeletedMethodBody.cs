@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
         public DeletedMethodBody(DeletedMethodDefinition methodDef, EmitContext context)
         {
             _methodDef = methodDef;
-            _ilBytes = GetIL(context);
+            _ilBytes = GetIL(methodDef.OverriddenMethod, context);
         }
 
         public ImmutableArray<ExceptionHandlerRegion> ExceptionRegions => ImmutableArray<ExceptionHandlerRegion>.Empty;
@@ -68,15 +68,31 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public StateMachineStatesDebugInfo StateMachineStatesDebugInfo => default;
 
-        private static ImmutableArray<byte> GetIL(EmitContext context)
+        private static ImmutableArray<byte> GetIL(IMethodDefinition overriddenMethod, EmitContext context)
         {
             var missingMethodExceptionStringStringConstructor = context.Module.CommonCompilation.CommonGetWellKnownTypeMember(WellKnownMember.System_MissingMethodException__ctor);
             Debug.Assert(missingMethodExceptionStringStringConstructor is not null);
 
             var builder = new ILBuilder((ITokenDeferral)context.Module, null, OptimizationLevel.Debug, false);
-            builder.EmitOpCode(System.Reflection.Metadata.ILOpCode.Newobj, 4);
-            builder.EmitToken(missingMethodExceptionStringStringConstructor.GetCciAdapter(), context.SyntaxNode!, context.Diagnostics);
-            builder.EmitThrow(isRethrow: false);
+
+            // If we're deleting a method that overrides a base method then we trampoline to it,
+            // otherwise just throw a MissingMethodException
+            if (overriddenMethod is not null)
+            {
+                for (int i = 0; i <= overriddenMethod.ParameterCount; i++)
+                {
+                    builder.EmitLoadArgumentOpcode(i);
+                }
+                builder.EmitOpCode(System.Reflection.Metadata.ILOpCode.Call, 4);
+                builder.EmitToken(overriddenMethod, context.SyntaxNode!, context.Diagnostics);
+            }
+            else
+            {
+                builder.EmitOpCode(System.Reflection.Metadata.ILOpCode.Newobj, 4);
+                builder.EmitToken(missingMethodExceptionStringStringConstructor.GetCciAdapter(), context.SyntaxNode!, context.Diagnostics);
+                builder.EmitThrow(isRethrow: false);
+            }
+
             builder.Realize();
 
             return builder.RealizedIL;
