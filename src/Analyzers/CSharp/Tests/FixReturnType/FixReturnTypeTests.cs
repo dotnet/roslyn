@@ -110,10 +110,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem(65302, "https://github.com/dotnet/roslyn/issues/65302")]
         public async Task ReturnTypelessTuple()
         {
-            // The fix should be smarter here and not create other compilation error after execution. See https://github.com/dotnet/roslyn/issues/65302
             await VerifyCS.VerifyCodeFixAsync("""
                 class C
                 {
@@ -125,9 +124,75 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
                 """, """
                 class C
                 {
-                    object M()
+                    (object, string) M()
                     {
-                        return {|CS8135:(null, string.Empty)|};
+                        return (null, string.Empty);
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(65302, "https://github.com/dotnet/roslyn/issues/65302")]
+        public async Task ReturnTypelessTuple_Nested()
+        {
+            await VerifyCS.VerifyCodeFixAsync("""
+                class C
+                {
+                    void M()
+                    {
+                        {|CS0127:return|} ((5, null), string.Empty);
+                    }
+                }
+                """, """
+                class C
+                {
+                    ((int, object), string) M()
+                    {
+                        return ((5, null), string.Empty);
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(65302, "https://github.com/dotnet/roslyn/issues/65302")]
+        public async Task ReturnTypelessTuple_Async()
+        {
+            await VerifyCS.VerifyCodeFixAsync("""
+                class C
+                {
+                    async void M()
+                    {
+                        {|CS0127:return|} (null, string.Empty);
+                    }
+                }
+                """, """
+                class C
+                {
+                    async System.Threading.Tasks.Task<(object, string)> M()
+                    {
+                        return (null, string.Empty);
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(65302, "https://github.com/dotnet/roslyn/issues/65302")]
+        public async Task ReturnTypelessTuple_Nested_Async()
+        {
+            await VerifyCS.VerifyCodeFixAsync("""
+                class C
+                {
+                    async void M()
+                    {
+                        {|CS0127:return|} ((5, null), string.Empty);
+                    }
+                }
+                """, """
+                class C
+                {
+                    async System.Threading.Tasks.Task<((int, object), string)> M()
+                    {
+                        return ((5, null), string.Empty);
                     }
                 }
                 """);
@@ -139,23 +204,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
             await new VerifyCS.Test
             {
                 TestCode = """
-                class C
-                {
-                    void M()
+                    class C
                     {
-                        {|CS0127:return|} () => {};
+                        void M()
+                        {
+                            {|CS0127:return|} () => {};
+                        }
                     }
-                }
-                """,
+                    """,
                 FixedCode = """
-                class C
-                {
-                    object M()
+                    class C
                     {
-                        return () => {};
+                        object M()
+                        {
+                            return () => {};
+                        }
                     }
-                }
-                """,
+                    """,
                 LanguageVersion = LanguageVersion.CSharp10
             }.RunAsync();
         }
@@ -391,27 +456,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
             await new VerifyCS.Test
             {
                 TestCode = """
-                using System.Threading.Tasks;
+                    using System.Threading.Tasks;
                 
-                class C
-                {
-                    async ValueTask M()
+                    class C
                     {
-                        {|CS1997:return|} "";
+                        async ValueTask M()
+                        {
+                            {|CS1997:return|} "";
+                        }
                     }
-                }
-                """,
+                    """,
                 FixedCode = """
-                using System.Threading.Tasks;
+                    using System.Threading.Tasks;
                 
-                class C
-                {
-                    async ValueTask<string> M()
+                    class C
                     {
-                        return "";
+                        async ValueTask<string> M()
+                        {
+                            return "";
+                        }
                     }
-                }
-                """,
+                    """,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60
             }.RunAsync();
         }
