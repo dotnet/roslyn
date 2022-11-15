@@ -110,8 +110,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         _ => s_allKinds,
                     };
 
-                    var searchCurrentDocument = false; // (callback.Options as INavigateToOptions2)?.SearchCurrentDocument ?? false;
+                    // TODO(cyrusn): New aiosp doesn't seem to support only searching current document.
+                    var searchCurrentDocument = false;
 
+                    // Create a nav-to callback that will take results and translate them to aiosp results for the
+                    // callback passed to us.
                     var roslynCallback = new RoslynNavigateToSearchCallback(_provider, searchCallback);
 
                     var searcher = NavigateToSearcher.Create(
@@ -153,13 +156,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
 
             public void ReportProgress(int current, int maximum)
-            {
-                _searchCallback.ReportProgress(current, maximum);
-            }
+                => _searchCallback.ReportProgress(current, maximum);
 
             public void ReportIncomplete()
             {
+                // IncompleteReason.Parsing corresponds to:
                 // "The results may be inaccurate because the search information is still being updated."
+                //
+                // This the most accurate message for us as we only report this when we're currently reporting
+                // potentially stale results from the nav-to cache.
                 _searchCallback.ReportIncomplete(IncompleteReason.Parsing);
             }
 
