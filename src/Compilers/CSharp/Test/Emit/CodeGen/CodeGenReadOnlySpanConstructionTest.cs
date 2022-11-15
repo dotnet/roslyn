@@ -691,7 +691,7 @@ public class Test
 
         [Fact]
         [WorkItem(24621, "https://github.com/dotnet/roslyn/issues/24621")]
-        public void StaticFieldIsUsedForSpanCreatedFromArrayWithInitializer()
+        public void StaticFieldIsUsedForSpanCreatedFromArrayWithInitializer_01()
         {
             var csharp = @"
 using System;
@@ -718,6 +718,195 @@ public class Test
   IL_0006:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
   IL_000b:  ret
 }");
+        }
+
+        [Fact]
+        public void StaticFieldIsUsedForSpanCreatedFromArrayWithInitializer_02()
+        {
+            // This IL applies CompilerFeatureRequiredAttribute to WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer.
+            // That should prevent its usage during code gen, as if the member doesn't exist.
+            var ilSource = @"
+.class public sequential ansi sealed beforefieldinit System.ReadOnlySpan`1<T>
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string, bool) = (
+        01 00 52 54 79 70 65 73 20 77 69 74 68 20 65 6d
+        62 65 64 64 65 64 20 72 65 66 65 72 65 6e 63 65
+        73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f 72
+        74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72 73
+        69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d 70
+        69 6c 65 72 2e 01 00 00
+    )
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .pack 0
+    .size 1
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            void* pointer,
+            int32 length
+        ) cil managed 
+    {
+        .custom instance void System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
+            01 00 04 54 65 73 74 00 00
+        )
+
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            !T[] arr
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname static 
+        valuetype System.ReadOnlySpan`1<!T> op_Implicit (
+            !T[] 'array'
+        ) cil managed 
+    {
+        .maxstack 1
+        .locals init (
+            [0] valuetype System.ReadOnlySpan`1<!T>
+        )
+
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute
+     extends [mscorlib]System.Attribute
+ {
+     .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+         01 00 ff 7f 00 00 02 00 54 02 0d 41 6c 6c 6f 77
+         4d 75 6c 74 69 70 6c 65 01 54 02 09 49 6e 68 65
+         72 69 74 65 64 00
+     )
+     // Fields
+     .field private initonly string '<FeatureName>k__BackingField'
+     .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+         01 00 00 00
+     )
+     .field private initonly bool '<IsOptional>k__BackingField'
+     .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+         01 00 00 00
+     )
+
+     .field public static literal string RefStructs = ""RefStructs""
+     .field public static literal string RequiredMembers = ""RequiredMembers""
+ 
+     // Methods
+     .method public hidebysig specialname rtspecialname 
+         instance void .ctor (
+             string featureName
+         ) cil managed 
+     {
+         ldarg.0
+         call instance void [mscorlib]System.Attribute::.ctor()
+         ldarg.0
+         ldarg.1
+         stfld string System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::'<FeatureName>k__BackingField'
+         ret
+     } // end of method CompilerFeatureRequiredAttribute::.ctor
+ 
+     .method public hidebysig specialname 
+         instance string get_FeatureName () cil managed 
+     {
+         ldarg.0
+         ldfld string System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::'<FeatureName>k__BackingField'
+         ret
+     } // end of method CompilerFeatureRequiredAttribute::get_FeatureName
+ 
+     .method public hidebysig specialname 
+         instance bool get_IsOptional () cil managed 
+     {
+         ldarg.0
+         ldfld bool System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::'<IsOptional>k__BackingField'
+         ret
+     } // end of method CompilerFeatureRequiredAttribute::get_IsOptional
+ 
+     .method public hidebysig specialname 
+         instance void modreq([mscorlib]System.Runtime.CompilerServices.IsExternalInit) set_IsOptional (
+             bool 'value'
+         ) cil managed 
+     {
+         ldarg.0
+         ldarg.1
+         stfld bool System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::'<IsOptional>k__BackingField'
+         ret
+     } // end of method CompilerFeatureRequiredAttribute::set_IsOptional
+ 
+     // Properties
+     .property instance string FeatureName()
+     {
+         .get instance string System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::get_FeatureName()
+     }
+     .property instance bool IsOptional()
+     {
+         .get instance bool System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::get_IsOptional()
+         .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsExternalInit) System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::set_IsOptional(bool)
+     }
+ 
+ } // end of class System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute
+";
+
+            var csharp = @"
+using System;
+
+public class Test
+{
+    public static ReadOnlySpan<byte> StaticData => new byte[] { 10, 20 };
+
+    public static void Main()
+    {
+    }
+}";
+
+            var compilation = CreateCompilationWithIL(csharp, ilSource);
+            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped);
+
+            var expected =
+@"
+{
+  // Code size       22 (0x16)
+  .maxstack  4
+  IL_0000:  ldc.i4.2
+  IL_0001:  newarr     ""byte""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldc.i4.s   10
+  IL_000a:  stelem.i1
+  IL_000b:  dup
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldc.i4.s   20
+  IL_000f:  stelem.i1
+  IL_0010:  call       ""System.ReadOnlySpan<byte> System.ReadOnlySpan<byte>.op_Implicit(byte[])""
+  IL_0015:  ret
+}
+";
+            // Verify emitted IL with "bad" WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer
+            verifier.VerifyIL("Test.StaticData.get", expected);
+
+            // We should get the same IL with regular ReadOnlySpan implementation,
+            // but with WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer missing
+            compilation = CreateCompilationWithMscorlibAndSpan(csharp);
+            compilation.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer);
+            verifier = CompileAndVerify(compilation, verify: Verification.Skipped);
+            verifier.VerifyIL("Test.StaticData.get", expected);
         }
     }
 }
