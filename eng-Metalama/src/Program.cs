@@ -35,7 +35,8 @@ var product = new Product(Dependencies.MetalamaCompiler)
     ExportedProperties = new[] { "RoslynVersion" },
     KeepEditorConfig = true,
     Configurations = Product.DefaultConfigurations.WithValue(BuildConfiguration.Release, Product.DefaultConfigurations[BuildConfiguration.Release] with { ExportsToTeamCityBuild = true }),
-    BumpStrategy = new PatchVersionBumpStrategy()
+    BumpStrategy = new PatchVersionBumpStrategy(),
+	BuildAgentType = "caravela04"
 };
 
 product.BuildCompleted += OnBuildCompleted;
