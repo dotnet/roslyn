@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         private readonly AnalysisKind? _analysisKind;
         private readonly IPerformanceTrackerService? _performanceTracker;
         private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
+        private readonly HostWorkspaceServices _hostWorkspaceServices;
 
         public DiagnosticComputer(
             TextDocument? document,
@@ -53,7 +54,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             IdeAnalyzerOptions ideOptions,
             TextSpan? span,
             AnalysisKind? analysisKind,
-            DiagnosticAnalyzerInfoCache analyzerInfoCache)
+            DiagnosticAnalyzerInfoCache analyzerInfoCache,
+            HostWorkspaceServices hostWorkspaceServices)
         {
             _document = document;
             _project = project;
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             _span = span;
             _analysisKind = analysisKind;
             _analyzerInfoCache = analyzerInfoCache;
-
+            _hostWorkspaceServices = hostWorkspaceServices;
             _performanceTracker = project.Solution.Services.GetService<IPerformanceTrackerService>();
         }
 
@@ -130,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             {
                 // Only log telemetry snapshot is we have an active telemetry session,
                 // i.e. user has not opted out of reporting telemetry.
-                var telemetryService = _project.Solution.Workspace.Services.GetRequiredService<IWorkspaceTelemetryService>();
+                var telemetryService = _hostWorkspaceServices.GetRequiredService<IWorkspaceTelemetryService>();
                 if (telemetryService.HasActiveSession)
                 {
                     // +1 to include project itself
