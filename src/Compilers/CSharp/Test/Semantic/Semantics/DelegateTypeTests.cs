@@ -13180,7 +13180,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaDefaultDisardParameter_DelegateConversion_DefaultValueMismatch()
+        public void LambdaDefaultDiscardParameter_DelegateConversion_DefaultValueMismatch()
         {
             var source = """
 using System;
@@ -13227,6 +13227,18 @@ class Program
                 // (12,27): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'Program.D'
                 //         Console.WriteLine(d(4));
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "d").WithArguments("y", "Program.D").WithLocation(12, 27));
+        }
+
+        [Fact]
+        public void Lambda_DiscardParameters()
+        {
+            var source = """
+                var lam1 = (string _, int _ = 1) => { };
+                lam1("s", 2);
+                var lam2 = (string _, params int[] _) => { };
+                lam2("s", 3, 4, 5);
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -13337,6 +13349,9 @@ class Program
         [InlineData("char", "'a'", "a")]
         [InlineData("string", @"""a string""", "a string")]
         [InlineData("C", "null", "")]
+        [InlineData("C", "default(C)", "")]
+        [InlineData("S", "new S()", "Program+S")]
+        [InlineData("S", "default(S)", "Program+S")]
         public void LambdaDefaultParameter_AllConstantValueTypes(string parameterType, string defaultValue = "0", string expectedOutput = "0")
         {
             var source = $$"""
@@ -13349,6 +13364,8 @@ public class Program
     }
     
     class C {}
+
+    struct S {}
 
     public static void Main()
     {
@@ -13381,7 +13398,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("int", "short").WithLocation(1, 18));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LambdaDefaultParameter_TargetTypedValidNonLiteralConversion()
         {
             var source = """
@@ -13391,7 +13408,7 @@ public class Program
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LambdaDefaultParameter_InterpolatedStringHandler()
         {
             var source = """
@@ -13451,7 +13468,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "f(1000)").WithArguments("x").WithLocation(8, 28));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LambdaWithDefault_NonConstantLiteral_InterpolatedString()
         {
             var source = """
@@ -14013,6 +14030,60 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 	{
                 	} // end of method '<>f__AnonymousDelegate0'::Invoke
                 } // end of class <>f__AnonymousDelegate0
+                """);
+        }
+
+        [Fact]
+        public void ParamsArray_SynthesizedClosureIL()
+        {
+            var source = """
+                var lam = (int x, params int[] ys) => { };
+                System.Console.WriteLine(lam.Target!.GetType().Name);
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "<>c").VerifyDiagnostics();
+            verifier.VerifyTypeIL("<>c", $$"""
+                .class nested private auto ansi sealed serializable beforefieldinit '<>c'
+                	extends [{{s_libPrefix}}]System.Object
+                {
+                	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Fields
+                	.field public static initonly class Program/'<>c' '<>9'
+                	.field public static class '<>f__AnonymousDelegate0' '<>9__0_0'
+                	// Methods
+                	.method private hidebysig specialname rtspecialname static 
+                		void .cctor () cil managed 
+                	{
+                		// Method begins at RVA 0x20a4
+                		// Code size 11 (0xb)
+                		.maxstack 8
+                		IL_0000: newobj instance void Program/'<>c'::.ctor()
+                		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+                		IL_000a: ret
+                	} // end of method '<>c'::.cctor
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor () cil managed 
+                	{
+                		// Method begins at RVA 0x209c
+                		// Code size 7 (0x7)
+                		.maxstack 8
+                		IL_0000: ldarg.0
+                		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
+                		IL_0006: ret
+                	} // end of method '<>c'::.ctor
+                	.method assembly hidebysig 
+                		instance void '<<Main>$>b__0_0' (
+                			int32 x,
+                			int32[] ys
+                		) cil managed 
+                	{
+                		// Method begins at RVA 0x20b0
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		IL_0000: ret
+                	} // end of method '<>c'::'<<Main>$>b__0_0'
+                } // end of class <>c
                 """);
         }
 
