@@ -112,8 +112,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The list of deconstruction targets is usually small. Prefer a temporary array which is stack-bound for small numbers of elements.
                 var visitedSymbols = TemporaryArray<Symbol>.Empty;
 
-                if (right is BoundConvertedTupleLiteral or BoundConversion { Operand.Kind: BoundKind.TupleLiteral or BoundKind.ConvertedTupleLiteral }
+                if (// was the RHS a tuple literal of some kind?
+                    right is BoundConvertedTupleLiteral or BoundConversion { Operand.Kind: BoundKind.TupleLiteral or BoundKind.ConvertedTupleLiteral }
+
+                    // were any of the RHS expressions stored into temps?
                     && effects.init.Any()
+
                     && canReorderTargetAssignments(lhsTargets, ref visitedSymbols))
                 {
                     // Consider a deconstruction assignment like the following
@@ -157,32 +161,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (target.Single is { } single)
                     {
-                        if (single is not (BoundLocal { LocalSymbol.RefKind: RefKind.None }
-                                or BoundParameter { ParameterSymbol.RefKind: RefKind.None }
-                                or BoundDiscardExpression))
+                        Debug.Assert(target.NestedVariables is null);
+                        Symbol symbol = single switch
+                        {
+                            BoundLocal { LocalSymbol: { RefKind: RefKind.None } localSymbol } => localSymbol,
+                            BoundParameter { ParameterSymbol: { RefKind: RefKind.None } parameterSymbol } => parameterSymbol,
+                            _ => null
+                        };
+
+                        if (symbol is null && single is not BoundDiscardExpression)
                         {
                             // This deconstruction assigns to a target which is not sufficiently simple.
                             // We can't verify that the deconstruction does not use any aliases to variables.
                             return false;
                         }
 
-                        var expressionSymbol = single.ExpressionSymbol;
-                        Debug.Assert(expressionSymbol != null && expressionSymbol is not TypeSymbol);
+                        Debug.Assert(symbol != null && symbol is not TypeSymbol);
                         foreach (var visitedSymbol in visitedSymbols)
                         {
-                            if ((object)visitedSymbol == expressionSymbol)
+                            if ((object)visitedSymbol == symbol)
                             {
                                 // This deconstruction writes to the same target multiple times, e.g:
                                 // (x, x) = (a, b);
                                 return false;
                             }
                         }
-                        visitedSymbols.Add(expressionSymbol);
+                        visitedSymbols.Add(symbol);
                     }
-
-                    if (target.NestedVariables is { } nestedVariables && !canReorderTargetAssignments(nestedVariables, ref visitedSymbols))
+                    else if (target.NestedVariables is { } nestedVariables && !canReorderTargetAssignments(nestedVariables, ref visitedSymbols))
                     {
                         return false;
+                    }
+                    else
+                    {
+                        throw ExceptionUtilities.UnexpectedValue(target);
                     }
                 }
 
