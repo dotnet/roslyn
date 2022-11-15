@@ -1086,8 +1086,9 @@ public interface Bad { }
         }
 
         // From LegacyTest\CSharp\Source\csharp\Source\ClsCompliance\generics\Rule_E_01.cs
-        [Fact]
-        public void WRN_CLS_BadArgType_ConstructedTypeAccessibility()
+        [Theory]
+        [CombinatorialData]
+        public void WRN_CLS_BadArgType_ConstructedTypeAccessibility(NullableContextOptions nullableContextOptions)
         {
             var source = @"
 [assembly: System.CLSCompliant(true)]
@@ -1114,7 +1115,7 @@ public class D : C<long>
 }
 ";
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.ReleaseDll.WithNullableContextOptions(nullableContextOptions)).VerifyDiagnostics(
                 // (7,32): warning CS3001: Argument type 'C<int>.N' is not CLS-compliant
                 //     protected void M1(C<int>.N n) { }	// Not CLS-compliant - C<int>.N not 
                 Diagnostic(ErrorCode.WRN_CLS_BadArgType, "n").WithArguments("C<int>.N"),
