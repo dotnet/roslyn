@@ -10,15 +10,18 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
+using static Humanizer.In;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
@@ -29,6 +32,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpElseSnippetProvider()
         {
+        }
+
+        protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
+        {
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+            var syntaxContext = (CSharpSyntaxContext)document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
+
+            var token = syntaxContext.TargetToken;
+
+            // We have to consider all ancestor if statements of the last token until we find a match for this 'else':
+            // while (true)
+            //     if (true)
+            //         while (true)
+            //             if (true)
+            //                 Console.WriteLine();
+            //             else
+            //                 Console.WriteLine();
+            //     $$
+            var isAfterIfStatement = false;
+
+            foreach (var ifStatement in token.GetAncestors<IfStatementSyntax>())
+            {
+                // If there's a missing token at the end of the statement, it's incomplete and we do not offer 'else'.
+                // context.TargetToken does not include zero width so in that case these will never be equal.
+                if (ifStatement.Statement.GetLastToken(includeZeroWidth: true) == token)
+                {
+                    isAfterIfStatement = true;
+                    break;
+                }
+            }
+
+            return isAfterIfStatement && await base.IsValidSnippetLocationAsync(document, position, cancellationToken).ConfigureAwait(false);
         }
 
         protected override Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)

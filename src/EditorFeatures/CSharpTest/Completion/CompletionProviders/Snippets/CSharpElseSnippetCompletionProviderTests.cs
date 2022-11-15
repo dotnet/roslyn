@@ -26,6 +26,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public void Method()
     {
+        if (true)
+        {
+        }
         $$
     }
 }";
@@ -35,6 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public void Method()
     {
+        if (true)
+        {
+        }
         else
         {
             $$
@@ -45,10 +51,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         [WpfFact]
+        public async Task NoElseSnippetInMethodWithoutIfStatementTest()
+        {
+            var markupBeforeCommit =
+@"class Program
+{
+    public void Method()
+    {
+        $$
+    }
+}";
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+        }
+
+        [WpfFact]
         public async Task InsertElseSnippetGlobalTest()
         {
             var markupBeforeCommit =
-@"$$
+@"if (true)
+{
+}
+$$
 class Program
 {
     public async Task MethodAsync()
@@ -57,7 +80,10 @@ class Program
 }";
 
             var expectedCodeAfterCommit =
-@"else
+@"if (true)
+{
+}
+else
 {
     $$
 }
@@ -77,6 +103,9 @@ class Program
 @"
 namespace Namespace
 {
+    if (true)
+    {
+    }
     $$
     class Program
     {
@@ -94,6 +123,9 @@ namespace Namespace
             var markupBeforeCommit =
 @"
 namespace Namespace;
+if (true)
+{
+}
 $$
 class Program
 {
@@ -113,6 +145,9 @@ class Program
 {
     public Program()
     {
+        if (true)
+        {
+        }
         $$
     }
 }";
@@ -122,6 +157,9 @@ class Program
 {
     public Program()
     {
+        if (true)
+        {
+        }
         else
         {
             $$
@@ -142,6 +180,10 @@ class Program
         var x = 5;
         void LocalMethod()
         {
+            if (true)
+            {
+                
+            }
             $$
         }
     }
@@ -155,6 +197,10 @@ class Program
         var x = 5;
         void LocalMethod()
         {
+            if (true)
+            {
+                
+            }
             else
             {
                 $$
