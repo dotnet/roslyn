@@ -368,8 +368,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var globalAliasedQuickAttributes = GetQuickAttributes(compilationUnit.Usings, global: true);
 
-            CheckUsings(diagnostics, compilationUnit.Usings);
-            CheckExterns(diagnostics, compilationUnit.Externs);
+            CheckFeatureAvailabilityForUsings(diagnostics, compilationUnit.Usings);
+            CheckFeatureAvailabilityForExterns(diagnostics, compilationUnit.Externs);
 
             return new RootSingleNamespaceDeclaration(
                 hasGlobalUsings: hasGlobalUsings,
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 globalAliasedQuickAttributes);
         }
 
-        private static void CheckUsings(DiagnosticBag diagnostics, SyntaxList<UsingDirectiveSyntax> usings)
+        private static void CheckFeatureAvailabilityForUsings(DiagnosticBag diagnostics, SyntaxList<UsingDirectiveSyntax> usings)
         {
             foreach (var usingDirective in usings)
             {
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static void CheckExterns(DiagnosticBag diagnostics, SyntaxList<ExternAliasDirectiveSyntax> externs)
+        private static void CheckFeatureAvailabilityForExterns(DiagnosticBag diagnostics, SyntaxList<ExternAliasDirectiveSyntax> externs)
         {
             foreach (var externAlias in externs)
                 MessageID.IDS_FeatureExternAlias.CheckFeatureAvailability(diagnostics, externAlias, externAlias.ExternKeyword.GetLocation());
@@ -516,8 +516,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            CheckUsings(diagnostics, node.Usings);
-            CheckExterns(diagnostics, node.Externs);
+            CheckFeatureAvailabilityForUsings(diagnostics, node.Usings);
+            CheckFeatureAvailabilityForExterns(diagnostics, node.Externs);
 
             // NOTE: *Something* has to happen for alias-qualified names.  It turns out that we
             // just grab the part after the colons (via GetUnqualifiedName, below).  This logic
