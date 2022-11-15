@@ -159,9 +159,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var target in targets)
                 {
+                    Debug.Assert(target is { Single: not null, NestedVariables: null } or { Single: null, NestedVariables: not null });
                     if (target.Single is { } single)
                     {
-                        Debug.Assert(target.NestedVariables is null);
                         Symbol symbol = single switch
                         {
                             BoundLocal { LocalSymbol: { RefKind: RefKind.None } localSymbol } => localSymbol,
@@ -191,10 +191,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else if (target.NestedVariables is { } nestedVariables && !canReorderTargetAssignments(nestedVariables, ref visitedSymbols))
                     {
                         return false;
-                    }
-                    else
-                    {
-                        throw ExceptionUtilities.UnexpectedValue(target);
                     }
                 }
 
