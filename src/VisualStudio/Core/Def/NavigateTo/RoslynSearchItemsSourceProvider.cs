@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private readonly IThreadingContext _threadingContext;
         private readonly IUIThreadOperationExecutor _threadOperationExecutor;
         private readonly IAsynchronousOperationListener _asyncListener;
+        private readonly RoslynSearchResultViewFactory _viewFactory;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -61,6 +62,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             _threadingContext = threadingContext;
             _threadOperationExecutor = threadOperationExecutor;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.NavigateTo);
+
+            _viewFactory = new RoslynSearchResultViewFactory(this);
         }
 
         public ISearchItemsSource CreateItemsSource()
@@ -110,8 +113,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
                     var searchCurrentDocument = false; // (callback.Options as INavigateToOptions2)?.SearchCurrentDocument ?? false;
 
-                    var viewFactory = new RoslynViewFactory(_provider);
-                    var roslynCallback = new RoslynNavigateToSearchCallback(viewFactory, searchCallback);
+                    var roslynCallback = new RoslynNavigateToSearchCallback(_provider, searchCallback);
 
                     var searcher = NavigateToSearcher.Create(
                         _provider._workspace.CurrentSolution,
@@ -128,71 +130,75 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 {
                 }
             }
+        }
 
-            private sealed class RoslynViewFactory : ISearchResultViewFactory
+        private sealed class RoslynSearchResultViewFactory : ISearchResultViewFactory
+        {
+            private readonly RoslynSearchItemsSourceProvider _provider;
+
+            public RoslynSearchResultViewFactory(RoslynSearchItemsSourceProvider provider)
             {
-                private readonly RoslynSearchItemsSourceProvider _provider;
+                _provider = provider;
+            }
 
-                public RoslynViewFactory(RoslynSearchItemsSourceProvider provider)
+            public SearchResultViewBase CreateSearchResultView(SearchResult result)
+            {
+                if (result is not RoslynCodeSearchResult roslynResult)
+                    return null!;
+
+                var searchResult = roslynResult.SearchResult;
+                var patternMatch = roslynResult.PatternMatch;
+
+                return new RoslynSearchResultView(
+                    _provider,
+                    roslynResult,
+                    new HighlightedText(searchResult.NavigableItem.DisplayTaggedParts.JoinText(), searchResult.NameMatchSpans.Select(s => s.ToSpan()).ToArray()),
+                    new HighlightedText(searchResult.AdditionalInformation, Array.Empty<VisualStudio.Text.Span>()),
+                    primaryIcon: searchResult.NavigableItem.Glyph.GetImageId());
+            }
+
+            public Task<IReadOnlyList<SearchResultPreviewPanelBase>> GetPreviewPanelsAsync(SearchResult result, SearchResultViewBase searchResultView)
+                => Task.FromResult(GetPreviewPanels(result, searchResultView));
+
+            private IReadOnlyList<SearchResultPreviewPanelBase> GetPreviewPanels(SearchResult result, SearchResultViewBase searchResultView)
+            {
+                if (result is not RoslynCodeSearchResult roslynResult)
+                    return Array.Empty<SearchResultPreviewPanelBase>();
+
+                return new List<SearchResultPreviewPanelBase>
                 {
-                    _provider = provider;
-                }
-
-                public SearchResultViewBase CreateSearchResultView(SearchResult result)
-                {
-                    if (result is not RoslynCodeSearchResult roslynResult)
-                        return null!;
-
-                    var searchResult = roslynResult.SearchResult;
-                    var patternMatch = roslynResult.PatternMatch;
-
-                    return new RoslynSearchResultView(
+                    new RoslynSearchResultPreviewPanel(
                         _provider,
                         roslynResult,
-                        new HighlightedText(searchResult.NavigableItem.DisplayTaggedParts.JoinText(), searchResult.NameMatchSpans.Select(s => s.ToSpan()).ToArray()),
-                        new HighlightedText(searchResult.AdditionalInformation, Array.Empty<VisualStudio.Text.Span>()),
-                        primaryIcon: searchResult.NavigableItem.Glyph.GetImageId());
-                }
-
-                public async Task<IReadOnlyList<SearchResultPreviewPanelBase>> GetPreviewPanelsAsync(SearchResult result, SearchResultViewBase searchResultView)
-                {
-                    if (result is not RoslynCodeSearchResult roslynResult)
-                        return null!;
-
-                    return new List<SearchResultPreviewPanelBase>
-                    {
-                        new FileContentPreviewView(
-                            searchResultView.Title.Text,
-                            result,
-                            searchResultView.PrimaryIcon,
-                            _provider._threadingContext.JoinableTaskFactory)
-                    };
-                }
+                        searchResultView.Title.Text,
+                        searchResultView.PrimaryIcon)
+                };
             }
         }
 
         /// <summary>
         /// Represent a code editor in the Preview panel.
         /// </summary>
-        private sealed class RoslynFileContentPreviewView : SearchResultPreviewPanelBase
+        private sealed class RoslynSearchResultPreviewPanel : SearchResultPreviewPanelBase
         {
             public override UIBaseModel UserInterface { get; }
 
-            public FileContentPreviewView(
+            public RoslynSearchResultPreviewPanel(
                 RoslynSearchItemsSourceProvider provider,
-                SearchResult searchResult,
-                string title, ImageId icon)
+                RoslynCodeSearchResult searchResult,
+                string title,
+                ImageId icon)
                 : base(title, icon)
             {
                 UserInterface = new CodeEditorModel(
-                    nameof(RoslynFileContentPreviewView),
+                    nameof(RoslynSearchResultPreviewPanel),
                     new VisualStudio.Threading.AsyncLazy<TextDocumentLocation>(() =>
                     {
                         return Task.FromResult(
                             new TextDocumentLocation(
                                 new Uri(file),
                                 Guid.Empty /* project ID */,
-                                Span.FromBounds(symbolLocation.Start, symbolLocation.End) /* There's another constructor for Line and Column parameters, if needed */));
+                                searchResult.SearchResult.NavigableItem.SourceSpan.ToSpan())
                     },
                     provider._threadingContext.JoinableTaskFactory),
                     isEditable: false);
@@ -260,14 +266,14 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         private sealed class RoslynNavigateToSearchCallback : INavigateToSearchCallback
         {
-            private readonly ISearchResultViewFactory _viewFactory;
+            private readonly RoslynSearchItemsSourceProvider _provider;
             private readonly ISearchCallback _searchCallback;
 
             public RoslynNavigateToSearchCallback(
-                ISearchResultViewFactory viewFactory,
+                RoslynSearchItemsSourceProvider provider,
                 ISearchCallback searchCallback)
             {
-                _viewFactory = viewFactory;
+                _provider = provider;
                 _searchCallback = searchCallback;
             }
 
@@ -301,9 +307,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     matchedSpans);
 
                 _searchCallback.AddItem(new RoslynCodeSearchResult(
+                    _provider,
                     result,
                     patternMatch,
-                    _viewFactory,
                     result.Kind,
                     result.Name,
                     result.SecondarySort,
@@ -341,9 +347,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             public readonly PatternMatch PatternMatch;
 
             public RoslynCodeSearchResult(
-                INavigateToSearchResult result,
+                RoslynSearchItemsSourceProvider provider,
+                INavigateToSearchResult searchResult,
                 PatternMatch patternMatch,
-                ISearchResultViewFactory viewFactory,
                 string resultType,
                 string primarySortText,
                 string? secondarySortText,
@@ -352,9 +358,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 string? tieBreakingSortText,
                 float perProviderItemPriority,
                 SearchResultFlags flags,
-                string? language) : base(viewFactory, resultType, primarySortText, secondarySortText, patternMatches, location, tieBreakingSortText, perProviderItemPriority, flags, language)
+                string? language) : base(provider._viewFactory, resultType, primarySortText, secondarySortText, patternMatches, location, tieBreakingSortText, perProviderItemPriority, flags, language)
             {
-                SearchResult = result;
+                SearchResult = searchResult;
                 PatternMatch = patternMatch;
             }
         }
