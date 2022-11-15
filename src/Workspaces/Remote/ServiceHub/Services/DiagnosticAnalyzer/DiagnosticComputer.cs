@@ -134,7 +134,10 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 if (telemetryService.HasActiveSession)
                 {
                     // +1 to include project itself
-                    var unitCount = documentAnalysisScope != null ? 1 : _project.DocumentIds.Count + 1;
+                    var unitCount = 1;
+                    if (documentAnalysisScope == null)
+                        unitCount += _project.DocumentIds.Count;
+
                     _performanceTracker.AddSnapshot(analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_analyzerInfoCache), unitCount, forSpanAnalysis: _span.HasValue);
                 }
             }

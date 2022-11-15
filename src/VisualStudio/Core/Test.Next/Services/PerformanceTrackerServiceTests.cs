@@ -24,9 +24,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
         [Theory, CombinatorialData]
         public void TestSampleSize(bool forSpanAnalysis)
         {
-            var minSampleSize = forSpanAnalysis ?
-                TestMinSampleSizeForSpanAnalysis :
-                TestMinSampleSizeForDocumentAnalysis;
+            var minSampleSize = forSpanAnalysis
+                ? TestMinSampleSizeForSpanAnalysis
+                : TestMinSampleSizeForDocumentAnalysis;
 
             // Verify no analyzer infos reported when sampleSize < minSampleSize
             var sampleSize = minSampleSize - 1;
@@ -42,9 +42,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
         [Theory, CombinatorialData]
         public void TestNoDuplicateReportGeneration(bool forSpanAnalysis)
         {
-            var minSampleSize = forSpanAnalysis ?
-                TestMinSampleSizeForSpanAnalysis :
-                TestMinSampleSizeForDocumentAnalysis;
+            var minSampleSize = forSpanAnalysis
+                ? TestMinSampleSizeForSpanAnalysis
+                : TestMinSampleSizeForDocumentAnalysis;
 
             var service = new PerformanceTrackerService(TestMinSampleSizeForDocumentAnalysis, TestMinSampleSizeForSpanAnalysis);
 

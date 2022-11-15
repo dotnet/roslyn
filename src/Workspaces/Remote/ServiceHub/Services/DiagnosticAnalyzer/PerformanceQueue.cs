@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         private readonly int _maxSampleSize, _minSampleSize;
         private readonly LinkedList<Snapshot> _snapshots;
 
-        private int _spanshotsSinceLastReport;
+        private int _snapshotsSinceLastReport;
 
         public PerformanceQueue(int minSampleSize)
         {
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             _minSampleSize = minSampleSize;
             _snapshots = new LinkedList<Snapshot>();
-            _spanshotsSinceLastReport = 0;
+            _snapshotsSinceLastReport = 0;
         }
 
         public int Count => _snapshots.Count;
@@ -53,18 +53,18 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 _snapshots.AddLast(first);
             }
 
-            _spanshotsSinceLastReport++;
+            _snapshotsSinceLastReport++;
         }
 
         public void GetPerformanceData(List<(string analyzerId, double average, double stddev)> aggregatedPerformanceDataPerAnalyzer)
         {
-            if (_spanshotsSinceLastReport < _minSampleSize)
+            if (_snapshotsSinceLastReport < _minSampleSize)
             {
                 // we don't have enough data to report this
                 return;
             }
 
-            _spanshotsSinceLastReport = 0;
+            _snapshotsSinceLastReport = 0;
 
             using var pooledMap = SharedPools.Default<Dictionary<int, string>>().GetPooledObject();
             using var pooledSet = SharedPools.Default<HashSet<int>>().GetPooledObject();
