@@ -112,8 +112,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The list of deconstruction targets is usually small. Prefer a temporary array which is stack-bound for small numbers of elements.
                 var visitedSymbols = TemporaryArray<Symbol>.Empty;
 
-                if (// was the RHS a tuple literal of some kind?
-                    right is BoundConvertedTupleLiteral or BoundConversion { Operand.Kind: BoundKind.TupleLiteral or BoundKind.ConvertedTupleLiteral }
+                Debug.Assert(right is not BoundConversion { Operand.Kind: BoundKind.TupleLiteral });
+                if (// was the RHS a tuple literal?
+                    right is { Kind: BoundKind.ConvertedTupleLiteral } or BoundConversion { Operand.Kind: BoundKind.ConvertedTupleLiteral }
 
                     // were any of the RHS expressions stored into temps?
                     && effects.init.Any()
