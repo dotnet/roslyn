@@ -158,18 +158,32 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
 
             public Task<IReadOnlyList<SearchResultPreviewPanelBase>> GetPreviewPanelsAsync(SearchResult result, SearchResultViewBase searchResultView)
-                => Task.FromResult(GetPreviewPanels(result, searchResultView));
+                => Task.FromResult(GetPreviewPanels(result, searchResultView) ?? Array.Empty<SearchResultPreviewPanelBase>());
 
-            private IReadOnlyList<SearchResultPreviewPanelBase> GetPreviewPanels(SearchResult result, SearchResultViewBase searchResultView)
+            private IReadOnlyList<SearchResultPreviewPanelBase>? GetPreviewPanels(SearchResult result, SearchResultViewBase searchResultView)
             {
                 if (result is not RoslynCodeSearchResult roslynResult)
-                    return Array.Empty<SearchResultPreviewPanelBase>();
+                    return null;
+
+                var document = roslynResult.SearchResult.NavigableItem.Document;
+                var filePath = document.FilePath;
+                if (filePath is null)
+                    return null;
+
+                if (!Uri.TryCreate(filePath, UriKind.RelativeOrAbsolute, out var uri))
+                    return null;
+
+                var projectGuid = _provider._workspace.GetProjectGuid(document.Project.Id);
+                if (projectGuid == Guid.Empty)
+                    return null;
 
                 return new List<SearchResultPreviewPanelBase>
                 {
                     new RoslynSearchResultPreviewPanel(
                         _provider,
                         roslynResult,
+                        uri,
+                        projectGuid,
                         searchResultView.Title.Text,
                         searchResultView.PrimaryIcon)
                 };
@@ -186,6 +200,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             public RoslynSearchResultPreviewPanel(
                 RoslynSearchItemsSourceProvider provider,
                 RoslynCodeSearchResult searchResult,
+                Uri uri,
+                Guid projectGuid,
                 string title,
                 ImageId icon)
                 : base(title, icon)
@@ -193,14 +209,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 UserInterface = new CodeEditorModel(
                     nameof(RoslynSearchResultPreviewPanel),
                     new VisualStudio.Threading.AsyncLazy<TextDocumentLocation>(() =>
-                    {
-                        return Task.FromResult(
-                            new TextDocumentLocation(
-                                new Uri(file),
-                                Guid.Empty /* project ID */,
-                                searchResult.SearchResult.NavigableItem.SourceSpan.ToSpan())
-                    },
-                    provider._threadingContext.JoinableTaskFactory),
+                        Task.FromResult(new TextDocumentLocation(
+                            uri,
+                            projectGuid,
+                            searchResult.SearchResult.NavigableItem.SourceSpan.ToSpan())),
+                        provider._threadingContext.JoinableTaskFactory),
                     isEditable: false);
             }
         }
