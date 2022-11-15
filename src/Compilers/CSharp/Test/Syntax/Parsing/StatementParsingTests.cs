@@ -4179,37 +4179,64 @@ System.Console.WriteLine(true)";
         [Fact]
         public void ParsePointerToArray()
         {
-            UsingStatement("int []* p;",
-                // (1,7): error CS1001: Identifier expected
-                // int []* p;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "*").WithLocation(1, 7),
-                // (1,7): error CS1003: Syntax error, ',' expected
-                // int []* p;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "*").WithArguments(",").WithLocation(1, 7)
-                );
+            UsingStatement("int []* p;");
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
                 {
-                    N(SyntaxKind.ArrayType);
+                    N(SyntaxKind.PointerType);
                     {
-                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.ArrayType);
                         {
-                            N(SyntaxKind.IntKeyword);
-                        }
-                        N(SyntaxKind.ArrayRankSpecifier);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.OmittedArraySizeExpression);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                N(SyntaxKind.IntKeyword);
                             }
-                            N(SyntaxKind.CloseBracketToken);
+                            N(SyntaxKind.ArrayRankSpecifier);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.OmittedArraySizeExpression);
+                                {
+                                    N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
                         }
+                        N(SyntaxKind.AsteriskToken);
                     }
-                    M(SyntaxKind.VariableDeclarator);
+                    N(SyntaxKind.VariableDeclarator);
                     {
-                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "p");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ParsePointerToNullableType()
+        {
+            UsingStatement("int?* p;");
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.PointerType);
+                    {
+                        N(SyntaxKind.NullableType);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.QuestionToken);
+                        }
+                        N(SyntaxKind.AsteriskToken);
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "p");
                     }
                 }
                 N(SyntaxKind.SemicolonToken);
