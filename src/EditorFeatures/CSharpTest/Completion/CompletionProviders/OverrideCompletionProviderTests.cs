@@ -244,7 +244,7 @@ public class a
 
 public class b : a
 {
-    public static override $$ 
+    public static override $$
 }");
         }
 
@@ -3439,7 +3439,7 @@ record Program : Base
         }
 
         [WpfFact, WorkItem(64887, "https://github.com/dotnet/roslyn/issues/64887")]
-        public async Task WithAttribute()
+        public async Task WithAttribute1()
         {
             await VerifyItemExistsAsync("""
                 abstract class C
@@ -3450,6 +3450,59 @@ record Program : Base
                 class D : C
                 {
                     [SomeAttribute]
+                    override $$;
+                }
+                """, "M()");
+        }
+
+        [WpfFact, WorkItem(64887, "https://github.com/dotnet/roslyn/issues/64887")]
+        public async Task WithAttribute2()
+        {
+            await VerifyItemExistsAsync("""
+                abstract class C
+                {
+                    public abstract void M();
+                }
+
+                class D : C
+                {
+                    [SomeAttribute]
+                    [SomeOtherAttribute]
+                    override $$;
+                }
+                """, "M()");
+        }
+
+        [WpfFact, WorkItem(64887, "https://github.com/dotnet/roslyn/issues/64887")]
+        public async Task NotWhenMultilineModifiers()
+        {
+            await VerifyItemIsAbsentAsync("""
+                abstract class C
+                {
+                    public abstract void M();
+                }
+
+                class D : C
+                {
+                    public
+                    override $$;
+                }
+                """, "M()");
+        }
+
+        [WpfFact, WorkItem(64887, "https://github.com/dotnet/roslyn/issues/64887")]
+        public async Task NotWhenMultilineModifiersAndAttribute()
+        {
+            await VerifyItemIsAbsentAsync("""
+                abstract class C
+                {
+                    public abstract void M();
+                }
+
+                class D : C
+                {
+                    [SomeAttribute]
+                    public
                     override $$;
                 }
                 """, "M()");

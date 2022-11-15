@@ -81,13 +81,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             modifiers = new DeclarationModifiers();
             seenAccessibility = Accessibility.NotApplicable;
             var overrideToken = default(SyntaxToken);
+            var lastSeenToken = default(SyntaxToken);
+            var multilineModifiers = false;
             var isUnsafe = false;
             var isSealed = false;
             var isAbstract = false;
             var isRequired = false;
 
-            while (IsOnStartLine(token.SpanStart, text, startLine) && !token.IsKind(SyntaxKind.None))
+            while (!token.IsKind(SyntaxKind.None))
             {
+                if (overrideToken != default &&
+                    token.SpanStart < overrideToken.Parent.SpanStart)
+                {
+                    break;
+                }
+
                 switch (token.Kind())
                 {
                     case SyntaxKind.UnsafeKeyword:
@@ -164,22 +172,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         break;
                     default:
                         // Anything else and we bail.
-                        return false;
+                        if (SyntaxFacts.IsKeywordKind(token.Kind()))
+                        {
+                            return false;
+                        }
+
+                        break;
+                }
+
+                if (SyntaxFacts.IsKeywordKind(token.Kind()) &&
+                    !IsOnStartLine(token.SpanStart, text, startLine))
+                {
+                    multilineModifiers = true;
                 }
 
                 var previousToken = token.GetPreviousToken();
 
                 // We want only want to consume modifiers
-                if (previousToken.IsKind(SyntaxKind.None) || !IsOnStartLine(previousToken.SpanStart, text, startLine))
+                if (previousToken.IsKind(SyntaxKind.None))
                 {
                     break;
                 }
 
+                lastSeenToken = token;
                 token = previousToken;
             }
 
             modifiers = new DeclarationModifiers(isUnsafe: isUnsafe, isAbstract: isAbstract, isOverride: true, isSealed: isSealed, isRequired: isRequired);
-            return overrideToken.IsKind(SyntaxKind.OverrideKeyword);
+
+            if (!overrideToken.IsKind(SyntaxKind.OverrideKeyword) || multilineModifiers)
+            {
+                return false;
+            }
+
+            // Allow attributes to be not on the same line as modifiers
+            if (lastSeenToken.Parent is AttributeListSyntax)
+            {
+                return true;
+            }
+
+            return IsOnStartLine(lastSeenToken.SpanStart, text, startLine) && !IsOnStartLine(token.SpanStart, text, startLine);
         }
 
         public override SyntaxToken FindStartingToken(SyntaxTree tree, int position, CancellationToken cancellationToken)
