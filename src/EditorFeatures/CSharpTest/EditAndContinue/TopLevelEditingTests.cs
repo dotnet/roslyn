@@ -7163,7 +7163,6 @@ class C
         [Theory]
         [InlineData("virtual")]
         [InlineData("abstract")]
-        [InlineData("override")]
         public void Method_Delete_Modifiers(string modifier)
         {
             /* TODO: https://github.com/dotnet/roslyn/issues/59264
@@ -7979,7 +7978,6 @@ class C
         [Theory]
         [InlineData("virtual")]
         [InlineData("abstract")]
-        [InlineData("override")]
         public void Method_Rename_Modifiers(string modifier)
         {
             /* TODO: https://github.com/dotnet/roslyn/issues/59264

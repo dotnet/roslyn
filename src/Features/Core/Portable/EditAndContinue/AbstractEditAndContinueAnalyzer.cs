@@ -3364,7 +3364,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             // We don't currently allow deleting virtual or abstract methods, because if those are in the middle of
             // an inheritance chain then throwing a missing method exception is not expected
-            if (symbol.GetSymbolModifiers() is not { IsVirtual: false, IsAbstract: false, IsOverride: false })
+            if (symbol.GetSymbolModifiers() is not { IsVirtual: false, IsAbstract: false })
                 return false;
 
             // Extern methods can't be deleted
