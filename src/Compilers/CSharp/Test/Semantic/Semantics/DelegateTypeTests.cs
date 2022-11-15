@@ -13900,32 +13900,31 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
         public void LambdaDefaultParameter_MissingConstantValueType()
         {
             var source = """
-                var lam1 = (int x = 1) => x;
-                var lam2 = (decimal d = 2m) => x;
+                var lam1 = (object f = 1.0) => f;
+                var lam2 = (object d = 2m) => d;
+                namespace System
+                {
+                    public class Object { }
+                    public class String { }
+                    public abstract class ValueType { }
+                    public struct Void { }
+                    public abstract class Delegate { }
+                    public abstract class MulticastDelegate : Delegate { }
+                }
                 """;
             CreateEmptyCompilation(source).VerifyDiagnostics(
-                // (1,1): error CS0518: Predefined type 'System.Object' is not defined or imported
-                // var lam1 = (int x = 1) => x;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "var").WithArguments("System.Object").WithLocation(1, 1),
-                // error CS0518: Predefined type 'System.Void' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Void").WithLocation(1, 1),
-                // error CS0518: Predefined type 'System.String' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.String").WithLocation(1, 1),
-                // (1,1): error CS1729: 'object' does not contain a constructor that takes 0 arguments
-                // var lam1 = (int x = 1) => x;
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "var").WithArguments("object", "0").WithLocation(1, 1),
-                // (1,12): error CS0518: Predefined type 'System.MulticastDelegate' is not defined or imported
-                // var lam1 = (int x = 1) => x;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int x = 1) => x").WithArguments("System.MulticastDelegate").WithLocation(1, 12),
-                // (1,13): error CS0518: Predefined type 'System.Int32' is not defined or imported
-                // var lam1 = (int x = 1) => x;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(1, 13),
-                // (2,12): error CS0518: Predefined type 'System.MulticastDelegate' is not defined or imported
-                // var lam2 = (decimal d = 2m) => x;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(decimal d = 2m) => x").WithArguments("System.MulticastDelegate").WithLocation(2, 12),
-                // (2,13): error CS0518: Predefined type 'System.Decimal' is not defined or imported
-                // var lam2 = (decimal d = 2m) => x;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "decimal").WithArguments("System.Decimal").WithLocation(2, 13));
+                // (1,20): error CS1763: 'f' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
+                // var lam1 = (object f = 1.0) => f;
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "f").WithArguments("f", "object").WithLocation(1, 20),
+                // (1,24): error CS0518: Predefined type 'System.Double' is not defined or imported
+                // var lam1 = (object f = 1.0) => f;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "1.0").WithArguments("System.Double").WithLocation(1, 24),
+                // (2,20): error CS1763: 'd' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
+                // var lam2 = (object d = 2m) => d;
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "d").WithArguments("d", "object").WithLocation(2, 20),
+                // (2,24): error CS0518: Predefined type 'System.Decimal' is not defined or imported
+                // var lam2 = (object d = 2m) => d;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "2m").WithArguments("System.Decimal").WithLocation(2, 24));
         }
 
         [Fact]
