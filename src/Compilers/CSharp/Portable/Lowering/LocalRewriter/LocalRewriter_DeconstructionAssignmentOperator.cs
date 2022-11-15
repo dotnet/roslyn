@@ -162,21 +162,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(target is { Single: not null, NestedVariables: null } or { Single: null, NestedVariables: not null });
                     if (target.Single is { } single)
                     {
-                        Symbol symbol = single switch
+                        Symbol? symbol = single switch
                         {
                             BoundLocal { LocalSymbol: { RefKind: RefKind.None } localSymbol } => localSymbol,
                             BoundParameter { ParameterSymbol: { RefKind: RefKind.None } parameterSymbol } => parameterSymbol,
                             _ => null
                         };
 
-                        if (symbol is null && single is not BoundDiscardExpression)
+                        if (symbol is null)
                         {
+                            if (single is BoundDiscardExpression)
+                            {
+                                // we don't care in what order we assign to these.
+                                continue;
+                            }
+
                             // This deconstruction assigns to a target which is not sufficiently simple.
                             // We can't verify that the deconstruction does not use any aliases to variables.
                             return false;
                         }
 
-                        Debug.Assert(symbol != null && symbol is not TypeSymbol);
                         foreach (var visitedSymbol in visitedSymbols)
                         {
                             if ((object)visitedSymbol == symbol)
