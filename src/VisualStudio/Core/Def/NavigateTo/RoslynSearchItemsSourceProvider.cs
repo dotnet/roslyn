@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 try
                 {
-                    var searchValue = searchQuery.QueryString?.Trim();
+                    var searchValue = searchQuery.QueryString.Trim();
                     if (string.IsNullOrWhiteSpace(searchValue))
                         return;
 
