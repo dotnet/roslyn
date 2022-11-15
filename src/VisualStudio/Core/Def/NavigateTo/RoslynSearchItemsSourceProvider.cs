@@ -132,6 +132,107 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
         }
 
+        private sealed class RoslynNavigateToSearchCallback : INavigateToSearchCallback
+        {
+            private readonly RoslynSearchItemsSourceProvider _provider;
+            private readonly ISearchCallback _searchCallback;
+
+            public RoslynNavigateToSearchCallback(
+                RoslynSearchItemsSourceProvider provider,
+                ISearchCallback searchCallback)
+            {
+                _provider = provider;
+                _searchCallback = searchCallback;
+            }
+
+            public void Done(bool isFullyLoaded)
+            {
+                if (!isFullyLoaded)
+                    ReportIncomplete();
+
+                _searchCallback.ReportProgress(1, 1);
+            }
+
+            public void ReportProgress(int current, int maximum)
+            {
+                _searchCallback.ReportProgress(current, maximum);
+            }
+
+            public void ReportIncomplete()
+            {
+                // "The results may be inaccurate because the search information is still being updated."
+                _searchCallback.ReportIncomplete(IncompleteReason.Parsing);
+            }
+
+            public Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken)
+            {
+                var matchedSpans = result.NameMatchSpans.SelectAsArray(t => t.ToSpan());
+
+                var patternMatch = new PatternMatch(
+                    GetPatternMatchKind(result.MatchKind),
+                    punctuationStripped: false,
+                    result.IsCaseSensitive,
+                    matchedSpans);
+
+                _searchCallback.AddItem(new RoslynCodeSearchResult(
+                    _provider,
+                    result,
+                    patternMatch,
+                    result.Kind,
+                    result.Name,
+                    result.SecondarySort,
+                    new[] { patternMatch },
+                    result.NavigableItem.Document?.FilePath,
+                    tieBreakingSortText: null,
+                    perProviderItemPriority: (int)result.MatchKind,
+                    flags: SearchResultFlags.Default,
+                    project.Language));
+
+                return Task.CompletedTask;
+            }
+
+            private static PatternMatchKind GetPatternMatchKind(NavigateToMatchKind matchKind)
+                => matchKind switch
+                {
+                    NavigateToMatchKind.Exact => PatternMatchKind.Exact,
+                    NavigateToMatchKind.Prefix => PatternMatchKind.Prefix,
+                    NavigateToMatchKind.Substring => PatternMatchKind.Substring,
+                    NavigateToMatchKind.Regular => PatternMatchKind.Fuzzy,
+                    NavigateToMatchKind.None => PatternMatchKind.Fuzzy,
+                    NavigateToMatchKind.CamelCaseExact => PatternMatchKind.CamelCaseExact,
+                    NavigateToMatchKind.CamelCasePrefix => PatternMatchKind.CamelCasePrefix,
+                    NavigateToMatchKind.CamelCaseNonContiguousPrefix => PatternMatchKind.CamelCaseNonContiguousPrefix,
+                    NavigateToMatchKind.CamelCaseSubstring => PatternMatchKind.CamelCaseSubstring,
+                    NavigateToMatchKind.CamelCaseNonContiguousSubstring => PatternMatchKind.CamelCaseNonContiguousSubstring,
+                    NavigateToMatchKind.Fuzzy => PatternMatchKind.Fuzzy,
+                    _ => throw ExceptionUtilities.UnexpectedValue(matchKind),
+                };
+        }
+
+        private sealed class RoslynCodeSearchResult : CodeSearchResult
+        {
+            public readonly INavigateToSearchResult SearchResult;
+            public readonly PatternMatch PatternMatch;
+
+            public RoslynCodeSearchResult(
+                RoslynSearchItemsSourceProvider provider,
+                INavigateToSearchResult searchResult,
+                PatternMatch patternMatch,
+                string resultType,
+                string primarySortText,
+                string? secondarySortText,
+                IReadOnlyCollection<PatternMatch>? patternMatches,
+                string? location,
+                string? tieBreakingSortText,
+                float perProviderItemPriority,
+                SearchResultFlags flags,
+                string? language) : base(provider._viewFactory, resultType, primarySortText, secondarySortText, patternMatches, location, tieBreakingSortText, perProviderItemPriority, flags, language)
+            {
+                SearchResult = searchResult;
+                PatternMatch = patternMatch;
+            }
+        }
+
         private sealed class RoslynSearchResultViewFactory : ISearchResultViewFactory
         {
             private readonly RoslynSearchItemsSourceProvider _provider;
@@ -147,7 +248,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     return null!;
 
                 var searchResult = roslynResult.SearchResult;
-                var patternMatch = roslynResult.PatternMatch;
 
                 return new RoslynSearchResultView(
                     _provider,
@@ -274,107 +374,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     NavigationOptions.Default,
                     allowInvalidSpan: _searchResult.SearchResult.NavigableItem.IsStale,
                     context.UserCancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        private sealed class RoslynNavigateToSearchCallback : INavigateToSearchCallback
-        {
-            private readonly RoslynSearchItemsSourceProvider _provider;
-            private readonly ISearchCallback _searchCallback;
-
-            public RoslynNavigateToSearchCallback(
-                RoslynSearchItemsSourceProvider provider,
-                ISearchCallback searchCallback)
-            {
-                _provider = provider;
-                _searchCallback = searchCallback;
-            }
-
-            public void Done(bool isFullyLoaded)
-            {
-                if (!isFullyLoaded)
-                    ReportIncomplete();
-
-                _searchCallback.ReportProgress(1, 1);
-            }
-
-            public void ReportProgress(int current, int maximum)
-            {
-                _searchCallback.ReportProgress(current, maximum);
-            }
-
-            public void ReportIncomplete()
-            {
-                // "The results may be inaccurate because the search information is still being updated."
-                _searchCallback.ReportIncomplete(IncompleteReason.Parsing);
-            }
-
-            public Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken)
-            {
-                var matchedSpans = result.NameMatchSpans.SelectAsArray(t => t.ToSpan());
-
-                var patternMatch = new PatternMatch(
-                    GetPatternMatchKind(result.MatchKind),
-                    punctuationStripped: false,
-                    result.IsCaseSensitive,
-                    matchedSpans);
-
-                _searchCallback.AddItem(new RoslynCodeSearchResult(
-                    _provider,
-                    result,
-                    patternMatch,
-                    result.Kind,
-                    result.Name,
-                    result.SecondarySort,
-                    new[] { patternMatch },
-                    result.NavigableItem.Document?.FilePath,
-                    tieBreakingSortText: null,
-                    perProviderItemPriority: (int)result.MatchKind,
-                    flags: SearchResultFlags.Default,
-                    project.Language));
-
-                return Task.CompletedTask;
-            }
-
-            private static PatternMatchKind GetPatternMatchKind(NavigateToMatchKind matchKind)
-                => matchKind switch
-                {
-                    NavigateToMatchKind.Exact => PatternMatchKind.Exact,
-                    NavigateToMatchKind.Prefix => PatternMatchKind.Prefix,
-                    NavigateToMatchKind.Substring => PatternMatchKind.Substring,
-                    NavigateToMatchKind.Regular => PatternMatchKind.Fuzzy,
-                    NavigateToMatchKind.None => PatternMatchKind.Fuzzy,
-                    NavigateToMatchKind.CamelCaseExact => PatternMatchKind.CamelCaseExact,
-                    NavigateToMatchKind.CamelCasePrefix => PatternMatchKind.CamelCasePrefix,
-                    NavigateToMatchKind.CamelCaseNonContiguousPrefix => PatternMatchKind.CamelCaseNonContiguousPrefix,
-                    NavigateToMatchKind.CamelCaseSubstring => PatternMatchKind.CamelCaseSubstring,
-                    NavigateToMatchKind.CamelCaseNonContiguousSubstring => PatternMatchKind.CamelCaseNonContiguousSubstring,
-                    NavigateToMatchKind.Fuzzy => PatternMatchKind.Fuzzy,
-                    _ => throw ExceptionUtilities.UnexpectedValue(matchKind),
-                };
-        }
-
-        private sealed class RoslynCodeSearchResult : CodeSearchResult
-        {
-            public readonly INavigateToSearchResult SearchResult;
-            public readonly PatternMatch PatternMatch;
-
-            public RoslynCodeSearchResult(
-                RoslynSearchItemsSourceProvider provider,
-                INavigateToSearchResult searchResult,
-                PatternMatch patternMatch,
-                string resultType,
-                string primarySortText,
-                string? secondarySortText,
-                IReadOnlyCollection<PatternMatch>? patternMatches,
-                string? location,
-                string? tieBreakingSortText,
-                float perProviderItemPriority,
-                SearchResultFlags flags,
-                string? language) : base(provider._viewFactory, resultType, primarySortText, secondarySortText, patternMatches, location, tieBreakingSortText, perProviderItemPriority, flags, language)
-            {
-                SearchResult = searchResult;
-                PatternMatch = patternMatch;
             }
         }
     }
