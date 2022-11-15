@@ -180,7 +180,7 @@
     <MicrosoftVisualStudioProjectSystemVersion>17.0.77-pre-g62a6cb5699</MicrosoftVisualStudioProjectSystemVersion>
     <MicrosoftVisualStudioRemoteControlVersion>16.3.44</MicrosoftVisualStudioRemoteControlVersion>
     <MicrosoftVisualStudioSDKAnalyzersVersion>16.10.10</MicrosoftVisualStudioSDKAnalyzersVersion>
-    <MicrosoftVisualStudioSearchVersion>17.4.0-preview-2-32823-442</MicrosoftVisualStudioSearchVersion>
+    <MicrosoftVisualStudioSearchVersion>17.5.0-preview-2-33111-081</MicrosoftVisualStudioSearchVersion>
     <MicrosoftVisualStudioSetupConfigurationInteropVersion>3.0.4492</MicrosoftVisualStudioSetupConfigurationInteropVersion>
     <MicrosoftVisualStudioShell150Version>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShell150Version>
     <MicrosoftVisualStudioShellFrameworkVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellFrameworkVersion>
