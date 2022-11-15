@@ -25,7 +25,7 @@
     <MicrosoftVisualStudioExtensibilityTestingVersion>0.1.149-beta</MicrosoftVisualStudioExtensibilityTestingVersion>
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
     <CodeStyleAnalyzerVersion>4.3.0-1.final</CodeStyleAnalyzerVersion>
-    <VisualStudioEditorPackagesVersion>17.4.249</VisualStudioEditorPackagesVersion>
+    <VisualStudioEditorPackagesVersion>17.5.42-preview</VisualStudioEditorPackagesVersion>
     <!-- This should generally be set to $(VisualStudioEditorPackagesVersion),
          but sometimes EditorFeatures.Cocoa specifically requires a newer editor build. -->
     <VisualStudioMacEditorPackagesVersion>17.3.133-preview</VisualStudioMacEditorPackagesVersion>

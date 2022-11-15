@@ -117,6 +117,7 @@
       <_Dependency Remove="Microsoft.Diagnostics.Tracing.EventSource.Redist"/>
       <_Dependency Remove="Microsoft.MSXML"/>
       <_Dependency Remove="Microsoft.Internal.Performance.CodeMarkers.DesignTime"/>
+      <_Dependency Remove="Microsoft.NET.StringTools"/>
       <_Dependency Remove="Microsoft.Win32.Registry"/>
       <_Dependency Remove="Nerdbank.NetStandardBridge" />
       <_Dependency Remove="Nerdbank.Streams"/>
