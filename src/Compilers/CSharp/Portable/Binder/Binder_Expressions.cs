@@ -3010,8 +3010,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasNames = result.Names.Any();
             if (nameColonSyntax != null)
             {
-
-
                 // The common case is no named arguments. So we defer all work until the first named argument is seen.
                 if (!hasNames)
                 {
