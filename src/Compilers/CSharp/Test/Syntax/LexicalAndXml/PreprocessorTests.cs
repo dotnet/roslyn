@@ -1706,6 +1706,21 @@ class A
 
         [Fact]
         [Trait("Feature", "Directives")]
+        public void TestNegIfEndifDirectivesWithBadCode()
+        {
+            var text =
+@"#if true
+#else
+#endif
+aeu";
+
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyDirectives(node, SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia);
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
         public void TestIfElifWithBoolExpression()
         {
             var text = @"#define True1
