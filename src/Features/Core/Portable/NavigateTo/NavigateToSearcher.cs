@@ -122,6 +122,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     // totally hydrated the oop side.  Until that happens, we'll attempt to return cached data from languages
                     // that support that.
                     isFullyLoaded = await _host.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+                    if (!isFullyLoaded)
+                        _callback.ReportIncomplete();
+
                     await SearchAllProjectsAsync(isFullyLoaded, scope, cancellationToken).ConfigureAwait(false);
                 }
             }

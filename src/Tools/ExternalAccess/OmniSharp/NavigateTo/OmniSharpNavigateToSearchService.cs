@@ -68,5 +68,9 @@ internal static class OmniSharpNavigateToSearcher
         public void ReportProgress(int current, int maximum)
         {
         }
+
+        public void ReportIncomplete()
+        {
+        }
     }
 }
