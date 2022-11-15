@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
 {
     internal abstract class AbstractElseSnippetProvider : AbstractStatementSnippetProvider
     {
-        public override string SnippetIdentifier => "else";
+        public override string Identifier => "else";
 
-        public override string SnippetDescription => FeaturesResources.else_statement;
+        public override string Description => FeaturesResources.else_statement;
 
         protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts) => syntaxFacts.IsElseClause;
 
