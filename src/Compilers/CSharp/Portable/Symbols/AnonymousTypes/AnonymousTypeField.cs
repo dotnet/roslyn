@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>Anonymous type field type</summary>
         public TypeSymbol Type => TypeWithAnnotations.Type;
 
-        // PROTOTYPE: Sync with IDE about the addition of DefaultValue and IsParams to AnonymousTypeField to see how it will affect their usage of anonymous type symbols
         public AnonymousTypeField(string name, Location location, TypeWithAnnotations typeWithAnnotations, RefKind refKind, DeclarationScope scope, ConstantValue? defaultValue = null, bool isParams = false)
         {
             this.Name = name;
