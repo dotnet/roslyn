@@ -39,7 +39,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
     [ProducesResultType(CodeSearchResultType.Interface)]
     [ProducesResultType(CodeSearchResultType.Method)]
     [ProducesResultType(CodeSearchResultType.Module)]
-    [ProducesResultType(CodeSearchResultType.OtherSymbol)]
     [ProducesResultType(CodeSearchResultType.Property)]
     [ProducesResultType(CodeSearchResultType.Structure)]
     internal sealed class RoslynSearchItemsSourceProvider : ISearchItemsSourceProvider
@@ -97,7 +96,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 try
                 {
-                    var searchValue = searchQuery.QueryString;
+                    var searchValue = searchQuery.QueryString?.Trim();
                     if (string.IsNullOrWhiteSpace(searchValue))
                         return;
 
@@ -178,7 +177,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     _provider,
                     result,
                     patternMatch,
-                    result.Kind,
+                    GetResultType(result.Kind),
                     result.Name,
                     result.SecondarySort,
                     new[] { patternMatch },
@@ -189,6 +188,26 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     project.Language));
 
                 return Task.CompletedTask;
+            }
+
+            private static string GetResultType(string kind)
+            {
+                return kind switch
+                {
+                    NavigateToItemKind.Class => CodeSearchResultType.Class,
+                    NavigateToItemKind.Constant => CodeSearchResultType.Constant,
+                    NavigateToItemKind.Delegate => CodeSearchResultType.Delegate,
+                    NavigateToItemKind.Enum => CodeSearchResultType.Enum,
+                    NavigateToItemKind.EnumItem => CodeSearchResultType.EnumItem,
+                    NavigateToItemKind.Event => CodeSearchResultType.Event,
+                    NavigateToItemKind.Field => CodeSearchResultType.Field,
+                    NavigateToItemKind.Interface => CodeSearchResultType.Interface,
+                    NavigateToItemKind.Method => CodeSearchResultType.Method,
+                    NavigateToItemKind.Module => CodeSearchResultType.Module,
+                    NavigateToItemKind.Property => CodeSearchResultType.Property,
+                    NavigateToItemKind.Structure => CodeSearchResultType.Structure,
+                    _ => kind
+                };
             }
 
             private static PatternMatchKind GetPatternMatchKind(NavigateToMatchKind matchKind)
