@@ -67,7 +67,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         /// <exception cref="InvalidProjectDataException">
         /// The <paramref name="name"/> is not listed in <see cref="IWorkspaceProjectContextFactory.EvaluationItemNames"/>
         /// </exception>
-        public abstract ImmutableArray<string> GetItemValues(string name);
+        public virtual ImmutableArray<string> GetItemValues(string name)
+            => ImmutableArray<string>.Empty;
 
         public string GetRequiredPropertyValue(string name)
         {

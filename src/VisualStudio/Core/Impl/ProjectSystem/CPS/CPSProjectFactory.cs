@@ -126,15 +126,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             return project;
         }
 
-        private static string GetIntermediateAssemblyPath(EvaluationData data, string projectFilePath)
+        private static string? GetIntermediateAssemblyPath(EvaluationData data, string projectFilePath)
         {
             const string itemName = BuildPropertyNames.IntermediateAssembly;
 
             var values = data.GetItemValues(itemName);
             if (values.Length != 1)
             {
-                var joinedValues = string.Join(";", values);
-                throw new InvalidProjectDataException(itemName, joinedValues, $"Item group '{itemName}' is required to specify a single value: '{joinedValues}'.");
+                // TODO: Throw once we update integration tests to the latest VS (https://github.com/dotnet/roslyn/issues/65439)
+                // var joinedValues = string.Join(";", values);
+                // throw new InvalidProjectDataException(itemName, joinedValues, $"Item group '{itemName}' is required to specify a single value: '{joinedValues}'.");
+                return null;
             }
 
             var path = values[0];
