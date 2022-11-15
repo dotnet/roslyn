@@ -27,6 +27,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
+    /// <summary>
+    /// Roslyn implementation of the <see cref="ISearchItemsSourceProvider"/>.  This is the entry-point from VS to
+    /// support the 'all in one search provider' UI (which supercedes the previous 'go to' UI).
+    /// </summary>
     [Export(typeof(ISearchItemsSourceProvider))]
     [Name(nameof(RoslynSearchItemsSourceProvider))]
     [ProducesResultType(CodeSearchResultType.Class)]
