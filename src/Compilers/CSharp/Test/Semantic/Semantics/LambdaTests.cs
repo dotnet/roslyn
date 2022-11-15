@@ -7921,10 +7921,7 @@ class Program
     }   
 }
 """;
-            CreateCompilation(source).VerifyDiagnostics(
-                // (5,48): error CS1737: Optional parameters must appear after all required parameters
-                //         var lam = (int i = 3, params int[] args) => i;
-                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(5, 48));
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -8259,6 +8256,60 @@ class Program
             Assert.True(((SourceParameterSymbol)lambdas[1].Parameters[0]).IsParams);
             Assert.False(((SourceParameterSymbol)lambdas[1].Parameters[1]).IsParams);
             Assert.True(((SourceParameterSymbol)lambdas[1].Parameters[2]).IsParams);
+        }
+
+        [Fact]
+        public void ParamsArray_NotLast()
+        {
+            var source = """
+                var lam = (params int[] xs, int y) => xs.Length + y;
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,12): error CS0231: A params parameter must be the last parameter in a parameter list
+                // var lam = (params int[] xs, int y) => xs.Length + y;
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] xs").WithLocation(1, 12),
+                // (1,25): warning CS9502: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // var lam = (params int[] xs, int y) => xs.Length + y;
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(1, 25));
+        }
+
+        [Fact]
+        public void ParamsArray_Multiple()
+        {
+            var source = """
+                var lam = (params int[] xs, params int[] ys) => xs.Length + ys.Length;
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,12): error CS0231: A params parameter must be the last parameter in a parameter list
+                // var lam = (params int[] xs, params int[] ys) => xs.Length + ys.Length;
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] xs").WithLocation(1, 12),
+                // (1,25): warning CS9502: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // var lam = (params int[] xs, params int[] ys) => xs.Length + ys.Length;
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(1, 25));
+        }
+
+        [Fact]
+        public void ParamsArray_NotArray()
+        {
+            var source = """
+                var lam = (params int x) => x;
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,12): error CS0225: The params parameter must be a single dimensional array
+                // var lam = (params int x) => x;
+                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(1, 12));
+        }
+
+        [Fact]
+        public void ParamsArray_ParamArrayAttribute()
+        {
+            var source = """
+                var lam = ([System.ParamArrayAttribute] int[] xs) => xs;
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,13): error CS0674: Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.
+                // var lam = ([System.ParamArrayAttribute] int[] xs) => xs;
+                Diagnostic(ErrorCode.ERR_ExplicitParamArray, "System.ParamArrayAttribute").WithLocation(1, 13));
         }
     }
 }

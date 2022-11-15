@@ -132,7 +132,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int firstDefault = -1;
 
             var builder = ArrayBuilder<TParameterSymbol>.GetInstance();
-            var mustBeLastParameter = (ParameterSyntax)null;
 
             foreach (var parameterSyntax in parametersList)
             {
@@ -148,13 +147,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (parameterSyntax is ParameterSyntax concreteParam)
                 {
-                    if (mustBeLastParameter == null &&
-                        (concreteParam.Modifiers.Any(SyntaxKind.ParamsKeyword) ||
-                         concreteParam.Identifier.Kind() == SyntaxKind.ArgListKeyword))
-                    {
-                        mustBeLastParameter = concreteParam;
-                    }
-
                     if (concreteParam.IsArgList)
                     {
                         arglistToken = concreteParam.Identifier;
@@ -166,6 +158,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             // CS1669: __arglist is not valid in this context
                             diagnostics.Add(ErrorCode.ERR_IllegalVarArgs, arglistToken.GetLocation());
+                        }
+
+                        if (parameterIndex != lastIndex)
+                        {
+                            // CS0257: An __arglist parameter must be the last parameter in a parameter list
+                            diagnostics.Add(ErrorCode.ERR_VarargsLast, concreteParam.GetLocation());
                         }
 
                         continue;
@@ -191,20 +189,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TParameterSymbol parameter = parameterCreationFunc(withTypeParametersBinder, owner, parameterType, parameterSyntax, refKind, parameterIndex, paramsKeyword, thisKeyword, addRefReadOnlyModifier, scope, diagnostics);
 
                 DeclarationScope? declaredScope = parameter is SourceParameterSymbol s ? s.DeclaredScope : null;
-                ReportParameterErrors(owner, parameterSyntax, parameter.Ordinal, parameter.IsParams, parameter.TypeWithAnnotations,
+                ReportParameterErrors(owner, parameterSyntax, parameter.Ordinal, lastParameterIndex: lastIndex, parameter.IsParams, parameter.TypeWithAnnotations,
                                       parameter.RefKind, declaredScope, parameter.ContainingSymbol, thisKeyword, paramsKeyword, firstDefault, diagnostics);
 
                 builder.Add(parameter);
                 ++parameterIndex;
-            }
-
-            if (mustBeLastParameter != null && mustBeLastParameter != parametersList[lastIndex])
-            {
-                diagnostics.Add(
-                    mustBeLastParameter.Identifier.Kind() == SyntaxKind.ArgListKeyword
-                        ? ErrorCode.ERR_VarargsLast
-                        : ErrorCode.ERR_ParamsLast,
-                    mustBeLastParameter.GetLocation());
             }
 
             ImmutableArray<TParameterSymbol> parameters = builder.ToImmutableAndFree();
@@ -620,6 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol? owner,
             BaseParameterSyntax syntax,
             int ordinal,
+            int lastParameterIndex,
             bool isParams,
             TypeWithAnnotations typeWithAnnotations,
             RefKind refKind,
@@ -671,6 +661,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // CS1601: Cannot make reference to variable of type 'System.TypedReference'
                 diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, syntax.Location, typeWithAnnotations.Type);
+            }
+
+            if (isParams && ordinal != lastParameterIndex)
+            {
+                // error CS0231: A params parameter must be the last parameter in a parameter list
+                diagnostics.Add(ErrorCode.ERR_ParamsLast, syntax.GetLocation());
             }
 
             if (declaredScope == DeclarationScope.ValueScoped && !typeWithAnnotations.IsRefLikeType())
