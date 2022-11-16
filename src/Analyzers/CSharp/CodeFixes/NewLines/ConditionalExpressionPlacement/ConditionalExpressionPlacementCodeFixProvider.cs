@@ -17,19 +17,19 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConstructorInitializerPlacement
+namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConstructorInitializerPlacement), Shared]
-    internal sealed class ConstructorInitializerPlacementCodeFixProvider : CodeFixProvider
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConditionalExpressionPlacement), Shared]
+    internal sealed class ConditionalExpressionPlacementCodeFixProvider : CodeFixProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ConstructorInitializerPlacementCodeFixProvider()
+        public ConditionalExpressionPlacementCodeFixProvider()
         {
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.ConstructorInitializerPlacementDiagnosticId);
+            => ImmutableArray.Create(IDEDiagnosticIds.ConditionalExpressionPlacementDiagnosticId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
-using System.Linq;
-using Microsoft.CodeAnalysis;
+using System;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -34,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
 
         private void AnalyzeTree(SyntaxTreeAnalysisContext context)
         {
-            var option = context.GetCSharpAnalyzerOptions().AllowBlankLineAfterColonInConstructorInitializer;
+            var option = context.GetCSharpAnalyzerOptions().AllowBlankLineAfterConditionalExpressionToken;
             if (option.Value)
                 return;
 
@@ -49,8 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
             if (node.ContainsDiagnostics)
                 return;
 
-            if (node is ConstructorInitializerSyntax initializer)
-                ProcessConstructorInitializer(context, severity, initializer);
+            if (node is ConditionalExpressionSyntax conditionalExpression)
+                ProcessConstructorInitializer(context, severity, conditionalExpression);
 
             foreach (var child in node.ChildNodesAndTokens())
             {
@@ -60,36 +57,29 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
         }
 
         private void ProcessConstructorInitializer(
-            SyntaxTreeAnalysisContext context, ReportDiagnostic severity, ConstructorInitializerSyntax initializer)
+            SyntaxTreeAnalysisContext context, ReportDiagnostic severity, ConditionalExpressionSyntax conditionalExpression)
         {
-            var sourceText = context.Tree.GetText(context.CancellationToken);
-
-            var colonToken = initializer.ColonToken;
-            var thisOrBaseKeyword = initializer.ThisOrBaseKeyword;
-
-            var colonLine = sourceText.Lines.GetLineFromPosition(colonToken.SpanStart);
-            var thisBaseLine = sourceText.Lines.GetLineFromPosition(thisOrBaseKeyword.SpanStart);
-            if (colonLine == thisBaseLine)
+            if (conditionalExpression.QuestionToken.IsMissing ||
+                conditionalExpression.ColonToken.IsMissing)
+            {
                 return;
+            }
 
-            if (colonToken.TrailingTrivia.Count == 0)
+            if (!IsAtEndOfLine(conditionalExpression.QuestionToken) ||
+                !IsAtEndOfLine(conditionalExpression.ColonToken))
+            {
                 return;
-
-            if (colonToken.TrailingTrivia.Last().Kind() != SyntaxKind.EndOfLineTrivia)
-                return;
-
-            if (colonToken.TrailingTrivia.Any(t => !t.IsWhitespaceOrEndOfLine()))
-                return;
-
-            if (thisOrBaseKeyword.LeadingTrivia.Any(t => !t.IsWhitespaceOrEndOfLine() && !t.IsSingleOrMultiLineComment()))
-                return;
+            }
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 this.Descriptor,
-                colonToken.GetLocation(),
+                conditionalExpression.QuestionToken.GetLocation(),
                 severity,
-                additionalLocations: ImmutableArray.Create(initializer.GetLocation()),
+                additionalLocations: null,
                 properties: null));
         }
+
+        private static bool IsAtEndOfLine(SyntaxToken token)
+            => token.TrailingTrivia is [.., SyntaxTrivia(SyntaxKind.EndOfLineTrivia)];
     }
 }
