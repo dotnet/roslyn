@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Produces:
             //     ... logical expression using leftValue and rightValue ...
-            BoundExpression logicalExpression = RewriteNonNullableNestedTupleOperators(operators, leftValue, rightValue, boolType, temps, innerEffects, operatorKind);
+            BoundExpression logicalExpression = RewriteNonNullableNestedTupleOperators(operators, leftValue, rightValue, boolType, temps, operatorKind);
 
             // Produces:
             //     leftValue = left.GetValueOrDefault(); (or left if !leftNullable)
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression RewriteNonNullableNestedTupleOperators(TupleBinaryOperatorInfo.Multiple operators,
             BoundExpression left, BoundExpression right, TypeSymbol type,
-            ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> effects, BinaryOperatorKind operatorKind)
+            ArrayBuilder<LocalSymbol> temps, BinaryOperatorKind operatorKind)
         {
             ImmutableArray<TupleBinaryOperatorInfo> nestedOperators = operators.Operators;
 
