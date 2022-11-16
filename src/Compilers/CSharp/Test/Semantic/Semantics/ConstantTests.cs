@@ -1717,9 +1717,6 @@ class C
                 // (8,28): error CS0023: Operator '-' cannot be applied to operand of type 'ulong'
                 //         const double ul1 = -9223372036854775808UL + 0;
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "-9223372036854775808UL").WithArguments("-", "ulong").WithLocation(8, 28),
-                // (9,49): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
-                //         const double ul2 = -9223372036854775808ul + 0;
-                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(9, 49),
                 // (9,28): error CS0023: Operator '-' cannot be applied to operand of type 'ulong'
                 //         const double ul2 = -9223372036854775808ul + 0;
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "-9223372036854775808ul").WithArguments("-", "ulong").WithLocation(9, 28),
