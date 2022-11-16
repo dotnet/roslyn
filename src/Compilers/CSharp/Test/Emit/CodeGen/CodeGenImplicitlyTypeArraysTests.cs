@@ -129,12 +129,6 @@ namespace Test
                 // (15,54): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
                 //             var a = new [] {E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu};
                 Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(15, 54),
-                // (15,64): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
-                //             var a = new [] {E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu};
-                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(15, 64),
-                // (15,74): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
-                //             var a = new [] {E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu};
-                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(15, 74),
                 // (15,88): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
                 //             var a = new [] {E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu};
                 Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(15, 88),
@@ -147,12 +141,6 @@ namespace Test
                 // (17,84): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
                 //              System.Console.Write(a.SequenceEqual(new E[]{E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu}));
                 Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(17, 84),
-                // (17,94): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
-                //              System.Console.Write(a.SequenceEqual(new E[]{E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu}));
-                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(17, 94),
-                // (17,104): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
-                //              System.Console.Write(a.SequenceEqual(new E[]{E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu}));
-                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(17, 104),
                 // (17,118): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
                 //              System.Console.Write(a.SequenceEqual(new E[]{E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu}));
                 Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(17, 118),
