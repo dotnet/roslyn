@@ -90,14 +90,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 if (location == null)
                     return;
 
-                _progress.Report(new VSSymbolInformation
-                {
-                    Name = result.Name,
-                    ContainerName = result.AdditionalInformation,
-                    Kind = ProtocolConversions.NavigateToKindToSymbolKind(result.Kind),
-                    Location = location,
-                    Icon = GetImageIdFromGlyph(project, result.NavigableItem.Glyph),
-                });
+                var service = project.Solution.Services.GetRequiredService<ILspSymbolInformationCreationService>();
+                var symbolInfo = service.Create(
+                    result.Name, result.AdditionalInformation, ProtocolConversions.NavigateToKindToSymbolKind(result.Kind), location, result.NavigableItem.Glyph);
+
+                _progress.Report(symbolInfo);
             }
 
             public void Done(bool isFullyLoaded)
@@ -111,20 +108,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // do nothing, LSP doesn't support reporting progress towards completion.
                 // used by non-LSP editor API.
             }
-        }
-
-        public static VSImageId? GetImageIdFromGlyph(Project project, Glyph glyph)
-        {
-            var service = project.Solution.Services.GetRequiredService<IGlyphConversionService>();
-            var guidAndId = service.ConvertToImageId(glyph);
-            if (guidAndId is null)
-                return null;
-
-            return new VSImageId
-            {
-                Guid = guidAndId.Value.guid,
-                Id = guidAndId.Value.id,
-            };
         }
     }
 }

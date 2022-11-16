@@ -10,7 +10,10 @@ using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 {
-    internal abstract class AbstractUseCoalesceExpressionForNullableDiagnosticAnalyzer<
+    /// <summary>
+    /// Looks for code of the form "!x.HasValue ? y : x.Value" and offers to convert it to "x ?? y";
+    /// </summary>
+    internal abstract class AbstractUseCoalesceExpressionForNullableTernaryConditionalCheckDiagnosticAnalyzer<
         TSyntaxKind,
         TExpressionSyntax,
         TConditionalExpressionSyntax,
@@ -24,11 +27,12 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         where TMemberAccessExpression : TExpressionSyntax
         where TPrefixUnaryExpressionSyntax : TExpressionSyntax
     {
-        protected AbstractUseCoalesceExpressionForNullableDiagnosticAnalyzer()
+        protected AbstractUseCoalesceExpressionForNullableTernaryConditionalCheckDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCoalesceExpressionForNullableDiagnosticId,
                    EnforceOnBuildValues.UseCoalesceExpressionForNullable,
                    CodeStyleOptions2.PreferCoalesceExpression,
-                   new LocalizableResourceString(nameof(AnalyzersResources.Use_coalesce_expression_for_nullable_types), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
+                   new LocalizableResourceString(nameof(AnalyzersResources.Use_coalesce_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+                   new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
 
