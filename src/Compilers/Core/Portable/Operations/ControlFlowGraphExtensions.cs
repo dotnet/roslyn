@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             ControlFlowGraph? currentGraph = controlFlowGraph;
             do
             {
-                if (currentGraph.TryGetLocalFunctionControlFlowGraph(localFunction, cancellationToken, out ControlFlowGraph? localFunctionControlFlowGraph))
+                if (currentGraph.TryGetLocalFunctionControlFlowGraph(localFunction, out ControlFlowGraph? localFunctionControlFlowGraph))
                 {
                     return localFunctionControlFlowGraph;
                 }
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             ControlFlowGraph? currentGraph = controlFlowGraph;
             do
             {
-                if (currentGraph.TryGetAnonymousFunctionControlFlowGraph(anonymousFunction, cancellationToken, out ControlFlowGraph? localFunctionControlFlowGraph))
+                if (currentGraph.TryGetAnonymousFunctionControlFlowGraph(anonymousFunction, out ControlFlowGraph? localFunctionControlFlowGraph))
                 {
                     return localFunctionControlFlowGraph;
                 }
