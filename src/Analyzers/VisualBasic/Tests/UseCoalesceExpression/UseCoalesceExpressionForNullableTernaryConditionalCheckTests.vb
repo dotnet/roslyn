@@ -10,12 +10,12 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UseCoalesceExpression
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseCoalesceExpression
     <Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
-    Public Class UseCoalesceExpressionForNullableTests
+    Public Class UseCoalesceExpressionForNullableTernaryConditionalCheckTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New VisualBasicUseCoalesceExpressionForNullableDiagnosticAnalyzer(),
-                    New UseCoalesceExpressionForNullableCodeFixProvider())
+            Return (New VisualBasicUseCoalesceExpressionForNullableTernaryConditionalCheckDiagnosticAnalyzer(),
+                    New UseCoalesceExpressionForNullableTernaryConditionalCheckCodeFixProvider())
         End Function
 
         <Fact>

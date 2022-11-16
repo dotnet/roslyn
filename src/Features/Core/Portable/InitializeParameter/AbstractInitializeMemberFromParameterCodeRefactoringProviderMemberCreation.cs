@@ -46,9 +46,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected abstract SyntaxNode? GetAccessorBody(IMethodSymbol accessor, CancellationToken cancellationToken);
         protected abstract SyntaxNode RemoveThrowNotImplemented(SyntaxNode propertySyntax);
 
-        protected override bool SupportsRecords(ParseOptions options)
-            => false;
-
         protected override Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation? blockStatementOpt,
             ImmutableArray<SyntaxNode> listOfParameterNodes, TextSpan parameterSpan,
