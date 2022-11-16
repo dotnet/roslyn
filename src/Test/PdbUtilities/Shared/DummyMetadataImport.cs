@@ -35,7 +35,10 @@ namespace Roslyn.Test.PdbUtilities
             Dispose(true);
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
+        // TODO2
         private void Dispose(bool disposing)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             _metadataOwnerOpt?.Dispose();
 
