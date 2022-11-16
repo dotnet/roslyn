@@ -10,34 +10,33 @@ using Microsoft.VisualStudio.Search.Data;
 using Microsoft.VisualStudio.Search.UI.PreviewPanel.Models;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.NavigateTo
-{
-    internal sealed partial class RoslynSearchItemsSourceProvider
-    {
-        /// <summary>
-        /// Roslyn preview for our nav-to result.  We just provide a code-editor with the caret positioned in the
-        /// correct location.
-        /// </summary>
-        private sealed class RoslynSearchResultPreviewPanel : SearchResultPreviewPanelBase
-        {
-            public override UIBaseModel UserInterface { get; }
+namespace Microsoft.CodeAnalysis.NavigateTo;
 
-            public RoslynSearchResultPreviewPanel(
-                RoslynSearchItemsSourceProvider provider,
-                Uri uri,
-                Guid projectGuid,
-                Span span,
-                string title,
-                ImageId icon)
-                : base(title, icon)
-            {
-                UserInterface = new CodeEditorModel(
-                    nameof(RoslynSearchResultPreviewPanel),
-                    new VisualStudio.Threading.AsyncLazy<TextDocumentLocation>(() =>
-                        Task.FromResult(new TextDocumentLocation(uri, projectGuid, span)),
-                        provider._threadingContext.JoinableTaskFactory),
-                    isEditable: false);
-            }
+internal sealed partial class RoslynSearchItemsSourceProvider
+{
+    /// <summary>
+    /// Roslyn preview for our nav-to result.  We just provide a code-editor with the caret positioned in the
+    /// correct location.
+    /// </summary>
+    private sealed class RoslynSearchResultPreviewPanel : SearchResultPreviewPanelBase
+    {
+        public override UIBaseModel UserInterface { get; }
+
+        public RoslynSearchResultPreviewPanel(
+            RoslynSearchItemsSourceProvider provider,
+            Uri uri,
+            Guid projectGuid,
+            Span span,
+            string title,
+            ImageId icon)
+            : base(title, icon)
+        {
+            UserInterface = new CodeEditorModel(
+                nameof(RoslynSearchResultPreviewPanel),
+                new VisualStudio.Threading.AsyncLazy<TextDocumentLocation>(() =>
+                    Task.FromResult(new TextDocumentLocation(uri, projectGuid, span)),
+                    provider._threadingContext.JoinableTaskFactory),
+                isEditable: false);
         }
     }
 }

@@ -13,34 +13,33 @@ using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Search.Data;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.NavigateTo
+namespace Microsoft.CodeAnalysis.NavigateTo;
+
+internal sealed partial class RoslynSearchItemsSourceProvider
 {
-    internal sealed partial class RoslynSearchItemsSourceProvider
+    private sealed class RoslynSearchResultView : CodeSearchResultViewBase
     {
-        private sealed class RoslynSearchResultView : CodeSearchResultViewBase
+        private readonly RoslynSearchItemsSourceProvider _provider;
+        private readonly INavigateToSearchResult _searchResult;
+
+        public RoslynSearchResultView(
+            RoslynSearchItemsSourceProvider provider,
+            INavigateToSearchResult searchResult,
+            HighlightedText title,
+            HighlightedText description,
+            ImageId primaryIcon)
+            : base(title, description, primaryIcon: primaryIcon)
         {
-            private readonly RoslynSearchItemsSourceProvider _provider;
-            private readonly INavigateToSearchResult _searchResult;
+            _provider = provider;
+            _searchResult = searchResult;
 
-            public RoslynSearchResultView(
-                RoslynSearchItemsSourceProvider provider,
-                INavigateToSearchResult searchResult,
-                HighlightedText title,
-                HighlightedText description,
-                ImageId primaryIcon)
-                : base(title, description, primaryIcon: primaryIcon)
-            {
-                _provider = provider;
-                _searchResult = searchResult;
-
-                var filePath = _searchResult.NavigableItem.Document.FilePath;
-                if (filePath != null)
-                    this.FileLocation = new HighlightedText(filePath, Array.Empty<VisualStudio.Text.Span>());
-            }
-
-            public override void Invoke(CancellationToken cancellationToken)
-                => NavigateToHelpers.NavigateTo(
-                    _searchResult, _provider._threadingContext, _provider._threadOperationExecutor, _provider._asyncListener);
+            var filePath = _searchResult.NavigableItem.Document.FilePath;
+            if (filePath != null)
+                this.FileLocation = new HighlightedText(filePath, Array.Empty<VisualStudio.Text.Span>());
         }
+
+        public override void Invoke(CancellationToken cancellationToken)
+            => NavigateToHelpers.NavigateTo(
+                _searchResult, _provider._threadingContext, _provider._threadOperationExecutor, _provider._asyncListener);
     }
 }
