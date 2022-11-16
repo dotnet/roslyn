@@ -72,44 +72,45 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             // We're showing our own UI, ensure the editor doesn't show anything itself.
             context.OperationContext.TakeOwnership();
             var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
-            ExecuteCommandAsync(document, caretPosition)
+            ExecuteCommandAsync(document, caretPosition, context.OperationContext.UserCancellationToken)
                 .ReportNonFatalErrorAsync()
                 .CompletesAsyncOperation(token);
 
             return true;
         }
 
-        private async Task ExecuteCommandAsync(Document document, int caretPosition)
+        private async Task ExecuteCommandAsync(Document document, int caretPosition, CancellationToken originalCancellationToken)
         {
-            using var context = _threadOperationExecutor.BeginExecute(
-                ServicesVSResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false);
-            var cancellationToken = context.UserCancellationToken;
-
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var symbolUnderCaret = await SymbolFinder.FindSymbolAtPositionAsync(
-                semanticModel, caretPosition, document.Project.Solution.Services, cancellationToken).ConfigureAwait(false);
-
-            if (symbolUnderCaret != null)
+            using (var context = _threadOperationExecutor.BeginExecute(
+                ServicesVSResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false))
             {
-                // Map symbols so that Call Hierarchy works from metadata-as-source
-                var mappingService = document.Project.Solution.Services.GetService<ISymbolMappingService>();
-                var mapping = await mappingService.MapSymbolAsync(document, symbolUnderCaret, cancellationToken).ConfigureAwait(false);
+                var cancellationToken = context.UserCancellationToken;
 
-                if (mapping.Symbol != null)
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var symbolUnderCaret = await SymbolFinder.FindSymbolAtPositionAsync(
+                    semanticModel, caretPosition, document.Project.Solution.Services, cancellationToken).ConfigureAwait(false);
+
+                if (symbolUnderCaret != null)
                 {
-                    var node = await _provider.CreateItemAsync(mapping.Symbol, mapping.Project, ImmutableArray<Location>.Empty, cancellationToken).ConfigureAwait(false);
+                    // Map symbols so that Call Hierarchy works from metadata-as-source
+                    var mappingService = document.Project.Solution.Services.GetService<ISymbolMappingService>();
+                    var mapping = await mappingService.MapSymbolAsync(document, symbolUnderCaret, cancellationToken).ConfigureAwait(false);
 
-                    if (node != null)
+                    if (mapping.Symbol != null)
                     {
-                        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                        _presenter.PresentRoot((CallHierarchyItem)node);
-                        return;
+                        var node = await _provider.CreateItemAsync(mapping.Symbol, mapping.Project, ImmutableArray<Location>.Empty, cancellationToken).ConfigureAwait(false);
+
+                        if (node != null)
+                        {
+                            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                            _presenter.PresentRoot((CallHierarchyItem)node);
+                            return;
+                        }
                     }
                 }
             }
 
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            context.TakeOwnership();
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(originalCancellationToken);
             var notificationService = document.Project.Solution.Services.GetService<INotificationService>();
             notificationService.SendNotification(EditorFeaturesResources.Cursor_must_be_on_a_member_name, severity: NotificationSeverity.Information);
         }
