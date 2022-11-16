@@ -11,8 +11,8 @@ using Microsoft.CodeAnalysis.UseCoalesceExpression;
 namespace Microsoft.CodeAnalysis.CSharp.UseCoalesceExpression
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpUseCoalesceExpressionForNullableDiagnosticAnalyzer :
-        AbstractUseCoalesceExpressionForNullableDiagnosticAnalyzer<
+    internal class CSharpUseCoalesceExpressionForNullableTernaryConditionalCheckDiagnosticAnalyzer :
+        AbstractUseCoalesceExpressionForNullableTernaryConditionalCheckDiagnosticAnalyzer<
             SyntaxKind,
             ExpressionSyntax,
             ConditionalExpressionSyntax,
