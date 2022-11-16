@@ -321,7 +321,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
+        // TODO2
         private static int LineBreaksAfterOpenBrace(SyntaxToken currentToken, SyntaxToken nextToken)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             if (currentToken.Parent is InitializerExpressionSyntax or PropertyPatternClauseSyntax ||
                 currentToken.Parent.IsKind(SyntaxKind.Interpolation) ||
