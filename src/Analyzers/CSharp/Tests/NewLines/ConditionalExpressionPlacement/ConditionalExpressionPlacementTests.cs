@@ -528,5 +528,180 @@ class C
                 Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task TestTrivia1()
+        {
+            var code =
+@"
+class C
+{
+    public C()
+    {
+        var v = true [|?|] 
+            0 :
+            1;
+    }
+}";
+
+            var fixedCode =
+@"
+class C
+{
+    public C()
+    {
+        var v = true
+            ? 0
+            : 1;
+    }
+}";
+
+            await new Verify.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestTrivia2()
+        {
+            var code =
+@"
+class C
+{
+    public C()
+    {
+        var v = true [|?|] // comment
+            0 :
+            1;
+    }
+}";
+
+            var fixedCode =
+@"
+class C
+{
+    public C()
+    {
+        var v = true // comment
+            ? 0
+            : 1;
+    }
+}";
+
+            await new Verify.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestTrivia3()
+        {
+            var code =
+@"
+class C
+{
+    public C()
+    {
+        var v = true /*comment*/ [|?|]
+            0 :
+            1;
+    }
+}";
+
+            var fixedCode =
+@"
+class C
+{
+    public C()
+    {
+        var v = true /*comment*/
+            ? 0
+            : 1;
+    }
+}";
+
+            await new Verify.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestTrivia4()
+        {
+            var code =
+@"
+class C
+{
+    public C()
+    {
+        var v = true /*comment*/ [|?|] 
+            0 :
+            1;
+    }
+}";
+
+            var fixedCode =
+@"
+class C
+{
+    public C()
+    {
+        var v = true /*comment*/
+            ? 0
+            : 1;
+    }
+}";
+
+            await new Verify.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestTrivia5()
+        {
+            var code =
+@"
+class C
+{
+    public C()
+    {
+        var v = true /*comment1*/ [|?|] /*comment2*/
+            0 :
+            1;
+    }
+}";
+
+            var fixedCode =
+@"
+class C
+{
+    public C()
+    {
+        var v = true /*comment1*/ /*comment2*/
+            ? 0
+            : 1;
+    }
+}";
+
+            await new Verify.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+            }.RunAsync();
+        }
     }
 }
