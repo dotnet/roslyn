@@ -55,7 +55,7 @@ internal static class OmniSharpNavigateToSearcher
                 result.Name,
                 result.NameMatchSpans,
                 result.SecondarySort,
-                result.Summary,
+                result.Summary!,
                 new(result.NavigableItem.DisplayTaggedParts, result.NavigableItem.Document, result.NavigableItem.SourceSpan));
 
             return _callback(project, omniSharpResult, cancellationToken);
