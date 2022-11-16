@@ -63,55 +63,48 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                 return true;
             }
 
+            var caretPosition = args.TextView.Caret.Position.BufferPosition.Position;
+
             // We're showing our own UI, ensure the editor doesn't show anything itself.
             context.OperationContext.TakeOwnership();
-            ExecuteCommandAsync(document, args)
+            ExecuteCommandAsync(document, caretPosition)
                 .ReportNonFatalErrorAsync();
 
             return true;
         }
 
-        private async Task<bool> ExecuteCommandAsync(Document document, ViewCallHierarchyCommandArgs args)
+        private async Task ExecuteCommandAsync(Document document, int caretPosition)
         {
-            using (var context = _threadOperationExecutor.BeginExecute(
-                ServicesVSResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false))
+            using var context = _threadOperationExecutor.BeginExecute(
+                ServicesVSResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false);
+            var cancellationToken = context.UserCancellationToken;
+
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var symbolUnderCaret = await SymbolFinder.FindSymbolAtPositionAsync(
+                semanticModel, caretPosition, document.Project.Solution.Services, cancellationToken).ConfigureAwait(false);
+
+            if (symbolUnderCaret != null)
             {
-                var cancellationToken = context.UserCancellationToken;
+                // Map symbols so that Call Hierarchy works from metadata-as-source
+                var mappingService = document.Project.Solution.Services.GetService<ISymbolMappingService>();
+                var mapping = await mappingService.MapSymbolAsync(document, symbolUnderCaret, cancellationToken).ConfigureAwait(false);
 
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var caretPosition = args.TextView.Caret.Position.BufferPosition.Position;
-                var symbolUnderCaret = await SymbolFinder.FindSymbolAtPositionAsync(
-                    semanticModel, caretPosition, document.Project.Solution.Services, cancellationToken).ConfigureAwait(false);
-
-                if (symbolUnderCaret != null)
+                if (mapping.Symbol != null)
                 {
-                    // Map symbols so that Call Hierarchy works from metadata-as-source
-                    var mappingService = document.Project.Solution.Services.GetService<ISymbolMappingService>();
-                    var mapping = await mappingService.MapSymbolAsync(document, symbolUnderCaret, cancellationToken).ConfigureAwait(false);
+                    var node = await _provider.CreateItemAsync(mapping.Symbol, mapping.Project, ImmutableArray<Location>.Empty, cancellationToken).ConfigureAwait(false);
 
-                    if (mapping.Symbol != null)
+                    if (node != null)
                     {
-                        var node = await _provider.CreateItemAsync(mapping.Symbol, mapping.Project, ImmutableArray<Location>.Empty, cancellationToken).ConfigureAwait(false);
-
-                        if (node != null)
-                        {
-                            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                            _presenter.PresentRoot((CallHierarchyItem)node);
-                            return true;
-                        }
+                        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                        _presenter.PresentRoot((CallHierarchyItem)node);
+                        return;
                     }
                 }
-
-                // Haven't found suitable hierarchy -> caret wasn't on symbol that can have call hierarchy.
-                //
-                // We are about to show a modal UI dialog so we should take over the command execution
-                // wait context. That means the command system won't attempt to show its own wait dialog 
-                // and also will take it into consideration when measuring command handling duration.
-                var notificationService = document.Project.Solution.Services.GetService<INotificationService>();
-                notificationService.SendNotification(EditorFeaturesResources.Cursor_must_be_on_a_member_name, severity: NotificationSeverity.Information);
             }
 
-            return true;
+            context.TakeOwnership();
+            var notificationService = document.Project.Solution.Services.GetService<INotificationService>();
+            notificationService.SendNotification(EditorFeaturesResources.Cursor_must_be_on_a_member_name, severity: NotificationSeverity.Information);
         }
 
         public CommandState GetCommandState(ViewCallHierarchyCommandArgs args)
