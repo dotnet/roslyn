@@ -14,6 +14,7 @@ Imports Microsoft.VisualStudio.LanguageServices.UnitTests
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
+Imports Microsoft.VisualStudio.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
@@ -92,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
 
             Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
             _presenter = New MockCallHierarchyPresenter()
-            _commandHandler = New CallHierarchyCommandHandler(threadingContext, {_presenter}, provider)
+            _commandHandler = New CallHierarchyCommandHandler(threadingContext, workspace.GetService(Of IUIThreadOperationExecutor), {_presenter}, provider)
         End Sub
 
         Public Shared Function Create(markup As XElement, ParamArray additionalTypes As Type()) As CallHierarchyTestState
