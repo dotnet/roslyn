@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
             context.CancellationToken.ThrowIfCancellationRequested();
 
             // Don't bother analyzing nodes that have syntax errors in them.
-            if (node.ContainsDiagnostics)
+            if (node.GetDiagnostics().Any(static d => d.Severity == DiagnosticSeverity.Error))
                 return;
 
             if (node is ConditionalExpressionSyntax conditionalExpression)
