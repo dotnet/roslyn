@@ -146,6 +146,28 @@ class C
         }
 
         [Fact]
+        public async Task TestNotWithMissingColon()
+        {
+            var code =
+@"
+class C
+{
+    public C()
+    {
+        var v = true ?
+            0{|CS1003:{|CS1525:;|}|}
+    }
+}";
+
+            await new Verify.Test()
+            {
+                TestCode = code,
+                FixedCode = code,
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOptions2.TrueWithSilentEnforcement } }
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestNotWithQuestionNotAtEndOfLine()
         {
             var code =
@@ -741,6 +763,41 @@ class C
     public C()
     {
         var v = true /*comment1*/ /*comment2*/
+            ? 0
+            : 1;
+    }
+}";
+
+            await new Verify.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestWithDiagnosticsElsewhere()
+        {
+            var code =
+@"
+class C
+{
+    public C(int{|CS1001:)|}
+    {
+        var v = true [|?|]
+            0 :
+            1;
+    }
+}";
+
+            var fixedCode =
+@"
+class C
+{
+    public C(int{|CS1001:)|}
+    {
+        var v = true
             ? 0
             : 1;
     }
