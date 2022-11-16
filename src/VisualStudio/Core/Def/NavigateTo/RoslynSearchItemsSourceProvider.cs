@@ -18,7 +18,6 @@ using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Search.Data;
 using Microsoft.VisualStudio.Search.UI.PreviewPanel.Models;
-using Microsoft.VisualStudio.Text.PatternMatching;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -70,34 +69,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         public ISearchItemsSource CreateItemsSource()
             => new RoslynSearchItemsSource(this);
-
-        private sealed class RoslynCodeSearchResult : CodeSearchResult
-        {
-            public readonly INavigateToSearchResult SearchResult;
-
-            public RoslynCodeSearchResult(
-                RoslynSearchItemsSourceProvider provider,
-                INavigateToSearchResult searchResult,
-                string resultType,
-                string primarySortText,
-                string secondarySortText,
-                IReadOnlyCollection<PatternMatch> patternMatches,
-                string? location,
-                float perProviderItemPriority,
-                string language)
-                : base(
-                      provider._viewFactory,
-                      resultType,
-                      primarySortText,
-                      secondarySortText,
-                      patternMatches,
-                      location,
-                      perProviderItemPriority: perProviderItemPriority,
-                      language: language)
-            {
-                SearchResult = searchResult;
-            }
-        }
 
         private sealed class RoslynSearchResultViewFactory : ISearchResultViewFactory
         {
