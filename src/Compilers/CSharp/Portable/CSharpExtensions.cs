@@ -1553,7 +1553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ILocalSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, ForEachStatementSyntax forEachStatement, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            return csmodel?.GetDeclaredSymbol(forEachStatement, cancellationToken);
+            return csmodel?.GetDeclaredSymbol(forEachStatement);
         }
 
         /// <summary>
@@ -1562,7 +1562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ILocalSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, CatchDeclarationSyntax catchDeclaration, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            return csmodel?.GetDeclaredSymbol(catchDeclaration, cancellationToken);
+            return csmodel?.GetDeclaredSymbol(catchDeclaration);
         }
 
         public static IRangeVariableSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, QueryClauseSyntax queryClause, CancellationToken cancellationToken = default(CancellationToken))
