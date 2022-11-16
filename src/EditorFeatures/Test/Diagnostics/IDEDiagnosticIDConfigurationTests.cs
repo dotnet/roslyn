@@ -467,6 +467,9 @@ dotnet_diagnostic.IDE2003.severity = %value%
 # IDE2004
 dotnet_diagnostic.IDE2004.severity = %value%
 
+# IDE2005
+dotnet_diagnostic.IDE2005.severity = %value%
+
 # RE0001
 dotnet_diagnostic.RE0001.severity = %value%
 
@@ -1092,6 +1095,9 @@ dotnet_style_allow_statement_immediately_after_block_experimental = true
 
 # IDE2004, AllowBlankLineAfterColonInConstructorInitializer
 csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true
+
+# IDE2005, AllowBlankLineAfterTokenInConditionalExpression
+csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental = true
 
 # RE0001
 No editorconfig based code style option
