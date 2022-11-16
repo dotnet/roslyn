@@ -80,7 +80,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
             }
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
+        // TODO2
         private void VerifyReplace(string codeBefore, string codeToBeReplaced, string codeAfter, string replacement, int expectedArgumentCount)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             var start = codeBefore.Length;
             var length = codeToBeReplaced.Length;
