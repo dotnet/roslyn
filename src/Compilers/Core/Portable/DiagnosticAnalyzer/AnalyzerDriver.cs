@@ -1597,7 +1597,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     await TryProcessSymbolDeclaredAsync(symbolEvent, analysisScope, analysisState, cancellationToken).ConfigureAwait(false),
 
                 CompilationUnitCompletedEvent completedEvent =>
-                    TryProcessCompilationUnitCompleted(completedEvent, analysisScope, analysisState, cancellationToken) ? EventProcessedState.Processed : EventProcessedState.NotProcessed,
+                    TryProcessCompilationUnitCompleted(completedEvent, analysisScope, analysisState) ? EventProcessedState.Processed : EventProcessedState.NotProcessed,
 
                 CompilationCompletedEvent endEvent =>
                     TryProcessCompilationCompleted(endEvent, analysisScope, analysisState) ? EventProcessedState.Processed : EventProcessedState.NotProcessed,
@@ -1634,7 +1634,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 EmptyGroupedActions;
 
             if (!skipSymbolAnalysis &&
-                !TryExecuteSymbolActions(symbolEvent, analysisScope, analysisState, isGeneratedCodeSymbol, cancellationToken))
+                !TryExecuteSymbolActions(symbolEvent, analysisScope, analysisState, isGeneratedCodeSymbol))
             {
                 processedState = EventProcessedState.NotProcessed;
             }
@@ -1663,7 +1663,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// True, if successfully executed the actions for the given analysis scope OR no actions were required to be executed for the given analysis scope.
         /// False, otherwise.
         /// </returns>
-        private bool TryExecuteSymbolActions(SymbolDeclaredCompilationEvent symbolEvent, AnalysisScope analysisScope, AnalysisState? analysisState, bool isGeneratedCodeSymbol, CancellationToken cancellationToken)
+        private bool TryExecuteSymbolActions(SymbolDeclaredCompilationEvent symbolEvent, AnalysisScope analysisScope, AnalysisState? analysisState, bool isGeneratedCodeSymbol)
         {
             var symbol = symbolEvent.Symbol;
             if (!analysisScope.ShouldAnalyze(symbol))
@@ -1822,7 +1822,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// True, if successfully executed the actions for the given analysis scope OR no actions were required to be executed for the given analysis scope.
         /// False, otherwise.
         /// </returns>
-        private bool TryProcessCompilationUnitCompleted(CompilationUnitCompletedEvent completedEvent, AnalysisScope analysisScope, AnalysisState? analysisState, CancellationToken cancellationToken)
+        private bool TryProcessCompilationUnitCompleted(CompilationUnitCompletedEvent completedEvent, AnalysisScope analysisScope, AnalysisState? analysisState)
         {
             // When the compiler is finished with a compilation unit, we can run user diagnostics which
             // might want to ask the compiler for all the diagnostics in the source file, for example
