@@ -96,7 +96,10 @@ namespace RunTests
             }
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
+        // TODO2
         private static async Task<int> RunAsync(Options options, TimeSpan timeout, CancellationToken cancellationToken)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var runTask = RunAsync(options, cts.Token);
