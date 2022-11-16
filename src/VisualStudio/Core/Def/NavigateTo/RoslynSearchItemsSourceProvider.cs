@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 return new RoslynSearchResultView(
                     _provider,
                     roslynResult,
-                    new HighlightedText(searchResult.NavigableItem.DisplayTaggedParts.JoinText(), roslynResult.PatternMatch.MatchedSpans.ToArray()),
+                    new HighlightedText(searchResult.NavigableItem.DisplayTaggedParts.JoinText(), searchResult.NameMatchSpans.Select(m => m.ToSpan()).ToArray()),
                     new HighlightedText(searchResult.AdditionalInformation, Array.Empty<VisualStudio.Text.Span>()),
                     primaryIcon: searchResult.NavigableItem.Glyph.GetImageId());
             }

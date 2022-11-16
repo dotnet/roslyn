@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -53,20 +55,21 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             public Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken)
             {
-                var patternMatch = new PatternMatch(
-                    GetPatternMatchKind(result.MatchKind),
+                var matches = result.Matches.SelectAsArray(static m => new PatternMatch(
+                    ConvertKind(m.Kind),
                     punctuationStripped: false,
-                    result.IsCaseSensitive,
-                    result.NameMatchSpans.SelectAsArray(t => t.ToSpan()));
+                    m.IsCaseSensitive,
+                    m.MatchedSpans.SelectAsArray(static s => s.ToSpan())));
 
                 _searchCallback.AddItem(new RoslynCodeSearchResult(
                     _provider,
                     result,
-                    patternMatch,
+                    // Last match in the matches array corresponds to the name portion of the match.
+                    matches.Last(),
                     GetResultType(result.Kind),
                     result.Name,
                     result.SecondarySort,
-                    new[] { patternMatch },
+                    matches,
                     result.NavigableItem.Document?.FilePath,
                     tieBreakingSortText: null,
                     perProviderItemPriority: (int)result.MatchKind,
@@ -75,6 +78,24 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
                 return Task.CompletedTask;
             }
+
+            private static PatternMatchKind ConvertKind(PatternMatching.PatternMatchKind kind)
+                => kind switch
+                {
+                    PatternMatching.PatternMatchKind.Exact => PatternMatchKind.Exact,
+                    PatternMatching.PatternMatchKind.Prefix => PatternMatchKind.Prefix,
+                    PatternMatching.PatternMatchKind.NonLowercaseSubstring => PatternMatchKind.Substring,
+                    PatternMatching.PatternMatchKind.StartOfWordSubstring => PatternMatchKind.Substring,
+                    PatternMatching.PatternMatchKind.CamelCaseExact => PatternMatchKind.CamelCaseExact,
+                    PatternMatching.PatternMatchKind.CamelCasePrefix => PatternMatchKind.CamelCasePrefix,
+                    PatternMatching.PatternMatchKind.CamelCaseNonContiguousPrefix => PatternMatchKind.CamelCaseNonContiguousPrefix,
+                    PatternMatching.PatternMatchKind.CamelCaseSubstring => PatternMatchKind.CamelCaseSubstring,
+                    PatternMatching.PatternMatchKind.CamelCaseNonContiguousSubstring => PatternMatchKind.CamelCaseNonContiguousSubstring,
+                    PatternMatching.PatternMatchKind.Fuzzy => PatternMatchKind.Fuzzy,
+                    // Map our value to 'Fuzzy' as that's the lower value the platform supports.
+                    PatternMatching.PatternMatchKind.LowercaseSubstring => PatternMatchKind.Fuzzy,
+                    _ => PatternMatchKind.Fuzzy,
+                };
 
             private static string GetResultType(string kind)
             {
@@ -95,23 +116,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     _ => kind
                 };
             }
-
-            private static PatternMatchKind GetPatternMatchKind(NavigateToMatchKind matchKind)
-                => matchKind switch
-                {
-                    NavigateToMatchKind.Exact => PatternMatchKind.Exact,
-                    NavigateToMatchKind.Prefix => PatternMatchKind.Prefix,
-                    NavigateToMatchKind.Substring => PatternMatchKind.Substring,
-                    NavigateToMatchKind.Regular => PatternMatchKind.Fuzzy,
-                    NavigateToMatchKind.None => PatternMatchKind.Fuzzy,
-                    NavigateToMatchKind.CamelCaseExact => PatternMatchKind.CamelCaseExact,
-                    NavigateToMatchKind.CamelCasePrefix => PatternMatchKind.CamelCasePrefix,
-                    NavigateToMatchKind.CamelCaseNonContiguousPrefix => PatternMatchKind.CamelCaseNonContiguousPrefix,
-                    NavigateToMatchKind.CamelCaseSubstring => PatternMatchKind.CamelCaseSubstring,
-                    NavigateToMatchKind.CamelCaseNonContiguousSubstring => PatternMatchKind.CamelCaseNonContiguousSubstring,
-                    NavigateToMatchKind.Fuzzy => PatternMatchKind.Fuzzy,
-                    _ => throw ExceptionUtilities.UnexpectedValue(matchKind),
-                };
         }
     }
 }
