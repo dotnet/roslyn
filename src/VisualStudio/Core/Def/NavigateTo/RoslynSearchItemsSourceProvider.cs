@@ -4,18 +4,13 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Search.Data;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
@@ -64,64 +59,5 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         public ISearchItemsSource CreateItemsSource()
             => new RoslynSearchItemsSource(this);
-
-        private sealed class RoslynSearchResultView : CodeSearchResultViewBase
-        {
-            private readonly RoslynSearchItemsSourceProvider _provider;
-            private readonly RoslynCodeSearchResult _searchResult;
-
-            public RoslynSearchResultView(
-                RoslynSearchItemsSourceProvider provider,
-                RoslynCodeSearchResult searchResult,
-                HighlightedText title,
-                HighlightedText? description = null,
-                string? hintText = null,
-                SearchResultViewFlags flags = SearchResultViewFlags.ExcludeFromMostRecentlyUsed,
-                ImageId primaryIcon = default(ImageId),
-                ImageId secondaryIcon = default(ImageId),
-                string? groupName = null)
-                : base(title, description, hintText, flags, primaryIcon, secondaryIcon, groupName)
-            {
-                _provider = provider;
-                _searchResult = searchResult;
-
-                var filePath = _searchResult.SearchResult.NavigableItem.Document.FilePath;
-                if (filePath != null)
-                    this.FileLocation = new HighlightedText(filePath, Array.Empty<VisualStudio.Text.Span>());
-            }
-
-            public override void Invoke(CancellationToken cancellationToken)
-            {
-                var token = _provider._asyncListener.BeginAsyncOperation(nameof(NavigateTo));
-                NavigateToAsync().ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
-            }
-
-            private async Task NavigateToAsync()
-            {
-                var document = _searchResult.SearchResult.NavigableItem.Document;
-                if (document == null)
-                    return;
-
-                var workspace = document.Project.Solution.Workspace;
-                var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
-
-                // Document tabs opened by NavigateTo are carefully created as preview or regular tabs
-                // by them; trying to specifically open them in a particular kind of tab here has no
-                // effect.
-                //
-                // In the case of a stale item, don't require that the span be in bounds of the document
-                // as it exists right now.
-                using var context = _provider._threadOperationExecutor.BeginExecute(
-                    EditorFeaturesResources.Navigating_to_definition, EditorFeaturesResources.Navigating_to_definition, allowCancellation: true, showProgress: false);
-                await navigationService.TryNavigateToSpanAsync(
-                    _provider._threadingContext,
-                    workspace,
-                    document.Id,
-                    _searchResult.SearchResult.NavigableItem.SourceSpan,
-                    NavigationOptions.Default,
-                    allowInvalidSpan: _searchResult.SearchResult.NavigableItem.IsStale,
-                    context.UserCancellationToken).ConfigureAwait(false);
-            }
-        }
     }
 }
