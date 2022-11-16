@@ -4577,6 +4577,120 @@ class C
         }
 
         [Fact]
+        public void SemicolonSeparatorInArrayInitializer()
+        {
+            var source = """
+        class Program
+        {
+            static void Main()
+            {
+                F();
+                var a = new[] { 1; 2 };
+            }
+            static object F()
+            {
+                return null;
+            }
+        }
+        """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,26): error CS1003: Syntax error, ',' expected
+                //         var a = new[] { 1; 2 };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 26),
+                // (6,28): error CS1003: Syntax error, ',' expected
+                //         var a = new[] { 1; 2 };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "2").WithArguments(",").WithLocation(6, 28));
+        }
+
+        [Fact]
+        public void SemicolonSeparatorInArrayInitializer2()
+        {
+            var source = """
+        class Program
+        {
+            static void Main()
+            {
+                F();
+                var a = new[] { 1; 2; };
+            }
+            static object F()
+            {
+                return null;
+            }
+        }
+        """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,26): error CS1003: Syntax error, ',' expected
+                //         var a = new[] { 1; 2; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 26),
+                // (6,28): error CS1003: Syntax error, ',' expected
+                //         var a = new[] { 1; 2; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "2").WithArguments(",").WithLocation(6, 28),
+                // (6,29): error CS1003: Syntax error, ',' expected
+                //         var a = new[] { 1; 2; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 29));
+        }
+
+        [Fact]
+        public void SemicolonSeparatorInObjectInitializer()
+        {
+            var source = """
+        class Program
+        {
+            static void Main()
+            {
+                F();
+                var o = new { A = 1; B = 2 };
+            }
+            static object F()
+            {
+                return null;
+            }
+        }
+        """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,28): error CS1003: Syntax error, ',' expected
+                //         var o = new { A = 1; B = 2 };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 28),
+                // (6,30): error CS1003: Syntax error, ',' expected
+                //         var o = new { A = 1; B = 2 };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "B").WithArguments(",").WithLocation(6, 30));
+        }
+
+        [Fact]
+        public void SemicolonSeparatorInObjectInitializer2()
+        {
+            var source = """
+        class Program
+        {
+            static void Main()
+            {
+                F();
+                var o = new { A = 1; B = 2; };
+            }
+            static object F()
+            {
+                return null;
+            }
+        }
+        """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,28): error CS1003: Syntax error, ',' expected
+                //         var o = new { A = 1; B = 2; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 28),
+                // (6,30): error CS1003: Syntax error, ',' expected
+                //         var o = new { A = 1; B = 2; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "B").WithArguments(",").WithLocation(6, 30),
+                // (6,35): error CS1003: Syntax error, ',' expected
+                //         var o = new { A = 1; B = 2; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 35));
+        }
+
+        [Fact]
         public void TestStatementAfterAnonymousTypeStart()
         {
             var text = "class c { void m() { var x = new { while (x) {} } }";
