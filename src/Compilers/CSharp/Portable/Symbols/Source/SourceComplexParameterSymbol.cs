@@ -797,7 +797,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.MaybeNullWhenAttribute))
             {
-                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().MaybeNullWhenAttribute = DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(AttributeDescription.MaybeNullWhenAttribute, attribute);
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().MaybeNullWhenAttribute = DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(attribute);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullAttribute))
             {
@@ -805,11 +805,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullWhenAttribute))
             {
-                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().NotNullWhenAttribute = DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(AttributeDescription.NotNullWhenAttribute, attribute);
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().NotNullWhenAttribute = DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(attribute);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DoesNotReturnIfAttribute))
             {
-                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().DoesNotReturnIfAttribute = DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(AttributeDescription.DoesNotReturnIfAttribute, attribute);
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().DoesNotReturnIfAttribute = DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(attribute);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullIfNotNullAttribute))
             {
@@ -842,7 +842,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return UseUpdatedEscapeRules && RefKind != RefKind.None;
         }
 
-        private static bool? DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(AttributeDescription description, CSharpAttributeData attribute)
+        private static bool? DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(CSharpAttributeData attribute)
         {
             var arguments = attribute.CommonConstructorArguments;
             return arguments.Length == 1 && arguments[0].TryDecodeValue(SpecialType.System_Boolean, out bool value) ?
