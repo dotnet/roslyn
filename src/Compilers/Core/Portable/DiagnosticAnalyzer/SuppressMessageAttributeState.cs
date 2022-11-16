@@ -273,10 +273,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableDictionary<string, SuppressMessageInfo> DecodeLocalSuppressMessageAttributes(ISymbol symbol)
         {
             var attributes = symbol.GetAttributes().Where(a => IsSuppressionAttribute(a));
-            return DecodeLocalSuppressMessageAttributes(symbol, attributes);
+            return DecodeLocalSuppressMessageAttributes(attributes);
         }
 
-        private static ImmutableDictionary<string, SuppressMessageInfo> DecodeLocalSuppressMessageAttributes(ISymbol symbol, IEnumerable<AttributeData> attributes)
+        private static ImmutableDictionary<string, SuppressMessageInfo> DecodeLocalSuppressMessageAttributes(IEnumerable<AttributeData> attributes)
         {
             var builder = ImmutableDictionary.CreateBuilder<string, SuppressMessageInfo>();
             foreach (var attribute in attributes)
