@@ -66,9 +66,13 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
             DkmEvaluationResultAccessType Access,
             DkmEvaluationResultStorageType StorageType,
             DkmEvaluationResultTypeModifierFlags TypeModifierFlags,
+#pragma warning disable IDE0060 // Remove unused parameter
             DkmDataAddress Address,
+#pragma warning restore IDE0060 // Remove unused parameter
             ReadOnlyCollection<DkmCustomUIVisualizerInfo> CustomUIVisualizers,
+#pragma warning disable IDE0060 // Remove unused parameter
             ReadOnlyCollection<DkmModuleInstance> ExternalModules,
+#pragma warning restore IDE0060 // Remove unused parameter
             DkmDataItem DataItem)
         {
             return new DkmSuccessEvaluationResult(

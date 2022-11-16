@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return RewriteLocalInternal(compilation, syntax, this);
         }
 
-        internal static BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, SyntaxNode syntax, LocalSymbol local)
+        internal static BoundExpression RewriteLocal(CSharpCompilation compilation, SyntaxNode syntax, LocalSymbol local)
         {
             return RewriteLocalInternal(compilation, syntax, local);
         }

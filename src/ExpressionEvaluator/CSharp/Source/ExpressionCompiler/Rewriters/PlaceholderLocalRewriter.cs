@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
             if (_declaredLocals.Contains(local))
             {
-                return ObjectIdLocalSymbol.RewriteLocal(_compilation, _container, node.Syntax, local);
+                return ObjectIdLocalSymbol.RewriteLocal(_compilation, node.Syntax, local);
             }
             return node;
         }
