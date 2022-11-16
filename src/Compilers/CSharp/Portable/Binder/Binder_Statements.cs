@@ -1891,10 +1891,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundStatements.Add(boundStatement);
             }
 
-            return FinishBindBlockParts(node, boundStatements.ToImmutableAndFree(), diagnostics);
+            return FinishBindBlockParts(node, boundStatements.ToImmutableAndFree());
         }
 
-        private BoundBlock FinishBindBlockParts(CSharpSyntaxNode node, ImmutableArray<BoundStatement> boundStatements, BindingDiagnosticBag diagnostics)
+        private BoundBlock FinishBindBlockParts(CSharpSyntaxNode node, ImmutableArray<BoundStatement> boundStatements)
         {
             ImmutableArray<LocalSymbol> locals = GetDeclaredLocalsForScope(node);
 
@@ -3557,7 +3557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundNonConstructorMethodBody(compilationUnit,
-                                                     FinishBindBlockParts(compilationUnit, boundStatements.ToImmutableAndFree(), diagnostics).MakeCompilerGenerated(),
+                                                     FinishBindBlockParts(compilationUnit, boundStatements.ToImmutableAndFree()).MakeCompilerGenerated(),
                                                      expressionBody: null);
         }
 
