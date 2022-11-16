@@ -1605,7 +1605,9 @@ new List<ArgumentException>()
 
         public class D
         {
+#pragma warning disable IDE0060 // Remove unused parameter
             public int goo(int a) { return 0; }
+#pragma warning restore IDE0060 // Remove unused parameter
         }
 
         /// <summary>
