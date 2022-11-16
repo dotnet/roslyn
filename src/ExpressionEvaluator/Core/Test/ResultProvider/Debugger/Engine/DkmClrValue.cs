@@ -235,9 +235,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         /// <remarks>
         /// Very simple expression evaluation (may not support all syntax supported by Concord).
         /// </remarks>
-#pragma warning disable IDE0060 // Remove unused parameter
         public void EvaluateDebuggerDisplayString(DkmWorkList workList, DkmInspectionContext inspectionContext, DkmClrType targetType, string formatString, DkmCompletionRoutine<DkmEvaluateDebuggerDisplayStringAsyncResult> completionRoutine)
-#pragma warning restore IDE0060 // Remove unused parameter
         {
             Debug.Assert(!this.IsNull, "Not supported by VIL");
 
