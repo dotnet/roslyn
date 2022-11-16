@@ -72,7 +72,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             public void SetGlobalOption(OptionKey optionKey, object? value) => throw new NotImplementedException();
             public void SetGlobalOptions(ImmutableArray<OptionKey> optionKeys, ImmutableArray<object?> values) => throw new NotImplementedException();
             public void SetOptions(OptionSet optionSet, IEnumerable<OptionKey> optionKeys) => throw new NotImplementedException();
+#pragma warning disable IDE0060 // Remove unused parameter
+            // TODO2 bug with IDE0060
             public bool TryMapEditorConfigKeyToOption(string key, string? language, [NotNullWhen(true)] out IEditorConfigStorageLocation2? storageLocation, out OptionKey optionKey) => throw new NotImplementedException();
+#pragma warning restore IDE0060 // Remove unused parameter
             public void UnregisterWorkspace(Workspace workspace) => throw new NotImplementedException();
         }
     }
