@@ -640,7 +640,7 @@ namespace Microsoft.CodeAnalysis
             consoleOutput.WriteLine(DiagnosticFormatter.Format(diagnostic, Culture));
         }
 
-        public SarifErrorLogger? GetErrorLogger(TextWriter consoleOutput, CancellationToken cancellationToken)
+        public SarifErrorLogger? GetErrorLogger(TextWriter consoleOutput)
         {
             Debug.Assert(Arguments.ErrorLogOptions?.Path != null);
 
@@ -697,7 +697,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (Arguments.ErrorLogOptions?.Path != null)
                 {
-                    errorLogger = GetErrorLogger(consoleOutput, cancellationToken);
+                    errorLogger = GetErrorLogger(consoleOutput);
                     if (errorLogger == null)
                     {
                         return Failed;
