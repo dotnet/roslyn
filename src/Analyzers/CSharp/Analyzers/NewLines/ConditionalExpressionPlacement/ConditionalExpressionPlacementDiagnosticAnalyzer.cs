@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
                 return;
 
             if (node is ConditionalExpressionSyntax conditionalExpression)
-                ProcessConstructorInitializer(context, severity, conditionalExpression);
+                ProcessConditionalExpression(context, severity, conditionalExpression);
 
             foreach (var child in node.ChildNodesAndTokens())
             {
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
             }
         }
 
-        private void ProcessConstructorInitializer(
+        private void ProcessConditionalExpression(
             SyntaxTreeAnalysisContext context, ReportDiagnostic severity, ConditionalExpressionSyntax conditionalExpression)
         {
             // Only if both tokens are not ok do we report an error.  For example, the following is legal:
