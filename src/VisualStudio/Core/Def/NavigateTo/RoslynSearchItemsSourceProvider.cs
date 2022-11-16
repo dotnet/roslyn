@@ -3,21 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Search.Data;
-using Microsoft.VisualStudio.Search.UI.PreviewPanel.Models;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -69,91 +64,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         public ISearchItemsSource CreateItemsSource()
             => new RoslynSearchItemsSource(this);
-
-        private sealed class RoslynSearchResultViewFactory : ISearchResultViewFactory
-        {
-            private readonly RoslynSearchItemsSourceProvider _provider;
-
-            public RoslynSearchResultViewFactory(RoslynSearchItemsSourceProvider provider)
-            {
-                _provider = provider;
-            }
-
-            public SearchResultViewBase CreateSearchResultView(SearchResult result)
-            {
-                if (result is not RoslynCodeSearchResult roslynResult)
-                    return null!;
-
-                var searchResult = roslynResult.SearchResult;
-
-                return new RoslynSearchResultView(
-                    _provider,
-                    roslynResult,
-                    new HighlightedText(searchResult.NavigableItem.DisplayTaggedParts.JoinText(), searchResult.NameMatchSpans.Select(m => m.ToSpan()).ToArray()),
-                    new HighlightedText(searchResult.AdditionalInformation, Array.Empty<VisualStudio.Text.Span>()),
-                    primaryIcon: searchResult.NavigableItem.Glyph.GetImageId());
-            }
-
-            public Task<IReadOnlyList<SearchResultPreviewPanelBase>> GetPreviewPanelsAsync(SearchResult result, SearchResultViewBase searchResultView)
-                => Task.FromResult(GetPreviewPanels(result, searchResultView) ?? Array.Empty<SearchResultPreviewPanelBase>());
-
-            private IReadOnlyList<SearchResultPreviewPanelBase>? GetPreviewPanels(SearchResult result, SearchResultViewBase searchResultView)
-            {
-                if (result is not RoslynCodeSearchResult roslynResult)
-                    return null;
-
-                var document = roslynResult.SearchResult.NavigableItem.Document;
-                var filePath = document.FilePath;
-                if (filePath is null)
-                    return null;
-
-                if (!Uri.TryCreate(filePath, UriKind.RelativeOrAbsolute, out var uri))
-                    return null;
-
-                var projectGuid = _provider._workspace.GetProjectGuid(document.Project.Id);
-                if (projectGuid == Guid.Empty)
-                    return null;
-
-                return new List<SearchResultPreviewPanelBase>
-                {
-                    new RoslynSearchResultPreviewPanel(
-                        _provider,
-                        roslynResult,
-                        uri,
-                        projectGuid,
-                        searchResultView.Title.Text,
-                        searchResultView.PrimaryIcon)
-                };
-            }
-        }
-
-        /// <summary>
-        /// Represent a code editor in the Preview panel.
-        /// </summary>
-        private sealed class RoslynSearchResultPreviewPanel : SearchResultPreviewPanelBase
-        {
-            public override UIBaseModel UserInterface { get; }
-
-            public RoslynSearchResultPreviewPanel(
-                RoslynSearchItemsSourceProvider provider,
-                RoslynCodeSearchResult searchResult,
-                Uri uri,
-                Guid projectGuid,
-                string title,
-                ImageId icon)
-                : base(title, icon)
-            {
-                UserInterface = new CodeEditorModel(
-                    nameof(RoslynSearchResultPreviewPanel),
-                    new VisualStudio.Threading.AsyncLazy<TextDocumentLocation>(() =>
-                        Task.FromResult(new TextDocumentLocation(
-                            uri,
-                            projectGuid,
-                            searchResult.SearchResult.NavigableItem.SourceSpan.ToSpan())),
-                        provider._threadingContext.JoinableTaskFactory),
-                    isEditable: false);
-            }
-        }
 
         private sealed class RoslynSearchResultView : CodeSearchResultViewBase
         {
