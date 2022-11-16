@@ -3115,19 +3115,18 @@ OuterBreak:
                     type = type.SetUnknownNullabilityForReferenceTypes();
                 }
 
-                AddOrMergeCandidate(candidates, type, variance, conversions);
+                Debug.Assert(conversions.IncludeNullability ||
+                    type.SetUnknownNullabilityForReferenceTypes().Equals(type, TypeCompareKind.ConsiderEverything));
+
+                AddOrMergeCandidate(candidates, type, variance);
             }
         }
 
         private static void AddOrMergeCandidate(
             Dictionary<TypeWithAnnotations, TypeWithAnnotations> candidates,
             TypeWithAnnotations newCandidate,
-            VarianceKind variance,
-            ConversionsBase conversions)
+            VarianceKind variance)
         {
-            Debug.Assert(conversions.IncludeNullability ||
-                newCandidate.SetUnknownNullabilityForReferenceTypes().Equals(newCandidate, TypeCompareKind.ConsiderEverything));
-
             if (candidates.TryGetValue(newCandidate, out TypeWithAnnotations oldCandidate))
             {
                 MergeAndReplaceIfStillCandidate(candidates, oldCandidate, newCandidate, variance);

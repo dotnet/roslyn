@@ -148,9 +148,6 @@ namespace Microsoft.CodeAnalysis
         /// <returns>A list of rule objects with data from the given XML node</returns>
         private static List<KeyValuePair<string, ReportDiagnostic>> ReadRules(XElement rulesNode)
         {
-            string analyzerId = ReadNonEmptyAttribute(rulesNode, RulesAnalyzerIdAttributeName);
-            string ruleNamespace = ReadNonEmptyAttribute(rulesNode, RulesNamespaceAttributeName);
-
             var rules = new List<KeyValuePair<string, ReportDiagnostic>>();
 
             // Loop through each rule node

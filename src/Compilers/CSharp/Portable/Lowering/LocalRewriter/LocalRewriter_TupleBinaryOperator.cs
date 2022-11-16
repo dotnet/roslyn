@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundConversion { Conversion: { Kind: ConversionKind.DefaultLiteral } }:
                     // This conversion can be performed lazily, but need not be saved.  It is treated as non-side-effecting.
                     return EvaluateSideEffectingArgumentToTemp(expr, effects, temps);
-                case BoundConversion { Conversion: { Kind: var conversionKind } conversion } bc when conversionMustBePerformedOnOriginalExpression(conversionKind):
+                case BoundConversion { Conversion: { Kind: var conversionKind } conversion } when conversionMustBePerformedOnOriginalExpression(conversionKind):
                     // Some conversions cannot be performed on a copy of the argument and must be done early.
                     return EvaluateSideEffectingArgumentToTemp(expr, effects, temps);
                 case BoundConversion { Conversion: { IsUserDefined: true } } conv when conv.ExplicitCastInCode || enclosingConversionWasExplicit:

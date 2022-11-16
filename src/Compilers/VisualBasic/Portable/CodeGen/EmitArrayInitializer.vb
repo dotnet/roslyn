@@ -256,9 +256,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ''' Non-constant initializers are matched with a zero of corresponding size.
         ''' </summary>
         Private Function GetRawData(initializers As ImmutableArray(Of BoundExpression)) As ImmutableArray(Of Byte)
-            ' the initial size is a guess.
-            ' there is no point to be precise here as MemoryStream always has N + 1 storage 
-            ' and will need to be trimmed regardless
             Dim writer = Cci.PooledBlobBuilder.GetInstance()
 
             SerializeArrayRecursive(writer, initializers)
