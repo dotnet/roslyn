@@ -259,6 +259,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureFileTypes = MessageBase + 12827,
         IDS_ArrayAccess = MessageBase + 12828,
         IDS_PointerElementAccess = MessageBase + 12829,
+        IDS_Missing = MessageBase + 12830,
+        IDS_FeatureLambdaOptionalParameters = MessageBase + 12831,
+        IDS_FeatureLambdaParamsArray = MessageBase + 12832,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -383,7 +386,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PREFER reporting diagnostics in binding when diagnostics do not affect the shape of the syntax tree
 
                 // C# preview features.
-                //return LanguageVersion.Preview;
+                case MessageID.IDS_FeatureLambdaOptionalParameters: // semantic check
+                case MessageID.IDS_FeatureLambdaParamsArray: // semantic check
+                    return LanguageVersion.Preview;
 
                 // C# 11.0 features.
                 case MessageID.IDS_FeatureRawStringLiterals:

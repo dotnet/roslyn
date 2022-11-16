@@ -6641,5 +6641,168 @@ static T I1.operator checked >>>(T a, T b)
                 Punctuation.CloseParen,
                 Punctuation.Semicolon);
         }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task LambdaDefaultParameter_01(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                using System;
+                class Program
+                {
+                    void M()
+                    {
+                        const int n = 100;
+                        const int m = 200;
+                        var lam = (int x = n + m) => x;
+                    }
+                }
+
+                """,
+                testHost,
+                Keyword("using"),
+                Identifier("System"),
+                Punctuation.Semicolon,
+                Keyword("class"),
+                Class("Program"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("const"),
+                Keyword("int"),
+                Constant("n"),
+                Static("n"),
+                Operators.Equals,
+                Number("100"),
+                Punctuation.Semicolon,
+                Keyword("const"),
+                Keyword("int"),
+                Constant("m"),
+                Static("m"),
+                Operators.Equals,
+                Number("200"),
+                Punctuation.Semicolon,
+                Keyword("var"),
+                Local("lam"),
+                Operators.Equals,
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Parameter("x"),
+                Operators.Equals,
+                Identifier("n"),
+                Operators.Plus,
+                Identifier("m"),
+                Punctuation.CloseParen,
+                Operators.EqualsGreaterThan,
+                Identifier("x"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task LambdaDefaultParameter_02(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                class Program
+                {
+                    void M()
+                    {
+                        var lam = (string s = "a string") => s;
+                    }
+                }
+
+                """,
+                testHost,
+                Keyword("class"),
+                Class("Program"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("var"),
+                Local("lam"),
+                Operators.Equals,
+                Punctuation.OpenParen,
+                Keyword("string"),
+                Parameter("s"),
+                Operators.Equals,
+                String(@"""a string"""),
+                Punctuation.CloseParen,
+                Operators.EqualsGreaterThan,
+                Identifier("s"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task LambdaParamsArray(TestHost testHost)
+        {
+            await TestInMethodAsync("var lam = (params int[] xs) => xs.Length;",
+                testHost,
+                Keyword("var"),
+                Local("lam"),
+                Operators.Equals,
+                Punctuation.OpenParen,
+                Keyword("params"),
+                Keyword("int"),
+                Punctuation.OpenBracket,
+                Punctuation.CloseBracket,
+                Parameter("xs"),
+                Punctuation.CloseParen,
+                Operators.EqualsGreaterThan,
+                Identifier("xs"),
+                Operators.Dot,
+                Identifier("Length"),
+                Punctuation.Semicolon);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task LambdaParamsArray_Multiple(TestHost testHost)
+        {
+            await TestInMethodAsync("var lam = (int a, int b = 1, params int[] xs, params int[] ys.Length) => { };",
+                testHost,
+                Keyword("var"),
+                Local("lam"),
+                Operators.Equals,
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Local("a"),
+                Punctuation.Comma,
+                Keyword("int"),
+                Identifier("b"),
+                Operators.Equals,
+                Number("1"),
+                Punctuation.Comma,
+                Keyword("params"),
+                Keyword("int"),
+                Punctuation.OpenBracket,
+                Punctuation.CloseBracket,
+                Local("xs"),
+                Punctuation.Comma,
+                Keyword("params"),
+                Keyword("int"),
+                Punctuation.OpenBracket,
+                Punctuation.CloseBracket,
+                Local("ys"),
+                Operators.Dot,
+                Identifier("Length"),
+                Punctuation.CloseParen,
+                Operators.EqualsGreaterThan,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.Semicolon);
+        }
     }
 }

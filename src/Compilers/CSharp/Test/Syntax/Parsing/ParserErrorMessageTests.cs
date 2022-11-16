@@ -3255,9 +3255,9 @@ class A
 ";
 
             CreateCompilation(test).VerifyDiagnostics(
-                // (5,27): error CS1065: Default values are not valid in this context.
-                //     D d1 = delegate(int x = 42) { };
-                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 27));
+                    // (5,27): error CS1065: Default values are not valid in this context.
+                    //     D d1 = delegate(int x = 42) { };
+                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 27));
         }
 
         [Fact]
@@ -3272,9 +3272,9 @@ class A
 ";
 
             CreateCompilation(test).VerifyDiagnostics(
-                // (5,34): error CS1065: Default values are not valid in this context.
-                //     D d1 = delegate(int x, int y = 42) { };
-                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 34));
+                    // (5,34): error CS1065: Default values are not valid in this context.
+                    //     D d1 = delegate(int x, int y = 42) { };
+                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 34));
         }
 
         [Fact, WorkItem(540251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540251")]
