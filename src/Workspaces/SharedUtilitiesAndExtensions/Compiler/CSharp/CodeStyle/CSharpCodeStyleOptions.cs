@@ -321,6 +321,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental", CodeStyleOptions2.TrueWithSilentEnforcement),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.AllowBlankLineAfterColonInConstructorInitializer"));
 
+        public static Option2<CodeStyleOption2<bool>> AllowBlankLineAfterConditionalExpressionToken { get; } = CreateOption(
+            CSharpCodeStyleOptionGroups.NewLinePreferences, nameof(AllowBlankLineAfterConditionalExpressionToken),
+            CSharpIdeCodeStyleOptions.Default.AllowBlankLineAfterConditionalExpressionToken,
+            EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_allow_blank_line_after_conditional_expression_token_experimental", CodeStyleOptions2.TrueWithSilentEnforcement),
+            new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.AllowBlankLineAfterConditionalExpressionToken"));
+
         private static Option2<CodeStyleOption2<NamespaceDeclarationPreference>> CreateNamespaceDeclarationOption(string optionName, CodeStyleOption2<NamespaceDeclarationPreference> defaultValue, string editorconfigKeyName)
             => CreateOption(
                 CSharpCodeStyleOptionGroups.CodeBlockPreferences, optionName,
