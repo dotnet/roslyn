@@ -73,24 +73,28 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private sealed class RoslynCodeSearchResult : CodeSearchResult
         {
             public readonly INavigateToSearchResult SearchResult;
-            public readonly PatternMatch PatternMatch;
 
             public RoslynCodeSearchResult(
                 RoslynSearchItemsSourceProvider provider,
                 INavigateToSearchResult searchResult,
-                PatternMatch patternMatch,
                 string resultType,
                 string primarySortText,
-                string? secondarySortText,
-                IReadOnlyCollection<PatternMatch>? patternMatches,
+                string secondarySortText,
+                IReadOnlyCollection<PatternMatch> patternMatches,
                 string? location,
-                string? tieBreakingSortText,
                 float perProviderItemPriority,
-                SearchResultFlags flags,
-                string? language) : base(provider._viewFactory, resultType, primarySortText, secondarySortText, patternMatches, location, tieBreakingSortText, perProviderItemPriority, flags, language)
+                string language)
+                : base(
+                      provider._viewFactory,
+                      resultType,
+                      primarySortText,
+                      secondarySortText,
+                      patternMatches,
+                      location,
+                      perProviderItemPriority: perProviderItemPriority,
+                      language: language)
             {
                 SearchResult = searchResult;
-                PatternMatch = patternMatch;
             }
         }
 

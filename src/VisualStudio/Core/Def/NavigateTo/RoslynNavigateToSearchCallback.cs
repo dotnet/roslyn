@@ -55,25 +55,27 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             public Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken)
             {
+                // Convert roslyn pattern matches to the platform type.
                 var matches = result.Matches.SelectAsArray(static m => new PatternMatch(
                     ConvertKind(m.Kind),
                     punctuationStripped: false,
                     m.IsCaseSensitive,
                     m.MatchedSpans.SelectAsArray(static s => s.ToSpan())));
 
+                // Weight the items based on the overall pattern matching weights.  We want the items that have the best
+                // pattern matches (low .Kind values) to have the highest float values (as higher is better for the VS
+                // api).
+                var perProviderItemPriority = float.MaxValue - Enumerable.Sum(result.Matches.Select(m => (int)m.Kind));
+
                 _searchCallback.AddItem(new RoslynCodeSearchResult(
                     _provider,
                     result,
-                    // Last match in the matches array corresponds to the name portion of the match.
-                    matches.Last(),
                     GetResultType(result.Kind),
                     result.Name,
                     result.SecondarySort,
                     matches,
-                    result.NavigableItem.Document?.FilePath,
-                    tieBreakingSortText: null,
-                    perProviderItemPriority: (int)result.MatchKind,
-                    flags: SearchResultFlags.Default,
+                    result.NavigableItem.Document.FilePath,
+                    perProviderItemPriority,
                     project.Language));
 
                 return Task.CompletedTask;
@@ -98,8 +100,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 };
 
             private static string GetResultType(string kind)
-            {
-                return kind switch
+                => kind switch
                 {
                     NavigateToItemKind.Class => CodeSearchResultType.Class,
                     NavigateToItemKind.Constant => CodeSearchResultType.Constant,
@@ -115,7 +116,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     NavigateToItemKind.Structure => CodeSearchResultType.Structure,
                     _ => kind
                 };
-            }
         }
     }
 }

@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
             public string Summary => _result.Summary;
 
-            public INavigableItem NavigableItem => _result.NavigableItem == null ? null! : new VSTypeScriptNavigableItemWrapper(_result.NavigableItem);
+            public INavigableItem NavigableItem => new VSTypeScriptNavigableItemWrapper(_result.NavigableItem);
 
             public ImmutableArray<PatternMatch> Matches => NavigateToSearchResultHelpers.GetMatches(this);
         }
