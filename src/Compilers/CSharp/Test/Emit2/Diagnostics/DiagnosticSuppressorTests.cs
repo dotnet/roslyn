@@ -13,8 +13,13 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
+
+// <Metalama> This is because we re-targeted from .NET 6 to .NET 7 - can be reverted when Roslyn re-targets this project to .NET 7.
+#if !NET
+using Roslyn.Utilities;
+#endif
+// </Metalama>
 
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 
@@ -563,7 +568,9 @@ class C { }";
             Assert.Single(diagnostics);
             var programmaticSuppression = diagnostics.Select(d => d.ProgrammaticSuppressionInfo).Single();
             Assert.Equal(2, programmaticSuppression.Suppressions.Count);
-            var orderedSuppressions = programmaticSuppression.Suppressions.Order().ToImmutableArrayOrEmpty();
+            // <Metalama> This is because we re-targeted from .NET 6 to .NET 7 - can be reverted when Roslyn re-targets this project to .NET 7.
+            var orderedSuppressions = Roslyn.Utilities.EnumerableExtensions.ToImmutableArrayOrEmpty(programmaticSuppression.Suppressions.Order());
+            // </Metalama>
             Assert.Equal(suppressionId, orderedSuppressions[0].Id);
             Assert.Equal(suppressor.SuppressionDescriptor.Justification, orderedSuppressions[0].Justification);
             Assert.Equal(suppressionId2, orderedSuppressions[1].Id);

@@ -730,7 +730,7 @@ Assembly1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     ", output);
         }
 
-        [Fact]
+        [Fact(Skip = "Metalama Compiler doesn't support C# Interactive and this test fails because of localization of the exception message.")]
         public async Task ReferencePathsRsp_Error()
         {
             var initDirectory = Temp.CreateDirectory();
@@ -806,7 +806,7 @@ OK
 ", output);
         }
 
-        [Fact]
+        [Fact(Skip = "Metalama Compiler doesn't support C# Interactive and this test fails because of localization of the exception message.")]
         public async Task InitialScript_Error()
         {
             var initFile = Temp.CreateFile(extension: ".csx").WriteAllText("1 1");
@@ -858,7 +858,7 @@ $@"{string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileN
 ", await ReadOutputToEnd());
         }
 
-        [Fact]
+        [Fact(Skip = "Metalama Compiler doesn't support C# Interactive and this test fails because of localization of the exception message.")]
         public async Task Script_NoHostNamespaces()
         {
             await Execute("nameof(Microsoft.Missing)");

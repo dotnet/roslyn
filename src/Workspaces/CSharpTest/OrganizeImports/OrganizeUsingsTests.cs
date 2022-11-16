@@ -1024,7 +1024,7 @@ using cc;
 using cC;
 using CC;";
 
-// <Metalama /> Non-latin characters removed to make the test passing.";
+// <Metalama /> Non-latin characters removed to make the test passing.
 
             var final =
 @$"using a;
@@ -1053,9 +1053,10 @@ using cc;
 using cC;
 using cC;
 using Cc;
-using CC;
+using CC;";
 
-// <Metalama /> Non-latin characters removed to make the test passing.";
+// <Metalama /> Non-latin characters removed to make the test passing.
+
             await CheckAsync(initial, final);
         }
 

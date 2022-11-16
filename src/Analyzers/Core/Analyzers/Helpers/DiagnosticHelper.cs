@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return null;
             }
             // </Metalama>
-            
+
             // TODO: Add documentation for Regex and Json analyzer
             // Tracked with https://github.com/dotnet/roslyn/issues/48530
             if (id == "RE0001")
