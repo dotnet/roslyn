@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
     [ProducesResultType(CodeSearchResultType.Interface)]
     [ProducesResultType(CodeSearchResultType.Method)]
     [ProducesResultType(CodeSearchResultType.Module)]
+    [ProducesResultType(CodeSearchResultType.OtherSymbol)]
     [ProducesResultType(CodeSearchResultType.Property)]
     [ProducesResultType(CodeSearchResultType.Structure)]
     internal sealed partial class RoslynSearchItemsSourceProvider : ISearchItemsSourceProvider

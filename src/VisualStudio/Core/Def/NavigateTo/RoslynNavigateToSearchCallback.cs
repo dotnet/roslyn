@@ -112,6 +112,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     NavigateToItemKind.Interface => CodeSearchResultType.Interface,
                     NavigateToItemKind.Method => CodeSearchResultType.Method,
                     NavigateToItemKind.Module => CodeSearchResultType.Module,
+                    NavigateToItemKind.OtherSymbol => CodeSearchResultType.OtherSymbol,
                     NavigateToItemKind.Property => CodeSearchResultType.Property,
                     NavigateToItemKind.Structure => CodeSearchResultType.Structure,
                     _ => kind
