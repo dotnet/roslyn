@@ -327,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim implicitReferenceResolutions = If(compilation.ScriptCompilationInfo?.PreviousScriptCompilation?.GetBoundReferenceManager().ImplicitReferenceResolutions,
                         ImmutableDictionary(Of AssemblyIdentity, PortableExecutableReference).Empty)
 
-                    Dim bindingResult() As BoundInputAssembly = Bind(                                                                     explicitAssemblyData,
+                    Dim bindingResult() As BoundInputAssembly = Bind(explicitAssemblyData,
                                                                      modules,
                                                                      explicitReferences,
                                                                      referenceMap,
