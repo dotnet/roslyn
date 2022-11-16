@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Fields.SequenceEqual(
                 other.Fields,
                 comparison,
-                static (x, y, comparison) => x.TypeWithAnnotations.Equals(y.TypeWithAnnotations, comparison) && x.RefKind == y.RefKind && x.Scope == y.Scope);
+                static (x, y, comparison) => x.TypeWithAnnotations.Equals(y.TypeWithAnnotations, comparison) && x.RefKind == y.RefKind && x.Scope == y.Scope && x.DefaultValue == y.DefaultValue && x.IsParams == y.IsParams);
         }
 
         /// <summary>
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!newFieldTypes.IsDefault);
             Debug.Assert(newFieldTypes.Length == this.Fields.Length);
 
-            var newFields = Fields.ZipAsArray(newFieldTypes, static (field, type) => new AnonymousTypeField(field.Name, field.Location, type, field.RefKind, field.Scope));
+            var newFields = Fields.ZipAsArray(newFieldTypes, static (field, type) => new AnonymousTypeField(field.Name, field.Location, type, field.RefKind, field.Scope, field.DefaultValue, field.IsParams));
             return new AnonymousTypeDescriptor(newFields, this.Location);
         }
 

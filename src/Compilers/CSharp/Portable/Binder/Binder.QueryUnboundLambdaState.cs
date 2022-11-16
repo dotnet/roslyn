@@ -46,10 +46,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override int ParameterCount { get { return _parameters.Length; } }
             public override bool IsAsync { get { return false; } }
             public override bool IsStatic => false;
+            public override bool HasParamsArray => false;
             public override RefKind RefKind(int index) { return Microsoft.CodeAnalysis.RefKind.None; }
             public override DeclarationScope DeclaredScope(int index) => DeclarationScope.Unscoped;
             public override MessageID MessageID { get { return MessageID.IDS_FeatureQueryExpression; } } // TODO: what is the correct ID here?
             public override Location ParameterLocation(int index) { return _parameters[index].Locations[0]; }
+            // Query unbound lambdas don't have associated parameter syntax
+            public override ParameterSyntax ParameterSyntax(int index) => null;
             public override TypeWithAnnotations ParameterTypeWithAnnotations(int index) { throw new ArgumentException(); } // implicitly typed
 
             public override void GenerateAnonymousFunctionConversionError(BindingDiagnosticBag diagnostics, TypeSymbol targetType)
