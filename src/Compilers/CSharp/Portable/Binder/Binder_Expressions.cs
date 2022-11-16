@@ -8934,6 +8934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (node.ReceiverOpt)
                 {
                     case BoundTypeExpression:
+                    case null: // if `using static Class` is in effect, the receiver is missing
                         if (!m.IsStatic) continue;
                         break;
                     case BoundThisReference { WasCompilerGenerated: true }:

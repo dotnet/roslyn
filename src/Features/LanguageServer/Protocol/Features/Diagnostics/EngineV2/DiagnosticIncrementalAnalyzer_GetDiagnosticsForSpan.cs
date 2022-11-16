@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     internal partial class DiagnosticIncrementalAnalyzer
     {
         public async Task<bool> TryAppendDiagnosticsForSpanAsync(
-            Document document, TextSpan? range, ArrayBuilder<DiagnosticData> result, Func<string, bool>? shouldIncludeDiagnostic,
+            TextDocument document, TextSpan? range, ArrayBuilder<DiagnosticData> result, Func<string, bool>? shouldIncludeDiagnostic,
             bool includeSuppressedDiagnostics, bool includeCompilerDiagnostics, CodeActionRequestPriority priority, bool blockForData,
             Func<string, IDisposable?>? addOperationScope, CancellationToken cancellationToken)
         {
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
-            Document document,
+            TextDocument document,
             TextSpan? range,
             Func<string, bool>? shouldIncludeDiagnostic,
             bool includeSuppressedDiagnostics,
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private static readonly WeakReference<ProjectAndCompilationWithAnalyzers?> _lastProjectAndCompilationWithAnalyzers = new(null);
 
             private readonly DiagnosticIncrementalAnalyzer _owner;
-            private readonly Document _document;
+            private readonly TextDocument _document;
             private readonly SourceText _text;
 
             private readonly IEnumerable<StateSet> _stateSets;
@@ -76,12 +76,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private readonly bool _includeCompilerDiagnostics;
             private readonly Func<string, IDisposable?>? _addOperationScope;
             private readonly bool _cacheFullDocumentDiagnostics;
+            private readonly bool _logPerformanceInfo;
 
             private delegate Task<IEnumerable<DiagnosticData>> DiagnosticsGetterAsync(DiagnosticAnalyzer analyzer, DocumentAnalysisExecutor executor, CancellationToken cancellationToken);
 
             public static async Task<LatestDiagnosticsForSpanGetter> CreateAsync(
                  DiagnosticIncrementalAnalyzer owner,
-                 Document document,
+                 TextDocument document,
                  TextSpan? range,
                  bool blockForData,
                  Func<string, IDisposable?>? addOperationScope,
@@ -103,11 +104,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // updating the error list simultaneously.
                 var cacheFullDocumentDiagnostics = owner.AnalyzerService.GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
 
+                // We log performance info when we are computing diagnostics for a span
+                // and also blocking for data, i.e. for lightbulb code path for "Ctrl + Dot" user command.
+                var logPerformanceInfo = range.HasValue && blockForData;
                 var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, ideOptions, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                 return new LatestDiagnosticsForSpanGetter(
                     owner, compilationWithAnalyzers, document, text, stateSets, shouldIncludeDiagnostic, includeCompilerDiagnostics,
-                    range, blockForData, addOperationScope, includeSuppressedDiagnostics, priority, cacheFullDocumentDiagnostics);
+                    range, blockForData, addOperationScope, includeSuppressedDiagnostics, priority, cacheFullDocumentDiagnostics, logPerformanceInfo);
             }
 
             private static async Task<CompilationWithAnalyzers?> GetOrCreateCompilationWithAnalyzersAsync(
@@ -139,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private LatestDiagnosticsForSpanGetter(
                 DiagnosticIncrementalAnalyzer owner,
                 CompilationWithAnalyzers? compilationWithAnalyzers,
-                Document document,
+                TextDocument document,
                 SourceText text,
                 IEnumerable<StateSet> stateSets,
                 Func<string, bool>? shouldIncludeDiagnostic,
@@ -149,7 +153,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Func<string, IDisposable?>? addOperationScope,
                 bool includeSuppressedDiagnostics,
                 CodeActionRequestPriority priority,
-                bool cacheFullDocumentDiagnostics)
+                bool cacheFullDocumentDiagnostics,
+                bool logPerformanceInfo)
             {
                 _owner = owner;
                 _compilationWithAnalyzers = compilationWithAnalyzers;
@@ -164,6 +169,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _includeSuppressedDiagnostics = includeSuppressedDiagnostics;
                 _priority = priority;
                 _cacheFullDocumentDiagnostics = cacheFullDocumentDiagnostics;
+                _logPerformanceInfo = logPerformanceInfo;
             }
 
             public async Task<bool> TryGetAsync(ArrayBuilder<DiagnosticData> list, CancellationToken cancellationToken)
@@ -184,7 +190,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         if (!await TryAddCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Syntax, list, cancellationToken).ConfigureAwait(false))
                             syntaxAnalyzers.Add(stateSet);
 
-                        if (!await TryAddCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Semantic, list, cancellationToken).ConfigureAwait(false))
+                        if (_document is Document &&
+                            !await TryAddCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Semantic, list, cancellationToken).ConfigureAwait(false))
                         {
                             // Check whether we want up-to-date document wide semantic diagnostics
                             var spanBased = stateSet.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis();
@@ -296,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 var analyzers = stateSets.SelectAsArray(stateSet => stateSet.Analyzer);
                 var analysisScope = new DocumentAnalysisScope(_document, span, analyzers, kind);
-                var executor = new DocumentAnalysisExecutor(analysisScope, _compilationWithAnalyzers, _owner._diagnosticAnalyzerRunner, logPerformanceInfo: false);
+                var executor = new DocumentAnalysisExecutor(analysisScope, _compilationWithAnalyzers, _owner._diagnosticAnalyzerRunner, _logPerformanceInfo);
                 var version = await GetDiagnosticVersionAsync(_document.Project, cancellationToken).ConfigureAwait(false);
 
                 // If we are computing full document diagnostics, and the provided analyzers
@@ -305,7 +312,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // This analysis is currently guarded with 'IncrementalMemberEditAnalysisFeatureFlag'
                 var incrementalAnalysis = !span.HasValue
                     && supportsSpanBasedAnalysis
-                    && _document.SupportsSyntaxTree
+                    && _document is Document sourceDocument
+                    && sourceDocument.SupportsSyntaxTree
                     && _owner.GlobalOptions.GetOption(DiagnosticOptionsStorage.IncrementalMemberEditAnalysisFeatureFlag);
 
                 ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> diagnosticsMap;
@@ -339,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 if (incrementalAnalysis)
-                    _owner._incrementalMemberEditAnalyzer.UpdateDocumentWithCachedDiagnostics(_document);
+                    _owner._incrementalMemberEditAnalyzer.UpdateDocumentWithCachedDiagnostics((Document)_document);
             }
 
             private async Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>> ComputeDocumentDiagnosticsCoreAsync(

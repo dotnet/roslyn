@@ -1132,35 +1132,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // errors (note: errors, not diagnostics).
                 SetGlobalErrorIfTrue(hasErrors);
 
-                bool diagsWritten = false;
                 var actualDiagnostics = diagsForCurrentMethod.ToReadOnly();
                 if (sourceMethod != null)
                 {
-                    actualDiagnostics = new ImmutableBindingDiagnostic<AssemblySymbol>(sourceMethod.SetDiagnostics(actualDiagnostics.Diagnostics, out diagsWritten), actualDiagnostics.Dependencies);
-                }
+                    _compilation.RegisterPossibleUpcomingEventEnqueue();
 
-                if (diagsWritten && !methodSymbol.IsImplicitlyDeclared && _compilation.EventQueue != null)
-                {
-                    // If compilation has a caching semantic model provider, then cache the already-computed bound tree
-                    // onto the semantic model and store it on the event.
-                    SyntaxTreeSemanticModel semanticModelWithCachedBoundNodes = null;
-                    if (body != null &&
-                        forSemanticModel.Syntax is { } semanticModelSyntax &&
-                        _compilation.SemanticModelProvider is CachingSemanticModelProvider cachingSemanticModelProvider)
+                    try
                     {
-                        var syntax = body.Syntax;
-                        semanticModelWithCachedBoundNodes = (SyntaxTreeSemanticModel)cachingSemanticModelProvider.GetSemanticModel(syntax.SyntaxTree, _compilation);
-                        semanticModelWithCachedBoundNodes.GetOrAddModel(semanticModelSyntax,
-                                                    (rootSyntax) =>
-                                                    {
-                                                        Debug.Assert(rootSyntax == forSemanticModel.Syntax);
-                                                        return MethodBodySemanticModel.Create(semanticModelWithCachedBoundNodes,
-                                                                                              methodSymbol,
-                                                                                              forSemanticModel);
-                                                    });
-                    }
+                        bool diagsWritten;
+                        actualDiagnostics = new ImmutableBindingDiagnostic<AssemblySymbol>(sourceMethod.SetDiagnostics(actualDiagnostics.Diagnostics, out diagsWritten), actualDiagnostics.Dependencies);
 
-                    _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(_compilation, methodSymbol.GetPublicSymbol(), semanticModelWithCachedBoundNodes));
+                        if (diagsWritten && !methodSymbol.IsImplicitlyDeclared && _compilation.EventQueue != null)
+                        {
+                            // If compilation has a caching semantic model provider, then cache the already-computed bound tree
+                            // onto the semantic model and store it on the event.
+                            SyntaxTreeSemanticModel semanticModelWithCachedBoundNodes = null;
+                            if (body != null &&
+                                forSemanticModel.Syntax is { } semanticModelSyntax &&
+                                _compilation.SemanticModelProvider is CachingSemanticModelProvider cachingSemanticModelProvider)
+                            {
+                                var syntax = body.Syntax;
+                                semanticModelWithCachedBoundNodes = (SyntaxTreeSemanticModel)cachingSemanticModelProvider.GetSemanticModel(syntax.SyntaxTree, _compilation);
+                                semanticModelWithCachedBoundNodes.GetOrAddModel(semanticModelSyntax,
+                                                            (rootSyntax) =>
+                                                            {
+                                                                Debug.Assert(rootSyntax == forSemanticModel.Syntax);
+                                                                return MethodBodySemanticModel.Create(semanticModelWithCachedBoundNodes,
+                                                                                                      methodSymbol,
+                                                                                                      forSemanticModel);
+                                                            });
+                            }
+
+                            _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(_compilation, methodSymbol.GetPublicSymbol(), semanticModelWithCachedBoundNodes));
+                        }
+                    }
+                    finally
+                    {
+                        _compilation.UnregisterPossibleUpcomingEventEnqueue();
+                    }
                 }
 
                 // Don't lower if we're not emitting or if there were errors.
@@ -1499,7 +1508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 StateMachineMoveNextBodyDebugInfo moveNextBodyDebugInfoOpt = null;
 
-                var codeGen = new CodeGen.CodeGenerator(method, block, builder, moduleBuilder, diagnosticsForThisMethod.DiagnosticBag, optimizations, emittingPdb);
+                var codeGen = new CodeGen.CodeGenerator(method, block, builder, moduleBuilder, diagnosticsForThisMethod, optimizations, emittingPdb);
 
                 if (diagnosticsForThisMethod.HasAnyErrors())
                 {

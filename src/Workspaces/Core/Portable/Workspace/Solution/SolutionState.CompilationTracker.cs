@@ -805,7 +805,12 @@ namespace Microsoft.CodeAnalysis
                     {
                         using var generatedDocumentsBuilder = new TemporaryArray<SourceGeneratedDocumentState>();
 
-                        if (ProjectState.SourceGenerators.Any())
+                        if (!ProjectState.SourceGenerators.Any())
+                        {
+                            // We don't have any generators, so if we have a compilation from a previous run with generated files, we definitely can't use it anymore
+                            compilationWithStaleGeneratedTrees = null;
+                        }
+                        else // we have a generator
                         {
                             // If we don't already have a generator driver, we'll have to create one from scratch
                             if (generatorInfo.Driver == null)

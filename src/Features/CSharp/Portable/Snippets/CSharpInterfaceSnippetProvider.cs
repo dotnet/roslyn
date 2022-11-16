@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
     [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal class CSharpInterfaceSnippetProvider : CSharpTypeSnippetProvider
+    internal sealed class CSharpInterfaceSnippetProvider : CSharpTypeSnippetProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         {
         }
 
-        public override string SnippetIdentifier => "interface";
+        public override string Identifier => "interface";
 
-        public override string SnippetDescription => FeaturesResources.interface_;
+        public override string Description => FeaturesResources.interface_;
 
         protected override async Task<SyntaxNode> GenerateTypeDeclarationAsync(Document document, int position, bool useAccessibility, CancellationToken cancellationToken)
         {

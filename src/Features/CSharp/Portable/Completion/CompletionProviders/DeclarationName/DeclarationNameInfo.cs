@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
@@ -23,27 +24,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
         private static readonly ImmutableArray<SymbolKindOrTypeKind> s_propertySyntaxKind =
             ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Property));
 
+        private readonly ImmutableArray<SymbolKindOrTypeKind> _possibleSymbolKinds;
+
+        public readonly DeclarationModifiers Modifiers;
+        public readonly Accessibility? DeclaredAccessibility;
+
+        public readonly ITypeSymbol? Type;
+        public readonly IAliasSymbol? Alias;
+        public readonly ISymbol? Symbol;
+
+        public ImmutableArray<SymbolKindOrTypeKind> PossibleSymbolKinds => _possibleSymbolKinds.NullToEmpty();
+
         public NameDeclarationInfo(
             ImmutableArray<SymbolKindOrTypeKind> possibleSymbolKinds,
             Accessibility? accessibility,
-            DeclarationModifiers declarationModifiers,
-            ITypeSymbol? type,
-            IAliasSymbol? alias)
+            DeclarationModifiers declarationModifiers = default,
+            ITypeSymbol? type = null,
+            IAliasSymbol? alias = null,
+            ISymbol? symbol = null)
         {
-            PossibleSymbolKinds = possibleSymbolKinds;
+            _possibleSymbolKinds = possibleSymbolKinds;
             DeclaredAccessibility = accessibility;
             Modifiers = declarationModifiers;
             Type = type;
             Alias = alias;
+            Symbol = symbol;
         }
 
-        public ImmutableArray<SymbolKindOrTypeKind> PossibleSymbolKinds { get; }
-        public DeclarationModifiers Modifiers { get; }
-        public ITypeSymbol? Type { get; }
-        public IAliasSymbol? Alias { get; }
-        public Accessibility? DeclaredAccessibility { get; }
+        public static async Task<NameDeclarationInfo> GetDeclarationInfoAsync(Document document, int position, CancellationToken cancellationToken)
+        {
+            var info = await GetDeclarationInfoWorkerAsync(document, position, cancellationToken).ConfigureAwait(false);
 
-        internal static async Task<NameDeclarationInfo> GetDeclarationInfoAsync(Document document, int position, CancellationToken cancellationToken)
+            // if we bound to some error type, and that error type itself didn't start with an uppercase letter, then
+            // it's almost certainly just an error case where the user was referencing something that was not a type.
+            // for example:
+            //
+            //  goo $$
+            //  goo = ...
+            //
+            // This syntactically looks like a type, but really isn't.  We don't want to offer anything here as it's far
+            // more likely to be an error rather than a true new declaration.
+            if (info.Type is IErrorTypeSymbol { Name.Length: > 0 } &&
+                !char.IsUpper(info.Type.Name[0]))
+            {
+                return default;
+            }
+
+            return info;
+        }
+
+        private static async Task<NameDeclarationInfo> GetDeclarationInfoWorkerAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken).GetPreviousTokenIfTouchingWord(position);
@@ -70,12 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
                 return result;
             }
 
-            return new NameDeclarationInfo(
-                possibleSymbolKinds: ImmutableArray<SymbolKindOrTypeKind>.Empty,
-                accessibility: null,
-                declarationModifiers: default,
-                type: null,
-                alias: null);
+            return default;
         }
 
         private static bool IsTupleTypeElement(
@@ -120,32 +145,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
         private static bool IsPossibleOutVariableDeclaration(SyntaxToken token, SemanticModel semanticModel,
             ITypeInferenceService typeInferenceService, CancellationToken cancellationToken, out NameDeclarationInfo result)
         {
-            if (!token.IsKind(SyntaxKind.IdentifierToken) || !token.Parent.IsKind(SyntaxKind.IdentifierName))
+            if (token.IsKind(SyntaxKind.IdentifierToken) &&
+                token.Parent.IsKind(SyntaxKind.IdentifierName))
             {
-                result = default;
-                return false;
-            }
+                var argument = token.Parent.Parent as ArgumentSyntax  // var is child of ArgumentSyntax, eg. Goo(out var $$
+                    ?? token.Parent.Parent?.Parent as ArgumentSyntax; // var is child of DeclarationExpression 
 
-            var argument = token.Parent.Parent as ArgumentSyntax  // var is child of ArgumentSyntax, eg. Goo(out var $$
-                ?? token.Parent.Parent!.Parent as ArgumentSyntax; // var is child of DeclarationExpression 
-                                                                  // under ArgumentSyntax, eg. Goo(out var a$$
+                // under ArgumentSyntax, eg. Goo(out var a$$
+                if (argument is { RefOrOutKeyword: SyntaxToken(SyntaxKind.OutKeyword) })
+                {
+                    var type = typeInferenceService.InferType(semanticModel, argument.SpanStart, objectAsDefault: false, cancellationToken: cancellationToken);
+                    if (type != null)
+                    {
+                        var parameter = CSharpSemanticFacts.Instance.FindParameterForArgument(
+                            semanticModel, argument, allowUncertainCandidates: true, allowParams: false, cancellationToken);
 
-            if (argument == null || !argument.RefOrOutKeyword.IsKind(SyntaxKind.OutKeyword))
-            {
-                result = default;
-                return false;
-            }
-
-            var type = typeInferenceService.InferType(semanticModel, argument.SpanStart, objectAsDefault: false, cancellationToken: cancellationToken);
-            if (type != null)
-            {
-                result = new NameDeclarationInfo(
-                    ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Local)),
-                    Accessibility.NotApplicable,
-                    new DeclarationModifiers(),
-                    type,
-                    alias: null);
-                return true;
+                        result = new NameDeclarationInfo(
+                            ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Local)),
+                            Accessibility.NotApplicable,
+                            type: type,
+                            symbol: parameter);
+                        return true;
+                    }
+                }
             }
 
             result = default;
@@ -365,9 +387,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
                     result = new NameDeclarationInfo(
                         possibleDeclarationComputer(default),
                         accessibility: null,
-                        declarationModifiers: default,
-                        type,
-                        alias);
+                        type: type,
+                        alias: alias);
                     return true;
                 }
             }
@@ -411,10 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
             {
                 result = new NameDeclarationInfo(
                     ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.TypeParameter)),
-                    Accessibility.NotApplicable,
-                    new DeclarationModifiers(),
-                    type: null,
-                    alias: null);
+                    Accessibility.NotApplicable);
 
                 return true;
             }
@@ -618,6 +636,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
                     // We also assume that this name could be resolved to a type.
                     return argumentSyntax.Expression;
             }
+        }
+
+        public static Glyph GetGlyph(SymbolKind kind, Accessibility? declaredAccessibility)
+        {
+            var publicIcon = kind switch
+            {
+                SymbolKind.Field => Glyph.FieldPublic,
+                SymbolKind.Local => Glyph.Local,
+                SymbolKind.Method => Glyph.MethodPublic,
+                SymbolKind.Parameter => Glyph.Parameter,
+                SymbolKind.Property => Glyph.PropertyPublic,
+                SymbolKind.RangeVariable => Glyph.RangeVariable,
+                SymbolKind.TypeParameter => Glyph.TypeParameter,
+                _ => throw ExceptionUtilities.UnexpectedValue(kind),
+            };
+
+            switch (declaredAccessibility)
+            {
+                case Accessibility.Private:
+                    publicIcon += Glyph.ClassPrivate - Glyph.ClassPublic;
+                    break;
+
+                case Accessibility.Protected:
+                case Accessibility.ProtectedAndInternal:
+                case Accessibility.ProtectedOrInternal:
+                    publicIcon += Glyph.ClassProtected - Glyph.ClassPublic;
+                    break;
+
+                case Accessibility.Internal:
+                    publicIcon += Glyph.ClassInternal - Glyph.ClassPublic;
+                    break;
+            }
+
+            return publicIcon;
+        }
+
+        public static SymbolKind GetSymbolKind(SymbolKindOrTypeKind symbolKindOrTypeKind)
+        {
+            // There's no special glyph for local functions.
+            // We don't need to differentiate them at this point.
+            return symbolKindOrTypeKind.SymbolKind.HasValue ? symbolKindOrTypeKind.SymbolKind.Value :
+                symbolKindOrTypeKind.MethodKind.HasValue ? SymbolKind.Method :
+                throw ExceptionUtilities.Unreachable();
         }
     }
 }
