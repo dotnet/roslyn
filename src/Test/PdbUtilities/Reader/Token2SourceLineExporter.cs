@@ -1223,7 +1223,7 @@ namespace Roslyn.Test.PdbUtilities
                         dir.streams[module.stream].Read(reader, bits);
                         if (module.moduleName == "TokenSourceLineInfo")
                         {
-                            LoadTokenToSourceInfo(bits, module, names, dir, nameIndex, reader, tokenToSourceMapping);
+                            LoadTokenToSourceInfo(bits, module, names, tokenToSourceMapping);
                         }
                     }
                 }
@@ -1287,8 +1287,7 @@ namespace Roslyn.Test.PdbUtilities
             new Guid(unchecked((int)0xc6ea3fc9), 0x59b3, 0x49d6, 0xbc, 0x25, 0x09, 0x02, 0xbb, 0xab, 0xb4, 0x60);
 
         private static void LoadTokenToSourceInfo(
-            BitAccess bits, DbiModuleInfo module, IntHashTable names, MsfDirectory dir,
-            Dictionary<string, int> nameIndex, PdbReader reader, Dictionary<uint, PdbTokenLine> tokenToSourceMapping)
+            BitAccess bits, DbiModuleInfo module, IntHashTable names, Dictionary<uint, PdbTokenLine> tokenToSourceMapping)
         {
             bits.Position = 0;
             bits.ReadInt32(out var sig);
