@@ -55,12 +55,12 @@ class C { }",
                 cancellationToken: default);
 
             tree.GetDiagnostics().Verify(
-                    // (2,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'x...y'
-                    // /// <see cref="x...y"/>
-                    Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "x").WithArguments("x...y").WithLocation(2, 16),
-                    // (2,17): warning CS1658: Unexpected character '.'. See also error CS1056.
-                    // /// <see cref="x...y"/>
-                    Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("Unexpected character '.'", "1056").WithLocation(2, 17));
+                // (2,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'x...y'
+                // /// <see cref="x...y"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "x").WithArguments("x...y").WithLocation(2, 16),
+                // (2,17): warning CS1658: Unexpected character '.'. See also error CS1056.
+                // /// <see cref="x...y"/>
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("Unexpected character '.'", "1056").WithLocation(2, 17));
 
 #pragma warning restore CS0618
         }
@@ -116,10 +116,7 @@ class C {
 long _f = 0l;
 #pragma warning restore CS0078
 }");
-            tree.GetDiagnostics().Verify(
-                // (4,12): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
-                // long _f = 0l;
-                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(4, 12));
+            tree.GetDiagnostics().Verify();
 
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
