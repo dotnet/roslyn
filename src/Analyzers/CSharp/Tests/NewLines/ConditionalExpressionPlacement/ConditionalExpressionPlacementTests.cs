@@ -415,5 +415,118 @@ class C
                 Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task TestNested1()
+        {
+            var code =
+@"
+class C
+{
+    public C()
+    {
+        var v = true [|?|]
+            true [|?|]
+                0 :
+                1 :
+            2;
+    }
+}";
+
+            var fixedCode =
+@"
+class C
+{
+    public C()
+    {
+        var v = true
+            ? true
+                ? 0
+                : 1
+            : 2;
+    }
+}";
+
+            await new Verify.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestNested2()
+        {
+            var code =
+@"
+class C
+{
+    public C()
+    {
+        var v = true [|?|]
+            true ?
+                0 : 1 :
+            2;
+    }
+}";
+
+            var fixedCode =
+@"
+class C
+{
+    public C()
+    {
+        var v = true
+            ? true ?
+                0 : 1
+            : 2;
+    }
+}";
+
+            await new Verify.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestNested3()
+        {
+            var code =
+@"
+class C
+{
+    public C()
+    {
+        var v = true ?
+            true [|?|]
+                0 :
+                1 : 2;
+    }
+}";
+
+            var fixedCode =
+@"
+class C
+{
+    public C()
+    {
+        var v = true ?
+            true
+                ? 0
+                : 1 : 2;
+    }
+}";
+
+            await new Verify.Test()
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+            }.RunAsync();
+        }
     }
 }
