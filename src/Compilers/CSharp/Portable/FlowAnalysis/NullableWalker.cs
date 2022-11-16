@@ -10407,7 +10407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportArgumentWarnings(right, rightType, logicalOperator.Parameters[1]);
             }
 
-            AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(node, right, isAnd, isBool, ref leftTrue, ref leftFalse);
+            AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(right, isAnd, isBool, ref leftTrue, ref leftFalse);
         }
 
         private TypeWithState InferResultNullabilityOfBinaryLogicalOperator(BoundExpression node, TypeWithState leftType, TypeWithState rightType)
