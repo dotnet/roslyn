@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
         public ConditionalExpressionPlacementDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.ConditionalExpressionPlacementDiagnosticId,
                    EnforceOnBuildValues.ConsecutiveBracePlacement,
-                   CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken,
+                   CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression,
                    new LocalizableResourceString(
                        nameof(CSharpAnalyzersResources.Blank_line_not_allowed_after_conditional_expression_token), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
 
         private void AnalyzeTree(SyntaxTreeAnalysisContext context)
         {
-            var option = context.GetCSharpAnalyzerOptions().AllowBlankLineAfterConditionalExpressionToken;
+            var option = context.GetCSharpAnalyzerOptions().AllowBlankLineAfterTokenInConditionalExpression;
             if (option.Value)
                 return;
 

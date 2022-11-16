@@ -37,7 +37,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.TrueWithSilentEnforcement } }
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOptions2.TrueWithSilentEnforcement } }
             }.RunAsync();
         }
 
@@ -72,7 +72,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -95,7 +95,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.TrueWithSilentEnforcement } }
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOptions2.TrueWithSilentEnforcement } }
             }.RunAsync();
         }
 
@@ -118,7 +118,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.TrueWithSilentEnforcement } }
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOptions2.TrueWithSilentEnforcement } }
             }.RunAsync();
         }
 
@@ -141,7 +141,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.TrueWithSilentEnforcement } }
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOptions2.TrueWithSilentEnforcement } }
             }.RunAsync();
         }
 
@@ -163,7 +163,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.TrueWithSilentEnforcement } }
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOptions2.TrueWithSilentEnforcement } }
             }.RunAsync();
         }
 
@@ -185,7 +185,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.TrueWithSilentEnforcement } }
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOptions2.TrueWithSilentEnforcement } }
             }.RunAsync();
         }
 
@@ -210,7 +210,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.TrueWithSilentEnforcement } }
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOptions2.TrueWithSilentEnforcement } }
             }.RunAsync();
         }
 
@@ -235,7 +235,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.TrueWithSilentEnforcement } }
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOptions2.TrueWithSilentEnforcement } }
             }.RunAsync();
         }
 
@@ -260,7 +260,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.TrueWithSilentEnforcement } }
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOptions2.TrueWithSilentEnforcement } }
             }.RunAsync();
         }
 
@@ -299,7 +299,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -338,7 +338,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -375,7 +375,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -412,7 +412,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -451,7 +451,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -488,7 +488,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -525,7 +525,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -560,7 +560,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -595,7 +595,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -630,7 +630,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -665,7 +665,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -700,7 +700,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterConditionalExpressionToken, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
     }
