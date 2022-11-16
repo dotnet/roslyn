@@ -1783,7 +1783,7 @@ namespace NS2
 }}
 ";
 
-        private static readonly string s_allow_bank_line_after_token_in_conditional_expression_true = $@"
+        private static readonly string s_allow_blank_line_after_token_in_conditional_expression_true = $@"
 class Class
 {{
 //[
@@ -1798,7 +1798,7 @@ class Class
 }}
 ";
 
-        private static readonly string s_allow_bank_line_after_token_in_conditional_expression_false = $@"
+        private static readonly string s_allow_blank_line_after_token_in_conditional_expression_false = $@"
 namespace NS1
 {{
     class Class
