@@ -12,6 +12,11 @@
         <target state="translated">Zezwalaj na pusty wiersz po dwukropku w inicjatorze konstruktora</target>
         <note />
       </trans-unit>
+      <trans-unit id="Allow_bank_line_after_token_in_conditional_expression">
+        <source>Allow blank line after token in conditional expression</source>
+        <target state="new">Allow blank line after token in conditional expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Allow_blank_lines_between_consecutive_braces">
         <source>Allow blank lines between consecutive braces</source>
         <target state="translated">Zezwalaj na puste wiersze między kolejnymi nawiasami klamrowymi</target>

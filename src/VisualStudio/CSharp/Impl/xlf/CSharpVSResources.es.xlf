@@ -12,6 +12,11 @@
         <target state="translated">Permitir una línea en blanco después de dos puntos en el inicializador del constructor</target>
         <note />
       </trans-unit>
+      <trans-unit id="Allow_bank_line_after_token_in_conditional_expression">
+        <source>Allow blank line after token in conditional expression</source>
+        <target state="new">Allow blank line after token in conditional expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Allow_blank_lines_between_consecutive_braces">
         <source>Allow blank lines between consecutive braces</source>
         <target state="translated">Permitir líneas en blanco entre llaves consecutivas</target>

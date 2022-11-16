@@ -12,6 +12,11 @@
         <target state="translated">Consenti riga vuota dopo i due punti nell'inizializzatore del costruttore</target>
         <note />
       </trans-unit>
+      <trans-unit id="Allow_bank_line_after_token_in_conditional_expression">
+        <source>Allow blank line after token in conditional expression</source>
+        <target state="new">Allow blank line after token in conditional expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Allow_blank_lines_between_consecutive_braces">
         <source>Allow blank lines between consecutive braces</source>
         <target state="translated">Consenti righe vuote tra parentesi graffe consecutive</target>

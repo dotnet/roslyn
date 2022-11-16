@@ -12,6 +12,11 @@
         <target state="translated">Autoriser une ligne vide après le signe des deux-points dans l'initialiseur du constructeur</target>
         <note />
       </trans-unit>
+      <trans-unit id="Allow_bank_line_after_token_in_conditional_expression">
+        <source>Allow blank line after token in conditional expression</source>
+        <target state="new">Allow blank line after token in conditional expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Allow_blank_lines_between_consecutive_braces">
         <source>Allow blank lines between consecutive braces</source>
         <target state="translated">Autoriser les lignes vides entre les accolades consécutives</target>
