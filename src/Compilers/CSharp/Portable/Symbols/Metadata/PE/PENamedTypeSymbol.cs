@@ -1862,7 +1862,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             foreach (var typeRid in nestedTypeDefs)
             {
-                if (module.ShouldImportNestedType(typeRid))
+                if (module.ShouldImportNestedType())
                 {
                     yield return PENamedTypeSymbol.Create(moduleSymbol, this, typeRid);
                 }

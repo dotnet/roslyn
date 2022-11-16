@@ -18,7 +18,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns true if the nested type should be imported. 
         /// </summary>
-        public static bool ShouldImportNestedType(this PEModule module, TypeDefinitionHandle typeDef)
+#pragma warning disable IDE0060 // Remove unused parameter
+        public static bool ShouldImportNestedType(this PEModule module)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             // Currently, it appears that we must import ALL types, even private ones,
             // in order to maintain language semantics. This is because a class may implement
