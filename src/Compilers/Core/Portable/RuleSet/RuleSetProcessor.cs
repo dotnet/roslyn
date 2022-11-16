@@ -28,8 +28,6 @@ namespace Microsoft.CodeAnalysis
 
         // Strings for the Rules node
         private const string RulesNodeName = "Rules";
-        private const string RulesAnalyzerIdAttributeName = "AnalyzerId";
-        private const string RulesNamespaceAttributeName = "RuleNamespace";
 
         // Strings for the Rule node
         private const string RuleNodeName = "Rule";
