@@ -189,7 +189,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression? rewrittenReceiverOpt = VisitExpression(left.ReceiverOpt);
 
-            const bool isDynamic = false;
             return RewriteWindowsRuntimeEventAssignmentOperator(
                 syntax,
                 eventSymbol,
