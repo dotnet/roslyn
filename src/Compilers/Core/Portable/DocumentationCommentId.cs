@@ -958,9 +958,9 @@ namespace Microsoft.CodeAnalysis
                     var methodContext = typeParameterContext as IMethodSymbol;
                     var typeContext = methodContext != null ? methodContext.ContainingType : typeParameterContext as INamedTypeSymbol;
 
-                    if (typeContext != null)
+                    if (typeContext != null && GetNthTypeParameter(typeContext, typeParameterIndex) is { } typeParameter)
                     {
-                        results.Add(GetNthTypeParameter(typeContext, typeParameterIndex));
+                        results.Add(typeParameter);
                     }
                 }
             }
@@ -1365,7 +1365,7 @@ namespace Microsoft.CodeAnalysis
                 return parameterType != null && symbol.Type.Equals(parameterType, SymbolEqualityComparer.CLRSignature);
             }
 
-            private static ITypeParameterSymbol GetNthTypeParameter(INamedTypeSymbol typeSymbol, int n)
+            private static ITypeParameterSymbol? GetNthTypeParameter(INamedTypeSymbol typeSymbol, int n)
             {
                 var containingTypeParameterCount = GetTypeParameterCount(typeSymbol.ContainingType);
                 if (n < containingTypeParameterCount)
@@ -1374,7 +1374,12 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var index = n - containingTypeParameterCount;
-                return typeSymbol.TypeParameters[index];
+                if (index < typeSymbol.TypeParameters.Length)
+                {
+                    return typeSymbol.TypeParameters[index];
+                }
+
+                return null;
             }
 
             private static int GetTypeParameterCount(INamedTypeSymbol typeSymbol)

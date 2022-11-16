@@ -351,5 +351,21 @@ namespace Acme
             CheckReferenceId("System.Int32[]", compilation.CreateArrayTypeSymbol(intType), compilation);
             CheckReferenceId("System.Int32*", compilation.CreatePointerTypeSymbol(intType), compilation);
         }
+
+        [Fact, WorkItem(65396, "https://github.com/dotnet/roslyn/issues/65396")]
+        public void TestInvalidTypeParameterId()
+        {
+            var compilation = CreateCSharpCompilation("""
+                namespace N;
+                class C
+                {
+                    static void Main() { }
+                    public void M<T>(T[] ts) { }
+                }
+                """).VerifyDiagnostics();
+            Assert.NotNull(DocumentationCommentId.GetFirstSymbolForDeclarationId("M:N.C.M``1(``0[])", compilation));
+            Assert.Null(DocumentationCommentId.GetFirstSymbolForDeclarationId("M:N.C.M``1(`0[])", compilation));
+            Assert.Null(DocumentationCommentId.GetFirstSymbolForDeclarationId("M:N.C.M``1(``1[])", compilation));
+        }
     }
 }
