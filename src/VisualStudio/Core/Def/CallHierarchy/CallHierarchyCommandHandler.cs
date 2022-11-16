@@ -60,28 +60,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                     return true;
                 }
 
-                var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var semanticModel = _threadingContext.JoinableTaskFactory.Run(() => document.GetSemanticModelAsync(cancellationToken));
 
                 var caretPosition = args.TextView.Caret.Position.BufferPosition.Position;
-                var symbolUnderCaret = SymbolFinder.FindSymbolAtPositionAsync(
-                    semanticModel, caretPosition, document.Project.Solution.Services, cancellationToken)
-                    .WaitAndGetResult(cancellationToken);
+                var symbolUnderCaret = _threadingContext.JoinableTaskFactory.Run(() => SymbolFinder.FindSymbolAtPositionAsync(
+                    semanticModel, caretPosition, document.Project.Solution.Services, cancellationToken));
 
                 if (symbolUnderCaret != null)
                 {
                     // Map symbols so that Call Hierarchy works from metadata-as-source
                     var mappingService = document.Project.Solution.Services.GetService<ISymbolMappingService>();
-                    var mapping = mappingService.MapSymbolAsync(document, symbolUnderCaret, cancellationToken).WaitAndGetResult(cancellationToken);
+                    var mapping = _threadingContext.JoinableTaskFactory.Run(() => mappingService.MapSymbolAsync(
+                        document, symbolUnderCaret, cancellationToken));
 
                     if (mapping.Symbol != null)
                     {
-                        ICallHierarchyMemberItem node = null;
-
                         // ICallHierarchyMemberItem needs to switch to the UI thread to get the INavigableLocation
-                        _threadingContext.JoinableTaskFactory.Run(async () =>
-                        {
-                            node = await _provider.CreateItemAsync(mapping.Symbol, mapping.Project, ImmutableArray<Location>.Empty, cancellationToken).ConfigureAwait(false);
-                        });
+                        var node = _threadingContext.JoinableTaskFactory.Run(() => _provider.CreateItemAsync(
+                            mapping.Symbol, mapping.Project, ImmutableArray<Location>.Empty, cancellationToken));
 
                         if (node != null)
                         {
