@@ -810,7 +810,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                             if (getPendingEventsOpt != null)
                                             {
                                                 pendingEvents = getPendingEventsOpt();
-                                                eventQueue = CreateEventsQueue(pendingEvents);
+                                                foreach (var pendingEvent in pendingEvents)
+                                                    eventQueue.Enqueue(pendingEvent);
                                             }
 
                                             linkedCancellationToken.ThrowIfCancellationRequested();
@@ -1221,25 +1222,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                 }
             }
-        }
-
-        private AsyncQueue<CompilationEvent> CreateEventsQueue(ImmutableArray<CompilationEvent> compilationEvents)
-        {
-            if (compilationEvents.IsEmpty)
-            {
-                return s_alwaysEmptyEventQueue;
-            }
-
-            var eventQueue = new AsyncQueue<CompilationEvent>();
-            Debug.Assert(!eventQueue.IsCompleted);
-            Debug.Assert(eventQueue.Count == 0);
-
-            foreach (var compilationEvent in compilationEvents)
-            {
-                eventQueue.TryEnqueue(compilationEvent);
-            }
-
-            return eventQueue;
         }
 
         /// <summary>
