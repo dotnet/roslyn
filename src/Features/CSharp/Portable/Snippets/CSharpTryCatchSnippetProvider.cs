@@ -32,22 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         {
         }
 
-        protected override Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var tryStatementString =
-@"try
-{
-    
-}
-catch (Exception e)
-{
-    
-    throw;
-}";
-            return Task.FromResult(ImmutableArray.Create(new TextChange(TextSpan.FromBounds(position, position),
-                tryStatementString)));
-        }
-
         protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
         {
             var catchStatement = (TryStatementSyntax)caretTarget;

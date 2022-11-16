@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     {
         private static readonly HashSet<string> s_snippetsWithReplacements = new()
         {
-            "class", "cw", "ctor", "foreach", "if", "interface", "prop", "struct", "while"
+            "class", "cw", "ctor", "foreach", "if", "interface", "prop", "struct", "try", "while"
         };
 
         internal override bool IsSnippetProvider => true;

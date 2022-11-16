@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
 {
     internal abstract class AbstractTryCatchSnippetProvider : AbstractSnippetProvider
     {
-        public override string SnippetIdentifier => "try";
+        public override string Identifier => "try";
 
-        public override string SnippetDescription => FeaturesResources.try_catch;
+        public override string Description => FeaturesResources.try_catch;
 
         protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts) => syntaxFacts.IsTryStatement;
 
@@ -30,6 +30,15 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
 
             var syntaxContext = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
             return syntaxContext.IsStatementContext || syntaxContext.IsGlobalStatementContext;
+        }
+
+        protected override Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
+        {
+            var generator = SyntaxGenerator.GetGenerator(document);
+            var tryCatchStatement = generator.TryCatchStatement(tryStatements: Array.Empty<SyntaxNode>(),
+                generator.CatchClause(generator.IdentifierName("Exception"), identifier: "e", new[] { generator.ThrowStatement() }));
+            return Task.FromResult(ImmutableArray.Create(new TextChange(TextSpan.FromBounds(position, position),
+                tryCatchStatement.NormalizeWhitespace().ToFullString())));
         }
     }
 }
