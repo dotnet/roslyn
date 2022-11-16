@@ -482,7 +482,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     // Rewrite local declaration statement.
                     body = (BoundStatement)LocalDeclarationRewriter.Rewrite(
                         compilation,
-                        _container,
                         declaredLocals,
                         body,
                         declaredLocalsArray,
