@@ -4,14 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -45,7 +43,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
     [ProducesResultType(CodeSearchResultType.Module)]
     [ProducesResultType(CodeSearchResultType.Property)]
     [ProducesResultType(CodeSearchResultType.Structure)]
-    internal sealed class RoslynSearchItemsSourceProvider : ISearchItemsSourceProvider
+    internal sealed partial class RoslynSearchItemsSourceProvider : ISearchItemsSourceProvider
     {
         private readonly VisualStudioWorkspace _workspace;
         private readonly IThreadingContext _threadingContext;
@@ -71,171 +69,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         public ISearchItemsSource CreateItemsSource()
             => new RoslynSearchItemsSource(this);
-
-        private sealed class RoslynSearchItemsSource : CodeSearchItemsSourceBase
-        {
-            private static readonly IImmutableSet<string> s_typeKinds = ImmutableHashSet<string>.Empty
-                .Add(NavigateToItemKind.Class)
-                .Add(NavigateToItemKind.Structure)
-                .Add(NavigateToItemKind.Interface)
-                .Add(NavigateToItemKind.Delegate)
-                .Add(NavigateToItemKind.Module);
-            private static readonly IImmutableSet<string> s_memberKinds = ImmutableHashSet<string>.Empty
-                .Add(NavigateToItemKind.Constant)
-                .Add(NavigateToItemKind.EnumItem)
-                .Add(NavigateToItemKind.Field)
-                .Add(NavigateToItemKind.Method)
-                .Add(NavigateToItemKind.Property)
-                .Add(NavigateToItemKind.Event);
-            private static readonly IImmutableSet<string> s_allKinds = s_typeKinds.Union(s_memberKinds);
-
-            private readonly RoslynSearchItemsSourceProvider _provider;
-
-            public RoslynSearchItemsSource(RoslynSearchItemsSourceProvider provider)
-            {
-                _provider = provider;
-            }
-
-            public override async Task PerformSearchAsync(ISearchQuery searchQuery, ISearchCallback searchCallback, CancellationToken cancellationToken)
-            {
-                try
-                {
-                    var searchValue = searchQuery.QueryString.Trim();
-                    if (string.IsNullOrWhiteSpace(searchValue))
-                        return;
-
-                    var includeTypeResults = searchQuery.FiltersStates.Any(f => f is { Key: "Types", Value: "True" });
-                    var includeMembersResults = searchQuery.FiltersStates.Any(f => f is { Key: "Members", Value: "True" });
-
-                    var kinds = (includeTypeResults, includeMembersResults) switch
-                    {
-                        (true, false) => s_typeKinds,
-                        (false, true) => s_memberKinds,
-                        _ => s_allKinds,
-                    };
-
-                    // TODO(cyrusn): New aiosp doesn't seem to support only searching current document.
-                    var searchCurrentDocument = false;
-
-                    // Create a nav-to callback that will take results and translate them to aiosp results for the
-                    // callback passed to us.
-                    var roslynCallback = new RoslynNavigateToSearchCallback(_provider, searchCallback);
-
-                    var searcher = NavigateToSearcher.Create(
-                        _provider._workspace.CurrentSolution,
-                        _provider._asyncListener,
-                        roslynCallback,
-                        searchValue,
-                        kinds,
-                        _provider._threadingContext.DisposalToken);
-
-                    using var token = _provider._asyncListener.BeginAsyncOperation(nameof(PerformSearchAsync));
-                    await searcher.SearchAsync(searchCurrentDocument, cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex))
-                {
-                }
-            }
-        }
-
-        private sealed class RoslynNavigateToSearchCallback : INavigateToSearchCallback
-        {
-            private readonly RoslynSearchItemsSourceProvider _provider;
-            private readonly ISearchCallback _searchCallback;
-
-            public RoslynNavigateToSearchCallback(
-                RoslynSearchItemsSourceProvider provider,
-                ISearchCallback searchCallback)
-            {
-                _provider = provider;
-                _searchCallback = searchCallback;
-            }
-
-            public void Done(bool isFullyLoaded)
-            {
-                if (!isFullyLoaded)
-                    ReportIncomplete();
-
-                _searchCallback.ReportProgress(1, 1);
-            }
-
-            public void ReportProgress(int current, int maximum)
-                => _searchCallback.ReportProgress(current, maximum);
-
-            public void ReportIncomplete()
-            {
-                // IncompleteReason.Parsing corresponds to:
-                // "The results may be inaccurate because the search information is still being updated."
-                //
-                // This the most accurate message for us as we only report this when we're currently reporting
-                // potentially stale results from the nav-to cache.
-                _searchCallback.ReportIncomplete(IncompleteReason.Parsing);
-            }
-
-            public Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken)
-            {
-                var matchedSpans = result.NameMatchSpans.SelectAsArray(t => t.ToSpan());
-
-                var patternMatch = new PatternMatch(
-                    GetPatternMatchKind(result.MatchKind),
-                    punctuationStripped: false,
-                    result.IsCaseSensitive,
-                    matchedSpans);
-
-                _searchCallback.AddItem(new RoslynCodeSearchResult(
-                    _provider,
-                    result,
-                    patternMatch,
-                    GetResultType(result.Kind),
-                    result.Name,
-                    result.SecondarySort,
-                    new[] { patternMatch },
-                    result.NavigableItem.Document?.FilePath,
-                    tieBreakingSortText: null,
-                    perProviderItemPriority: (int)result.MatchKind,
-                    flags: SearchResultFlags.Default,
-                    project.Language));
-
-                return Task.CompletedTask;
-            }
-
-            private static string GetResultType(string kind)
-            {
-                return kind switch
-                {
-                    NavigateToItemKind.Class => CodeSearchResultType.Class,
-                    NavigateToItemKind.Constant => CodeSearchResultType.Constant,
-                    NavigateToItemKind.Delegate => CodeSearchResultType.Delegate,
-                    NavigateToItemKind.Enum => CodeSearchResultType.Enum,
-                    NavigateToItemKind.EnumItem => CodeSearchResultType.EnumItem,
-                    NavigateToItemKind.Event => CodeSearchResultType.Event,
-                    NavigateToItemKind.Field => CodeSearchResultType.Field,
-                    NavigateToItemKind.Interface => CodeSearchResultType.Interface,
-                    NavigateToItemKind.Method => CodeSearchResultType.Method,
-                    NavigateToItemKind.Module => CodeSearchResultType.Module,
-                    NavigateToItemKind.Property => CodeSearchResultType.Property,
-                    NavigateToItemKind.Structure => CodeSearchResultType.Structure,
-                    _ => kind
-                };
-            }
-
-            private static PatternMatchKind GetPatternMatchKind(NavigateToMatchKind matchKind)
-                => matchKind switch
-                {
-                    NavigateToMatchKind.Exact => PatternMatchKind.Exact,
-                    NavigateToMatchKind.Prefix => PatternMatchKind.Prefix,
-                    NavigateToMatchKind.Substring => PatternMatchKind.Substring,
-                    NavigateToMatchKind.Regular => PatternMatchKind.Fuzzy,
-                    NavigateToMatchKind.None => PatternMatchKind.Fuzzy,
-                    NavigateToMatchKind.CamelCaseExact => PatternMatchKind.CamelCaseExact,
-                    NavigateToMatchKind.CamelCasePrefix => PatternMatchKind.CamelCasePrefix,
-                    NavigateToMatchKind.CamelCaseNonContiguousPrefix => PatternMatchKind.CamelCaseNonContiguousPrefix,
-                    NavigateToMatchKind.CamelCaseSubstring => PatternMatchKind.CamelCaseSubstring,
-                    NavigateToMatchKind.CamelCaseNonContiguousSubstring => PatternMatchKind.CamelCaseNonContiguousSubstring,
-                    NavigateToMatchKind.Fuzzy => PatternMatchKind.Fuzzy,
-                    _ => throw ExceptionUtilities.UnexpectedValue(matchKind),
-                };
-        }
 
         private sealed class RoslynCodeSearchResult : CodeSearchResult
         {
@@ -280,7 +113,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 return new RoslynSearchResultView(
                     _provider,
                     roslynResult,
-                    new HighlightedText(searchResult.NavigableItem.DisplayTaggedParts.JoinText(), searchResult.NameMatchSpans.Select(s => s.ToSpan()).ToArray()),
+                    new HighlightedText(searchResult.NavigableItem.DisplayTaggedParts.JoinText(), roslynResult.PatternMatch.MatchedSpans.ToArray()),
                     new HighlightedText(searchResult.AdditionalInformation, Array.Empty<VisualStudio.Text.Span>()),
                     primaryIcon: searchResult.NavigableItem.Glyph.GetImageId());
             }
