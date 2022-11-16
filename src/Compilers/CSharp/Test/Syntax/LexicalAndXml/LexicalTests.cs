@@ -1816,8 +1816,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(default, token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.ErrorsAndWarnings();
-            Assert.Equal(1, errors.Length);
-            Assert.Equal((int)ErrorCode.WRN_LowercaseEllSuffix, errors[0].Code);
+            Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
         }
