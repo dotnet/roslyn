@@ -15635,7 +15635,7 @@ class Program
             Assert.Null(model.GetSymbolInfo(invocations[1]).Symbol);
         }
 
-        [Fact, WorkItem(64985, "https://github.com/dotnet/roslyn/issues/64985")]
+        [Fact]
         public void DelegateConversions_ImplicitlyTypedParameter_ParameterlessAnonymousMethod_Ref()
         {
             var source = """
