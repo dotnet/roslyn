@@ -131,8 +131,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property ClassDeclaration As Integer = SyntaxKind.ClassBlock Implements ISyntaxKinds.ClassDeclaration
         Public ReadOnly Property ConstructorDeclaration As Integer = SyntaxKind.ConstructorBlock Implements ISyntaxKinds.ConstructorDeclaration
         Public ReadOnly Property InterfaceDeclaration As Integer = SyntaxKind.InterfaceBlock Implements ISyntaxKinds.InterfaceDeclaration
-        Public ReadOnly Property RecordDeclaration As Integer? Implements ISyntaxKinds.RecordDeclaration
-        Public ReadOnly Property RecordStructDeclaration As Integer? Implements ISyntaxKinds.RecordStructDeclaration
         Public ReadOnly Property StructDeclaration As Integer? Implements ISyntaxKinds.StructDeclaration
         Public ReadOnly Property Parameter As Integer = SyntaxKind.Parameter Implements ISyntaxKinds.Parameter
         Public ReadOnly Property TypeConstraint As Integer = SyntaxKind.TypeConstraint Implements ISyntaxKinds.TypeConstraint
