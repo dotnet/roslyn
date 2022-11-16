@@ -330,7 +330,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CheckLiteralToString(long.MinValue, @"-9223372036854775808L");
             CheckLiteralToString(long.MaxValue, @"9223372036854775807L");
 
-
             // float
             CheckLiteralToString(0F, @"0F");
             CheckLiteralToString(0.012345F, @"0.012345F");

@@ -13980,7 +13980,6 @@ public class Program
     }
 }";
 
-
             var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition },
                 ilSource: ilSource,
                 parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);

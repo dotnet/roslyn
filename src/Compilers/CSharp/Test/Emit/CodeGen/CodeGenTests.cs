@@ -931,7 +931,6 @@ public class H
             }
         }
 
-
         [Fact]
         public void TestGeneratingStaticMethod()
         {
@@ -3185,7 +3184,6 @@ public class D
 }
 ");
         }
-
 
         [Fact]
         public void RefStaticField()
@@ -6910,7 +6908,6 @@ public class D
 ");
         }
 
-
         [Fact]
         public void ArrayInitFromBlobEnum()
         {
@@ -7163,7 +7160,6 @@ class Program
 }
 ");
         }
-
 
         [Fact]
         public void EmitObjectToStringOnSimpleType()
@@ -9062,7 +9058,6 @@ class A
 ");
         }
 
-
         [Fact]
         public void PostIncrementUnusedStruct()
         {
@@ -9251,7 +9246,6 @@ struct S1
 }
 ");
         }
-
 
         [Fact, WorkItem(543618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543618")]
         public void ImplicitConversionCharToDecimal()
@@ -13721,7 +13715,6 @@ public class C1
 ");
         }
 
-
         [Fact]
         public void ReferenceEqualsIntrinsic()
         {
@@ -14198,7 +14191,6 @@ public class Test
 
             CompileAndVerifyWithMscorlib40(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"0");
         }
-
 
         [WorkItem(653588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/653588")]
         [Fact]
@@ -19936,7 +19928,6 @@ Position get for item '2'
 Position set for item '-2'
 ").VerifyDiagnostics();
 
-
             verifier.VerifyIL("Program.<Shift1>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
 {
@@ -20205,7 +20196,6 @@ Position get for item '2'
 Position set for item '-2'
 ").VerifyDiagnostics();
 
-
             verifier.VerifyIL("Program.<Shift1>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
 {
@@ -20374,7 +20364,6 @@ Position set for item '1'
 Position get for item '2'
 Position set for item '-2'
 ").VerifyDiagnostics();
-
 
             verifier.VerifyIL("Program.<Shift1>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
@@ -20725,7 +20714,6 @@ Position set for item '-1'
 Position get for item '2'
 Position set for item '-2'
 ").VerifyDiagnostics();
-
 
             verifier.VerifyIL("Program.<Shift1>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
@@ -21284,7 +21272,6 @@ Position get for item '2'
 Position set for item '-2'
 ").VerifyDiagnostics();
 
-
             verifier.VerifyIL("Program.<Shift1>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
 {
@@ -21559,7 +21546,6 @@ Position get for item '2'
 Position set for item '-2'
 ").VerifyDiagnostics();
 
-
             verifier.VerifyIL("Program.<Shift1>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
 {
@@ -21731,7 +21717,6 @@ Position set for item '1'
 Position get for item '2'
 Position set for item '-2'
 ").VerifyDiagnostics();
-
 
             verifier.VerifyIL("Program.<Shift1>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
@@ -22088,7 +22073,6 @@ Position set for item '-1'
 Position get for item '2'
 Position set for item '-2'
 ").VerifyDiagnostics();
-
 
             verifier.VerifyIL("Program.<Shift1>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"

@@ -8281,7 +8281,6 @@ class C
             }
         }
 
-
         [Fact]
         public void TestNullCheckedOperator()
         {

@@ -2826,7 +2826,6 @@ public class Extensions
 }
 ";
 
-
             ParseAndValidate(test,
                 // (1,17): error CS1001: Identifier expected
                 // public struct S<> 
@@ -5921,7 +5920,6 @@ class C
         return $""hello + {other}"";
     }
 }";
-
 
             // Moved to be a semantic diagnostic.
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));

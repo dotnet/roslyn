@@ -15263,7 +15263,6 @@ class AAttribute : Attribute { }
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "ab[10]");
         }
 
-
         [Fact]
         public void CS1642ERR_FixedNotInStruct()
         {
@@ -15498,7 +15497,6 @@ class AAttribute : Attribute { }
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "ABC").WithArguments("goo.ABC", "0"));
         }
 
-
         [Fact]
         public void C1666ERR_InvalidFixedBufferInUnfixedContext()
         {
@@ -15556,8 +15554,6 @@ unsafe struct @s
                 //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
                 Diagnostic(ErrorCode.ERR_FixedMustInit, "_buffer[2]"));
         }
-
-
 
         [Fact()]
         public void CS1667ERR_AttributeNotOnAccessor()
@@ -17463,7 +17459,6 @@ namespace SA
                 //         Class1 cls;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "cls").WithArguments("SA.Test.cls"));
 
-
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("SA").Single() as NamespaceSymbol;
             // TODO...
         }
@@ -19229,7 +19224,6 @@ namespace NS
                 //         public int MyMeth;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "MyMeth").WithArguments("NS.MyType.MyMeth", "0")
                 );
-
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var type1 = ns.GetMembers("MyType").Single() as NamedTypeSymbol;

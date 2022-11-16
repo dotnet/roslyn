@@ -169,7 +169,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         ? LocalSlotConstraints.None
                         : LocalSlotConstraints.ByRef;
 
-
                     var bodySyntax = _methodBodySyntaxOpt;
                     if (_ilEmitStyle == ILEmitStyle.Debug && bodySyntax != null)
                     {

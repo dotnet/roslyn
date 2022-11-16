@@ -1028,7 +1028,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-
             return containing;
         }
 

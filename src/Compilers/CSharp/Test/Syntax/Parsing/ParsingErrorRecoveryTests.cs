@@ -7073,7 +7073,6 @@ static
             Assert.Equal(numTokens, eofToken.LeadingTrivia.Count); // Confirm that we built a list.
         }
 
-
         [WorkItem(947819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947819")]
         [Fact]
         public void MissingOpenBraceForClass()
@@ -7095,7 +7094,6 @@ static
             Assert.False(ns.OpenBraceToken.IsMissing);
             Assert.False(ns.CloseBraceToken.IsMissing);
         }
-
 
         [WorkItem(947819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947819")]
         [Fact]

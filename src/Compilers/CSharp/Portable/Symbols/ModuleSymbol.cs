@@ -225,7 +225,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns></returns>
         internal abstract ImmutableArray<AssemblyIdentity> GetReferencedAssemblies(); // TODO: Remove this method and make ReferencedAssemblies property abstract instead.
 
-
         /// <summary>
         /// Returns an array of AssemblySymbol objects corresponding to assemblies referenced 
         /// by this module. Items at the same position from ReferencedAssemblies and 

@@ -9304,7 +9304,6 @@ tryAgain:
                         decl.Designation);
                 }
 
-
                 if (decl.designation.Kind != SyntaxKind.ParenthesizedVariableDesignation)
                 {
                     // if we see a foreach declaration that isn't a deconstruction, we use the old form of foreach syntax node.

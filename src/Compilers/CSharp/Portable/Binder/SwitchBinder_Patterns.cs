@@ -226,7 +226,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-
         private BoundSwitchLabel BindSwitchSectionLabel(
             Binder sectionBinder,
             SwitchLabelSyntax node,

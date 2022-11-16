@@ -1242,7 +1242,6 @@ unsafe struct Struct1
                 Diagnostic(ErrorCode.ERR_BadArgType, "myStruct.MessageType").WithArguments("1", "char*", "char[]").WithLocation(26, 23));
         }
 
-
         [Fact, WorkItem(12696, "https://github.com/dotnet/roslyn/issues/12696")]
         public void FixedFieldAccessInsideNameOf()
         {
