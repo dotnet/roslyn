@@ -756,7 +756,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return True
         End Function
 
-
         Public Overloads Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
             EnsureNestedTypesAreLoaded()
             EnsureNonTypeMembersAreLoaded()
@@ -1213,7 +1212,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 For Each propertyDef In [module].GetPropertiesOfTypeOrThrow(_handle)
                     Try
                         Dim methods = [module].GetPropertyMethodsOrThrow(propertyDef)
-
 
                         Dim getMethod = GetAccessorMethod(moduleSymbol, methodHandleToSymbol, _handle, methods.Getter)
                         Dim setMethod = GetAccessorMethod(moduleSymbol, methodHandleToSymbol, _handle, methods.Setter)
