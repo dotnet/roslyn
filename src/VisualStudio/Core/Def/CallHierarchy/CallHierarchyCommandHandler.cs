@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Language.CallHierarchy;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -74,7 +75,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 
                     if (mapping.Symbol != null)
                     {
-                        var node = _provider.CreateItemAsync(mapping.Symbol, mapping.Project, ImmutableArray<Location>.Empty, cancellationToken).WaitAndGetResult(cancellationToken);
+                        ICallHierarchyMemberItem node = null;
+
+                        // ICallHierarchyMemberItem needs to switch to the UI thread to get the INavigableLocation
+                        _threadingContext.JoinableTaskFactory.Run(async () =>
+                        {
+                            node = await _provider.CreateItemAsync(mapping.Symbol, mapping.Project, ImmutableArray<Location>.Empty, cancellationToken).ConfigureAwait(false);
+                        });
+
                         if (node != null)
                         {
                             _presenter.PresentRoot((CallHierarchyItem)node);
