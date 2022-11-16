@@ -7042,7 +7042,7 @@ public class DisplayAttribute : System.Attribute
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(64985, "https://github.com/dotnet/roslyn/issues/64985")]
         public void DelegateConversions_ImplicitlyTypedParameter_RefParameter()
         {
             var source = """
@@ -7083,12 +7083,10 @@ public class DisplayAttribute : System.Attribute
             Assert.Equal("? r1", lambdaParameter1.ToTestDisplayString());
             Assert.Equal(RefKind.None, lambdaParameter1.RefKind);
 
-            // Implicitly-typed lambda parameters can get a type, but they cannot get a different ref-kind (or scoped-ness) during anonymous function conversion
-            // Tracked by https://github.com/dotnet/roslyn/issues/64985
             Assert.Equal("r2 => r2", lambdas[1].ToString());
             var lambdaParameter2 = model.GetSymbolInfo(lambdas[1]).Symbol.GetParameters()[0];
-            Assert.Equal("ref R r2", lambdaParameter2.ToTestDisplayString());
-            Assert.Equal(RefKind.Ref, lambdaParameter2.RefKind);
+            Assert.Equal("R r2", lambdaParameter2.ToTestDisplayString());
+            Assert.Equal(RefKind.None, lambdaParameter2.RefKind);
         }
 
         [Fact]
