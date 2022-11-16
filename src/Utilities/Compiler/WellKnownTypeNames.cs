@@ -197,6 +197,7 @@ namespace Analyzer.Utilities
         public const string SystemDateTimeOffset = "System.DateTimeOffset";
         public const string SystemDecimal = "System.Decimal";
         public const string SystemDiagnosticContractsContract = "System.Diagnostics.Contracts.Contract";
+        public const string SystemDiagnosticsCodeAnalysisConstantExpectedAttribute = "System.Diagnostics.CodeAnalysis.ConstantExpectedAttribute";
         public const string SystemDiagnosticsCodeAnalysisNotNullAttribute = "System.Diagnostics.CodeAnalysis.NotNullAttribute";
         public const string SystemDiagnosticsConditionalAttribute = "System.Diagnostics.ConditionalAttribute";
         public const string SystemDiagnosticsContractsPureAttribute = "System.Diagnostics.Contracts.PureAttribute";
