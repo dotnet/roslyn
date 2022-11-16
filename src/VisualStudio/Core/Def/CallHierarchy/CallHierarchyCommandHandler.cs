@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Language.CallHierarchy;
@@ -35,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IUIThreadOperationExecutor _threadOperationExecutor;
+        private readonly IAsynchronousOperationListener _listener;
         private readonly ICallHierarchyPresenter _presenter;
         private readonly CallHierarchyProvider _provider;
 
@@ -45,11 +47,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         public CallHierarchyCommandHandler(
             IThreadingContext threadingContext,
             IUIThreadOperationExecutor threadOperationExecutor,
+            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
             [ImportMany] IEnumerable<ICallHierarchyPresenter> presenters,
             CallHierarchyProvider provider)
         {
             _threadingContext = threadingContext;
             _threadOperationExecutor = threadOperationExecutor;
+            _listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.CallHierarchy);
             _presenter = presenters.FirstOrDefault();
             _provider = provider;
         }
@@ -67,8 +71,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 
             // We're showing our own UI, ensure the editor doesn't show anything itself.
             context.OperationContext.TakeOwnership();
+            var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
             ExecuteCommandAsync(document, caretPosition)
-                .ReportNonFatalErrorAsync();
+                .ReportNonFatalErrorAsync()
+                .CompletesAsyncOperation(token);
 
             return true;
         }
@@ -102,6 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                 }
             }
 
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             context.TakeOwnership();
             var notificationService = document.Project.Solution.Services.GetService<INotificationService>();
             notificationService.SendNotification(EditorFeaturesResources.Cursor_must_be_on_a_member_name, severity: NotificationSeverity.Information);
