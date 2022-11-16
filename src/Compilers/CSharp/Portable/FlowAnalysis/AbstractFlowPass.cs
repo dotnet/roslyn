@@ -1521,7 +1521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     VisitLocalFunctionUse(localFunc, node.Syntax, isCall: false);
                 }
-                else if (node.MethodOpt is { } method && methodGroup.ReceiverOpt is { } receiver && !ignoreReceiver(receiver, method))
+                else if (node.MethodOpt is { } method && methodGroup.ReceiverOpt is { } receiver && !ignoreReceiver(method))
                 {
                     EnterRegionIfNeeded(methodGroup);
                     VisitRvalue(receiver);
@@ -1535,7 +1535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return null;
 
-            static bool ignoreReceiver(BoundExpression receiver, MethodSymbol method)
+            static bool ignoreReceiver(MethodSymbol method)
             {
                 // static methods that aren't extensions get an implicit `this` receiver that should be ignored
                 return method.IsStatic && !method.IsExtensionMethod;
