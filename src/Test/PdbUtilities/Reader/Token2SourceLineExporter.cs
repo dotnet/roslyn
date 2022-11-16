@@ -1357,7 +1357,7 @@ namespace Roslyn.Test.PdbUtilities
 
             bits.Position = module.cbSyms + module.cbOldLines;
             int limit = module.cbSyms + module.cbOldLines + module.cbLines;
-            IntHashTable sourceFiles = ReadSourceFileInfo(bits, (uint)limit, names, dir, nameIndex, reader);
+            IntHashTable sourceFiles = ReadSourceFileInfo(bits, (uint)limit, names);
             foreach (var tokenLine in tokenToSourceMapping.Values)
             {
                 tokenLine.sourceFile = (PdbSource)sourceFiles[(int)tokenLine.file_id];
@@ -1366,9 +1366,7 @@ namespace Roslyn.Test.PdbUtilities
 
         private static readonly Guid s_symDocumentTypeGuid = new Guid("{5a869d0b-6611-11d3-bd2a-0000f80849bd}");
 
-        private static IntHashTable ReadSourceFileInfo(
-            BitAccess bits, uint limit, IntHashTable names, MsfDirectory dir,
-            Dictionary<string, int> nameIndex, PdbReader reader)
+        private static IntHashTable ReadSourceFileInfo(BitAccess bits, uint limit, IntHashTable names)
         {
             IntHashTable checks = new IntHashTable();
 
