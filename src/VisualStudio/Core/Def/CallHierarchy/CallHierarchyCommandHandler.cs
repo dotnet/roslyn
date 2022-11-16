@@ -72,14 +72,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             // We're showing our own UI, ensure the editor doesn't show anything itself.
             context.OperationContext.TakeOwnership();
             var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
-            ExecuteCommandAsync(document, caretPosition, context.OperationContext.UserCancellationToken)
+            ExecuteCommandAsync(document, caretPosition)
                 .ReportNonFatalErrorAsync()
                 .CompletesAsyncOperation(token);
 
             return true;
         }
 
-        private async Task ExecuteCommandAsync(Document document, int caretPosition, CancellationToken originalCancellationToken)
+        private async Task ExecuteCommandAsync(Document document, int caretPosition)
         {
             using (var context = _threadOperationExecutor.BeginExecute(
                 ServicesVSResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false))
@@ -108,9 +108,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                         }
                     }
                 }
+
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             }
 
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(originalCancellationToken);
             var notificationService = document.Project.Solution.Services.GetService<INotificationService>();
             notificationService.SendNotification(EditorFeaturesResources.Cursor_must_be_on_a_member_name, severity: NotificationSeverity.Information);
         }
