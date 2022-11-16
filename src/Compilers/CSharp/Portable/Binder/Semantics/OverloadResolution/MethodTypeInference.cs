@@ -3130,7 +3130,7 @@ OuterBreak:
 
             if (candidates.TryGetValue(newCandidate, out TypeWithAnnotations oldCandidate))
             {
-                MergeAndReplaceIfStillCandidate(candidates, oldCandidate, newCandidate, variance, conversions);
+                MergeAndReplaceIfStillCandidate(candidates, oldCandidate, newCandidate, variance);
             }
             else
             {
@@ -3193,7 +3193,7 @@ OuterBreak:
                         // This rule doesn't have to be implemented explicitly due to special handling of 
                         // conversions from dynamic in ImplicitConversionExists helper.
                         // 
-                        MergeAndReplaceIfStillCandidate(candidates, candidate, bound, variance, conversions);
+                        MergeAndReplaceIfStillCandidate(candidates, candidate, bound, variance);
                     }
                 }
             }
@@ -3203,8 +3203,7 @@ OuterBreak:
             Dictionary<TypeWithAnnotations, TypeWithAnnotations> candidates,
             TypeWithAnnotations oldCandidate,
             TypeWithAnnotations newCandidate,
-            VarianceKind variance,
-            ConversionsBase conversions)
+            VarianceKind variance)
         {
             // We make an exception when new candidate is dynamic, for backwards compatibility 
             if (newCandidate.Type.IsDynamic())
