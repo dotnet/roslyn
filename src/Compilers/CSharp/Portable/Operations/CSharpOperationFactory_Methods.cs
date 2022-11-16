@@ -191,7 +191,10 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
+        // TODO2
         internal ImmutableArray<IArgumentOperation> DeriveArguments(BoundNode containingExpression, bool isObjectOrCollectionInitializer)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             switch (containingExpression.Kind)
             {
