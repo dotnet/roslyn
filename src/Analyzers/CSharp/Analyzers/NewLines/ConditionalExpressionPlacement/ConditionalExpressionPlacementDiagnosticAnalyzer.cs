@@ -43,10 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
         {
             context.CancellationToken.ThrowIfCancellationRequested();
 
-            // Don't bother analyzing nodes that have syntax errors in them.
-            if (node.GetDiagnostics().Any(static d => d.Severity == DiagnosticSeverity.Error))
-                return;
-
             if (node is ConditionalExpressionSyntax conditionalExpression)
                 ProcessConditionalExpression(context, severity, conditionalExpression);
 
@@ -60,6 +56,10 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
         private void ProcessConditionalExpression(
             SyntaxTreeAnalysisContext context, ReportDiagnostic severity, ConditionalExpressionSyntax conditionalExpression)
         {
+            // Don't bother analyzing nodes that have syntax errors in them.
+            if (conditionalExpression.GetDiagnostics().Any(static d => d.Severity == DiagnosticSeverity.Error))
+                return;
+
             // Only if both tokens are not ok do we report an error.  For example, the following is legal:
             //
             //  var x =
@@ -79,6 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
                 severity,
                 additionalLocations: null,
                 properties: null));
+
+            return;
 
             static bool IsOk(SyntaxToken token)
             {
