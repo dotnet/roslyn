@@ -191,10 +191,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
-#pragma warning disable IDE0060 // Remove unused parameter
-        // TODO2
-        internal ImmutableArray<IArgumentOperation> DeriveArguments(BoundNode containingExpression, bool isObjectOrCollectionInitializer)
-#pragma warning restore IDE0060 // Remove unused parameter
+        internal ImmutableArray<IArgumentOperation> DeriveArguments(BoundNode containingExpression)
         {
             switch (containingExpression.Kind)
             {
@@ -211,16 +208,6 @@ namespace Microsoft.CodeAnalysis.Operations
                                     boundObjectInitializerMember.Expanded,
                                     boundObjectInitializerMember.Syntax);
                     }
-
-                default:
-                    return DeriveArguments(containingExpression);
-            }
-        }
-
-        internal ImmutableArray<IArgumentOperation> DeriveArguments(BoundNode containingExpression)
-        {
-            switch (containingExpression.Kind)
-            {
                 case BoundKind.IndexerAccess:
                     {
                         var boundIndexer = (BoundIndexerAccess)containingExpression;

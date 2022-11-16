@@ -32,13 +32,10 @@ namespace Roslyn.Test.PdbUtilities
         public void Dispose()
         {
             GC.SuppressFinalize(this);
-            Dispose(true);
+            DisposeCore();
         }
 
-#pragma warning disable IDE0060 // Remove unused parameter
-        // TODO2
-        private void Dispose(bool disposing)
-#pragma warning restore IDE0060 // Remove unused parameter
+        private void DisposeCore()
         {
             _metadataOwnerOpt?.Dispose();
 
@@ -50,7 +47,7 @@ namespace Roslyn.Test.PdbUtilities
 
         ~DummyMetadataImport()
         {
-            Dispose(false);
+            DisposeCore();
         }
 
         [PreserveSig]

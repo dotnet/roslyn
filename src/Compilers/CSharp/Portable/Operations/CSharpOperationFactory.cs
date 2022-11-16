@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 return new InvalidOperation(children, _semanticModel, syntax, type, constantValue: null, isImplicit);
             }
 
-            ImmutableArray<IArgumentOperation> arguments = DeriveArguments(boundIndexerAccess, isObjectOrCollectionInitializer: false);
+            ImmutableArray<IArgumentOperation> arguments = DeriveArguments(boundIndexerAccess);
             IOperation? instance = CreateReceiverOperation(boundIndexerAccess.ReceiverOpt, boundIndexerAccess.ExpressionSymbol);
             TypeParameterSymbol? constrainedToType = GetConstrainedToType(property, boundIndexerAccess.ReceiverOpt);
             return new PropertyReferenceOperation(property.GetPublicSymbol(), constrainedToType.GetPublicSymbol(), arguments, instance, _semanticModel, syntax, type, isImplicit);
@@ -884,7 +884,7 @@ namespace Microsoft.CodeAnalysis.Operations
                             return new InvalidOperation(children, _semanticModel, syntax, type, constantValue: null, isImplicit);
                         }
 
-                        arguments = DeriveArguments(boundObjectInitializerMember, isObjectOrCollectionInitializer);
+                        arguments = DeriveArguments(boundObjectInitializerMember);
                     }
                     else
                     {
