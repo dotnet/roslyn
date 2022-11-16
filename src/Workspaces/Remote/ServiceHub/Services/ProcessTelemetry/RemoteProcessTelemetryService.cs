@@ -30,13 +30,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 => new RemoteProcessTelemetryService(arguments);
         }
 
-#if DEBUG
         private readonly CancellationTokenSource _shutdownCancellationSource = new();
 
 #pragma warning disable IDE0052 // Remove unread private members
         private PerformanceReporter? _performanceReporter;
 #pragma warning restore
-#endif
+
         public RemoteProcessTelemetryService(ServiceConstructionArguments arguments)
             : base(arguments)
         {
@@ -66,15 +65,14 @@ namespace Microsoft.CodeAnalysis.Remote
                     m["Framework"] = RuntimeInformation.FrameworkDescription;
                 }));
 
-#if DEBUG
                 // start performance reporter
                 var diagnosticAnalyzerPerformanceTracker = services.GetService<IPerformanceTrackerService>();
                 if (diagnosticAnalyzerPerformanceTracker != null)
                 {
                     var globalOperationNotificationService = services.GetService<IGlobalOperationNotificationService>();
-                    _performanceReporter = new PerformanceReporter(TraceLogger, telemetrySession, diagnosticAnalyzerPerformanceTracker, globalOperationNotificationService, _shutdownCancellationSource.Token);
+                    _performanceReporter = new PerformanceReporter(telemetrySession, diagnosticAnalyzerPerformanceTracker, globalOperationNotificationService, _shutdownCancellationSource.Token);
                 }
-#endif
+
                 return ValueTaskFactory.CompletedTask;
             }, cancellationToken);
         }
