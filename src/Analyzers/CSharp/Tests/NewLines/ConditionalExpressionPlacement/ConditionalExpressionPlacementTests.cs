@@ -223,6 +223,31 @@ class C
 {
     public C()
     {
+        var v = true ?
+            1 :
+#if true
+            1;
+#endif
+    }
+}";
+
+            await new Verify.Test()
+            {
+                TestCode = code,
+                FixedCode = code,
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOptions2.TrueWithSilentEnforcement } }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestNotWithFirstExprWithPPTrivia3()
+        {
+            var code =
+@"
+class C
+{
+    public C()
+    {
 #if true
         var v = true ?
 #endif
@@ -240,7 +265,32 @@ class C
         }
 
         [Fact]
-        public async Task TestNotWithFirstExprWithPPTrivia3()
+        public async Task TestNotWithFirstExprWithPPTrivia4()
+        {
+            var code =
+@"
+class C
+{
+    public C()
+    {
+#if true
+        var v = true ?
+            1 :
+#endif
+            1;
+    }
+}";
+
+            await new Verify.Test()
+            {
+                TestCode = code,
+                FixedCode = code,
+                Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOptions2.TrueWithSilentEnforcement } }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestNotWithFirstExprWithPPTrivia5()
         {
             var code =
 @"
