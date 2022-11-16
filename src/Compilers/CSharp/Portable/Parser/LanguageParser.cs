@@ -17,6 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using System.Linq;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal partial class LanguageParser : SyntaxParser
@@ -2738,7 +2739,7 @@ parse_member_name:;
                 }
 
                 var incompleteMember = _syntaxFactory.IncompleteMember(attributes, modifiers.ToList(), type.IsMissing ? null : type);
-                if (incompleteMember.ContainsDiagnostics)
+                if (incompleteMember.GetDiagnostics().Any(static d => d.Severity == DiagnosticSeverity.Error))
                 {
                     result = incompleteMember;
                 }
