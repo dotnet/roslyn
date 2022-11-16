@@ -16,21 +16,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal sealed class AsyncQueue<TElement>
     {
-        public static readonly AsyncQueue<TElement> AlwaysEmpty = new AsyncQueue<TElement>(isAlwaysEmpty: true);
-
-        private readonly bool _isAlwaysEmpty;
         private readonly Channel<TElement> _channel = Channel.CreateUnbounded<TElement>();
 
         private bool _promisedNotToEnqueue;
-
-        public AsyncQueue() : this(isAlwaysEmpty: false)
-        {
-        }
-
-        private AsyncQueue(bool isAlwaysEmpty)
-        {
-            _isAlwaysEmpty = isAlwaysEmpty;
-        }
 
         /// <summary>
         /// Gets a value indicating whether the queue has completed.
@@ -62,9 +50,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="value">The value to add.</param>
         public bool TryEnqueue(TElement value)
         {
-            if (_isAlwaysEmpty)
-                throw new InvalidOperationException("Tried to add an element to the 'always empty' queue.");
-
             if (Volatile.Read(ref _promisedNotToEnqueue))
                 throw new InvalidOperationException($"Cannot enqueue data after {nameof(PromiseNotToEnqueue)}.");
 

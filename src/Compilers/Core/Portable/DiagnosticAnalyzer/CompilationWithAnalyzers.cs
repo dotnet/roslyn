@@ -72,11 +72,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Dictionary<Task, int>? _concurrentTreeTaskTokensOpt;
 
         /// <summary>
-        /// Pool of event queues to serve each diagnostics request.
-        /// </summary>
-        private static readonly AsyncQueue<CompilationEvent> s_alwaysEmptyEventQueue = AsyncQueue<CompilationEvent>.AlwaysEmpty;
-
-        /// <summary>
         /// Underlying <see cref="Compilation"/> with a non-null <see cref="Compilation.EventQueue"/>, used to drive analyzer execution.
         /// </summary>
         public Compilation Compilation => _compilation;
@@ -809,7 +804,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                     {
                                         try
                                         {
-                                            var eventQueue = s_alwaysEmptyEventQueue;
+                                            var eventQueue = new AsyncQueue<CompilationEvent>();
 
                                             // Get event queue with pending events to analyze.
                                             if (getPendingEventsOpt != null)
