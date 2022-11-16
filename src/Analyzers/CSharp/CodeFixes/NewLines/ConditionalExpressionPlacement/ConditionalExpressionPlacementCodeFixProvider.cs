@@ -16,6 +16,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
 {
@@ -49,68 +51,54 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            using var _ = PooledDictionary<SyntaxToken, SyntaxToken>.GetInstance(out var replacementMap);
+            using var _ = ArrayBuilder<TextChange>.GetInstance(out var edits);
 
             foreach (var diagnostic in diagnostics)
             {
-                var initializer = (ConstructorInitializerSyntax)diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
-                var colonToken = initializer.ColonToken;
-                var thisBaseKeyword = initializer.ThisOrBaseKeyword;
-                var parenToken = colonToken.GetPreviousToken();
+                var questionToken = root.FindToken(diagnostic.Location.SourceSpan.Start);
+                Contract.ThrowIfTrue(questionToken.Kind() != SyntaxKind.QuestionToken);
 
-                if (text.AreOnSameLine(parenToken, colonToken))
-                {
-                    // something like:
-                    //
-                    //      public C() :
-                    //          base()
-                    //
-                    // Move the trivia from the : to the preceding  )  and move the trivia on 'base' to the colon, and
-                    // add a space after it.
-                    MoveTriviaWhenOnSameLine(replacementMap, colonToken, thisBaseKeyword);
-                }
-                else
-                {
-                    // something like:
-                    //
-                    //      public C()
-                    //          :
-                    //          base()
-                    //
-                    // Just add a space after the colon, and remove all leading trivia from this/base
-                    replacementMap[colonToken] = colonToken.WithLeadingTrivia(colonToken.LeadingTrivia.AddRange(colonToken.TrailingTrivia).AddRange(thisBaseKeyword.LeadingTrivia))
-                                                           .WithTrailingTrivia(SyntaxFactory.Space);
-                    replacementMap[thisBaseKeyword] = thisBaseKeyword.WithoutLeadingTrivia();
-                }
+                var conditional = (ConditionalExpressionSyntax)questionToken.GetRequiredParent();
+
+                AddEdits(text, conditional.QuestionToken, conditional.WhenTrue, edits);
+                AddEdits(text, conditional.ColonToken, conditional.WhenFalse, edits);
             }
 
-            var newRoot = root.ReplaceTokens(replacementMap.Keys, (original, _) => replacementMap[original]);
-
-            return document.WithSyntaxRoot(newRoot);
+            var changedText = text.WithChanges(edits);
+            return document.WithText(changedText);
         }
 
-        private static void MoveTriviaWhenOnSameLine(
-            Dictionary<SyntaxToken, SyntaxToken> replacementMap, SyntaxToken colonToken, SyntaxToken thisBaseKeyword)
+        private static void AddEdits(
+            SourceText text,
+            SyntaxToken token,
+            ExpressionSyntax nextExpression,
+            ArrayBuilder<TextChange> edits)
         {
-            // colonToken has the unnecessary newline.  Move all of it's trivia to the previous token so nothing belongs to it.
-            var closeParen = colonToken.GetPreviousToken();
-            replacementMap[closeParen] = ComputeNewCloseParen(colonToken, closeParen);
+            // Cases to consider
+            // x ?
+            // x ? 
+            // x ? /* comment */
+            // x /* comment */ ?
+            // x /* comment */ ? /* comment */
+            //
+            // in all these cases, we want to grab the question, and any spaces that follow and remove that, but we
+            // leave the rest where it is. We then move the question right before the start of the next token.  The
+            // same logic applies to the colon token.
 
-            // Now, take all the trivia from the this/base keyword, and move before the colon, and add a space after it
-            // this will place it properly before the this/base keyword.
-            replacementMap[colonToken] = colonToken.WithLeadingTrivia(thisBaseKeyword.LeadingTrivia).WithTrailingTrivia(SyntaxFactory.Space);
+            var start = token.SpanStart;
+            var end = token.Span.End;
 
-            // Finally, remove all leading trivia from the this/base keyword.  It was moved to the colon
-            replacementMap[thisBaseKeyword] = thisBaseKeyword.WithoutLeadingTrivia();
+            while (end < text.Length && text[end] == ' ')
+                end++;
 
-            static SyntaxToken ComputeNewCloseParen(SyntaxToken colonToken, SyntaxToken previousToken)
+            if (end < text.Length && SyntaxFacts.IsNewLine(text[end]))
             {
-                var allColonTrivia = colonToken.LeadingTrivia.AddRange(colonToken.TrailingTrivia);
-
-                return previousToken.TrailingTrivia.All(t => t.Kind() == SyntaxKind.WhitespaceTrivia)
-                    ? previousToken.WithTrailingTrivia(allColonTrivia)
-                    : previousToken.WithAppendedTrailingTrivia(allColonTrivia);
+                while (start > 0 && text[start - 1] == ' ')
+                    start--;
             }
+
+            edits.Add(new TextChange(TextSpan.FromBounds(start, end), ""));
+            edits.Add(new TextChange(new TextSpan(nextExpression.SpanStart, 0), token.Text + " "));
         }
 
         public override FixAllProvider? GetFixAllProvider()

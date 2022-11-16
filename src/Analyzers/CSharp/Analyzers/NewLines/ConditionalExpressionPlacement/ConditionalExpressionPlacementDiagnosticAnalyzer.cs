@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -59,14 +60,15 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
         private void ProcessConstructorInitializer(
             SyntaxTreeAnalysisContext context, ReportDiagnostic severity, ConditionalExpressionSyntax conditionalExpression)
         {
-            if (conditionalExpression.QuestionToken.IsMissing ||
-                conditionalExpression.ColonToken.IsMissing)
-            {
-                return;
-            }
-
-            if (!IsAtEndOfLine(conditionalExpression.QuestionToken) ||
-                !IsAtEndOfLine(conditionalExpression.ColonToken))
+            // Only if both tokens are not ok do we report an error.  For example, the following is legal:
+            //
+            //  var x =
+            //      goo ? bar :
+            //      baz ? quux : ztesh;
+            //
+            // despite one colon being at the end of the line.
+            if (IsOk(conditionalExpression.QuestionToken) ||
+                IsOk(conditionalExpression.ColonToken))
             {
                 return;
             }
@@ -77,9 +79,33 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
                 severity,
                 additionalLocations: null,
                 properties: null));
-        }
 
-        private static bool IsAtEndOfLine(SyntaxToken token)
-            => token.TrailingTrivia is [.., SyntaxTrivia(SyntaxKind.EndOfLineTrivia)];
+            static bool IsOk(SyntaxToken token)
+            {
+                // Only care about tokens that are actually present.  Missing ones mean the code is incomplete and we
+                // don't want to complain about those.
+                if (token.IsMissing)
+                    return true;
+
+                // question/colon has to be at the end of the line for us to actually care.
+                if (token.TrailingTrivia is not [.., SyntaxTrivia(SyntaxKind.EndOfLineTrivia)])
+                    return true;
+
+                // if the next token has pp-directives on it, we don't want to move the token around as we may screw
+                // things up in different pp-contexts.
+                var nextToken = token.GetNextToken();
+                if (nextToken == default)
+                    return true;
+
+                if (nextToken.LeadingTrivia.Any(static t => t.Kind() is
+                        SyntaxKind.IfDirectiveTrivia or SyntaxKind.ElseDirectiveTrivia or SyntaxKind.ElifDirectiveTrivia or SyntaxKind.EndIfDirectiveTrivia))
+                {
+                    return true;
+                }
+
+                // Not ok.  Report an error if the other token is not ok as well.
+                return false;
+            }
+        }
     }
 }
