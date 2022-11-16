@@ -981,9 +981,9 @@ namespace BoundTreeGenerator
                         {
                             Write("If ");
                             Or(AllSpecifiableFields(node),
-                                field => IsValueType(field.Type) ?
-                                            string.Format("{0} <> Me.{1}", ToCamelCase(field.Name), field.Name) :
-                                            string.Format("{0} IsNot Me.{1}", ToCamelCase(field.Name), field.Name));
+                                field => IsValueType(field.Type)
+                                            ? string.Format("{0} <> Me.{1}", ToCamelCase(field.Name), field.Name)
+                                            : string.Format("{0} IsNot Me.{1}", ToCamelCase(field.Name), field.Name));
                             WriteLine(" Then");
                             Indent();
                             Write("Dim result = New {0}", node.Name);

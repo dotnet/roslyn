@@ -247,13 +247,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var unmappedStartLine = mappedSpan.Start.Line + lineDifference;
             var unmappedEndLine = mappedSpan.End.Line + lineDifference;
 
-            var unmappedStartColumn = (mappedSpan.Start.Line == mappedSection.Start.Line) ?
-                unmappedSection.Start.Character + mappedSpan.Start.Character - mappedSection.Start.Character :
-                mappedSpan.Start.Character;
+            var unmappedStartColumn = (mappedSpan.Start.Line == mappedSection.Start.Line)
+                ? unmappedSection.Start.Character + mappedSpan.Start.Character - mappedSection.Start.Character
+                : mappedSpan.Start.Character;
 
-            var unmappedEndColumn = (mappedSpan.End.Line == mappedSection.Start.Line) ?
-                unmappedSection.Start.Character + mappedSpan.End.Character - mappedSection.Start.Character :
-                mappedSpan.End.Character;
+            var unmappedEndColumn = (mappedSpan.End.Line == mappedSection.Start.Line)
+                ? unmappedSection.Start.Character + mappedSpan.End.Character - mappedSection.Start.Character
+                : mappedSpan.End.Character;
 
             return new(new(unmappedStartLine, unmappedStartColumn), new(unmappedEndLine, unmappedEndColumn));
         }

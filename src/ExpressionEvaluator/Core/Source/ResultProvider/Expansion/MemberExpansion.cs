@@ -263,10 +263,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             publicExpansion = AggregateExpansion.CreateExpansion(publicExpansions);
             publicExpansions.Free();
 
-            nonPublicExpansion = (nonPublicMembers.Count > 0) ?
-                new NonPublicMembersExpansion(
-                    members: new MemberExpansion(nonPublicMembers.ToArray(), customTypeInfoMap)) :
-                null;
+            nonPublicExpansion = (nonPublicMembers.Count > 0)
+                ? new NonPublicMembersExpansion(
+                    members: new MemberExpansion(nonPublicMembers.ToArray(), customTypeInfoMap))
+                : null;
             nonPublicMembers.Free();
         }
 
