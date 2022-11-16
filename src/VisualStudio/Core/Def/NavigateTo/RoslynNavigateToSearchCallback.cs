@@ -34,10 +34,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             public void Done(bool isFullyLoaded)
             {
-                if (!isFullyLoaded)
-                    ReportIncomplete();
-
-                _searchCallback.ReportProgress(1, 1);
+                // Don't need to do anything here.  The UI will naturally know we're complete as they are awaiting on
+                // our search routine.
             }
 
             public void ReportProgress(int current, int maximum)

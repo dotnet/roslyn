@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
                 return new RoslynSearchResultView(
                     _provider,
-                    roslynResult,
+                    searchResult,
                     new HighlightedText(
                         searchResult.NavigableItem.DisplayTaggedParts.JoinText(),
                         searchResult.NameMatchSpans.NullToEmpty().Select(m => m.ToSpan()).ToArray()),
