@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
     {
         public ConditionalExpressionPlacementDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.ConditionalExpressionPlacementDiagnosticId,
-                   EnforceOnBuildValues.ConsecutiveBracePlacement,
+                   EnforceOnBuildValues.ConditionalExpressionPlacement,
                    CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression,
                    new LocalizableResourceString(
                        nameof(CSharpAnalyzersResources.Blank_line_not_allowed_after_conditional_expression_token), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
