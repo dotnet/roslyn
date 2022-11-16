@@ -122,7 +122,6 @@ namespace Microsoft.CodeAnalysis
                 if (resolverOpt?.ResolveMissingAssemblies == true)
                 {
                     ResolveAndBindMissingAssemblies(
-                        compilation,
                         explicitAssemblies,
                         explicitModules,
                         explicitReferences,
@@ -193,7 +192,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         private void ResolveAndBindMissingAssemblies(
-            TCompilation compilation,
             ImmutableArray<AssemblyData> explicitAssemblies,
             ImmutableArray<PEModule> explicitModules,
             ImmutableArray<MetadataReference> explicitReferences,
