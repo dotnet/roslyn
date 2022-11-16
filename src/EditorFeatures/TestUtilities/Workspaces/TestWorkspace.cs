@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             if (configurationOptions != null)
             {
                 var workspaceConfigurationService = GetService<TestWorkspaceConfigurationService>();
-                workspaceConfigurationService.Options = new WorkspaceConfigurationOptions(EnableOpeningSourceGeneratedFiles: true);
+                workspaceConfigurationService.Options = configurationOptions.Value;
             }
 
             SetCurrentSolutionEx(CreateSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create()).WithTelemetryId(solutionTelemetryId)));
