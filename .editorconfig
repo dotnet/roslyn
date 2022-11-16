@@ -249,6 +249,9 @@ csharp_prefer_braces = true:silent
 csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = true
 
+# IDE0060: Remove unused parameter
+dotnet_diagnostic.IDE0060.severity = warning
+
 [src/{Analyzers,CodeStyle,Features,Workspaces,EditorFeatures,VisualStudio}/**/*.{cs,vb}]
 
 # IDE0011: Add braces
@@ -264,9 +267,6 @@ dotnet_diagnostic.IDE0052.severity = warning
 
 # IDE0059: Unnecessary assignment to a value
 dotnet_diagnostic.IDE0059.severity = warning
-
-# IDE0060: Remove unused parameter
-dotnet_diagnostic.IDE0060.severity = warning
 
 # CA1012: Abstract types should not have public constructors
 dotnet_diagnostic.CA1012.severity = warning
