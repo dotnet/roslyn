@@ -389,8 +389,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(constraintClauses.Length == arity);
 
-            SmallDictionary<TypeParameterSymbol, bool> isValueTypeMap = TypeParameterConstraintClause.BuildIsValueTypeMap(container, typeParameters, constraintClauses);
-            SmallDictionary<TypeParameterSymbol, bool> isReferenceTypeFromConstraintTypesMap = TypeParameterConstraintClause.BuildIsReferenceTypeFromConstraintTypesMap(container, typeParameters, constraintClauses);
+            SmallDictionary<TypeParameterSymbol, bool> isValueTypeMap = TypeParameterConstraintClause.BuildIsValueTypeMap(typeParameters, constraintClauses);
+            SmallDictionary<TypeParameterSymbol, bool> isReferenceTypeFromConstraintTypesMap = TypeParameterConstraintClause.BuildIsReferenceTypeFromConstraintTypesMap(typeParameters, constraintClauses);
             ArrayBuilder<TypeParameterConstraintClause> builder = null;
 
             for (int i = 0; i < arity; i++)
