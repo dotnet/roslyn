@@ -224,10 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (getEnumeratorMethod.IsExtensionMethod && !hasErrors)
                 {
                     var messageId = IsAsync ? MessageID.IDS_FeatureExtensionGetAsyncEnumerator : MessageID.IDS_FeatureExtensionGetEnumerator;
-                    hasErrors |= !messageId.CheckFeatureAvailability(
-                        diagnostics,
-                        Compilation,
-                        collectionExpr.Syntax.Location);
+                    messageId.CheckFeatureAvailability(diagnostics, Compilation, collectionExpr.Syntax.Location);
 
                     if (getEnumeratorMethod.ParameterRefKinds is { IsDefault: false } refKinds && refKinds[0] == RefKind.Ref)
                     {

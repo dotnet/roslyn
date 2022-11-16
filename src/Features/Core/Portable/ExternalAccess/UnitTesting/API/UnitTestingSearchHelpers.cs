@@ -135,6 +135,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             UnitTestingSearchQuery query,
             CancellationToken cancellationToken)
         {
+            // quick check that the symbol name is actually in the bloom-filter index for this document.  Can avoid
+            // checking any of the items in it if so.
+            var syntaxTreeIndex = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
+            if (!syntaxTreeIndex.ProbablyContainsIdentifier(symbolName))
+                return ImmutableArray<UnitTestingDocumentSpan>.Empty;
+
+            // Ok, the symbol name was in this document.  Now go get the declaration-index and look through that to find
+            // the location of a potential matching symbol.
+
             using var _ = ArrayBuilder<UnitTestingDocumentSpan>.GetInstance(out var result);
 
             SyntaxTree? tree = null;

@@ -4421,7 +4421,7 @@ class innerClass
 {
     public innerClass()
     {
-        myDelegate x = (int y=1) => { return; };
+        myDelegate x = (int y = 1) => { return; };
     }
 }";
 
@@ -10674,6 +10674,16 @@ f([Attribute] () => { });
                 code: @"
 f( [Attribute] () => { });
 ");
+        }
+
+        [Fact]
+        public async Task FormatAttributeOnLambdaParameter()
+        {
+            await AssertFormatAsync(expected: """
+                var f = ([Attribute] int x = 1) => x;
+                """, code: """
+                var f = (  [ Attribute ]int x=1)=>x;
+                """);
         }
 
         [Fact]

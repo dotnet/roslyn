@@ -13543,24 +13543,13 @@ tryAgain:
             var identifier = this.ParseIdentifierToken();
             ParseParameterNullCheck(ref identifier, out var equalsToken);
 
-            // If we didn't already consume an equals sign as part of !!=, then try to scan one out now. Note: this is
-            // not legal code.  But we detect it so that we can give the user a good message, and so we don't go
-            // completely off the rails.
-            //
-            // Note: we add the `= value` as skipped trivia to either the identifier or `!!` (if we have the latter).
-            // This allows us to handle this code without ever showing it the binding phases.  We could consider
-            // actually binding this in the future if it would be helpful and if we're ok paying the testing cost of
-            // checking this at the semantic layers.
+            // Parse default value if any
             equalsToken ??= TryEatToken(SyntaxKind.EqualsToken);
+            var equalsValueClause = equalsToken == null
+                ? null
+                : _syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore());
 
-            if (equalsToken != null)
-            {
-                equalsToken = AddError(equalsToken, ErrorCode.ERR_DefaultValueNotAllowed);
-
-                identifier = AddTrailingSkippedSyntax(identifier, _syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore()));
-            }
-
-            var parameter = _syntaxFactory.Parameter(attributes, modifiers.ToList(), paramType, identifier, @default: null);
+            var parameter = _syntaxFactory.Parameter(attributes, modifiers.ToList(), paramType, identifier, @default: equalsValueClause);
             _pool.Free(modifiers);
             return parameter;
         }
