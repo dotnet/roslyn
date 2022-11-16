@@ -7,6 +7,7 @@
 #pragma warning disable 169 // unused field
 #pragma warning disable 649 // field not set, will always be default value
 #pragma warning disable IDE0051 // private member is unused
+#pragma warning disable IDE0060 // Remove unused parameter
 
 using System;
 using System.Collections;
