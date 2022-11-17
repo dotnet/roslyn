@@ -274,7 +274,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             typeSyntax = scopedType.Type;
                         }
 
-
                         if (typeSyntax is RefTypeSyntax refType)
                         {
                             MessageID.IDS_FeatureRefForEach.CheckFeatureAvailability(diagnostics, typeSyntax);

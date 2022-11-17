@@ -8281,7 +8281,6 @@ class C
             }
         }
 
-
         [Fact]
         public void TestNullCheckedOperator()
         {
@@ -8631,17 +8630,28 @@ class A : B : C
                 // (2,13): error CS1022: Type or namespace definition, or end-of-file expected
                 // class A : B : C
                 Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(2, 13),
-                // (2,15): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,15): error CS8370: Feature 'top-level statements' is not available in C# 7.3. Please use language version 9.0 or greater.
                 // class A : B : C
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "C").WithLocation(2, 15),
-                // (3,1): error CS8370: Feature 'top-level statements' is not available in C# 7.3. Please use language version 9.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, @"C
+{
+").WithArguments("top-level statements", "9.0").WithLocation(2, 15),
+                // (2,15): error CS8803: Top-level statements must precede namespace and type declarations.
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"C
+{
+").WithLocation(2, 15),
+                // (2,16): error CS1001: Identifier expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(2, 16),
+                // (2,16): error CS1003: Syntax error, ',' expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(2, 16),
+                // (3,2): error CS1002: ; expected
                 // {
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, @"{
-}").WithArguments("top-level statements", "9.0").WithLocation(3, 1),
-                // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
-                // {
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"{
-}").WithLocation(3, 1)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 2),
+                // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -8664,19 +8674,22 @@ class A : B : C
                     M(SyntaxKind.OpenBraceToken);
                     M(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "C");
-                    }
-                }
                 N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.Block);
+                    N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);

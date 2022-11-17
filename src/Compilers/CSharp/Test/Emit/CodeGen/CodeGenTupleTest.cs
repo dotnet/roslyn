@@ -413,7 +413,6 @@ class C4 : C2
             comp3.VerifyDiagnostics();
         }
 
-
         [Fact]
         public void InterfaceAttributes()
         {
@@ -8467,7 +8466,6 @@ class C
             Assert.Equal("(System.Int16 a, System.String b)?", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.ImplicitNullable, model.GetConversion(node.Parent).Kind);
 
-
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("(System.Int16 a, System.String b)? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
         }
@@ -16160,7 +16158,6 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
@@ -17052,7 +17049,6 @@ public class C2
             var comp2 = CreateCompilationWithMscorlib40AndSystemCore(source2, assemblyName: "comp2");
             comp2.VerifyDiagnostics();
 
-
             var source = @"
 extern alias alias1;
 
@@ -17107,7 +17103,6 @@ public class C2
             comp1.VerifyDiagnostics();
             var comp2 = CreateCompilationWithMscorlib40AndSystemCore(source2, assemblyName: "comp2");
             comp2.VerifyDiagnostics();
-
 
             var source = @"
 extern alias alias1;
@@ -18874,7 +18869,6 @@ class Program
 
             var int_string2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, stringType);
             var int_object2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, objectType);
-
 
             Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string1, int_object2).Kind);
             Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string2, int_object1).Kind);
@@ -22484,7 +22478,6 @@ public class C
                 );
         }
 
-
         [Fact, WorkItem(10951, "https://github.com/dotnet/roslyn/issues/10951")]
         public void ObsoleteValueTuple2()
         {
@@ -23483,7 +23476,6 @@ namespace ConsoleApplication5
             Assert.Equal("ref (System.Int32, dynamic) ClassLibrary1.C1.Goo(System.Int32 arg)", b.ToTestDisplayString());
 
         }
-
 
         [Fact]
         [WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]

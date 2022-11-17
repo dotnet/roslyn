@@ -2802,7 +2802,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSyntax typeSyntax = declarationExpression.Type;
             VariableDesignationSyntax designation = declarationExpression.Designation;
 
-
             switch (designation.Kind())
             {
                 case SyntaxKind.DiscardDesignation:
@@ -5573,7 +5572,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return result;
                 }
             }
-
 
             if (TryPerformConstructorOverloadResolution(
                     type,

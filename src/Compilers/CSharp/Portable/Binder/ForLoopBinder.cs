@@ -72,9 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Declaration and Initializers are mutually exclusive.
             if (_syntax.Declaration != null)
             {
-                var type = _syntax.Declaration.Type is ScopedTypeSyntax scopedType
-                    ? scopedType.Type
-                    : _syntax.Declaration.Type;
+                var type = _syntax.Declaration.Type.SkipScoped(out _);
 
                 if (type is RefTypeSyntax)
                     MessageID.IDS_FeatureRefFor.CheckFeatureAvailability(diagnostics, type);

@@ -302,7 +302,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Next.BindLockStatementParts(diagnostics, originalBinder);
         }
 
-
         private BoundStatement BindUsingStatement(UsingStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
             var usingBinder = this.GetBinder(node);

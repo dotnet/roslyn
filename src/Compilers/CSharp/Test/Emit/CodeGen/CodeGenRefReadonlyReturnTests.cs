@@ -450,7 +450,6 @@ class C
 """);
         }
 
-
         [Fact]
         public void RefReturnArrayAccess()
         {

@@ -3791,7 +3791,6 @@ public class TestClass
     IL_0011:  ret
 }");
 
-
             // RELEASE
             compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();

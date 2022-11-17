@@ -24,6 +24,28 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
+        public ValueTask<UnitTestingSourceLocation?> GetSourceLocationAsync(
+            Checksum solutionChecksum,
+            ProjectId projectId,
+            UnitTestingSearchQuery query,
+            CancellationToken cancellationToken)
+        {
+            return RunServiceAsync<UnitTestingSourceLocation?>(solutionChecksum, async solution =>
+            {
+                var project = solution.GetRequiredProject(projectId);
+
+                var resultOpt = await UnitTestingSearchHelpers.GetSourceLocationAsync(project, query, cancellationToken).ConfigureAwait(false);
+                if (resultOpt is null)
+                    return null;
+
+                var result = resultOpt.Value;
+
+                return new UnitTestingSourceLocation(
+                    new DocumentIdSpan(result.DocumentSpan.Document.Id, result.DocumentSpan.SourceSpan),
+                    result.Span);
+            }, cancellationToken);
+        }
+
         public ValueTask<ImmutableArray<UnitTestingSourceLocation>> GetSourceLocationsAsync(
             Checksum solutionChecksum,
             ProjectId projectId,
