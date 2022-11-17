@@ -4,30 +4,36 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
 {
+    [DataContract]
     internal readonly struct PatternMatch : IComparable<PatternMatch>
     {
         /// <summary>
-        /// True if this was a case sensitive match.
-        /// </summary>
-        public bool IsCaseSensitive { get; }
-
-        /// <summary>
         /// The type of match that occurred.
         /// </summary>
+        [DataMember(Order = 0)]
         public PatternMatchKind Kind { get; }
+
+        [DataMember(Order = 1)]
+        private readonly bool _punctuationStripped;
+
+        /// <summary>
+        /// True if this was a case sensitive match.
+        /// </summary>
+        [DataMember(Order = 2)]
+        public bool IsCaseSensitive { get; }
 
         /// <summary>
         /// The spans in the original text that were matched.  Only returned if the 
         /// pattern matcher is asked to collect these spans.
         /// </summary>
+        [DataMember(Order = 3)]
         public ImmutableArray<TextSpan> MatchedSpans { get; }
-
-        private readonly bool _punctuationStripped;
 
         internal PatternMatch(
             PatternMatchKind resultType,
@@ -40,13 +46,12 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         }
 
         internal PatternMatch(
-            PatternMatchKind resultType,
+            PatternMatchKind kind,
             bool punctuationStripped,
             bool isCaseSensitive,
             ImmutableArray<TextSpan> matchedSpans)
-            : this()
         {
-            this.Kind = resultType;
+            this.Kind = kind;
             this.IsCaseSensitive = isCaseSensitive;
             this.MatchedSpans = matchedSpans;
             _punctuationStripped = punctuationStripped;

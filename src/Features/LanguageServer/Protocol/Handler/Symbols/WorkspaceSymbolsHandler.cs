@@ -108,6 +108,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // do nothing, LSP doesn't support reporting progress towards completion.
                 // used by non-LSP editor API.
             }
+
+            public void ReportIncomplete()
+            {
+            }
         }
     }
 }

@@ -147,6 +147,7 @@
       <_Dependency Remove="VSLangProj140"/>
       <_Dependency Remove="VsWebSite.Interop"/>
       <_Dependency Remove="Microsoft.NET.StringTools" />
+      <_Dependency Remove="Microsoft.IO.Redist" />
     </ItemGroup>
 
     <!-- Write out the filtered dependency versions we need to also update in VS. -->
