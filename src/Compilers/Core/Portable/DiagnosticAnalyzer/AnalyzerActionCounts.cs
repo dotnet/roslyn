@@ -85,7 +85,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
 
             HasAnyActionsRequiringSemanticAnalysis = HasAnyExecutableCodeActions ||
                 SymbolActionsCount > 0 ||
-                SemanticModelActionsCount > 0;
+                SemanticModelActionsCount > 0 ||
+                CompilationEndActionsCount > 0;
         }
 
         /// <summary>
