@@ -13407,7 +13407,7 @@ class C
         }
 
         [WorkItem(61831, "https://github.com/dotnet/roslyn/issues/61831")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61831#issuecomment-1249148459")]
+        [Fact]
         public void CS0721ERR_ParameterIsStaticClass_Lambdas()
         {
             var source =

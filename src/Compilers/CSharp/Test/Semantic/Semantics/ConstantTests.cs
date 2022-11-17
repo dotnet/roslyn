@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -3980,6 +3981,66 @@ public class C
             {
                 Assert.Equal(string.Empty, module.GlobalNamespace.GetTypeMember("C").GetField("s").ConstantValue);
             });
+        }
+
+        [Fact]
+        public void ConstantValueFormatting()
+        {
+            ConstantValue charConstant = ConstantValue.Create('c'),
+                          byteConst = ConstantValue.Create(0x4),
+                          sbyteConst = ConstantValue.Create(unchecked((sbyte)byte.MaxValue)),
+                          shortConst = ConstantValue.Create(unchecked((short)ushort.MaxValue)),
+                          ushortConst = ConstantValue.Create(ushort.MaxValue),
+                          int32Const = ConstantValue.Create(unchecked((int)uint.MaxValue)),
+                          uint32Const = ConstantValue.Create(uint.MaxValue),
+                          nintConst = ConstantValue.CreateNativeInt(unchecked((int)uint.MaxValue)),
+                          nuintConst = ConstantValue.CreateNativeUInt(uint.MaxValue),
+                          int64Const = ConstantValue.Create(unchecked((long)ulong.MaxValue)),
+                          uint64Const = ConstantValue.Create(ulong.MaxValue),
+                          decimalConst = ConstantValue.Create(1m / 3m),
+                          floatConst = ConstantValue.Create(Math.Round(1f / 3f, 5)),
+                          doubleConst = ConstantValue.Create(Math.Round((double)1 / 3, 8)),
+                          stringConst = ConstantValue.Create("abcdefghijklmnopqrstuvwxyz"),
+                          dateTimeConst = ConstantValue.Create(DateTime.MaxValue),
+                          boolConst = ConstantValue.Create(true),
+                          badConst = ConstantValue.Bad,
+                          nullConst = ConstantValue.Null;
+
+            Assert.Equal("c", charConstant.ToString(null, CultureInfo.InvariantCulture));
+
+            Assert.Equal("4", byteConst.ToString(null, CultureInfo.InvariantCulture));
+            Assert.Equal("-1", sbyteConst.ToString(null, CultureInfo.InvariantCulture));
+
+            Assert.Equal("-1", shortConst.ToString(null, CultureInfo.InvariantCulture));
+            Assert.Equal("65535", ushortConst.ToString(null, CultureInfo.InvariantCulture));
+
+            Assert.Equal("-1", int32Const.ToString(null, CultureInfo.InvariantCulture));
+            Assert.Equal("4294967295", uint32Const.ToString(null, CultureInfo.InvariantCulture));
+
+            Assert.Equal("-1", nintConst.ToString(null, CultureInfo.InvariantCulture));
+            Assert.Equal("4294967295", nuintConst.ToString(null, CultureInfo.InvariantCulture));
+
+            Assert.Equal("-1", int64Const.ToString(null, CultureInfo.InvariantCulture));
+            Assert.Equal("18446744073709551615", uint64Const.ToString(null, CultureInfo.InvariantCulture));
+
+            Assert.Equal("0.3333333333333333333333333333", decimalConst.ToString(null, CultureInfo.InvariantCulture));
+            Assert.Equal("0.33333", floatConst.ToString(null, CultureInfo.InvariantCulture));
+            Assert.Equal("0.33333333", doubleConst.ToString(null, CultureInfo.InvariantCulture));
+
+            Assert.Equal(@"""abcdefghijklmnopqrstuvwxyz""", stringConst.ToString(null, CultureInfo.InvariantCulture));
+            Assert.Equal(@"""abcdefghijklmnopqrstuvwxyz""", stringConst.ToString("26", CultureInfo.InvariantCulture));
+            Assert.Equal(@"""abcdefghijklmnopqrstuvwxyz""", stringConst.ToString("27", CultureInfo.InvariantCulture));
+            Assert.Equal(@"""...""", stringConst.ToString("-1", CultureInfo.InvariantCulture));
+            Assert.Equal(@"""...""", stringConst.ToString("2", CultureInfo.InvariantCulture));
+            Assert.Equal(@"""...""", stringConst.ToString("3", CultureInfo.InvariantCulture));
+            Assert.Equal(@"""abcd...""", stringConst.ToString("7", CultureInfo.InvariantCulture));
+
+            Assert.Equal("12/31/9999 23:59:59", dateTimeConst.ToString(null, CultureInfo.InvariantCulture));
+
+            Assert.Equal("True", boolConst.ToString(null, CultureInfo.InvariantCulture));
+
+            Assert.Equal("bad", badConst.ToString(null, CultureInfo.InvariantCulture));
+            Assert.Equal("null", nullConst.ToString(null, CultureInfo.InvariantCulture));
         }
     }
 
