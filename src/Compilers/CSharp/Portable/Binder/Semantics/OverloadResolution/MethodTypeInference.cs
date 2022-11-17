@@ -1337,7 +1337,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-
             if (delegateOrFunctionPointerType.IsFunctionPointer() != (source.Kind == BoundKind.UnconvertedAddressOfOperator))
             {
                 return false;
@@ -2972,7 +2971,6 @@ OuterBreak:
         //
         // Helper methods
         //
-
 
         ////////////////////////////////////////////////////////////////////////////////
         //

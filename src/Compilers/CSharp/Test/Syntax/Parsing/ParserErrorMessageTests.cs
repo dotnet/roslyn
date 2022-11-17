@@ -2441,9 +2441,15 @@ Diagnostic(ErrorCode.ERR_EOFExpected, "}"));
                 // (1,27): error CS1002: ; expected
                 //  > Roslyn.Utilities.dll!  Basic
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "Basic").WithLocation(1, 27),
-                // (1,27): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,27): error CS0246: The type or namespace name 'Basic' could not be found (are you missing a using directive or an assembly reference?)
                 //  > Roslyn.Utilities.dll!  Basic
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Basic").WithLocation(1, 27)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Basic").WithArguments("Basic").WithLocation(1, 27),
+                // (1,32): error CS1001: Identifier expected
+                //  > Roslyn.Utilities.dll!  Basic
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 32),
+                // (1,32): error CS1002: ; expected
+                //  > Roslyn.Utilities.dll!  Basic
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 32)
                 );
         }
 
@@ -2825,7 +2831,6 @@ public class Extensions
     public void M<>() {}
 }
 ";
-
 
             ParseAndValidate(test,
                 // (1,17): error CS1001: Identifier expected
@@ -3857,28 +3862,32 @@ namespace x
 ";
 
             ParseAndValidate(test,
-   // (1,15): error CS1514: { expected
-   // public class S.D 
-   Diagnostic(ErrorCode.ERR_LbraceExpected, ".").WithLocation(1, 15),
-   // (1,15): error CS1513: } expected
-   // public class S.D 
-   Diagnostic(ErrorCode.ERR_RbraceExpected, ".").WithLocation(1, 15),
-   // (1,15): error CS1022: Type or namespace definition, or end-of-file expected
-   // public class S.D 
-   Diagnostic(ErrorCode.ERR_EOFExpected, ".").WithLocation(1, 15),
-   // (1,16): error CS0116: A namespace cannot directly contain members such as fields or methods
-   // public class S.D 
-   Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "D").WithLocation(1, 16),
-   // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
-   // {
-   Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"{
-").WithLocation(2, 1),
-   // (2,2): error CS1513: } expected
-   // {
-   Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 2),
-   // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
-   // }
-   Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
+                // (1,15): error CS1514: { expected
+                // public class S.D 
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ".").WithLocation(1, 15),
+                // (1,15): error CS1513: } expected
+                // public class S.D 
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ".").WithLocation(1, 15),
+                // (1,15): error CS1022: Type or namespace definition, or end-of-file expected
+                // public class S.D 
+                Diagnostic(ErrorCode.ERR_EOFExpected, ".").WithLocation(1, 15),
+                // (1,16): error CS8803: Top-level statements must precede namespace and type declarations.
+                // public class S.D 
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"D 
+{
+").WithLocation(1, 16),
+                // (1,17): error CS1001: Identifier expected
+                // public class S.D 
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 17),
+                // (1,17): error CS1003: Syntax error, ',' expected
+                // public class S.D 
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 17),
+                // (2,2): error CS1002: ; expected
+                // {
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 2),
+                // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
         }
 
         [WorkItem(535932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535932")]
@@ -5921,7 +5930,6 @@ class C
         return $""hello + {other}"";
     }
 }";
-
 
             // Moved to be a semantic diagnostic.
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));

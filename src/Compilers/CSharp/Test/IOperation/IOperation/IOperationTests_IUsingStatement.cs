@@ -1384,7 +1384,6 @@ Block[B4] - Exit
         //        Interestingly we check params before we check default, so a params int = 3 will be callable with an 
         //        argument, but not without. 
 
-
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void IUsingStatement_DisposalWithDefaultParams_Metadata()
@@ -1471,7 +1470,6 @@ class C
   IL_0017:  ret
 }
 ");
-
 
             string expectedOperationTree = @"
 IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
@@ -2054,7 +2052,6 @@ class C
 
             var compilation = CreateCompilationWithIL(source, ilSource);
             compilation.VerifyDiagnostics(expectedDiagnostics);
-
 
             string expectedOperationTree = @"
 IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
@@ -7567,7 +7564,6 @@ Block[B6] - Exit
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source + s_IAsyncEnumerable + IOperationTests_IForEachLoopStatement.s_ValueTask, expectedGraph, expectedDiagnostics);
         }
-
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]

@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal new abstract CSharpSyntaxNode Root { get; }
 
-
         // Is this node one that could be successfully interrogated by GetSymbolInfo/GetTypeInfo/GetMemberGroup/GetConstantValue?
         // WARN: If isSpeculative is true, then don't look at .Parent - there might not be one.
         internal static bool CanGetSemanticInfo(CSharpSyntaxNode node, bool allowNamedArgumentName = false, bool isSpeculative = false)
@@ -625,7 +624,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     initializer = (InitializerExpressionSyntax)initializer.Parent.Parent;
                 }
-
 
                 if (initializer.Parent is BaseObjectCreationExpressionSyntax objectCreation &&
                     objectCreation.Initializer == initializer &&
@@ -1653,7 +1651,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             info.Free();
-
 
             if ((options & LookupOptions.IncludeExtensionMethods) != 0)
             {

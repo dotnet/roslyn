@@ -321,7 +321,6 @@ class C
             }
             EOF();
 
-
             CreateCompilation(test).GetDiagnostics().Verify(
                 // (6,9): error CS7014: Attributes are not valid in this context.
                 //         [A]

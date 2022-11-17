@@ -1111,7 +1111,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get { return null; }
         }
 
-
         public sealed override bool Equals(Symbol other, TypeCompareKind compareKind)
         {
             return other is NativeIntegerParameterSymbol nps ?
