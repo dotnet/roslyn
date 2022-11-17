@@ -12915,27 +12915,30 @@ tryAgain:
             bool openBraceIsMissing = startToken.IsMissing;
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref startToken, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleExpression(),
-                p => p.SkipBadInitializerToken(openBraceIsMissing),
+                p => p.IsEndOfInitializer(openBraceIsMissing),
                 expected);
         }
 
-        private bool SkipBadInitializerToken(bool openBraceIsMissing)
+        private bool IsEndOfInitializer(bool openBraceIsMissing)
         {
             if (!openBraceIsMissing && CurrentToken.Kind == SyntaxKind.SemicolonToken)
             {
-                return !isNextToken(lp => lp.CurrentToken.Kind == SyntaxKind.CloseBraceToken || lp.IsPossibleVariableInitializer());
-            }
-            return CurrentToken.Kind == SyntaxKind.CloseBraceToken || IsTerminator();
+                // When encountering a semicolon in an itializer body, the user may have mistakenly intended it as a separator.
 
-            bool isNextToken(Func<LanguageParser, bool> nextTokenParseFunc)
-            {
+                // Seek ahead and check if the semicolon is being followed by:
+                // 1. a closing brace - the semicolon is not the end, the closing brace is the end
+                // 2. another variable intializer - not the end yet
                 var resetPoint = GetResetPoint();
                 EatToken();
-                bool result = nextTokenParseFunc(this);
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
-                return result;
+                bool initializerContinues = CurrentToken.Kind == SyntaxKind.CloseBraceToken || IsPossibleVariableInitializer();
+                Reset(ref resetPoint);
+                Release(ref resetPoint);
+                return !initializerContinues;
             }
+            // the current token ends the initializer when it is:
+            // 1. a close brace
+            // 2. another type of terminator
+            return CurrentToken.Kind == SyntaxKind.CloseBraceToken || IsTerminator();
         }
 
         private ExpressionSyntax ParseObjectInitializerNamedAssignment()
@@ -13150,7 +13153,7 @@ tryAgain:
             bool openBraceIsMissing = openBrace.IsMissing;
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref openBrace, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleVariableInitializer(),
-                p => p.SkipBadInitializerToken(openBraceIsMissing),
+                p => p.IsEndOfInitializer(openBraceIsMissing),
                 expected);
         }
 
