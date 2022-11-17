@@ -8916,9 +8916,7 @@ namespace Test
                 Await state.WaitForUIRenderedAsync()
 
                 ' Make sure expander is selected
-                state.SetCompletionItemExpanderState(isSelected:=True)
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                state.SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected:=True)
 
                 Dim expectedText = "
 using MyNamespace;
@@ -8969,9 +8967,7 @@ namespace MyNamespace
                 Await state.WaitForUIRenderedAsync()
 
                 ' Make sure expander is selected
-                state.SetCompletionItemExpanderState(isSelected:=True)
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                state.SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected:=True)
 
                 Dim expectedText = "
 using MyNamespace;
