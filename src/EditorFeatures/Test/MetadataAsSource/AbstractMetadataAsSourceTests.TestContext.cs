@@ -216,8 +216,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                             --lastDotIndex;
                         }
 
-                        var memberSymbolName = symbolMetadataName.Substring(lastDotIndex + 1);
-                        var namedTypeName = symbolMetadataName.Substring(0, lastDotIndex);
+                        var memberSymbolName = symbolMetadataName[(lastDotIndex + 1)..];
+                        var namedTypeName = symbolMetadataName[..lastDotIndex];
 
                         namedTypeSymbol = assemblySymbol.GetTypeByMetadataName(namedTypeName);
                         if (namedTypeSymbol != null)

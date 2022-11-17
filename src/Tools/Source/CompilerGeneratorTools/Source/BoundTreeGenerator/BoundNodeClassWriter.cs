@@ -1013,7 +1013,7 @@ namespace BoundTreeGenerator
                                 : TypeIsSymbol(field)
                                     ? "!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals({0}, this.{1})"
                                     : IsValueType(field.Type) && field.Type[^1] == '?'
-                                        ? "{0}.Equals(this.{1})"
+                                        ? "!{0}.Equals(this.{1})"
                                         : "{0} != this.{1}";
 
                 return string.Format(format, ToCamelCase(field.Name), field.Name);

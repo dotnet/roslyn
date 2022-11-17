@@ -49,13 +49,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         private readonly Dictionary<AssemblySymbol, DestinationData> _retargetingAssemblyMap =
             new Dictionary<AssemblySymbol, DestinationData>();
 
+#nullable enable
+
         private struct DestinationData
         {
             public AssemblySymbol To;
-            private ConcurrentDictionary<NamedTypeSymbol, NamedTypeSymbol> _symbolMap;
+            private ConcurrentDictionary<NamedTypeSymbol, NamedTypeSymbol>? _symbolMap;
 
             public ConcurrentDictionary<NamedTypeSymbol, NamedTypeSymbol> SymbolMap => LazyInitializer.EnsureInitialized(ref _symbolMap);
         }
+
+#nullable disable
 
         internal readonly RetargetingSymbolTranslator RetargetingTranslator;
 

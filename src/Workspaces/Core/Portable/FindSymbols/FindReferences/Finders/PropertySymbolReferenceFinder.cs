@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : ImmutableArray<Document>.Empty;
 
             var elementAccessDocument = symbol.IsIndexer
-                ? await FindDocumentWithElementAccessExpressionsAsync(project, documents, cancellationToken).ConfigureAwait(false)
+                ? await FindDocumentWithExplicitOrImplicitElementAccessExpressionsAsync(project, documents, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<Document>.Empty;
 
             var indexerMemberCrefDocument = symbol.IsIndexer
@@ -155,11 +155,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return nameReferences.Concat(forEachReferences, indexerReferences, suppressionReferences);
         }
 
-        private static Task<ImmutableArray<Document>> FindDocumentWithElementAccessExpressionsAsync(
+        private static Task<ImmutableArray<Document>> FindDocumentWithExplicitOrImplicitElementAccessExpressionsAsync(
             Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
         {
             return FindDocumentsWithPredicateAsync(
-                project, documents, static index => index.ContainsElementAccessExpression, cancellationToken);
+                project, documents, static index => index.ContainsExplicitOrImplicitElementAccessExpression, cancellationToken);
         }
 
         private static Task<ImmutableArray<Document>> FindDocumentWithIndexerMemberCrefAsync(
@@ -187,6 +187,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var indexerReferenceExpresssions = state.Root.DescendantNodes(descendIntoTrivia: true)
                 .Where(node =>
                     syntaxFacts.IsElementAccessExpression(node) ||
+                    syntaxFacts.IsImplicitElementAccess(node) ||
                     syntaxFacts.IsConditionalAccessExpression(node) ||
                     syntaxFacts.IsIndexerMemberCref(node));
             using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var locations);
@@ -225,6 +226,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 // The indexerReference for an element access expression will not be null
                 return ComputeElementAccessInformationAsync(symbol, node, state, cancellationToken)!;
+            }
+            else if (syntaxFacts.IsImplicitElementAccess(node))
+            {
+                return ComputeImplicitElementAccessInformationAsync(symbol, node, state, cancellationToken)!;
             }
             else if (syntaxFacts.IsConditionalAccessExpression(node))
             {
@@ -280,6 +285,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var (matched, reason) = await SymbolsMatchAsync(symbol, state, node, cancellationToken).ConfigureAwait(false);
             return (matched, reason, indexerReference);
+        }
+
+        private static async ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeImplicitElementAccessInformationAsync(
+            IPropertySymbol symbol, SyntaxNode node, FindReferencesDocumentState state, CancellationToken cancellationToken)
+        {
+            var argumentList = state.SyntaxFacts.GetArgumentListOfImplicitElementAccess(node);
+            var (matched, reason) = await SymbolsMatchAsync(symbol, state, node, cancellationToken).ConfigureAwait(false);
+            return (matched, reason, argumentList);
         }
     }
 }

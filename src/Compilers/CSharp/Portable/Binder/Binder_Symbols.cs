@@ -261,6 +261,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // Case (2)(a)(1)
                             isKeyword = false;
+                            if (symbol.Kind != SymbolKind.Alias)
+                            {
+                                ReportDiagnosticsIfObsolete(diagnostics, type, syntax, hasBaseReceiver: false);
+                            }
                         }
                         else
                         {
@@ -2414,7 +2418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Compilation.Assembly.Modules[0].GetReferencedAssemblySymbols())
             {
                 var forwardedType =
-                    referencedAssembly.TryLookupForwardedMetadataType(ref metadataName);
+                    referencedAssembly.TryLookupForwardedMetadataTypeWithCycleDetection(ref metadataName, visitedAssemblies: null);
                 if ((object)forwardedType != null)
                 {
                     if (forwardedType.Kind == SymbolKind.ErrorType)

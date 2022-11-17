@@ -224,10 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (getEnumeratorMethod.IsExtensionMethod && !hasErrors)
                 {
                     var messageId = IsAsync ? MessageID.IDS_FeatureExtensionGetAsyncEnumerator : MessageID.IDS_FeatureExtensionGetEnumerator;
-                    hasErrors |= !messageId.CheckFeatureAvailability(
-                        diagnostics,
-                        Compilation,
-                        collectionExpr.Syntax.Location);
+                    messageId.CheckFeatureAvailability(diagnostics, Compilation, collectionExpr.Syntax.Location);
 
                     if (getEnumeratorMethod.ParameterRefKinds is { IsDefault: false } refKinds && refKinds[0] == RefKind.Ref)
                     {
@@ -450,6 +447,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             Conversion elementConversionClassification = this.Conversions.ClassifyConversionFromType(inferredType.Type, iterationVariableType.Type, isChecked: CheckOverflowAtRuntime, ref useSiteInfo, forCast: true);
+
+            if (elementConversionClassification.Kind != ConversionKind.Identity && IterationVariable.RefKind is RefKind.Ref or RefKind.RefReadOnly)
+            {
+                Error(diagnostics, ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, collectionExpr.Syntax, iterationVariableType.Type);
+                hasErrors = true;
+            }
 
             var elementPlaceholder = new BoundValuePlaceholder(_syntax, inferredType.Type).MakeCompilerGenerated();
             BindingDiagnosticBag createConversionDiagnostics;

@@ -18,9 +18,5 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.InlineRename
             <ImportMany> refactorNotifyServices As IEnumerable(Of IRefactorNotifyService), globalOptions As IGlobalOptionService)
             MyBase.New(refactorNotifyServices, globalOptions)
         End Sub
-
-        Protected Overrides Function CheckLanguageSpecificIssues(semanticModel As SemanticModel, symbol As ISymbol, triggerToken As SyntaxToken, ByRef langError As String) As Boolean
-            Return False
-        End Function
     End Class
 End Namespace

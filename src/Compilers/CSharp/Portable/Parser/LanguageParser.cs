@@ -2546,7 +2546,7 @@ parse_member_name:;
                         return this.ParseOperatorDeclaration(attributes, modifiers, type, explicitInterfaceOpt);
                     }
 
-                    if ((!typeIsRef || !IsScript) && IsFieldDeclaration(isEvent: false))
+                    if ((!typeIsRef || !IsScript) && IsFieldDeclaration(isEvent: false, isGlobalScriptLevel: true))
                     {
                         var saveTerm = _termState;
 
@@ -2798,17 +2798,21 @@ parse_member_name:;
                 return true;
             }
 
-            switch (this.CurrentToken.Kind)
+            // `{` or `=>` definitely start a property.  Also allow
+            // `; {` and `; =>` as error recovery for a misplaced semicolon.
+            if (IsStartOfPropertyBody(this.CurrentToken.Kind) ||
+                (this.CurrentToken.Kind is SyntaxKind.SemicolonToken && IsStartOfPropertyBody(this.PeekToken(1).Kind)))
             {
-                case SyntaxKind.OpenBraceToken:
-                case SyntaxKind.EqualsGreaterThanToken:
-                    result = this.ParsePropertyDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
-                    return true;
+                result = this.ParsePropertyDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
+                return true;
             }
 
             result = null;
             return false;
         }
+
+        private static bool IsStartOfPropertyBody(SyntaxKind kind)
+            => kind is SyntaxKind.OpenBraceToken or SyntaxKind.EqualsGreaterThanToken;
 
         // Returns null if we can't parse anything (even partially).
         internal MemberDeclarationSyntax ParseMemberDeclaration(SyntaxKind parentKind)
@@ -2929,7 +2933,7 @@ parse_member_name:;
                         }
                     }
 
-                    if (IsFieldDeclaration(isEvent: false))
+                    if (IsFieldDeclaration(isEvent: false, isGlobalScriptLevel: false))
                     {
                         return this.ParseNormalFieldDeclaration(attributes, modifiers, type, parentKind);
                     }
@@ -3009,7 +3013,7 @@ parse_member_name:;
             return true;
         }
 
-        private bool IsFieldDeclaration(bool isEvent)
+        private bool IsFieldDeclaration(bool isEvent, bool isGlobalScriptLevel)
         {
             if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
             {
@@ -3028,13 +3032,24 @@ parse_member_name:;
             //   c) a property
             //   d) a method (unless we already know we're parsing an event)
             var kind = this.PeekToken(1).Kind;
+
+            // Error recovery, don't allow a misplaced semicolon after the name in a property to throw off the entire parse.
+            //
+            // e.g. `public int MyProperty; { get; set; }` should still be parsed as a property with a skipped token.
+            if (!isGlobalScriptLevel &&
+                kind == SyntaxKind.SemicolonToken &&
+                IsStartOfPropertyBody(this.PeekToken(2).Kind))
+            {
+                return false;
+            }
+
             switch (kind)
             {
                 case SyntaxKind.DotToken:                   // Goo.     explicit
                 case SyntaxKind.ColonColonToken:            // Goo::    explicit
                 case SyntaxKind.DotDotToken:                // Goo..    explicit
-                case SyntaxKind.LessThanToken:            // Goo<     explicit or generic method
-                case SyntaxKind.OpenBraceToken:        // Goo {    property
+                case SyntaxKind.LessThanToken:              // Goo<     explicit or generic method
+                case SyntaxKind.OpenBraceToken:             // Goo {    property
                 case SyntaxKind.EqualsGreaterThanToken:     // Goo =>   property
                     return false;
                 case SyntaxKind.OpenParenToken:             // Goo(     method
@@ -3851,10 +3866,14 @@ parse_member_name:;
                 identifier = this.AddError(identifier, ErrorCode.ERR_UnexpectedGenericName);
             }
 
-            // We know we are parsing a property because we have seen either an
-            // open brace or an arrow token
-            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken ||
-                         this.CurrentToken.Kind == SyntaxKind.OpenBraceToken);
+            // Error recovery: add an errant semicolon to the identifier token and keep going.
+            if (this.CurrentToken.Kind is SyntaxKind.SemicolonToken)
+            {
+                identifier = AddTrailingSkippedSyntax(identifier, this.EatTokenWithPrejudice(SyntaxKind.OpenBraceToken));
+            }
+
+            // We know we are parsing a property because we have seen either an open brace or an arrow token
+            Debug.Assert(IsStartOfPropertyBody(this.CurrentToken.Kind));
 
             AccessorListSyntax accessorList = null;
             if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
@@ -4781,7 +4800,7 @@ tryAgain:
             var eventToken = this.EatToken();
             var type = this.ParseType();
 
-            if (IsFieldDeclaration(isEvent: true))
+            if (IsFieldDeclaration(isEvent: true, isGlobalScriptLevel: parentKind == SyntaxKind.CompilationUnit))
             {
                 return this.ParseEventFieldDeclaration(attributes, modifiers, eventToken, type, parentKind);
             }
@@ -8184,7 +8203,7 @@ done:;
                     }
                     else if (st == ScanTypeFlags.NullableType)
                     {
-                        return IsPossibleDeclarationStatementFollowingNullableType();
+                        return IsPossibleDeclarationStatementFollowingNullableType(isGlobalScriptLevel);
                     }
                 }
 
@@ -8250,9 +8269,9 @@ done:;
         }
 
         // Looks ahead for a declaration of a field, property or method declaration following a nullable type T?.
-        private bool IsPossibleDeclarationStatementFollowingNullableType()
+        private bool IsPossibleDeclarationStatementFollowingNullableType(bool isGlobalScriptLevel)
         {
-            if (IsFieldDeclaration(isEvent: false))
+            if (IsFieldDeclaration(isEvent: false, isGlobalScriptLevel))
             {
                 return IsPossibleFieldDeclarationFollowingNullableType();
             }
@@ -8268,7 +8287,11 @@ done:;
             }
 
             // looks like a property:
-            if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
+            //      T? Goo {
+            //
+            // Importantly, we don't consider `T? Goo =>` to be the start of a property.  This is because it's legal to write:
+            //      T ? Goo => Goo : Bar => Bar
+            if (this.CurrentToken.Kind is SyntaxKind.OpenBraceToken)
             {
                 return true;
             }
@@ -13520,24 +13543,13 @@ tryAgain:
             var identifier = this.ParseIdentifierToken();
             ParseParameterNullCheck(ref identifier, out var equalsToken);
 
-            // If we didn't already consume an equals sign as part of !!=, then try to scan one out now. Note: this is
-            // not legal code.  But we detect it so that we can give the user a good message, and so we don't go
-            // completely off the rails.
-            //
-            // Note: we add the `= value` as skipped trivia to either the identifier or `!!` (if we have the latter).
-            // This allows us to handle this code without ever showing it the binding phases.  We could consider
-            // actually binding this in the future if it would be helpful and if we're ok paying the testing cost of
-            // checking this at the semantic layers.
+            // Parse default value if any
             equalsToken ??= TryEatToken(SyntaxKind.EqualsToken);
+            var equalsValueClause = equalsToken == null
+                ? null
+                : _syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore());
 
-            if (equalsToken != null)
-            {
-                equalsToken = AddError(equalsToken, ErrorCode.ERR_DefaultValueNotAllowed);
-
-                identifier = AddTrailingSkippedSyntax(identifier, _syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore()));
-            }
-
-            var parameter = _syntaxFactory.Parameter(attributes, modifiers.ToList(), paramType, identifier, @default: null);
+            var parameter = _syntaxFactory.Parameter(attributes, modifiers.ToList(), paramType, identifier, @default: equalsValueClause);
             _pool.Free(modifiers);
             return parameter;
         }

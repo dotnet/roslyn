@@ -1574,7 +1574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal TypeSymbol GetTypeByReflectionType(Type type, BindingDiagnosticBag diagnostics)
         {
-            var result = Assembly.GetTypeByReflectionType(type, includeReferences: true);
+            var result = Assembly.GetTypeByReflectionType(type);
             if (result is null)
             {
                 var errorType = new ExtendedErrorTypeSymbol(this, type.Name, 0, CreateReflectionTypeNotFoundError(type));
@@ -1603,7 +1603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (HostObjectType != null && _lazyHostObjectTypeSymbol is null)
             {
-                TypeSymbol? symbol = Assembly.GetTypeByReflectionType(HostObjectType, includeReferences: true);
+                TypeSymbol? symbol = Assembly.GetTypeByReflectionType(HostObjectType);
 
                 if (symbol is null)
                 {
@@ -1637,7 +1637,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal new NamedTypeSymbol? GetTypeByMetadataName(string fullyQualifiedMetadataName)
         {
-            return this.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences: true, isWellKnownType: false, conflicts: out var _);
+            var result = this.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences: true, isWellKnownType: false, conflicts: out var _);
+            Debug.Assert(result?.IsErrorType() != true);
+            return result;
         }
 
         /// <summary>

@@ -1188,7 +1188,7 @@ namespace Roslyn.Test.PdbUtilities
         {
             string result = token.ToString("X8");
             if (maskToken)
-                result = result.Substring(0, 2) + "xxxxxx";
+                result = result[..2] + "xxxxxx";
             return "0x" + result;
         }
 

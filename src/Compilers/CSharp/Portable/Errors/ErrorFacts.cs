@@ -522,6 +522,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_RefReturnOnlyParameter:
                 case ErrorCode.WRN_RefReturnOnlyParameter2:
                 case ErrorCode.WRN_RefAssignValEscapeWider:
+                case ErrorCode.WRN_OptionalParamValueMismatch:
+                case ErrorCode.WRN_ParamsArrayInLambdaOnly:
                     return 1;
                 default:
                     return 0;
@@ -2234,6 +2236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
                 case ErrorCode.ERR_CannotMatchOnINumberBase:
                 case ErrorCode.ERR_ScopedTypeNameDisallowed:
+                case ErrorCode.ERR_ImplicitlyTypedDefaultParameter:
                 case ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget:
                 case ErrorCode.ERR_RuntimeDoesNotSupportRefFields:
                 case ErrorCode.ERR_ExplicitScopedRef:
@@ -2268,6 +2271,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_RefReturnOnlyParameter2:
                 case ErrorCode.ERR_RefAssignValEscapeWider:
                 case ErrorCode.WRN_RefAssignValEscapeWider:
+                case ErrorCode.WRN_OptionalParamValueMismatch:
+                case ErrorCode.WRN_ParamsArrayInLambdaOnly:
                 case ErrorCode.ERR_NonConstantConversionInConstantPattern:
                     return false;
                 default:

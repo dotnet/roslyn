@@ -178,11 +178,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var view = await GetActiveTextViewAsync(cancellationToken);
-
-            var subjectBuffer = view.GetBufferContainingCaret();
-            Assumes.Present(subjectBuffer);
-
-            var point = new SnapshotPoint(subjectBuffer.CurrentSnapshot, position);
+            var point = new SnapshotPoint(view.TextSnapshot, position);
 
             view.Caret.MoveTo(point);
         }
