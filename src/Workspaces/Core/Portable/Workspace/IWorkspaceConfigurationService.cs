@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Host
         [property: DataMember(Order = 1)] bool EnableOpeningSourceGeneratedFiles = false,
         [property: DataMember(Order = 2)] bool DisableCloneWhenProducingSkeletonReferences = false,
         [property: DataMember(Order = 3)] bool DisableReferenceManagerRecoverableMetadata = false,
-        [property: DataMember(Order = 3)] bool DisableBackgroundCompilation = false)
+        [property: DataMember(Order = 4)] bool DisableBackgroundCompilation = false)
     {
         public WorkspaceConfigurationOptions()
             : this(CacheStorage: StorageDatabase.SQLite)
