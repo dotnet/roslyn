@@ -415,13 +415,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var compilation = _compilation.WithEventQueue(eventQueue);
                 var compilationData = new CompilationData(compilation);
 
-                // Create and attach the driver to compilation.
+                // Create and initialize driver.
                 var categorizeDiagnostics = true;
                 driver = CreateDriverForComputingDiagnosticsWithoutStateTracking(compilation, analyzers);
                 driver.Initialize(compilation, _analysisOptions, compilationData, categorizeDiagnostics, cancellationToken);
-                var hasAllAnalyzers = analyzers.Length == Analyzers.Length;
-                var analysisScope = new AnalysisScope(compilation, _analysisOptions.Options, analyzers, hasAllAnalyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics);
-                driver.AttachQueueAndStartProcessingEvents(compilation.EventQueue!, analysisScope, cancellationToken);
 
                 // Get analyzer action counts.
                 var analyzerActionCounts = new Dictionary<DiagnosticAnalyzer, AnalyzerActionCounts>(analyzers.Length);
@@ -435,6 +432,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         hasAnyActionsRequiringSemanticAnalysis = true;
                 }
                 Func<DiagnosticAnalyzer, AnalyzerActionCounts> getAnalyzerActionCounts = analyzer => analyzerActionCounts[analyzer];
+
+                // Attach the driver to compilation and start processing events.
+                // If we do not have any analyzer actions that require semantic analysis,
+                // we are only going to enqueue a CompilationStartedEvent, so ensure we
+                // pass 'usingPrePopulatedEventQueue = true' for that case.
+                var hasAllAnalyzers = analyzers.Length == Analyzers.Length;
+                var analysisScope = new AnalysisScope(compilation, _analysisOptions.Options, analyzers, hasAllAnalyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics);
+                driver.AttachQueueAndStartProcessingEvents(compilation.EventQueue!, analysisScope, cancellationToken, usingPrePopulatedEventQueue: !hasAnyActionsRequiringSemanticAnalysis);
 
                 // If we have any analyzer actions that require semantic analysis, we need to
                 // force compilation diagnostics to populate the compilation event queue.
