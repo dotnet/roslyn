@@ -6,7 +6,6 @@
 
 using System.Linq;
 using System.Threading.Tasks;
-using ICSharpCode.Decompiler.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
