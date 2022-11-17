@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11914,7 +11915,7 @@ ref struct MyRefStruct { }
         }
 
         [Fact]
-        public async Task AfterScopedGlobalStatement()
+        public async Task AfterScopedGlobalStatement_FollowedByType()
         {
             var source = @"
 scoped $$
@@ -11922,6 +11923,18 @@ scoped $$
 ref struct MyRefStruct { }
 ";
             await VerifyItemExistsAsync(MakeMarkup(source), "MyRefStruct");
+        }
+
+        [Fact]
+        public async Task AfterScopedGlobalStatement_NotFollowedByType()
+        {
+            var source = """
+                using System;
+
+                scoped $$
+                """;
+
+            await VerifyItemExistsAsync(MakeMarkup(source), "ReadOnlySpan", displayTextSuffix: "<>");
         }
 
         [Fact]
@@ -11944,7 +11957,7 @@ ref struct MyRefStruct { }
         {
             return $$"""
 <Workspace>
-    <Project Language="C#" AssemblyName="Assembly" CommonReferences="true" LanguageVersion="{{languageVersion}}">
+    <Project Language="C#" AssemblyName="Assembly" CommonReferencesNet6="true" LanguageVersion="{{languageVersion}}">
         <Document FilePath="Test.cs">
 {{source}}
         </Document>

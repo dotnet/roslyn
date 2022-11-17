@@ -1866,8 +1866,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             // scoped |
-            if ((token.IsKind(SyntaxKind.IdentifierToken) && token.Text == "scoped" && token.Parent.IsKind(SyntaxKind.IdentifierName) && token.Parent.Parent!.Kind() is SyntaxKind.VariableDeclaration or SyntaxKind.ExpressionStatement or SyntaxKind.IncompleteMember) ||
-                token.IsKind(SyntaxKind.ScopedKeyword) && token.Parent!.Kind() is SyntaxKind.ScopedType or SyntaxKind.IncompleteMember)
+            // The compiler parses this as an identifier whose parent is:
+            // - ExpressionStatementSyntax when in method declaration.
+            // - IncompleteMemberSyntax when in top-level code and there are no class declarations after it.
+            // - BaseTypeDeclarationSyntax if it comes after scoped
+            // - VariableDeclarationSyntax for `scoped X` inside method declaration
+            if (token.IsKind(SyntaxKind.IdentifierToken) && token.Text == "scoped" && token.Parent.IsKind(SyntaxKind.IdentifierName) && token.Parent.Parent is VariableDeclarationSyntax or ExpressionStatementSyntax or IncompleteMemberSyntax)
+            {
+                return true;
+            }
+
+            // scoped v|
+            if (token.IsKind(SyntaxKind.ScopedKeyword) && token.Parent is IncompleteMemberSyntax)
             {
                 return true;
             }

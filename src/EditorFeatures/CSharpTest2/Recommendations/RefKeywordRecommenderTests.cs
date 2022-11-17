@@ -1022,6 +1022,17 @@ $$");
         }
 
         [Fact]
+        public async Task TestInParameterAfterThisScoped()
+        {
+            await VerifyKeywordAsync("""
+                static class C
+                {
+                    static void M(this scoped $$)
+                }
+                """);
+        }
+
+        [Fact]
         public async Task TestInAnonymousMethodParameterAfterScoped()
         {
             await VerifyKeywordAsync("""

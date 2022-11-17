@@ -420,5 +420,16 @@ $$"));
                 }
                 """);
         }
+
+        [Fact]
+        public async Task TestInParameterAfterThisScoped()
+        {
+            await VerifyKeywordAsync("""
+                static class C
+                {
+                    static void M(this $$)
+                }
+                """);
+        }
     }
 }
