@@ -25,10 +25,10 @@ namespace Microsoft.VisualStudio.LanguageServices
         private readonly IGlobalOperationNotificationService _notificationService;
         private readonly Dictionary<string, IDisposable> _operations = new();
 
-        public SolutionEventMonitor(VisualStudioWorkspace workspace)
+        public SolutionEventMonitor(IGlobalOperationNotificationService notificationService)
         {
-            // We are in the VS layer, so getting the IGlobalOperationNotificationService must succeed.
-            _notificationService = workspace.Services.SolutionServices.ExportProvider.GetExports<IGlobalOperationNotificationService>().Single().Value;
+            Contract.ThrowIfNull(notificationService);
+            _notificationService = notificationService;
 
             RegisterEventHandler(KnownUIContexts.SolutionBuildingContext, SolutionBuildingContextChanged);
             RegisterEventHandler(KnownUIContexts.SolutionOpeningContext, SolutionOpeningContextChanged);

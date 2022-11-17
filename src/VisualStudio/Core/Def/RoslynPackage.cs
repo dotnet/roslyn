@@ -156,7 +156,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // load some services that have to be loaded in UI thread
             LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
 
-            TrackBulkFileOperations();
+            // We are at the VS layer, so we know we must be able to get the IGlobalOperationNotificationService here.
+            var globalNotificationService = this.ComponentModel.GetService<IGlobalOperationNotificationService>();
+            Contract.ThrowIfNull(globalNotificationService);
+
+            _solutionEventMonitor = new SolutionEventMonitor(globalNotificationService);
+            TrackBulkFileOperations(globalNotificationService);
 
             var settingsEditorFactory = this.ComponentModel.GetService<SettingsEditorFactory>();
             RegisterEditorFactory(settingsEditorFactory);
@@ -343,7 +348,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             }
         }
 
-        private void TrackBulkFileOperations()
+        private void TrackBulkFileOperations(IGlobalOperationNotificationService globalNotificationService)
         {
             // we will pause whatever ambient work loads we have that are tied to IGlobalOperationNotificationService
             // such as solution crawler, preemptive remote host synchronization and etc. any background work users
@@ -351,9 +356,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             //
             // this should give all resources to BulkFileOperation. we do same for things like build, debugging, wait
             // dialog and etc. BulkFileOperation is used for things like git branch switching and etc.
-            //
-            // We are at the VS layer, so we know we must be able to get the IGlobalOperationNotificationService here.
-            var globalNotificationService = this.ComponentModel.GetService<IGlobalOperationNotificationService>();
             Contract.ThrowIfNull(globalNotificationService);
 
             // BulkFileOperation can't have nested events. there will be ever only 1 events (Begin/End)
