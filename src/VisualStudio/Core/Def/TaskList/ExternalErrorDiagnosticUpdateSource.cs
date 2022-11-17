@@ -78,9 +78,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             VisualStudioWorkspace workspace,
             IDiagnosticAnalyzerService diagnosticService,
             IDiagnosticUpdateSourceRegistrationService registrationService,
+            IGlobalOperationNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider,
             IThreadingContext threadingContext)
-            : this(workspace, diagnosticService, listenerProvider.GetListener(FeatureAttribute.ErrorList), threadingContext.DisposalToken)
+            : this(workspace, diagnosticService, notificationService, listenerProvider.GetListener(FeatureAttribute.ErrorList), threadingContext.DisposalToken)
         {
             registrationService.Register(this);
         }
@@ -91,6 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         internal ExternalErrorDiagnosticUpdateSource(
             Workspace workspace,
             IDiagnosticAnalyzerService diagnosticService,
+            IGlobalOperationNotificationService notificationService,
             IAsynchronousOperationListener listener,
             CancellationToken disposalToken)
         {
@@ -105,8 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _diagnosticService = diagnosticService;
             _buildOnlyDiagnosticsService = _workspace.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
 
-            // We are in the VS layer, so getting the IGlobalOperationNotificationService must succeed.
-            _notificationService = _workspace.Services.SolutionServices.ExportProvider.GetExports<IGlobalOperationNotificationService>().Single().Value;
+            _notificationService = notificationService;
         }
 
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache => _diagnosticService.AnalyzerInfoCache;

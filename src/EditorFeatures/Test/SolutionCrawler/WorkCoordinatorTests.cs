@@ -1684,7 +1684,6 @@ class C
         {
             private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures
                 .AddParts(typeof(TestDocumentTrackingService))
-                .AddParts(typeof(TestGlobalOperationNotificationService))
                 .AddExcludedPartTypes(typeof(IIncrementalAnalyzerProvider));
 
             private readonly IAsynchronousOperationWaiter _workspaceWaiter;
