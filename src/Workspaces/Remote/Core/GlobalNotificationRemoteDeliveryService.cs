@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private void RegisterGlobalOperationNotifications()
         {
-            var globalOperationService = _services.GetService<IGlobalOperationNotificationService>();
+            var globalOperationService = _services.ExportProvider.GetExports<IGlobalOperationNotificationService>().FirstOrDefault()?.Value;
             if (globalOperationService != null)
             {
                 globalOperationService.Started += OnGlobalOperationStarted;
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private void UnregisterGlobalOperationNotifications()
         {
-            var globalOperationService = _services.GetService<IGlobalOperationNotificationService>();
+            var globalOperationService = _services.ExportProvider.GetExports<IGlobalOperationNotificationService>().FirstOrDefault()?.Value;
             if (globalOperationService != null)
             {
                 globalOperationService.Started -= OnGlobalOperationStarted;
