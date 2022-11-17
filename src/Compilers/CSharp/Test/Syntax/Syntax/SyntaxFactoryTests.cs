@@ -602,14 +602,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             parsedWithPreview.GetDiagnostics().Verify();
 
             CreateCompilation(type, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
-                // (1,15): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // delegate*<void>
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">").WithLocation(1, 15));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate*<void>").WithArguments("top-level statements", "9.0").WithLocation(1, 1),
+                // (1,1): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate").WithArguments("function pointers", "9.0").WithLocation(1, 1),
+                // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 1),
+                // (1,16): error CS1001: Identifier expected
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 16),
+                // (1,16): error CS1002: ; expected
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 16));
 
             CreateCompilation(type, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (1,15): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // delegate*<void>
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">").WithLocation(1, 15));
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 1),
+                // (1,16): error CS1001: Identifier expected
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 16),
+                // (1,16): error CS1002: ; expected
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 16));
 
             type = "unsafe class C { delegate*<void> x; }";
 
