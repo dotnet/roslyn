@@ -31,6 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp.StringIndentation
             Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            if (text.IndexOf(@"""""""", textSpan.Start, true) < 0)
+            {
+                return ImmutableArray<StringIndentationRegion>.Empty;
+            }
+
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<StringIndentationRegion>.GetInstance(out var result);
