@@ -48,5 +48,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertTryCatchInGlobalContextTest()
+        {
+            var markupBeforeCommit =
+@"$$";
+
+            var expectedCodeAfterCommit =
+@"try
+{
+    
+}
+catch (Exception e)
+{
+    $$
+    throw;
+}";
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
     }
 }
