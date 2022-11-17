@@ -316,8 +316,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _cancellationToken.ThrowIfCancellationRequested();
 
-            bool reportParameterOrTypeParameterDiagnostics = GetLocationInTreeReportingDocumentationCommentDiagnostics(symbol) != null;
-
             string withUnprocessedIncludes;
             bool haveParseError;
             HashSet<TypeParameterSymbol> documentedTypeParameters;
@@ -366,6 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Write(withUnprocessedIncludes);
             }
 
+            bool reportParameterOrTypeParameterDiagnostics = GetLocationInTreeReportingDocumentationCommentDiagnostics(symbol) != null;
             if (reportParameterOrTypeParameterDiagnostics)
             {
                 _cancellationToken.ThrowIfCancellationRequested();

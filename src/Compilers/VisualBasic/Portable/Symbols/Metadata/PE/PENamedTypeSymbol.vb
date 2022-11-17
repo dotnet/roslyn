@@ -1115,9 +1115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Try
                 For Each nestedTypeDef In [module].GetNestedTypeDefsOrThrow(_handle)
-                    If [module].ShouldImportNestedType() Then
-                        members.Add(New PENamedTypeSymbol(moduleSymbol, Me, nestedTypeDef))
-                    End If
+                    members.Add(New PENamedTypeSymbol(moduleSymbol, Me, nestedTypeDef))
                 Next
             Catch mrEx As BadImageFormatException
             End Try
