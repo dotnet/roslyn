@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
+namespace Microsoft.CodeAnalysis.CSharp.NewLines.ArrowExpressionClausePlacement
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ArrowExpressionClausePlacement), Shared]
     internal sealed class ArrowExpressionClausePlacementCodeFixProvider : CodeFixProvider
