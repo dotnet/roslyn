@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -109,10 +108,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void reverseAssignmentsToTargetsIfApplicable()
             {
-                // The list of deconstruction targets is usually small. Prefer a temporary array which is stack-bound for small numbers of elements.
-                var visitedSymbols = TemporaryArray<Symbol>.Empty;
+                PooledHashSet<Symbol>? visitedSymbols = null;
 
-                Debug.Assert(right is not BoundConversion { Operand.Kind: BoundKind.TupleLiteral });
+                Debug.Assert(right is not ({ Kind: BoundKind.TupleLiteral } or BoundConversion { Operand.Kind: BoundKind.TupleLiteral }));
                 if (// was the RHS a tuple literal?
                     right is { Kind: BoundKind.ConvertedTupleLiteral } or BoundConversion { Operand.Kind: BoundKind.ConvertedTupleLiteral }
 
@@ -147,10 +145,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     effects.assignments.ReverseContents();
                 }
 
-                visitedSymbols.Dispose();
+                visitedSymbols?.Free();
             }
 
-            static bool canReorderTargetAssignments(ArrayBuilder<Binder.DeconstructionVariable> targets, ref TemporaryArray<Symbol> visitedSymbols)
+            static bool canReorderTargetAssignments(ArrayBuilder<Binder.DeconstructionVariable> targets, ref PooledHashSet<Symbol>? visitedSymbols)
             {
                 // If we know all targets refer to distinct variables, then we can reorder the assignments.
                 // We avoid doing this in any cases where aliasing could occur, e.g.:
@@ -163,38 +161,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(target is { Single: not null, NestedVariables: null } or { Single: null, NestedVariables: not null });
                     if (target.Single is { } single)
                     {
-                        Symbol? symbol = single switch
+                        Symbol? symbol;
+                        switch (single)
                         {
-                            BoundLocal { LocalSymbol: { RefKind: RefKind.None } localSymbol } => localSymbol,
-                            BoundParameter { ParameterSymbol: { RefKind: RefKind.None } parameterSymbol } => parameterSymbol,
-                            _ => null
-                        };
-
-                        if (symbol is null)
-                        {
-                            if (single is BoundDiscardExpression)
-                            {
+                            case BoundLocal { LocalSymbol: { RefKind: RefKind.None } localSymbol }:
+                                symbol = localSymbol;
+                                break;
+                            case BoundParameter { ParameterSymbol: { RefKind: RefKind.None } parameterSymbol }:
+                                symbol = parameterSymbol;
+                                break;
+                            case BoundDiscardExpression:
                                 // we don't care in what order we assign to these.
                                 continue;
-                            }
+                            default:
+                                // This deconstruction assigns to a target which is not sufficiently simple.
+                                // We can't verify that the deconstruction does not use any aliases to variables.
+                                return false;
+                        }
 
-                            // This deconstruction assigns to a target which is not sufficiently simple.
-                            // We can't verify that the deconstruction does not use any aliases to variables.
+                        visitedSymbols ??= PooledHashSet<Symbol>.GetInstance();
+                        if (!visitedSymbols.Add(symbol))
+                        {
+                            // This deconstruction writes to the same target multiple times, e.g:
+                            // (x, x) = (a, b);
                             return false;
                         }
-
-                        foreach (var visitedSymbol in visitedSymbols)
-                        {
-                            if ((object)visitedSymbol == symbol)
-                            {
-                                // This deconstruction writes to the same target multiple times, e.g:
-                                // (x, x) = (a, b);
-                                return false;
-                            }
-                        }
-                        visitedSymbols.Add(symbol);
                     }
-                    else if (target.NestedVariables is { } nestedVariables && !canReorderTargetAssignments(nestedVariables, ref visitedSymbols))
+                    else if (!canReorderTargetAssignments(target.NestedVariables!, ref visitedSymbols))
                     {
                         return false;
                     }
