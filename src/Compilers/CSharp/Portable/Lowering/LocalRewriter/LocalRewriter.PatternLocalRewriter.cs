@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var inputDagTemp = BoundDagTemp.ForOriginalInput(loweredInput);
                 if (loweredInput.Kind is BoundKind.Local or BoundKind.Parameter &&
-                    loweredInput.GetRefKind() is RefKind.None or RefKind.In &&
+                    loweredInput.GetRefKind() is RefKind.None or RefKind.RefReadOnly &&
                     !anyWhenClause)
                 {
                     // If we're switching on a local variable and there is no when clause,
