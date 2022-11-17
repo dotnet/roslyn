@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                     }
                 }
 
+                // Come back to the UI thread so we can give the user an error notification.
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             }
 
