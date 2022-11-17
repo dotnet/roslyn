@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public StateMachineStatesDebugInfo StateMachineStatesDebugInfo => default;
 
-        private static ImmutableArray<byte> GetIL(IMethodDefinition methodDef, IMethodReference? overriddenMethod, uint overriddenMethodToken, EmitContext context)
+        private static ImmutableArray<byte> GetIL(IMethodDefinition methodDef, IMethodReference overriddenMethod, uint overriddenMethodToken, EmitContext context)
         {
             var missingMethodExceptionStringStringConstructor = context.Module.CommonCompilation.CommonGetWellKnownTypeMember(WellKnownMember.System_MissingMethodException__ctor);
             Debug.Assert(missingMethodExceptionStringStringConstructor is not null);
