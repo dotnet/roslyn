@@ -916,8 +916,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
         }
 
-        public static bool IsDirectChildOfMemberAccessExpression(this ExpressionSyntax expression) =>
-            expression?.Parent is MemberAccessExpressionSyntax;
+        public static bool IsDirectChildOfMemberAccessExpression(this ExpressionSyntax expression)
+            => expression?.Parent is MemberAccessExpressionSyntax;
 
         public static bool InsideCrefReference(this ExpressionSyntax expression)
             => expression.FirstAncestorOrSelf<XmlCrefAttributeSyntax>() != null;
