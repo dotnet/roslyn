@@ -2742,64 +2742,6 @@ class C
         }
 
         [Fact]
-        public void TryWithoutCatchesOrFinally()
-        {
-            var text = @"
-class C
-{
-    void Goo()
-    {
-        try { }
-    }
-}";
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,15): error CS1524: Expected catch or finally
-                //         try { }
-                Diagnostic(ErrorCode.ERR_ExpectedEndTry, "}").WithLocation(6, 15));
-
-            UsingTree(text);
-            N(SyntaxKind.CompilationUnit);
-            {
-                N(SyntaxKind.ClassDeclaration);
-                {
-                    N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken, "C");
-                    N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.MethodDeclaration);
-                    {
-                        N(SyntaxKind.PredefinedType);
-                        {
-                            N(SyntaxKind.VoidKeyword);
-                        }
-                        N(SyntaxKind.IdentifierToken, "Goo");
-                        N(SyntaxKind.ParameterList);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                        N(SyntaxKind.Block);
-                        {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.TryStatement);
-                            {
-                                N(SyntaxKind.TryKeyword);
-                                N(SyntaxKind.Block);
-                                {
-                                    N(SyntaxKind.OpenBraceToken);
-                                    N(SyntaxKind.CloseBraceToken);
-                                }
-                            }
-                            N(SyntaxKind.CloseBraceToken);
-                        }
-                    }
-                    N(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.EndOfFileToken);
-            }
-            EOF();
-        }
-
-        [Fact]
         public void AttributeOnTryBlock()
         {
             var test = UsingTree(@"
@@ -2881,32 +2823,17 @@ class C
         [Fact]
         public void AttributeOnFinally()
         {
-            var text = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         try { } [A] finally { }
     }
-}";
-            CreateCompilation(text).VerifyDiagnostics(
+}",
                 // (6,15): error CS1524: Expected catch or finally
                 //         try { } [A] finally { }
                 Diagnostic(ErrorCode.ERR_ExpectedEndTry, "}").WithLocation(6, 15),
-                // (6,17): error CS7014: Attributes are not valid in this context.
-                //         try { } [A] finally { }
-                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 17),
-                // (6,21): error CS1003: Syntax error, 'try' expected
-                //         try { } [A] finally { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "finally").WithArguments("try").WithLocation(6, 21),
-                // (6,21): error CS1514: { expected
-                //         try { } [A] finally { }
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "finally").WithLocation(6, 21),
-                // (6,21): error CS1513: } expected
-                //         try { } [A] finally { }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "finally").WithLocation(6, 21));
-
-            var test = UsingTree(text,
                 // (6,21): error CS1003: Syntax error, 'try' expected
                 //         try { } [A] finally { }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "finally").WithArguments("try").WithLocation(6, 21),
@@ -2947,6 +2874,15 @@ class C
                                     N(SyntaxKind.OpenBraceToken);
                                     N(SyntaxKind.CloseBraceToken);
                                 }
+                                M(SyntaxKind.FinallyClause);
+                                {
+                                    M(SyntaxKind.FinallyKeyword);
+                                    M(SyntaxKind.Block);
+                                    {
+                                        M(SyntaxKind.OpenBraceToken);
+                                        M(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
                             }
                             N(SyntaxKind.TryStatement);
                             {
@@ -2986,6 +2922,23 @@ class C
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
+
+            CreateCompilation(test).GetDiagnostics().Verify(
+                // (6,15): error CS1524: Expected catch or finally
+                //         try { } [A] finally { }
+                Diagnostic(ErrorCode.ERR_ExpectedEndTry, "}").WithLocation(6, 15),
+                // (6,17): error CS7014: Attributes are not valid in this context.
+                //         try { } [A] finally { }
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 17),
+                // (6,21): error CS1003: Syntax error, 'try' expected
+                //         try { } [A] finally { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "finally").WithArguments("try").WithLocation(6, 21),
+                // (6,21): error CS1514: { expected
+                //         try { } [A] finally { }
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "finally").WithLocation(6, 21),
+                // (6,21): error CS1513: } expected
+                //         try { } [A] finally { }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "finally").WithLocation(6, 21));
         }
 
         [Fact]
@@ -3070,32 +3023,17 @@ class C
         [Fact]
         public void AttributeOnCatch()
         {
-            var text = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         try { } [A] catch { }
     }
-}";
-            CreateCompilation(text).VerifyDiagnostics(
+}",
                 // (6,15): error CS1524: Expected catch or finally
                 //         try { } [A] catch { }
                 Diagnostic(ErrorCode.ERR_ExpectedEndTry, "}").WithLocation(6, 15),
-                // (6,17): error CS7014: Attributes are not valid in this context.
-                //         try { } [A] catch { }
-                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 17),
-                // (6,21): error CS1003: Syntax error, 'try' expected
-                //         try { } [A] catch { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "catch").WithArguments("try").WithLocation(6, 21),
-                // (6,21): error CS1514: { expected
-                //         try { } [A] catch { }
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "catch").WithLocation(6, 21),
-                // (6,21): error CS1513: } expected
-                //         try { } [A] catch { }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "catch").WithLocation(6, 21));
-
-            var test = UsingTree(text,
                 // (6,21): error CS1003: Syntax error, 'try' expected
                 //         try { } [A] catch { }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "catch").WithArguments("try").WithLocation(6, 21),
@@ -3135,6 +3073,15 @@ class C
                                 {
                                     N(SyntaxKind.OpenBraceToken);
                                     N(SyntaxKind.CloseBraceToken);
+                                }
+                                M(SyntaxKind.FinallyClause);
+                                {
+                                    M(SyntaxKind.FinallyKeyword);
+                                    M(SyntaxKind.Block);
+                                    {
+                                        M(SyntaxKind.OpenBraceToken);
+                                        M(SyntaxKind.CloseBraceToken);
+                                    }
                                 }
                             }
                             N(SyntaxKind.TryStatement);
@@ -3176,6 +3123,22 @@ class C
             }
             EOF();
 
+            CreateCompilation(test).GetDiagnostics().Verify(
+                // (6,15): error CS1524: Expected catch or finally
+                //         try { } [A] catch { }
+                Diagnostic(ErrorCode.ERR_ExpectedEndTry, "}").WithLocation(6, 15),
+                // (6,17): error CS7014: Attributes are not valid in this context.
+                //         try { } [A] catch { }
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 17),
+                // (6,21): error CS1003: Syntax error, 'try' expected
+                //         try { } [A] catch { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "catch").WithArguments("try").WithLocation(6, 21),
+                // (6,21): error CS1514: { expected
+                //         try { } [A] catch { }
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "catch").WithLocation(6, 21),
+                // (6,21): error CS1513: } expected
+                //         try { } [A] catch { }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "catch").WithLocation(6, 21));
         }
 
         [Fact]

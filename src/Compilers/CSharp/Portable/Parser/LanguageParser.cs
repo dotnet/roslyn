@@ -8853,12 +8853,15 @@ done:;
 
         private TryStatementSyntax ParseTryStatement(SyntaxList<AttributeListSyntax> attributes)
         {
+            Debug.Assert(this.CurrentToken.Kind is SyntaxKind.TryKeyword or SyntaxKind.CatchKeyword or SyntaxKind.FinallyKeyword);
+
             // We are called into on try/catch/finally, so eating the try may actually fail.
             var @try = this.EatToken(SyntaxKind.TryKeyword);
 
             BlockSyntax block;
             if (@try.IsMissing)
             {
+                Debug.Assert(this.CurrentToken.Kind is SyntaxKind.CatchKeyword or SyntaxKind.FinallyKeyword);
                 block = _syntaxFactory.Block(
                     attributeLists: default, this.EatToken(SyntaxKind.OpenBraceToken), default(SyntaxList<StatementSyntax>), this.EatToken(SyntaxKind.CloseBraceToken));
             }
@@ -8870,32 +8873,45 @@ done:;
                 _termState = saveTerm;
             }
 
-            var catches = default(SyntaxListBuilder<CatchClauseSyntax>);
-            FinallyClauseSyntax @finally = null;
+            SyntaxListBuilder<CatchClauseSyntax> catchClauses = default;
+            FinallyClauseSyntax finallyClause = null;
             try
             {
                 if (this.CurrentToken.Kind == SyntaxKind.CatchKeyword)
                 {
-                    catches = _pool.Allocate<CatchClauseSyntax>();
+                    catchClauses = _pool.Allocate<CatchClauseSyntax>();
                     while (this.CurrentToken.Kind == SyntaxKind.CatchKeyword)
-                        catches.Add(this.ParseCatchClause());
+                        catchClauses.Add(this.ParseCatchClause());
                 }
 
                 if (this.CurrentToken.Kind == SyntaxKind.FinallyKeyword)
                 {
-                    @finally = _syntaxFactory.FinallyClause(
+                    finallyClause = _syntaxFactory.FinallyClause(
                         this.EatToken(),
                         this.ParsePossiblyAttributedBlock());
                 }
 
-                return _syntaxFactory.TryStatement(attributes, @try, block, catches, @finally);
+                if (catchClauses.IsNull && finallyClause == null)
+                {
+                    if (!ContainsErrorDiagnostic(block))
+                        block = this.AddErrorToLastToken(block, ErrorCode.ERR_ExpectedEndTry);
+
+                    // synthesize missing tokens for "finally { }":
+                    finallyClause = _syntaxFactory.FinallyClause(
+                        SyntaxToken.CreateMissing(SyntaxKind.FinallyKeyword, null, null),
+                        _syntaxFactory.Block(
+                            attributeLists: default,
+                            SyntaxToken.CreateMissing(SyntaxKind.OpenBraceToken, null, null),
+                            statements: default,
+                            SyntaxToken.CreateMissing(SyntaxKind.CloseBraceToken, null, null)));
+                }
+
+                return _syntaxFactory.TryStatement(attributes, @try, block, catchClauses, finallyClause);
             }
             finally
             {
-                if (!catches.IsNull)
-                {
-                    _pool.Free(catches);
-                }
+                if (!catchClauses.IsNull)
+                    _pool.Free(catchClauses);
             }
         }
 
@@ -14061,6 +14077,45 @@ tryAgain:
             node = this.AddError(node, ErrorCode.ERR_UnexpectedToken, trailingTrash[0].ToString());
             node = this.AddTrailingSkippedSyntax(node, trailingTrash.Node);
             return node;
+        }
+
+        private static bool ContainsErrorDiagnostic(GreenNode node)
+        {
+            // ContainsDiagnostics returns true if this node (or any descendants) contain any sort of error.  However,
+            // GetDiagnostics() only returns diagnostics at that node itself.  So we have to explicitly walk down the
+            // tree to find out if the diagnostics are error or not.
+
+            // Quick check to avoid any unnecessary work.
+            if (node.ContainsDiagnostics)
+            {
+                var stack = ArrayBuilder<GreenNode>.GetInstance();
+                try
+                {
+                    stack.Push(node);
+
+                    while (stack.Count > 0)
+                    {
+                        var current = stack.Pop();
+                        if (!current.ContainsDiagnostics)
+                            continue;
+
+                        foreach (var diagnostic in current.GetDiagnostics())
+                        {
+                            if (diagnostic.Severity == DiagnosticSeverity.Error)
+                                return true;
+                        }
+
+                        foreach (var child in current.ChildNodesAndTokens())
+                            stack.Push(child);
+                    }
+                }
+                finally
+                {
+                    stack.Free();
+                }
+            }
+
+            return false;
         }
     }
 }
