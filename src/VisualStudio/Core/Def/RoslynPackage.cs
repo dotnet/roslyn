@@ -152,7 +152,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // Ensure the options persisters are loaded since we have to fetch options from the shell
             LoadOptionPersistersAsync(this.ComponentModel, cancellationToken).Forget();
 
+            // Explicitly switch to background so we do the MEF loads off of the UI thread.
+            await TaskScheduler.Default;
             _workspace = this.ComponentModel.GetService<VisualStudioWorkspace>();
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             await InitializeColorsAsync(cancellationToken).ConfigureAwait(true);
 
