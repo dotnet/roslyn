@@ -1286,8 +1286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return parentDepth + 1;
                 }
 
-                if (node.Parent is InitializerExpressionSyntax ||
-                    node is { Parent: AnonymousObjectMemberDeclaratorSyntax } ||
+                if (node is { Parent: InitializerExpressionSyntax or AnonymousObjectMemberDeclaratorSyntax } ||
                     node is AssignmentExpressionSyntax { Parent: InitializerExpressionSyntax })
                 {
                     if (!IsSingleLineInitializerContext(node.Parent))
