@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -38,10 +39,10 @@ namespace Microsoft.CodeAnalysis.Completion
         private bool _suppressPartialSemantics;
 
         // Prevent inheritance outside of Roslyn.
-        internal CompletionService(SolutionServices services)
+        internal CompletionService(SolutionServices services, IAsynchronousOperationListenerProvider listenerProvider)
         {
             _services = services;
-            _providerManager = new(this);
+            _providerManager = new(this, listenerProvider);
         }
 
         /// <summary>
@@ -334,14 +335,14 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Don't call. Used for pre-populating MEF providers only.
         /// </summary>
-        internal IReadOnlyList<Lazy<CompletionProvider, CompletionProviderMetadata>> GetLazyImportedProviders()
-            => _providerManager.GetLazyImportedProviders();
+        internal void LoadImportedProviders()
+            => _providerManager.LoadProviders();
 
         /// <summary>
-        /// Don't call. Used for pre-populating NuGet providers only.
+        /// Don't call. Used for pre-load project providers only.
         /// </summary>
-        internal static ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project project)
-            => ProviderManager.GetProjectCompletionProviders(project);
+        internal void TriggerLoadProjectProviders(Project project)
+                => _providerManager.GetCachedProjectCompletionProvidersOrQueueLoadInBackground(project);
 
         internal CompletionProvider? GetProvider(CompletionItem item, Project? project)
             => _providerManager.GetProvider(item, project);
@@ -356,10 +357,13 @@ namespace Microsoft.CodeAnalysis.Completion
             public TestAccessor(CompletionService completionServiceWithProviders)
                 => _completionServiceWithProviders = completionServiceWithProviders;
 
-            internal ImmutableArray<CompletionProvider> GetAllProviders(ImmutableHashSet<string> roles, Project? project = null)
-                => _completionServiceWithProviders._providerManager.GetTestAccessor().GetProviders(roles, project);
+            public ImmutableArray<CompletionProvider> GetImportedAndBuiltInProviders(ImmutableHashSet<string> roles)
+                => _completionServiceWithProviders._providerManager.GetTestAccessor().GetImportedAndBuiltInProviders(roles);
 
-            internal async Task<CompletionContext> GetContextAsync(
+            public Task<ImmutableArray<CompletionProvider>> GetProjectProvidersAsync(Project project)
+                => _completionServiceWithProviders._providerManager.GetTestAccessor().GetProjectProvidersAsync(project);
+
+            public async Task<CompletionContext> GetContextAsync(
                 CompletionProvider provider,
                 Document document,
                 int position,

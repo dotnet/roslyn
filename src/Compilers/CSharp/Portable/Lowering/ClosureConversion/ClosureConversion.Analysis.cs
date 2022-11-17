@@ -478,7 +478,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         currentScope = parentScope;
                     }
 
-
                     if (bestScope == scope) // no better scope was found, so continue
                         continue;
 

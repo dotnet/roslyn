@@ -13,13 +13,18 @@ using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
 {
     public class RunCodeActionsTests : AbstractLanguageServerProtocolTests
     {
-        [WpfFact]
+        public RunCodeActionsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/65303")]
         public async Task TestRunCodeActions()
         {
             var markup =

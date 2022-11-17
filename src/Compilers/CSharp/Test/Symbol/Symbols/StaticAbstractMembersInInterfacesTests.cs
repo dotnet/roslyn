@@ -9671,7 +9671,6 @@ class C<T>
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
-
             if (op == "==")
             {
                 verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, C<T>>)",
@@ -12059,7 +12058,6 @@ class Test
                                              targetFramework: _supportingFramework);
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
-
 
             if (op == "==")
             {
@@ -14839,13 +14837,6 @@ class Test
 
         private static bool Execute(bool isVirtual)
         {
-#if !NET7_0_OR_GREATER
-            if (isVirtual)
-            {
-                return false;
-            }
-#endif
-
             return ExecutionConditionUtil.IsMonoOrCoreClr;
         }
 
@@ -16935,8 +16926,6 @@ public class C1<T> : I1<T>
 " + (genericFirst ? generic + nonGeneric : nonGeneric + generic) + @"
 }
 ";
-
-
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -19753,7 +19742,6 @@ partial " + typeKeyword + @"
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-
             var tree = compilation1.SyntaxTrees.Single();
             var model = compilation1.GetSemanticModel(tree);
             var node = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Where(l => l.ToString() == "default").First();
@@ -19842,7 +19830,6 @@ partial " + typeKeyword + @"
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
-
 
             var tree = compilation1.SyntaxTrees.Single();
             var model = compilation1.GetSemanticModel(tree);
@@ -21364,7 +21351,6 @@ public class C3 : C2, I1
 {
 }
 ";
-
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
@@ -24724,7 +24710,6 @@ class C3 : I2
                 Assert.Equal("System.Int32 modopt(I2) C3.I2.M01.get", c3M01Get.ToTestDisplayString());
                 Assert.Same(m01.GetMethod, c3M01Get.ExplicitInterfaceImplementations.Single());
                 Assert.Same(c3M01Get, c3.FindImplementationForInterfaceMember(m01.GetMethod));
-
 
                 Assert.True(c3M01Set.IsStatic);
                 Assert.False(c3M01Set.IsAbstract);
@@ -30427,7 +30412,6 @@ class C<T>
                                              targetFramework: _supportingFramework);
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
-
 
             if (op == "==")
             {

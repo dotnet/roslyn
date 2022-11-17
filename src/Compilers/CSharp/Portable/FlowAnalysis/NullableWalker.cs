@@ -1154,7 +1154,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-
         private void ReportParameterIfBadConditionalState(SyntaxNode syntax, ParameterSymbol parameter, bool sense, LocalState stateWhen)
         {
             if (parameterHasBadConditionalState(parameter, sense, stateWhen))
@@ -2846,6 +2845,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitLocal(BoundLocal node)
         {
             var local = node.LocalSymbol;
+
+            // Ignore var self-references (e.g., the RHS of `var x = x;`) to avoid cycles.
+            // While inferring the type of a more complex construct (like lambda),
+            // nullability analysis could be triggered against a reference of the local being inferred,
+            // querying its type and hence starting the same type inference recursively.
+            if (local is SourceLocalSymbol { IsVar: true } && local.ForbiddenZone?.Contains(node.Syntax) == true)
+            {
+                SetResultType(node, TypeWithState.ForType(node.Type));
+                return null;
+            }
+
             int slot = GetOrCreateSlot(local);
             var type = GetDeclaredLocalResult(local);
 
@@ -5382,7 +5392,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultType = BestTypeInferrer.InferBestTypeForConditionalOperator(consequencePlaceholder, alternativePlaceholder, _conversions, out _, ref discardedUseSiteInfo);
             }
 
-
             resultType ??= node.Type?.SetUnknownNullabilityForReferenceTypes();
 
             TypeWithAnnotations resultTypeWithAnnotations;
@@ -5406,7 +5415,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 resultTypeWithAnnotations = TypeWithAnnotations.Create(resultType);
             }
-
 
             TypeWithState typeWithState = convertArms(
                                                 node, originalConsequence, originalAlternative, consequenceState, alternativeState, consequenceRValue, alternativeRValue,

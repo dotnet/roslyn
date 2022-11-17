@@ -16,7 +16,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\CSharpAddAccessibilityModifiersCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\CSharpAddAccessibilityModifiersService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\CSharpAddBracesCodeFixProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\AddExplicitCastCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\CSharpAddExplicitCastCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\ArgumentFixer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\AttributeArgumentFixer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddInheritdoc\AddInheritdocCodeFixProvider.cs" />
@@ -82,6 +82,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\MultiLineConditionalExpressionFormattingRule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseDeconstruction\CSharpUseDeconstructionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\UseIsNullCheckHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndMemberAccessCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseTupleSwap\CSharpUseTupleSwapCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseDefaultLiteral\CSharpUseDefaultLiteralCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\UseExpressionBodyCodeFixProvider.cs" />

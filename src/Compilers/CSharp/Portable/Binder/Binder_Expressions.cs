@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder initializerBinder = this.GetBinder(initializerOpt);
             Debug.Assert(initializerBinder != null);
 
-            BoundExpression result = initializerBinder.BindVariableOrAutoPropInitializerValue(initializerOpt, RefKind.None,
+            BoundExpression result = initializerBinder.BindVariableOrAutoPropInitializerValue(initializerOpt, field.RefKind,
                                                            field.GetFieldType(initializerBinder.FieldsBeingBound).Type, diagnostics);
 
             return new BoundFieldEqualsValue(initializerOpt, field, initializerBinder.GetDeclaredLocalsForScope(initializerOpt), result);
@@ -889,7 +889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isVar;
             bool isConst = false;
             AliasSymbol alias;
-            var declType = BindVariableTypeWithAnnotations(node.Designation, diagnostics, node.Type, ref isConst, out isVar, out alias);
+            var declType = BindVariableTypeWithAnnotations(node.Designation, diagnostics, node.Type.SkipScoped(out _).SkipRef(out _), ref isConst, out isVar, out alias);
             Error(diagnostics, ErrorCode.ERR_DeclarationExpressionNotPermitted, node);
             return BindDeclarationVariablesForErrorRecovery(declType, node.Designation, node, diagnostics);
         }
@@ -2792,16 +2792,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSyntax typeSyntax = declarationExpression.Type;
             VariableDesignationSyntax designation = declarationExpression.Designation;
 
-            Debug.Assert(typeSyntax is not ScopedTypeSyntax);
-            if (typeSyntax.SkipScoped(out _).GetRefKind() != RefKind.None)
-            {
-                diagnostics.Add(ErrorCode.ERR_OutVariableCannotBeByRef, declarationExpression.Type.Location);
-            }
-
             switch (designation.Kind())
             {
                 case SyntaxKind.DiscardDesignation:
                     {
+                        if (typeSyntax is ScopedTypeSyntax scopedType)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ScopedDiscard, scopedType.ScopedKeyword.GetLocation());
+                            typeSyntax = scopedType.Type;
+                        }
+
+                        if (typeSyntax is RefTypeSyntax refType)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_OutVariableCannotBeByRef, refType.Location);
+                            typeSyntax = refType.Type;
+                        }
+
                         bool isVar;
                         bool isConst = false;
                         AliasSymbol alias;
@@ -2831,6 +2837,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             SourceLocalSymbol localSymbol = this.LookupLocal(designation.Identifier);
             if ((object)localSymbol != null)
             {
+                if (typeSyntax is ScopedTypeSyntax scopedType)
+                {
+                    // Check for support for 'scoped'.
+                    ModifierUtils.CheckScopedModifierAvailability(typeSyntax, scopedType.ScopedKeyword, diagnostics);
+                    typeSyntax = scopedType.Type;
+                }
+
+                if (typeSyntax is RefTypeSyntax refType)
+                {
+                    diagnostics.Add(ErrorCode.ERR_OutVariableCannotBeByRef, refType.Location);
+                    typeSyntax = refType.Type;
+                }
+
                 Debug.Assert(localSymbol.DeclarationKind == LocalDeclarationKind.OutVariable);
                 if ((InConstructorInitializer || InFieldInitializer) && ContainingMemberOrLambda.ContainingSymbol.Kind == SymbolKind.NamedType)
                 {
@@ -2850,38 +2869,57 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declType.Type, diagnostics, typeSyntax);
 
+                if (localSymbol.Scope == DeclarationScope.ValueScoped && !declType.Type.IsErrorTypeOrRefLikeType())
+                {
+                    diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
+                }
+
                 return new BoundLocal(declarationExpression, localSymbol, BoundLocalDeclarationKind.WithExplicitType, constantValueOpt: null, isNullableUnknown: false, type: declType.Type);
             }
-
-            // Is this a field?
-            GlobalExpressionVariable expressionVariableField = LookupDeclaredField(designation);
-
-            if ((object)expressionVariableField == null)
+            else
             {
-                // We should have the right binder in the chain, cannot continue otherwise.
-                throw ExceptionUtilities.Unreachable();
-            }
+                // Is this a field?
+                GlobalExpressionVariable expressionVariableField = LookupDeclaredField(designation);
 
-            BoundExpression receiver = SynthesizeReceiver(designation, expressionVariableField, diagnostics);
-
-            if (typeSyntax.IsVar)
-            {
-                BindTypeOrAliasOrVarKeyword(typeSyntax, BindingDiagnosticBag.Discarded, out isVar);
-
-                if (isVar)
+                if ((object)expressionVariableField == null)
                 {
-                    return new OutVariablePendingInference(declarationExpression, expressionVariableField, receiver);
+                    // We should have the right binder in the chain, cannot continue otherwise.
+                    throw ExceptionUtilities.Unreachable();
                 }
-            }
 
-            TypeSymbol fieldType = expressionVariableField.GetFieldType(this.FieldsBeingBound).Type;
-            return new BoundFieldAccess(declarationExpression,
-                                        receiver,
-                                        expressionVariableField,
-                                        null,
-                                        LookupResultKind.Viable,
-                                        isDeclaration: true,
-                                        type: fieldType);
+                BoundExpression receiver = SynthesizeReceiver(designation, expressionVariableField, diagnostics);
+
+                if (typeSyntax is ScopedTypeSyntax scopedType)
+                {
+                    diagnostics.Add(ErrorCode.ERR_UnexpectedToken, scopedType.ScopedKeyword.GetLocation(), scopedType.ScopedKeyword.ValueText);
+                    typeSyntax = scopedType.Type;
+                }
+
+                if (typeSyntax is RefTypeSyntax refType)
+                {
+                    diagnostics.Add(ErrorCode.ERR_UnexpectedToken, refType.RefKeyword.GetLocation(), refType.RefKeyword.ValueText);
+                    typeSyntax = refType.Type;
+                }
+
+                if (typeSyntax.IsVar)
+                {
+                    BindTypeOrAliasOrVarKeyword(typeSyntax, BindingDiagnosticBag.Discarded, out isVar);
+
+                    if (isVar)
+                    {
+                        return new OutVariablePendingInference(declarationExpression, expressionVariableField, receiver);
+                    }
+                }
+
+                TypeSymbol fieldType = expressionVariableField.GetFieldType(this.FieldsBeingBound).Type;
+                return new BoundFieldAccess(declarationExpression,
+                                            receiver,
+                                            expressionVariableField,
+                                            null,
+                                            LookupResultKind.Viable,
+                                            isDeclaration: true,
+                                            type: fieldType);
+            }
         }
 
         /// <summary>
@@ -4386,6 +4424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!hasErrors)
                 {
                     CheckValidScopedMethodConversion(unboundLambda.Syntax, boundLambda.Symbol, type, invokedAsExtensionMethod: false, diagnostics);
+                    CheckLambdaConversion(boundLambda.Symbol, type, diagnostics);
                 }
 
                 // Just stuff the bound lambda into the delegate creation expression. When we lower the lambda to
@@ -5509,7 +5548,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return result;
                 }
             }
-
 
             if (TryPerformConstructorOverloadResolution(
                     type,
@@ -8875,11 +8913,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var parameters = method.Parameters;
-            var parameterScopes = parameters.Any(p => p.EffectiveScope != DeclarationScope.Unscoped) ?
-                parameters.SelectAsArray(p => p.EffectiveScope) :
-                default;
-            return GetMethodGroupOrLambdaDelegateType(node.Syntax, method.RefKind, method.ReturnTypeWithAnnotations, method.ParameterRefKinds, parameterScopes, method.ParameterTypesWithAnnotations);
+            return GetMethodGroupOrLambdaDelegateType(node.Syntax, method);
         }
 
         /// <summary>
@@ -8895,6 +8929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (node.ReceiverOpt)
                 {
                     case BoundTypeExpression:
+                    case null: // if `using static Class` is in effect, the receiver is missing
                         if (!m.IsStatic) continue;
                         break;
                     case BoundThisReference { WasCompilerGenerated: true }:
@@ -8961,15 +8996,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         // This method was adapted from LoweredDynamicOperationFactory.GetDelegateType().
         internal NamedTypeSymbol? GetMethodGroupOrLambdaDelegateType(
             SyntaxNode syntax,
-            RefKind returnRefKind,
-            TypeWithAnnotations returnType,
-            ImmutableArray<RefKind> parameterRefKinds,
-            ImmutableArray<DeclarationScope> parameterScopes,
-            ImmutableArray<TypeWithAnnotations> parameterTypes)
+            MethodSymbol methodSymbol,
+            ImmutableArray<DeclarationScope>? parameterScopesOverride = null,
+            RefKind? returnRefKindOverride = null,
+            TypeWithAnnotations? returnTypeOverride = null)
         {
+            var parameters = methodSymbol.Parameters;
+            var parameterRefKinds = methodSymbol.ParameterRefKinds;
+            var parameterTypes = methodSymbol.ParameterTypesWithAnnotations;
+            var returnType = returnTypeOverride ?? methodSymbol.ReturnTypeWithAnnotations;
+            var returnRefKind = returnRefKindOverride ?? methodSymbol.RefKind;
+            var parameterScopes = parameterScopesOverride ??
+                (parameters.Any(p => p.EffectiveScope != DeclarationScope.Unscoped) ?
+                parameters.SelectAsArray(p => p.EffectiveScope) :
+                default);
+            var parameterDefaultValues = parameters.Any(p => p.HasExplicitDefaultValue) ?
+                parameters.SelectAsArray(p => p.ExplicitDefaultConstantValue) :
+                default;
+            var hasParamsArray = parameters is [.., { IsParams: true }];
+
             Debug.Assert(ContainingMemberOrLambda is { });
             Debug.Assert(parameterRefKinds.IsDefault || parameterRefKinds.Length == parameterTypes.Length);
+            Debug.Assert(parameterDefaultValues.IsDefault || parameterDefaultValues.Length == parameterTypes.Length);
             Debug.Assert(returnType.Type is { }); // Expecting System.Void rather than null return type.
+            Debug.Assert(!hasParamsArray || parameterTypes.Length != 0);
 
             bool returnsVoid = returnType.Type.IsVoidType();
             var typeArguments = returnsVoid ? parameterTypes : parameterTypes.Add(returnType);
@@ -8987,7 +9037,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Use System.Action<...> or System.Func<...> if possible.
-            if (returnRefKind == RefKind.None &&
+            if (!hasParamsArray &&
+                returnRefKind == RefKind.None &&
+                parameterDefaultValues.IsDefault &&
                 (parameterRefKinds.IsDefault || parameterRefKinds.All(refKind => refKind == RefKind.None)) &&
                 (parameterScopes.IsDefault || parameterScopes.All(scope => scope == DeclarationScope.Unscoped)))
             {
@@ -9022,7 +9074,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         location,
                         parameterTypes[i],
                         parameterRefKinds.IsDefault ? RefKind.None : parameterRefKinds[i],
-                        parameterScopes.IsDefault ? DeclarationScope.Unscoped : parameterScopes[i]));
+                        parameterScopes.IsDefault ? DeclarationScope.Unscoped : parameterScopes[i],
+                        parameterDefaultValues.IsDefault ? null : parameterDefaultValues[i],
+                        isParams: hasParamsArray && i == parameterTypes.Length - 1)
+                    );
             }
             fieldsBuilder.Add(new AnonymousTypeField(name: "", location, returnType, returnRefKind, DeclarationScope.Unscoped));
 

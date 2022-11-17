@@ -83,7 +83,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                    (includeConstants AndAlso Not init.ConstantValueOpt.IsDefaultValue)
         End Function
 
-
         ''' <summary>
         ''' To handle array initialization of arbitrary rank it is convenient to 
         ''' approach multidimensional initialization as a recursively nested.

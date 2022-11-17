@@ -197,7 +197,6 @@ End Namespace
                                          Diagnostic("GEN001").WithLocation(1, 1),
                                          Diagnostic("GEN002").WithLocation(1, 1))
 
-
             Dim warnings As IDictionary(Of String, ReportDiagnostic) = New Dictionary(Of String, ReportDiagnostic)()
             warnings.Add("GEN001", ReportDiagnostic.Suppress)
             VerifyDiagnosticsWithOptions(gen, compilation.WithOptions(compilation.Options.WithSpecificDiagnosticOptions(warnings)),
@@ -350,7 +349,6 @@ End Class
         End Sub
     End Class
 
-
     <Generator(LanguageNames.VisualBasic)>
     Friend Class VBGenerator
         Implements ISourceGenerator
@@ -416,7 +414,6 @@ End Class
         Public Sub Execute(context As GeneratorExecutionContext) Implements ISourceGenerator.Execute
             _sourceExecuted = True
         End Sub
-
 
     End Class
 

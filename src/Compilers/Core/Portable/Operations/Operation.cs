@@ -30,16 +30,9 @@ namespace Microsoft.CodeAnalysis
 #if DEBUG
             if (semanticModel != null)
             {
-                Debug.Assert(semanticModel.ContainingModelOrSelf != null);
-                if (semanticModel.IsSpeculativeSemanticModel)
-                {
-                    Debug.Assert(semanticModel.ContainingModelOrSelf == semanticModel);
-                }
-                else
-                {
-                    Debug.Assert(semanticModel.ContainingModelOrSelf != semanticModel);
-                    Debug.Assert(semanticModel.ContainingModelOrSelf.ContainingModelOrSelf == semanticModel.ContainingModelOrSelf);
-                }
+                Debug.Assert(semanticModel.ContainingPublicModelOrSelf != null);
+                Debug.Assert(semanticModel.ContainingPublicModelOrSelf != semanticModel);
+                Debug.Assert(semanticModel.ContainingPublicModelOrSelf.ContainingPublicModelOrSelf == semanticModel.ContainingPublicModelOrSelf);
             }
 #endif
             _owningSemanticModelOpt = semanticModel;
@@ -128,7 +121,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal abstract (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex);
 
-        SemanticModel? IOperation.SemanticModel => _owningSemanticModelOpt?.ContainingModelOrSelf;
+        SemanticModel? IOperation.SemanticModel => _owningSemanticModelOpt?.ContainingPublicModelOrSelf;
 
         /// <summary>
         /// Gets the owning semantic model for this operation node.

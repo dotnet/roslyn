@@ -2922,7 +2922,6 @@ class classAttribute : System.Attribute { }
                 "classAttribute",
                 SymbolDisplayPartKind.ClassName);
 
-
             TestSymbolDescription(text, findSymbol,
                 new SymbolDisplayFormat(miscellaneousOptions: SymbolDisplayMiscellaneousOptions.RemoveAttributeSuffix),
                 "classAttribute",
@@ -6597,7 +6596,6 @@ enum E : long
                 SymbolDisplayPartKind.NumericLiteral);
         }
 
-
         [Fact]
         public void TestRefStructs()
         {
@@ -7588,7 +7586,6 @@ class C
                 SymbolDisplayPartKind.ClassName);
         }
 
-
         [Fact]
         public void StructConstructorDeclaration()
         {
@@ -8030,7 +8027,7 @@ class C
             Verify(type.ToDisplayParts(), "<anonymous delegate>",
                 SymbolDisplayPartKind.DelegateName);
 
-            Verify(type.ToDisplayParts(s_fullDelegateFormat), "delegate string <anonymous delegate>(ref int)",
+            Verify(type.ToDisplayParts(s_fullDelegateFormat), "delegate string <anonymous delegate>(ref int arg)",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
@@ -8040,6 +8037,8 @@ class C
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
                 SymbolDisplayPartKind.Punctuation);
         }
 

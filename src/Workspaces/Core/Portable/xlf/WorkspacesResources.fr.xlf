@@ -237,9 +237,19 @@
         <target state="translated">La solution contient déjà la référence spécifiée.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unexpected_value_0_in_DocumentKinds_array">
+        <source>Unexpected value '{0}' in DocumentKinds array.</source>
+        <target state="new">Unexpected value '{0}' in DocumentKinds array.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unknown">
         <source>Unknown</source>
         <target state="translated">Inconnue</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_TextDocument_property_instead_of_Document_property_as_the_provider_supports_non_source_text_documents">
+        <source>Use 'TextDocument' property instead of 'Document' property as the provider supports non-source text documents.</source>
+        <target state="new">Use 'TextDocument' property instead of 'Document' property as the provider supports non-source text documents.</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_files">

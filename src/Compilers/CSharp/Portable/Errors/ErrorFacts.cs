@@ -521,6 +521,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_RefAssignReturnOnly:
                 case ErrorCode.WRN_RefReturnOnlyParameter:
                 case ErrorCode.WRN_RefReturnOnlyParameter2:
+                case ErrorCode.WRN_RefAssignValEscapeWider:
+                case ErrorCode.WRN_OptionalParamValueMismatch:
+                case ErrorCode.WRN_ParamsArrayInLambdaOnly:
                     return 1;
                 default:
                     return 0;
@@ -1819,6 +1822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InvalidObjectCreation:
                 case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
                 case ErrorCode.ERR_OutVariableCannotBeByRef:
+                case ErrorCode.ERR_DeconstructVariableCannotBeByRef:
                 case ErrorCode.ERR_OmittedTypeArgument:
                 case ErrorCode.ERR_FeatureNotAvailableInVersion8:
                 case ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable:
@@ -2218,6 +2222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_BadAbstractEqualityOperatorSignature:
                 case ErrorCode.ERR_BadBinaryReadOnlySpanConcatenation:
                 case ErrorCode.ERR_ScopedRefAndRefStructOnly:
+                case ErrorCode.ERR_ScopedDiscard:
                 case ErrorCode.ERR_FixedFieldMustNotBeRef:
                 case ErrorCode.ERR_RefFieldCannotReferToRefStruct:
                 case ErrorCode.ERR_FileTypeDisallowedInSignature:
@@ -2231,6 +2236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
                 case ErrorCode.ERR_CannotMatchOnINumberBase:
                 case ErrorCode.ERR_ScopedTypeNameDisallowed:
+                case ErrorCode.ERR_ImplicitlyTypedDefaultParameter:
                 case ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget:
                 case ErrorCode.ERR_RuntimeDoesNotSupportRefFields:
                 case ErrorCode.ERR_ExplicitScopedRef:
@@ -2263,6 +2269,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_RefAssignReturnOnly:
                 case ErrorCode.WRN_RefReturnOnlyParameter:
                 case ErrorCode.WRN_RefReturnOnlyParameter2:
+                case ErrorCode.ERR_RefAssignValEscapeWider:
+                case ErrorCode.WRN_RefAssignValEscapeWider:
+                case ErrorCode.WRN_OptionalParamValueMismatch:
+                case ErrorCode.WRN_ParamsArrayInLambdaOnly:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

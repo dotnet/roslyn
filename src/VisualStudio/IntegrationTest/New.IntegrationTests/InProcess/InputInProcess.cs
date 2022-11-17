@@ -9,10 +9,13 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using WindowsInput;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
@@ -81,19 +84,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             });
         }
 
-        internal Task SendToNavigateToAsync(params InputKey[] keys)
-        {
-            return SendToNavigateToAsync(
-                simulator =>
-                {
-                    foreach (var key in keys)
-                    {
-                        key.Apply(simulator);
-                    }
-                });
-        }
-
-        internal async Task SendToNavigateToAsync(Action<IInputSimulator> callback)
+        internal async Task SendToNavigateToAsync(InputKey[] keys, CancellationToken cancellationToken)
         {
             // AbstractSendKeys runs synchronously, so switch to a background thread before the call
             await TaskScheduler.Default;
@@ -102,16 +93,39 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             TestServices.JoinableTaskFactory.Run(async () =>
             {
                 await TestServices.JoinableTaskFactory.SwitchToMainThreadAsync();
-                var searchBox = Assert.IsAssignableFrom<TextBox>(Keyboard.FocusedElement);
-                Assert.Equal("PART_SearchBox", searchBox.Name);
+                var searchBox = Assert.IsAssignableFrom<Control>(Keyboard.FocusedElement);
+                // Validate the focused control against the "old" search experience as well as the 
+                // all-in-one search experience.
+                Assert.Contains(searchBox.Name, new[] { "PART_SearchBox", "SearchBoxControl" });
             });
 
-            callback(new InputSimulator());
+            var inputSimulator = new InputSimulator();
+            foreach (var key in keys)
+            {
+                // If it is enter key, we need to wait for search item shows up in the search dialog.
+                if (key.VirtualKeyCode == VirtualKeyCode.RETURN)
+                {
+                    await WaitNavigationItemShowsUpAsync(cancellationToken);
+                }
+
+                key.Apply(inputSimulator);
+
+            }
 
             TestServices.JoinableTaskFactory.Run(async () =>
             {
-                await WaitForApplicationIdleAsync(CancellationToken.None);
+                await WaitForApplicationIdleAsync(cancellationToken);
             });
+        }
+
+        private async Task WaitNavigationItemShowsUpAsync(CancellationToken cancellationToken)
+        {
+            // Wait for the NavigateTo Features completes on Roslyn side.
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.NavigateTo }, cancellationToken);
+            // Since the all-in-one search experience populates its results asychronously we need
+            // to give it time to update the UI. Note: This is not a perfect solution.
+            await Task.Delay(1000);
+            await WaitForApplicationIdleAsync(cancellationToken);
         }
 
         internal async Task MoveMouseAsync(Point point, CancellationToken cancellationToken)

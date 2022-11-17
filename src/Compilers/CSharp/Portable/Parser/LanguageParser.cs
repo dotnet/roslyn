@@ -2546,7 +2546,7 @@ parse_member_name:;
                         return this.ParseOperatorDeclaration(attributes, modifiers, type, explicitInterfaceOpt);
                     }
 
-                    if ((!typeIsRef || !IsScript) && IsFieldDeclaration(isEvent: false))
+                    if ((!typeIsRef || !IsScript) && IsFieldDeclaration(isEvent: false, isGlobalScriptLevel: true))
                     {
                         var saveTerm = _termState;
 
@@ -2584,6 +2584,15 @@ parse_member_name:;
                     TypeParameterListSyntax typeParameterListOpt;
                     this.ParseMemberName(out explicitInterfaceOpt, out identifierOrThisOpt, out typeParameterListOpt, isEvent: false);
 
+                    if (!haveModifiers && !haveAttributes && !IsScript &&
+                        explicitInterfaceOpt == null && identifierOrThisOpt == null && typeParameterListOpt == null &&
+                        !type.IsMissing && type.Kind != SyntaxKind.RefType &&
+                        !isFollowedByPossibleUsingDirective() &&
+                        tryParseLocalDeclarationStatementFromStartPoint<LocalDeclarationStatementSyntax>(attributes, ref afterAttributesPoint, out result))
+                    {
+                        return result;
+                    }
+
                     // First, check if we got absolutely nothing.  If so, then 
                     // We need to consume a bad member and try again.
                     if (IsNoneOrIncompleteMember(parentKind, attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt, out result))
@@ -2614,13 +2623,22 @@ parse_member_name:;
                         return result;
                     }
 
-                    // treat anything else as a method.
-
-                    if (!IsScript && explicitInterfaceOpt is null &&
-                        tryParseLocalDeclarationStatementFromStartPoint<LocalFunctionStatementSyntax>(attributes, ref afterAttributesPoint, out result))
+                    if (!IsScript)
                     {
-                        return result;
+                        if (explicitInterfaceOpt is null &&
+                            tryParseLocalDeclarationStatementFromStartPoint<LocalFunctionStatementSyntax>(attributes, ref afterAttributesPoint, out result))
+                        {
+                            return result;
+                        }
+
+                        if (!haveModifiers &&
+                            tryParseStatement(attributes, ref afterAttributesPoint, out result))
+                        {
+                            return result;
+                        }
                     }
+
+                    // treat anything else as a method.
 
                     return this.ParseMethodDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
                 }
@@ -2650,6 +2668,43 @@ parse_member_name:;
                 {
                     result = CheckTopLevelStatementsFeatureAvailability(_syntaxFactory.GlobalStatement(declaration));
                     return true;
+                }
+
+                result = null;
+                return false;
+            }
+
+            bool tryParseStatement(SyntaxList<AttributeListSyntax> attributes, ref ResetPoint afterAttributesPoint, out MemberDeclarationSyntax result)
+            {
+                var resetOnFailurePoint = this.GetResetPoint();
+                try
+                {
+                    this.Reset(ref afterAttributesPoint);
+
+                    if (this.IsPossibleStatement(acceptAccessibilityMods: false))
+                    {
+                        var saveTerm = _termState;
+                        _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
+                        bool wasInAsync = IsInAsync;
+                        IsInAsync = true; // We are implicitly in an async context
+
+                        var statement = this.ParseStatementCore(attributes, isGlobal: true);
+
+                        IsInAsync = wasInAsync;
+                        _termState = saveTerm;
+
+                        if (statement is not null)
+                        {
+                            result = CheckTopLevelStatementsFeatureAvailability(_syntaxFactory.GlobalStatement(statement));
+                            return true;
+                        }
+                    }
+
+                    this.Reset(ref resetOnFailurePoint);
+                }
+                finally
+                {
+                    this.Release(ref resetOnFailurePoint);
                 }
 
                 result = null;
@@ -2699,6 +2754,32 @@ parse_member_name:;
                     default:
                         return true;
                 }
+            }
+
+            bool isFollowedByPossibleUsingDirective()
+            {
+                if (CurrentToken.Kind == SyntaxKind.UsingKeyword)
+                {
+                    return !IsPossibleTopLevelUsingLocalDeclarationStatement();
+                }
+
+                if (CurrentToken.ContextualKind == SyntaxKind.GlobalKeyword && this.PeekToken(1).Kind == SyntaxKind.UsingKeyword)
+                {
+                    var resetPoint = this.GetResetPoint();
+                    try
+                    {
+                        // Skip 'global' keyword
+                        EatToken();
+                        return !IsPossibleTopLevelUsingLocalDeclarationStatement();
+                    }
+                    finally
+                    {
+                        this.Reset(ref resetPoint);
+                        this.Release(ref resetPoint);
+                    }
+                }
+
+                return false;
             }
         }
 
@@ -2798,17 +2879,21 @@ parse_member_name:;
                 return true;
             }
 
-            switch (this.CurrentToken.Kind)
+            // `{` or `=>` definitely start a property.  Also allow
+            // `; {` and `; =>` as error recovery for a misplaced semicolon.
+            if (IsStartOfPropertyBody(this.CurrentToken.Kind) ||
+                (this.CurrentToken.Kind is SyntaxKind.SemicolonToken && IsStartOfPropertyBody(this.PeekToken(1).Kind)))
             {
-                case SyntaxKind.OpenBraceToken:
-                case SyntaxKind.EqualsGreaterThanToken:
-                    result = this.ParsePropertyDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
-                    return true;
+                result = this.ParsePropertyDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
+                return true;
             }
 
             result = null;
             return false;
         }
+
+        private static bool IsStartOfPropertyBody(SyntaxKind kind)
+            => kind is SyntaxKind.OpenBraceToken or SyntaxKind.EqualsGreaterThanToken;
 
         // Returns null if we can't parse anything (even partially).
         internal MemberDeclarationSyntax ParseMemberDeclaration(SyntaxKind parentKind)
@@ -2929,7 +3014,7 @@ parse_member_name:;
                         }
                     }
 
-                    if (IsFieldDeclaration(isEvent: false))
+                    if (IsFieldDeclaration(isEvent: false, isGlobalScriptLevel: false))
                     {
                         return this.ParseNormalFieldDeclaration(attributes, modifiers, type, parentKind);
                     }
@@ -3009,7 +3094,7 @@ parse_member_name:;
             return true;
         }
 
-        private bool IsFieldDeclaration(bool isEvent)
+        private bool IsFieldDeclaration(bool isEvent, bool isGlobalScriptLevel)
         {
             if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
             {
@@ -3028,13 +3113,24 @@ parse_member_name:;
             //   c) a property
             //   d) a method (unless we already know we're parsing an event)
             var kind = this.PeekToken(1).Kind;
+
+            // Error recovery, don't allow a misplaced semicolon after the name in a property to throw off the entire parse.
+            //
+            // e.g. `public int MyProperty; { get; set; }` should still be parsed as a property with a skipped token.
+            if (!isGlobalScriptLevel &&
+                kind == SyntaxKind.SemicolonToken &&
+                IsStartOfPropertyBody(this.PeekToken(2).Kind))
+            {
+                return false;
+            }
+
             switch (kind)
             {
                 case SyntaxKind.DotToken:                   // Goo.     explicit
                 case SyntaxKind.ColonColonToken:            // Goo::    explicit
                 case SyntaxKind.DotDotToken:                // Goo..    explicit
-                case SyntaxKind.LessThanToken:            // Goo<     explicit or generic method
-                case SyntaxKind.OpenBraceToken:        // Goo {    property
+                case SyntaxKind.LessThanToken:              // Goo<     explicit or generic method
+                case SyntaxKind.OpenBraceToken:             // Goo {    property
                 case SyntaxKind.EqualsGreaterThanToken:     // Goo =>   property
                     return false;
                 case SyntaxKind.OpenParenToken:             // Goo(     method
@@ -3851,10 +3947,14 @@ parse_member_name:;
                 identifier = this.AddError(identifier, ErrorCode.ERR_UnexpectedGenericName);
             }
 
-            // We know we are parsing a property because we have seen either an
-            // open brace or an arrow token
-            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken ||
-                         this.CurrentToken.Kind == SyntaxKind.OpenBraceToken);
+            // Error recovery: add an errant semicolon to the identifier token and keep going.
+            if (this.CurrentToken.Kind is SyntaxKind.SemicolonToken)
+            {
+                identifier = AddTrailingSkippedSyntax(identifier, this.EatTokenWithPrejudice(SyntaxKind.OpenBraceToken));
+            }
+
+            // We know we are parsing a property because we have seen either an open brace or an arrow token
+            Debug.Assert(IsStartOfPropertyBody(this.CurrentToken.Kind));
 
             AccessorListSyntax accessorList = null;
             if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
@@ -4781,7 +4881,7 @@ tryAgain:
             var eventToken = this.EatToken();
             var type = this.ParseType();
 
-            if (IsFieldDeclaration(isEvent: true))
+            if (IsFieldDeclaration(isEvent: true, isGlobalScriptLevel: parentKind == SyntaxKind.CompilationUnit))
             {
                 return this.ParseEventFieldDeclaration(attributes, modifiers, eventToken, type, parentKind);
             }
@@ -4913,7 +5013,7 @@ tryAgain:
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
             try
             {
-                this.ParseVariableDeclarators(type, flags: 0, variables: variables, parentKind: parentKind);
+                this.ParseVariableDeclarators(type, flags: VariableFlags.LocalOrField, variables: variables, parentKind: parentKind);
 
                 // Make 'scoped' part of the type when it is the last token in the modifiers list
                 if (modifiers.Count != 0 && modifiers[modifiers.Count - 1] is SyntaxToken { Kind: SyntaxKind.ScopedKeyword } scopedKeyword)
@@ -5081,7 +5181,7 @@ tryAgain:
         {
             Fixed = 0x01,
             Const = 0x02,
-            Local = 0x04
+            LocalOrField = 0x04
         }
 
         private static SyntaxTokenList GetOriginalModifiers(CSharp.CSharpSyntaxNode decl)
@@ -5150,7 +5250,7 @@ tryAgain:
 
             if (parent != null && (parent.Kind() == SyntaxKind.VariableDeclaration || parent.Kind() == SyntaxKind.LocalDeclarationStatement))
             {
-                flags |= VariableFlags.Local;
+                flags |= VariableFlags.LocalOrField;
             }
 
             return flags;
@@ -5284,7 +5384,7 @@ tryAgain:
             TerminatorState saveTerm = _termState;
             bool isFixed = (flags & VariableFlags.Fixed) != 0;
             bool isConst = (flags & VariableFlags.Const) != 0;
-            bool isLocal = (flags & VariableFlags.Local) != 0;
+            bool isLocalOrField = (flags & VariableFlags.LocalOrField) != 0;
 
             // Give better error message in the case where the user did something like:
             //
@@ -5308,7 +5408,7 @@ tryAgain:
                     var equals = this.EatToken();
 
                     SyntaxToken refKeyword = null;
-                    if (isLocal && !isConst &&
+                    if (isLocalOrField && !isConst &&
                         this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
                         // check for lambda expression with explicit ref return type: `ref int () => { ... }`
                         !this.IsPossibleLambdaExpression(Precedence.Expression)
@@ -8184,7 +8284,7 @@ done:;
                     }
                     else if (st == ScanTypeFlags.NullableType)
                     {
-                        return IsPossibleDeclarationStatementFollowingNullableType();
+                        return IsPossibleDeclarationStatementFollowingNullableType(isGlobalScriptLevel);
                     }
                 }
 
@@ -8250,9 +8350,9 @@ done:;
         }
 
         // Looks ahead for a declaration of a field, property or method declaration following a nullable type T?.
-        private bool IsPossibleDeclarationStatementFollowingNullableType()
+        private bool IsPossibleDeclarationStatementFollowingNullableType(bool isGlobalScriptLevel)
         {
-            if (IsFieldDeclaration(isEvent: false))
+            if (IsFieldDeclaration(isEvent: false, isGlobalScriptLevel))
             {
                 return IsPossibleFieldDeclarationFollowingNullableType();
             }
@@ -8268,7 +8368,11 @@ done:;
             }
 
             // looks like a property:
-            if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
+            //      T? Goo {
+            //
+            // Importantly, we don't consider `T? Goo =>` to be the start of a property.  This is because it's legal to write:
+            //      T ? Goo => Goo : Bar => Bar
+            if (this.CurrentToken.Kind is SyntaxKind.OpenBraceToken)
             {
                 return true;
             }
@@ -9261,7 +9365,7 @@ tryAgain:
 
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
 
-            var variable = ParseExpressionOrDeclaration(ParseTypeMode.Normal, feature: MessageID.IDS_FeatureTuples, permitTupleDesignation: true, permitScoped: true);
+            var variable = ParseExpressionOrDeclaration(ParseTypeMode.Normal, feature: MessageID.IDS_FeatureTuples, permitTupleDesignation: true);
             var @in = this.EatToken(SyntaxKind.InKeyword, ErrorCode.ERR_InExpected);
             if (!IsValidForeachVariable(variable))
             {
@@ -9280,7 +9384,6 @@ tryAgain:
                         CheckFeatureAvailability(decl.Type, MessageID.IDS_FeatureRefForEach),
                         decl.Designation);
                 }
-
 
                 if (decl.designation.Kind != SyntaxKind.ParenthesizedVariableDesignation)
                 {
@@ -9338,17 +9441,17 @@ tryAgain:
         //
         // See also ScanTypeArgumentList where these disambiguation rules are encoded.
         //
-        private ExpressionSyntax ParseExpressionOrDeclaration(ParseTypeMode mode, MessageID feature, bool permitTupleDesignation, bool permitScoped)
+        private ExpressionSyntax ParseExpressionOrDeclaration(ParseTypeMode mode, MessageID feature, bool permitTupleDesignation)
         {
             bool isScoped;
-            return IsPossibleDeclarationExpression(mode, permitTupleDesignation, permitScoped, out isScoped)
+            return IsPossibleDeclarationExpression(mode, permitTupleDesignation, out isScoped)
                 ? this.ParseDeclarationExpression(mode, feature, isScoped)
                 : this.ParseSubExpression(Precedence.Expression);
         }
 
-        private bool IsPossibleDeclarationExpression(ParseTypeMode mode, bool permitTupleDesignation, bool permitScoped, out bool isScoped)
+        private bool IsPossibleDeclarationExpression(ParseTypeMode mode, bool permitTupleDesignation, out bool isScoped)
         {
-            Debug.Assert(mode == ParseTypeMode.Normal || !permitScoped);
+            Debug.Assert(mode is ParseTypeMode.Normal or ParseTypeMode.FirstElementOfPossibleTupleLiteral or ParseTypeMode.AfterTupleComma);
             isScoped = false;
 
             if (this.IsInAsync && this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword)
@@ -9360,13 +9463,35 @@ tryAgain:
             var resetPoint = this.GetResetPoint();
             try
             {
-                if (permitScoped && this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword && mode == ParseTypeMode.Normal)
+                if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
                 {
                     this.EatToken();
                     if (ScanType() != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
                     {
-                        isScoped = true;
-                        return true;
+                        switch (mode)
+                        {
+                            case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
+                                if (this.PeekToken(1).Kind == SyntaxKind.CommaToken)
+                                {
+                                    isScoped = true;
+                                    return true;
+                                }
+                                break;
+
+                            case ParseTypeMode.AfterTupleComma:
+                                if (this.PeekToken(1).Kind is SyntaxKind.CommaToken or SyntaxKind.CloseParenToken)
+                                {
+                                    isScoped = true;
+                                    return true;
+                                }
+                                break;
+
+                            default:
+                                // The other case where we disambiguate between a declaration and expression is before the `in` of a foreach loop.
+                                // There we err on the side of accepting a declaration.
+                                isScoped = true;
+                                return true;
+                        }
                     }
 
                     this.Reset(ref resetPoint);
@@ -10130,7 +10255,7 @@ tryAgain:
         {
             type = allowLocalFunctions ? ParseReturnType() : this.ParseType();
 
-            VariableFlags flags = VariableFlags.Local;
+            VariableFlags flags = VariableFlags.LocalOrField;
             if (mods.Any((int)SyntaxKind.ConstKeyword))
             {
                 flags |= VariableFlags.Const;
@@ -11805,7 +11930,7 @@ tryAgain:
                 // that the ref/out of the argument must match the parameter when binding the argument list.
 
                 expression = (refKindKeyword?.Kind == SyntaxKind.OutKeyword)
-                    ? ParseExpressionOrDeclaration(ParseTypeMode.Normal, feature: MessageID.IDS_FeatureOutVar, permitTupleDesignation: false, permitScoped: false)
+                    ? ParseExpressionOrDeclaration(ParseTypeMode.Normal, feature: MessageID.IDS_FeatureOutVar, permitTupleDesignation: false)
                     : ParseSubExpression(Precedence.Expression);
             }
 
@@ -12108,7 +12233,7 @@ tryAgain:
                 {
                     this.Reset(ref resetPoint);
                     var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-                    var expression = this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, feature: 0, permitTupleDesignation: true, permitScoped: false);
+                    var expression = this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, feature: 0, permitTupleDesignation: true);
 
                     //  ( <expr>,    must be a tuple
                     if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
@@ -12121,7 +12246,7 @@ tryAgain:
                     if (expression.Kind == SyntaxKind.IdentifierName && this.CurrentToken.Kind == SyntaxKind.ColonToken)
                     {
                         var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
-                        expression = this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, feature: 0, permitTupleDesignation: true, permitScoped: false);
+                        expression = this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, feature: 0, permitTupleDesignation: true);
 
                         var firstArg = _syntaxFactory.Argument(nameColon, refKindKeyword: null, expression: expression);
                         return ParseTupleExpressionTail(openParen, firstArg);
@@ -12151,11 +12276,11 @@ tryAgain:
 
                     ArgumentSyntax arg;
 
-                    var expression = ParseExpressionOrDeclaration(ParseTypeMode.AfterTupleComma, feature: 0, permitTupleDesignation: true, permitScoped: false);
+                    var expression = ParseExpressionOrDeclaration(ParseTypeMode.AfterTupleComma, feature: 0, permitTupleDesignation: true);
                     if (expression.Kind == SyntaxKind.IdentifierName && this.CurrentToken.Kind == SyntaxKind.ColonToken)
                     {
                         var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
-                        expression = ParseExpressionOrDeclaration(ParseTypeMode.AfterTupleComma, feature: 0, permitTupleDesignation: true, permitScoped: false);
+                        expression = ParseExpressionOrDeclaration(ParseTypeMode.AfterTupleComma, feature: 0, permitTupleDesignation: true);
                         arg = _syntaxFactory.Argument(nameColon, refKindKeyword: null, expression: expression);
                     }
                     else
@@ -13498,24 +13623,13 @@ tryAgain:
             var identifier = this.ParseIdentifierToken();
             ParseParameterNullCheck(ref identifier, out var equalsToken);
 
-            // If we didn't already consume an equals sign as part of !!=, then try to scan one out now. Note: this is
-            // not legal code.  But we detect it so that we can give the user a good message, and so we don't go
-            // completely off the rails.
-            //
-            // Note: we add the `= value` as skipped trivia to either the identifier or `!!` (if we have the latter).
-            // This allows us to handle this code without ever showing it the binding phases.  We could consider
-            // actually binding this in the future if it would be helpful and if we're ok paying the testing cost of
-            // checking this at the semantic layers.
+            // Parse default value if any
             equalsToken ??= TryEatToken(SyntaxKind.EqualsToken);
+            var equalsValueClause = equalsToken == null
+                ? null
+                : _syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore());
 
-            if (equalsToken != null)
-            {
-                equalsToken = AddError(equalsToken, ErrorCode.ERR_DefaultValueNotAllowed);
-
-                identifier = AddTrailingSkippedSyntax(identifier, _syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore()));
-            }
-
-            var parameter = _syntaxFactory.Parameter(attributes, modifiers.ToList(), paramType, identifier, @default: null);
+            var parameter = _syntaxFactory.Parameter(attributes, modifiers.ToList(), paramType, identifier, @default: equalsValueClause);
             _pool.Free(modifiers);
             return parameter;
         }

@@ -337,7 +337,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected virtual void LeaveParameter(ParameterSymbol parameter, SyntaxNode syntax, Location location)
         { }
 
-
         public override BoundNode Visit(BoundNode node)
         {
             return VisitAlways(node);
@@ -1320,7 +1319,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isCall)
             {
                 Join(ref State, ref localFunctionState.StateFromBottom);
-                Meet(ref State, ref localFunctionState.StateFromTop);
+
+                if (!symbol.IsAsync)
+                {
+                    Meet(ref State, ref localFunctionState.StateFromTop);
+                }
             }
             localFunctionState.Visited = true;
         }

@@ -18,6 +18,14 @@ namespace RunTests
 
         internal static bool HasErrors => s_hasErrors;
 
+        internal static void LogWarning(string line)
+        {
+            lock (s_lines)
+            {
+                s_lines.Add($"Warning: {line}");
+            }
+        }
+
         internal static void LogError(Exception ex, string line)
         {
             lock (s_lines)

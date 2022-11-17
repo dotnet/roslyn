@@ -4779,22 +4779,26 @@ namespace System.Runtime.CompilerServices
             var source0 = @"
 class C 
 {
+    private int _x;
     void F(int x) {}
 }" + attributeSource;
             var source1 = @"
 class C
 {
+    private int _x;
     void F(int x, int y) { }
 }" + attributeSource;
             var source2 = @"
 class C
 {
+    private int _x;
     void F(int x, int y) { System.Console.WriteLine(1); }
 }" + attributeSource;
             var source3 = @"
 [System.Obsolete]
 class C
 {
+    private int _x;
     void F(int x, int y) { System.Console.WriteLine(2); }
 }" + attributeSource;
 
@@ -4822,11 +4826,13 @@ class C
                 EmptyLocalsProvider);
 
             var baseTypeCount = reader0.TypeDefinitions.Count;
+            var baseFieldCount = reader0.FieldDefinitions.Count;
             var baseMethodCount = reader0.MethodDefinitions.Count;
             var baseAttributeCount = reader0.CustomAttributes.Count;
             var baseParameterCount = reader0.GetParameters().Count();
 
             Assert.Equal(3, baseTypeCount);
+            Assert.Equal(2, baseFieldCount);
             Assert.Equal(4, baseMethodCount);
             Assert.Equal(7, baseAttributeCount);
             Assert.Equal(2, baseParameterCount);
@@ -4848,6 +4854,8 @@ class C
 
                 CheckEncLogDefinitions(reader,
                     Row(baseTypeCount + generation, TableIndex.TypeDef, EditAndContinueOperation.Default), // adding a type def
+                    Row(baseTypeCount + generation, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                    Row(baseFieldCount + generation, TableIndex.Field, EditAndContinueOperation.Default),
                     Row(baseTypeCount + generation, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                     Row(baseMethodCount + generation * 2 - 1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(baseTypeCount + generation, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
@@ -4860,6 +4868,7 @@ class C
 
                 CheckEncMapDefinitions(reader,
                     Handle(baseTypeCount + generation, TableIndex.TypeDef),
+                    Handle(baseFieldCount + generation, TableIndex.Field),
                     Handle(baseMethodCount + generation * 2 - 1, TableIndex.MethodDef),
                     Handle(baseMethodCount + generation * 2, TableIndex.MethodDef),
                     Handle(baseParameterCount + generation * 2 - 1, TableIndex.Param),
@@ -5773,7 +5782,7 @@ interface I
 
     interface J { }
 }";
-            var compilation0 = CreateCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
+            var compilation0 = CreateCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll, targetFramework: TargetFramework.Net50);
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation1.WithSource(source2);
 
@@ -5868,8 +5877,8 @@ interface I
             Assert.Equal(0, reader2.GetTableRowCount(TableIndex.NestedClass));
 
             CheckEncLog(reader2,
-                Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(10, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                Row(11, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(2, TableIndex.Event, EditAndContinueOperation.Default),
                 Row(3, TableIndex.Event, EditAndContinueOperation.Default),
                 Row(1, TableIndex.Field, EditAndContinueOperation.Default),
@@ -15679,6 +15688,138 @@ class C
                               // Code size        6 (0x6)
                               .maxstack  8
                               IL_0000:  newobj     0x0A000008
+                              IL_0005:  throw
+                            }
+                            """;
+
+                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
+                        g.VerifyIL(expectedIL);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Method_InsertAndDeleteParameter()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+                .AddGeneration(
+                    source: $$"""
+                        class C
+                        {
+                            void M(int someInt) { someInt.ToString(); }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyMethodDefNames("M", ".ctor");
+                    })
+                .AddGeneration(
+                    source: $$"""
+                        class C
+                        {
+                            void M(int someInt, bool someBool) { someInt.ToString(); }
+                        }
+                        """,
+                    edits: new[] {
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterCount() == 1)?.ISymbol, newSymbolProvider: c=>c.GetMember("C")),
+                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterCount() == 2)?.ISymbol),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("M", "M");
+                        g.VerifyDeletedMembers("C: {M}");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(3, TableIndex.Param, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(2, TableIndex.Param),
+                            Handle(3, TableIndex.Param)
+                        });
+
+                        var expectedIL = """
+                            {
+                              // Code size        6 (0x6)
+                              .maxstack  8
+                              IL_0000:  newobj     0x0A000006
+                              IL_0005:  throw
+                            }
+                            {
+                              // Code size       10 (0xa)
+                              .maxstack  8
+                              IL_0000:  nop
+                              IL_0001:  ldarga.s   V_1
+                              IL_0003:  call       0x0A000007
+                              IL_0008:  pop
+                              IL_0009:  ret
+                            }
+                            """;
+
+                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
+                        g.VerifyIL(expectedIL);
+                    })
+                .AddGeneration(
+                    source: $$"""
+                        class C
+                        {
+                            void M(int someInt) { someInt.ToString(); }
+                        }
+                        """,
+                    edits: new[] {
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterCount() == 2)?.ISymbol, newSymbolProvider: c=>c.GetMember("C")),
+                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterCount() == 1)?.ISymbol),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("M", "M");
+                        g.VerifyDeletedMembers("C: {M}");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.Param, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(2, TableIndex.Param),
+                            Handle(3, TableIndex.Param)
+                        });
+
+                        var expectedIL = """
+                            {
+                              // Code size       10 (0xa)
+                              .maxstack  8
+                              IL_0000:  nop
+                              IL_0001:  ldarga.s   V_1
+                              IL_0003:  call       0x0A000008
+                              IL_0008:  pop
+                              IL_0009:  ret
+                            }
+                            {
+                              // Code size        6 (0x6)
+                              .maxstack  8
+                              IL_0000:  newobj     0x0A000009
                               IL_0005:  throw
                             }
                             """;

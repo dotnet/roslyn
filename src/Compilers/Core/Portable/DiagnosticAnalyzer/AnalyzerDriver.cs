@@ -722,7 +722,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var file = new SourceOrAdditionalFile(tree);
                 if (isGeneratedCode && DoNotAnalyzeGeneratedCode)
                 {
-                    analysisState?.MarkSyntaxAnalysisComplete(file, analysisScope.Analyzers);
+                    analysisState?.TryMarkSyntaxAnalysisComplete(file, analysisScope.Analyzers);
                     continue;
                 }
 
@@ -744,7 +744,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         processedAnalyzers?.Add(analyzer);
                     }
 
-                    analysisState?.MarkSyntaxAnalysisCompleteForUnprocessedAnalyzers(file, analysisScope, processedAnalyzers!);
+                    analysisState?.TryMarkSyntaxAnalysisCompleteForUnprocessedAnalyzers(file, analysisScope, processedAnalyzers!);
                 }
                 finally
                 {
@@ -783,7 +783,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         processedAnalyzers?.Add(analyzer);
                     }
 
-                    analysisState?.MarkSyntaxAnalysisCompleteForUnprocessedAnalyzers(file, analysisScope, processedAnalyzers!);
+                    analysisState?.TryMarkSyntaxAnalysisCompleteForUnprocessedAnalyzers(file, analysisScope, processedAnalyzers!);
                 }
                 finally
                 {
@@ -1273,6 +1273,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         configuredSeverity = diagnosticSeverity;
                     }
 
+                    // Disabled by default descriptor with default configured severity is equivalent to suppressed.
+                    if (!descriptor.IsEnabledByDefault && configuredSeverity == ReportDiagnostic.Default)
+                    {
+                        configuredSeverity = ReportDiagnostic.Suppress;
+                    }
+
                     if (configuredSeverity != ReportDiagnostic.Suppress)
                     {
                         // Analyzer reports a diagnostic that is not suppressed by the diagnostic options for this tree.
@@ -1688,7 +1694,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                 }
 
-                analysisState?.MarkSymbolCompleteForUnprocessedAnalyzers(symbol, analysisScope, processedAnalyzers!);
+                if (analysisState != null &&
+                    !analysisState.TryMarkSymbolCompleteForUnprocessedAnalyzers(symbol, analysisScope, processedAnalyzers!))
+                {
+                    success = false;
+                }
+
                 return success;
             }
             finally
@@ -1711,8 +1722,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var symbolEndActions = perSymbolActions.SymbolEndActions;
             if (!analysisScope.ShouldAnalyze(symbol) || symbolEndActions.IsEmpty)
             {
-                analysisState?.MarkSymbolEndAnalysisComplete(symbol, analysisScope.Analyzers);
                 subsetProcessedAnalyzers = ImmutableArray<DiagnosticAnalyzer>.Empty;
+
+                if (analysisState != null &&
+                    !analysisState.TryMarkSymbolEndAnalysisComplete(symbol, analysisScope.Analyzers))
+                {
+                    return false;
+                }
+
                 return true;
             }
 
@@ -1739,7 +1756,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         continue;
                     }
 
-                    AnalyzerExecutor.MarkSymbolEndAnalysisComplete(symbol, analyzer, analysisState);
+                    if (!AnalyzerExecutor.TryMarkSymbolEndAnalysisComplete(symbol, analyzer, analysisState))
+                    {
+                        success = false;
+                        continue;
+                    }
+
                     completedAnalyzers.Add(analyzer);
                 }
 
@@ -1749,7 +1771,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         if (!processedAnalyzers.Contains(analyzer))
                         {
-                            AnalyzerExecutor.MarkSymbolEndAnalysisComplete(symbol, analyzer, analysisState);
+                            if (!AnalyzerExecutor.TryMarkSymbolEndAnalysisComplete(symbol, analyzer, analysisState))
+                            {
+                                success = false;
+                                continue;
+                            }
+
                             completedAnalyzers.Add(analyzer);
                         }
                     }
@@ -1810,7 +1837,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var isGeneratedCode = IsGeneratedCode(semanticModel.SyntaxTree);
             if (isGeneratedCode && DoNotAnalyzeGeneratedCode)
             {
-                analysisState?.MarkEventComplete(completedEvent, analysisScope.Analyzers);
+                if (analysisState != null &&
+                    !analysisState.TryMarkEventComplete(completedEvent, analysisScope.Analyzers))
+                {
+                    return false;
+                }
+
                 return true;
             }
 
@@ -1840,7 +1872,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     processedAnalyzers?.Add(analyzer);
                 }
 
-                analysisState?.MarkEventCompleteForUnprocessedAnalyzers(completedEvent, analysisScope, processedAnalyzers!);
+                if (analysisState != null &&
+                    !analysisState.TryMarkEventCompleteForUnprocessedAnalyzers(completedEvent, analysisScope, processedAnalyzers!))
+                {
+                    success = false;
+                }
+
                 return success;
             }
             finally
@@ -1907,7 +1944,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     processedAnalyzers?.Add(analyzer);
                 }
 
-                analysisState?.MarkEventCompleteForUnprocessedAnalyzers(compilationEvent, analysisScope, processedAnalyzers!);
+                if (analysisState != null &&
+                    !analysisState.TryMarkEventCompleteForUnprocessedAnalyzers(compilationEvent, analysisScope, processedAnalyzers!))
+                {
+                    success = false;
+                }
+
                 return success;
             }
             finally
@@ -2479,7 +2521,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var isInGeneratedCode = isGeneratedCodeSymbol || IsGeneratedOrHiddenCodeLocation(decl.SyntaxTree, decl.Span);
                     if (isInGeneratedCode && DoNotAnalyzeGeneratedCode)
                     {
-                        analysisState?.MarkDeclarationComplete(symbol, i, analysisScope.Analyzers);
+                        if (analysisState != null &&
+                            !analysisState.TryMarkDeclarationComplete(symbol, i, analysisScope.Analyzers))
+                        {
+                            success = false;
+                        }
+
                         continue;
                     }
 
@@ -2607,10 +2654,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 foreach (var analyzer in analysisScope.Analyzers)
                 {
-                    analysisState.MarkDeclarationComplete(symbol, declarationIndex, analyzer);
+                    if (!analysisState.TryMarkDeclarationComplete(symbol, declarationIndex, analyzer))
+                    {
+                        success = false;
+                    }
                 }
 
-                if (cacheAnalysisData)
+                if (cacheAnalysisData && success)
                 {
                     ClearCachedAnalysisDataIfAnalyzed(symbol, declarationIndex, analysisState);
                 }

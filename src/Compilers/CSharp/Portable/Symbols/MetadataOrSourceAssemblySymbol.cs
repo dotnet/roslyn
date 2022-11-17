@@ -32,70 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private int _cachedSpecialTypes;
 
         private NativeIntegerTypeSymbol[] _lazyNativeIntegerTypes;
-        private ThreeState _lazyRuntimeSupportsNumericIntPtr = ThreeState.Unknown;
-        private ThreeState _lazyRuntimeSupportsByRefFields = ThreeState.Unknown;
 
-        internal override bool RuntimeSupportsNumericIntPtr
-        {
-            get
-            {
-                if ((object)CorLibrary == this)
-                {
-                    if (!_lazyRuntimeSupportsNumericIntPtr.HasValue())
-                    {
-                        _lazyRuntimeSupportsNumericIntPtr = RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr).ToThreeState();
-                    }
-
-                    return _lazyRuntimeSupportsNumericIntPtr.Value();
-                }
-
-                return base.RuntimeSupportsNumericIntPtr;
-            }
-            set
-            {
-                Debug.Assert(value);
-                Debug.Assert(!RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr));
-                if ((object)CorLibrary == this)
-                {
-                    Debug.Assert(!_lazyRuntimeSupportsNumericIntPtr.HasValue());
-                    _lazyRuntimeSupportsNumericIntPtr = value.ToThreeState();
-                    return;
-                }
-
-                base.RuntimeSupportsNumericIntPtr = value;
-            }
-        }
-
-        internal override bool RuntimeSupportsByRefFields
-        {
-            get
-            {
-                if ((object)CorLibrary == this)
-                {
-                    if (!_lazyRuntimeSupportsByRefFields.HasValue())
-                    {
-                        _lazyRuntimeSupportsByRefFields = RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefFields).ToThreeState();
-                    }
-
-                    return _lazyRuntimeSupportsByRefFields.Value();
-                }
-
-                return base.RuntimeSupportsByRefFields;
-            }
-            set
-            {
-                Debug.Assert(value);
-                Debug.Assert(!RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefFields));
-                if ((object)CorLibrary == this)
-                {
-                    Debug.Assert(!_lazyRuntimeSupportsByRefFields.HasValue());
-                    _lazyRuntimeSupportsByRefFields = value.ToThreeState();
-                    return;
-                }
-
-                base.RuntimeSupportsByRefFields = value;
-            }
-        }
+#nullable enable 
 
         /// <summary>
         /// Lookup declaration for predefined CorLib type in this Assembly.
@@ -115,16 +53,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 MetadataTypeName emittedName = MetadataTypeName.FromFullName(type.GetMetadataName(), useCLSCompliantNameArityEncoding: true);
                 ModuleSymbol module = this.Modules[0];
-                NamedTypeSymbol result = module.LookupTopLevelMetadataType(ref emittedName);
-                if (result.Kind != SymbolKind.ErrorType && result.DeclaredAccessibility != Accessibility.Public)
+                NamedTypeSymbol? result = module.LookupTopLevelMetadataType(ref emittedName);
+
+                Debug.Assert(result?.IsErrorType() != true);
+
+                if (result is null || result.DeclaredAccessibility != Accessibility.Public)
                 {
                     result = new MissingMetadataTypeSymbol.TopLevel(module, ref emittedName, type);
                 }
+
                 RegisterDeclaredSpecialType(result);
             }
 
+            Debug.Assert(_lazySpecialTypes is not null);
             return _lazySpecialTypes[(int)type];
         }
+
+#nullable disable
 
         /// <summary>
         /// Register declaration of predefined CorLib type in this Assembly.

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             var sourceTextLoader = new SourceTextLoader(documentText, uriAbsolutePath);
 
-            var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(uri.AbsolutePath, sourceTextLoader, languageInformation, Services.SolutionServices, ImmutableArray<MetadataReference>.Empty);
+            var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(uri.AbsolutePath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, Services.SolutionServices, ImmutableArray<MetadataReference>.Empty);
             OnProjectAdded(projectInfo);
 
             var id = projectInfo.Documents.Single().Id;
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        private class SourceTextLoader : TextLoader
+        private sealed class SourceTextLoader : TextLoader
         {
             private readonly SourceText _sourceText;
             private readonly string _fileUri;
@@ -102,7 +103,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 _fileUri = fileUri;
             }
 
-            public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            internal override string? FilePath
+                => _fileUri;
+
+            // TODO (https://github.com/dotnet/roslyn/issues/63583): Use options.ChecksumAlgorithm 
+            public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
                 => Task.FromResult(TextAndVersion.Create(_sourceText, VersionStamp.Create(), _fileUri));
         }
     }
