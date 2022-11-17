@@ -9,9 +9,6 @@ dotnet_naming_rule.local_functions_should_be_camel_case.style = local_function_s
 # RS0100: Statements must be placed on their own line
 dotnet_diagnostic.RS0100.severity = none
 
-# RS0101: Avoid multiple blank lines
-dotnet_diagnostic.RS0101.severity = none
-
 # RS0102: Braces must not have blank lines between them
 dotnet_diagnostic.RS0102.severity = none
 

@@ -131,7 +131,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-
     ''' <summary>
     ''' Concatenates messages for a set of DiagnosticInfo.
     ''' </summary>

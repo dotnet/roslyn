@@ -219,7 +219,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         End Function
 
-
         ''' <summary>
         ''' Gets the associated "get" method for this property. If this property
         ''' has no get accessor, returns Nothing.

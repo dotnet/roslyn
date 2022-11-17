@@ -91,7 +91,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 value == double.PositiveInfinity ? "Inf" :
                 FormattableString.Invariant($"{value:G17}");
 
-
             double INumericTC<double>.Prev(double value)
             {
                 return -Next(-value);
