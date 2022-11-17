@@ -7199,7 +7199,6 @@ class Program
                     Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(5, 36));
         }
 
-
         [Fact]
         public void AnonymousMethodDefaultBeforeRequired1()
         {
@@ -7241,7 +7240,6 @@ class Program
                 //         var lam = (int x, int y = 3, int z) => x + y + z;
                 Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(5, 43));
         }
-
 
         [Fact]
         public void AnonymousMethodDefaultBeforeRequired2()
@@ -7410,7 +7408,6 @@ class Program
                 //         var lam = delegate(string s = add(1, 2)) { return s; };
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "add(1, 2)").WithArguments("s").WithLocation(7, 39));
         }
-
 
         [Fact]
         public void LambdaWithComplexConstantExpression()

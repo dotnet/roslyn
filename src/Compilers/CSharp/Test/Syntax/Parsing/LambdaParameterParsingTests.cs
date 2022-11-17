@@ -3300,7 +3300,6 @@ class C {
             EOF();
         }
 
-
         [Fact]
         public void TestDefaultValueWithAttributeOnParam()
         {
@@ -3555,7 +3554,6 @@ class C {
             }
             EOF();
         }
-
 
         [Fact]
         public void TestDefaultValueWithComplexExpression1()
