@@ -816,7 +816,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             // 1. Separator before open brace token
             // 2. Separator after open brace token
             // 3. Separator before close brace token
-            // e.g. `$"{new SomeClass() { A = 2 }}"`, [SomeAttribute(new int[] { 1, 2, 3 })] or `MethodCall(new Arg { A =1, B = 2 })`
+            // e.g. `$"{new SomeClass() { A = 2 }}"`, [SomeAttribute(new int[] { 1, 2, 3 })] or `MethodCall(new Arg { A = 1, B = 2 })`
             // Initializers in such context are not expected to be large,
             // so formatting them in single-line fashion looks more compact.
             if (IsSingleLineInitializerContext(token.Parent))
