@@ -2150,15 +2150,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_RefReturnOnlyParameter2 = 9095,
         ERR_RefAssignValEscapeWider = 9096,
         WRN_RefAssignValEscapeWider = 9097,
-
-        ERR_NonConstantConversionInConstantPattern = 9098,
-
         #endregion
 
         #region diagnostics introduced for C# 12.0
         ERR_ImplicitlyTypedDefaultParameter = 9098,
         WRN_OptionalParamValueMismatch = 9099,
         WRN_ParamsArrayInLambdaOnly = 9100,
+        ERR_NonConstantConversionInConstantPattern = 9101,
         #endregion
 
         // Note: you will need to do the following after adding warnings:
