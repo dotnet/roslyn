@@ -172,10 +172,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (syntax != null)
             {
-                if (property.IsIndexer)
-                    MessageID.IDS_FeatureExpressionBodiedIndexer.CheckFeatureAvailability(diagnostics, syntax, syntax.ArrowToken.GetLocation());
-                else
-                    MessageID.IDS_FeatureExpressionBodiedProperty.CheckFeatureAvailability(diagnostics, syntax, syntax.ArrowToken.GetLocation());
+                var messageId = property.IsIndexer ? MessageID.IDS_FeatureExpressionBodiedIndexer : MessageID.IDS_FeatureExpressionBodiedProperty;
+                messageId.CheckFeatureAvailability(diagnostics, syntax, syntax.ArrowToken.GetLocation());
             }
         }
 
