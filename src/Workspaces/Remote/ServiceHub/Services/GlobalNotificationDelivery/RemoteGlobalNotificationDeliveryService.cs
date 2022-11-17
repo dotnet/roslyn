@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunServiceAsync(cancellationToken =>
             {
                 var globalOperationNotificationService = GetGlobalOperationNotificationService();
-                globalOperationNotificationService?.OnStarted();
+                globalOperationNotificationService.OnStarted();
                 return default;
             }, cancellationToken);
         }
@@ -45,13 +45,13 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunServiceAsync(cancellationToken =>
             {
                 var globalOperationNotificationService = GetGlobalOperationNotificationService();
-                globalOperationNotificationService?.OnStopped();
+                globalOperationNotificationService.OnStopped();
                 return default;
             }, cancellationToken);
         }
 
-        private RemoteGlobalOperationNotificationService? GetGlobalOperationNotificationService()
+        private RemoteGlobalOperationNotificationService GetGlobalOperationNotificationService()
             // We know in the remote layer this type must exist.
-            => GetWorkspace().Services.SolutionServices.ExportProvider.GetExports<IGlobalOperationNotificationService>().Single().Value as RemoteGlobalOperationNotificationService;
+            => (RemoteGlobalOperationNotificationService)GetWorkspace().Services.SolutionServices.ExportProvider.GetExports<IGlobalOperationNotificationService>().Single().Value;
     }
 }
