@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private int _recursionDepth;
         private TerminatorState _termState; // Resettable
-        private bool _isInTry; // Resettable
         private bool _checkedTopLevelStatementsFeatureAvailability; // Resettable
 
         // NOTE: If you add new state, you should probably add it to ResetPoint as well.
@@ -8760,10 +8759,6 @@ done:;
                 case SyntaxKind.IdentifierToken:
                     return IsTrueIdentifier();
 
-                case SyntaxKind.CatchKeyword:
-                case SyntaxKind.FinallyKeyword:
-                    return !_isInTry;
-
                 // Accessibility modifiers are not legal in a statement,
                 // but a common mistake for local functions. Parse to give a
                 // better error message.
@@ -8858,9 +8853,7 @@ done:;
 
         private TryStatementSyntax ParseTryStatement(SyntaxList<AttributeListSyntax> attributes)
         {
-            var isInTry = _isInTry;
-            _isInTry = true;
-
+            // We are called into on try/catch/finally, so eating the try may actually fail.
             var @try = this.EatToken(SyntaxKind.TryKeyword);
 
             BlockSyntax block;
@@ -8881,41 +8874,19 @@ done:;
             FinallyClauseSyntax @finally = null;
             try
             {
-                bool hasEnd = false;
-
                 if (this.CurrentToken.Kind == SyntaxKind.CatchKeyword)
                 {
-                    hasEnd = true;
                     catches = _pool.Allocate<CatchClauseSyntax>();
                     while (this.CurrentToken.Kind == SyntaxKind.CatchKeyword)
-                    {
                         catches.Add(this.ParseCatchClause());
-                    }
                 }
 
                 if (this.CurrentToken.Kind == SyntaxKind.FinallyKeyword)
                 {
-                    hasEnd = true;
-                    var fin = this.EatToken();
-                    var finBlock = this.ParsePossiblyAttributedBlock();
-                    @finally = _syntaxFactory.FinallyClause(fin, finBlock);
-                }
-
-                if (!hasEnd)
-                {
-                    block = this.AddErrorToLastToken(block, ErrorCode.ERR_ExpectedEndTry);
-
-                    // synthesize missing tokens for "finally { }":
                     @finally = _syntaxFactory.FinallyClause(
-                        SyntaxToken.CreateMissing(SyntaxKind.FinallyKeyword, null, null),
-                        _syntaxFactory.Block(
-                            attributeLists: default,
-                            SyntaxToken.CreateMissing(SyntaxKind.OpenBraceToken, null, null),
-                            default(SyntaxList<StatementSyntax>),
-                            SyntaxToken.CreateMissing(SyntaxKind.CloseBraceToken, null, null)));
+                        this.EatToken(),
+                        this.ParsePossiblyAttributedBlock());
                 }
-
-                _isInTry = isInTry;
 
                 return _syntaxFactory.TryStatement(attributes, @try, block, catches, @finally);
             }
@@ -14038,7 +14009,6 @@ tryAgain:
             return new ResetPoint(
                 base.GetResetPoint(),
                 _termState,
-                _isInTry,
                 _syntaxFactoryContext.IsInAsync,
                 _syntaxFactoryContext.QueryDepth);
         }
@@ -14046,7 +14016,6 @@ tryAgain:
         private void Reset(ref ResetPoint state)
         {
             _termState = state.TerminatorState;
-            _isInTry = state.IsInTry;
             _syntaxFactoryContext.IsInAsync = state.IsInAsync;
             _syntaxFactoryContext.QueryDepth = state.QueryDepth;
             base.Reset(ref state.BaseResetPoint);
@@ -14061,20 +14030,17 @@ tryAgain:
         {
             internal SyntaxParser.ResetPoint BaseResetPoint;
             internal readonly TerminatorState TerminatorState;
-            internal readonly bool IsInTry;
             internal readonly bool IsInAsync;
             internal readonly int QueryDepth;
 
             internal ResetPoint(
                 SyntaxParser.ResetPoint resetPoint,
                 TerminatorState terminatorState,
-                bool isInTry,
                 bool isInAsync,
                 int queryDepth)
             {
                 this.BaseResetPoint = resetPoint;
                 this.TerminatorState = terminatorState;
-                this.IsInTry = isInTry;
                 this.IsInAsync = isInAsync;
                 this.QueryDepth = queryDepth;
             }

@@ -4114,24 +4114,50 @@ namespace nms
 ";
             // Extra Errors
             ParseAndValidate(test,
-    // (12,13): error CS1524: Expected catch or finally
-    //             }
-    Diagnostic(ErrorCode.ERR_ExpectedEndTry, "}"),
-    // (11,21): error CS1031: Type expected
-    //             sizeof (throw new RecoverableException("An exception has occurred"));
-    Diagnostic(ErrorCode.ERR_TypeExpected, "throw"),
-    // (11,21): error CS1026: ) expected
-    //             sizeof (throw new RecoverableException("An exception has occurred"));
-    Diagnostic(ErrorCode.ERR_CloseParenExpected, "throw"),
-    // (11,21): error CS1002: ; expected
-    //             sizeof (throw new RecoverableException("An exception has occurred"));
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "throw"),
-    // (11,80): error CS1002: ; expected
-    //             sizeof (throw new RecoverableException("An exception has occurred"));
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
-    // (11,80): error CS1513: } expected
-    //             sizeof (throw new RecoverableException("An exception has occurred"));
-    Diagnostic(ErrorCode.ERR_RbraceExpected, ")"));
+                // (11,21): error CS1031: Type expected
+                //             sizeof (throw new RecoverableException("An exception has occurred"));
+                Diagnostic(ErrorCode.ERR_TypeExpected, "throw").WithLocation(11, 21),
+                // (11,21): error CS1026: ) expected
+                //             sizeof (throw new RecoverableException("An exception has occurred"));
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "throw").WithLocation(11, 21),
+                // (11,21): error CS1002: ; expected
+                //             sizeof (throw new RecoverableException("An exception has occurred"));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "throw").WithLocation(11, 21),
+                // (11,80): error CS1002: ; expected
+                //             sizeof (throw new RecoverableException("An exception has occurred"));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(11, 80),
+                // (11,80): error CS1513: } expected
+                //             sizeof (throw new RecoverableException("An exception has occurred"));
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(11, 80));
+
+            CreateCompilation(test).VerifyDiagnostics(
+                // (4,18): warning CS8981: The type name 'mine' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                //     public class mine
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "mine").WithArguments("mine").WithLocation(4, 18),
+                // (11,13): error CS0233: '?' does not have a predefined size, therefore sizeof can only be used in an unsafe context
+                //             sizeof (throw new RecoverableException("An exception has occurred"));
+                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof (").WithArguments("?").WithLocation(11, 13),
+                // (11,21): error CS1031: Type expected
+                //             sizeof (throw new RecoverableException("An exception has occurred"));
+                Diagnostic(ErrorCode.ERR_TypeExpected, "throw").WithLocation(11, 21),
+                // (11,21): error CS1026: ) expected
+                //             sizeof (throw new RecoverableException("An exception has occurred"));
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "throw").WithLocation(11, 21),
+                // (11,21): error CS1002: ; expected
+                //             sizeof (throw new RecoverableException("An exception has occurred"));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "throw").WithLocation(11, 21),
+                // (11,31): error CS0246: The type or namespace name 'RecoverableException' could not be found (are you missing a using directive or an assembly reference?)
+                //             sizeof (throw new RecoverableException("An exception has occurred"));
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "RecoverableException").WithArguments("RecoverableException").WithLocation(11, 31),
+                // (11,80): error CS1002: ; expected
+                //             sizeof (throw new RecoverableException("An exception has occurred"));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(11, 80),
+                // (11,80): error CS1513: } expected
+                //             sizeof (throw new RecoverableException("An exception has occurred"));
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(11, 80),
+                // (13,9): warning CS0162: Unreachable code detected
+                //         return retval;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(13, 9));
         }
 
         [WorkItem(906299, "DevDiv/Personal")]

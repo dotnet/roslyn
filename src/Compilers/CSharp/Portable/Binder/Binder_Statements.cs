@@ -3113,9 +3113,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
 
+            // Error if we have a try-statement without any 'catch' or 'finally' blocks. Only do this if we don't
+            // already have any existing parse errors.
+            if (node.Catches.Count == 0 &&
+                node.Finally == null &&
+                !node.GetDiagnostics().Any(static d => d.Severity == DiagnosticSeverity.Error))
+            {
+                // since we have no parse errors, we know it's fine to place the diagnostic on the close brace of the try.
+                Error(diagnostics, ErrorCode.ERR_ExpectedEndTry, node.Block.CloseBraceToken);
+            }
+
             var tryBlock = BindEmbeddedBlock(node.Block, diagnostics);
             var catchBlocks = BindCatchBlocks(node.Catches, diagnostics);
-            var finallyBlockOpt = (node.Finally != null) ? BindEmbeddedBlock(node.Finally.Block, diagnostics) : null;
+            var finallyBlockOpt = node.Finally != null ? BindEmbeddedBlock(node.Finally.Block, diagnostics) : null;
             return new BoundTryStatement(node, tryBlock, catchBlocks, finallyBlockOpt);
         }
 
