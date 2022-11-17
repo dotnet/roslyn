@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis
 
         // Strings for the Rules node
         private const string RulesNodeName = "Rules";
+        private const string RulesAnalyzerIdAttributeName = "AnalyzerId";
+        private const string RulesNamespaceAttributeName = "RuleNamespace";
 
         // Strings for the Rule node
         private const string RuleNodeName = "Rule";
@@ -146,6 +148,9 @@ namespace Microsoft.CodeAnalysis
         /// <returns>A list of rule objects with data from the given XML node</returns>
         private static List<KeyValuePair<string, ReportDiagnostic>> ReadRules(XElement rulesNode)
         {
+            _ = ReadNonEmptyAttribute(rulesNode, RulesAnalyzerIdAttributeName);
+            _ = ReadNonEmptyAttribute(rulesNode, RulesNamespaceAttributeName);
+
             var rules = new List<KeyValuePair<string, ReportDiagnostic>>();
 
             // Loop through each rule node
