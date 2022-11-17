@@ -171,7 +171,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                         break;
                     default:
-                        // Anything else and we bail.
+                        // If we faced modifier, that we don't accept above (e.g. `static`)
+                        // then this modifier is not valid for override completions, so we can just exit
                         if (SyntaxFacts.IsKeywordKind(token.Kind()))
                         {
                             return false;
