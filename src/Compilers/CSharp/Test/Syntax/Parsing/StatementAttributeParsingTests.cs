@@ -2836,13 +2836,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ExpectedEndTry, "}").WithLocation(6, 15),
                 // (6,21): error CS1003: Syntax error, 'try' expected
                 //         try { } [A] finally { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "finally").WithArguments("try").WithLocation(6, 21),
-                // (6,21): error CS1514: { expected
-                //         try { } [A] finally { }
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "finally").WithLocation(6, 21),
-                // (6,21): error CS1513: } expected
-                //         try { } [A] finally { }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "finally").WithLocation(6, 21));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "finally").WithArguments("try").WithLocation(6, 21));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2932,13 +2926,7 @@ class C
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 17),
                 // (6,21): error CS1003: Syntax error, 'try' expected
                 //         try { } [A] finally { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "finally").WithArguments("try").WithLocation(6, 21),
-                // (6,21): error CS1514: { expected
-                //         try { } [A] finally { }
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "finally").WithLocation(6, 21),
-                // (6,21): error CS1513: } expected
-                //         try { } [A] finally { }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "finally").WithLocation(6, 21));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "finally").WithArguments("try").WithLocation(6, 21));
         }
 
         [Fact]
@@ -3036,13 +3024,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ExpectedEndTry, "}").WithLocation(6, 15),
                 // (6,21): error CS1003: Syntax error, 'try' expected
                 //         try { } [A] catch { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "catch").WithArguments("try").WithLocation(6, 21),
-                // (6,21): error CS1514: { expected
-                //         try { } [A] catch { }
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "catch").WithLocation(6, 21),
-                // (6,21): error CS1513: } expected
-                //         try { } [A] catch { }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "catch").WithLocation(6, 21));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "catch").WithArguments("try").WithLocation(6, 21));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3132,13 +3114,7 @@ class C
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 17),
                 // (6,21): error CS1003: Syntax error, 'try' expected
                 //         try { } [A] catch { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "catch").WithArguments("try").WithLocation(6, 21),
-                // (6,21): error CS1514: { expected
-                //         try { } [A] catch { }
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "catch").WithLocation(6, 21),
-                // (6,21): error CS1513: } expected
-                //         try { } [A] catch { }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "catch").WithLocation(6, 21));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "catch").WithArguments("try").WithLocation(6, 21));
         }
 
         [Fact]

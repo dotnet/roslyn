@@ -8865,11 +8865,7 @@ done:;
 
                 // We will have already created an error on the try-token, so don't actually create more errors here
                 // with this synthesized block.  Just directly create the missing pieces.
-                block = _syntaxFactory.Block(
-                    attributeLists: default,
-                    createMissing(SyntaxKind.OpenBraceToken),
-                    statements: default,
-                    createMissing(SyntaxKind.CloseBraceToken));
+                block = missingBlock();
             }
             else
             {
@@ -8905,11 +8901,7 @@ done:;
                     // synthesize missing tokens for "finally { }":
                     finallyClause = _syntaxFactory.FinallyClause(
                         createMissing(SyntaxKind.FinallyKeyword),
-                        _syntaxFactory.Block(
-                            attributeLists: default,
-                            createMissing(SyntaxKind.OpenBraceToken),
-                            statements: default,
-                            createMissing(SyntaxKind.CloseBraceToken)));
+                        missingBlock());
                 }
 
                 return _syntaxFactory.TryStatement(attributes, @try, block, catchClauses, finallyClause);
@@ -8920,7 +8912,14 @@ done:;
                     _pool.Free(catchClauses);
             }
 
-            SyntaxToken createMissing(SyntaxKind kind)
+            BlockSyntax missingBlock()
+                => _syntaxFactory.Block(
+                    attributeLists: default,
+                    createMissing(SyntaxKind.OpenBraceToken),
+                    statements: default,
+                    createMissing(SyntaxKind.CloseBraceToken));
+
+            static SyntaxToken createMissing(SyntaxKind kind)
                 => SyntaxToken.CreateMissing(kind, leading: null, trailing: null);
         }
 
