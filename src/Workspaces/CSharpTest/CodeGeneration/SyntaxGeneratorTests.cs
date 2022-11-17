@@ -382,7 +382,13 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
 
             VerifySyntax<ArrayCreationExpressionSyntax>(
                 Generator.ArrayCreationExpression(Generator.IdentifierName("x"), new SyntaxNode[] { Generator.IdentifierName("y"), Generator.IdentifierName("z") }),
-                "new x[]\r\n{\r\n    y,\r\n    z\r\n}");
+                """
+                new x[]
+                {
+                    y,
+                    z
+                }
+                """);
         }
 
         [Fact]
