@@ -27,7 +27,7 @@ namespace Roslyn.Utilities
             _bkTree = bKTree;
         }
 
-        public SpellChecker(Checksum checksum, IEnumerable<ReadOnlyMemory<char>> corpus)
+        public SpellChecker(Checksum checksum, IEnumerable<string> corpus)
             : this(checksum, BKTree.Create(corpus))
         {
         }

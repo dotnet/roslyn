@@ -8084,7 +8084,7 @@ TResult {FeaturesResources.is_} string"));
         $$var v = (ref int i) => i.ToString();
     }
 }",
-                MainDescription("delegate string <anonymous delegate>(ref int)"),
+                MainDescription("delegate string <anonymous delegate>(ref int arg)"),
                 AnonymousTypes(""));
         }
 
@@ -8103,7 +8103,7 @@ TResult {FeaturesResources.is_} string"));
                 AnonymousTypes(
 $@"
 {FeaturesResources.Types_colon}
-    'a {FeaturesResources.is_} delegate string (ref int)"));
+    'a {FeaturesResources.is_} delegate string (ref int arg)"));
         }
 
         [Fact, WorkItem(58871, "https://github.com/dotnet/roslyn/issues/58871")]
@@ -8124,7 +8124,7 @@ $@"
                 AnonymousTypes(
 $@"
 {FeaturesResources.Types_colon}
-    'a {FeaturesResources.is_} delegate string (ref int)"));
+    'a {FeaturesResources.is_} delegate string (ref int arg)"));
         }
 
         [Fact, WorkItem(61320, "https://github.com/dotnet/roslyn/issues/61320")]
@@ -8393,6 +8393,45 @@ class Program
 ";
             await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersion.CSharp11), source,
                 MainDescription($"({FeaturesResources.parameter}) string s"));
+        }
+
+        [Fact]
+        public async Task TestScopedParameter()
+        {
+            var source =
+@"ref struct R { }
+class Program
+{
+    static void F(R r1, scoped R r2, ref R r3, scoped ref R r4, in R r5, scoped in R r6, out R r7, scoped out R r8)
+    {
+        r7 = default;
+        r8 = default;
+    }
+    static void Main()
+    {
+        R r = default;
+        $$F(r, r, ref r, ref r, r, r, out r, out r);
+    }
+}";
+            await TestAsync(source,
+                MainDescription($"void Program.F(R r1, scoped R r2, ref R r3, scoped ref R r4, in R r5, scoped in R r6, out R r7, out R r8)"));
+        }
+
+        [Fact]
+        public async Task TestScopedLocal()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        int i = 0;
+        scoped ref int r = ref i;
+        i = $$r;
+    }
+}";
+            await TestAsync(source,
+                MainDescription($"({FeaturesResources.local_variable}) scoped ref int r"));
         }
     }
 }

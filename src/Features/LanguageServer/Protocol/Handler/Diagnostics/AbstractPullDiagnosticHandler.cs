@@ -12,12 +12,25 @@ using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.LanguageServer.Features.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
+    internal abstract class AbstractDocumentPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> : AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>, ITextDocumentIdentifierHandler<TDiagnosticsParams, TextDocumentIdentifier?>
+        where TDiagnosticsParams : IPartialResultParams<TReport[]>
+    {
+        public AbstractDocumentPullDiagnosticHandler(
+            IDiagnosticAnalyzerService diagnosticAnalyzerService,
+            EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
+            IGlobalOptionService globalOptions) : base(diagnosticAnalyzerService, editAndContinueDiagnosticUpdateSource, globalOptions)
+        {
+        }
+
+        public abstract LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(TDiagnosticsParams diagnosticsParams);
+    }
 
     /// <summary>
     /// Root type for both document and workspace diagnostic pull requests.
@@ -25,7 +38,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     /// <typeparam name="TDiagnosticsParams">The LSP input param type</typeparam>
     /// <typeparam name="TReport">The LSP type that is reported via IProgress</typeparam>
     /// <typeparam name="TReturn">The LSP type that is returned on completion of the request.</typeparam>
-    internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> : IRequestHandler<TDiagnosticsParams, TReturn?> where TDiagnosticsParams : IPartialResultParams<TReport[]>
+    internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> : ILspServiceRequestHandler<TDiagnosticsParams, TReturn?> where TDiagnosticsParams : IPartialResultParams<TReport[]>
     {
         /// <summary>
         /// Diagnostic mode setting for Razor.  This should always be <see cref="DiagnosticMode.Pull"/> as there is no push support in Razor.
@@ -75,8 +88,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             _versionedCache = new(this.GetType().Name);
         }
 
-        public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(TDiagnosticsParams diagnosticsParams);
-
         /// <summary>
         /// Retrieve the previous results we reported.  Used so we can avoid resending data for unchanged files. Also
         /// used so we can report which documents were removed and can have all their diagnostics cleared.
@@ -113,6 +124,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         public async Task<TReturn?> HandleRequestAsync(
             TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {
+            var clientCapabilities = context.GetRequiredClientCapabilities();
             context.TraceInformation($"{this.GetType()} started getting diagnostics");
 
             var diagnosticMode = GetDiagnosticMode(context);
@@ -157,11 +169,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 if (newResultId != null)
                 {
                     progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(
-                        context, diagnosticSource, newResultId, context.ClientCapabilities, cancellationToken).ConfigureAwait(false));
+                        context, diagnosticSource, newResultId, clientCapabilities, cancellationToken).ConfigureAwait(false));
                 }
                 else
                 {
-                    context.TraceInformation($"Diagnostics were unchanged for document: {diagnosticSource.GetUri()}");
+                    context.TraceInformation($"Diagnostics were unchanged for {diagnosticSource.GetDocumentIdentifier().Uri} in {diagnosticSource.GetProject().Name}");
 
                     // Nothing changed between the last request and this one.  Report a (null-diagnostics,
                     // same-result-id) response to the client as that means they should just preserve the current
@@ -251,12 +263,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         {
             using var _ = ArrayBuilder<LSP.Diagnostic>.GetInstance(out var result);
             var diagnostics = await diagnosticSource.GetDiagnosticsAsync(DiagnosticAnalyzerService, context, cancellationToken).ConfigureAwait(false);
-            context.TraceInformation($"Found {diagnostics.Length} diagnostics for {diagnosticSource.GetUri()}");
+            context.TraceInformation($"Found {diagnostics.Length} diagnostics for {diagnosticSource.GetDocumentIdentifier().Uri} in {diagnosticSource.GetProject().Name}");
 
             foreach (var diagnostic in diagnostics)
                 result.AddRange(ConvertDiagnostic(diagnosticSource, diagnostic, clientCapabilities));
 
-            return CreateReport(new LSP.TextDocumentIdentifier { Uri = diagnosticSource.GetUri() }, result.ToArray(), resultId);
+            return CreateReport(diagnosticSource.GetDocumentIdentifier(), result.ToArray(), resultId);
         }
 
         private void HandleRemovedDocuments(RequestContext context, ImmutableArray<PreviousPullResult> removedPreviousResults, BufferedProgress<TReport> progress)

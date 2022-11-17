@@ -610,6 +610,33 @@ class Program
             await VerifyNoItemsExistAsync(markup);
         }
 
+        [Fact]
+        public async Task CompletionListContainingMembers()
+        {
+            var markup =
+@"
+/// <completionlist cref=""TypeContainer"" />
+ public class SomeType
+ { }
+
+ public static class TypeContainer
+ {
+     public static SomeType Foo1 = new SomeType();
+     public static Program Foo2 = new Program();
+ }
+
+ class Program
+ {
+     void Goo()
+     {
+         SomeType c = $$
+     }
+ }";
+            await VerifyItemExistsAsync(markup, "TypeContainer");
+            await VerifyItemExistsAsync(markup, "TypeContainer.Foo1");
+            await VerifyItemExistsAsync(markup, "TypeContainer.Foo2");
+        }
+
         [Theory, WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
         [InlineData("System.Globalization.DigitShapes")]
         [InlineData("System.DateTime")]

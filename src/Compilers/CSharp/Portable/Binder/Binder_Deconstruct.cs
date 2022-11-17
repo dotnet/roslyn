@@ -409,9 +409,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BoundKind.Local:
                             var local = (BoundLocal)variable.Single;
-                            if (local.DeclarationKind != BoundLocalDeclarationKind.None)
+                            if (local.DeclarationKind != BoundLocalDeclarationKind.None &&
+                                local.LocalSymbol is SourceLocalSymbol { ValEscapeScope: CallingMethodScope } localSymbol)
                             {
-                                ((SourceLocalSymbol)local.LocalSymbol).SetValEscape(rhsValEscape);
+                                localSymbol.SetValEscape(rhsValEscape);
                             }
                             break;
                         case BoundKind.DeconstructionVariablePendingInference:
@@ -760,7 +761,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bool isVar;
                         bool isConst = false;
                         AliasSymbol alias;
-                        var declType = BindVariableTypeWithAnnotations(component.Designation, diagnostics, component.Type, ref isConst, out isVar, out alias);
+                        var declType = BindVariableTypeWithAnnotations(component.Designation, diagnostics, component.Type.SkipScoped(out _).SkipRef(out _), ref isConst, out isVar, out alias);
                         Debug.Assert(isVar == !declType.HasType);
                         if (component.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation && !isVar)
                         {
@@ -814,6 +815,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DiscardDesignation:
                     {
                         var discarded = (DiscardDesignationSyntax)node;
+
+                        if (discarded.Parent is DeclarationExpressionSyntax declExpr && declExpr.Designation == discarded)
+                        {
+                            TypeSyntax typeSyntax = declExpr.Type;
+
+                            if (typeSyntax is ScopedTypeSyntax scopedType)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_ScopedDiscard, scopedType.ScopedKeyword.GetLocation());
+                                typeSyntax = scopedType.Type;
+                            }
+
+                            if (typeSyntax is RefTypeSyntax refType)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_DeconstructVariableCannotBeByRef, refType.RefKeyword.GetLocation());
+                            }
+                        }
+
                         return new DeconstructionVariable(BindDiscardExpression(syntax, declTypeWithAnnotations), syntax);
                     }
                 case SyntaxKind.ParenthesizedVariableDesignation:
@@ -855,6 +873,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             // is this a local?
             if ((object)localSymbol != null)
             {
+                if (designation.Parent is DeclarationExpressionSyntax declExpr && declExpr.Designation == designation)
+                {
+                    TypeSyntax typeSyntax = declExpr.Type;
+
+                    if (typeSyntax is ScopedTypeSyntax scopedType)
+                    {
+                        // Check for support for 'scoped'.
+                        ModifierUtils.CheckScopedModifierAvailability(typeSyntax, scopedType.ScopedKeyword, diagnostics);
+                        typeSyntax = scopedType.Type;
+                    }
+
+                    if (typeSyntax is RefTypeSyntax refType)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_DeconstructVariableCannotBeByRef, refType.RefKeyword.GetLocation());
+                    }
+
+                    if (declTypeWithAnnotations.HasType &&
+                        localSymbol.Scope == DeclarationScope.ValueScoped && !declTypeWithAnnotations.Type.IsErrorTypeOrRefLikeType())
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
+                    }
+                }
+
                 // Check for variable declaration errors.
                 // Use the binder that owns the scope for the local because this (the current) binder
                 // might own nested scope.
@@ -867,33 +908,51 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new DeconstructionVariablePendingInference(syntax, localSymbol, receiverOpt: null);
             }
-
-            // Is this a field?
-            GlobalExpressionVariable field = LookupDeclaredField(designation);
-
-            if ((object)field == null)
+            else
             {
-                // We should have the right binder in the chain, cannot continue otherwise.
-                throw ExceptionUtilities.Unreachable;
+                // Is this a field?
+                GlobalExpressionVariable field = LookupDeclaredField(designation);
+
+                if ((object)field == null)
+                {
+                    // We should have the right binder in the chain, cannot continue otherwise.
+                    throw ExceptionUtilities.Unreachable();
+                }
+
+                if (designation.Parent is DeclarationExpressionSyntax declExpr && declExpr.Designation == designation)
+                {
+                    TypeSyntax typeSyntax = declExpr.Type;
+
+                    if (typeSyntax is ScopedTypeSyntax scopedType)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_UnexpectedToken, scopedType.ScopedKeyword.GetLocation(), scopedType.ScopedKeyword.ValueText);
+                        typeSyntax = scopedType.Type;
+                    }
+
+                    if (typeSyntax is RefTypeSyntax refType)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_UnexpectedToken, refType.RefKeyword.GetLocation(), refType.RefKeyword.ValueText);
+                    }
+                }
+
+                BoundThisReference receiver = ThisReference(designation, this.ContainingType, hasErrors: false,
+                                                wasCompilerGenerated: true);
+
+                if (declTypeWithAnnotations.HasType)
+                {
+                    var fieldType = field.GetFieldType(this.FieldsBeingBound);
+                    Debug.Assert(TypeSymbol.Equals(declTypeWithAnnotations.Type, fieldType.Type, TypeCompareKind.ConsiderEverything2));
+                    return new BoundFieldAccess(syntax,
+                                                receiver,
+                                                field,
+                                                constantValueOpt: null,
+                                                resultKind: LookupResultKind.Viable,
+                                                isDeclaration: true,
+                                                type: fieldType.Type);
+                }
+
+                return new DeconstructionVariablePendingInference(syntax, field, receiver);
             }
-
-            BoundThisReference receiver = ThisReference(designation, this.ContainingType, hasErrors: false,
-                                            wasCompilerGenerated: true);
-
-            if (declTypeWithAnnotations.HasType)
-            {
-                var fieldType = field.GetFieldType(this.FieldsBeingBound);
-                Debug.Assert(TypeSymbol.Equals(declTypeWithAnnotations.Type, fieldType.Type, TypeCompareKind.ConsiderEverything2));
-                return new BoundFieldAccess(syntax,
-                                            receiver,
-                                            field,
-                                            constantValueOpt: null,
-                                            resultKind: LookupResultKind.Viable,
-                                            isDeclaration: true,
-                                            type: fieldType.Type);
-            }
-
-            return new DeconstructionVariablePendingInference(syntax, field, receiver);
         }
     }
 }

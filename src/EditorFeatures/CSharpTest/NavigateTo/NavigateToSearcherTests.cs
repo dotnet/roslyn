@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -38,37 +39,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                     pattern,
                     ImmutableHashSet<string>.Empty,
                     It.IsAny<Document?>(),
-                    It.IsAny<Func<INavigateToSearchResult, Task>>(),
-                    It.IsAny<CancellationToken>())).Callback(
-                    (Project project,
-                     ImmutableArray<Document> priorityDocuments,
-                     string pattern,
-                     IImmutableSet<string> kinds,
-                     Document? activeDocument,
-                     Func<INavigateToSearchResult, Task> onResultFound,
-                     CancellationToken cancellationToken) =>
-                    {
-                        if (result != null)
-                            onResultFound(result);
-                    }).Returns(Task.CompletedTask);
+                    It.IsAny<CancellationToken>())).Returns(GetEnumerable(result));
 
                 searchService.Setup(ss => ss.SearchGeneratedDocumentsAsync(
                     It.IsAny<Project>(),
                     pattern,
                     ImmutableHashSet<string>.Empty,
                     It.IsAny<Document?>(),
-                    It.IsAny<Func<INavigateToSearchResult, Task>>(),
-                    It.IsAny<CancellationToken>())).Callback(
-                    (Project project,
-                     string pattern,
-                     IImmutableSet<string> kinds,
-                     Document? activeDocument,
-                     Func<INavigateToSearchResult, Task> onResultFound,
-                     CancellationToken cancellationToken) =>
-                    {
-                        if (result != null)
-                            onResultFound(result);
-                    }).Returns(Task.CompletedTask);
+                    It.IsAny<CancellationToken>())).Returns(GetEnumerable(result));
 
                 // Followed by a generated doc search.
             }
@@ -80,20 +58,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                     pattern,
                     ImmutableHashSet<string>.Empty,
                     It.IsAny<Document?>(),
-                    It.IsAny<Func<INavigateToSearchResult, Task>>(),
-                    It.IsAny<CancellationToken>())).Callback(
-                    (Project project,
-                     ImmutableArray<Document> priorityDocuments,
-                     string pattern2,
-                     IImmutableSet<string> kinds,
-                     Document? activeDocument,
-                     Func<INavigateToSearchResult, Task> onResultFound2,
-                     CancellationToken cancellationToken) =>
-                    {
-                        if (result != null)
-                            onResultFound2(result);
-                    }).Returns(Task.CompletedTask);
+                    It.IsAny<CancellationToken>())).Returns(GetEnumerable(result));
             }
+        }
+
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+        private static async IAsyncEnumerable<INavigateToSearchResult> GetEnumerable(INavigateToSearchResult? result)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        {
+            if (result != null)
+                yield return result;
         }
 
         private static ValueTask<bool> IsFullyLoadedAsync(bool projectSystem, bool remoteHost)

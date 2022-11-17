@@ -31,6 +31,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             using (Logger.LogBlock(FunctionId.DiagnosticIncrementalAnalyzer_SynchronizeWithBuildAsync, LogSynchronizeWithBuild, buildDiagnostics, cancellationToken))
             {
+                DebugVerifyBuildDiagnostics(buildDiagnostics);
+
                 var solution = Workspace.CurrentSolution;
 
                 foreach (var (projectId, diagnostics) in buildDiagnostics)
@@ -96,6 +98,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         }
                     }, cancellationToken);
                 }
+            }
+        }
+
+        [Conditional("DEBUG")]
+        private static void DebugVerifyBuildDiagnostics(ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> buildDiagnostics)
+        {
+            foreach (var diagnostic in buildDiagnostics.Values.SelectMany(v => v))
+            {
+                Debug.Assert(diagnostic.IsBuildDiagnostic());
             }
         }
 

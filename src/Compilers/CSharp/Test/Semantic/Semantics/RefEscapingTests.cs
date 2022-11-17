@@ -4952,7 +4952,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "M0(rs3, out rs4)").WithArguments("Program.M0(RS, out RS)", "rs1").WithLocation(28, 9),
                 // (28,12): error CS8352: Cannot use variable 'scoped RS' in this context because it may expose referenced variables outside of their declaration scope
                 //         M0(rs3, out rs4); // 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs3").WithArguments("RS").WithLocation(28, 12));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs3").WithArguments("scoped RS").WithLocation(28, 12));
         }
 
         [Fact]
@@ -5208,37 +5208,42 @@ class Program
                         M0(ref rs5, out scoped RS rs6);
                         return rs6; // 2
                     }
+                
+                    static RS M12(ref RS rs3)
+                    {
+                        // RSTE of rs3 is ReturnOnly.
+                        // However, since rs4 is 'scoped', its STE should be narrowed to CurrentMethod
+                        scoped RS rs4;
+                        M0(ref rs3, out rs4);
+                        return rs4; // 3
+                    }
+                
+                    static RS M22(ref RS rs5)
+                    {
+                        // RSTE of rs5 is ReturnOnly.
+                        // However, since rs6 is 'scoped', its STE should be narrowed to CurrentMethod
+                        scoped RS rs6;
+                        M0(ref rs5, out rs6);
+                        return rs6; // 4
+                    }
                 }
                 """;
 
-            // Once 'out scoped var' support is added, this test baseline should be updated.
-            // https://github.com/dotnet/roslyn/issues/64556
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (18,25): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
-                //         M0(ref rs3, out scoped var rs4);
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(18, 25),
-                // (18,36): error CS1003: Syntax error, ',' expected
-                //         M0(ref rs3, out scoped var rs4);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "rs4").WithArguments(",").WithLocation(18, 36),
-                // (18,36): error CS0103: The name 'rs4' does not exist in the current context
-                //         M0(ref rs3, out scoped var rs4);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "rs4").WithArguments("rs4").WithLocation(18, 36),
-                // (19,16): error CS0103: The name 'rs4' does not exist in the current context
+                // (19,16): error CS8352: Cannot use variable 'rs4' in this context because it may expose referenced variables outside of their declaration scope
                 //         return rs4; // 1
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "rs4").WithArguments("rs4").WithLocation(19, 16),
-                // (26,25): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
-                //         M0(ref rs5, out scoped RS rs6);
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(26, 25),
-                // (26,35): error CS1003: Syntax error, ',' expected
-                //         M0(ref rs5, out scoped RS rs6);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "rs6").WithArguments(",").WithLocation(26, 35),
-                // (26,35): error CS0103: The name 'rs6' does not exist in the current context
-                //         M0(ref rs5, out scoped RS rs6);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "rs6").WithArguments("rs6").WithLocation(26, 35),
-                // (27,16): error CS0103: The name 'rs6' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs4").WithArguments("rs4").WithLocation(19, 16),
+                // (27,16): error CS8352: Cannot use variable 'rs6' in this context because it may expose referenced variables outside of their declaration scope
                 //         return rs6; // 2
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "rs6").WithArguments("rs6").WithLocation(27, 16));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs6").WithArguments("rs6").WithLocation(27, 16),
+                // (36,16): error CS8352: Cannot use variable 'rs4' in this context because it may expose referenced variables outside of their declaration scope
+                //         return rs4; // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs4").WithArguments("rs4").WithLocation(36, 16),
+                // (45,16): error CS8352: Cannot use variable 'rs6' in this context because it may expose referenced variables outside of their declaration scope
+                //         return rs6; // 4
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs6").WithArguments("rs6").WithLocation(45, 16)
+                );
         }
     }
 }

@@ -11,5 +11,7 @@
 
     <!-- Remove once https://github.com/NuGet/Home/issues/8583 is fixed -->
     <NoWarn>$(NoWarn);NU5128</NoWarn>
+
+    <IsShippingAssembly>false</IsShippingAssembly>
   </PropertyGroup>
 </Project>

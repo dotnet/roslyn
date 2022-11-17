@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TaskList
                 return;
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         protected override string GetNormalizedText(string message)
