@@ -1505,7 +1505,7 @@ class Derived : Base
                     E = 2.5f
                   }
                 }
-                """.ReplaceLineEndings("\r\n"));
+                """);
             TestNormalizeExpression(
                 "new SomeClass(){A=1,B=2,C=new SomeOtherClass{D=5l,E=2.5f,}}", """
                 new SomeClass()
