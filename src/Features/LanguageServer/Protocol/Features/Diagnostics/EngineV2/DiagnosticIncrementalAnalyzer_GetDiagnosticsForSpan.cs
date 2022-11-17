@@ -309,12 +309,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // If we are computing full document diagnostics, and the provided analyzers
                 // support span based analysis, we will attempt to perform incremental
                 // member edit analysis.
-                // This analysis is currently guarded with 'IncrementalMemberEditAnalysisFeatureFlag'
+                // This analysis is currently only enabled with LSP pull diagnostics.
                 var incrementalAnalysis = !span.HasValue
                     && supportsSpanBasedAnalysis
                     && _document is Document sourceDocument
                     && sourceDocument.SupportsSyntaxTree
-                    && _owner.GlobalOptions.GetOption(DiagnosticOptionsStorage.IncrementalMemberEditAnalysisFeatureFlag);
+                    && _owner.GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
 
                 ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> diagnosticsMap;
                 if (incrementalAnalysis)

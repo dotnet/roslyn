@@ -1340,7 +1340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private Function DeriveCompilerFeatureRequiredDiagnostic() As DiagnosticInfo
             Dim decoder = New MetadataDecoder(ContainingPEModule, Me)
 
-            Dim diagnostic = DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, ContainingPEModule, Handle, CompilerFeatureRequiredFeatures.None, decoder)
+            Dim diagnostic = DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, ContainingPEModule, Handle, CompilerFeatureRequiredFeatures.RefStructs, decoder)
 
             If diagnostic IsNot Nothing Then
                 Return diagnostic
