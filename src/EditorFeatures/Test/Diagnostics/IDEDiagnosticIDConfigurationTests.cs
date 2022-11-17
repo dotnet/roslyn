@@ -443,6 +443,9 @@ dotnet_diagnostic.IDE0241.severity = %value%
 # IDE0250
 dotnet_diagnostic.IDE0250.severity = %value%
 
+# IDE0260
+dotnet_diagnostic.IDE0260.severity = %value%
+
 # IDE1005
 dotnet_diagnostic.IDE1005.severity = %value%
 
@@ -1068,6 +1071,9 @@ No editorconfig based code style option
 
 # IDE0250, PreferReadOnlyStruct
 csharp_style_prefer_readonly_struct = true
+
+# IDE0260, PreferPatternMatchingOverAsWithNullCheck
+csharp_style_pattern_matching_over_as_with_null_check = true
 
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true
