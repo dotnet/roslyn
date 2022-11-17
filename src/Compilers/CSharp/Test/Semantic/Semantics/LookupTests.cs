@@ -1403,7 +1403,7 @@ class Program
         [Fact, WorkItem(546523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546523")]
         public void TestLookupSymbolsNestedNamespacesNotImportedByUsings_02()
         {
-            var usings = new[] { "using X;" };
+            var usings = "using X;";
 
             var source =
 @"
@@ -1443,10 +1443,10 @@ class Program
 }
 ";
             // Get the list of LookupSymbols at the location of the CSharpSyntaxNode
-            var actual_lookupSymbols = GetLookupSymbols(usings.ToString() + source, isScript: false);
+            var actual_lookupSymbols = GetLookupSymbols(usings + source, isScript: false);
             TestLookupSymbolsNestedNamespaces(actual_lookupSymbols);
 
-            actual_lookupSymbols = GetLookupSymbols(source, isScript: true, globalUsings: usings);
+            actual_lookupSymbols = GetLookupSymbols(source, isScript: true, globalUsings: new[] { usings });
             TestLookupSymbolsNestedNamespaces(actual_lookupSymbols);
 
             Action<ModuleSymbol> validator = (module) =>
