@@ -3276,5 +3276,53 @@ class C { }
             driver = driver.RunGenerators(compilation);
             Assert.True(wasCalled);
         }
+
+        [Fact]
+        public void IncrementalGenerator_Add_New_Generator_With_Syntax_After_Generation()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            bool gen1Called = false;
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var syntax = ctx.SyntaxProvider.CreateSyntaxProvider((s, _) => true, (s, _) => s.Node);
+                ctx.RegisterSourceOutput(syntax, (spc, c) =>
+                {
+                    gen1Called = true;
+                });
+            }));
+
+            // run the generator and make sure the first node is cached
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+
+            Assert.True(gen1Called);
+
+            // now, add another syntax node from another generator
+            var gen2Called = false;
+            var generator2 = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator2(ctx =>
+            {
+                var syntax = ctx.SyntaxProvider.CreateSyntaxProvider((s, _) => true, (s, _) => s.Node);
+                ctx.RegisterSourceOutput(syntax, (spc, c) =>
+                {
+                    gen2Called = true;
+                });
+            }));
+            driver = driver.AddGenerators(ImmutableArray.Create<ISourceGenerator>(generator2));
+
+            // ensure it runs successfully
+            gen1Called = false;
+            driver = driver.RunGenerators(compilation);
+
+            Assert.False(gen1Called); // Generator 1 did not re-run
+            Assert.True(gen2Called);
+        }
     }
 }
