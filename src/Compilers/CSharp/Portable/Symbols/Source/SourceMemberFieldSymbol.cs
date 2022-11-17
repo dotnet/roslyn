@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (var modifier in modifiers)
                 {
                     if (modifier.IsKind(SyntaxKind.FixedKeyword))
-                        MessageID.IDS_FeatureFixedBuffer.CheckFeatureAvailability(diagnostics, modifier.Parent, modifier.GetLocation()); ;
+                        MessageID.IDS_FeatureFixedBuffer.CheckFeatureAvailability(diagnostics, modifier.Parent, modifier.GetLocation());
                 }
 
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.Static, diagnostics, errorLocation);
