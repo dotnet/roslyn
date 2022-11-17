@@ -82,6 +82,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
                 OperationBlockActionsCount > 0 ||
                 OperationBlockStartActionsCount > 0 ||
                 SymbolStartActionsCount > 0;
+
+            HasAnyActionsRequiringSemanticAnalysis = HasAnyExecutableCodeActions ||
+                SymbolActionsCount > 0 ||
+                SemanticModelActionsCount > 0;
         }
 
         /// <summary>
@@ -173,6 +177,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
         /// Returns true if there are any actions that need to run on executable code.
         /// </summary>
         public bool HasAnyExecutableCodeActions { get; }
+
+        /// <summary>
+        /// Returns true if there are any actions that require any semantic or symbolic analysis.
+        /// </summary>
+        public bool HasAnyActionsRequiringSemanticAnalysis { get; }
 
         /// <summary>
         /// Gets a value indicating whether the analyzer supports concurrent execution.

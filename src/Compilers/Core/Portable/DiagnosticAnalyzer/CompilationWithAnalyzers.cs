@@ -423,18 +423,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var analysisScope = new AnalysisScope(compilation, _analysisOptions.Options, analyzers, hasAllAnalyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics);
                 driver.AttachQueueAndStartProcessingEvents(compilation.EventQueue!, analysisScope, cancellationToken);
 
-                // Force compilation diagnostics and wait for analyzer execution to complete.
-                var compDiags = compilation.GetDiagnostics(cancellationToken);
-                await driver.WhenCompletedTask.ConfigureAwait(false);
-
                 // Get analyzer action counts.
                 var analyzerActionCounts = new Dictionary<DiagnosticAnalyzer, AnalyzerActionCounts>(analyzers.Length);
+                var hasAnyActionsRequiringSemanticAnalysis = false;
                 foreach (var analyzer in analyzers)
                 {
                     var actionCounts = await driver.GetAnalyzerActionCountsAsync(analyzer, compilation.Options, cancellationToken).ConfigureAwait(false);
                     analyzerActionCounts.Add(analyzer, actionCounts);
+
+                    if (actionCounts.HasAnyActionsRequiringSemanticAnalysis)
+                        hasAnyActionsRequiringSemanticAnalysis = true;
                 }
                 Func<DiagnosticAnalyzer, AnalyzerActionCounts> getAnalyzerActionCounts = analyzer => analyzerActionCounts[analyzer];
+
+                // If we have any analyzer actions that require semantic analysis, we need to
+                // force compilation diagnostics to populate the compilation event queue.
+                if (hasAnyActionsRequiringSemanticAnalysis)
+                    _ = compilation.GetDiagnostics(cancellationToken);
+
+                // Wait for analyzer execution to complete.
+                await driver.WhenCompletedTask.ConfigureAwait(false);
 
                 _analysisResultBuilder.ApplySuppressionsAndStoreAnalysisResult(analysisScope, driver, compilation, getAnalyzerActionCounts, fullAnalysisResultForAnalyzersInScope: true);
             }
