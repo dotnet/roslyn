@@ -265,8 +265,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < members.Count; i++)
             {
                 AddMemberToCandidateSet(
-                    members[i], results, members, typeArguments, arguments, completeResults, isMethodGroupConversion,
-                    allowRefOmittedArguments, containingTypeMapOpt, inferWithDynamic: inferWithDynamic, useSiteInfo: ref useSiteInfo,
+                    members[i],
+                    results,
+                    members,
+                    typeArguments,
+                    arguments,
+                    completeResults,
+                    isMethodGroupConversion,
+                    allowRefOmittedArguments,
+                    containingTypeMapOpt,
+                    inferWithDynamic: inferWithDynamic,
+                    useSiteInfo: ref useSiteInfo,
                     allowUnexpandedForm: allowUnexpandedForm);
             }
 
