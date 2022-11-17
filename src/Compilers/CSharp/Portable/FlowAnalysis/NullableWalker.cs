@@ -1154,7 +1154,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-
         private void ReportParameterIfBadConditionalState(SyntaxNode syntax, ParameterSymbol parameter, bool sense, LocalState stateWhen)
         {
             if (parameterHasBadConditionalState(parameter, sense, stateWhen))
@@ -5393,7 +5392,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultType = BestTypeInferrer.InferBestTypeForConditionalOperator(consequencePlaceholder, alternativePlaceholder, _conversions, out _, ref discardedUseSiteInfo);
             }
 
-
             resultType ??= node.Type?.SetUnknownNullabilityForReferenceTypes();
 
             TypeWithAnnotations resultTypeWithAnnotations;
@@ -5417,7 +5415,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 resultTypeWithAnnotations = TypeWithAnnotations.Create(resultType);
             }
-
 
             TypeWithState typeWithState = convertArms(
                                                 node, originalConsequence, originalAlternative, consequenceState, alternativeState, consequenceRValue, alternativeRValue,

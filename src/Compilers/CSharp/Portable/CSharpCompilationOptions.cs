@@ -849,7 +849,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-
         // 1.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         [EditorBrowsable(EditorBrowsableState.Never)]
         public CSharpCompilationOptions(

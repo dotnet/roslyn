@@ -2280,7 +2280,6 @@ class Test1 : I2, I1<string?>
                                                         parseOptions: TestOptions.Regular,
                                                         targetFramework: TargetFramework.NetCoreApp);
 
-
                 var test1 = compilation2.GetTypeByMetadataName("Test1");
 
                 Assert.Equal(new[] { "I2", "I1<System.String>", "I1<System.String?>" },
@@ -2349,7 +2348,6 @@ class Test1 : I1<string?>, I2
                 var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                         parseOptions: TestOptions.Regular,
                                                         targetFramework: TargetFramework.NetCoreApp);
-
 
                 var test1 = compilation2.GetTypeByMetadataName("Test1");
 
@@ -9087,7 +9085,6 @@ class Test1 : I1
 
             ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"), Accessibility.Internal, isStatic: isStatic);
 
-
             var source3 =
 @"
 class Test2 : I1
@@ -11701,7 +11698,6 @@ class Test1 : I1
                                              targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-
             CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersImplicit_10(m, Accessibility.Protected)).VerifyDiagnostics();
 
             ValidateMethodModifiersImplicit_10(compilation1.SourceModule, Accessibility.Protected);
@@ -11713,7 +11709,6 @@ class Test1 : I1
             compilation2.VerifyDiagnostics();
 
             ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"), Accessibility.Protected);
-
 
             var source3 =
 @"
@@ -11829,7 +11824,6 @@ class Test1 : I1
             compilation2.VerifyDiagnostics();
 
             ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"), Accessibility.ProtectedOrInternal);
-
 
             var source3 =
 @"
@@ -11953,7 +11947,6 @@ class Test1 : I1
             compilation2.VerifyDiagnostics();
 
             ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"), Accessibility.ProtectedAndInternal);
-
 
             var source3 =
 @"
@@ -27241,7 +27234,6 @@ class Test1 : I1
                 },
                 haveAdd: true, haveRemove: false);
 
-
             ValidateEventImplementation_101(@"
 public interface I1
 {
@@ -31969,7 +31961,6 @@ class Test1
                 //     protected internal delegate void T5();
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T5").WithLocation(20, 38)
                 );
-
 
             var compilation3 = CreateCompilation(source0, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
@@ -44076,7 +44067,6 @@ class Test1
                 Diagnostic(ErrorCode.ERR_BadAccess, "F3").WithArguments("I1.F3").WithLocation(15, 12)
                 );
 
-
             var source4 =
 @"
 class Test2 : I1
@@ -45828,7 +45818,6 @@ public class Test1 : I0
                                                  targetFramework: TargetFramework.NetCoreApp);
 
             compilation0.VerifyDiagnostics();
-
 
             var source2 =
 @"
@@ -54031,7 +54020,6 @@ class Test1 : I2
                 compilation2.VerifyDiagnostics(expected);
             }
 
-
             void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
@@ -59083,7 +59071,6 @@ class Test1 : I2
                 validate(compilation2.SourceModule);
                 compilation2.VerifyDiagnostics(expected);
             }
-
 
             void validate(ModuleSymbol m)
             {
@@ -68363,7 +68350,6 @@ class Test1 : I1<Test1>
                     // class Test1 : I1<Test1>
                     Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1<Test1>")
                     );
-
 
                 var source4 = @"
 public interface I3<T3> : I1<T3> where T3 : I1<T3>

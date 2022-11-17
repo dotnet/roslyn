@@ -5395,7 +5395,6 @@ int (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x, y)").WithLocation(2, 5)
                 );
 
-
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
 
@@ -5428,7 +5427,6 @@ int (x, y) = (1, 2);
                 // (int (x, y), int z) = ((1, 2), 3);
                 Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x, y)").WithLocation(2, 6)
                 );
-
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -6895,7 +6893,6 @@ public class C
 }
 (string _, string _) = new C();
 ";
-
 
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
 

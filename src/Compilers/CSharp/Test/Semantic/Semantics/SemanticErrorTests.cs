@@ -2462,7 +2462,6 @@ public class P {
                     Diagnostic(ErrorCode.ERR_BadSKknown, "a").WithArguments("a", "variable", "type").WithLocation(7, 16));
         }
 
-
         [Fact]
         public void CS0118ERR_BadSKknown_CheckedUnchecked()
         {
@@ -6015,7 +6014,6 @@ public class B<V> : A<EG<dynamic>> where V : EG<object>
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
-
         [Fact]
         public void CS0160ERR_UnreachableCatch_TypeParameter_Dynamic2()
         {
@@ -7482,7 +7480,6 @@ unsafe public class MyClass
                 //       j = i[1,2];   // CS0196
                 Diagnostic(ErrorCode.ERR_PtrIndexSingle, "i[1,2]"));
 
-
             var tree = compilation.SyntaxTrees.Single();
             var node = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().First();
 
@@ -8812,7 +8809,6 @@ class TestClass
     Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "P1").WithArguments("TestClass.P1").WithLocation(7, 24)
                 );
         }
-
 
         [Fact]
         public void CS0242ERR_VoidError()
@@ -18829,7 +18825,6 @@ class C
     Diagnostic(ErrorCode.WRN_UnreferencedEvent, "B").WithArguments("A.C.B"));
         }
 
-
         [Fact, WorkItem(539630, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539630")]
         public void CS0162WRN_UnreachableCode01()
         {
@@ -23965,7 +23960,6 @@ class Program
                 Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".ToString").WithArguments("method group").WithLocation(14, 24)
                 );
         }
-
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation)]
