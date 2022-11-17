@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Notification;
@@ -50,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         private RemoteGlobalOperationNotificationService? GetGlobalOperationNotificationService()
-            => GetWorkspace().Services.GetService<IGlobalOperationNotificationService>() as RemoteGlobalOperationNotificationService;
+            // We know in the remote layer this type must exist.
+            => GetWorkspace().Services.SolutionServices.ExportProvider.GetExports<IGlobalOperationNotificationService>().Single().Value as RemoteGlobalOperationNotificationService;
     }
 }

@@ -6,15 +6,15 @@ using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Notification;
+namespace Microsoft.CodeAnalysis.Notification;
 
-internal partial class VisualStudioGlobalOperationNotificationService
+internal partial class AbstractGlobalOperationNotificationService
 {
     private class GlobalOperationRegistration : IDisposable
     {
-        private readonly VisualStudioGlobalOperationNotificationService _service;
+        private readonly AbstractGlobalOperationNotificationService _service;
 
-        public GlobalOperationRegistration(VisualStudioGlobalOperationNotificationService service)
+        public GlobalOperationRegistration(AbstractGlobalOperationNotificationService service)
             => _service = service;
 
         public void Dispose()

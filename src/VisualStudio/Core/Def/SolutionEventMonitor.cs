@@ -4,8 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.Shell;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
@@ -25,7 +27,8 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         public SolutionEventMonitor(VisualStudioWorkspace workspace)
         {
-            _notificationService = workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
+            // We are in the VS layer, so getting the IGlobalOperationNotificationService must succeed.
+            _notificationService = workspace.Services.SolutionServices.ExportProvider.GetExports<IGlobalOperationNotificationService>().Single().Value;
 
             RegisterEventHandler(KnownUIContexts.SolutionBuildingContext, SolutionBuildingContextChanged);
             RegisterEventHandler(KnownUIContexts.SolutionOpeningContext, SolutionOpeningContextChanged);

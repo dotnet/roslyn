@@ -8,9 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
     /// <summary>
     /// Delivers global notifications to remote services.
@@ -51,22 +52,17 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private void RegisterGlobalOperationNotifications()
         {
-            var globalOperationService = _services.ExportProvider.GetExports<IGlobalOperationNotificationService>().FirstOrDefault()?.Value;
-            if (globalOperationService != null)
-            {
-                globalOperationService.Started += OnGlobalOperationStarted;
-                globalOperationService.Stopped += OnGlobalOperationStopped;
-            }
+            // We are in the VS layer, so getting the IGlobalOperationNotificationService must succeed.
+            var globalOperationService = _services.ExportProvider.GetExports<IGlobalOperationNotificationService>().Single().Value;
+            globalOperationService.Started += OnGlobalOperationStarted;
+            globalOperationService.Stopped += OnGlobalOperationStopped;
         }
 
         private void UnregisterGlobalOperationNotifications()
         {
-            var globalOperationService = _services.ExportProvider.GetExports<IGlobalOperationNotificationService>().FirstOrDefault()?.Value;
-            if (globalOperationService != null)
-            {
-                globalOperationService.Started -= OnGlobalOperationStarted;
-                globalOperationService.Stopped -= OnGlobalOperationStopped;
-            }
+            var globalOperationService = _services.ExportProvider.GetExports<IGlobalOperationNotificationService>().Single().Value;
+            globalOperationService.Started -= OnGlobalOperationStarted;
+            globalOperationService.Stopped -= OnGlobalOperationStopped;
         }
 
         private void OnGlobalOperationStarted(object? sender, EventArgs e)

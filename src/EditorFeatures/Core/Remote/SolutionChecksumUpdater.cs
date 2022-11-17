@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.Remote
     internal sealed class SolutionChecksumUpdater
     {
         private readonly Workspace _workspace;
+
+        /// <summary>
+        /// We're not at a layer where we are guaranteed to have an IGlobalOperationNotificationService.  So allow for
+        /// it being null.
+        /// </summary>
         private readonly IGlobalOperationNotificationService? _globalOperationService;
 
         /// <summary>
@@ -44,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Remote
             CancellationToken shutdownToken)
         {
             var listener = listenerProvider.GetListener(FeatureAttribute.SolutionChecksumUpdater);
+
             _globalOperationService = workspace.Services.SolutionServices.ExportProvider.GetExports<IGlobalOperationNotificationService>().FirstOrDefault()?.Value;
 
             _workspace = workspace;

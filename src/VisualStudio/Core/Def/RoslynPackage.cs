@@ -351,6 +351,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             //
             // this should give all resources to BulkFileOperation. we do same for things like build, debugging, wait
             // dialog and etc. BulkFileOperation is used for things like git branch switching and etc.
+            //
+            // We are at the VS layer, so we know we must be able to get the IGlobalOperationNotificationService here.
             var globalNotificationService = this.ComponentModel.GetService<IGlobalOperationNotificationService>();
             Contract.ThrowIfNull(globalNotificationService);
 

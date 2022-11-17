@@ -13,6 +13,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal abstract class GlobalOperationAwareIdleProcessor : IdleProcessor
     {
+        /// <summary>
+        /// We're not at a layer where we are guaranteed to have an IGlobalOperationNotificationService.  So allow for
+        /// it being null.
+        /// </summary>
         private readonly IGlobalOperationNotificationService? _globalOperationNotificationService;
 
         public GlobalOperationAwareIdleProcessor(

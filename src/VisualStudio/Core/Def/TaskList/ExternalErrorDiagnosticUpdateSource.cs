@@ -105,7 +105,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _diagnosticService = diagnosticService;
             _buildOnlyDiagnosticsService = _workspace.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
 
-            _notificationService = _workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
+            // We are in the VS layer, so getting the IGlobalOperationNotificationService must succeed.
+            _notificationService = _workspace.Services.SolutionServices.ExportProvider.GetExports<IGlobalOperationNotificationService>().Single().Value;
         }
 
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache => _diagnosticService.AnalyzerInfoCache;

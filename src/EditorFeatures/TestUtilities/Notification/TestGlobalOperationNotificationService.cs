@@ -7,15 +7,16 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Composition;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Notification
+namespace Microsoft.CodeAnalysis.Test.Utilities.Notification
 {
-    [Export(typeof(IGlobalOperationNotificationService)), Shared]
-    internal partial class VisualStudioGlobalOperationNotificationService : AbstractGlobalOperationNotificationService
+    [Export(typeof(IGlobalOperationNotificationService)), PartNotDiscoverable, Shared]
+    internal sealed class TestGlobalOperationNotificationService : AbstractGlobalOperationNotificationService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioGlobalOperationNotificationService(
+        public TestGlobalOperationNotificationService(
             IAsynchronousOperationListenerProvider listenerProvider)
             : base(listenerProvider)
         {
