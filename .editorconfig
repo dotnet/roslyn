@@ -173,6 +173,9 @@ dotnet_diagnostic.IDE0170.severity = warning
 # RS0016: Only enable if API files are present
 dotnet_public_api_analyzer.require_api_files = true
 
+# dotnet_style_allow_multiple_blank_lines_experimental
+dotnet_diagnostic.IDE2000.severity = warning
+
 # CSharp code style settings:
 [*.cs]
 # Newline settings
@@ -279,9 +282,6 @@ dotnet_diagnostic.IDE0007.severity = warning
 csharp_style_var_for_built_in_types = true:warning
 csharp_style_var_when_type_is_apparent = true:warning
 csharp_style_var_elsewhere = true:warning
-
-# dotnet_style_allow_multiple_blank_lines_experimental
-dotnet_diagnostic.IDE2000.severity = warning
 
 # csharp_style_allow_embedded_statements_on_same_line_experimental
 dotnet_diagnostic.IDE2001.severity = warning

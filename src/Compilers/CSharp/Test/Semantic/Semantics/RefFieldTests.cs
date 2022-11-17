@@ -12443,7 +12443,6 @@ ref struct R { }
 
                 Assert.Equal(6, decls.Length);
 
-
                 foreach (var decl in decls)
                 {
                     var f = model.GetDeclaredSymbol(decl).GetSymbol<FieldSymbol>();
