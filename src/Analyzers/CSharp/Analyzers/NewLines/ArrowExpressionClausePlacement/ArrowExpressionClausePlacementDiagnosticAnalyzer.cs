@@ -9,19 +9,18 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
+namespace Microsoft.CodeAnalysis.CSharp.NewLines.ArrowExpressionClausePlacement
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class ConditionalExpressionPlacementDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal sealed class ArrowExpressionClausePlacementDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public ConditionalExpressionPlacementDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.ConditionalExpressionPlacementDiagnosticId,
-                   EnforceOnBuildValues.ConditionalExpressionPlacement,
-                   CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression,
+        public ArrowExpressionClausePlacementDiagnosticAnalyzer()
+            : base(IDEDiagnosticIds.ArrowExpressionClausePlacementDiagnosticId,
+                   EnforceOnBuildValues.ArrowExpressionClausePlacement,
+                   CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause,
                    new LocalizableResourceString(
-                       nameof(CSharpAnalyzersResources.Blank_line_not_allowed_after_conditional_expression_token), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
+                       nameof(CSharpAnalyzersResources.Blank_line_not_allowed_after_arrow_expression_clause_token), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
 
         private void AnalyzeTree(SyntaxTreeAnalysisContext context)
         {
-            var option = context.GetCSharpAnalyzerOptions().AllowBlankLineAfterTokenInConditionalExpression;
+            var option = context.GetCSharpAnalyzerOptions().AllowBlankLineAfterTokenInArrowExpressionClause;
             if (option.Value)
                 return;
 
@@ -44,8 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
         {
             context.CancellationToken.ThrowIfCancellationRequested();
 
-            if (node is ConditionalExpressionSyntax conditionalExpression)
-                ProcessConditionalExpression(context, severity, conditionalExpression);
+            if (node is ArrowExpressionClauseSyntax arrowExpressionClause)
+                ProcessArrowExpressionClause(context, severity, arrowExpressionClause);
 
             foreach (var child in node.ChildNodesAndTokens())
             {
@@ -54,29 +53,19 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
             }
         }
 
-        private void ProcessConditionalExpression(
-            SyntaxTreeAnalysisContext context, ReportDiagnostic severity, ConditionalExpressionSyntax conditionalExpression)
+        private void ProcessArrowExpressionClause(
+            SyntaxTreeAnalysisContext context, ReportDiagnostic severity, ArrowExpressionClauseSyntax arrowExpressionClause)
         {
-            // Don't bother analyzing nodes whose parent have syntax errors in them.
-            if (conditionalExpression.GetRequiredParent().GetDiagnostics().Any(static d => d.Severity == DiagnosticSeverity.Error))
+            // Don't bother analyzing nodes that have syntax errors in them.
+            if (arrowExpressionClause.GetDiagnostics().Any(static d => d.Severity == DiagnosticSeverity.Error))
                 return;
 
-            // Only if both tokens are not ok do we report an error.  For example, the following is legal:
-            //
-            //  var x =
-            //      goo ? bar :
-            //      baz ? quux : ztesh;
-            //
-            // despite one colon being at the end of the line.
-            if (IsOk(conditionalExpression.QuestionToken) ||
-                IsOk(conditionalExpression.ColonToken))
-            {
+            if (IsOk(arrowExpressionClause.ArrowToken))
                 return;
-            }
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 this.Descriptor,
-                conditionalExpression.QuestionToken.GetLocation(),
+                arrowExpressionClause.ArrowToken.GetLocation(),
                 severity,
                 additionalLocations: null,
                 properties: null));
@@ -90,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
                 if (token.IsMissing)
                     return true;
 
-                // question/colon has to be at the end of the line for us to actually care.
+                // Arrow has to be at the end of the line for us to actually care.
                 if (token.TrailingTrivia is not [.., SyntaxTrivia(SyntaxKind.EndOfLineTrivia)])
                     return true;
 
@@ -106,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
                     return true;
                 }
 
-                // Not ok.  Report an error if the other token is not ok as well.
+                // Not ok.
                 return false;
             }
         }

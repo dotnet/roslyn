@@ -108,6 +108,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild ConsecutiveStatementPlacement = /*IDE2003*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild ConstructorInitializerPlacement = /*IDE2004*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild ConditionalExpressionPlacement = /*IDE2005*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild ArrowExpressionClausePlacement = /*IDE2006*/ EnforceOnBuild.WhenExplicitlyEnabled;
 
         public const EnforceOnBuild Regex = /*RE0001*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild Json = /*JSON001*/ EnforceOnBuild.WhenExplicitlyEnabled;

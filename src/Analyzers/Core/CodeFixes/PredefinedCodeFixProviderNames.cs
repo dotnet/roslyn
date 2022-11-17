@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string AddRequiredParentheses = nameof(AddRequiredParentheses);
         public const string AliasAmbiguousType = nameof(AliasAmbiguousType);
         public const string ApplyNamingStyle = nameof(ApplyNamingStyle);
+        public const string ArrowExpressionClausePlacement = nameof(ArrowExpressionClausePlacement);
         public const string AssignOutParametersAboveReturn = nameof(AssignOutParametersAboveReturn);
         public const string AssignOutParametersAtStart = nameof(AssignOutParametersAtStart);
         public const string ChangeNamespaceToMatchFolder = nameof(ChangeNamespaceToMatchFolder);
