@@ -196,8 +196,6 @@ class A
         [Fact, WorkItem(13719, "https://github.com/dotnet/roslyn/issues/13719")]
         public void ReportErrorForIncompleteMember2()
         {
-            // This test demonstrates a current parser bug.  We do not report errors on incomplete members if there is
-            // already a warning diagnostics on it.
             var test = @"
 class A
 {
