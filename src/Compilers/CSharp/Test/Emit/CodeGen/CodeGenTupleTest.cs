@@ -29519,7 +29519,6 @@ True
                 System.Console.Write((x, y, z));
                 """;
 
-
             var expectedIL = """
 {
   // Code size       31 (0x1f)
@@ -29564,6 +29563,203 @@ True
                 """;
 
             verifier = CompileAndVerify(source, expectedOutput: "(2, 3, 1)");
+            verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+        }
+
+        [Fact]
+        public void TupleAssignment_09()
+        {
+            var source = """
+                int v1 = 1, v2 = 2, v3 = 3, v4 = 4, v5 = 5, v6 = 6, v7 = 7, v8 = 8, v9 = 9;
+                (v1, v2, v3, v4, v5, v6, v7, v8, v9) = (v2, v3, v4, v5, v6, v7, v8, v9, v1);
+                System.Console.Write((v1, v2, v3, v4, v5, v6, v7, v8, v9));
+                """;
+
+            var expectedIL = """
+{
+  // Code size       87 (0x57)
+  .maxstack  9
+  .locals init (int V_0, //v1
+                int V_1, //v2
+                int V_2, //v3
+                int V_3, //v4
+                int V_4, //v5
+                int V_5, //v6
+                int V_6, //v7
+                int V_7, //v8
+                int V_8) //v9
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.2
+  IL_0003:  stloc.1
+  IL_0004:  ldc.i4.3
+  IL_0005:  stloc.2
+  IL_0006:  ldc.i4.4
+  IL_0007:  stloc.3
+  IL_0008:  ldc.i4.5
+  IL_0009:  stloc.s    V_4
+  IL_000b:  ldc.i4.6
+  IL_000c:  stloc.s    V_5
+  IL_000e:  ldc.i4.7
+  IL_000f:  stloc.s    V_6
+  IL_0011:  ldc.i4.8
+  IL_0012:  stloc.s    V_7
+  IL_0014:  ldc.i4.s   9
+  IL_0016:  stloc.s    V_8
+  IL_0018:  ldloc.1
+  IL_0019:  ldloc.2
+  IL_001a:  ldloc.3
+  IL_001b:  ldloc.s    V_4
+  IL_001d:  ldloc.s    V_5
+  IL_001f:  ldloc.s    V_6
+  IL_0021:  ldloc.s    V_7
+  IL_0023:  ldloc.s    V_8
+  IL_0025:  ldloc.0
+  IL_0026:  stloc.s    V_8
+  IL_0028:  stloc.s    V_7
+  IL_002a:  stloc.s    V_6
+  IL_002c:  stloc.s    V_5
+  IL_002e:  stloc.s    V_4
+  IL_0030:  stloc.3
+  IL_0031:  stloc.2
+  IL_0032:  stloc.1
+  IL_0033:  stloc.0
+  IL_0034:  ldloc.0
+  IL_0035:  ldloc.1
+  IL_0036:  ldloc.2
+  IL_0037:  ldloc.3
+  IL_0038:  ldloc.s    V_4
+  IL_003a:  ldloc.s    V_5
+  IL_003c:  ldloc.s    V_6
+  IL_003e:  ldloc.s    V_7
+  IL_0040:  ldloc.s    V_8
+  IL_0042:  newobj     "System.ValueTuple<int, int>..ctor(int, int)"
+  IL_0047:  newobj     "System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int>>..ctor(int, int, int, int, int, int, int, System.ValueTuple<int, int>)"
+  IL_004c:  box        "System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int>>"
+  IL_0051:  call       "void System.Console.Write(object)"
+  IL_0056:  ret
+}
+""";
+
+            var verifier = CompileAndVerify(source, expectedOutput: "(2, 3, 4, 5, 6, 7, 8, 9, 1)");
+            verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+
+            source = """
+                int v1 = 1, v2 = 2, v3 = 3, v4 = 4, v5 = 5, v6 = 6, v7 = 7, v8 = 8, v9 = 9;
+                var temp2 = v2;
+                var temp3 = v3;
+                var temp4 = v4;
+                var temp5 = v5;
+                var temp6 = v6;
+                var temp7 = v7;
+                var temp8 = v8;
+                var temp9 = v9;
+                var temp1 = v1;
+                v9 = temp1;
+                v8 = temp9;
+                v7 = temp8;
+                v6 = temp7;
+                v5 = temp6;
+                v4 = temp5;
+                v3 = temp4;
+                v2 = temp3;
+                v1 = temp2;
+                System.Console.Write((v1, v2, v3, v4, v5, v6, v7, v8, v9));
+                """;
+
+            verifier = CompileAndVerify(source, expectedOutput: "(2, 3, 4, 5, 6, 7, 8, 9, 1)");
+            verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+        }
+
+        [Fact]
+        public void TupleAssignment_10()
+        {
+            // Ensure that user-defined conversions are invoked in source order.
+            var source = """
+                using System;
+
+                DestType x;
+                DestType y;
+                DestType z;
+                (x, y, z) = (new SourceType(1), new SourceType(2), new SourceType(3));
+                Console.Write((x, y, z));
+
+                record struct SourceType(int N);
+                record struct DestType(int N)
+                {
+                    public static implicit operator DestType(SourceType source)
+                    {
+                        Console.WriteLine("Conversion " + source.N);
+                        return new DestType(source.N);
+                    }
+                }
+                """;
+
+            var expectedIL = """
+{
+  // Code size       53 (0x35)
+  .maxstack  3
+  .locals init (DestType V_0, //y
+                DestType V_1) //z
+  IL_0000:  ldc.i4.1
+  IL_0001:  newobj     "SourceType..ctor(int)"
+  IL_0006:  call       "DestType DestType.op_Implicit(SourceType)"
+  IL_000b:  ldc.i4.2
+  IL_000c:  newobj     "SourceType..ctor(int)"
+  IL_0011:  call       "DestType DestType.op_Implicit(SourceType)"
+  IL_0016:  ldc.i4.3
+  IL_0017:  newobj     "SourceType..ctor(int)"
+  IL_001c:  call       "DestType DestType.op_Implicit(SourceType)"
+  IL_0021:  stloc.1
+  IL_0022:  stloc.0
+  IL_0023:  ldloc.0
+  IL_0024:  ldloc.1
+  IL_0025:  newobj     "System.ValueTuple<DestType, DestType, DestType>..ctor(DestType, DestType, DestType)"
+  IL_002a:  box        "System.ValueTuple<DestType, DestType, DestType>"
+  IL_002f:  call       "void System.Console.Write(object)"
+  IL_0034:  ret
+}
+""";
+
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                Conversion 1
+                Conversion 2
+                Conversion 3
+                (DestType { N = 1 }, DestType { N = 2 }, DestType { N = 3 })
+                """);
+            verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+
+            source = """
+                using System;
+
+                DestType x;
+                DestType y;
+                DestType z;
+                DestType temp1 = new SourceType(1);
+                DestType temp2 = new SourceType(2);
+                DestType temp3 = new SourceType(3);
+                z = temp3;
+                y = temp2;
+                x = temp1;
+                Console.Write((x, y, z));
+
+                record struct SourceType(int N);
+                record struct DestType(int N)
+                {
+                    public static implicit operator DestType(SourceType source)
+                    {
+                        Console.WriteLine("Conversion " + source.N);
+                        return new DestType(source.N);
+                    }
+                }
+                """;
+
+            verifier = CompileAndVerify(source, expectedOutput: """
+                Conversion 1
+                Conversion 2
+                Conversion 3
+                (DestType { N = 1 }, DestType { N = 2 }, DestType { N = 3 })
+                """);
             verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
         }
     }
