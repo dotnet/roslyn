@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
 
         Friend Property NotificationMessage As String
 
-        Friend Async Function GetRoot() As Task(Of CallHierarchyItem)
+        Friend Async Function GetRootAsync() As Task(Of CallHierarchyItem)
             Dim args = New ViewCallHierarchyCommandArgs(_textView, _subjectBuffer)
             _commandHandler.ExecuteCommand(args, TestCommandExecutionContext.Create())
             Await _waiter.ExpeditedWaitAsync()

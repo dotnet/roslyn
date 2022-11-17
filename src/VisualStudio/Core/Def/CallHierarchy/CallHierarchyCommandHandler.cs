@@ -86,19 +86,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             {
                 var cancellationToken = context.UserCancellationToken;
 
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(true);
                 var symbolUnderCaret = await SymbolFinder.FindSymbolAtPositionAsync(
-                    semanticModel, caretPosition, document.Project.Solution.Services, cancellationToken).ConfigureAwait(false);
+                    semanticModel, caretPosition, document.Project.Solution.Services, cancellationToken).ConfigureAwait(true);
 
                 if (symbolUnderCaret != null)
                 {
                     // Map symbols so that Call Hierarchy works from metadata-as-source
                     var mappingService = document.Project.Solution.Services.GetService<ISymbolMappingService>();
-                    var mapping = await mappingService.MapSymbolAsync(document, symbolUnderCaret, cancellationToken).ConfigureAwait(false);
+                    var mapping = await mappingService.MapSymbolAsync(document, symbolUnderCaret, cancellationToken).ConfigureAwait(true);
 
                     if (mapping.Symbol != null)
                     {
-                        var node = await _provider.CreateItemAsync(mapping.Symbol, mapping.Project, ImmutableArray<Location>.Empty, cancellationToken).ConfigureAwait(false);
+                        var node = await _provider.CreateItemAsync(mapping.Symbol, mapping.Project, ImmutableArray<Location>.Empty, cancellationToken).ConfigureAwait(true);
 
                         if (node != null)
                         {

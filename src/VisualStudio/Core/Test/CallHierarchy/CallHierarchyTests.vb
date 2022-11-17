@@ -72,7 +72,7 @@ public class DSSS
 </Workspace>
 
             Using testState = CallHierarchyTestState.Create(input)
-                Dim root = Await testState.GetRoot().ConfigureAwait(False)
+                Dim root = Await testState.GetRootAsync()
                 testState.VerifyResult(root, String.Format(EditorFeaturesResources.Calls_To_0, "GetFive"), {"DSSS.bar()", "D.bar()", "G.G.G()"}, CallHierarchySearchScope.EntireSolution)
                 Dim documents = testState.GetDocuments({"Test3.cs", "Test4.cs"})
                 testState.VerifyResult(root, String.Format(EditorFeaturesResources.Calls_To_0, "GetFive"), {"DSSS.bar()", "D.bar()", "G.G.G()"}, CallHierarchySearchScope.CurrentProject)
@@ -97,7 +97,7 @@ End Class
 </Workspace>
 
             Using testState = CallHierarchyTestState.Create(input)
-                Dim root = Await testState.GetRoot().ConfigureAwait(False)
+                Dim root = Await testState.GetRootAsync()
                 testState.VerifyResult(root, String.Format(EditorFeaturesResources.Calls_To_0, "Goo"), {"C.Goo()"})
             End Using
         End Function
@@ -123,7 +123,7 @@ End Interface
 </Workspace>
 
             Using testState = CallHierarchyTestState.Create(input)
-                Dim root = Await testState.GetRoot().ConfigureAwait(False)
+                Dim root = Await testState.GetRootAsync()
                 testState.VerifyResult(root, String.Format(EditorFeaturesResources.Implements_0, "Goo"), {"C.Goo()"})
             End Using
         End Function
@@ -176,7 +176,7 @@ public class D : I
 </Workspace>
 
             Using testState = CallHierarchyTestState.Create(input)
-                Dim root = Await testState.GetRoot().ConfigureAwait(False)
+                Dim root = Await testState.GetRootAsync()
                 testState.VerifyResult(root, String.Format(EditorFeaturesResources.Implements_0, "goo"), {"D.goo()", "G.G.goo()", "C.C.goo()"}, CallHierarchySearchScope.EntireSolution)
                 Dim documents = testState.GetDocuments({"Test1.cs", "Test2.cs"})
                 testState.VerifyResult(root, String.Format(EditorFeaturesResources.Implements_0, "goo"), {"G.G.goo()", "C.C.goo()"}, CallHierarchySearchScope.CurrentProject, documents)
@@ -215,7 +215,7 @@ class CSharpIt : IChangeSignatureOptionsService
 </Workspace>
 
             Using testState = CallHierarchyTestState.Create(input)
-                Dim root = Await testState.GetRoot().ConfigureAwait(False)
+                Dim root = Await testState.GetRootAsync()
                 testState.SearchRoot(root,
                                  String.Format(EditorFeaturesResources.Implements_0, "GetChangeSignatureOptions"),
                                  Sub(c)
@@ -253,7 +253,7 @@ class D
 </Workspace>
 
             Using testState = CallHierarchyTestState.Create(input)
-                Dim root = Await testState.GetRoot().ConfigureAwait(False)
+                Dim root = Await testState.GetRootAsync()
                 testState.SearchRoot(root,
                                  String.Format(EditorFeaturesResources.Calls_To_0, "M"),
                                  Sub(c)
@@ -287,7 +287,7 @@ End Class
 </Workspace>
 
             Using testState = CallHierarchyTestState.Create(input)
-                Dim root = Await testState.GetRoot().ConfigureAwait(False)
+                Dim root = Await testState.GetRootAsync()
                 testState.VerifyResult(root, EditorFeaturesResources.Overrides_, {"Derived.M()"})
             End Using
         End Function
@@ -317,7 +317,7 @@ class D : C
     </Workspace>
 
             Using testState = CallHierarchyTestState.Create(input, GetType(MockDocumentNavigationServiceProvider))
-                Dim root = Await testState.GetRoot().ConfigureAwait(False)
+                Dim root = Await testState.GetRootAsync()
                 testState.Navigate(root, EditorFeaturesResources.Overrides_, "D.goo()")
 
                 Dim mockNavigationService = DirectCast(testState.Workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationServiceProvider.MockDocumentNavigationService)
@@ -357,7 +357,7 @@ namespace N
     </Workspace>
 
             Using testState = CallHierarchyTestState.Create(input, GetType(MockDocumentNavigationServiceProvider))
-                Dim root = Await testState.GetRoot().ConfigureAwait(False)
+                Dim root = Await testState.GetRootAsync()
                 testState.VerifyRoot(root, "N.C.Goo()", {String.Format(EditorFeaturesResources.Calls_To_0, "Goo")})
                 testState.Navigate(root, String.Format(EditorFeaturesResources.Calls_To_0, "Goo"), "N.G.Main()")
 
@@ -384,7 +384,7 @@ cla$$ss C
         </Project>
     </Workspace>
             Using testState = CallHierarchyTestState.Create(input)
-                Dim root = Await testState.GetRoot().ConfigureAwait(False)
+                Dim root = Await testState.GetRootAsync()
                 Assert.Null(root)
                 Assert.NotNull(testState.NotificationMessage)
             End Using
@@ -408,7 +408,7 @@ class CC
         </Project>
     </Workspace>
             Using testState = CallHierarchyTestState.Create(input)
-                Dim root = Await testState.GetRoot().ConfigureAwait(False)
+                Dim root = Await testState.GetRootAsync()
                 Assert.Null(root)
                 Assert.NotNull(testState.NotificationMessage)
             End Using
@@ -432,7 +432,7 @@ class CC
         </Project>
     </Workspace>
             Using testState = CallHierarchyTestState.Create(input)
-                Dim root = Await testState.GetRoot().ConfigureAwait(False)
+                Dim root = Await testState.GetRootAsync()
                 Assert.Null(root)
                 Assert.NotNull(testState.NotificationMessage)
             End Using
@@ -453,7 +453,7 @@ End Cla$$ss
         </Project>
     </Workspace>
             Using testState = CallHierarchyTestState.Create(input)
-                Dim root = Await testState.GetRoot().ConfigureAwait(False)
+                Dim root = Await testState.GetRootAsync()
                 Assert.Null(root)
                 Assert.NotNull(testState.NotificationMessage)
             End Using
