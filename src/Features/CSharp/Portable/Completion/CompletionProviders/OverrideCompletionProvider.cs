@@ -91,8 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             while (!token.IsKind(SyntaxKind.None))
             {
                 if (overrideToken != default &&
-                    overrideToken.Parent is not null &&
-                    token.SpanStart < overrideToken.Parent.SpanStart)
+                    token.SpanStart < overrideToken.GetRequiredParent().SpanStart)
                 {
                     break;
                 }
