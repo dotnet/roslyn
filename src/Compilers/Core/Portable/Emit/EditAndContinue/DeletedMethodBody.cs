@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
         public DeletedMethodBody(DeletedMethodDefinition methodDef, EmitContext context)
         {
             _methodDef = methodDef;
-            _ilBytes = GetIL(methodDef.OverriddenMethod, context);
+            _ilBytes = GetIL(methodDef, methodDef.OverriddenMethod, methodDef.OverriddenMethodToken, context);
         }
 
         public ImmutableArray<ExceptionHandlerRegion> ExceptionRegions => ImmutableArray<ExceptionHandlerRegion>.Empty;
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public StateMachineStatesDebugInfo StateMachineStatesDebugInfo => default;
 
-        private static ImmutableArray<byte> GetIL(IMethodDefinition overriddenMethod, EmitContext context)
+        private static ImmutableArray<byte> GetIL(IMethodDefinition methodDef, IMethodReference? overriddenMethod, uint overriddenMethodToken, EmitContext context)
         {
             var missingMethodExceptionStringStringConstructor = context.Module.CommonCompilation.CommonGetWellKnownTypeMember(WellKnownMember.System_MissingMethodException__ctor);
             Debug.Assert(missingMethodExceptionStringStringConstructor is not null);
@@ -79,12 +79,15 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
             // otherwise just throw a MissingMethodException
             if (overriddenMethod is not null)
             {
-                for (int i = 0; i <= overriddenMethod.ParameterCount; i++)
+                Debug.Assert(overriddenMethodToken > 0);
+
+                for (int i = 0; i <= methodDef.ParameterCount; i++)
                 {
                     builder.EmitLoadArgumentOpcode(i);
                 }
                 builder.EmitOpCode(System.Reflection.Metadata.ILOpCode.Call, 4);
-                builder.EmitToken(overriddenMethod, context.SyntaxNode!, context.Diagnostics);
+                //builder.EmitToken(overriddenMethod, context.SyntaxNode!, context.Diagnostics);
+                builder.EmitRawToken(overriddenMethodToken);
             }
             else
             {

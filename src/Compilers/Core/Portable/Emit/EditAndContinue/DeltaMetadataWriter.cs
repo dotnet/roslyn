@@ -547,9 +547,24 @@ namespace Microsoft.CodeAnalysis.Emit
                 var deletedTypeMembers = ImmutableDictionary.CreateBuilder<IMethodDefinition, DeletedMethodDefinition>(ReferenceEqualityComparer.Instance);
                 foreach (var methodDef in deletedMethods)
                 {
-                    var overriddenMemberDef = _changes.TryGetBaseImplementationDefinition(methodDef) as IMethodDefinition;
+                    var overriddenMemberDef = (IMethodReference?)_changes.TryGetBaseImplementationDefinition(methodDef, out var isThisAssembly);
+
+                    uint token = 0;
+                    if (overriddenMemberDef is not null)
+                    {
+                        // Because the deleted symbols, and hence the overridden member symbol, come from a previous
+                        // generation, the normal IL emit process doesn't know how to deal with it, and will always
+                        // think its a new MemberRef row that needs to be added. We have enough information now though,
+                        // to make the correct decisions, so we just emit the raw token for the right method to call
+                        // directly.
+                        var handle = isThisAssembly
+                            ? (EntityHandle)GetMethodDefinitionHandle((IMethodDefinition)overriddenMemberDef)
+                            : GetMethodHandle(overriddenMemberDef);
+                        token = (uint)_previousGeneration.MetadataReader.GetToken(handle);
+                    }
+
                     var oldMethodDef = (IMethodDefinition)methodDef.GetCciAdapter();
-                    deletedTypeMembers.Add(oldMethodDef, new DeletedMethodDefinition(oldMethodDef, typeDef, _typesUsedByDeletedMembers, overriddenMemberDef));
+                    deletedTypeMembers.Add(oldMethodDef, new DeletedMethodDefinition(oldMethodDef, typeDef, _typesUsedByDeletedMembers, overriddenMemberDef, token));
                 }
 
                 _deletedTypeMembers.Add(typeDef, deletedTypeMembers.ToImmutableDictionary());
@@ -1781,6 +1796,11 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 Debug.Assert(this.ShouldVisit(method));
                 base.Visit(method);
+            }
+
+            public override void Visit(IMethodReference methodReference)
+            {
+                base.Visit(methodReference);
             }
 
             public override void Visit(Cci.MethodImplementation methodImplementation)

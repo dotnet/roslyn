@@ -13,20 +13,24 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
     internal sealed class DeletedMethodDefinition : DeletedDefinition<IMethodDefinition>, IMethodDefinition
     {
         private readonly ITypeDefinition _containingTypeDef;
-        private readonly IMethodDefinition? _overriddenMethodDef;
+        private readonly IMethodReference? _overriddenMethodDef;
+        private readonly uint _overriddenMethodToken;
         private readonly ImmutableArray<DeletedParameterDefinition> _parameters;
         private DeletedMethodBody? _body;
 
-        public DeletedMethodDefinition(IMethodDefinition oldMethod, ITypeDefinition containingTypeDef, Dictionary<ITypeDefinition, DeletedTypeDefinition> typesUsedByDeletedMembers, IMethodDefinition? overriddenMethodDef)
+        public DeletedMethodDefinition(IMethodDefinition oldMethod, ITypeDefinition containingTypeDef, Dictionary<ITypeDefinition, DeletedTypeDefinition> typesUsedByDeletedMembers, IMethodReference? overriddenMethodDef, uint token)
             : base(oldMethod, typesUsedByDeletedMembers)
         {
             _containingTypeDef = containingTypeDef;
             _overriddenMethodDef = overriddenMethodDef;
+            _overriddenMethodToken = token;
 
             _parameters = WrapParameters(oldMethod.Parameters);
         }
 
-        public IMethodDefinition? OverriddenMethod => _overriddenMethodDef;
+        public IMethodReference? OverriddenMethod => _overriddenMethodDef;
+
+        public uint OverriddenMethodToken => _overriddenMethodToken;
 
         public IEnumerable<IGenericMethodParameter> GenericParameters
         {

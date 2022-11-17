@@ -427,8 +427,9 @@ namespace Microsoft.CodeAnalysis.Emit
         /// Gets the base definition for the specified symbol, if there is one, and it has an implementation
         /// that is callable.
         /// </summary>
-        public IDefinition? TryGetBaseImplementationDefinition(ISymbolInternal symbolInternal)
+        public IReference? TryGetBaseImplementationDefinition(ISymbolInternal symbolInternal, out bool isThisAssembly)
         {
+            isThisAssembly = false;
             var symbol = symbolInternal.GetISymbol();
 
             ISymbol? baseSymbol;
@@ -455,7 +456,9 @@ namespace Microsoft.CodeAnalysis.Emit
                 return null;
             }
 
-            return GetISymbolInternalOrNull(baseSymbol)?.GetCciAdapter() as IDefinition;
+            isThisAssembly = baseSymbol.ContainingAssembly == symbol.ContainingAssembly;
+
+            return GetISymbolInternalOrNull(baseSymbol)?.GetCciAdapter();
         }
 
         protected abstract ISymbolInternal? GetISymbolInternalOrNull(ISymbol symbol);
