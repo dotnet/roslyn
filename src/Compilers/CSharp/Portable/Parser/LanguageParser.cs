@@ -17,7 +17,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    using System.Linq;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal partial class LanguageParser : SyntaxParser
@@ -2768,7 +2767,7 @@ parse_member_name:;
 
         private static bool ContainsErrorDiagnostic(GreenNode node)
         {
-            // ContainsDiagnostics returns true if this node (or any descendents) contain any sort of error.  However,
+            // ContainsDiagnostics returns true if this node (or any descendants) contain any sort of error.  However,
             // GetDiagnostics() only returns diagnostics at that node itself.  So we have to explicitly walk down the
             // tree to find out if the diagnostics are error or not.
 
