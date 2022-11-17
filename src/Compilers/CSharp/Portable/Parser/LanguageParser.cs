@@ -8862,8 +8862,14 @@ done:;
             if (@try.IsMissing)
             {
                 Debug.Assert(this.CurrentToken.Kind is SyntaxKind.CatchKeyword or SyntaxKind.FinallyKeyword);
+
+                // We will have already created an error on the try-token, so don't actually create more errors here
+                // with this synthesized block.  Just directly create the missing pieces.
                 block = _syntaxFactory.Block(
-                    attributeLists: default, this.EatToken(SyntaxKind.OpenBraceToken), default(SyntaxList<StatementSyntax>), this.EatToken(SyntaxKind.CloseBraceToken));
+                    attributeLists: default,
+                    createMissing(SyntaxKind.OpenBraceToken),
+                    statements: default,
+                    createMissing(SyntaxKind.CloseBraceToken));
             }
             else
             {
@@ -8898,12 +8904,12 @@ done:;
 
                     // synthesize missing tokens for "finally { }":
                     finallyClause = _syntaxFactory.FinallyClause(
-                        SyntaxToken.CreateMissing(SyntaxKind.FinallyKeyword, null, null),
+                        createMissing(SyntaxKind.FinallyKeyword),
                         _syntaxFactory.Block(
                             attributeLists: default,
-                            SyntaxToken.CreateMissing(SyntaxKind.OpenBraceToken, null, null),
+                            createMissing(SyntaxKind.OpenBraceToken),
                             statements: default,
-                            SyntaxToken.CreateMissing(SyntaxKind.CloseBraceToken, null, null)));
+                            createMissing(SyntaxKind.CloseBraceToken)));
                 }
 
                 return _syntaxFactory.TryStatement(attributes, @try, block, catchClauses, finallyClause);
@@ -8913,6 +8919,9 @@ done:;
                 if (!catchClauses.IsNull)
                     _pool.Free(catchClauses);
             }
+
+            SyntaxToken createMissing(SyntaxKind kind)
+                => SyntaxToken.CreateMissing(kind, leading: null, trailing: null);
         }
 
         private bool IsEndOfTryBlock()
