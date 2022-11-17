@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string ChangeNamespaceToMatchFolder = nameof(ChangeNamespaceToMatchFolder);
         public const string ChangeReturnType = nameof(ChangeReturnType);
         public const string ChangeToYield = nameof(ChangeToYield);
+        public const string ConditionalExpressionPlacement = nameof(ConditionalExpressionPlacement);
         public const string ConflictMarkerResolution = nameof(ConflictMarkerResolution);
         public const string ConsecutiveBracePlacement = nameof(ConsecutiveBracePlacement);
         public const string ConsecutiveStatementPlacement = nameof(ConsecutiveStatementPlacement);
