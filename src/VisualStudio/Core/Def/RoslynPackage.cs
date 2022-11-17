@@ -158,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             // We are at the VS layer, so we know we must be able to get the IGlobalOperationNotificationService here.
             var globalNotificationService = this.ComponentModel.GetService<IGlobalOperationNotificationService>();
-            Contract.ThrowIfNull(globalNotificationService);
+            Assumes.Present(globalNotificationService);
 
             _solutionEventMonitor = new SolutionEventMonitor(globalNotificationService);
             TrackBulkFileOperations(globalNotificationService);
