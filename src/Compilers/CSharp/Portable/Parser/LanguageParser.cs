@@ -3660,7 +3660,7 @@ parse_member_name:;
                     separator = ConvertToMissingWithTrailingTrivia(separator, SyntaxKind.DotToken);
                 }
 
-                return CheckFeatureAvailability(_syntaxFactory.ExplicitInterfaceSpecifier(explicitInterfaceName, separator), MessageID.IDS_FeatureStaticAbstractMembersInInterfaces);
+                return _syntaxFactory.ExplicitInterfaceSpecifier(explicitInterfaceName, separator);
             }
         }
 
@@ -6718,8 +6718,7 @@ tryAgain:
                     separator = ConvertToMissingWithTrailingTrivia(separator, SyntaxKind.DotToken);
                 }
 
-                explicitInterfaceOpt = CheckFeatureAvailability(_syntaxFactory.ExplicitInterfaceSpecifier(explicitInterfaceName, separator), MessageID.IDS_FeatureStaticAbstractMembersInInterfaces);
-
+                explicitInterfaceOpt = _syntaxFactory.ExplicitInterfaceSpecifier(explicitInterfaceName, separator);
                 return true;
             }
             finally
