@@ -8927,7 +8927,9 @@ done:;
                 {
                     catchClauses = _pool.Allocate<CatchClauseSyntax>();
                     while (this.CurrentToken.Kind == SyntaxKind.CatchKeyword)
+                    {
                         catchClauses.Add(this.ParseCatchClause());
+                    }
                 }
 
                 if (this.CurrentToken.Kind == SyntaxKind.FinallyKeyword)
