@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
             using var context = _backgroundWorkIndicatorService.Create(
                 args.TextView, span, EditorFeaturesResources.Computing_Encapsulate_Field_information,
-                new()
+                new BackgroundWorkIndicatorOptions()
                 {
                     CancelOnEdit = true,
                     CancelOnFocusLost = true

@@ -777,7 +777,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     // and applying the desired edits ourselves.
                     using var context = _backgroundWorkIndicatorService.Create(
                         _triggerView, TriggerSpan, EditorFeaturesResources.Computing_Rename_information,
-                        new()
+                        new BackgroundWorkIndicatorOptions()
                         {
                             CancelOnEdit = false,
                             CancelOnFocusLost = false

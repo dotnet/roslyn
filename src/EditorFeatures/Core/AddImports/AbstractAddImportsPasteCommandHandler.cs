@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 textView,
                 snapshotSpan,
                 DialogText,
-                new()
+                new BackgroundWorkIndicatorOptions()
                 {
                     CancelOnEdit = true,
                     CancelOnFocusLost = true

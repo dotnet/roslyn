@@ -165,7 +165,12 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
 
             using (var backgroundIndicator = _backgroundWorkIndicatorService.Create(
                 args.TextView, new SnapshotSpan(args.SubjectBuffer.CurrentSnapshot, position, 1),
-                EditorFeaturesResources.Navigating_to_definition))
+                EditorFeaturesResources.Navigating_to_definition,
+                new BackgroundWorkIndicatorOptions()
+                {
+                    CancelOnEdit = true,
+                    CancelOnFocusLost = true
+                }))
             {
                 var cancellationToken = backgroundIndicator.CancellationToken;
 

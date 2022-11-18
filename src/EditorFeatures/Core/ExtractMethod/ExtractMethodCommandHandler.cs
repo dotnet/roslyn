@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             _threadingContext.ThrowIfNotOnUIThread();
             using var indicatorContext = _backgroundWorkIndicatorService.Create(
                 view, span, EditorFeaturesResources.Applying_Extract_Method_refactoring,
-                new()
+                new BackgroundWorkIndicatorOptions()
                 {
                     CancelOnEdit = true,
                     CancelOnFocusLost = true

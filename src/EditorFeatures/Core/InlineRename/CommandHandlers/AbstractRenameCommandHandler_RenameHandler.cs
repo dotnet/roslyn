@@ -75,7 +75,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             using var context = _backgroundWorkIndicatorService.Create(
                     args.TextView,
                     args.TextView.GetTextElementSpan(caretPoint.Value),
-                    EditorFeaturesResources.Finding_token_to_rename);
+                    EditorFeaturesResources.Finding_token_to_rename,
+                    new BackgroundWorkIndicatorOptions()
+                    {
+                        CancelOnEdit = true,
+                        CancelOnFocusLost = true
+                    });
 
             // If there is already an active session, commit it first
             if (_renameService.ActiveSession != null)
