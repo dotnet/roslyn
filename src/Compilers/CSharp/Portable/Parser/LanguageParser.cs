@@ -8946,7 +8946,7 @@ done:;
 
                     // synthesize missing tokens for "finally { }":
                     finallyClause = _syntaxFactory.FinallyClause(
-                        createMissing(SyntaxKind.FinallyKeyword),
+                        SyntaxFactory.MissingToken(SyntaxKind.FinallyKeyword),
                         missingBlock());
                 }
 
@@ -8961,12 +8961,9 @@ done:;
             BlockSyntax missingBlock()
                 => _syntaxFactory.Block(
                     attributeLists: default,
-                    createMissing(SyntaxKind.OpenBraceToken),
+                    SyntaxFactory.MissingToken(SyntaxKind.OpenBraceToken),
                     statements: default,
-                    createMissing(SyntaxKind.CloseBraceToken));
-
-            static SyntaxToken createMissing(SyntaxKind kind)
-                => SyntaxToken.CreateMissing(kind, leading: null, trailing: null);
+                    SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken));
         }
 
         private bool IsEndOfTryBlock()
