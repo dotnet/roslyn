@@ -99,8 +99,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             End If
 
             memberGroup = memberGroup.Sort(semanticModel, invocationExpression.SpanStart)
-            Dim typeInfo = semanticModel.GetTypeInfo(targetExpression, cancellationToken)
 
+            Dim typeInfo = semanticModel.GetTypeInfo(targetExpression, cancellationToken)
             Dim expressionType = If(typeInfo.Type, typeInfo.ConvertedType)
             Dim defaultProperties =
                 If(expressionType Is Nothing,
