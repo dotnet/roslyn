@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             {
                 // Still allow for partial semantics in the VS workspace, even with background compilation disabled. The
                 // presumption here is that there's *always* something implicitly pulling the compilations forward in VS
-                // (e.g. tagging, completion, etc.) at a regular cadence.
+                // (e.g. tagging, lightbulb, etc.) at a regular cadence.
                 if (_backgroundCompilationDisabled)
                     return true;
 
