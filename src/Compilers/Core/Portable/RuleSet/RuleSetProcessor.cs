@@ -148,8 +148,8 @@ namespace Microsoft.CodeAnalysis
         /// <returns>A list of rule objects with data from the given XML node</returns>
         private static List<KeyValuePair<string, ReportDiagnostic>> ReadRules(XElement rulesNode)
         {
-            string analyzerId = ReadNonEmptyAttribute(rulesNode, RulesAnalyzerIdAttributeName);
-            string ruleNamespace = ReadNonEmptyAttribute(rulesNode, RulesNamespaceAttributeName);
+            _ = ReadNonEmptyAttribute(rulesNode, RulesAnalyzerIdAttributeName);
+            _ = ReadNonEmptyAttribute(rulesNode, RulesNamespaceAttributeName);
 
             var rules = new List<KeyValuePair<string, ReportDiagnostic>>();
 
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (ruleNode.Name == RuleNodeName)
                 {
-                    rules.Add(ReadRule(ruleNode, analyzerId, ruleNamespace));
+                    rules.Add(ReadRule(ruleNode));
                 }
                 else
                 {
@@ -174,10 +174,8 @@ namespace Microsoft.CodeAnalysis
         /// Load the rule from the XML node
         /// </summary>
         /// <param name="ruleNode">The rule node from which to create a rule object</param>
-        /// <param name="analyzer">The analyzer this rule belongs to</param>
-        /// <param name="space">The namespace this rule belongs to</param>
         /// <returns>A rule object with data from the given XML node</returns>
-        private static KeyValuePair<string, ReportDiagnostic> ReadRule(XElement ruleNode, string analyzer, string space)
+        private static KeyValuePair<string, ReportDiagnostic> ReadRule(XElement ruleNode)
         {
             string ruleId = ReadNonEmptyAttribute(ruleNode, RuleIdAttributeName);
             ReportDiagnostic action = ReadAction(ruleNode, allowDefault: false);

@@ -80,7 +80,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New UnboundLambda(node, Me, modifiers, parameters, returnType, New UnboundLambda.UnboundLambdaBindingCache(diagnostics.AccumulatesDependencies), hasErrors)
         End Function
 
-
         Friend Function BuildBoundLambdaParameters(
             source As UnboundLambda,
             targetSignature As UnboundLambda.TargetSignature,
@@ -149,7 +148,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return parameters.AsImmutableOrNull()
         End Function
-
 
         Friend Function BindUnboundLambda(source As UnboundLambda, target As UnboundLambda.TargetSignature) As BoundLambda
             Debug.Assert(Me Is source.Binder)
@@ -406,7 +404,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Class
 
-
         Private Function BindLambdaBody(
             lambdaSymbol As LambdaSymbol,
             diagnostics As BindingDiagnosticBag,
@@ -651,7 +648,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
         End Class
 
-
         Public Sub ReportLambdaParameterInferredToBeObject(unboundParam As UnboundLambdaParameterSymbol, diagnostics As BindingDiagnosticBag)
             If OptionStrict = OptionStrict.On Then
                 ReportDiagnostic(diagnostics, unboundParam.IdentifierSyntax, ERRID.ERR_StrictDisallowImplicitObjectLambda)
@@ -678,7 +674,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If containingMember Is Nothing Then
                 Return False
             End If
-
 
             Dim receiverOpt As BoundExpression
             Dim field As FieldSymbol

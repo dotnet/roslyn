@@ -167,7 +167,6 @@ IFixedOperation (OperationKind.None, Type: null) (Syntax: 'fixed (int* ... }')
                 compilationOptions: TestOptions.UnsafeDebugDll);
         }
 
-
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation)]
         public void FixedStatement_MultipleFixedStatements()

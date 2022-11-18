@@ -130,7 +130,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                          boundFirstArgument,
                                                                          diagnostics:=diagnostics)
 
-
                             If boundFirstArgument.Syntax IsNot node Then
                                 ' We must have a bound node that corresponds to that syntax node for GetSemanticInfo.
                                 ' Insert an identity conversion if necessary.
@@ -596,7 +595,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     couldTryZeroArgumentRelaxation = False
                 End If
 
-
                 Dim unused = resolutionBinder.ReportOverloadResolutionFailureAndProduceBoundNode(
                     addressOfExpression.MethodGroup.Syntax,
                     addressOfMethodGroup,
@@ -1055,7 +1053,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          newReceiver,
                                                          sourceMethodGroup.QualificationKind)
 
-
             ' the delegate creation has the lambda stored internally to not clutter the bound tree with synthesized nodes 
             ' in the first pass. Later on in the DelegateRewriter the node get's rewritten with the lambda if needed.
             Return New BoundDelegateCreationExpression(syntaxNode,
@@ -1124,7 +1121,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                  warnIfResultOfAsyncMethodIsDroppedDueToRelaxation,
                                                  diagnostics)
         End Function
-
 
         ''' <summary>
         ''' Build a lambda that has a shape of the [delegateInvoke] and calls 

@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExternalAccess.Pythia.Api
 {
-    internal interface IPythiaDeclarationNameRecommenderImplmentation
+    internal interface IPythiaDeclarationNameRecommenderImplementation
     {
         /// <summary>
         /// Order of returned recommendation decides the order of those items in completion list

@@ -237,15 +237,15 @@ class C
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-    // (14,9): error CS1997: Since 'C.F1()' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task<T>'?
+    // (14,9): error CS1997: Since 'C.F1()' is an async method that returns 'System.Threading.Tasks.Task', a return keyword must not be followed by an object expression
     //         return await Task.Factory.StartNew(() => 1);
-    Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequired, "return").WithArguments("C.F1()").WithLocation(14, 9),
-    // (19,79): error CS8030: Async lambda expression converted to a 'Task' returning delegate cannot return a value. Did you intend to return 'Task<T>'?
+    Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequired, "return").WithArguments("C.F1()", "System.Threading.Tasks.Task").WithLocation(14, 9),
+    // (19,79): error CS8030: Async lambda expression converted to a 'System.Threading.Tasks.Task' returning delegate cannot return a value
     //         Func<Task> F2 = async () => { await Task.Factory.StartNew(() => { }); return 1; };
-    Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequiredLambda, "return").WithLocation(19, 79),
-    // (20,33): error CS8030: Async lambda expression converted to a 'Task' returning delegate cannot return a value. Did you intend to return 'Task<T>'?
+    Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequiredLambda, "return").WithArguments("System.Threading.Tasks.Task").WithLocation(19, 79),
+    // (20,33): error CS8030: Async lambda expression converted to a 'System.Threading.Tasks.Task' returning delegate cannot return a value
     //         InferTask(async () => { return await Task.Factory.StartNew(() => 1); });
-    Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequiredLambda, "return").WithLocation(20, 33)
+    Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequiredLambda, "return").WithArguments("System.Threading.Tasks.Task").WithLocation(20, 33)
     );
         }
 
@@ -544,9 +544,9 @@ class C
     }
 }";
             CreateCompilationWithMscorlib45(source, new MetadataReference[] { LinqAssemblyRef, SystemRef }).VerifyDiagnostics(
-    // (16,17): error CS8030: Async lambda expression converted to a 'Task' returning delegate cannot return a value. Did you intend to return 'Task<T>'?
+    // (16,17): error CS8030: Async lambda expression converted to a 'System.Threading.Tasks.Task' returning delegate cannot return a value
     //                 return 1;
-    Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequiredLambda, "return").WithLocation(16, 17)
+    Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequiredLambda, "return").WithArguments("System.Threading.Tasks.Task").WithLocation(16, 17)
     );
         }
 
@@ -3378,7 +3378,6 @@ public class D
                 Diagnostic(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, "SecuritySafeCritical").WithArguments("SecuritySafeCritical"));
         }
 
-
         [Fact]
         public void SecuritySafeCriticalAndSecurityCriticalOnAsync()
         {
@@ -3505,7 +3504,6 @@ class Driver
                 //     public async void Goo(ref int x)
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Goo"));
         }
-
 
         [Fact]
         public void BadAsync_MethodImpl_Synchronized()

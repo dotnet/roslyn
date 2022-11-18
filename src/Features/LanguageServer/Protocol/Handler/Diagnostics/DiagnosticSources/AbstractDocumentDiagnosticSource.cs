@@ -31,8 +31,12 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
 
     public ProjectOrDocumentId GetId() => new(Document.Id);
     public Project GetProject() => Document.Project;
-    public TextDocumentIdentifier GetDocumentIdentifier()
-        => new VSTextDocumentIdentifier { ProjectContext = ProtocolConversions.ProjectToProjectContext(Document.Project), Uri = Document.GetURI() };
+    public TextDocumentIdentifier? GetDocumentIdentifier()
+        => !string.IsNullOrEmpty(Document.FilePath)
+            ? new VSTextDocumentIdentifier { ProjectContext = ProtocolConversions.ProjectToProjectContext(Document.Project), Uri = Document.GetURI() }
+            : null;
+
+    public string ToDisplayString() => $"{Document.FilePath ?? Document.Name} in {Document.Project.Name}";
 
     protected abstract bool IncludeTaskListItems { get; }
     protected abstract bool IncludeStandardDiagnostics { get; }

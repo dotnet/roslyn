@@ -37,6 +37,7 @@ using StreamJsonRpc;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo.AbstractNavigateToTests;
+using static Roslyn.Test.Utilities.AbstractLanguageServerProtocolTests;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Roslyn.Test.Utilities
@@ -173,18 +174,18 @@ namespace Roslyn.Test.Utilities
 
         internal static LSP.SymbolInformation CreateSymbolInformation(LSP.SymbolKind kind, string name, LSP.Location location, Glyph glyph, string? containerName = null)
         {
+            var imageId = glyph.GetImageId();
+
             var info = new LSP.VSSymbolInformation()
             {
                 Kind = kind,
                 Name = name,
                 Location = location,
-                Icon = VSLspExtensionConversions.GetImageIdFromGlyph(glyph)
+                Icon = new LSP.VSImageId { Guid = imageId.Guid, Id = imageId.Id },
             };
 
             if (containerName != null)
-            {
                 info.ContainerName = containerName;
-            }
 
             return info;
         }
@@ -496,23 +497,6 @@ namespace Roslyn.Test.Utilities
 
             public LSP.ClientCapabilities ClientCapabilities { get; }
 
-            private TestLspServer(TestWorkspace testWorkspace, Dictionary<string, IList<LSP.Location>> locations, LSP.ClientCapabilities clientCapabilities, WellKnownLspServerKinds serverKind, ILspServiceLogger logger)
-            {
-                TestWorkspace = testWorkspace;
-                ClientCapabilities = clientCapabilities;
-                _locations = locations;
-
-                var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-                LanguageServer = CreateLanguageServer(serverStream, serverStream, TestWorkspace, serverKind, logger);
-
-                _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, CreateJsonMessageFormatter()))
-                {
-                    ExceptionStrategy = ExceptionProcessing.ISerializable,
-                };
-
-                InitializeClientRpc();
-            }
-
             private TestLspServer(
                 TestWorkspace testWorkspace,
                 Dictionary<string, IList<LSP.Location>> locations,
@@ -530,6 +514,10 @@ namespace Roslyn.Test.Utilities
                 {
                     ExceptionStrategy = ExceptionProcessing.ISerializable,
                 };
+
+                // Workspace listener events do not run in tests, so we manually register the lsp misc workspace.
+                var miscWorkspace = GetManagerAccessor().GetLspMiscellaneousFilesWorkspace();
+                TestWorkspace.GetService<LspWorkspaceRegistrationService>().Register(miscWorkspace);
 
                 InitializeClientRpc();
             }
@@ -552,7 +540,11 @@ namespace Roslyn.Test.Utilities
             internal static async Task<TestLspServer> CreateAsync(TestWorkspace testWorkspace, InitializationOptions initializationOptions, ILspServiceLogger logger)
             {
                 var locations = await GetAnnotatedLocationsAsync(testWorkspace, testWorkspace.CurrentSolution);
-                var server = new TestLspServer(testWorkspace, locations, initializationOptions.ClientCapabilities, initializationOptions.ServerKind, logger);
+
+                var (clientStream, serverStream) = FullDuplexStream.CreatePair();
+                var languageServer = CreateLanguageServer(serverStream, serverStream, testWorkspace, initializationOptions.ServerKind, logger);
+
+                var server = new TestLspServer(testWorkspace, locations, initializationOptions.ClientCapabilities, languageServer, clientStream);
 
                 await server.ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, new LSP.InitializeParams
                 {
@@ -589,6 +581,7 @@ namespace Roslyn.Test.Utilities
                     servicesProvider, jsonRpc,
                     capabilitiesProvider,
                     logger,
+                    workspace.Services.HostServices,
                     ProtocolConstants.RoslynLspLanguages,
                     serverKind);
 
@@ -691,6 +684,7 @@ namespace Roslyn.Test.Utilities
             public async ValueTask DisposeAsync()
             {
                 TestWorkspace.GetService<LspWorkspaceRegistrationService>().Deregister(TestWorkspace);
+                TestWorkspace.GetService<LspWorkspaceRegistrationService>().Deregister(GetManagerAccessor().GetLspMiscellaneousFilesWorkspace());
 
                 var solutionCrawlerRegistrationService = (SolutionCrawlerRegistrationService)TestWorkspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
                 solutionCrawlerRegistrationService.Unregister(TestWorkspace);

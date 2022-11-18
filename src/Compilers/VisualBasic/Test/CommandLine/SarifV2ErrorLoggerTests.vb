@@ -157,7 +157,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
 
         Friend Overrides Function GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(
             cmd As CommonCompiler,
-            sourceFilePath As String) As String
+            sourceFilePath As String,
+            ParamArray suppressionKinds As String()) As String
 
             Dim expectedOutput = "{{
   ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
@@ -174,7 +175,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
           }},
           ""suppressions"": [
             {{
-              ""kind"": ""inSource""
+              ""kind"": ""inSource"",
+              ""properties"": {{
+                ""suppressionType"": ""Pragma Directive""
+              }}
             }}
           ],
           ""locations"": [
@@ -220,7 +224,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
               }},
               ""helpUri"": ""https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC42024)"",
               ""properties"": {{
-                ""category"": ""Compiler"",
+                ""category"": ""Compiler""" + AnalyzerForErrorLogTest.GetExpectedV2SuppressionTextForRulesSection(suppressionKinds) + ",
                 ""tags"": [
                   ""Compiler"",
                   ""Telemetry""

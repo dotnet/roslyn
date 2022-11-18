@@ -488,6 +488,7 @@ breaks
 
         [Theory]
         [InlineData("( [ A ]x)=>x", "([A] x) => x")]
+        [InlineData("( [ A ]int x=1)=>x", "([A] int x = 1) => x")]
         [InlineData("[return:A]([B]object o)=>{}", "[return: A]\r\n([B] object o) =>\r\n{\r\n}")]
         [InlineData("[ A ,B ] [C]()=>x", "[A, B]\r\n[C]\r\n() => x")]
         [InlineData("[A]B()=>{ }", "[A]\r\nB() =>\r\n{\r\n}")]
@@ -503,6 +504,22 @@ breaks
         [InlineData("static\r\nasync\r\nA<int>()=>x", "static async A<int>() => x")]
         [WorkItem(59653, "https://github.com/dotnet/roslyn/issues/59653")]
         public void TestLambdaReturnType(string text, string expected)
+        {
+            TestNormalizeExpression(text, expected);
+        }
+
+        [Theory]
+        [InlineData("( int x=1 )=>x", "(int x = 1) => x")]
+        [InlineData("(int  x  =  1,int y,int z=2)=>{}", "(int x = 1, int y, int z = 2) =>\r\n{\r\n}")]
+        public void TestLambdaOptionalParameters(string text, string expected)
+        {
+            TestNormalizeExpression(text, expected);
+        }
+
+        [Theory]
+        [InlineData("( params  int []xs)=>xs.Length", "(params int[] xs) => xs.Length")]
+        [InlineData("(int  x  =  1,int y,int z=2,params int  []xs)=>{}", "(int x = 1, int y, int z = 2, params int[] xs) =>\r\n{\r\n}")]
+        public void TestLambdaParamsArray(string text, string expected)
         {
             TestNormalizeExpression(text, expected);
         }

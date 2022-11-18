@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private ParameterSymbol MakeParameterSymbol(int ordinal, string name, ParameterSymbol sourceParameter)
         {
-            return SynthesizedParameterSymbol.Create(this, sourceParameter.TypeWithAnnotations, ordinal, sourceParameter.RefKind, name, DeclarationScope.Unscoped, sourceParameter.RefCustomModifiers);
+            return SynthesizedParameterSymbol.Create(this, sourceParameter.TypeWithAnnotations, ordinal, sourceParameter.RefKind, name, DeclarationScope.Unscoped, refCustomModifiers: sourceParameter.RefCustomModifiers);
         }
 
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
-            get { throw ExceptionUtilities.Unreachable(); }
+            get { return GetDeclaringSyntaxReferenceHelper<CSharpSyntaxNode>(_locations); }
         }
 
         public override Accessibility DeclaredAccessibility
@@ -482,7 +482,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     // Rewrite local declaration statement.
                     body = (BoundStatement)LocalDeclarationRewriter.Rewrite(
                         compilation,
-                        _container,
                         declaredLocals,
                         body,
                         declaredLocalsArray,
@@ -501,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     }
 
                     // Rewrite references to placeholder "locals".
-                    body = (BoundStatement)PlaceholderLocalRewriter.Rewrite(compilation, _container, declaredLocals, body, diagnostics.DiagnosticBag);
+                    body = (BoundStatement)PlaceholderLocalRewriter.Rewrite(compilation, declaredLocals, body, diagnostics.DiagnosticBag);
 
                     if (diagnostics.HasAnyErrors())
                     {

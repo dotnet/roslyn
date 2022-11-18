@@ -213,7 +213,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                     {
                         $$
                     }
-
                     return x == y;
                 };
                 """;
