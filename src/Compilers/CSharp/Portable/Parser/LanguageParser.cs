@@ -12477,14 +12477,11 @@ tryAgain:
             var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
             var expressions = _pool.AllocateSeparated<AnonymousObjectMemberDeclaratorSyntax>();
             this.ParseAnonymousTypeMemberInitializers(ref openBrace, ref expressions);
-            var result = _syntaxFactory.AnonymousObjectCreationExpression(
+            return _syntaxFactory.AnonymousObjectCreationExpression(
                 @new,
                 openBrace,
-                expressions,
+                _pool.ToListAndFree(expressions),
                 this.EatToken(SyntaxKind.CloseBraceToken));
-            _pool.Free(expressions);
-
-            return result;
         }
 
         private void ParseAnonymousTypeMemberInitializers(ref SyntaxToken openBrace, ref SeparatedSyntaxListBuilder<AnonymousObjectMemberDeclaratorSyntax> list)
