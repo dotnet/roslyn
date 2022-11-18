@@ -106,20 +106,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _factory.Sequence(temps.ToImmutableAndFree(), effects.ToImmutableAndFree(), returnValue);
             }
 
+            // Optimize a deconstruction assignment by reversing the order that we store to the final variables.
             void reverseAssignmentsToTargetsIfApplicable()
             {
                 PooledHashSet<Symbol>? visitedSymbols = null;
 
                 Debug.Assert(right is not ({ Kind: BoundKind.TupleLiteral } or BoundConversion { Operand.Kind: BoundKind.TupleLiteral }));
-                if (// was the RHS a tuple literal?
+                // Here are the general requirements for performing the optimization:
+                if (// - the RHS is a tuple literal (which means the temps produced for this assignment are for the tuple elements, which could turn into push-pops into the destination variables)
                     right is { Kind: BoundKind.ConvertedTupleLiteral } or BoundConversion { Operand.Kind: BoundKind.ConvertedTupleLiteral }
 
-                    // were any of the RHS expressions stored into temps?
+                    // - at least one element in the RHS is actually stored to a temp. i.e. it is not a constant expression.
                     && effects.init.Any()
 
+                    // - all variables on the LHS are unique, by-value, and are locals or parameters.
+                    //     - Note that this could be expanded into fields of non-nullable value types at some point, but we decided not to invest in that at this time.
                     && canReorderTargetAssignments(lhsTargets, ref visitedSymbols))
                 {
-                    // Consider a deconstruction assignment like the following
+                    // Consider a deconstruction assignment like the following:
                     // (a, b, c) = (x, y, z);
 
                     // (x, y, z) are evaluated into temps, then the temps are stored to the targets:
@@ -130,8 +134,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // b = temp2;
                     // c = temp3;
 
-                    // In this code path, we have found a case where a, b, and c are non-side-effecting expressions which refer to unique/non-aliased variables.
-                    // In addition, at least one of the expressions x, y, or z actually needed to be evaluated into temps (versus being a constant value where the temp was elided at an earlier phase).
                     // As an optimization, ensure that assignments from temps to targets happen in the reverse order of effects:
                     // temp1 = x;
                     // temp2 = y;
@@ -141,7 +143,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // a = temp1;
 
                     // This makes it more likely that the stack optimizer pass will be able to eliminate the temps and replace them with stack push/pops.
-                    // Note also that no optimization can occur if the expression being converted is not a literal, e.g. `(a, b, c) = M()`. Order of access won't affect our ability to eliminate temps in that case.
                     effects.assignments.ReverseContents();
                 }
 
