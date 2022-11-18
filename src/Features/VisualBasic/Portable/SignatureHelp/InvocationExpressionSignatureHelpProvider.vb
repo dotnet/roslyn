@@ -122,8 +122,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 items.AddRange(GetMemberGroupItems(accessibleMembers, document, invocationExpression, semanticModel))
             End If
 
-            items.AddRange(GetMemberGroupItems(accessibleMembers, document, invocationExpression, semanticModel))
-
             If expressionType.IsDelegateType() Then
                 items.AddRange(GetDelegateInvokeItems(invocationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService, DirectCast(expressionType, INamedTypeSymbol), cancellationToken))
             End If
