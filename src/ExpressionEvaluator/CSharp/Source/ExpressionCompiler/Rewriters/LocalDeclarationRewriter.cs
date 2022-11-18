@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     {
         internal static BoundStatement Rewrite(
             CSharpCompilation compilation,
-            EENamedTypeSymbol container,
             HashSet<LocalSymbol> declaredLocals,
             BoundStatement node,
             ImmutableArray<LocalSymbol> declaredLocalsArray,

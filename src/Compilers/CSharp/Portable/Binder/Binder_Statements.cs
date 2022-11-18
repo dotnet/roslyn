@@ -213,8 +213,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                            boundBody);
         }
 
-        private void CheckRequiredLangVersionForAsyncIteratorMethods(BindingDiagnosticBag diagnostics)
+        private void CheckRequiredLangVersionForIteratorMethods(YieldStatementSyntax statement, BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureIterators.CheckFeatureAvailability(diagnostics, statement, statement.YieldKeyword.GetLocation());
+
             var method = (MethodSymbol)this.ContainingMemberOrLambda;
             if (method.IsAsync)
             {
@@ -268,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_YieldNotAllowedInScript, node.YieldKeyword);
             }
 
-            CheckRequiredLangVersionForAsyncIteratorMethods(diagnostics);
+            CheckRequiredLangVersionForIteratorMethods(node, diagnostics);
             return new BoundYieldReturnStatement(node, argument);
         }
 
@@ -284,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ValidateYield(node, diagnostics);
-            CheckRequiredLangVersionForAsyncIteratorMethods(diagnostics);
+            CheckRequiredLangVersionForIteratorMethods(node, diagnostics);
             return new BoundYieldBreakStatement(node);
         }
 
@@ -549,6 +551,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindLocalFunctionStatement(LocalFunctionStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureLocalFunctions.CheckFeatureAvailability(diagnostics, node, node.Identifier.GetLocation());
+
             // already defined symbol in containing block
             var localSymbol = this.LookupLocalFunction(node.Identifier);
 
@@ -588,6 +592,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Symbol.CheckForBlockAndExpressionBody(
                 node.Body, node.ExpressionBody, node, diagnostics);
+
+            foreach (var modifier in node.Modifiers)
+            {
+                if (modifier.IsKind(SyntaxKind.StaticKeyword))
+                    MessageID.IDS_FeatureStaticLocalFunctions.CheckFeatureAvailability(diagnostics, node, modifier.GetLocation());
+                else if (modifier.IsKind(SyntaxKind.ExternKeyword))
+                    MessageID.IDS_FeatureExternLocalFunctions.CheckFeatureAvailability(diagnostics, node, modifier.GetLocation());
+            }
 
             return new BoundLocalFunctionStatement(node, localSymbol, blockBody, expressionBody, hasErrors);
 
@@ -1077,7 +1089,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors = true;
                     }
                 }
-                else if (!IsValidFixedVariableInitializer(declTypeOpt.Type, localSymbol, ref initializerOpt, localDiagnostics))
+                else if (!IsValidFixedVariableInitializer(declTypeOpt.Type, ref initializerOpt, localDiagnostics))
                 {
                     hasErrors = true;
                 }
@@ -1245,7 +1257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return localSymbol;
         }
 
-        private bool IsValidFixedVariableInitializer(TypeSymbol declType, SourceLocalSymbol localSymbol, ref BoundExpression initializerOpt, BindingDiagnosticBag diagnostics)
+        private bool IsValidFixedVariableInitializer(TypeSymbol declType, ref BoundExpression initializerOpt, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!ReferenceEquals(declType, null));
             Debug.Assert(declType.IsPointerType());
@@ -1442,11 +1454,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ExpressionSyntax rhsExpr;
             bool isRef = false;
 
-            if (node.Right.Kind() == SyntaxKind.RefExpression)
+            if (node.Right is RefExpressionSyntax refExpression)
             {
+                MessageID.IDS_FeatureRefReassignment.CheckFeatureAvailability(diagnostics, refExpression, refExpression.RefKeyword.GetLocation());
+
                 isRef = true;
                 lhsKind = BindValueKind.RefAssignable;
-                rhsExpr = ((RefExpressionSyntax)node.Right).Expression;
+                rhsExpr = refExpression.Expression;
             }
             else
             {
@@ -1890,10 +1904,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundStatements.Add(boundStatement);
             }
 
-            return FinishBindBlockParts(node, boundStatements.ToImmutableAndFree(), diagnostics);
+            return FinishBindBlockParts(node, boundStatements.ToImmutableAndFree());
         }
 
-        private BoundBlock FinishBindBlockParts(CSharpSyntaxNode node, ImmutableArray<BoundStatement> boundStatements, BindingDiagnosticBag diagnostics)
+        private BoundBlock FinishBindBlockParts(CSharpSyntaxNode node, ImmutableArray<BoundStatement> boundStatements)
         {
             ImmutableArray<LocalSymbol> locals = GetDeclaredLocalsForScope(node);
 
@@ -3259,6 +3273,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindCatchFilter(CatchFilterClauseSyntax filter, BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureExceptionFilter.CheckFeatureAvailability(diagnostics, filter, filter.WhenKeyword.GetLocation());
+
             BoundExpression boundFilter = this.BindBooleanExpression(filter.FilterExpression, diagnostics);
             if (boundFilter.ConstantValue != ConstantValue.NotAvailable)
             {
@@ -3538,12 +3554,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundNode BindSimpleProgram(CompilationUnitSyntax compilationUnit, BindingDiagnosticBag diagnostics)
         {
-            var simpleProgram = (SynthesizedSimpleProgramEntryPointSymbol)ContainingMemberOrLambda;
-
-            return GetBinder(compilationUnit).BindSimpleProgramCompilationUnit(compilationUnit, simpleProgram, diagnostics);
+            return GetBinder(compilationUnit).BindSimpleProgramCompilationUnit(compilationUnit, diagnostics);
         }
 
-        private BoundNode BindSimpleProgramCompilationUnit(CompilationUnitSyntax compilationUnit, SynthesizedSimpleProgramEntryPointSymbol simpleProgram, BindingDiagnosticBag diagnostics)
+        private BoundNode BindSimpleProgramCompilationUnit(CompilationUnitSyntax compilationUnit, BindingDiagnosticBag diagnostics)
         {
             ArrayBuilder<BoundStatement> boundStatements = ArrayBuilder<BoundStatement>.GetInstance();
             foreach (var statement in compilationUnit.Members)
@@ -3556,7 +3570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundNonConstructorMethodBody(compilationUnit,
-                                                     FinishBindBlockParts(compilationUnit, boundStatements.ToImmutableAndFree(), diagnostics).MakeCompilerGenerated(),
+                                                     FinishBindBlockParts(compilationUnit, boundStatements.ToImmutableAndFree()).MakeCompilerGenerated(),
                                                      expressionBody: null);
         }
 
