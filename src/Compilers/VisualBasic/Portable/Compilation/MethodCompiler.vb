@@ -1241,6 +1241,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim injectConstructorCall As Boolean
             Dim block = BindAndAnalyzeMethodBody(method, compilationState, diagsForCurrentMethod, containingTypeBinder, referencedConstructor, injectConstructorCall, methodBinderOpt)
 
+#If DEBUG Then
+            Debug.Assert(block Is Nothing OrElse IsEmptyRewritePossible(block))
+#End If
+
             ' Initializers need to be flow-analyzed for warnings like 'Function '??' doesn't
             ' return a value on all code paths' or unreferenced variables. 
             ' Because if there are any initializers they will eventually get to one or more constructors
@@ -1321,6 +1325,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _diagnostics.AddRange(diagsForCurrentMethod)
             diagsForCurrentMethod.Free()
         End Sub
+
+#If DEBUG Then
+        Private Shared Function IsEmptyRewritePossible(node As BoundNode) As Boolean
+            Dim rewriter = New EmptyRewriter()
+            Try
+                Dim rewritten = rewriter.Visit(node)
+                Return rewritten Is node
+            Catch e As BoundTreeVisitor.CancelledByStackGuardException
+                Return True
+            End Try
+        End Function
+
+        Private NotInheritable Class EmptyRewriter
+            Inherits BoundTreeRewriterWithStackGuard
+        End Class
+#End If
 
         ''' <summary> 
         ''' If any of the "Handles" in the list have synthetic WithEvent override
