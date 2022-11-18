@@ -1085,8 +1085,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         protected TNode CheckFeatureAvailability<TNode>(TNode node, MessageID feature, bool forceWarning = false)
             where TNode : GreenNode
         {
-            LanguageVersion availableVersion = this.Options.LanguageVersion;
-
             var info = feature.GetFeatureAvailabilityDiagnosticInfo(this.Options);
             if (info != null)
             {
