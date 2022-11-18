@@ -189,13 +189,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // If all parameter types and return type are valid type arguments, construct
             // the delegate type from a generic template. Otherwise, use a non-generic template.
             bool useUpdatedEscapeRules = Compilation.SourceModule.UseUpdatedEscapeRules;
-            if (allValidTypeArguments(useUpdatedEscapeRules, typeDescr))
+            if (allValidTypeArguments(useUpdatedEscapeRules, typeDescr, out var needsUniqueName))
             {
                 var fields = typeDescr.Fields;
                 Debug.Assert(fields.All(f => hasDefaultScope(useUpdatedEscapeRules, f)));
 
-                bool returnsVoid = fields.Last().Type.IsVoidType();
+                bool returnsVoid = fields[^1].Type.IsVoidType();
                 int nTypeArguments = fields.Length - (returnsVoid ? 1 : 0);
+                var typeArgumentsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(nTypeArguments);
+                for (int i = 0; i < nTypeArguments; i++)
+                {
+                    typeArgumentsBuilder.Add(fields[i].TypeWithAnnotations);
+                }
+                var typeArguments = typeArgumentsBuilder.ToImmutableAndFree();
+
+                // Delegate type cannot be fully serialized to its name (e.g., it has default parameter values).
+                if (needsUniqueName)
+                {
+                    var key = new SynthesizedDelegateKey(typeDescr);
+                    var namedTemplate = this.AnonymousDelegates.GetOrAdd(key, static (key, arg) =>
+                    {
+                        var (@this, typeDescr) = arg;
+                        return new AnonymousDelegateTemplateSymbol(@this, typeDescr);
+                    }, (this, typeDescr));
+                    return namedTemplate.Construct(typeArguments);
+                }
+
                 var refKinds = default(RefKindVector);
                 if (fields.Any(static f => f.RefKind != RefKind.None))
                 {
@@ -206,13 +225,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                var typeArgumentsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(nTypeArguments);
-                for (int i = 0; i < nTypeArguments; i++)
-                {
-                    typeArgumentsBuilder.Add(fields[i].TypeWithAnnotations);
-                }
-
-                var typeArguments = typeArgumentsBuilder.ToImmutableAndFree();
                 var template = SynthesizeDelegate(parameterCount: fields.Length - 1, refKinds, returnsVoid, generation);
 
                 Debug.Assert(typeArguments.Length == template.TypeParameters.Length);
@@ -244,19 +256,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     template.Construct(typeParameters);
             }
 
-            static bool allValidTypeArguments(bool useUpdatedEscapeRules, AnonymousTypeDescriptor typeDescr)
+            static bool allValidTypeArguments(bool useUpdatedEscapeRules, AnonymousTypeDescriptor typeDescr, out bool needsUniqueName)
             {
+                needsUniqueName = false;
                 var fields = typeDescr.Fields;
                 int n = fields.Length;
                 for (int i = 0; i < n - 1; i++)
                 {
-                    if (!isValidTypeArgument(useUpdatedEscapeRules, fields[i]))
+                    if (!isValidTypeArgument(useUpdatedEscapeRules, fields[i], ref needsUniqueName))
                     {
                         return false;
                     }
                 }
                 var returnParameter = fields[n - 1];
-                return returnParameter.Type.IsVoidType() || isValidTypeArgument(useUpdatedEscapeRules, returnParameter);
+                return returnParameter.Type.IsVoidType() || isValidTypeArgument(useUpdatedEscapeRules, returnParameter, ref needsUniqueName);
             }
 
             static bool hasDefaultScope(bool useUpdatedEscapeRules, AnonymousTypeField field)
@@ -269,11 +282,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 };
             }
 
-            static bool isValidTypeArgument(bool useUpdatedEscapeRules, AnonymousTypeField field)
+            static bool isValidTypeArgument(bool useUpdatedEscapeRules, AnonymousTypeField field, ref bool needsUniqueName)
             {
-                return !field.IsParams &&
-                    hasDefaultScope(useUpdatedEscapeRules, field) &&
-                    field.DefaultValue is null &&
+                needsUniqueName = needsUniqueName || field.IsParams || field.DefaultValue is not null;
+                return hasDefaultScope(useUpdatedEscapeRules, field) &&
                     field.Type is { } type &&
                     !type.IsPointerOrFunctionPointer() &&
                     !type.IsRestrictedType();
