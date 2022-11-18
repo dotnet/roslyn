@@ -412,9 +412,9 @@ namespace Microsoft.CodeAnalysis.Editing
             }
 
             protected override SyntaxNode Apply(SyntaxNode root, SyntaxNode currentNode, SyntaxGenerator generator)
-                => _isBefore ?
-                    generator.InsertNodesBefore(root, currentNode, _newNodes) :
-                    generator.InsertNodesAfter(root, currentNode, _newNodes);
+                => _isBefore
+                    ? generator.InsertNodesBefore(root, currentNode, _newNodes)
+                    : generator.InsertNodesAfter(root, currentNode, _newNodes);
         }
     }
 }
