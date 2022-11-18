@@ -1374,9 +1374,10 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var index = n - containingTypeParameterCount;
-                if (index < typeSymbol.TypeParameters.Length)
+                var typeParameters = typeSymbol.TypeParameters;
+                if (index < typeParameters.Length)
                 {
-                    return typeSymbol.TypeParameters[index];
+                    return typeParameters[index];
                 }
 
                 return null;
