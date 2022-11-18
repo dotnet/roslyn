@@ -8899,20 +8899,23 @@ done:;
             // We are called into on try/catch/finally, so eating the try may actually fail.
             var @try = this.EatToken(SyntaxKind.TryKeyword);
 
-            BlockSyntax block;
+            BlockSyntax tryBlock;
             if (@try.IsMissing)
             {
+                // If there was no actual `try`, then we got here because of a misplaced `catch`/`finally`.  In that
+                // case just synthesize a fully missing try-block.  We will already have issued a diagnostic on the
+                // `try` keyword, so we don't need to issue any more.
+
+                Debug.Assert(@try.ContainsDiagnostics);
                 Debug.Assert(this.CurrentToken.Kind is SyntaxKind.CatchKeyword or SyntaxKind.FinallyKeyword);
 
-                // We will have already created an error on the try-token, so don't actually create more errors here
-                // with this synthesized block.  Just directly create the missing pieces.
-                block = missingBlock();
+                tryBlock = missingBlock();
             }
             else
             {
                 var saveTerm = _termState;
                 _termState |= TerminatorState.IsEndOfTryBlock;
-                block = this.ParsePossiblyAttributedBlock();
+                tryBlock = this.ParsePossiblyAttributedBlock();
                 _termState = saveTerm;
             }
 
@@ -8936,8 +8939,8 @@ done:;
 
                 if (catchClauses.IsNull && finallyClause == null)
                 {
-                    if (!ContainsErrorDiagnostic(block))
-                        block = this.AddErrorToLastToken(block, ErrorCode.ERR_ExpectedEndTry);
+                    if (!ContainsErrorDiagnostic(tryBlock))
+                        tryBlock = this.AddErrorToLastToken(tryBlock, ErrorCode.ERR_ExpectedEndTry);
 
                     // synthesize missing tokens for "finally { }":
                     finallyClause = _syntaxFactory.FinallyClause(
@@ -8945,7 +8948,7 @@ done:;
                         missingBlock());
                 }
 
-                return _syntaxFactory.TryStatement(attributes, @try, block, catchClauses, finallyClause);
+                return _syntaxFactory.TryStatement(attributes, @try, tryBlock, catchClauses, finallyClause);
             }
             finally
             {
