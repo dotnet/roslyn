@@ -1077,7 +1077,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors = true;
                     }
                 }
-                else if (!IsValidFixedVariableInitializer(declTypeOpt.Type, localSymbol, ref initializerOpt, localDiagnostics))
+                else if (!IsValidFixedVariableInitializer(declTypeOpt.Type, ref initializerOpt, localDiagnostics))
                 {
                     hasErrors = true;
                 }
@@ -1245,7 +1245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return localSymbol;
         }
 
-        private bool IsValidFixedVariableInitializer(TypeSymbol declType, SourceLocalSymbol localSymbol, ref BoundExpression initializerOpt, BindingDiagnosticBag diagnostics)
+        private bool IsValidFixedVariableInitializer(TypeSymbol declType, ref BoundExpression initializerOpt, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!ReferenceEquals(declType, null));
             Debug.Assert(declType.IsPointerType());
@@ -1890,10 +1890,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundStatements.Add(boundStatement);
             }
 
-            return FinishBindBlockParts(node, boundStatements.ToImmutableAndFree(), diagnostics);
+            return FinishBindBlockParts(node, boundStatements.ToImmutableAndFree());
         }
 
-        private BoundBlock FinishBindBlockParts(CSharpSyntaxNode node, ImmutableArray<BoundStatement> boundStatements, BindingDiagnosticBag diagnostics)
+        private BoundBlock FinishBindBlockParts(CSharpSyntaxNode node, ImmutableArray<BoundStatement> boundStatements)
         {
             ImmutableArray<LocalSymbol> locals = GetDeclaredLocalsForScope(node);
 
@@ -3538,12 +3538,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundNode BindSimpleProgram(CompilationUnitSyntax compilationUnit, BindingDiagnosticBag diagnostics)
         {
-            var simpleProgram = (SynthesizedSimpleProgramEntryPointSymbol)ContainingMemberOrLambda;
-
-            return GetBinder(compilationUnit).BindSimpleProgramCompilationUnit(compilationUnit, simpleProgram, diagnostics);
+            return GetBinder(compilationUnit).BindSimpleProgramCompilationUnit(compilationUnit, diagnostics);
         }
 
-        private BoundNode BindSimpleProgramCompilationUnit(CompilationUnitSyntax compilationUnit, SynthesizedSimpleProgramEntryPointSymbol simpleProgram, BindingDiagnosticBag diagnostics)
+        private BoundNode BindSimpleProgramCompilationUnit(CompilationUnitSyntax compilationUnit, BindingDiagnosticBag diagnostics)
         {
             ArrayBuilder<BoundStatement> boundStatements = ArrayBuilder<BoundStatement>.GetInstance();
             foreach (var statement in compilationUnit.Members)
@@ -3556,7 +3554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundNonConstructorMethodBody(compilationUnit,
-                                                     FinishBindBlockParts(compilationUnit, boundStatements.ToImmutableAndFree(), diagnostics).MakeCompilerGenerated(),
+                                                     FinishBindBlockParts(compilationUnit, boundStatements.ToImmutableAndFree()).MakeCompilerGenerated(),
                                                      expressionBody: null);
         }
 

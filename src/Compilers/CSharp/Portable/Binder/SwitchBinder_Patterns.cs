@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics);
 
             // Report subsumption errors, but ignore the input's constant value for that.
-            CheckSwitchErrors(node, boundSwitchGoverningExpression, ref switchSections, decisionDag, diagnostics);
+            CheckSwitchErrors(ref switchSections, decisionDag, diagnostics);
 
             // When the input is constant, we use that to reshape the decision dag that is returned
             // so that flow analysis will see that some of the cases may be unreachable.
@@ -70,8 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void CheckSwitchErrors(
-            SwitchStatementSyntax node,
-            BoundExpression boundSwitchGoverningExpression,
             ref ImmutableArray<BoundSwitchSection> switchSections,
             BoundDecisionDag decisionDag,
             BindingDiagnosticBag diagnostics)
