@@ -206,12 +206,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Delegate type cannot be fully serialized to its name (e.g., it has default parameter values).
                 if (needsUniqueName)
                 {
-                    var key = new SynthesizedDelegateKey(typeDescr);
+                    // Replace field types (where type parameters will be) by placeholders.
+                    var genericFieldTypeBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(fields.Length);
+                    for (var i = 0; i < nTypeArguments; i++)
+                    {
+                        genericFieldTypeBuilder.Add(default);
+                    }
+                    if (returnsVoid)
+                    {
+                        genericFieldTypeBuilder.Add(fields[^1].TypeWithAnnotations);
+                    }
+                    var genericFieldTypes = genericFieldTypeBuilder.ToImmutableAndFree();
+                    var genericTypeDescr = typeDescr.WithNewFieldsTypes(genericFieldTypes);
+
+                    var key = new SynthesizedDelegateKey(genericTypeDescr);
                     var namedTemplate = this.AnonymousDelegates.GetOrAdd(key, static (key, arg) =>
                     {
-                        var (@this, typeDescr) = arg;
-                        return new AnonymousDelegateTemplateSymbol(@this, typeDescr);
-                    }, (this, typeDescr));
+                        var (@this, genericTypeDescr) = arg;
+                        return new AnonymousDelegateTemplateSymbol(@this, genericTypeDescr);
+                    }, (this, genericTypeDescr));
                     return namedTemplate.Construct(typeArguments);
                 }
 

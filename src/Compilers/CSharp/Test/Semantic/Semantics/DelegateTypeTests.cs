@@ -12097,11 +12097,9 @@ class Program
     }
 }
 """;
-
-            // Emit only one templated delegate type? https://github.com/dotnet/roslyn/issues/65213
             CompileAndVerify(source, expectedOutput:
-@"<>f__AnonymousDelegate0
-<>f__AnonymousDelegate1");
+@"<>f__AnonymousDelegate0`2[System.Double,System.Int32]
+<>f__AnonymousDelegate0`2[System.String,System.Int32]");
         }
 
         [Fact]
