@@ -102,11 +102,21 @@ class C
             EOF();
 
             // In langversion 8, this is a method
-            UsingTree(text, options: TestOptions.Regular8,
+            UsingTree(text, options: TestOptions.Regular8);
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record C(int X, int Y);").WithArguments("top-level statements", "9.0").WithLocation(1, 1)
-            );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record C(int X, int Y);").WithArguments("top-level statements", "9.0").WithLocation(1, 1),
+                // (1,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                // record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 1),
+                // (1,8): error CS8112: Local function 'C(int, int)' must declare a body because it is not marked 'static extern'.
+                // record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "C").WithArguments("C(int, int)").WithLocation(1, 8),
+                // (1,8): warning CS8321: The local function 'C' is declared but never used
+                // record C(int X, int Y);
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "C").WithArguments("C").WithLocation(1, 8));
+
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -247,12 +257,20 @@ class C
         [Fact]
         public void RecordParsing05()
         {
-            var tree = ParseTree("record Point;", options: TestOptions.Regular8);
-            tree.GetDiagnostics().Verify(
+            var text = "record Point;";
+            var tree = ParseTree(text, options: TestOptions.Regular8);
+            tree.GetDiagnostics().Verify();
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // record Point;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record Point;").WithArguments("top-level statements", "9.0").WithLocation(1, 1)
-            );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record Point;").WithArguments("top-level statements", "9.0").WithLocation(1, 1),
+                // (1,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                // record Point;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 1),
+                // (1,8): warning CS0168: The variable 'Point' is declared but never used
+                // record Point;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Point").WithArguments("Point").WithLocation(1, 8));
 
             UsingNode((CSharpSyntaxNode)tree.GetRoot());
 
@@ -314,7 +332,8 @@ class C
         [Fact]
         public void RecordParsing07()
         {
-            var tree = ParseTree("interface P(int x, int y);", options: TestOptions.Regular8);
+            var text = "interface P(int x, int y);";
+            var tree = ParseTree(text, options: TestOptions.Regular8);
             tree.GetDiagnostics().Verify(
                 // (1,12): error CS1514: { expected
                 // interface P(int x, int y);
@@ -322,13 +341,38 @@ class C
                 // (1,12): error CS1513: } expected
                 // interface P(int x, int y);
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 12),
+                // (1,12): error CS8803: Top-level statements must precede namespace and type declarations.
+                // interface P(int x, int y);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(1, 12));
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,12): error CS1514: { expected
+                // interface P(int x, int y);
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 12),
+                // (1,12): error CS1513: } expected
+                // interface P(int x, int y);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 12),
+                // (1,12): error CS8803: Top-level statements must precede namespace and type declarations.
+                // interface P(int x, int y);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(1, 12),
                 // (1,12): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // interface P(int x, int y);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int x, int y);").WithArguments("top-level statements", "9.0").WithLocation(1, 12),
-                // (1,12): error CS8803: Top-level statements must precede namespace and type declarations.
+                // (1,12): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // interface P(int x, int y);
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(1, 12)
-            );
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int x, int y)").WithLocation(1, 12),
+                // (1,13): error CS8185: A declaration is not allowed in this context.
+                // interface P(int x, int y);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x").WithLocation(1, 13),
+                // (1,13): error CS0165: Use of unassigned local variable 'x'
+                // interface P(int x, int y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x").WithArguments("x").WithLocation(1, 13),
+                // (1,20): error CS8185: A declaration is not allowed in this context.
+                // interface P(int x, int y);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int y").WithLocation(1, 20),
+                // (1,20): error CS0165: Use of unassigned local variable 'y'
+                // interface P(int x, int y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(1, 20));
         }
 
         [Fact]
@@ -2663,15 +2707,11 @@ class C(int X, int Y)
             UsingTree(text, options: TestOptions.Regular9,
                 // (1,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // record struct C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(1, 8)
-                 );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(1, 8));
 
             verifyParsedAsRecord();
 
             UsingTree(text, options: TestOptions.Regular8,
-                // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // record struct C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record ").WithArguments("top-level statements", "9.0").WithLocation(1, 1),
                 // (1,8): error CS1001: Identifier expected
                 // record struct C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(1, 8),
@@ -2686,8 +2726,45 @@ class C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 16),
                 // (1,16): error CS8803: Top-level statements must precede namespace and type declarations.
                 // record struct C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(1, 16)
-                );
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(1, 16));
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record ").WithArguments("top-level statements", "9.0").WithLocation(1, 1),
+                // (1,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 1),
+                // (1,8): error CS1001: Identifier expected
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(1, 8),
+                // (1,8): error CS1002: ; expected
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 8),
+                // (1,16): error CS1514: { expected
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 16),
+                // (1,16): error CS1513: } expected
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 16),
+                // (1,16): error CS8803: Top-level statements must precede namespace and type declarations.
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(1, 16),
+                // (1,16): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int X, int Y)").WithLocation(1, 16),
+                // (1,17): error CS8185: A declaration is not allowed in this context.
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int X").WithLocation(1, 17),
+                // (1,17): error CS0165: Use of unassigned local variable 'X'
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int X").WithArguments("X").WithLocation(1, 17),
+                // (1,24): error CS8185: A declaration is not allowed in this context.
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int Y").WithLocation(1, 24),
+                // (1,24): error CS0165: Use of unassigned local variable 'Y'
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int Y").WithArguments("Y").WithLocation(1, 24));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2859,10 +2936,13 @@ class C(int X, int Y)
 
             verifyParsedAsRecord();
 
-            UsingTree(text, options: TestOptions.Regular8,
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // record class C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record ").WithArguments("top-level statements", "9.0").WithLocation(1, 1),
+                // (1,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 1),
                 // (1,8): error CS1001: Identifier expected
                 // record class C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "class").WithLocation(1, 8),
@@ -2877,8 +2957,39 @@ class C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 15),
                 // (1,15): error CS8803: Top-level statements must precede namespace and type declarations.
                 // record class C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(1, 15)
-                );
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(1, 15),
+                // (1,15): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int X, int Y)").WithLocation(1, 15),
+                // (1,16): error CS8185: A declaration is not allowed in this context.
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int X").WithLocation(1, 16),
+                // (1,16): error CS0165: Use of unassigned local variable 'X'
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int X").WithArguments("X").WithLocation(1, 16),
+                // (1,23): error CS8185: A declaration is not allowed in this context.
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int Y").WithLocation(1, 23),
+                // (1,23): error CS0165: Use of unassigned local variable 'Y'
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int Y").WithArguments("Y").WithLocation(1, 23));
+
+            UsingTree(text, options: TestOptions.Regular8,
+                // (1,8): error CS1001: Identifier expected
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "class").WithLocation(1, 8),
+                // (1,8): error CS1002: ; expected
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(1, 8),
+                // (1,15): error CS1514: { expected
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 15),
+                // (1,15): error CS1513: } expected
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 15),
+                // (1,15): error CS8803: Top-level statements must precede namespace and type declarations.
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(1, 15));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3935,10 +4046,21 @@ class C(int X, int Y)
 
             verifyParsedAsRecord();
 
-            UsingTree(text, options: TestOptions.Regular8,
+            UsingTree(text, options: TestOptions.Regular8);
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // ref record R;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "ref record R;").WithArguments("top-level statements", "9.0").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "ref record R;").WithArguments("top-level statements", "9.0").WithLocation(1, 1),
+                // (1,5): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                // ref record R;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 5),
+                // (1,12): error CS8174: A declaration of a by-reference variable must have an initializer
+                // ref record R;
+                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "R").WithLocation(1, 12),
+                // (1,12): warning CS0168: The variable 'R' is declared but never used
+                // ref record R;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "R").WithArguments("R").WithLocation(1, 12));
 
             N(SyntaxKind.CompilationUnit);
             {

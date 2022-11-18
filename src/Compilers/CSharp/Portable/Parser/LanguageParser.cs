@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private int _recursionDepth;
         private TerminatorState _termState; // Resettable
         private bool _isInTry; // Resettable
-        private bool _checkedTopLevelStatementsFeatureAvailability; // Resettable
 
         // NOTE: If you add new state, you should probably add it to ResetPoint as well.
 
@@ -655,17 +654,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     seen = NamespaceParts.Usings;
                 }
             }
-        }
-
-        private GlobalStatementSyntax CheckTopLevelStatementsFeatureAvailability(GlobalStatementSyntax globalStatementSyntax)
-        {
-            if (IsScript || _checkedTopLevelStatementsFeatureAvailability)
-            {
-                return globalStatementSyntax;
-            }
-
-            _checkedTopLevelStatementsFeatureAvailability = true;
-            return CheckFeatureAvailability(globalStatementSyntax, MessageID.IDS_TopLevelStatements);
         }
 
         private static void AddIncompleteMembers(ref SyntaxListBuilder<MemberDeclarationSyntax> incompleteMembers, ref NamespaceBodyBuilder body)
@@ -2344,14 +2332,14 @@ tryAgain:
                             case SyntaxKind.UnsafeKeyword:
                                 if (this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
                                 {
-                                    return CheckTopLevelStatementsFeatureAvailability(_syntaxFactory.GlobalStatement(ParseUnsafeStatement(attributes)));
+                                    return _syntaxFactory.GlobalStatement(ParseUnsafeStatement(attributes));
                                 }
                                 break;
 
                             case SyntaxKind.FixedKeyword:
                                 if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
                                 {
-                                    return CheckTopLevelStatementsFeatureAvailability(_syntaxFactory.GlobalStatement(ParseFixedStatement(attributes)));
+                                    return _syntaxFactory.GlobalStatement(ParseFixedStatement(attributes));
                                 }
                                 break;
 
@@ -2360,14 +2348,14 @@ tryAgain:
                                 {
                                     case SyntaxKind.OpenParenToken:
                                     case SyntaxKind.OpenBraceToken:
-                                        return CheckTopLevelStatementsFeatureAvailability(_syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes)));
+                                        return _syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes));
                                 }
                                 break;
 
                             case SyntaxKind.NewKeyword:
                                 if (IsPossibleNewExpression())
                                 {
-                                    return CheckTopLevelStatementsFeatureAvailability(_syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes)));
+                                    return _syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes));
                                 }
                                 break;
                         }
@@ -2494,7 +2482,7 @@ tryAgain:
 
                             if (isAcceptableNonDeclarationStatement(statement, IsScript))
                             {
-                                return CheckTopLevelStatementsFeatureAvailability(_syntaxFactory.GlobalStatement(statement));
+                                return _syntaxFactory.GlobalStatement(statement);
                             }
                         }
 
@@ -2644,7 +2632,7 @@ parse_member_name:;
 
                 if (topLevelStatement is DeclarationSyntax declaration && IsMakingProgress(ref lastTokenPosition, assertIfFalse: false))
                 {
-                    result = CheckTopLevelStatementsFeatureAvailability(_syntaxFactory.GlobalStatement(declaration));
+                    result = _syntaxFactory.GlobalStatement(declaration);
                     return true;
                 }
 
@@ -2673,7 +2661,7 @@ parse_member_name:;
 
                         if (statement is not null)
                         {
-                            result = CheckTopLevelStatementsFeatureAvailability(_syntaxFactory.GlobalStatement(statement));
+                            result = _syntaxFactory.GlobalStatement(statement);
                             return true;
                         }
                     }
