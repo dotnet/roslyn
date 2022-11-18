@@ -883,6 +883,7 @@ namespace Microsoft.CodeAnalysis
                 sourceFileAnalyzerConfigOptions,
                 embeddedTexts,
                 diagnostics,
+                errorLogger,
                 cancellationToken,
                 out CancellationTokenSource? analyzerCts,
                 out var analyzerDriver,
@@ -976,6 +977,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions,
             ImmutableArray<EmbeddedText?> embeddedTexts,
             DiagnosticBag diagnostics,
+            ErrorLogger? errorLogger,
             CancellationToken cancellationToken,
             out CancellationTokenSource? analyzerCts,
             out AnalyzerDriver? analyzerDriver,
@@ -1108,6 +1110,7 @@ namespace Microsoft.CodeAnalysis
                         analyzerExceptionDiagnostics.Add,
                         Arguments.ReportAnalyzer,
                         severityFilter,
+                        trackSuppressedDiagnosticIds: errorLogger != null,
                         out compilation,
                         analyzerCts.Token);
                 }
@@ -1297,6 +1300,11 @@ namespace Microsoft.CodeAnalysis
                             {
                                 // Apply diagnostic suppressions for analyzer and/or compiler diagnostics from diagnostic suppressors.
                                 analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
+                            }
+
+                            if (errorLogger != null)
+                            {
+                                errorLogger.AddAnalyzerDescriptors(analyzerDriver.GetAllDescriptors());
                             }
                         }
                     }

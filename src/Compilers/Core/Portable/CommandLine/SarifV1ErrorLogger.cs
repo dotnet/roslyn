@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -121,6 +122,11 @@ namespace Microsoft.CodeAnalysis
 
                 _writer.WriteArrayEnd(); // relatedLocations
             }
+        }
+
+        public override void AddAnalyzerDescriptors(ImmutableArray<(DiagnosticDescriptor Descriptor, bool HasAnyExternalSuppression)> descriptors)
+        {
+            // We log all analyzer descriptors only in SARIF v2+ format.
         }
 
         protected override void WritePhysicalLocation(Location location)
