@@ -230,6 +230,9 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
+                // At this point, we now absolutely should have our tree in the compilation
+                Contract.ThrowIfFalse(compilationPair.CompilationWithoutGeneratedDocuments.ContainsSyntaxTree(tree));
+
                 // The user is asking for an in progress snap.  We don't want to create it and then
                 // have the compilation immediately disappear.  So we force it to stay around with a ConstantValueSource.
                 // As a policy, all partial-state projects are said to have incomplete references, since the state has no guarantees.
@@ -270,15 +273,14 @@ namespace Microsoft.CodeAnalysis
                 var inProgressState = state as InProgressState;
 
                 generatorInfo = state.GeneratorInfo.WithDocumentsAreFinalAndFrozen();
+                inProgressProject = inProgressState != null ? inProgressState.IntermediateProjects.First().oldState : this.ProjectState;
 
-                // all changes left for this document is modifying the given document.
-                // we can use current state as it is since we will replace the document with latest document anyway.
+                // all changes left for this document is modifying the given document; since the compilation is already fully up to date
+                // we don't need to do any further checking of it's references
                 if (inProgressState != null &&
                     compilationWithoutGeneratedDocuments != null &&
                     inProgressState.IntermediateProjects.All(t => IsTouchDocumentActionForDocument(t.action, id)))
                 {
-                    inProgressProject = ProjectState;
-
                     // We'll add in whatever generated documents we do have; these may be from a prior run prior to some changes
                     // being made to the project, but it's the best we have so we'll use it.
                     compilations = new CompilationPair(
@@ -291,8 +293,6 @@ namespace Microsoft.CodeAnalysis
                     SolutionLogger.UseExistingPartialProjectState();
                     return;
                 }
-
-                inProgressProject = inProgressState != null ? inProgressState.IntermediateProjects.First().oldState : this.ProjectState;
 
                 // if we already have a final compilation we are done.
                 if (compilationWithoutGeneratedDocuments != null && state is FinalState finalState)

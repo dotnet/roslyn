@@ -3084,7 +3084,27 @@ public class C : A {
             var frozenDocument = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
 
             Assert.Equal(2, frozenDocument.Project.Documents.Count());
-            Assert.Equal(2, (await frozenDocument.Project.GetCompilationAsync()).SyntaxTrees.Count());
+            var treesInCompilation = (await frozenDocument.Project.GetCompilationAsync()).SyntaxTrees;
+            Assert.Equal(2, treesInCompilation.Count());
+
+            foreach (var document in frozenDocument.Project.Documents)
+                Assert.Contains(await document.GetRequiredSyntaxTreeAsync(CancellationToken.None), treesInCompilation);
+        }
+
+        [Fact]
+        public async Task TestFrozenPartialSemanticsAfterSingleTextEdit()
+        {
+            using var workspace = CreateWorkspaceWithPartialSemantics();
+            var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp)
+                .AddDocument("RegularDocument.cs", "// Source File", filePath: null);
+
+            // Fetch the compilation to ensure further changes produce in progress states
+            var originalCompilation = await document.Project.GetCompilationAsync();
+            document = document.WithText(SourceText.From("// Source File with Changes"));
+
+            var frozenDocument = document.WithFrozenPartialSemantics(CancellationToken.None);
+
+            Assert.Contains(await frozenDocument.GetSyntaxTreeAsync(), (await frozenDocument.Project.GetCompilationAsync()).SyntaxTrees);
         }
 
         [Theory]
@@ -3119,6 +3139,7 @@ public class C : A {
 
             var tree = await frozen.GetSyntaxTreeAsync();
             Assert.Contains("Changed", tree.ToString());
+            Assert.Contains(tree, (await frozen.Project.GetCompilationAsync()).SyntaxTrees);
         }
 
         [Fact]
