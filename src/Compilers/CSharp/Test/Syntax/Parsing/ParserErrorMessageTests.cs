@@ -6440,7 +6440,7 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=").WithArguments("auto property initializer", "6").WithLocation(3, 20),
                 // (5,13): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
                 //     int M() => 12; // expression-bodied method
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> 12").WithArguments("expression-bodied method", "6").WithLocation(5, 13),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=>").WithArguments("expression-bodied method", "6").WithLocation(5, 13),
                 // (7,11): error CS8026: Feature 'expression-bodied property' is not available in C# 5. Please use language version 6 or greater.
                 //     int N => 12; // expression-bodied property
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=>").WithArguments("expression-bodied property", "6").WithLocation(7, 11),
@@ -6449,13 +6449,13 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=>").WithArguments("expression-bodied indexer", "6").WithLocation(9, 21),
                 // (11,48): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
                 //     public static int operator +(Goo a, Goo b) => null; // expression-bodied operator
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> null").WithArguments("expression-bodied method", "6").WithLocation(11, 48),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=>").WithArguments("expression-bodied method", "6").WithLocation(11, 48),
                 // (11,51): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 //     public static int operator +(Goo a, Goo b) => null; // expression-bodied operator
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(11, 51),
                 // (13,49): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
                 //     public static explicit operator bool(Goo a) => false; // expression-bodied conversion operator
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> false").WithArguments("expression-bodied method", "6").WithLocation(13, 49),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=>").WithArguments("expression-bodied method", "6").WithLocation(13, 49),
                 // (18,18): error CS0246: The type or namespace name 'Exception' could not be found (are you missing a using directive or an assembly reference?)
                 //         } catch (Exception ex) when (ex.ToString() == null) { // exception filter
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Exception").WithArguments("Exception").WithLocation(18, 18),
@@ -6471,16 +6471,7 @@ class C
 
             SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)).GetDiagnostics().Verify();
 
-            SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)).GetDiagnostics().Verify(
-                // (5,13): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
-                //     int M() => 12; // expression-bodied method
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> 12").WithArguments("expression-bodied method", "6").WithLocation(5, 13),
-                // (11,48): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
-                //     public static int operator +(Goo a, Goo b) => null; // expression-bodied operator
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> null").WithArguments("expression-bodied method", "6").WithLocation(11, 48),
-                // (13,49): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
-                //     public static explicit operator bool(Goo a) => false; // expression-bodied conversion operator
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> false").WithArguments("expression-bodied method", "6").WithLocation(13, 49));
+            SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)).GetDiagnostics().Verify();
         }
 
         [ClrOnlyFact]

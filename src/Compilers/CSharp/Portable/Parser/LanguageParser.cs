@@ -3156,8 +3156,7 @@ parse_member_name:;
                     : null;
 
                 this.ParseBlockAndExpressionBodiesWithSemicolon(
-                    out BlockSyntax body, out ArrowExpressionClauseSyntax expressionBody, out SyntaxToken semicolon,
-                    requestedExpressionBodyFeature: MessageID.IDS_FeatureExpressionBodiedDeOrConstructor);
+                    out BlockSyntax body, out ArrowExpressionClauseSyntax expressionBody, out SyntaxToken semicolon);
 
                 return _syntaxFactory.ConstructorDeclaration(attributes, modifiers.ToList(), name, paramList, initializer, body, expressionBody, semicolon);
             }
@@ -3214,8 +3213,7 @@ parse_member_name:;
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
 
             this.ParseBlockAndExpressionBodiesWithSemicolon(
-                out BlockSyntax body, out ArrowExpressionClauseSyntax expressionBody, out SyntaxToken semicolon,
-                requestedExpressionBodyFeature: MessageID.IDS_FeatureExpressionBodiedDeOrConstructor);
+                out BlockSyntax body, out ArrowExpressionClauseSyntax expressionBody, out SyntaxToken semicolon);
 
             var parameterList = _syntaxFactory.ParameterList(openParen, default(SeparatedSyntaxList<ParameterSyntax>), closeParen);
 
@@ -3230,8 +3228,7 @@ parse_member_name:;
             out BlockSyntax blockBody,
             out ArrowExpressionClauseSyntax expressionBody,
             out SyntaxToken semicolon,
-            bool parseSemicolonAfterBlock = true,
-            MessageID requestedExpressionBodyFeature = MessageID.IDS_FeatureExpressionBodiedMethod)
+            bool parseSemicolonAfterBlock = true)
         {
             // Check for 'forward' declarations with no block of any kind
             if (this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
@@ -3242,25 +3239,16 @@ parse_member_name:;
                 return;
             }
 
-            blockBody = null;
-            expressionBody = null;
+            blockBody = this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
+                ? this.ParseMethodOrAccessorBodyBlock(attributes: default, isAccessorBody: false)
+                : null;
 
-            if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
-            {
-                blockBody = this.ParseMethodOrAccessorBodyBlock(attributes: default, isAccessorBody: false);
-            }
-
-            if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken)
-            {
-                Debug.Assert(requestedExpressionBodyFeature == MessageID.IDS_FeatureExpressionBodiedMethod
-                                || requestedExpressionBodyFeature == MessageID.IDS_FeatureExpressionBodiedAccessor
-                                || requestedExpressionBodyFeature == MessageID.IDS_FeatureExpressionBodiedDeOrConstructor,
-                                "Only IDS_FeatureExpressionBodiedMethod, IDS_FeatureExpressionBodiedAccessor or IDS_FeatureExpressionBodiedDeOrConstructor can be requested");
-                expressionBody = this.ParseArrowExpressionClause();
-                expressionBody = CheckFeatureAvailability(expressionBody, requestedExpressionBodyFeature);
-            }
+            expressionBody = this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken
+                ? this.ParseArrowExpressionClause()
+                : null;
 
             semicolon = null;
+
             // Expression-bodies need semicolons and native behavior
             // expects a semicolon if there is no body
             if (expressionBody != null || blockBody == null)
@@ -4321,8 +4309,7 @@ parse_member_name:;
                 if (currentTokenIsOpenBraceToken || currentTokenIsArrow)
                 {
                     this.ParseBlockAndExpressionBodiesWithSemicolon(
-                        out blockBody, out expressionBody, out semicolon,
-                        requestedExpressionBodyFeature: MessageID.IDS_FeatureExpressionBodiedAccessor);
+                        out blockBody, out expressionBody, out semicolon);
                 }
                 else if (currentTokenIsSemicolon)
                 {

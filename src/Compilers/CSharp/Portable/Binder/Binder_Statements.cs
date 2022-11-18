@@ -3466,9 +3466,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Binds an expression-bodied member with expression e as either { return e; } or { e; }.
         /// </summary>
-        internal virtual BoundBlock BindExpressionBodyAsBlock(ArrowExpressionClauseSyntax expressionBody,
-                                                      BindingDiagnosticBag diagnostics)
+        internal virtual BoundBlock BindExpressionBodyAsBlock(
+            ArrowExpressionClauseSyntax expressionBody,
+            BindingDiagnosticBag diagnostics)
         {
+            var messageId = expressionBody.Parent switch
+            {
+                ConstructorDeclarationSyntax or DestructorDeclarationSyntax => MessageID.IDS_FeatureExpressionBodiedDeOrConstructor,
+                AccessorDeclarationSyntax => MessageID.IDS_FeatureExpressionBodiedAccessor,
+                BaseMethodDeclarationSyntax => MessageID.IDS_FeatureExpressionBodiedMethod,
+                _ => (MessageID?)null,
+            };
+
+            messageId?.CheckFeatureAvailability(diagnostics, expressionBody, expressionBody.ArrowToken.GetLocation());
+
             Binder bodyBinder = this.GetBinder(expressionBody);
             Debug.Assert(bodyBinder != null);
 
