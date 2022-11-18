@@ -4236,7 +4236,7 @@ parse_member_name:;
                     nodes.Add(token);
                 }
 
-                trailingTrivia = (nodes.Count > 0) ? nodes.ToListNode() : null;
+                trailingTrivia = nodes.ToListNode();
                 return action;
             }
             finally
