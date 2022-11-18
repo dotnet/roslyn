@@ -7,6 +7,7 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -16,8 +17,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
     {
         private static CSharpCompilation CreateCSharpCompilation(string sourceText)
         {
-            var syntaxTree = SyntaxFactory.ParseSyntaxTree(sourceText);
+            var syntaxTree = CSharp.SyntaxFactory.ParseSyntaxTree(sourceText);
             return CSharpCompilation.Create("goo.exe").AddReferences(TestMetadata.Net451.mscorlib).AddSyntaxTrees(syntaxTree);
+        }
+
+        private static VisualBasicCompilation CreateVisualBasicCompilation(string sourceText)
+        {
+            var syntaxTree = VisualBasic.SyntaxFactory.ParseSyntaxTree(sourceText);
+            return VisualBasicCompilation.Create("goo.exe").AddReferences(TestMetadata.Net451.mscorlib).AddSyntaxTrees(syntaxTree);
         }
 
         private static void CheckDeclarationId(string expectedId, INamespaceOrTypeSymbol symbol, Compilation compilation)
@@ -353,7 +360,7 @@ namespace Acme
         }
 
         [Fact, WorkItem(65396, "https://github.com/dotnet/roslyn/issues/65396")]
-        public void TestInvalidTypeParameterId()
+        public void TestInvalidTypeParameterId_CSharp()
         {
             var compilation = CreateCSharpCompilation("""
                 namespace N;
@@ -362,6 +369,25 @@ namespace Acme
                     static void Main() { }
                     public void M<T>(T[] ts) { }
                 }
+                """).VerifyDiagnostics();
+            Assert.NotNull(DocumentationCommentId.GetFirstSymbolForDeclarationId("M:N.C.M``1(``0[])", compilation));
+            Assert.Null(DocumentationCommentId.GetFirstSymbolForDeclarationId("M:N.C.M``1(`0[])", compilation));
+            Assert.Null(DocumentationCommentId.GetFirstSymbolForDeclarationId("M:N.C.M``1(``1[])", compilation));
+        }
+
+        [Fact, WorkItem(65396, "https://github.com/dotnet/roslyn/issues/65396")]
+        public void TestInvalidTypeParameterId_VisualBasic()
+        {
+            var compilation = CreateVisualBasicCompilation("""
+                Namespace N
+                    Class C
+                        Shared Sub Main()
+                        End Sub
+
+                        Public Sub M(Of T)(ByVal ts As T())
+                        End Sub
+                    End Class
+                End Namespace
                 """).VerifyDiagnostics();
             Assert.NotNull(DocumentationCommentId.GetFirstSymbolForDeclarationId("M:N.C.M``1(``0[])", compilation));
             Assert.Null(DocumentationCommentId.GetFirstSymbolForDeclarationId("M:N.C.M``1(`0[])", compilation));
