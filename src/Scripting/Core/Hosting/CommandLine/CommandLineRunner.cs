@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             SarifErrorLogger errorLogger = null;
             if (_compiler.Arguments.ErrorLogOptions?.Path != null)
             {
-                errorLogger = _compiler.GetErrorLogger(_console.Error, CancellationToken.None);
+                errorLogger = _compiler.GetErrorLogger(_console.Error);
                 if (errorLogger == null)
                 {
                     return CommonCompiler.Failed;

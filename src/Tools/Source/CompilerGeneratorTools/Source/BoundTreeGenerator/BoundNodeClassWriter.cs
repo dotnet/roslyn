@@ -323,7 +323,7 @@ namespace BoundTreeGenerator
             }
         }
 
-        private void WriteClassFooter(TreeType node)
+        private void WriteClassFooter()
         {
             switch (_targetLang)
             {
@@ -925,7 +925,7 @@ namespace BoundTreeGenerator
                 WriteUpdateMethod(node as Node);
             }
 
-            WriteClassFooter(node);
+            WriteClassFooter();
         }
 
         private void WriteUpdateMethod(Node node)

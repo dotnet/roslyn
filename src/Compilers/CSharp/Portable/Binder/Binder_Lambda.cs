@@ -54,6 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (syntax is LambdaExpressionSyntax lambdaSyntax)
             {
+                MessageID.IDS_FeatureLambda.CheckFeatureAvailability(diagnostics, syntax, lambdaSyntax.ArrowToken.GetLocation());
+
                 checkAttributes(syntax, lambdaSyntax.AttributeLists, diagnostics);
             }
 
@@ -82,17 +84,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // delegate (int x) { }
                     // delegate { }
                     var anon = (AnonymousMethodExpressionSyntax)syntax;
+                    MessageID.IDS_FeatureAnonDelegates.CheckFeatureAvailability(diagnostics, anon, anon.DelegateKeyword.GetLocation());
+
                     hasSignature = anon.ParameterList != null;
                     if (hasSignature)
                     {
                         parameterSyntaxList = anon.ParameterList!.Parameters;
                     }
+
                     break;
             }
 
-            var isAsync = syntax.Modifiers.Any(SyntaxKind.AsyncKeyword);
-            var isStatic = syntax.Modifiers.Any(SyntaxKind.StaticKeyword);
+            bool isAsync = false;
+            bool isStatic = false;
             var hasParamsArray = false;
+
+            foreach (var modifier in syntax.Modifiers)
+            {
+                if (modifier.IsKind(SyntaxKind.AsyncKeyword))
+                {
+                    MessageID.IDS_FeatureAsync.CheckFeatureAvailability(diagnostics, syntax, modifier.GetLocation());
+                    isAsync = true;
+                }
+                else if (modifier.IsKind(SyntaxKind.StaticKeyword))
+                {
+                    MessageID.IDS_FeatureStaticAnonymousFunction.CheckFeatureAvailability(diagnostics, syntax, modifier.GetLocation());
+                    isStatic = true;
+                }
+            }
 
             if (parameterSyntaxList != null)
             {
