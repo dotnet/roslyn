@@ -2199,7 +2199,6 @@ namespace System.Diagnostics.CodeAnalysis
                 options: options,
                 parseOptions: parseOptions);
 
-
             return comp;
         }
 

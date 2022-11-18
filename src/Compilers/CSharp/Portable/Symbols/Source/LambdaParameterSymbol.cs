@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public LambdaParameterSymbol(
            LambdaSymbol owner,
+           SyntaxReference? syntaxRef,
            SyntaxList<AttributeListSyntax> attributeLists,
            TypeWithAnnotations parameterType,
            int ordinal,
@@ -21,29 +22,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
            DeclarationScope scope,
            string name,
            bool isDiscard,
+           bool isParams,
            ImmutableArray<Location> locations)
-           : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef: null, isParams: false, isExtensionMethodThis: false, scope)
+           : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, isParams, isExtensionMethodThis: false, scope)
         {
             _attributeLists = attributeLists;
             IsDiscard = isDiscard;
         }
 
         public override bool IsDiscard { get; }
-
-        internal override bool IsMetadataOptional
-        {
-            get { return false; }
-        }
-
-        public override bool IsParams
-        {
-            get { return false; }
-        }
-
-        internal override bool HasDefaultArgumentSyntax
-        {
-            get { return false; }
-        }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {

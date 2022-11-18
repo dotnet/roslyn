@@ -2207,6 +2207,71 @@ class Class
                 expectedIndentation: 16);
         }
 
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void LambdaDefaultParameter_EnterAfterParamList()
+        {
+            var code = @"class Program
+{
+    public void Main()
+    {
+        var lam = (int x = 7) =>
+        
+    }
+}";
+            AssertSmartIndent(
+                code,
+                indentationLine: 5,
+                expectedIndentation: 8);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void LambdaDefaultParameter_EnterAfterEquals()
+        {
+            var code = @"class Program
+{
+    public void Main()
+    {
+        var lam = (int x =
+    }
+}";
+            AssertSmartIndent(
+                code,
+                indentationLine: 5,
+                expectedIndentation: 12);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void LambdaDefaultParameter_EnterBeforeEquals()
+        {
+            var code = @"class Program
+{
+    public void Main()
+    {
+        var lam = (int x
+                    = 10,
+                    int y
+                    = 20) => x + y;
+    }
+}";
+            AssertSmartIndent(
+                code,
+                indentationLine: 5,
+                expectedIndentation: 12);
+
+            AssertSmartIndent(
+                code,
+                indentationLine: 6,
+                expectedIndentation: 20);
+
+            AssertSmartIndent(
+                code,
+                indentationLine: 7,
+                expectedIndentation: 20);
+        }
+
         [WpfFact, WorkItem(530074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530074")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void EnterInArgumentList1()

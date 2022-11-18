@@ -323,7 +323,7 @@ namespace BoundTreeGenerator
             }
         }
 
-        private void WriteClassFooter(TreeType node)
+        private void WriteClassFooter()
         {
             switch (_targetLang)
             {
@@ -925,7 +925,7 @@ namespace BoundTreeGenerator
                 WriteUpdateMethod(node as Node);
             }
 
-            WriteClassFooter(node);
+            WriteClassFooter();
         }
 
         private void WriteUpdateMethod(Node node)
@@ -1013,7 +1013,7 @@ namespace BoundTreeGenerator
                                 : TypeIsSymbol(field)
                                     ? "!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals({0}, this.{1})"
                                     : IsValueType(field.Type) && field.Type[^1] == '?'
-                                        ? "{0}.Equals(this.{1})"
+                                        ? "!{0}.Equals(this.{1})"
                                         : "{0} != this.{1}";
 
                 return string.Format(format, ToCamelCase(field.Name), field.Name);

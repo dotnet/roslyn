@@ -1455,7 +1455,6 @@ End Class
 </compilation>).VerifyDiagnostics()
         End Sub
 
-
         <Fact()>
         Public Sub MDArrayTypeRef()
             Dim csCompilation = CreateCSharpCompilation("CS",
@@ -1483,7 +1482,6 @@ SM
 ]]>)
             vbVerifier.VerifyDiagnostics()
         End Sub
-
 
     End Class
 

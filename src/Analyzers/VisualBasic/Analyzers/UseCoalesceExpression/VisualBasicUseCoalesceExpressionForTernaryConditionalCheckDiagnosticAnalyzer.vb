@@ -11,8 +11,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseCoalesceExpression
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Friend Class VisualBasicUseCoalesceExpressionDiagnosticAnalyzer
-        Inherits AbstractUseCoalesceExpressionDiagnosticAnalyzer(Of
+    Friend Class VisualBasicUseCoalesceExpressionForTernaryConditionalCheckDiagnosticAnalyzer
+        Inherits AbstractUseCoalesceExpressionForTernaryConditionalCheckDiagnosticAnalyzer(Of
             SyntaxKind,
             ExpressionSyntax,
             TernaryConditionalExpressionSyntax,

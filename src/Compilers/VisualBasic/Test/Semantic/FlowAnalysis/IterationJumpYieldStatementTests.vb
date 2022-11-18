@@ -788,7 +788,6 @@ End Module
             Assert.True(controlFlowAnalysisResults.StartPointIsReachable)
             Assert.False(controlFlowAnalysisResults.EndPointIsReachable)
 
-
             Assert.True(dataFlowAnalysisResults.Succeeded)
             Assert.Empty(dataFlowAnalysisResults.AlwaysAssigned)
             Assert.Empty(dataFlowAnalysisResults.Captured)

@@ -489,7 +489,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Binder _scopeBinder;
         private Binder _enclosingBinder;
 
-
         internal static void FindExpressionVariables(
             Binder scopeBinder,
             ArrayBuilder<LocalSymbol> builder,

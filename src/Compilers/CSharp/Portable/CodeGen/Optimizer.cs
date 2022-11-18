@@ -408,7 +408,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private readonly SmallDictionary<object, DummyLocal> _dummyVariables =
             new SmallDictionary<object, DummyLocal>(ReferenceEqualityComparer.Instance);
 
-
         // fake local that represents the eval stack.
         // when we need to ensure that eval stack is not blocked by stack Locals, we record an access to empty.
         public static readonly DummyLocal empty = new DummyLocal();
@@ -909,7 +908,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 return rewritten;
             }
-
 
             var isIndirectAssignment = IsIndirectAssignment(node);
 

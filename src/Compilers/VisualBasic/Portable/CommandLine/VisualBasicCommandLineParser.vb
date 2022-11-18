@@ -497,7 +497,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             refOnly = True
                             Continue For
 
-
                         Case "t", "target"
                             value = RemoveQuotesAndSlashes(value)
                             outputKind = ParseTarget(name, value, diagnostics)

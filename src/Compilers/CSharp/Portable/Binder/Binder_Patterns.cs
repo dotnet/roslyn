@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindIsPatternExpression(IsPatternExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeaturePatternMatching.CheckFeatureAvailability(diagnostics, node, node.IsKeyword.GetLocation());
+
             BoundExpression expression = BindRValueWithoutTargetType(node.Expression, diagnostics);
             bool hasErrors = IsOperandErrors(node, ref expression, diagnostics);
             TypeSymbol? expressionType = expression.Type;
@@ -140,7 +142,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindSwitchExpression(SwitchExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
-            RoslynDebug.Assert(node is { });
+            RoslynDebug.Assert(node is not null);
+
+            MessageID.IDS_FeatureRecursivePatterns.CheckFeatureAvailability(diagnostics, node, node.SwitchKeyword.GetLocation());
+
             Binder? switchBinder = this.GetBinder(node);
             RoslynDebug.Assert(switchBinder is { });
             return switchBinder.BindSwitchExpressionCore(node, switchBinder, diagnostics);
@@ -166,12 +171,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return node switch
             {
-                DiscardPatternSyntax p => BindDiscardPattern(p, inputType),
+                DiscardPatternSyntax p => BindDiscardPattern(p, inputType, diagnostics),
                 DeclarationPatternSyntax p => BindDeclarationPattern(p, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics),
                 ConstantPatternSyntax p => BindConstantPatternWithFallbackToTypePattern(p, inputType, hasErrors, diagnostics),
                 RecursivePatternSyntax p => BindRecursivePattern(p, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics),
                 VarPatternSyntax p => BindVarPattern(p, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics),
-                ParenthesizedPatternSyntax p => BindPattern(p.Pattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics, underIsPattern),
+                ParenthesizedPatternSyntax p => BindParenthesizedPattern(p, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics, underIsPattern),
                 BinaryPatternSyntax p => BindBinaryPattern(p, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics),
                 UnaryPatternSyntax p => BindUnaryPattern(p, inputType, inputValEscape, hasErrors, diagnostics, underIsPattern),
                 RelationalPatternSyntax p => BindRelationalPattern(p, inputType, hasErrors, diagnostics),
@@ -180,6 +185,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SlicePatternSyntax p => BindSlicePattern(p, inputType, inputValEscape, permitDesignations, ref hasErrors, misplaced: true, diagnostics),
                 _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
             };
+        }
+
+        private BoundPattern BindParenthesizedPattern(
+            ParenthesizedPatternSyntax node,
+            TypeSymbol inputType,
+            uint inputValEscape,
+            bool permitDesignations,
+            bool hasErrors,
+            BindingDiagnosticBag diagnostics,
+            bool underIsPattern)
+        {
+            MessageID.IDS_FeatureParenthesizedPattern.CheckFeatureAvailability(diagnostics, node, node.OpenParenToken.GetLocation());
+            return BindPattern(node.Pattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics, underIsPattern);
         }
 
         private BoundPattern BindSlicePattern(
@@ -385,8 +403,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return !hasErrors && !lengthAccess.HasErrors && !indexerAccess.HasErrors;
         }
 
-        private static BoundPattern BindDiscardPattern(DiscardPatternSyntax node, TypeSymbol inputType)
+        private static BoundPattern BindDiscardPattern(DiscardPatternSyntax node, TypeSymbol inputType, BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureRecursivePatterns.CheckFeatureAvailability(diagnostics, node);
             return new BoundDiscardPattern(node, inputType: inputType, narrowedType: inputType);
         }
 
@@ -951,6 +970,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureRecursivePatterns.CheckFeatureAvailability(diagnostics, node);
+
             if (inputType.IsPointerOrFunctionPointer())
             {
                 diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, node.Location);
@@ -1053,6 +1074,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < node.Subpatterns.Count; i++)
             {
                 var subPattern = node.Subpatterns[i];
+
                 bool isError = hasErrors || outPlaceholders.IsDefaultOrEmpty || i >= outPlaceholders.Length;
                 TypeSymbol elementType = isError ? CreateErrorType() : outPlaceholders[i].Type;
                 ParameterSymbol? parameter = null;
@@ -1075,6 +1097,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (subPattern.ExpressionColon != null)
                     {
+                        MessageID.IDS_FeatureExtendedPropertyPatterns.CheckFeatureAvailability(diagnostics, subPattern, subPattern.ExpressionColon.ColonToken.GetLocation());
+
                         diagnostics.Add(ErrorCode.ERR_IdentifierExpected, subPattern.ExpressionColon.Expression.Location);
                     }
                 }
@@ -1361,6 +1385,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     {
+                        MessageID.IDS_FeatureRecursivePatterns.CheckFeatureAvailability(diagnostics, node);
+
                         var tupleDesignation = (ParenthesizedVariableDesignationSyntax)node;
                         var subPatterns = ArrayBuilder<BoundPositionalSubpattern>.GetInstance(tupleDesignation.Variables.Count);
                         MethodSymbol? deconstructMethod = null;
@@ -1456,6 +1482,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundPropertySubpattern>.GetInstance(node.Subpatterns.Count);
             foreach (SubpatternSyntax p in node.Subpatterns)
             {
+                if (p.ExpressionColon is ExpressionColonSyntax)
+                    MessageID.IDS_FeatureExtendedPropertyPatterns.CheckFeatureAvailability(diagnostics, p, p.ExpressionColon.ColonToken.GetLocation());
+
                 ExpressionSyntax? expr = p.ExpressionColon?.Expression;
                 PatternSyntax pattern = p.Pattern;
                 BoundPropertySubpatternMember? member;
@@ -1603,6 +1632,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureTypePattern.CheckFeatureAvailability(diagnostics, node);
+
             var patternType = BindTypeForPattern(node.Type, inputType, diagnostics, ref hasErrors);
             bool isExplicitNotNullTest = patternType.Type.SpecialType == SpecialType.System_Object;
             return new BoundTypePattern(node, patternType, isExplicitNotNullTest, inputType, patternType.Type, hasErrors);
@@ -1614,6 +1645,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureRelationalPattern.CheckFeatureAvailability(diagnostics, node, node.OperatorToken.GetLocation());
+
             BoundExpression value = BindExpressionForPattern(inputType, node.Expression, ref hasErrors, diagnostics, out var constantValueOpt, out _, out Conversion patternConversion);
             ExpressionSyntax innerExpression = SkipParensAndNullSuppressions(node.Expression, diagnostics, ref hasErrors);
             RoslynDebug.Assert(value.Type is { });
@@ -1706,6 +1739,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             bool underIsPattern)
         {
+            MessageID.IDS_FeatureNotPattern.CheckFeatureAvailability(diagnostics, node, node.OperatorToken.GetLocation());
+
             bool permitDesignations = underIsPattern; // prevent designators under 'not' except under an is-pattern
             var subPattern = BindPattern(node.Pattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics, underIsPattern);
             return new BoundNegatedPattern(node, subPattern, inputType: inputType, narrowedType: inputType, hasErrors);
@@ -1722,6 +1757,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isDisjunction = node.Kind() == SyntaxKind.OrPattern;
             if (isDisjunction)
             {
+                MessageID.IDS_FeatureOrPattern.CheckFeatureAvailability(diagnostics, node, node.OperatorToken.GetLocation());
+
                 permitDesignations = false; // prevent designators under 'or'
                 var left = BindPattern(node.Left, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
                 var right = BindPattern(node.Right, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
@@ -1805,6 +1842,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                MessageID.IDS_FeatureAndPattern.CheckFeatureAvailability(diagnostics, node, node.OperatorToken.GetLocation());
+
                 var left = BindPattern(node.Left, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
                 var leftOutputValEscape = GetValEscape(left.NarrowedType, inputValEscape);
                 var right = BindPattern(node.Right, left.NarrowedType, leftOutputValEscape, permitDesignations, hasErrors, diagnostics);

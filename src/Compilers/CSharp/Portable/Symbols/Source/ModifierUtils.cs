@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 DeclarationModifiers oneError = errorModifiers & ~(errorModifiers - 1);
                 Debug.Assert(oneError != DeclarationModifiers.None);
-                errorModifiers = errorModifiers & ~oneError;
+                errorModifiers &= ~oneError;
 
                 switch (oneError)
                 {
@@ -106,6 +106,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((result & DeclarationModifiers.File) != 0)
             {
                 modifierErrors |= !Binder.CheckFeatureAvailability(errorLocation.SourceTree, MessageID.IDS_FeatureFileTypes, diagnostics, errorLocation);
+            }
+
+            if ((result & DeclarationModifiers.Async) != 0)
+            {
+                modifierErrors |= !Binder.CheckFeatureAvailability(errorLocation.SourceTree, MessageID.IDS_FeatureAsync, diagnostics, errorLocation);
             }
 
             return result;
