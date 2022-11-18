@@ -1505,10 +1505,18 @@ class Test
 }
 ";
 
-            ParserErrorMessageTests.ParseAndValidate(test,
-Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l"),
-Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l"),
-Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l"));
+            ParserErrorMessageTests.ParseAndValidate(test);
+
+            CreateCompilation(test).VerifyDiagnostics(
+                // (6,20): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                //         long l = 25l;   // CS0078
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(6, 20),
+                // (7,21): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                //         ulong n1 = 1lu;   // CS0078
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(7, 21),
+                // (8,22): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                //         ulong n2 = 10lU;   // CS0078
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(8, 22));
         }
 
         [Fact, WorkItem(530118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530118")]

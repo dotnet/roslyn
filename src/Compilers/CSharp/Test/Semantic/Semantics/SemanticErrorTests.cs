@@ -23925,13 +23925,12 @@ class Program
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
-                // (14,18): error CS8026: Feature 'null propagation operator' is not available in C# 5. Please use language version 6 or greater.
+                // (14,23): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
                 //         var x1 = p.P1 ?.ToString;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "p.P1 ?.ToString").WithArguments("null propagating operator", "6").WithLocation(14, 18),
-                // (14,24): error CS8977: 'method group' cannot be made nullable.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "?").WithArguments("null propagating operator", "6").WithLocation(14, 23),
+                // (14,24): error CS8978: 'method group' cannot be made nullable.
                 //         var x1 = p.P1 ?.ToString;
-                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".ToString").WithArguments("method group").WithLocation(14, 24)
-                );
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".ToString").WithArguments("method group").WithLocation(14, 24));
         }
 
         [Fact]
@@ -24349,10 +24348,9 @@ class Program
             CreateCompilationWithMscorlib45(text,
                 new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef },
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
-    // (8,46): error CS8026: Feature 'dictionary initializer' is not available in C# 5. Please use language version 6 or greater.
-    //         var s = new Dictionary<int, int> () {[1] = 2};
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "[1] = 2").WithArguments("dictionary initializer", "6").WithLocation(8, 46)
-               );
+                    // (8,46): error CS8026: Feature 'dictionary initializer' is not available in C# 5. Please use language version 6 or greater.
+                    //         var s = new Dictionary<int, int> () {[1] = 2};
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "[").WithArguments("dictionary initializer", "6").WithLocation(8, 46));
         }
 
         [Fact]
