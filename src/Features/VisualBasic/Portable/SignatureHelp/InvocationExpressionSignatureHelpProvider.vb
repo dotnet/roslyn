@@ -98,10 +98,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 memberGroup = memberGroup.WhereAsArray(Function(m) Not m.Equals(enclosingSymbol))
             End If
 
-            If memberGroup.Length = 0 Then
-                Return Nothing
-            End If
-
             memberGroup = memberGroup.Sort(semanticModel, invocationExpression.SpanStart)
             Dim typeInfo = semanticModel.GetTypeInfo(targetExpression, cancellationToken)
             Dim expressionType = If(typeInfo.Type, typeInfo.ConvertedType)
@@ -119,7 +115,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
 
             Dim items = New List(Of SignatureHelpItem)
-            Dim accessibleMembers = GetAccessibleMembers(invocationExpression, semanticModel, within, memberGroup, cancellationToken)
+            Dim accessibleMembers = ImmutableArray(Of ISymbol).Empty
+            If memberGroup.Length > 0 Then
+                accessibleMembers = GetAccessibleMembers(invocationExpression, semanticModel, within, memberGroup, cancellationToken)
+                items.AddRange(GetMemberGroupItems(accessibleMembers, document, invocationExpression, semanticModel))
+            End If
+
             items.AddRange(GetMemberGroupItems(accessibleMembers, document, invocationExpression, semanticModel))
 
             If expressionType.IsDelegateType() Then

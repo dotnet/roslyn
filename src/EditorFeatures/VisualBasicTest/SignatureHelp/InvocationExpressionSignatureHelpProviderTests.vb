@@ -1985,26 +1985,5 @@ End Class
 
             Await TestAsync(markup, {New SignatureHelpTestItem("C.M(x As Integer, y As Integer)")})
         End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        <WorkItem(40451, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1675669")>
-        Public Async Function Test() As Task
-            Dim markup = "
-Class C
-    Shared Sub Test()
-        D.X($$)
-    End Sub
-
-End Class
-
-Class D
-{
-    Private Shared Sub XYZ()
-    End Sub
-}
-"
-
-            Await TestAsync(markup, Nothing)
-        End Function
     End Class
 End Namespace
