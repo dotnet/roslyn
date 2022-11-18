@@ -213,8 +213,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                            boundBody);
         }
 
-        private void CheckRequiredLangVersionForAsyncIteratorMethods(BindingDiagnosticBag diagnostics)
+        private void CheckRequiredLangVersionForIteratorMethods(YieldStatementSyntax statement, BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureIterators.CheckFeatureAvailability(diagnostics, statement, statement.YieldKeyword.GetLocation());
+
             var method = (MethodSymbol)this.ContainingMemberOrLambda;
             if (method.IsAsync)
             {
@@ -268,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_YieldNotAllowedInScript, node.YieldKeyword);
             }
 
-            CheckRequiredLangVersionForAsyncIteratorMethods(diagnostics);
+            CheckRequiredLangVersionForIteratorMethods(node, diagnostics);
             return new BoundYieldReturnStatement(node, argument);
         }
 
@@ -284,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ValidateYield(node, diagnostics);
-            CheckRequiredLangVersionForAsyncIteratorMethods(diagnostics);
+            CheckRequiredLangVersionForIteratorMethods(node, diagnostics);
             return new BoundYieldBreakStatement(node);
         }
 
@@ -549,6 +551,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindLocalFunctionStatement(LocalFunctionStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureLocalFunctions.CheckFeatureAvailability(diagnostics, node, node.Identifier.GetLocation());
+
             // already defined symbol in containing block
             var localSymbol = this.LookupLocalFunction(node.Identifier);
 
@@ -588,6 +592,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Symbol.CheckForBlockAndExpressionBody(
                 node.Body, node.ExpressionBody, node, diagnostics);
+
+            foreach (var modifier in node.Modifiers)
+            {
+                if (modifier.IsKind(SyntaxKind.StaticKeyword))
+                    MessageID.IDS_FeatureStaticLocalFunctions.CheckFeatureAvailability(diagnostics, node, modifier.GetLocation());
+                else if (modifier.IsKind(SyntaxKind.ExternKeyword))
+                    MessageID.IDS_FeatureExternLocalFunctions.CheckFeatureAvailability(diagnostics, node, modifier.GetLocation());
+            }
 
             return new BoundLocalFunctionStatement(node, localSymbol, blockBody, expressionBody, hasErrors);
 
@@ -1442,11 +1454,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ExpressionSyntax rhsExpr;
             bool isRef = false;
 
-            if (node.Right.Kind() == SyntaxKind.RefExpression)
+            if (node.Right is RefExpressionSyntax refExpression)
             {
+                MessageID.IDS_FeatureRefReassignment.CheckFeatureAvailability(diagnostics, refExpression, refExpression.RefKeyword.GetLocation());
+
                 isRef = true;
                 lhsKind = BindValueKind.RefAssignable;
-                rhsExpr = ((RefExpressionSyntax)node.Right).Expression;
+                rhsExpr = refExpression.Expression;
             }
             else
             {
@@ -3259,6 +3273,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindCatchFilter(CatchFilterClauseSyntax filter, BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureExceptionFilter.CheckFeatureAvailability(diagnostics, filter, filter.WhenKeyword.GetLocation());
+
             BoundExpression boundFilter = this.BindBooleanExpression(filter.FilterExpression, diagnostics);
             if (boundFilter.ConstantValue != ConstantValue.NotAvailable)
             {
