@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string ChangeNamespaceToMatchFolder = nameof(ChangeNamespaceToMatchFolder);
         public const string ChangeReturnType = nameof(ChangeReturnType);
         public const string ChangeToYield = nameof(ChangeToYield);
+        public const string ConditionalExpressionPlacement = nameof(ConditionalExpressionPlacement);
         public const string ConflictMarkerResolution = nameof(ConflictMarkerResolution);
         public const string ConsecutiveBracePlacement = nameof(ConsecutiveBracePlacement);
         public const string ConsecutiveStatementPlacement = nameof(ConsecutiveStatementPlacement);
@@ -151,6 +152,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string UseNullPropagation = nameof(UseNullPropagation);
         public const string UseObjectInitializer = nameof(UseObjectInitializer);
         public const string UsePatternCombinators = nameof(UsePatternCombinators);
+        public const string UsePatternMatchingAsAndMemberAccess = nameof(UsePatternMatchingAsAndMemberAccess);
         public const string UsePatternMatchingAsAndNullCheck = nameof(UsePatternMatchingAsAndNullCheck);
         public const string UsePatternMatchingIsAndCastCheck = nameof(UsePatternMatchingIsAndCastCheck);
         public const string UsePatternMatchingIsAndCastCheckWithoutName = nameof(UsePatternMatchingIsAndCastCheckWithoutName);

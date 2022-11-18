@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Create and initialize driver.
                 var categorizeDiagnostics = true;
                 driver = CreateDriverForComputingDiagnosticsWithoutStateTracking(compilation, analyzers);
-                driver.Initialize(compilation, _analysisOptions, compilationData, categorizeDiagnostics, cancellationToken);
+                driver.Initialize(compilation, _analysisOptions, compilationData, categorizeDiagnostics, trackSuppressedDiagnosticIds: false, cancellationToken);
 
                 // Get analyzer action counts.
                 var analyzerActionCounts = new Dictionary<DiagnosticAnalyzer, AnalyzerActionCounts>(analyzers.Length);
@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Create and attach the driver to compilation.
                 var categorizeDiagnostics = false;
                 driver = CreateDriverForComputingDiagnosticsWithoutStateTracking(compilation, analyzers);
-                driver.Initialize(compilation, _analysisOptions, compilationData, categorizeDiagnostics, cancellationToken);
+                driver.Initialize(compilation, _analysisOptions, compilationData, categorizeDiagnostics, trackSuppressedDiagnosticIds: false, cancellationToken);
                 var hasAllAnalyzers = analyzers.Length == Analyzers.Length;
                 var analysisScope = new AnalysisScope(compilation, _analysisOptions.Options, analyzers, hasAllAnalyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics);
                 driver.AttachQueueAndStartProcessingEvents(compilation.EventQueue!, analysisScope, cancellationToken);
@@ -987,7 +987,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // Start the initialization task, if required.
                     if (!driver.IsInitialized)
                     {
-                        driver.Initialize(_compilation, _analysisOptions, _compilationData, categorizeDiagnostics: true, cancellationToken: cancellationToken);
+                        driver.Initialize(_compilation, _analysisOptions, _compilationData, categorizeDiagnostics: true, trackSuppressedDiagnosticIds: false, cancellationToken: cancellationToken);
                     }
 
                     // Wait for driver initialization to complete: this executes the Initialize and CompilationStartActions to compute all registered actions per-analyzer.

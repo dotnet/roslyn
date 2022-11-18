@@ -90,7 +90,7 @@ namespace Roslyn.Test.Utilities
         /// <summary>
         /// Emit all of the references which are not directly or indirectly a <see cref="Compilation"/> value.
         /// </summary>
-        internal static void EmitReferences(Compilation compilation, HashSet<string> fullNameSet, List<ModuleData> dependencies, DiagnosticBag diagnostics, AssemblyIdentity corLibIdentity)
+        internal static void EmitReferences(Compilation compilation, HashSet<string> fullNameSet, List<ModuleData> dependencies, AssemblyIdentity corLibIdentity)
         {
             // NOTE: specifically don't need to consider previous submissions since they will always be compilations.
             foreach (var metadataReference in compilation.References)
@@ -226,7 +226,7 @@ namespace Roslyn.Test.Utilities
             // Now that the Compilation values have been emitted, emit the non-compilation references
             foreach (var current in (new[] { compilation }).Concat(referencedCompilations))
             {
-                EmitReferences(current, fullNameSet, dependencies, diagnostics, corLibIdentity);
+                EmitReferences(current, fullNameSet, dependencies, corLibIdentity);
             }
 
             return EmitCompilationCore(compilation, manifestResources, diagnostics, testData, emitOptions);

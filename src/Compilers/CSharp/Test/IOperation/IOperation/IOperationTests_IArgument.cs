@@ -3039,7 +3039,6 @@ IInvocationOperation (void P.M2(System.Int32 x, [G<S>? s = null])) (OperationKin
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void GettingInOutConversionFromCSharpArgumentShouldThrowException()

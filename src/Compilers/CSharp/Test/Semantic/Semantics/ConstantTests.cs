@@ -937,7 +937,6 @@ class C
             var longValue = "-9.223372036854776E+18";
 #endif
 
-
             var expected =
 $@"(sbyte)(sbyte.MaxValue + 0.1) --> 127
 sbyte.MaxValue + 0.1 --> 127.1
