@@ -12778,18 +12778,14 @@ tryAgain:
             var initializers = _pool.AllocateSeparated<ExpressionSyntax>();
             try
             {
-                bool isObjectInitializer;
-                this.ParseObjectOrCollectionInitializerMembers(ref openBrace, initializers, out isObjectInitializer);
-                Debug.Assert(initializers.Count > 0 || isObjectInitializer);
+                this.ParseObjectOrCollectionInitializerMembers(ref openBrace, initializers, out var kind);
+                Debug.Assert(initializers.Count > 0 || kind == SyntaxKind.ObjectInitializerExpression);
 
-                var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
                 return _syntaxFactory.InitializerExpression(
-                    isObjectInitializer ?
-                        SyntaxKind.ObjectInitializerExpression :
-                        SyntaxKind.CollectionInitializerExpression,
+                    kind,
                     openBrace,
                     initializers,
-                    closeBrace);
+                    this.EatToken(SyntaxKind.CloseBraceToken));
             }
             finally
             {
@@ -12797,10 +12793,13 @@ tryAgain:
             }
         }
 
-        private void ParseObjectOrCollectionInitializerMembers(ref SyntaxToken startToken, SeparatedSyntaxListBuilder<ExpressionSyntax> list, out bool isObjectInitializer)
+        private void ParseObjectOrCollectionInitializerMembers(
+            ref SyntaxToken startToken,
+            SeparatedSyntaxListBuilder<ExpressionSyntax> list,
+            out SyntaxKind kind)
         {
             // Empty initializer list must be parsed as an object initializer.
-            isObjectInitializer = true;
+            kind = SyntaxKind.ObjectInitializerExpression;
 
             if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
@@ -12810,10 +12809,10 @@ tryAgain:
                     // We have at least one initializer expression.
                     // If at least one initializer expression is a named assignment, this is an object initializer.
                     // Otherwise, this is a collection initializer.
-                    isObjectInitializer = false;
+                    kind = SyntaxKind.CollectionInitializerExpression;
 
                     // first argument
-                    list.Add(this.ParseObjectOrCollectionInitializerMember(ref isObjectInitializer));
+                    list.Add(this.ParseObjectOrCollectionInitializerMember(ref kind));
 
                     // additional arguments
                     int lastTokenPosition = -1;
@@ -12833,7 +12832,7 @@ tryAgain:
                                 break;
                             }
 
-                            list.Add(this.ParseObjectOrCollectionInitializerMember(ref isObjectInitializer));
+                            list.Add(this.ParseObjectOrCollectionInitializerMember(ref kind));
                             continue;
                         }
                         else if (this.SkipBadInitializerListTokens(ref startToken, list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
@@ -12851,7 +12850,7 @@ tryAgain:
             // We may have invalid initializer elements. These will be reported during binding.
         }
 
-        private ExpressionSyntax ParseObjectOrCollectionInitializerMember(ref bool isObjectInitializer)
+        private ExpressionSyntax ParseObjectOrCollectionInitializerMember(ref SyntaxKind kind)
         {
             if (this.IsComplexElementInitializer())
             {
@@ -12863,7 +12862,7 @@ tryAgain:
                 // [...] = { ... }
                 // [...] = ref <expr>
                 // [...] = <expr>
-                isObjectInitializer = true;
+                kind = SyntaxKind.ObjectInitializerExpression;
                 return this.ParseDictionaryInitializer();
             }
             else if (this.IsNamedAssignment())
@@ -12871,7 +12870,7 @@ tryAgain:
                 // Name = { ... }
                 // Name = ref <expr>
                 // Name =  <expr>
-                isObjectInitializer = true;
+                kind = SyntaxKind.ObjectInitializerExpression;
                 return this.ParseObjectInitializerNamedAssignment();
             }
             else
