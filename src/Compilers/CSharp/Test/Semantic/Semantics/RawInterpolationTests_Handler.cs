@@ -2366,7 +2366,6 @@ class MyException : Exception
 Starting try
 Caught");
 
-
         verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
   // Code size      122 (0x7a)
@@ -12599,7 +12598,6 @@ format:
 }
 ");
     }
-
 
     [Theory, WorkItem(55609, "https://github.com/dotnet/roslyn/issues/55609")]
     [InlineData(@"$""""""{h1}{h2}""""""")]

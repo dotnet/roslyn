@@ -303,7 +303,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-
         internal override bool EnsureSingleDefinition(Symbol symbol, string name, Location location, BindingDiagnosticBag diagnostics)
         {
             var parameters = _methodSymbol.Parameters;

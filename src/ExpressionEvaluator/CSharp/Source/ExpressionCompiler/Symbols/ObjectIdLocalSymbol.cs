@@ -26,17 +26,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _isWritable; }
         }
 
-        internal override BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, SyntaxNode syntax, DiagnosticBag diagnostics)
+        internal override BoundExpression RewriteLocal(CSharpCompilation compilation, SyntaxNode syntax, DiagnosticBag diagnostics)
         {
-            return RewriteLocalInternal(compilation, container, syntax, this);
+            return RewriteLocalInternal(compilation, syntax, this);
         }
 
-        internal static BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, SyntaxNode syntax, LocalSymbol local)
+        internal static BoundExpression RewriteLocal(CSharpCompilation compilation, SyntaxNode syntax, LocalSymbol local)
         {
-            return RewriteLocalInternal(compilation, container, syntax, local);
+            return RewriteLocalInternal(compilation, syntax, local);
         }
 
-        private static BoundExpression RewriteLocalInternal(CSharpCompilation compilation, EENamedTypeSymbol container, SyntaxNode syntax, LocalSymbol local)
+        private static BoundExpression RewriteLocalInternal(CSharpCompilation compilation, SyntaxNode syntax, LocalSymbol local)
         {
             return new BoundPseudoVariable(
                 syntax,
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     method.Name,
                     m => method.TypeParameters.SelectAsArray(t => (TypeParameterSymbol)new SimpleTypeParameterSymbol(m, t.Ordinal, t.Name)),
                     m => m.TypeParameters[0], // return type is <>T&
-                    m => method.Parameters.SelectAsArray(p => SynthesizedParameterSymbol.Create(m, p.TypeWithAnnotations, p.Ordinal, p.RefKind, p.Name, p.EffectiveScope, p.RefCustomModifiers)));
+                    m => method.Parameters.SelectAsArray(p => SynthesizedParameterSymbol.Create(m, p.TypeWithAnnotations, p.Ordinal, p.RefKind, p.Name, p.EffectiveScope, refCustomModifiers: p.RefCustomModifiers)));
                 var local = variable.LocalSymbol;
                 return InvokeGetMethod(method.Construct(local.Type), variable.Syntax, local.Name);
             }

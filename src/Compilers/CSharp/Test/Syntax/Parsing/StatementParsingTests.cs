@@ -293,7 +293,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("y", tt.Elements[1].Identifier.ToString());
             Assert.Equal(2, tt.Elements.Count);
 
-
             tt = (TupleTypeSyntax)tt.Elements[1].Type;
 
             Assert.Equal("(U k, V l, W m)", tt.ToString());

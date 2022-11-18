@@ -389,7 +389,6 @@ class C
                 var offSym = interopNS.GetTypeMember("FieldOffsetAttribute");
                 var mshSym = interopNS.GetTypeMember("MarshalAsAttribute");
 
-
                 var optSym = interopNS.GetTypeMember("OptionalAttribute");
                 var inSym = interopNS.GetTypeMember("InAttribute");
                 var outSym = interopNS.GetTypeMember("OutAttribute");
@@ -8718,7 +8717,6 @@ class C2 : C1
 
             verify(TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress));
 
-
             // WithSpecificDiagnosticOption for id TEST1
             verify(TestOptions.DebugDll.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("TEST1", ReportDiagnostic.Warn)),
                 // (6,9): warning TEST1: 'C1.M1()' is obsolete
@@ -8739,7 +8737,6 @@ class C2 : C1
                 );
 
             verify(TestOptions.DebugDll.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("TEST1", ReportDiagnostic.Suppress)));
-
 
             // WithSpecificDiagnosticOption for id CS0618
             verify(TestOptions.DebugDll.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("CS0618", ReportDiagnostic.Error)),
@@ -13864,6 +13861,148 @@ public class LegacyObject
                 // (11,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [Obsolete($"Do not use {nameof(LegacyObject)}{string.Empty}")]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"$""Do not use {nameof(LegacyObject)}{string.Empty}""").WithLocation(11, 11));
+        }
+
+        [Fact, WorkItem(64713, "https://github.com/dotnet/roslyn/issues/64713")]
+        public void ObsoleteVarType()
+        {
+            var source = """
+using System;
+
+var a = new();
+
+[Obsolete("error", true)]
+public class var
+{
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,1): error CS0619: 'var' is obsolete: 'error'
+                // var a = new();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "var").WithArguments("var", "error").WithLocation(3, 1),
+                // (6,14): warning CS8981: The type name 'var' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // public class var
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "var").WithArguments("var").WithLocation(6, 14)
+            );
+        }
+
+        [Fact, WorkItem(64713, "https://github.com/dotnet/roslyn/issues/64713")]
+        public void ObsoleteVarAlias()
+        {
+            var source = """
+using System;
+using var = Legacy;
+
+var a = new();
+
+[Obsolete("error", true)]
+public class Legacy
+{
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,7): warning CS8981: The type name 'var' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using var = Legacy;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "var").WithArguments("var").WithLocation(2, 7),
+                // (4,1): error CS0619: 'Legacy' is obsolete: 'error'
+                // var a = new();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "var").WithArguments("Legacy", "error").WithLocation(4, 1),
+                // (4,1): error CS0619: 'Legacy' is obsolete: 'error'
+                // var a = new();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "var").WithArguments("Legacy", "error").WithLocation(4, 1)
+            );
+        }
+
+        [Fact, WorkItem(64713, "https://github.com/dotnet/roslyn/issues/64713")]
+        public void ObsoleteUnmanagedAndNotNullTypes()
+        {
+            var source = """
+using System;
+
+public class C1<T> where T : unmanaged
+{
+}
+
+public class C2<T> where T : notnull
+{
+}
+
+[Obsolete("error", true)]
+public class unmanaged
+{
+}
+
+[Obsolete("error", true)]
+public class notnull
+{
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,30): error CS0619: 'unmanaged' is obsolete: 'error'
+                // public class C1<T> where T : unmanaged
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "unmanaged").WithArguments("unmanaged", "error").WithLocation(3, 30),
+                // (7,30): error CS0619: 'notnull' is obsolete: 'error'
+                // public class C2<T> where T : notnull
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "notnull").WithArguments("notnull", "error").WithLocation(7, 30),
+                // (12,14): warning CS8981: The type name 'unmanaged' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // public class unmanaged
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "unmanaged").WithArguments("unmanaged").WithLocation(12, 14),
+                // (17,14): warning CS8981: The type name 'notnull' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // public class notnull
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "notnull").WithArguments("notnull").WithLocation(17, 14)
+            );
+        }
+
+        [Fact, WorkItem(64713, "https://github.com/dotnet/roslyn/issues/64713")]
+        public void ObsoleteUnmanagedAndNotNullAliases()
+        {
+            var source = """
+using System;
+using unmanaged = Legacy1;
+using notnull = Legacy2;
+
+public class C1<T> where T : unmanaged
+{
+}
+
+public class C2<T> where T : notnull
+{
+}
+
+[Obsolete("error", true)]
+public class Legacy1
+{
+}
+
+[Obsolete("error", true)]
+public class Legacy2
+{
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,7): warning CS8981: The type name 'unmanaged' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using unmanaged = Legacy1;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "unmanaged").WithArguments("unmanaged").WithLocation(2, 7),
+                // (3,7): warning CS8981: The type name 'notnull' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using notnull = Legacy2;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "notnull").WithArguments("notnull").WithLocation(3, 7),
+                // (5,30): error CS0619: 'Legacy1' is obsolete: 'error'
+                // public class C1<T> where T : unmanaged
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "unmanaged").WithArguments("Legacy1", "error").WithLocation(5, 30),
+                // (5,30): error CS0619: 'Legacy1' is obsolete: 'error'
+                // public class C1<T> where T : unmanaged
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "unmanaged").WithArguments("Legacy1", "error").WithLocation(5, 30),
+                // (9,30): error CS0619: 'Legacy2' is obsolete: 'error'
+                // public class C2<T> where T : notnull
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "notnull").WithArguments("Legacy2", "error").WithLocation(9, 30),
+                // (9,30): error CS0619: 'Legacy2' is obsolete: 'error'
+                // public class C2<T> where T : notnull
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "notnull").WithArguments("Legacy2", "error").WithLocation(9, 30)
+            );
         }
     }
 }

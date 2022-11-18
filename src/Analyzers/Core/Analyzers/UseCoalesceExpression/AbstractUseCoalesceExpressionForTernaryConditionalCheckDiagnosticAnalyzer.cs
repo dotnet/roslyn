@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
     /// <summary>
     /// Looks for code of the form "x == null ? y : x" and offers to convert it to "x ?? y";
     /// </summary>
-    internal abstract class AbstractUseCoalesceExpressionDiagnosticAnalyzer<
+    internal abstract class AbstractUseCoalesceExpressionForTernaryConditionalCheckDiagnosticAnalyzer<
         TSyntaxKind,
         TExpressionSyntax,
         TConditionalExpressionSyntax,
@@ -22,11 +22,11 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         where TConditionalExpressionSyntax : TExpressionSyntax
         where TBinaryExpressionSyntax : TExpressionSyntax
     {
-        protected AbstractUseCoalesceExpressionDiagnosticAnalyzer()
+        protected AbstractUseCoalesceExpressionForTernaryConditionalCheckDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCoalesceExpressionDiagnosticId,
                    EnforceOnBuildValues.UseCoalesceExpression,
                    CodeStyleOptions2.PreferCoalesceExpression,
-                   new LocalizableResourceString(nameof(AnalyzersResources.Use_coalesce_expression_for_non_nullable_types), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+                   new LocalizableResourceString(nameof(AnalyzersResources.Use_coalesce_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }

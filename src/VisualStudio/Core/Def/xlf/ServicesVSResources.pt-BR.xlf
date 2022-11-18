@@ -82,6 +82,11 @@
         <target state="translated">Sempre usar servidores de símbolo padrão para navegação</target>
         <note />
       </trans-unit>
+      <trans-unit id="Analyze_source_generated_files">
+        <source>Analyze source generated files</source>
+        <target state="new">Analyze source generated files</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzer_Defaults">
         <source>Analyzer Defaults</source>
         <target state="translated">Padrões do Analisador</target>

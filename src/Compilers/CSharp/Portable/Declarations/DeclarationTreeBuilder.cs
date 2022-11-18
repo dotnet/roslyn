@@ -345,6 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasUsings = false;
             bool hasGlobalUsings = false;
             bool reportedGlobalUsingOutOfOrder = false;
+
             var diagnostics = DiagnosticBag.GetInstance();
 
             foreach (var directive in compilationUnit.Usings)
@@ -367,6 +368,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var globalAliasedQuickAttributes = GetQuickAttributes(compilationUnit.Usings, global: true);
 
+            CheckFeatureAvailabilityForUsings(diagnostics, compilationUnit.Usings);
+            CheckFeatureAvailabilityForExterns(diagnostics, compilationUnit.Externs);
+
             return new RootSingleNamespaceDeclaration(
                 hasGlobalUsings: hasGlobalUsings,
                 hasUsings: hasUsings,
@@ -377,6 +381,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasAssemblyAttributes: compilationUnit.AttributeLists.Any(),
                 diagnostics: diagnostics.ToReadOnlyAndFree(),
                 globalAliasedQuickAttributes);
+        }
+
+        private static void CheckFeatureAvailabilityForUsings(DiagnosticBag diagnostics, SyntaxList<UsingDirectiveSyntax> usings)
+        {
+            foreach (var usingDirective in usings)
+            {
+                if (usingDirective.StaticKeyword != default)
+                    MessageID.IDS_FeatureUsingStatic.CheckFeatureAvailability(diagnostics, usingDirective, usingDirective.StaticKeyword.GetLocation());
+
+                if (usingDirective.GlobalKeyword != default)
+                    MessageID.IDS_FeatureGlobalUsing.CheckFeatureAvailability(diagnostics, usingDirective, usingDirective.GlobalKeyword.GetLocation());
+            }
+        }
+
+        private static void CheckFeatureAvailabilityForExterns(DiagnosticBag diagnostics, SyntaxList<ExternAliasDirectiveSyntax> externs)
+        {
+            foreach (var externAlias in externs)
+                MessageID.IDS_FeatureExternAlias.CheckFeatureAvailability(diagnostics, externAlias, externAlias.ExternKeyword.GetLocation());
         }
 
         public override SingleNamespaceOrTypeDeclaration VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node)
@@ -393,8 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasExterns = node.Externs.Any();
             NameSyntax name = node.Name;
             CSharpSyntaxNode currentNode = node;
-            QualifiedNameSyntax dotted;
-            while ((dotted = name as QualifiedNameSyntax) != null)
+            while (name is QualifiedNameSyntax dotted)
             {
                 var ns = SingleNamespaceDeclaration.Create(
                     name: dotted.Right.Identifier.ValueText,
@@ -405,8 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     children: children,
                     diagnostics: ImmutableArray<Diagnostic>.Empty);
 
-                var nsDeclaration = new[] { ns };
-                children = nsDeclaration.AsImmutableOrNull<SingleNamespaceOrTypeDeclaration>();
+                children = ImmutableArray.Create<SingleNamespaceOrTypeDeclaration>(ns);
                 currentNode = name = dotted.Left;
                 hasUsings = false;
                 hasExterns = false;
@@ -416,6 +436,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node is FileScopedNamespaceDeclarationSyntax)
             {
+                MessageID.IDS_FeatureFileScopedNamespace.CheckFeatureAvailability(diagnostics, node, node.NamespaceKeyword.GetLocation());
+
                 if (node.Parent is FileScopedNamespaceDeclarationSyntax)
                 {
                     // Happens when user writes:
@@ -493,6 +515,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 }
             }
+
+            CheckFeatureAvailabilityForUsings(diagnostics, node.Usings);
+            CheckFeatureAvailabilityForExterns(diagnostics, node.Externs);
 
             // NOTE: *Something* has to happen for alias-qualified names.  It turns out that we
             // just grab the part after the colons (via GetUnqualifiedName, below).  This logic
@@ -594,7 +619,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
-            var quickAttributes = DeclarationTreeBuilder.GetQuickAttributes(node.AttributeLists);
+            var quickAttributes = GetQuickAttributes(node.AttributeLists);
+
+            foreach (var modifier in node.Modifiers)
+            {
+                if (modifier.IsKind(SyntaxKind.StaticKeyword) && kind == DeclarationKind.Class)
+                {
+                    MessageID.IDS_FeatureStaticClasses.CheckFeatureAvailability(diagnostics, node, modifier.GetLocation());
+                }
+                else if (modifier.IsKind(SyntaxKind.ReadOnlyKeyword) && kind is DeclarationKind.Struct or DeclarationKind.RecordStruct)
+                {
+                    MessageID.IDS_FeatureReadOnlyStructs.CheckFeatureAvailability(diagnostics, node, modifier.GetLocation());
+                }
+                else if (modifier.IsKind(SyntaxKind.RefKeyword) && kind is DeclarationKind.Struct or DeclarationKind.RecordStruct)
+                {
+                    MessageID.IDS_FeatureRefStructs.CheckFeatureAvailability(diagnostics, node, modifier.GetLocation());
+                }
+            }
 
             return new SingleTypeDeclaration(
                 kind: kind,
