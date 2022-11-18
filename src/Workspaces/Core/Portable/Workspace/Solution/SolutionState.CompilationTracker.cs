@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis
                 // the tree that we have been given was directly returned from the document state that we're also being passed --
                 // the only reason we're requesting it earlier is this code is running under a lock in
                 // SolutionState.WithFrozenPartialCompilationIncludingSpecificDocument.
-                if (!compilationPair.CompilationWithoutGeneratedDocuments.SyntaxTrees.Contains(tree))
+                if (!compilationPair.CompilationWithoutGeneratedDocuments.ContainsSyntaxTree(tree))
                 {
                     // We do not have the exact tree. It either means this document was recently added, or the tree was recently changed.
                     // We now need to update both the inProgressState and the compilation. There are several possibilities we want to consider:
