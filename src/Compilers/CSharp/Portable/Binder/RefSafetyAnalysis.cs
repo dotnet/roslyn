@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private uint _localScopeDepth;
         private Dictionary<LocalSymbol, (uint RefEscapeScope, uint ValEscapeScope)>? _localEscapeScopes;
         private Dictionary<BoundValuePlaceholderBase, uint>? _placeholders;
-        private uint _switchGoverningValEscape;
+        private uint _patternInputValEscape;
 
         private RefSafetyAnalysis(
             CSharpCompilation compilation,
@@ -125,6 +125,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private ref struct PatternInput
+        {
+            private readonly RefSafetyAnalysis _analysis;
+            private readonly uint _previousInputValEscape;
+
+            public PatternInput(RefSafetyAnalysis analysis, uint patternInputValEscape)
+            {
+                _analysis = analysis;
+                _previousInputValEscape = analysis._patternInputValEscape;
+                _analysis._patternInputValEscape = patternInputValEscape;
+            }
+
+            public void Dispose()
+            {
+                _analysis._patternInputValEscape = _previousInputValEscape;
+            }
+        }
+
         private (uint RefEscapeScope, uint ValEscapeScope) GetLocalScopes(LocalSymbol local)
         {
             if (_localEscapeScopes?.TryGetValue(local, out var scopes) != true)
@@ -161,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitBlock(BoundBlock node)
         {
             var inUnsafeRegion = node.InUnsafeRegion;
-            using var region = new UnsafeRegion(this, inUnsafeRegion.HasValue() ? inUnsafeRegion.Value() :  _inUnsafeRegion);
+            using var region = new UnsafeRegion(this, inUnsafeRegion.HasValue() ? inUnsafeRegion.Value() : _inUnsafeRegion);
             using var _ = new LocalScope(this);
             AddLocals(node.Locals);
             return base.VisitBlock(node);
@@ -263,13 +281,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             using var _ = new LocalScope(this);
             // PROTOTYPE: Do we need the same for switch expressions?
-            // PROTOTYPE: Shouldn't be tracking this value in a field. We should be explicitly walking
-            // the SwitchSections here, similar to how this was created in Binder.BuildSwitchLabels().
-            var previousValEscape = _switchGoverningValEscape;
-            _switchGoverningValEscape = GetValEscape(node.Expression, _localScopeDepth);
+            using var patternInput = new PatternInput(this, GetValEscape(node.Expression, _localScopeDepth));
             AddLocals(node.InnerLocals);
             base.VisitSwitchStatement(node);
-            _switchGoverningValEscape = previousValEscape;
             return null;
         }
 
@@ -362,6 +376,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    // default to the current scope in case we need to handle self-referential error cases.
+                    SetLocalScopes(localSymbol, _localScopeDepth, _localScopeDepth);
+
                     valEscapeScope = GetValEscape(initializer, _localScopeDepth);
                     if (localSymbol.RefKind != RefKind.None)
                     {
@@ -401,22 +418,43 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitIsPatternExpression(BoundIsPatternExpression node)
         {
-            if (node.Pattern is BoundObjectPattern { Variable: LocalSymbol local })
-            {
-                uint valEscape = GetValEscape(node.Expression, _localScopeDepth);
-                SetLocalScopes(local, _localScopeDepth, valEscape);
-            }
-
+            using var _ = new PatternInput(this, GetValEscape(node.Expression, _localScopeDepth));
+            SetLocalScopes(node.Pattern); // PROTOTYPE: Remove this call. It should occur within base.VisitIsPatternExpression() below.
             return base.VisitIsPatternExpression(node);
         }
 
         public override BoundNode? VisitDeclarationPattern(BoundDeclarationPattern node)
         {
-            if (node.Variable is LocalSymbol local)
-            {
-                SetLocalScopes(local, _localScopeDepth, _switchGoverningValEscape);
-            }
+            SetLocalScopes(node);
             return base.VisitDeclarationPattern(node);
+        }
+
+        public override BoundNode? VisitRecursivePattern(BoundRecursivePattern node)
+        {
+            SetLocalScopes(node);
+            return base.VisitRecursivePattern(node);
+        }
+
+        public override BoundNode? VisitPropertySubpattern(BoundPropertySubpattern node)
+        {
+            using var _ = new PatternInput(this, getMemberValEscape(node.Member, _patternInputValEscape));
+            return base.VisitPropertySubpattern(node);
+
+            static uint getMemberValEscape(BoundPropertySubpatternMember? member, uint valEscape)
+            {
+                if (member is null) return valEscape;
+                valEscape = getMemberValEscape(member.Receiver, valEscape);
+                return member.Type.IsRefLikeType ? valEscape : Binder.CallingMethodScope;
+            }
+        }
+
+        private void SetLocalScopes(BoundPattern pattern)
+        {
+            // PROTOTYPE: Assert we're calling this for all types derived from BoundObjectPattern.
+            if (pattern is BoundObjectPattern { Variable: LocalSymbol local })
+            {
+                SetLocalScopes(local, _localScopeDepth, _patternInputValEscape);
+            }
         }
 
         public override BoundNode? VisitConditionalOperator(BoundConditionalOperator node)
@@ -439,9 +477,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE: Need placeholder substitution whenever we visit any call,
                 // and regardless of whether it's Get, Check, Val, Ref, or ArgMixing.
                 var placeholders = ArrayBuilder<(BoundInterpolatedStringArgumentPlaceholder, uint)>.GetInstance();
-                for (int i = 0; i < node.Arguments.Length; i++)
+                foreach (var arg in node.Arguments)
                 {
-                    getInterpolatedStringPlaceholders(i, node.Arguments[i], method.Parameters, node.ArgumentRefKindsOpt, node.ArgsToParamsOpt, placeholders);
+                    if (arg is BoundConversion { ConversionKind: ConversionKind.InterpolatedStringHandler, Operand: BoundInterpolatedString or BoundBinaryOperator } conversion)
+                    {
+                        var interpolationData = conversion.Operand.GetInterpolatedStringHandlerData();
+                        getInterpolatedStringPlaceholders(interpolationData, node.ReceiverOpt, node.Arguments, placeholders);
+                    }
                 }
                 foreach (var (placeholder, valEscapeScope) in placeholders)
                 {
@@ -467,39 +509,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
 
             void getInterpolatedStringPlaceholders(
-                int argIndex,
-                BoundExpression argument,
-                ImmutableArray<ParameterSymbol> parameters,
-                ImmutableArray<RefKind> argRefKindsOpt,
-                ImmutableArray<int> argsToParamsOpt,
+                in InterpolatedStringHandlerData interpolationData,
+                BoundExpression? receiver,
+                ImmutableArray<BoundExpression> arguments,
                 ArrayBuilder<(BoundInterpolatedStringArgumentPlaceholder, uint)> placeholders)
             {
-                if (argument is BoundConversion { ConversionKind: ConversionKind.InterpolatedStringHandler, Operand: BoundInterpolatedString or BoundBinaryOperator } conversion)
+                foreach (var placeholder in interpolationData.ArgumentPlaceholders)
                 {
-                    var interpolationData = conversion.Operand.GetInterpolatedStringHandlerData();
-                    foreach (var placeholder in interpolationData.ArgumentPlaceholders)
+                    BoundExpression expr;
+                    int argIndex = placeholder.ArgumentIndex;
+                    switch (argIndex)
                     {
-                        BoundExpression expr;
-                        switch (placeholder.ArgumentIndex)
-                        {
-                            case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
-                                Debug.Assert(node.ReceiverOpt is { });
-                                expr = node.ReceiverOpt;
-                                break;
-                            case >= 0:
-                                var paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
-                                RefKind argRefKind = argRefKindsOpt.RefKinds(argIndex);
-                                RefKind paramRefKind = parameters[paramIndex].RefKind;
-                                Debug.Assert(paramRefKind == RefKind.None); // PROTOTYPE: Handle other cases, including value passed to RefKind.In. See addInterpolationPlaceholderReplacements().
-                                expr = argument;
-                                break;
-                            case BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter:
-                                continue;
-                            default:
-                                throw ExceptionUtilities.UnexpectedValue(placeholder.ArgumentIndex);
-                        }
-                        placeholders.Add((placeholder, GetValEscape(expr, _localScopeDepth)));
+                        case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
+                            Debug.Assert(receiver is { });
+                            expr = receiver;
+                            break;
+                        case >= 0:
+                            // PROTOTYPE: BindInterpolatedStringHandlerInMemberCall() was ignoring parameters[paramIndex].RefKind and
+                            // using GetValEscape() unconditionally for this argument. But if the parameter is by ref, couldn't the ref be captured?
+                            // (See addInterpolationPlaceholderReplacements() which does use parameters[paramIndex].RefKind.)
+                            expr = arguments[argIndex];
+                            break;
+                        case BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter:
+                            continue;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(placeholder.ArgumentIndex);
                     }
+                    placeholders.Add((placeholder, GetValEscape(expr, _localScopeDepth)));
                 }
             }
         }

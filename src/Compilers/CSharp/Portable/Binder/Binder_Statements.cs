@@ -1558,6 +1558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(op1.Type is { });
 
+                bool hasErrors = false;
                 if (isRef)
                 {
                     // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-11.0/low-level-struct-improvements.md#rules-ref-reassignment
@@ -1578,6 +1579,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         };
 
                         Error(diagnostics, errorCode, node, getName(op1), op2.Syntax);
+                        if (!_inUnsafeRegion)
+                        {
+                            hasErrors = true;
+                        }
                     }
                     else if (op1.Kind is BoundKind.Local or BoundKind.Parameter)
                     {
@@ -1595,11 +1600,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             var errorCode = _inUnsafeRegion ? ErrorCode.WRN_RefAssignValEscapeWider : ErrorCode.ERR_RefAssignValEscapeWider;
                             Error(diagnostics, errorCode, node, getName(op1), op2.Syntax);
+                            if (!_inUnsafeRegion)
+                            {
+                                hasErrors = true;
+                            }
                         }
                     }
                 }
 
-                if (op1.Type.IsRefLikeType)
+                if (!hasErrors && op1.Type.IsRefLikeType)
                 {
                     var leftEscape = GetValEscape(op1, _localScopeDepth);
                     ValidateEscape(op2, leftEscape, isByRef: false, diagnostics);

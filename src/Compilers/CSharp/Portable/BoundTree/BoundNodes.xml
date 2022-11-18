@@ -2219,7 +2219,6 @@
     <!-- The index in the containing member of the argument this is the placeholder for. Should be a positive number or
          one of the constants in the other part of the partial class. -->
     <Field Name="ArgumentIndex" Type="int" />
-    <Field Name="ValSafeToEscape" Type="uint" /> <!-- PROTOTYPE: Remove field. -->
   </Node>
 
   <Node Name="BoundStringInsert" Base="BoundExpression">

@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // because we want to track that we're using the type no matter what.
             var boolType = GetSpecialType(SpecialType.System_Boolean, diagnostics, syntax);
             var trailingConstructorValidityPlaceholder =
-                new BoundInterpolatedStringArgumentPlaceholder(syntax, BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter, valSafeToEscape: LocalScopeDepth, boolType)
+                new BoundInterpolatedStringArgumentPlaceholder(syntax, BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter, boolType)
                 { WasCompilerGenerated = true };
             var outConstructorAdditionalArguments = additionalConstructorArguments.Add(trailingConstructorValidityPlaceholder);
             refKindsBuilder.Add(RefKind.Out);
@@ -1030,7 +1030,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (BoundInterpolatedStringArgumentPlaceholder)(new BoundInterpolatedStringArgumentPlaceholder(
                         placeholderSyntax,
                         argumentIndex,
-                        valSafeToEscape: Binder.CallingMethodScope,
                         placeholderType,
                         hasErrors: argumentIndex == BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter)
                     { WasCompilerGenerated = true }.WithSuppression(isSuppressed)));
