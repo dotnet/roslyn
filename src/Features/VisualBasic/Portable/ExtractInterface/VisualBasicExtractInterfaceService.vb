@@ -162,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
 
         Friend Overrides Function TryGetLanguageSpecificErrorMessage(containingType As ISymbol, <NotNullWhen(True)> ByRef errorMessage As String) As Boolean
 
-            If TryCast(containingType, IModuleSymbol) Is Nothing Then
+            If containingType.IsModuleType() Then
                 errorMessage = VBFeaturesResources.Could_not_extract_interface_colon_Cannot_extract_interface_for_modules
                 Return True
             End If
