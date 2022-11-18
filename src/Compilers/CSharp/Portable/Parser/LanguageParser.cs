@@ -2796,7 +2796,7 @@ parse_member_name:;
                 }
 
                 var incompleteMember = _syntaxFactory.IncompleteMember(attributes, modifiers.ToList(), type.IsMissing ? null : type);
-                if (incompleteMember.ContainsDiagnostics)
+                if (ContainsErrorDiagnostic(incompleteMember))
                 {
                     result = incompleteMember;
                 }
@@ -2820,6 +2820,45 @@ parse_member_name:;
             }
 
             result = null;
+            return false;
+        }
+
+        private static bool ContainsErrorDiagnostic(GreenNode node)
+        {
+            // ContainsDiagnostics returns true if this node (or any descendants) contain any sort of error.  However,
+            // GetDiagnostics() only returns diagnostics at that node itself.  So we have to explicitly walk down the
+            // tree to find out if the diagnostics are error or not.
+
+            // Quick check to avoid any unnecessary work.
+            if (node.ContainsDiagnostics)
+            {
+                var stack = ArrayBuilder<GreenNode>.GetInstance();
+                try
+                {
+                    stack.Push(node);
+
+                    while (stack.Count > 0)
+                    {
+                        var current = stack.Pop();
+                        if (!current.ContainsDiagnostics)
+                            continue;
+
+                        foreach (var diagnostic in current.GetDiagnostics())
+                        {
+                            if (diagnostic.Severity == DiagnosticSeverity.Error)
+                                return true;
+                        }
+
+                        foreach (var child in current.ChildNodesAndTokens())
+                            stack.Push(child);
+                    }
+                }
+                finally
+                {
+                    stack.Free();
+                }
+            }
+
             return false;
         }
 
