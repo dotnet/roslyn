@@ -153,6 +153,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string UseNullPropagation = nameof(UseNullPropagation);
         public const string UseObjectInitializer = nameof(UseObjectInitializer);
         public const string UsePatternCombinators = nameof(UsePatternCombinators);
+        public const string UsePatternMatchingAsAndMemberAccess = nameof(UsePatternMatchingAsAndMemberAccess);
         public const string UsePatternMatchingAsAndNullCheck = nameof(UsePatternMatchingAsAndNullCheck);
         public const string UsePatternMatchingIsAndCastCheck = nameof(UsePatternMatchingIsAndCastCheck);
         public const string UsePatternMatchingIsAndCastCheckWithoutName = nameof(UsePatternMatchingIsAndCastCheckWithoutName);

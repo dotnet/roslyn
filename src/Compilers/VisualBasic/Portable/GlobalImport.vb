@@ -142,7 +142,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.Equals(TryCast(obj, GlobalImport))
         End Function
 
-
         ''' <summary>
         ''' Determines whether the current object is equal to another object of the same type.
         ''' </summary>

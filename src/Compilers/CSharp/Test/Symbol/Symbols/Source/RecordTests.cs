@@ -1213,72 +1213,96 @@ data struct S1 { }
 data struct S2(int X, int Y);";
             var comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (3,14): error CS8805: Program using top-level statements must be an executable.
-                // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "(int X, int Y);").WithLocation(3, 14),
-                // (2,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,6): error CS1001: Identifier expected
                 // data class C1 { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "data").WithLocation(2, 1),
-                // (3,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "class").WithLocation(2, 6),
+                // (2,6): error CS1002: ; expected
+                // data class C1 { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(2, 6),
+                // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "data").WithLocation(3, 1),
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "data ").WithLocation(3, 1),
+                // (3,6): error CS1001: Identifier expected
+                // data class C2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "class").WithLocation(3, 6),
+                // (3,6): error CS1002: ; expected
+                // data class C2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(3, 6),
                 // (3,14): error CS1514: { expected
                 // data class C2(int X, int Y);
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(3, 14),
                 // (3,14): error CS1513: } expected
                 // data class C2(int X, int Y);
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(3, 14),
-                // (3,14): error CS8803: Top-level statements must precede namespace and type declarations.
-                // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(3, 14),
-                // (3,14): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-                // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int X, int Y)").WithLocation(3, 14),
-                // (3,15): error CS8185: A declaration is not allowed in this context.
-                // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int X").WithLocation(3, 15),
-                // (3,15): error CS0165: Use of unassigned local variable 'X'
-                // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int X").WithArguments("X").WithLocation(3, 15),
-                // (3,22): error CS8185: A declaration is not allowed in this context.
-                // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int Y").WithLocation(3, 22),
-                // (3,22): error CS0165: Use of unassigned local variable 'Y'
-                // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int Y").WithArguments("Y").WithLocation(3, 22),
-                // (4,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (4,6): error CS1001: Identifier expected
                 // data struct S1 { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "data").WithLocation(4, 1),
-                // (5,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(4, 6),
+                // (4,6): error CS1002: ; expected
+                // data struct S1 { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(4, 6),
+                // (5,6): error CS1001: Identifier expected
                 // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "data").WithLocation(5, 1),
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(5, 6),
+                // (5,6): error CS1002: ; expected
+                // data struct S2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(5, 6),
                 // (5,15): error CS1514: { expected
                 // data struct S2(int X, int Y);
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(5, 15),
                 // (5,15): error CS1513: } expected
                 // data struct S2(int X, int Y);
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(5, 15),
-                // (5,15): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                // (2,1): error CS8805: Program using top-level statements must be an executable.
+                // data class C1 { }
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "data ").WithLocation(2, 1),
+                // (2,1): error CS0246: The type or namespace name 'data' could not be found (are you missing a using directive or an assembly reference?)
+                // data class C1 { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "data").WithArguments("data").WithLocation(2, 1),
+                // (3,1): error CS0246: The type or namespace name 'data' could not be found (are you missing a using directive or an assembly reference?)
+                // data class C2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "data").WithArguments("data").WithLocation(3, 1),
+                // (3,15): error CS8185: A declaration is not allowed in this context.
+                // data class C2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int X").WithLocation(3, 15),
+                // (3,22): error CS8185: A declaration is not allowed in this context.
+                // data class C2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int Y").WithLocation(3, 22),
+                // (3,14): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                // data class C2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int X, int Y)").WithLocation(3, 14),
+                // (4,1): error CS0246: The type or namespace name 'data' could not be found (are you missing a using directive or an assembly reference?)
+                // data struct S1 { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "data").WithArguments("data").WithLocation(4, 1),
+                // (5,1): error CS0246: The type or namespace name 'data' could not be found (are you missing a using directive or an assembly reference?)
                 // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int X, int Y)").WithLocation(5, 15),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "data").WithArguments("data").WithLocation(5, 1),
                 // (5,16): error CS8185: A declaration is not allowed in this context.
                 // data struct S2(int X, int Y);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int X").WithLocation(5, 16),
-                // (5,16): error CS0165: Use of unassigned local variable 'X'
-                // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int X").WithArguments("X").WithLocation(5, 16),
                 // (5,20): error CS0128: A local variable or function named 'X' is already defined in this scope
                 // data struct S2(int X, int Y);
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "X").WithArguments("X").WithLocation(5, 20),
                 // (5,23): error CS8185: A declaration is not allowed in this context.
                 // data struct S2(int X, int Y);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int Y").WithLocation(5, 23),
-                // (5,23): error CS0165: Use of unassigned local variable 'Y'
-                // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int Y").WithArguments("Y").WithLocation(5, 23),
                 // (5,27): error CS0128: A local variable or function named 'Y' is already defined in this scope
                 // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "Y").WithArguments("Y").WithLocation(5, 27)
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "Y").WithArguments("Y").WithLocation(5, 27),
+                // (5,15): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                // data struct S2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int X, int Y)").WithLocation(5, 15),
+                // (3,15): error CS0165: Use of unassigned local variable 'X'
+                // data class C2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int X").WithArguments("X").WithLocation(3, 15),
+                // (3,22): error CS0165: Use of unassigned local variable 'Y'
+                // data class C2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int Y").WithArguments("Y").WithLocation(3, 22),
+                // (5,16): error CS0165: Use of unassigned local variable 'X'
+                // data struct S2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int X").WithArguments("X").WithLocation(5, 16),
+                // (5,23): error CS0165: Use of unassigned local variable 'Y'
+                // data struct S2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int Y").WithArguments("Y").WithLocation(5, 23)
             );
         }
 

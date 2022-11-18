@@ -485,7 +485,6 @@ End Namespace
             'Next
         End Sub
 
-
         <WorkItem(542508, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542508")>
         <Fact()>
         Public Sub LocalsWithoutAsClauseInForStatement()
