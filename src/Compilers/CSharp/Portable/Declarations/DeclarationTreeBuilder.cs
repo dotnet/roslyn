@@ -593,9 +593,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private SingleNamespaceOrTypeDeclaration VisitTypeDeclaration(TypeDeclarationSyntax node, DeclarationKind kind)
         {
-            SingleTypeDeclaration.TypeDeclarationFlags declFlags = node.AttributeLists.Any() ?
-                SingleTypeDeclaration.TypeDeclarationFlags.HasAnyAttributes :
-                SingleTypeDeclaration.TypeDeclarationFlags.None;
+            var declFlags = node.AttributeLists.Any()
+                ? SingleTypeDeclaration.TypeDeclarationFlags.HasAnyAttributes
+                : SingleTypeDeclaration.TypeDeclarationFlags.None;
 
             if (node.BaseList != null)
             {
@@ -616,6 +616,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node is RecordDeclarationSyntax { ParameterList: { } })
             {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
+            }
+
+            if (node is RecordDeclarationSyntax recordDeclaration)
+            {
+                var messageId = recordDeclaration.Kind() == SyntaxKind.RecordStructDeclaration
+                    ? MessageID.IDS_FeatureRecordStructs
+                    : MessageID.IDS_FeatureRecords;
+                messageId.CheckFeatureAvailability(diagnostics, recordDeclaration, recordDeclaration.Keyword.GetLocation());
             }
 
             var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);

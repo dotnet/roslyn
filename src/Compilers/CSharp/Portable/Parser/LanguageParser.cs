@@ -1597,7 +1597,13 @@ tryAgain:
                 SyntaxToken semicolon;
                 SyntaxToken? openBrace;
                 SyntaxToken? closeBrace;
-                if (!(keyword.Kind == SyntaxKind.RecordKeyword) || CurrentToken.Kind != SyntaxKind.SemicolonToken)
+                if (keyword.Kind == SyntaxKind.RecordKeyword && CurrentToken.Kind == SyntaxKind.SemicolonToken)
+                {
+                    semicolon = EatToken(SyntaxKind.SemicolonToken);
+                    openBrace = null;
+                    closeBrace = null;
+                }
+                else
                 {
                     openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
 
@@ -1659,13 +1665,8 @@ tryAgain:
                     {
                         closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
                     }
+
                     semicolon = TryEatToken(SyntaxKind.SemicolonToken);
-                }
-                else
-                {
-                    semicolon = CheckFeatureAvailability(EatToken(SyntaxKind.SemicolonToken), MessageID.IDS_FeatureRecords);
-                    openBrace = null;
-                    closeBrace = null;
                 }
 
                 return constructTypeDeclaration(_syntaxFactory, attributes, modifiers, keyword, recordModifier, name, typeParameters, paramList, baseList, constraints, openBrace, members, closeBrace, semicolon);
@@ -1689,7 +1690,7 @@ tryAgain:
                 {
                     keyword = ConvertToKeyword(this.EatToken());
                     recordModifier = this.CurrentToken.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword
-                        ? CheckFeatureAvailability(EatToken(), MessageID.IDS_FeatureRecordStructs)
+                        ? EatToken()
                         : null;
 
                     return true;
@@ -1697,7 +1698,6 @@ tryAgain:
 
                 if (this.CurrentToken.Kind is SyntaxKind.StructKeyword or SyntaxKind.ClassKeyword &&
                     this.PeekToken(1).ContextualKind == SyntaxKind.RecordKeyword &&
-                    IsFeatureEnabled(MessageID.IDS_FeatureRecordStructs) &&
                     PeekToken(2).Kind is SyntaxKind.IdentifierToken)
                 {
                     // Provide a specific diagnostic on `struct record S` or `class record C`
