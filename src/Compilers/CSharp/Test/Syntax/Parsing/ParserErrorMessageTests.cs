@@ -6375,10 +6375,25 @@ class C
         {
             var source = @"[module:Obsolete()]";
             SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify();
-            SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp1)).GetDiagnostics().Verify(
-                // (1,2): warning CS1645: Feature 'module as an attribute target specifier' is not part of the standardized ISO C# language specification, and may not be accepted by other compilers
+            SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp1)).GetDiagnostics().Verify();
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular2).VerifyDiagnostics(
+                // (1,9): error CS0246: The type or namespace name 'ObsoleteAttribute' could not be found (are you missing a using directive or an assembly reference?)
                 // [module:Obsolete()]
-                Diagnostic(ErrorCode.WRN_NonECMAFeature, "module:").WithArguments("module as an attribute target specifier"));
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Obsolete").WithArguments("ObsoleteAttribute").WithLocation(1, 9),
+                // (1,9): error CS0246: The type or namespace name 'Obsolete' could not be found (are you missing a using directive or an assembly reference?)
+                // [module:Obsolete()]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Obsolete").WithArguments("Obsolete").WithLocation(1, 9));
+            CreateCompilation(source, parseOptions: TestOptions.Regular1).VerifyDiagnostics(
+                // (1,2): warning CS1645: Feature 'IDS_FeatureModuleAttrLoc' is not part of the standardized ISO C# language specification, and may not be accepted by other compilers
+                // [module:Obsolete()]
+                Diagnostic(ErrorCode.WRN_NonECMAFeature, "module:").WithArguments("IDS_FeatureModuleAttrLoc").WithLocation(1, 2),
+                // (1,9): error CS0246: The type or namespace name 'ObsoleteAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [module:Obsolete()]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Obsolete").WithArguments("ObsoleteAttribute").WithLocation(1, 9),
+                // (1,9): error CS0246: The type or namespace name 'Obsolete' could not be found (are you missing a using directive or an assembly reference?)
+                // [module:Obsolete()]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Obsolete").WithArguments("Obsolete").WithLocation(1, 9));
         }
 
         [Fact]

@@ -902,16 +902,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var attributes = _pool.AllocateSeparated<AttributeSyntax>();
             try
             {
-                if (attrLocation != null && attrLocation.Identifier.ToAttributeLocation() == AttributeLocation.Module)
-                {
-                    attrLocation = CheckFeatureAvailability(attrLocation, MessageID.IDS_FeatureModuleAttrLoc);
-                }
-
                 this.ParseAttributes(attributes);
-                var closeBracket = this.EatToken(SyntaxKind.CloseBracketToken);
-                var declaration = _syntaxFactory.AttributeList(openBracket, attrLocation, attributes, closeBracket);
-
-                return declaration;
+                return _syntaxFactory.AttributeList(
+                    openBracket,
+                    attrLocation,
+                    attributes,
+                    this.EatToken(SyntaxKind.CloseBracketToken));
             }
             finally
             {
