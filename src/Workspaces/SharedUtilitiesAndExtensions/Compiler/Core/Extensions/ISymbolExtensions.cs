@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsRequired([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => symbol is IFieldSymbol { IsRequired: true } or IPropertySymbol { IsRequired: true };
 
-        public static ITypeSymbol? GetMemberType(this ISymbol symbol)
+        public static ITypeSymbol? GetMemberType(this ISymbol? symbol)
             => symbol switch
             {
                 IFieldSymbol fieldSymbol => fieldSymbol.Type,

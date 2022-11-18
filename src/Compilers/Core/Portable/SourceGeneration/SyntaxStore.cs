@@ -77,6 +77,9 @@ namespace Microsoft.CodeAnalysis
 
                     if (syntaxInputBuilders.Count > 0)
                     {
+                        // Ensure that even if the node that caused the update was cached, we can still adjust it to take into account other nodes that weren't 
+                        _syntaxTimes[syntaxInputNode] = TimeSpan.Zero;
+
                         // at this point we need to grab the syntax trees from the new compilation, and optionally diff them against the old ones
                         NodeStateTable<SyntaxTree> syntaxTreeState = syntaxTreeTable;
 

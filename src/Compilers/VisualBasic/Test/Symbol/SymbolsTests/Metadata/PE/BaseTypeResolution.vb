@@ -87,7 +87,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.NotNull(partitioner)
         End Sub
 
-
         Private Sub TestBaseTypeResolutionHelper2(assemblies() As AssemblySymbol)
 
             Dim module1 = assemblies(0).Modules(0)
@@ -197,7 +196,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                     {TestResources.SymbolsTests.DifferByCase.Consumer,
                                      TestResources.SymbolsTests.DifferByCase.TypeAndNamespaceDifferByCase})
-
 
             Dim module0 = TryCast(assemblies(0).Modules(0), PEModuleSymbol)
             Dim module1 = TryCast(assemblies(1).Modules(0), PEModuleSymbol)
