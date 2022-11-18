@@ -411,6 +411,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, value); }
         }
 
+        public string Style_AllowBlankLineAfterTokenInConditionalExpression
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression); }
+            set { SetXmlOption(CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, value); }
+        }
+
         public string Style_NamespaceDeclarations
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.NamespaceDeclarations); }

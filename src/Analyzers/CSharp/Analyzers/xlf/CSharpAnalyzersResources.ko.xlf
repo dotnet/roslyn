@@ -12,6 +12,11 @@
         <target state="translated">'{0}' 문에 중괄호를 추가합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Blank_line_not_allowed_after_conditional_expression_token">
+        <source>Blank line not allowed after conditional expression token</source>
+        <target state="new">Blank line not allowed after conditional expression token</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Blank_line_not_allowed_after_constructor_initializer_colon">
         <source>Blank line not allowed after constructor initializer colon</source>
         <target state="translated">생성자 이니셜라이저 콜론 뒤에 빈 줄을 사용할 수 없음</target>

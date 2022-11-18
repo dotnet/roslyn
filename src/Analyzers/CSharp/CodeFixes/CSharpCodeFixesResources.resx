@@ -141,9 +141,6 @@
   <data name="Remove_blank_lines_between_braces" xml:space="preserve">
     <value>Remove blank line between braces</value>
   </data>
-  <data name="Place_colon_on_following_line" xml:space="preserve">
-    <value>Place colon on following line</value>
-  </data>
   <data name="Fix_record_declaration" xml:space="preserve">
     <value>Fix record declaration</value>
   </data>
@@ -186,5 +183,8 @@
   </data>
   <data name="Declare_as_nullable" xml:space="preserve">
     <value>Declare as nullable</value>
+  </data>
+  <data name="Place_token_on_following_line" xml:space="preserve">
+    <value>Place token on following line</value>
   </data>
 </root>
