@@ -412,9 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("1l", literal.Text);
             Assert.Equal(Location.None, literal.GetLocation());
 
-            literal.GetDiagnostics().Verify(
-                // warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
-                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix));
+            literal.GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -442,10 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var expectedLocation = Location.Create(expression.Token.SyntaxTree, TextSpan.FromBounds(0, 2));
             Assert.Equal(expectedLocation, expression.Token.GetLocation());
 
-            expression.Token.GetDiagnostics().Verify(
-                // (1,2): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
-                // 1l
-                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 2));
+            expression.Token.GetDiagnostics().Verify();
         }
 
         [Fact]
