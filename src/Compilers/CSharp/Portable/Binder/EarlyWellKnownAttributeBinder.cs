@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Since this method is expected to be called on every nested expression of the argument, it doesn't
         /// need to recurse (directly).
         /// </remarks>
-        internal static bool CanBeValidAttributeArgument(ExpressionSyntax node, Binder typeBinder)
+        internal static bool CanBeValidAttributeArgument(ExpressionSyntax node)
         {
             Debug.Assert(node != null);
             switch (node.Kind())

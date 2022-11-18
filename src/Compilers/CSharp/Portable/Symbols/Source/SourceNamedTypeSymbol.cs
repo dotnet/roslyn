@@ -453,7 +453,7 @@ next:;
                 }
 
                 results = MergeConstraintKindsForPartialDeclarations(results, otherPartialClauses);
-                results = ConstraintsHelper.AdjustConstraintKindsBasedOnConstraintTypes(this, typeParameters, results);
+                results = ConstraintsHelper.AdjustConstraintKindsBasedOnConstraintTypes(typeParameters, results);
 
                 if (results.All(clause => clause.Constraints == TypeParameterConstraintKind.None))
                 {
