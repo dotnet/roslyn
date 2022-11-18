@@ -396,6 +396,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             yield return PreferRangeOperator;
             yield return AllowEmbeddedStatementsOnSameLine;
             yield return AllowBlankLinesBetweenConsecutiveBraces;
+            yield return AllowBlankLineAfterColonInConstructorInitializer;
+            yield return AllowBlankLineAfterTokenInConditionalExpression;
+            yield return AllowBlankLineAfterTokenInArrowExpressionClause;
         }
 
         public static IEnumerable<Option2<CodeStyleOption2<ExpressionBodyPreference>>> GetExpressionBodyOptions()
