@@ -12892,32 +12892,24 @@ tryAgain:
 
         private ExpressionSyntax ParseObjectInitializerNamedAssignment()
         {
-            var identifier = this.ParseIdentifierName();
-            var equal = this.EatToken(SyntaxKind.EqualsToken);
-            ExpressionSyntax expression;
-            if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
-            {
-                expression = this.ParseObjectOrCollectionInitializer();
-            }
-            else
-            {
-                expression = this.ParsePossibleRefExpression();
-            }
-
-            return _syntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, identifier, equal, expression);
+            return _syntaxFactory.AssignmentExpression(
+                SyntaxKind.SimpleAssignmentExpression,
+                this.ParseIdentifierName(),
+                this.EatToken(SyntaxKind.EqualsToken),
+                this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
+                    ? this.ParseObjectOrCollectionInitializer()
+                    : this.ParsePossibleRefExpression());
         }
 
         private AssignmentExpressionSyntax ParseDictionaryInitializer()
         {
-            var arguments = this.ParseBracketedArgumentList();
-            var equal = this.EatToken(SyntaxKind.EqualsToken);
-            var expression = this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
-                ? this.ParseObjectOrCollectionInitializer()
-                : this.ParsePossibleRefExpression();
-
-            var elementAccess = _syntaxFactory.ImplicitElementAccess(arguments);
             return _syntaxFactory.AssignmentExpression(
-                SyntaxKind.SimpleAssignmentExpression, elementAccess, equal, expression);
+                SyntaxKind.SimpleAssignmentExpression,
+                _syntaxFactory.ImplicitElementAccess(this.ParseBracketedArgumentList()),
+                this.EatToken(SyntaxKind.EqualsToken),
+                this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
+                    ? this.ParseObjectOrCollectionInitializer()
+                    : this.ParsePossibleRefExpression());
         }
 
         private InitializerExpressionSyntax ParseComplexElementInitializer()
