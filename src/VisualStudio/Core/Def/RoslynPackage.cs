@@ -348,7 +348,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             }
         }
 
-        private void TrackBulkFileOperations(IGlobalOperationNotificationService globalNotificationService)
+        private static void TrackBulkFileOperations(IGlobalOperationNotificationService globalNotificationService)
         {
             // we will pause whatever ambient work loads we have that are tied to IGlobalOperationNotificationService
             // such as solution crawler, preemptive remote host synchronization and etc. any background work users
