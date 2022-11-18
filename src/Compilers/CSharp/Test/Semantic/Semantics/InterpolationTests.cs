@@ -10822,7 +10822,6 @@ internal ref struct DummyHandler
 }
 ";
 
-
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 logged = 0
@@ -10878,7 +10877,6 @@ internal ref struct DummyHandler
     public void AppendFormatted<T>(T t) => _builder.Append(t);
 }
 ";
-
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
@@ -10963,7 +10961,6 @@ internal ref struct DummyHandler
     public void AppendFormatted<T>(T t) => _builder.Append(t);
 }
 ";
-
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
@@ -11065,7 +11062,6 @@ internal ref struct DummyHandler
 }
 ";
 
-
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 logged = 0
@@ -11154,7 +11150,6 @@ internal ref struct DummyHandler
     public void AppendFormatted<T>(T t) => _builder.Append(t);
 }
 ";
-
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
@@ -11255,7 +11250,6 @@ internal ref struct DummyHandler
     public void AppendFormatted<T>(T t) => _builder.Append(t);
 }
 ";
-
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
