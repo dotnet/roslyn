@@ -45,13 +45,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
             string testCode,
             string fixedCode,
             LanguageVersion languageVersion = LanguageVersion.CSharp8,
-            OptionsCollection? options = null)
+            OptionsCollection? options = null,
+            string? equivalenceKey = null)
         {
             await new VerifyCS.Test
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
                 LanguageVersion = languageVersion,
+                CodeActionEquivalenceKey = equivalenceKey,
                 Options = { options },
             }.RunAsync();
         }
@@ -1797,6 +1799,50 @@ class C
         Action<char> write = containsHighBits ? ((char character) => Console.WriteLine(1)) : ((char character) => Console.WriteLine(2));
     }
 }", LanguageVersion.CSharp9);
+        }
+
+        [Fact, WorkItem(39260, "https://github.com/dotnet/roslyn/issues/39260")]
+        public async Task TestTitleWhenSimplifying()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    void M(string node1, string node2)
+    {
+        bool b;
+        [|if|] (AreSimilarCore(node1, node2))
+        {
+            b = true;
+        }
+        else
+        {
+            b = false;
+        }
+    }
+
+    private bool AreSimilarCore(string node1, string node2)
+    {
+        throw new NotImplementedException();
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void M(string node1, string node2)
+    {
+        bool b = AreSimilarCore(node1, node2);
+    }
+
+    private bool AreSimilarCore(string node1, string node2)
+    {
+        throw new NotImplementedException();
+    }
+}", LanguageVersion.CSharp9, equivalenceKey: nameof(AnalyzersResources.Simplify_check));
         }
     }
 }

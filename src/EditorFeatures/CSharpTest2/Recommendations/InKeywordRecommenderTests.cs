@@ -312,7 +312,7 @@ class C {
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsParameterModifierInMethods()
         {
             await VerifyKeywordAsync(@"
@@ -323,7 +323,7 @@ class Program
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsParameterModifierInSecondParameter()
         {
             await VerifyKeywordAsync(@"
@@ -334,7 +334,7 @@ class Program
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsParameterModifierInDelegates()
         {
             await VerifyKeywordAsync(@"
@@ -342,7 +342,7 @@ public delegate int Delegate($$ int p);");
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsParameterModifierInLocalFunctions()
         {
             await VerifyKeywordAsync(@"
@@ -356,7 +356,7 @@ class Program
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsParameterModifierInLambdaExpressions()
         {
             await VerifyKeywordAsync(@"
@@ -372,7 +372,7 @@ class Program
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsParameterModifierInAnonymousMethods()
         {
             await VerifyKeywordAsync(@"
@@ -388,7 +388,7 @@ class Program
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsModifierInMethodReturnTypes()
         {
             await VerifyAbsenceAsync(@"
@@ -402,7 +402,7 @@ class Program
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsModifierInGlobalMemberDeclaration()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script, @"
@@ -410,7 +410,7 @@ public $$ ");
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsModifierInDelegateReturnType()
         {
             await VerifyAbsenceAsync(@"
@@ -422,7 +422,7 @@ class Program
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsModifierInMemberDeclaration()
         {
             await VerifyAbsenceAsync(@"
@@ -489,7 +489,7 @@ class C {
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(24079, "https://github.com/dotnet/roslyn/issues/24079")]
         public async Task TestInAsParameterModifierInConversionOperators()
         {
@@ -501,7 +501,7 @@ class Program
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(24079, "https://github.com/dotnet/roslyn/issues/24079")]
         public async Task TestInAsParameterModifierInBinaryOperators()
         {

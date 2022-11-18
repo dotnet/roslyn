@@ -4718,5 +4718,85 @@ class Program
     }
 }");
         }
+
+        [Fact]
+        public Task ExtractMethod_InsideBaseInitializer()
+        => TestInRegularAndScript1Async(
+            """
+            class Base
+            {
+                private readonly int _x;
+                public Base(int x)
+                {
+                    _x = x;
+                }
+            }
+
+            class C : Base
+            {
+                public C(int y)
+                    : base([|y + 1|])
+                {
+                }
+            }
+            """,
+            """
+            class Base
+            {
+                private readonly int _x;
+                public Base(int x)
+                {
+                    _x = x;
+                }
+            }
+
+            class C : Base
+            {
+                public C(int y)
+                    : base({|Rename:NewMethod|}(y))
+                {
+                }
+
+                private static int NewMethod(int y)
+                {
+                    return y + 1;
+                }
+            }
+            """);
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/65221")]
+        public Task ExtractMethod_InsideThisInitializer()
+        => TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                public C(int y)
+                    : this(y, [|y + 1|])
+                {
+                }
+
+                public C(int x, int y)
+                {
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public C(int y)
+                    : this(y, {|Rename:NewMethod|}(y))
+                {
+                }
+
+                private static NewMethod(int y)
+                {
+                    return y + 1;
+                }
+            
+                public C(int x, int y)
+                {
+                }
+            }
+            """);
     }
 }

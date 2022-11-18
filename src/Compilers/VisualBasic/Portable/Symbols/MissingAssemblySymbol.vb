@@ -136,10 +136,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return False
         End Function
 
-        Friend Overrides Function LookupTopLevelMetadataTypeWithCycleDetection(ByRef emittedName As MetadataTypeName, visitedAssemblies As ConsList(Of AssemblySymbol), digThroughForwardedTypes As Boolean) As NamedTypeSymbol
-            Dim result = m_ModuleSymbol.LookupTopLevelMetadataType(emittedName)
-            Debug.Assert(TypeOf result Is MissingMetadataTypeSymbol)
-            Return result
+        Friend Overrides Function LookupDeclaredOrForwardedTopLevelMetadataType(ByRef emittedName As MetadataTypeName, visitedAssemblies As ConsList(Of AssemblySymbol)) As NamedTypeSymbol
+            Return New MissingMetadataTypeSymbol.TopLevel(m_ModuleSymbol, emittedName)
+        End Function
+
+        Friend Overrides Function LookupDeclaredTopLevelMetadataType(ByRef emittedName As MetadataTypeName) As NamedTypeSymbol
+            Return Nothing
         End Function
 
         Friend NotOverridable Overrides Function GetAllTopLevelForwardedTypes() As IEnumerable(Of NamedTypeSymbol)

@@ -21,24 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         private CSharpSyntaxNode ParseTypeOrPatternForIsOperator()
         {
-            return CheckRecursivePatternFeature(ParseTypeOrPatternForIsOperatorCore());
-        }
-
-        private CSharpSyntaxNode CheckRecursivePatternFeature(CSharpSyntaxNode node)
-        {
-            switch (node.Kind)
-            {
-                case SyntaxKind.RecursivePattern:
-                case SyntaxKind.DiscardPattern:
-                case SyntaxKind.VarPattern when ((VarPatternSyntax)node).Designation.Kind == SyntaxKind.ParenthesizedVariableDesignation:
-                    return this.CheckFeatureAvailability(node, MessageID.IDS_FeatureRecursivePatterns);
-                default:
-                    return node;
-            }
-        }
-
-        private CSharpSyntaxNode ParseTypeOrPatternForIsOperatorCore()
-        {
             var pattern = ParsePattern(GetPrecedence(SyntaxKind.IsPatternExpression), afterIs: true);
             return pattern switch
             {
@@ -78,10 +60,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             PatternSyntax result = ParseConjunctivePattern(precedence, afterIs, whenIsKeyword);
             while (this.CurrentToken.ContextualKind == SyntaxKind.OrKeyword)
             {
-                var orToken = ConvertToKeyword(this.EatToken());
-                var right = ParseConjunctivePattern(precedence, afterIs, whenIsKeyword);
-                result = _syntaxFactory.BinaryPattern(SyntaxKind.OrPattern, result, orToken, right);
-                result = CheckFeatureAvailability(result, MessageID.IDS_FeatureOrPattern);
+                result = _syntaxFactory.BinaryPattern(
+                    SyntaxKind.OrPattern,
+                    result,
+                    ConvertToKeyword(this.EatToken()),
+                    ParseConjunctivePattern(precedence, afterIs, whenIsKeyword));
             }
 
             return result;
@@ -123,10 +106,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             PatternSyntax result = ParseNegatedPattern(precedence, afterIs, whenIsKeyword);
             while (this.CurrentToken.ContextualKind == SyntaxKind.AndKeyword)
             {
-                var orToken = ConvertToKeyword(this.EatToken());
-                var right = ParseNegatedPattern(precedence, afterIs, whenIsKeyword);
-                result = _syntaxFactory.BinaryPattern(SyntaxKind.AndPattern, result, orToken, right);
-                result = CheckFeatureAvailability(result, MessageID.IDS_FeatureAndPattern);
+                result = _syntaxFactory.BinaryPattern(
+                    SyntaxKind.AndPattern,
+                    result,
+                    ConvertToKeyword(this.EatToken()),
+                    ParseNegatedPattern(precedence, afterIs, whenIsKeyword));
             }
 
             return result;
@@ -175,10 +159,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             if (this.CurrentToken.ContextualKind == SyntaxKind.NotKeyword)
             {
-                var notToken = ConvertToKeyword(this.EatToken());
-                var pattern = ParseNegatedPattern(precedence, afterIs, whenIsKeyword);
-                var result = _syntaxFactory.UnaryPattern(notToken, pattern);
-                return CheckFeatureAvailability(result, MessageID.IDS_FeatureNotPattern);
+                return _syntaxFactory.UnaryPattern(
+                    ConvertToKeyword(this.EatToken()),
+                    ParseNegatedPattern(precedence, afterIs, whenIsKeyword));
             }
             else
             {
@@ -220,11 +203,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.EqualsEqualsToken:
                 case SyntaxKind.ExclamationEqualsToken:
                     // this is a relational pattern.
-                    var relationalToken = this.EatToken();
                     Debug.Assert(precedence < Precedence.Shift);
-                    var expression = this.ParseSubExpression(Precedence.Relational);
-                    var result = _syntaxFactory.RelationalPattern(relationalToken, expression);
-                    return CheckFeatureAvailability(result, MessageID.IDS_FeatureRelationalPattern);
+                    return _syntaxFactory.RelationalPattern(
+                        this.EatToken(),
+                        this.ParseSubExpression(Precedence.Relational));
             }
 
             var resetPoint = this.GetResetPoint();
@@ -335,8 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             expression = ParseExpressionContinued(expression, precedence);
                             return _syntaxFactory.ConstantPattern(expression);
                         default:
-                            var parenthesizedPattern = _syntaxFactory.ParenthesizedPattern(openParenToken, subPatterns[0].Pattern, closeParenToken);
-                            return CheckFeatureAvailability(parenthesizedPattern, MessageID.IDS_FeatureParenthesizedPattern);
+                            return _syntaxFactory.ParenthesizedPattern(openParenToken, subPatterns[0].Pattern, closeParenToken);
                     }
                 }
 
@@ -366,8 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         return _syntaxFactory.ConstantPattern(expression);
                     }
 
-                    var typePattern = _syntaxFactory.TypePattern(type);
-                    return CheckFeatureAvailability(typePattern, MessageID.IDS_FeatureTypePattern);
+                    return _syntaxFactory.TypePattern(type);
                 }
             }
 
@@ -460,11 +440,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         private CSharpSyntaxNode ParseExpressionOrPatternForSwitchStatement()
-        {
-            return CheckRecursivePatternFeature(ParseExpressionOrPatternForSwitchStatementCore());
-        }
-
-        private CSharpSyntaxNode ParseExpressionOrPatternForSwitchStatementCore()
         {
             var pattern = ParsePattern(Precedence.Conditional, whenIsKeyword: true);
             return ConvertPatternToExpressionIfPossible(pattern);
@@ -611,7 +586,7 @@ tryAgain:
                 var colon = EatToken();
                 exprColon = expr is IdentifierNameSyntax identifierName
                     ? _syntaxFactory.NameColon(identifierName, colon)
-                    : _syntaxFactory.ExpressionColon(CheckFeatureAvailability(expr, MessageID.IDS_FeatureExtendedPropertyPatterns), colon);
+                    : _syntaxFactory.ExpressionColon(expr, colon);
 
                 pattern = ParsePattern(Precedence.Conditional);
             }
@@ -654,12 +629,12 @@ tryAgain:
             // For better error recovery when an expression is typed on a line before a switch statement,
             // the caller checks if the switch keyword is followed by an open curly brace. Only if it is
             // would we attempt to parse it as a switch expression here.
-            var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
-            var arms = this.ParseSwitchExpressionArms();
-            var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
-            var result = _syntaxFactory.SwitchExpression(governingExpression, switchKeyword, openBrace, arms, closeBrace);
-            result = this.CheckFeatureAvailability(result, MessageID.IDS_FeatureRecursivePatterns);
-            return result;
+            return _syntaxFactory.SwitchExpression(
+                governingExpression,
+                switchKeyword,
+                this.EatToken(SyntaxKind.OpenBraceToken),
+                this.ParseSwitchExpressionArms(),
+                this.EatToken(SyntaxKind.CloseBraceToken));
         }
 
         private SeparatedSyntaxList<SwitchExpressionArmSyntax> ParseSwitchExpressionArms()

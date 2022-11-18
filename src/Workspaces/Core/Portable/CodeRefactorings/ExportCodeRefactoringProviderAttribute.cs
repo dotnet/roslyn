@@ -5,6 +5,7 @@
 using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
@@ -15,7 +16,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class ExportCodeRefactoringProviderAttribute : ExportAttribute
     {
-        private static readonly TextDocumentKind[] s_defaultDocumentKinds = new[] { TextDocumentKind.Document };
+        private static readonly string[] s_defaultDocumentKinds = new[] { nameof(TextDocumentKind.Document) };
+        private static readonly string[] s_documentKindNames = Enum.GetNames(typeof(TextDocumentKind));
+
+        private string[] _documentKinds;
 
         /// <summary>
         /// The name of the <see cref="CodeRefactoringProvider"/>.  
@@ -32,7 +36,27 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// The document kinds for which this provider can provide refactorings. See <see cref="TextDocumentKind"/>.
         /// By default, the provider supports refactorings only for source documents, <see cref="TextDocumentKind.Document"/>.
         /// </summary>
-        public TextDocumentKind[] DocumentKinds { get; set; }
+        public string[] DocumentKinds
+        {
+            get => _documentKinds;
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+
+                foreach (var kind in value)
+                {
+                    if (kind == null || !s_documentKindNames.Contains(kind))
+                    {
+                        var message = string.Format(WorkspacesResources.Unexpected_value_0_in_DocumentKinds_array,
+                            arg0: kind?.ToString() ?? "null");
+                        throw new ArgumentException(message);
+                    }
+                }
+
+                _documentKinds = value;
+            }
+        }
 
         /// <summary>
         /// The document extensions for which this provider can provide refactorings.
@@ -62,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
 
             this.Languages = languages;
-            this.DocumentKinds = s_defaultDocumentKinds;
+            this._documentKinds = s_defaultDocumentKinds;
             this.DocumentExtensions = null;
         }
     }

@@ -527,6 +527,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(syntax.TypeParameterList != null);
 
+            MessageID.IDS_FeatureGenerics.CheckFeatureAvailability(diagnostics, syntax.TypeParameterList, syntax.TypeParameterList.LessThanToken.GetLocation());
+
             OverriddenMethodTypeParameterMapBase typeMap = null;
             if (this.IsOverride)
             {

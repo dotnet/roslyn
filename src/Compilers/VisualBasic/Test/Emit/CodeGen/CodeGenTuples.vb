@@ -987,7 +987,6 @@ End Namespace
 ]]>)
         End Sub
 
-
         <Fact>
         Public Sub TupleDefaultFieldBinding()
 
@@ -4686,7 +4685,6 @@ BC30311: Value of type '(Integer, String, C As Integer)' cannot be converted to 
         Dim x As (Integer, A As String) = (1, "hello", C:=2)
                                           ~~~~~~~~~~~~~~~~~~
 </errors>)
-
 
             Dim model = comp.GetSemanticModel(comp.SyntaxTrees(0))
             Dim nodes = comp.SyntaxTrees(0).GetCompilationUnitRoot().DescendantNodes()
@@ -9016,7 +9014,6 @@ End Module
 
         End Sub
 
-
         <Fact(Skip:="See bug 16697")>
         <WorkItem(16697, "https://github.com/dotnet/roslyn/issues/16697")>
         Public Sub GetSymbolInfo_01()
@@ -9080,7 +9077,6 @@ End Class
      </file>
  </compilation>, additionalRefs:=s_valueTupleRefs)
             libComp.AssertNoDiagnostics()
-
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
  <compilation>
@@ -9218,7 +9214,6 @@ End Module
 (, , )
             ]]>)
 
-
             Dim comp = verifier.Compilation
             Dim tree = comp.SyntaxTrees(0)
 
@@ -9268,7 +9263,6 @@ End Module
 </compilation>, references:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 (1, 2, 3, 4, 5, 6, 7, 8, 9)
             ]]>)
-
 
             Dim comp = verifier.Compilation
             Dim tree = comp.SyntaxTrees(0)
@@ -10148,7 +10142,6 @@ End Module
     </file>
 </compilation>, additionalRefs:=s_valueTupleRefs)
 
-
             compilation.AssertTheseDiagnostics(
 <errors>
     BC30518: Overload resolution failed because no accessible 'M' can be called with these arguments:
@@ -10179,7 +10172,6 @@ End Module
     </file>
 </compilation>, additionalRefs:=s_valueTupleRefs)
 
-
             compilation.AssertTheseDiagnostics(
 <errors>
     BC30518: Overload resolution failed because no accessible 'M' can be called with these arguments:
@@ -10209,7 +10201,6 @@ End Module
 
     </file>
 </compilation>, additionalRefs:=s_valueTupleRefs)
-
 
             compilation.AssertTheseDiagnostics(
 <errors>
@@ -19274,7 +19265,6 @@ BC37281: Predefined type 'ValueTuple`2' must be a structure.
 
         End Sub
 
-
         <WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")>
         <Fact>
         Public Sub ValueTupleNotStruct3()
@@ -19538,7 +19528,6 @@ BC41009: The tuple element name 'c' is ignored because a different name or no na
             Assert.Equal("x1 As (a As System.Int32, System.Int32)", x1Symbol.ToTestDisplayString())
 
         End Sub
-
 
         <Fact>
         <WorkItem(16825, "https://github.com/dotnet/roslyn/issues/16825")>
@@ -20371,7 +20360,6 @@ implicit operator AA
 --
 ")
         End Sub
-
 
         <Fact>
         Public Sub GenericConstraintAttributes()

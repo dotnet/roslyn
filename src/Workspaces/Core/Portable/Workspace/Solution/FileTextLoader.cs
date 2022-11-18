@@ -88,6 +88,7 @@ namespace Microsoft.CodeAnalysis
                 EncodedStringText.Create(stream, DefaultEncoding, checksumAlgorithm: options.ChecksumAlgorithm);
 #pragma warning restore
 
+        [Obsolete("Use/override LoadTextAndVersionAsync(LoadTextOptions, CancellationToken)", false)]
         public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
             => base.LoadTextAndVersionAsync(workspace, documentId, cancellationToken);
 
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <exception cref="IOException"></exception>
         /// <exception cref="InvalidDataException"></exception>
-        internal override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+        public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
         {
             ValidateFileLength(Path);
 

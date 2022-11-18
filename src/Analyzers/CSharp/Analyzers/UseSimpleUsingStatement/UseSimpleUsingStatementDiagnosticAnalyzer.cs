@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -62,23 +63,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.UsingStatement);
+        {
+            context.RegisterCompilationStartAction(context =>
+            {
+                if (context.Compilation.LanguageVersion() < LanguageVersion.CSharp8)
+                    return;
+
+                context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.UsingStatement);
+            });
+        }
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
+            var cancellationToken = context.CancellationToken;
             var outermostUsing = (UsingStatementSyntax)context.Node;
-
-            var syntaxTree = context.Node.SyntaxTree;
-            var options = (CSharpParseOptions)syntaxTree.Options;
-            if (options.LanguageVersion < LanguageVersion.CSharp8)
-            {
-                return;
-            }
+            var semanticModel = context.SemanticModel;
 
             if (outermostUsing.Parent is not BlockSyntax parentBlock)
             {
-                // Don't offer on a using statement that is parented by another using statement.
-                // We'll just offer on the topmost using statement.
+                // Don't offer on a using statement that is parented by another using statement. We'll just offer on the
+                // topmost using statement.
                 return;
             }
 
@@ -90,24 +94,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             {
                 innermostUsing = current;
                 if (current.Declaration == null)
-                {
                     return;
-                }
             }
 
-            // Verify that changing this using-statement into a using-declaration will not
-            // change semantics.
-            if (!PreservesSemantics(parentBlock, outermostUsing, innermostUsing))
-            {
+            // Verify that changing this using-statement into a using-declaration will not change semantics.
+            if (!PreservesSemantics(semanticModel, parentBlock, outermostUsing, innermostUsing, cancellationToken))
                 return;
-            }
 
-            var cancellationToken = context.CancellationToken;
-
-            // Converting a using-statement to a using-variable-declaration will cause the using's
-            // variables to now be pushed up to the parent block's scope. This is also true for any
-            // local variables in the innermost using's block. These may then collide with other
-            // variables in the block, causing an error.  Check for that and bail if this happens.
+            // Converting a using-statement to a using-variable-declaration will cause the using's variables to now be
+            // pushed up to the parent block's scope. This is also true for any local variables in the innermost using's
+            // block. These may then collide with other variables in the block, causing an error.  Check for that and
+            // bail if this happens.
             if (CausesVariableCollision(
                     context.SemanticModel, parentBlock,
                     outermostUsing, innermostUsing, cancellationToken))
@@ -117,9 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 
             var option = context.GetCSharpAnalyzerOptions().PreferSimpleUsingStatement;
             if (!option.Value)
-            {
                 return;
-            }
 
             // Good to go!
             context.ReportDiagnostic(DiagnosticHelper.Create(
@@ -139,8 +134,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 
             for (var current = outermostUsing; current != null; current = current.Statement as UsingStatementSyntax)
             {
-                // Check if the using statement itself contains variables that will collide
-                // with other variables in the block.
+                // Check if the using statement itself contains variables that will collide with other variables in the
+                // block.
                 var usingOperation = (IUsingOperation)semanticModel.GetRequiredOperation(current, cancellationToken);
                 if (DeclaredLocalCausesCollision(symbolNameToExistingSymbol, usingOperation.Locals))
                     return true;
@@ -157,36 +152,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             => locals.Any(static (local, symbolNameToExistingSymbol) => symbolNameToExistingSymbol[local.Name].Any(otherLocal => !local.Equals(otherLocal)), symbolNameToExistingSymbol);
 
         private static bool PreservesSemantics(
+            SemanticModel semanticModel,
             BlockSyntax parentBlock,
             UsingStatementSyntax outermostUsing,
-            UsingStatementSyntax innermostUsing)
+            UsingStatementSyntax innermostUsing,
+            CancellationToken cancellationToken)
         {
             var statements = parentBlock.Statements;
             var index = statements.IndexOf(outermostUsing);
 
-            return UsingValueDoesNotLeakToFollowingStatements(statements, index) &&
+            return UsingValueDoesNotLeakToFollowingStatements(semanticModel, statements, index, cancellationToken) &&
                    UsingStatementDoesNotInvolveJumps(statements, index, innermostUsing);
         }
 
         private static bool UsingStatementDoesNotInvolveJumps(
             SyntaxList<StatementSyntax> parentStatements, int index, UsingStatementSyntax innermostUsing)
         {
-            // Jumps are not allowed to cross a using declaration in the forward direction, 
-            // and can't go back unless there is a curly brace between the using and the label.
+            // Jumps are not allowed to cross a using declaration in the forward direction, and can't go back unless
+            // there is a curly brace between the using and the label.
             // 
             // We conservatively implement this by disallowing the change if there are gotos/labels 
             // in the containing block, or inside the using body.  
 
             // Note: we only have to check up to the `using`, since the checks below in
-            // UsingValueDoesNotLeakToFollowingStatements ensure that there would be no
-            // labels/gotos *after* the using statement.
+            // UsingValueDoesNotLeakToFollowingStatements ensure that there would be no labels/gotos *after* the using
+            // statement.
             for (var i = 0; i < index; i++)
             {
                 var priorStatement = parentStatements[i];
                 if (IsGotoOrLabeledStatement(priorStatement))
-                {
                     return false;
-                }
             }
 
             var innerStatements = innermostUsing.Statement is BlockSyntax block
@@ -196,9 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             foreach (var statement in innerStatements)
             {
                 if (IsGotoOrLabeledStatement(statement))
-                {
                     return false;
-                }
             }
 
             return true;
@@ -209,46 +202,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                SyntaxKind.LabeledStatement;
 
         private static bool UsingValueDoesNotLeakToFollowingStatements(
-            SyntaxList<StatementSyntax> statements, int index)
+            SemanticModel semanticModel,
+            SyntaxList<StatementSyntax> statements,
+            int index,
+            CancellationToken cancellationToken)
         {
             // Has to be one of the following forms:
             // 1. Using statement is the last statement in the parent.
-            // 2. Using statement is not the last statement in parent, but is followed by 
-            //    something that is unaffected by simplifying the using statement.  i.e.
-            //    `return`/`break`/`continue`.  *Note*.  `return expr` would *not* be ok.
-            //    In that case, `expr` would now be evaluated *before* the using disposed
-            //    the resource, instead of afterwards.  Effectly, the statement following
-            //    cannot actually execute any code that might depend on the .Dispose method
-            //    being called or not.
+            // 2. Using statement is not the last statement in parent, but is followed by something that is unaffected
+            //    by simplifying the using statement.  i.e. `return`/`break`/`continue`.  *Note*.  `return expr` would
+            //    *not* be ok. In that case, `expr` would now be evaluated *before* the using disposed the resource,
+            //    instead of afterwards.  Effectively, the statement following cannot actually execute any code that
+            //    might depend on the .Dispose method being called or not.
 
+            // Note: we can skip local functions as moving their scope inside the using doesn't change anything.
+            while (index + 1 < statements.Count && statements[index + 1] is LocalFunctionStatementSyntax)
+                index++;
+
+            // if we got to the end of the the block then this can be converted.
             if (index == statements.Count - 1)
-            {
-                // very last statement in the block.  Can be converted.
                 return true;
-            }
 
             // Not the last statement, get the next statement and examine that.
             var nextStatement = statements[index + 1];
-            if (nextStatement is BreakStatementSyntax or
-                ContinueStatementSyntax)
+            if (nextStatement is BreakStatementSyntax or ContinueStatementSyntax)
             {
-                // using statement followed by break/continue.  Can convert this as executing 
-                // the break/continue will cause the code to exit the using scope, causing 
-                // Dispose to be called at the same place as before.
+                // using statement followed by break/continue.  Can convert this as executing the break/continue will
+                // cause the code to exit the using scope, causing Dispose to be called at the same place as before.
                 return true;
             }
 
-            if (nextStatement is ReturnStatementSyntax returnStatement &&
-                returnStatement.Expression == null)
+            if (nextStatement is ReturnStatementSyntax returnStatement)
             {
-                // using statement followed by `return`.  Can conver this as executing 
-                // the `return` will cause the code to exit the using scope, causing 
-                // Dispose to be called at the same place as before.
+                // using statement followed by `return`.  Can convert this as executing the `return` will cause the code
+                // to exit the using scope, causing Dispose to be called at the same place as before.
                 //
-                // Note: the expr has to be null.  If it was non-null, then the expr would
-                // now execute before hte using called 'Dispose' instead of after, potentially
-                // changing semantics.
-                return true;
+                // Note: the expr has to be null.  If it was non-null, then the expr would now execute before hte using
+                // called 'Dispose' instead of after, potentially changing semantics.
+                if (returnStatement.Expression is null)
+                    return true;
+
+                // return constant;
+                //
+                // This is also safe to return as constants could not be affected by being inside or outside the using block.
+                var constantValue = semanticModel.GetConstantValue(returnStatement.Expression, cancellationToken);
+                return constantValue.HasValue;
             }
 
             // Add any additional cases here in the future.

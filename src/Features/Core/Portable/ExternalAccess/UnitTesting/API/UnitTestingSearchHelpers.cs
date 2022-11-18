@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -13,12 +15,36 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
     internal static class UnitTestingSearchHelpers
     {
         private static readonly char[] s_splitCharacters = { '.', '+' };
+
+        public static async Task<UnitTestingDocumentSpan?> GetSourceLocationAsync(
+            Project project, UnitTestingSearchQuery query, CancellationToken cancellationToken)
+        {
+            if (!project.SupportsCompilation)
+                return null;
+
+            var client = await RemoteHostClient.TryGetClientAsync(project.Solution.Services, cancellationToken).ConfigureAwait(false);
+
+            if (client != null)
+            {
+                var location = await client.TryInvokeAsync<IRemoteUnitTestingSearchService, UnitTestingSourceLocation?>(
+                    project,
+                    (service, solutionChecksum, cancellationToken) => service.GetSourceLocationAsync(solutionChecksum, project.Id, query, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+                if (!location.HasValue || location.Value is null)
+                    return null;
+
+                return await location.Value.Value.TryRehydrateAsync(project.Solution, cancellationToken).ConfigureAwait(false);
+            }
+
+            return await GetSourceLocationInProcessAsync(project, query, cancellationToken).ConfigureAwait(false);
+        }
 
         public static async Task<ImmutableArray<UnitTestingDocumentSpan>> GetSourceLocationsAsync(
             Project project, UnitTestingSearchQuery query, CancellationToken cancellationToken)
@@ -112,7 +138,32 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             }
         }
 
+        private static async Task<UnitTestingDocumentSpan?> GetSourceLocationInProcessAsync(
+            Project project,
+            UnitTestingSearchQuery query,
+            CancellationToken cancellationToken)
+        {
+            // Return the first result we find.
+            await foreach (var item in GetSourceLocationsInProcessWorkerAsync(project, query, cancellationToken).ConfigureAwait(false))
+                return item;
+
+            return null;
+        }
+
         private static async Task<ImmutableArray<UnitTestingDocumentSpan>> GetSourceLocationsInProcessAsync(
+            Project project,
+            UnitTestingSearchQuery query,
+            CancellationToken cancellationToken)
+        {
+            using var _ = ArrayBuilder<UnitTestingDocumentSpan>.GetInstance(out var result);
+
+            await foreach (var item in GetSourceLocationsInProcessWorkerAsync(project, query, cancellationToken).ConfigureAwait(false))
+                result.Add(item);
+
+            return result.ToImmutable();
+        }
+
+        private static IAsyncEnumerable<UnitTestingDocumentSpan> GetSourceLocationsInProcessWorkerAsync(
             Project project,
             UnitTestingSearchQuery query,
             CancellationToken cancellationToken)
@@ -121,21 +172,27 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             var syntaxFacts = project.GetRequiredLanguageService<ISyntaxFactsService>();
             var comparer = syntaxFacts.StringComparer;
 
-            var tasks = project.Documents.Select(d => GetSourceLocationsInProcessAsync(d, comparer, container, symbolName, symbolArity, query, cancellationToken));
-            var result = await Task.WhenAll(tasks).ConfigureAwait(false);
-            return result.SelectMany(r => r).ToImmutableArray();
+            var streams = project.Documents.SelectAsArray(d => GetSourceLocationsInProcessAsync(d, comparer, container, symbolName, symbolArity, query, cancellationToken));
+            return streams.MergeAsync(cancellationToken);
         }
 
-        private static async Task<ImmutableArray<UnitTestingDocumentSpan>> GetSourceLocationsInProcessAsync(
+        private static async IAsyncEnumerable<UnitTestingDocumentSpan> GetSourceLocationsInProcessAsync(
             Document document,
             StringComparer comparer,
             string container,
             string symbolName,
             int symbolArity,
             UnitTestingSearchQuery query,
-            CancellationToken cancellationToken)
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<UnitTestingDocumentSpan>.GetInstance(out var result);
+            // quick check that the symbol name is actually in the bloom-filter index for this document.  Can avoid
+            // checking any of the items in it if so.
+            var syntaxTreeIndex = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
+            if (!syntaxTreeIndex.ProbablyContainsIdentifier(symbolName))
+                yield break;
+
+            // Ok, the symbol name was in this document.  Now go get the declaration-index and look through that to find
+            // the location of a potential matching symbol.
 
             SyntaxTree? tree = null;
 
@@ -176,10 +233,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
                 tree ??= await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var mappedSpan = tree.GetMappedLineSpan(info.Span, cancellationToken);
 
-                result.Add(new UnitTestingDocumentSpan(new DocumentSpan(document, info.Span), mappedSpan));
+                yield return new UnitTestingDocumentSpan(new DocumentSpan(document, info.Span), mappedSpan);
             }
-
-            return result.ToImmutable();
         }
     }
 }

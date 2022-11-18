@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
 
             static ProjectCodeRefactoringProvider.ExtensionInfo GetExtensionInfo(ExportCodeRefactoringProviderAttribute attribute)
-                => new(attribute.DocumentKinds.ToImmutableArray(), attribute.DocumentExtensions);
+                => new(attribute.DocumentKinds, attribute.DocumentExtensions);
         }
 
         public async Task<bool> HasRefactoringsAsync(
