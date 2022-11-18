@@ -72,14 +72,14 @@
         <target state="translated">캡처된 변수를 인수로 전달</target>
         <note />
       </trans-unit>
-      <trans-unit id="Place_colon_on_following_line">
-        <source>Place colon on following line</source>
-        <target state="translated">다음 줄에 콜론 배치</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Place_statement_on_following_line">
         <source>Place statement on following line</source>
         <target state="translated">다음 줄에 문 배치</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_token_on_following_line">
+        <source>Place token on following line</source>
+        <target state="new">Place token on following line</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Usings">

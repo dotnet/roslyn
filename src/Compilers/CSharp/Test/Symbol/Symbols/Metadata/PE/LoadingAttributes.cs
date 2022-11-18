@@ -101,7 +101,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 Net40.mscorlib
             });
 
-
             var assembly1 = assemblies[1];
             var module0 = assemblies[0].Modules[0];
 

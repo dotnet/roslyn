@@ -2169,7 +2169,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                              ITypeSymbolHelpers.IsObjectType(operation.LeftOperand.Type) &&
                              ITypeSymbolHelpers.IsObjectType(operation.RightOperand.Type))
                     {
-                        return VisitObjectBinaryConditionalOperator(operation, captureIdForResult);
+                        return VisitObjectBinaryConditionalOperator(operation);
                     }
                     else if (ITypeSymbolHelpers.IsDynamicType(operation.Type) &&
                              (ITypeSymbolHelpers.IsDynamicType(operation.LeftOperand.Type) ||
@@ -2387,7 +2387,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
         }
 
-        private IOperation VisitObjectBinaryConditionalOperator(IBinaryOperation binOp, int? captureIdForResult)
+        private IOperation VisitObjectBinaryConditionalOperator(IBinaryOperation binOp)
         {
             SpillEvalStack();
 

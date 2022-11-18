@@ -11419,9 +11419,12 @@ foreach (scoped ref int[M(out var b)] a in collection);
 scoped ref struct B { }
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (1,8): error CS1001: Identifier expected
                 // scoped struct A { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "scoped").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(1, 8),
+                // (1,8): error CS1002: ; expected
+                // scoped struct A { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 8),
                 // (2,12): error CS1031: Type expected
                 // scoped ref struct B { }
                 Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(2, 12)
@@ -11429,11 +11432,22 @@ scoped ref struct B { }
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.IdentifierToken, "scoped");
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.StructDeclaration);

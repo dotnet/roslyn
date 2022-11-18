@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.ModuleVersionIdString:
                     Debug.Assert(used);
-                    EmitModuleVersionIdStringLoad((BoundModuleVersionIdString)expression);
+                    EmitModuleVersionIdStringLoad();
                     break;
 
                 case BoundKind.InstrumentationPayloadRoot:
@@ -518,7 +518,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             _builder.EmitBranch(ILOpCode.Br, doneLabel);
-
 
             // ===== WHEN NOT NULL 
             if (nullCheckOnCopy)
@@ -1261,7 +1260,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // I do not know how to hit this, since value__ is not bindable in C#, but Dev12 has code to handle this
             return type.IsEnumType();
         }
-
 
         private static int ParameterSlot(BoundParameter parameter)
         {
@@ -3114,7 +3112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _builder.EmitToken(_module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag);
         }
 
-        private void EmitModuleVersionIdStringLoad(BoundModuleVersionIdString node)
+        private void EmitModuleVersionIdStringLoad()
         {
             _builder.EmitOpCode(ILOpCode.Ldstr);
             _builder.EmitModuleVersionIdStringToken();

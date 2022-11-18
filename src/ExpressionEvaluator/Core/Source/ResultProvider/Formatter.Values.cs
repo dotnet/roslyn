@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        private string GetEditableValue(DkmClrValue value, DkmInspectionContext inspectionContext, DkmClrCustomTypeInfo customTypeInfo)
+        private string GetEditableValue(DkmClrValue value, DkmInspectionContext inspectionContext)
         {
             if (value.IsError())
             {

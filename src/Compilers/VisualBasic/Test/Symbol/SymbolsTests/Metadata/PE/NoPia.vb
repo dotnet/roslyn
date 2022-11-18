@@ -1286,7 +1286,6 @@ end class
                              compilationDerived.AssertNoDiagnostics()
                          End Sub
 
-
             Dim compilationPIA = CreateCompilation(sourcePIA, options:=TestOptions.DebugDll)
             compilationPIA.AssertNoDiagnostics()
 

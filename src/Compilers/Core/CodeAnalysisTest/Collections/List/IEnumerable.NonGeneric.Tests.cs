@@ -128,7 +128,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Equal(count, iterations);
         }
 
-
         [Theory]
         [MemberData(nameof(ValidCollectionSizes))]
         public void IEnumerable_NonGeneric_Enumerator_MoveNext_AfterEndOfCollection(int count)

@@ -11214,9 +11214,15 @@ scoped readonly ref struct C { }
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
             comp.VerifyDiagnostics(
-                // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (1,1): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 // scoped struct A { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "scoped").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(1, 1),
+                // (1,8): error CS1001: Identifier expected
+                // scoped struct A { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(1, 8),
+                // (1,8): error CS1002: ; expected
+                // scoped struct A { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 8),
                 // (2,12): error CS1031: Type expected
                 // scoped ref struct B { }
                 Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(2, 12),
@@ -12436,7 +12442,6 @@ ref struct R { }
                 var decls = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
 
                 Assert.Equal(6, decls.Length);
-
 
                 foreach (var decl in decls)
                 {

@@ -195,7 +195,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             // UNDONE: Conversions involving expressions: null, lambda, method group
         }
 
-
         [Fact]
         public void TestIsSameTypeIgnoringDynamic()
         {

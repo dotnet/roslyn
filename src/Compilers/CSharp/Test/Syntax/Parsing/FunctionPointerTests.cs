@@ -505,10 +505,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void LangVersion8()
         {
-            UsingStatement("delegate* unmanaged[cdecl]<string, Goo, int> ptr;", options: TestOptions.Regular8,
+            var text = "delegate* unmanaged[cdecl]<string, Goo, int> ptr;";
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // delegate* unmanaged[cdecl]<string, Goo, int> ptr;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate* unmanaged[cdecl]<string, Goo, int> ptr;").WithArguments("top-level statements", "9.0").WithLocation(1, 1),
                 // (1,1): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // delegate* unmanaged[cdecl]<string, Goo, int> ptr;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate* unmanaged[cdecl]<string, Goo, int>").WithArguments("function pointers", "9.0").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate").WithArguments("function pointers", "9.0").WithLocation(1, 1),
+                // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // delegate* unmanaged[cdecl]<string, Goo, int> ptr;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 1),
+                // (1,21): error CS8889: The target runtime doesn't support extensible or runtime-environment default calling conventions.
+                // delegate* unmanaged[cdecl]<string, Goo, int> ptr;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv, "cdecl").WithLocation(1, 21),
+                // (1,21): error CS8890: Type 'CallConvcdecl' is not defined.
+                // delegate* unmanaged[cdecl]<string, Goo, int> ptr;
+                Diagnostic(ErrorCode.ERR_TypeNotFound, "cdecl").WithArguments("CallConvcdecl").WithLocation(1, 21),
+                // (1,36): error CS0246: The type or namespace name 'Goo' could not be found (are you missing a using directive or an assembly reference?)
+                // delegate* unmanaged[cdecl]<string, Goo, int> ptr;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Goo").WithArguments("Goo").WithLocation(1, 36),
+                // (1,46): warning CS0168: The variable 'ptr' is declared but never used
+                // delegate* unmanaged[cdecl]<string, Goo, int> ptr;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "ptr").WithArguments("ptr").WithLocation(1, 46));
+
+            UsingStatement(text, options: TestOptions.Regular8);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -4108,9 +4130,9 @@ void C()
                 // (1,11): error CS1041: Identifier expected; 'delegate' is a keyword
                 // using t = delegate*<void>;
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(1, 11),
-                // (1,25): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,26): error CS1001: Identifier expected
                 // using t = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">").WithLocation(1, 25)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 26)
             );
 
             N(SyntaxKind.CompilationUnit);
@@ -4132,30 +4154,34 @@ void C()
                     }
                     M(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.FunctionPointerType);
-                    {
-                        N(SyntaxKind.DelegateKeyword);
-                        N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.FunctionPointerParameterList);
-                        {
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.FunctionPointerParameter);
-                            {
-                                N(SyntaxKind.PredefinedType);
-                                {
-                                    N(SyntaxKind.VoidKeyword);
-                                }
-                            }
-                            N(SyntaxKind.GreaterThanToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.EmptyStatement);
+                    N(SyntaxKind.LocalDeclarationStatement);
                     {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.FunctionPointerType);
+                            {
+                                N(SyntaxKind.DelegateKeyword);
+                                N(SyntaxKind.AsteriskToken);
+                                N(SyntaxKind.FunctionPointerParameterList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.FunctionPointerParameter);
+                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.VoidKeyword);
+                                        }
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
