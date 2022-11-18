@@ -4707,6 +4707,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                          initializerSyntax.Kind() == SyntaxKind.WithInitializerExpression);
             Debug.Assert((object)initializerType != null);
 
+
+            if (initializerSyntax.Kind() == SyntaxKind.ObjectInitializerExpression)
+                MessageID.IDS_FeatureObjectInitializer.CheckFeatureAvailability(diagnostics, initializerSyntax, initializerSyntax.OpenBraceToken.GetLocation());
+            
             // We use a location specific binder for binding object initializer field/property access to generate object initializer specific diagnostics:
             //  1) CS1914 (ERR_StaticMemberInObjectInitializer)
             //  2) CS1917 (ERR_ReadonlyValueTypeInObjectInitializer)
@@ -5204,6 +5208,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(initializerSyntax.Kind() == SyntaxKind.CollectionInitializerExpression);
             Debug.Assert(initializerSyntax.Expressions.Any());
             Debug.Assert((object)initializerType != null);
+
+            MessageID.IDS_FeatureCollectionInitializer.CheckFeatureAvailability(diagnostics, initializerSyntax, initializerSyntax.OpenBraceToken.GetLocation());
 
             var initializerBuilder = ArrayBuilder<BoundExpression>.GetInstance();
 

@@ -12782,8 +12782,6 @@ tryAgain:
                 this.ParseObjectOrCollectionInitializerMembers(ref openBrace, initializers, out isObjectInitializer);
                 Debug.Assert(initializers.Count > 0 || isObjectInitializer);
 
-                openBrace = CheckFeatureAvailability(openBrace, isObjectInitializer ? MessageID.IDS_FeatureObjectInitializer : MessageID.IDS_FeatureCollectionInitializer);
-
                 var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
                 return _syntaxFactory.InitializerExpression(
                     isObjectInitializer ?

@@ -5650,14 +5650,27 @@ class C
     }
 }
 ";
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyEmitDiagnostics(
+                // (6,21): error CS0246: The type or namespace name 'Goo' could not be found (are you missing a using directive or an assembly reference?)
+                //         var q = new Goo { };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Goo").WithArguments("Goo").WithLocation(6, 21));
+            CreateCompilation(text, parseOptions: TestOptions.Regular2).VerifyEmitDiagnostics(
+                // (6,9): error CS8023: Feature 'implicitly typed local variable' is not available in C# 2. Please use language version 3 or greater.
+                //         var q = new Goo { };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "var").WithArguments("implicitly typed local variable", "3").WithLocation(6, 9),
+                // (6,21): error CS0246: The type or namespace name 'Goo' could not be found (are you missing a using directive or an assembly reference?)
+                //         var q = new Goo { };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Goo").WithArguments("Goo").WithLocation(6, 21),
+                // (6,25): error CS8023: Feature 'object initializer' is not available in C# 2. Please use language version 3 or greater.
+                //         var q = new Goo { };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "{").WithArguments("object initializer", "3").WithLocation(6, 25));
+
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
-            tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
-                // (6,25): error CS8023: Feature 'object initializer' is not available in C# 2. Please use language version 3 or greater.
-                //         var q = new Goo { };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "{").WithArguments("object initializer", "3"));
+            tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -6243,11 +6256,20 @@ class C
     }
 }
 ";
-            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3)).GetDiagnostics().Verify();
-            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify(
+            CreateCompilation(text, parseOptions: TestOptions.Regular3).VerifyEmitDiagnostics(
+                // (6,24): error CS0117: 'C' does not contain a definition for 'Goo'
+                //         return new C { Goo = 1 }; 
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Goo").WithArguments("C", "Goo").WithLocation(6, 24));
+            CreateCompilation(text, parseOptions: TestOptions.Regular2).VerifyEmitDiagnostics(
                 // (6,22): error CS8023: Feature 'object initializer' is not available in C# 2. Please use language version 3 or greater.
                 //         return new C { Goo = 1 }; 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "{").WithArguments("object initializer", "3"));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "{").WithArguments("object initializer", "3").WithLocation(6, 22),
+                // (6,24): error CS0117: 'C' does not contain a definition for 'Goo'
+                //         return new C { Goo = 1 }; 
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Goo").WithArguments("C", "Goo").WithLocation(6, 24));
+
+            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3)).GetDiagnostics().Verify();
+            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -6262,11 +6284,20 @@ class C
     }
 }
 ";
-            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3)).GetDiagnostics().Verify();
-            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify(
+            CreateCompilation(text, parseOptions: TestOptions.Regular3).VerifyEmitDiagnostics(
+                // (6,22): error CS1922: Cannot initialize type 'C' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
+                //         return new C { 1, 2, 3 }; 
+                Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ 1, 2, 3 }").WithArguments("C").WithLocation(6, 22));
+            CreateCompilation(text, parseOptions: TestOptions.Regular2).VerifyEmitDiagnostics(
                 // (6,22): error CS8023: Feature 'collection initializer' is not available in C# 2. Please use language version 3 or greater.
                 //         return new C { 1, 2, 3 }; 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "{").WithArguments("collection initializer", "3"));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "{").WithArguments("collection initializer", "3").WithLocation(6, 22),
+                // (6,22): error CS1922: Cannot initialize type 'C' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
+                //         return new C { 1, 2, 3 }; 
+                Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ 1, 2, 3 }").WithArguments("C").WithLocation(6, 22));
+
+            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3)).GetDiagnostics().Verify();
+            SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify();
         }
 
         [Fact]
