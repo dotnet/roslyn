@@ -681,9 +681,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // We expect OOM to be thrown during the analysis if the number of top-level entities is too large.
                 // In such case we report a rude edit for the document. If the host is actually running out of memory,
                 // it might throw another OOM here or later on.
-                var diagnostic = (e is OutOfMemoryException) ?
-                    new RudeEditDiagnostic(RudeEditKind.SourceFileTooBig, span: default, arguments: new[] { newDocument.FilePath }) :
-                    new RudeEditDiagnostic(RudeEditKind.InternalError, span: default, arguments: new[] { newDocument.FilePath, e.ToString() });
+                var diagnostic = (e is OutOfMemoryException)
+                    ? new RudeEditDiagnostic(RudeEditKind.SourceFileTooBig, span: default, arguments: new[] { newDocument.FilePath })
+                    : new RudeEditDiagnostic(RudeEditKind.InternalError, span: default, arguments: new[] { newDocument.FilePath, e.ToString() });
 
                 // Report as "syntax error" - we can't analyze the document
                 return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, ImmutableArray.Create(diagnostic), syntaxError: null, hasChanges);
@@ -2400,9 +2400,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     // We can ignore namespace nodes in newly added documents (old model is not available) since 
                     // all newly added types in these namespaces will have their own syntax edit.
-                    var symbolEdits = oldModel != null && IsNamespaceDeclaration(edit.OldNode ?? edit.NewNode!) ?
-                        OneOrMany.Create(GetNamespaceSymbolEdits(oldModel, newModel, cancellationToken)) :
-                        GetSymbolEdits(edit.Kind, edit.OldNode, edit.NewNode, oldModel, newModel, editMap, cancellationToken);
+                    var symbolEdits = oldModel != null && IsNamespaceDeclaration(edit.OldNode ?? edit.NewNode!)
+                        ? OneOrMany.Create(GetNamespaceSymbolEdits(oldModel, newModel, cancellationToken))
+                        : GetSymbolEdits(edit.Kind, edit.OldNode, edit.NewNode, oldModel, newModel, editMap, cancellationToken);
 
                     foreach (var symbolEdit in symbolEdits)
                     {
@@ -2557,9 +2557,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     // We need to adjust the tracking span design and UpdateUneditedSpans to account for such empty spans.
                                     if (hasActiveStatement)
                                     {
-                                        var newSpan = IsDeclarationWithInitializer(oldDeclaration) ?
-                                            GetDeletedNodeActiveSpan(editScript.Match.Matches, oldDeclaration) :
-                                            GetDeletedNodeDiagnosticSpan(editScript.Match.Matches, oldDeclaration);
+                                        var newSpan = IsDeclarationWithInitializer(oldDeclaration)
+                                            ? GetDeletedNodeActiveSpan(editScript.Match.Matches, oldDeclaration)
+                                            : GetDeletedNodeDiagnosticSpan(editScript.Match.Matches, oldDeclaration);
 
                                         foreach (var index in activeStatementIndices)
                                         {
@@ -5893,9 +5893,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return;
             }
 
-            var stateMachineAttributeQualifiedName = oldMethod.IsAsync ?
-                "System.Runtime.CompilerServices.AsyncStateMachineAttribute" :
-                "System.Runtime.CompilerServices.IteratorStateMachineAttribute";
+            var stateMachineAttributeQualifiedName = oldMethod.IsAsync
+                ? "System.Runtime.CompilerServices.AsyncStateMachineAttribute"
+                : "System.Runtime.CompilerServices.IteratorStateMachineAttribute";
 
             // We assume that the attributes, if exist, are well formed.
             // If not an error will be reported during EnC delta emit.

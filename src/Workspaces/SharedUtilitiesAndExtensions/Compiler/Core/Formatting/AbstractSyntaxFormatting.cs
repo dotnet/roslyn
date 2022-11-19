@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             if (spans == null)
             {
-                spansToFormat = node.FullSpan.IsEmpty ?
-                    SpecializedCollections.EmptyReadOnlyList<TextSpan>() :
-                    SpecializedCollections.SingletonReadOnlyList(node.FullSpan);
+                spansToFormat = node.FullSpan.IsEmpty
+                    ? SpecializedCollections.EmptyReadOnlyList<TextSpan>()
+                    : SpecializedCollections.SingletonReadOnlyList(node.FullSpan);
             }
             else
             {
