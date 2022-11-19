@@ -56,6 +56,13 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ArrowExpressionClausePlacement
         private void ProcessArrowExpressionClause(
             SyntaxTreeAnalysisContext context, ReportDiagnostic severity, ArrowExpressionClauseSyntax arrowExpressionClause)
         {
+            // get
+            //     => 1 + 2;
+            //
+            // Never looks good.  So we don't process in that case.
+            if (arrowExpressionClause.Parent is AccessorDeclarationSyntax)
+                return;
+
             // Don't bother analyzing nodes that have syntax errors in them.
             if (arrowExpressionClause.GetDiagnostics().Any(static d => d.Severity == DiagnosticSeverity.Error))
                 return;
