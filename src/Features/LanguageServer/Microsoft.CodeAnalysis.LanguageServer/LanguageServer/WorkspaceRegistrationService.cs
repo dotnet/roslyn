@@ -23,6 +23,6 @@ internal class WorkspaceRegistrationService : LspWorkspaceRegistrationService
     {
         // For now mark the host workspace kind as the 'main' workspace where
         // 'workspace/XXXX' requests go to.
-        return WorkspaceKind.MSBuild;
+        return WorkspaceKind.Host;
     }
 }

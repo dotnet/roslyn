@@ -7,6 +7,8 @@ using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.VSCode.API;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
@@ -37,7 +39,7 @@ MSBuildLocator.RegisterInstance(msbuildInstances.First());
 
 var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync();
 
-using (var workspace = CreateWorkspaceAsync(solutionPath, exportProvider, logger))
+using (var workspace = await HostWorkspace.CreateWorkspaceAsync(solutionPath, exportProvider, logger))
 {
     var jsonRpc = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), logger, exportProvider);
 
@@ -64,20 +66,5 @@ static string GetSolutionPath(string[] args)
     }
 
     return args[solutionPathIndex];
-}
-
-static async Task<Workspace> CreateWorkspaceAsync(string solutionPath, ExportProvider exportProvider, ILogger logger)
-{
-    try
-    {
-        var msbuildWorkspace = MSBuildWorkspace.Create(MefV1HostServices.Create(exportProvider.AsExportProvider()));
-        await msbuildWorkspace.OpenSolutionAsync(solutionPath);
-        return msbuildWorkspace;
-    }
-    catch (Exception ex)
-    {
-        logger.LogError(ex, $"Failed to load workspace for {solutionPath}");
-        throw;
-    }
 }
 
