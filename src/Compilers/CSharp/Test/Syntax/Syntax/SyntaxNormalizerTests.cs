@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact, WorkItem(52543, "https://github.com/dotnet/roslyn/issues/52543")]
         public void TestNormalizeSwitchExpressionComplex()
         {
-            var a = """
+            TestNormalizeStatement("""
                 var x = vehicle switch
                             {
                                 Car { Passengers: 0 } => 2.00m + 0.50m,
@@ -231,8 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 { } => -1, //throw new ArgumentException(message: "Not a known vehicle type", paramName: nameof(vehicle)),
                                 null => 0//throw new ArgumentNullException(nameof(vehicle))
                             };
-                """;
-            var b = """
+                """, """
                 var x = vehicle switch
                 {
                   Car { Passengers: 0 } => 2.00m + 0.50m,
@@ -252,8 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   { } => -1, //throw new ArgumentException(message: "Not a known vehicle type", paramName: nameof(vehicle)),
                   null => 0 //throw new ArgumentNullException(nameof(vehicle))
                 };
-                """;
-            TestNormalizeStatement(a, b);
+                """);
         }
 
         [Fact]
