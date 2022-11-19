@@ -12621,19 +12621,17 @@ class C
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Theory, WorkItem(65517, "https://github.com/dotnet/roslyn/issues/65517")]
-        [InlineData("string")]
-        [InlineData("string?")]
-        public async Task RemoveCastOfStringLiteralToString(string stringType)
+        [Fact, WorkItem(65517, "https://github.com/dotnet/roslyn/issues/65517")]
+        public async Task RemoveCastOfStringLiteralToNullableString()
         {
-            await VerifyCS.VerifyCodeFixAsync($$"""
+            await VerifyCS.VerifyCodeFixAsync("""
                 #nullable enable
 
                 class C
                 {
                     void M()
                     {
-                        var v = [|({{stringType}})|]"some string";
+                        var v = [|(string?)|]"some string";
                     }
                 }
                 """, """
@@ -12647,6 +12645,28 @@ class C
                     }
                 }
                 """);
+        }
+
+        [Fact, WorkItem(65517, "https://github.com/dotnet/roslyn/issues/65517")]
+        public async Task DoNotRemoveCastOfStringLiteralToNullableStringWhenChangesGenericTypeInference()
+        {
+            var code = """
+                #nullable enable
+
+                using System.Collections.Generic;
+
+                class C
+                {
+                    List<string?> GetListOfThings()
+                    {
+                        return CreateList((string?)"");
+                    }
+
+                    List<T> CreateList<T>(T value) where T : class? => new() { value };
+                }
+                """;
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
     }
 }
