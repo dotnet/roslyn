@@ -3475,7 +3475,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ConstructorDeclarationSyntax or DestructorDeclarationSyntax => MessageID.IDS_FeatureExpressionBodiedDeOrConstructor,
                 AccessorDeclarationSyntax => MessageID.IDS_FeatureExpressionBodiedAccessor,
                 BaseMethodDeclarationSyntax => MessageID.IDS_FeatureExpressionBodiedMethod,
-                _ => (MessageID?)null,
+                IndexerDeclarationSyntax => MessageID.IDS_FeatureExpressionBodiedIndexer,
+                PropertyDeclarationSyntax => MessageID.IDS_FeatureExpressionBodiedProperty,
+                // No need to check if expression bodies are allowed if we have a local function. Local functions
+                // themselves are checked for availability, and if they are available then expression bodies must 
+                // also be available.
+                LocalFunctionStatementSyntax => (MessageID?)null,
+                _ => throw ExceptionUtilities.UnexpectedValue(expressionBody.Parent.Kind()),
             };
 
             messageId?.CheckFeatureAvailability(diagnostics, expressionBody, expressionBody.ArrowToken.GetLocation());
