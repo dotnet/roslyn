@@ -4597,10 +4597,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,26): error CS1003: Syntax error, ',' expected
                 //         var a = new[] { 1; 2 };
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 26),
-                // (6,28): error CS1003: Syntax error, ',' expected
-                //         var a = new[] { 1; 2 };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "2").WithArguments(",").WithLocation(6, 28));
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 26));
         }
 
         [Fact]
@@ -4625,9 +4622,6 @@ class C
                 // (6,26): error CS1003: Syntax error, ',' expected
                 //         var a = new[] { 1; 2; };
                 Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 26),
-                // (6,28): error CS1003: Syntax error, ',' expected
-                //         var a = new[] { 1; 2; };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "2").WithArguments(",").WithLocation(6, 28),
                 // (6,29): error CS1003: Syntax error, ',' expected
                 //         var a = new[] { 1; 2; };
                 Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 29));
@@ -4654,10 +4648,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,28): error CS1003: Syntax error, ',' expected
                 //         var o = new { A = 1; B = 2 };
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 28),
-                // (6,30): error CS1003: Syntax error, ',' expected
-                //         var o = new { A = 1; B = 2 };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "B").WithArguments(",").WithLocation(6, 30));
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 28));
         }
 
         [Fact]
@@ -4682,12 +4673,34 @@ class C
                 // (6,28): error CS1003: Syntax error, ',' expected
                 //         var o = new { A = 1; B = 2; };
                 Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 28),
-                // (6,30): error CS1003: Syntax error, ',' expected
-                //         var o = new { A = 1; B = 2; };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "B").WithArguments(",").WithLocation(6, 30),
                 // (6,35): error CS1003: Syntax error, ',' expected
                 //         var o = new { A = 1; B = 2; };
                 Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 35));
+        }
+
+        [Fact]
+        public void SemicolonSeparatorInDictionaryInitializer()
+        {
+            var source = """
+        using System.Collections.Generic;
+        class Program
+        {
+            static void Main()
+            {
+                F();
+                var a = new Dictionary<int, int> { [0] = 0; [1] = 1 };
+            }
+            static object F()
+            {
+                return null;
+            }
+        }
+        """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,51): error CS1003: Syntax error, ',' expected
+                //         var a = new Dictionary<int, int> { [0] = 0; [1] = 1 };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(7, 51));
         }
 
         [Fact]
@@ -5074,12 +5087,11 @@ class C
             Assert.Equal(1, ms.Body.Statements.Count);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, ms.Body.Statements[0].Kind());
             var errors = file.Errors();
-            Assert.Equal(5, errors.Length);
+            Assert.Equal(4, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
             Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[2].Code);
-            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[3].Code);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[4].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[2].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[3].Code);
         }
 
         [Fact]
@@ -5106,13 +5118,11 @@ class C
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
             var errors = file.Errors();
-            Assert.Equal(6, errors.Length);
+            Assert.Equal(4, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_SyntaxError, errors[0].Code);
             Assert.Equal((int)ErrorCode.ERR_SyntaxError, errors[1].Code);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, errors[2].Code);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, errors[3].Code);
-            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, errors[4].Code);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, errors[5].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, errors[2].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, errors[3].Code);
         }
 
         [Fact]
