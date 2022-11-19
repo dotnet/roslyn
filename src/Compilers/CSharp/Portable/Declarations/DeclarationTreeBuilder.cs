@@ -618,12 +618,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
             }
 
-            if (node is RecordDeclarationSyntax recordDeclaration)
+            // If we have `record class` or `record struct` check that this is supported in the language. Note: we don't
+            // have to do any check for the simple `record` case as the parser itself would never produce such a node
+            // unless the language version was sufficient (since it actually will not produce the node at all on
+            // previous versions).
+            if (node is RecordDeclarationSyntax record &&
+                record.ClassOrStructKeyword.Kind() != SyntaxKind.None)
             {
-                var messageId = recordDeclaration.Kind() == SyntaxKind.RecordStructDeclaration
-                    ? MessageID.IDS_FeatureRecordStructs
-                    : MessageID.IDS_FeatureRecords;
-                messageId.CheckFeatureAvailability(diagnostics, recordDeclaration, recordDeclaration.Keyword.GetLocation());
+                MessageID.IDS_FeatureRecordStructs.CheckFeatureAvailability(diagnostics, record, record.ClassOrStructKeyword.GetLocation());
             }
 
             var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);

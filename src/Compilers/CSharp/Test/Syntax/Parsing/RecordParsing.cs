@@ -2642,9 +2642,9 @@ class C(int X, int Y)
             var text = "record struct(int X, int Y);";
 
             CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (1,1): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (1,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // record struct(int X, int Y);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "record").WithArguments("record structs", "10.0").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(1, 8),
                 // (1,14): error CS1001: Identifier expected
                 // record struct(int X, int Y);
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14));
@@ -2941,6 +2941,9 @@ class C(int X, int Y)
             verifyParsedAsRecord();
 
             CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "class").WithArguments("record structs", "10.0").WithLocation(1, 8),
                 // (1,20): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
                 // record class C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "X").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(1, 20),
@@ -3946,9 +3949,9 @@ class C(int X, int Y)
             EOF();
 
             CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (1,5): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (1,12): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // ref record struct S;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "record").WithArguments("record structs", "10.0").WithLocation(1, 5),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(1, 12),
                 // (1,19): error CS0106: The modifier 'ref' is not valid for this item
                 // ref record struct S;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "S").WithArguments("ref").WithLocation(1, 19));
