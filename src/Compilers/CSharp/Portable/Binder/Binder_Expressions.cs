@@ -4709,7 +4709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (initializerSyntax.Kind() == SyntaxKind.ObjectInitializerExpression)
                 MessageID.IDS_FeatureObjectInitializer.CheckFeatureAvailability(diagnostics, initializerSyntax, initializerSyntax.OpenBraceToken.GetLocation());
-            
+
             // We use a location specific binder for binding object initializer field/property access to generate object initializer specific diagnostics:
             //  1) CS1914 (ERR_StaticMemberInObjectInitializer)
             //  2) CS1917 (ERR_ReadonlyValueTypeInObjectInitializer)
