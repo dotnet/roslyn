@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast;
@@ -12620,6 +12619,34 @@ class C
 }
 ";
             await VerifyCS.VerifyCodeFixAsync(code, code);
+        }
+
+        [Theory, WorkItem(65517, "https://github.com/dotnet/roslyn/issues/65517")]
+        [InlineData("string")]
+        [InlineData("string?")]
+        public async Task RemoveCastOfStringLiteralToString(string stringType)
+        {
+            await VerifyCS.VerifyCodeFixAsync($$"""
+                #nullable enable
+
+                class C
+                {
+                    void M()
+                    {
+                        var v = [|({{stringType}})|]"some string";
+                    }
+                }
+                """, """
+                #nullable enable
+                
+                class C
+                {
+                    void M()
+                    {
+                        var v = "some string";
+                    }
+                }
+                """);
         }
     }
 }

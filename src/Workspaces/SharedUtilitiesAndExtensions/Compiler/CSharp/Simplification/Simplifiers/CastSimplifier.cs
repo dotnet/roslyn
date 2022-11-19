@@ -461,7 +461,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return true;
 
             // We can safely remove convertion to object in interpolated strings regardless of nullability
-            if (castNode.IsParentKind(SyntaxKind.Interpolation) && originalConversionOperation.Type?.SpecialType is SpecialType.System_Object)
+            if (castNode.IsParentKind(SyntaxKind.Interpolation) && originalConvertedType.SpecialType is SpecialType.System_Object)
+                return true;
+
+            // Can remove convertion of string literal to string regardless of nullability
+            if (rewrittenExpression.WalkDownParentheses().IsKind(SyntaxKind.StringLiteralExpression) && originalConvertedType.SpecialType is SpecialType.System_String)
                 return true;
 
             // There are cases where the types change but things may still be safe to remove.

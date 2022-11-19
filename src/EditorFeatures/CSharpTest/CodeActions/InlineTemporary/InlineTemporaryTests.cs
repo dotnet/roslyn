@@ -5353,5 +5353,44 @@ class MyClass
 
             await TestInRegularAndScriptAsync(code, expected);
         }
+
+        [Fact, WorkItem(34143, "https://github.com/dotnet/roslyn/issues/34143")]
+        public async Task TestInlineStringLiteral()
+        {
+            var code = """
+                #nullable enable
+                
+                class C
+                {
+                    void M()
+                    {
+                        var [||]str = "some string";
+                        M(str);
+                    }
+
+                    void M(string s)
+                    {
+                    }
+                }
+                """;
+
+            var expected = """
+                #nullable enable
+                
+                class C
+                {
+                    void M()
+                    {
+                        M("some string");
+                    }
+
+                    void M(string s)
+                    {
+                    }
+                }
+                """;
+
+            await TestInRegularAndScriptAsync(code, expected);
+        }
     }
 }
