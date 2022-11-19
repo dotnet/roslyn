@@ -4132,24 +4132,39 @@ namespace nms
 ";
             // Extra Errors
             ParseAndValidate(test,
-    // (12,13): error CS1524: Expected catch or finally
-    //             }
-    Diagnostic(ErrorCode.ERR_ExpectedEndTry, "}"),
-    // (11,21): error CS1031: Type expected
-    //             sizeof (throw new RecoverableException("An exception has occurred"));
-    Diagnostic(ErrorCode.ERR_TypeExpected, "throw"),
-    // (11,21): error CS1026: ) expected
-    //             sizeof (throw new RecoverableException("An exception has occurred"));
-    Diagnostic(ErrorCode.ERR_CloseParenExpected, "throw"),
-    // (11,21): error CS1002: ; expected
-    //             sizeof (throw new RecoverableException("An exception has occurred"));
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "throw"),
-    // (11,80): error CS1002: ; expected
-    //             sizeof (throw new RecoverableException("An exception has occurred"));
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
-    // (11,80): error CS1513: } expected
-    //             sizeof (throw new RecoverableException("An exception has occurred"));
-    Diagnostic(ErrorCode.ERR_RbraceExpected, ")"));
+                // (11,21): error CS1031: Type expected
+                //             sizeof (throw new RecoverableException("An exception has occurred"));
+                Diagnostic(ErrorCode.ERR_TypeExpected, "throw"),
+                // (11,21): error CS1026: ) expected
+                //             sizeof (throw new RecoverableException("An exception has occurred"));
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "throw"),
+                // (11,21): error CS1002: ; expected
+                //             sizeof (throw new RecoverableException("An exception has occurred"));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "throw"),
+                // (11,80): error CS1002: ; expected
+                //             sizeof (throw new RecoverableException("An exception has occurred"));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
+                // (11,80): error CS1513: } expected
+                //             sizeof (throw new RecoverableException("An exception has occurred"));
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")"));
+        }
+
+        [Fact]
+        public void ParseTryWithoutCatchesOrFinally()
+        {
+            var test = @"
+public class mine
+{
+    void M()
+    {
+        try { }
+    }
+}
+";
+            ParseAndValidate(test,
+                // (6,15): error CS1524: Expected catch or finally
+                //         try { }
+                Diagnostic(ErrorCode.ERR_ExpectedEndTry, "}").WithLocation(6, 15));
         }
 
         [WorkItem(906299, "DevDiv/Personal")]
