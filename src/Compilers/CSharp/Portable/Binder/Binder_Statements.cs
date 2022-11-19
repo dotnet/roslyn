@@ -3481,6 +3481,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // themselves are checked for availability, and if they are available then expression bodies must 
                 // also be available.
                 LocalFunctionStatementSyntax => (MessageID?)null,
+                // null in speculative scenarios.
+                null => null,
                 _ => throw ExceptionUtilities.UnexpectedValue(expressionBody.Parent.Kind()),
             };
 
