@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -29,7 +30,7 @@ class C
         1 + 2;
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -47,7 +48,7 @@ class C
     public int Add() => 1 + 2;
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -65,7 +66,7 @@ class C
     public int Add => 1 + 2;
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -86,7 +87,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -110,7 +111,7 @@ class C
     public void Goo(System.Func<int> action) { }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -137,7 +138,7 @@ class C
         => 1 + 2;
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -159,7 +160,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -186,7 +187,7 @@ class C
         => 1 + 2;
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -219,7 +220,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -238,7 +239,7 @@ class C
         1 + 2;
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -257,7 +258,7 @@ class C
         1 + {|CS1525:;|}
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -276,7 +277,7 @@ class C
         1 + 2{|CS1002:|}
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -297,7 +298,7 @@ class C
 #endif
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -318,7 +319,7 @@ class C
         1 + 2;
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -349,7 +350,7 @@ class C
 #endregion
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -380,7 +381,7 @@ class C
         => 1 + 2;
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -409,7 +410,7 @@ class C
         => 1 + 2;
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -436,7 +437,7 @@ class C
         => 1 + 2;
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -463,7 +464,7 @@ class C
         => 1 + 2;
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -490,7 +491,7 @@ class C
         => 1 + 2;
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -517,7 +518,7 @@ class C
         => 1 + 2;
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -544,7 +545,7 @@ class C
         => 1 + 2;
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
@@ -579,7 +580,7 @@ class C
         => 1 + 2;
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
