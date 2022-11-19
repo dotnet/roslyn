@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -69,7 +70,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 var diagnosticAnalyzerPerformanceTracker = services.GetService<IPerformanceTrackerService>();
                 if (diagnosticAnalyzerPerformanceTracker != null)
                 {
-                    var globalOperationNotificationService = services.GetService<IGlobalOperationNotificationService>();
+                    // We know in the remote layer that this type must exist.
+                    var globalOperationNotificationService = services.SolutionServices.ExportProvider.GetExports<IGlobalOperationNotificationService>().Single().Value;
                     _performanceReporter = new PerformanceReporter(telemetrySession, diagnosticAnalyzerPerformanceTracker, globalOperationNotificationService, _shutdownCancellationSource.Token);
                 }
 
