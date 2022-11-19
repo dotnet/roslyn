@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (castNode.IsParentKind(SyntaxKind.Interpolation) && originalConvertedType.SpecialType is SpecialType.System_Object)
                 return true;
 
-            // Can remove convertion of string literal to string regardless of nullability if it doesn't change the generic type inference
+            // Can remove conversion of string literal to string regardless of nullability if it doesn't change the generic type inference
             if (rewrittenExpression.WalkDownParentheses().IsKind(SyntaxKind.StringLiteralExpression) && originalConvertedType.SpecialType is SpecialType.System_String)
             {
                 if (originalConversionOperation.Parent is IArgumentOperation { Parameter.OriginalDefinition.Type.Kind: SymbolKind.TypeParameter })
