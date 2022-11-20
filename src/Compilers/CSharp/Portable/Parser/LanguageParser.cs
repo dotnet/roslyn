@@ -12865,7 +12865,7 @@ tryAgain:
                                 break;
                             }
 
-                            list.Add(this.ParseObjectOrCollectionInitializerMember(ref isObjectInitializer));                            
+                            list.Add(this.ParseObjectOrCollectionInitializerMember(ref isObjectInitializer));
                             continue;
                         }
                         else if (this.SkipBadInitializerListTokens(ref startToken, list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
@@ -12927,7 +12927,7 @@ tryAgain:
 
         private bool IsValidInitializerToken(ref SyntaxToken startToken, Func<bool> isInitializerMemberFn)
         {
-            if(startToken.IsMissing)
+            if (startToken.IsMissing)
             {
                 return false;
             }
