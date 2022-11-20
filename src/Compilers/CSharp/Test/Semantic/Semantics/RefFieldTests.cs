@@ -8825,6 +8825,7 @@ static class Program
         (x, (y, z1)) = s;
         R2 z2 = default;
         (x, (y, z2)) = s; // 1
+        (z2, (y, z1)) = s; // 2
     }
     static void Deconstruct(this Span<int> s, out R2 x, out R1 y) => throw null;
 }";
@@ -8835,7 +8836,13 @@ static class Program
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "(x, (y, z2)) = s").WithArguments("(x, (y, z2)) = s").WithLocation(20, 9),
                 // (20,24): error CS8350: This combination of arguments to 'R1.Deconstruct(out R2, out R2)' is disallowed because it may expose variables referenced by parameter 'this' outside of their declaration scope
                 //         (x, (y, z2)) = s; // 1
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "s").WithArguments("R1.Deconstruct(out R2, out R2)", "this").WithLocation(20, 24));
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "s").WithArguments("R1.Deconstruct(out R2, out R2)", "this").WithLocation(20, 24),
+                // (21,9): error CS8352: Cannot use variable '(z2, (y, z1)) = s' in this context because it may expose referenced variables outside of their declaration scope
+                //         (z2, (y, z1)) = s; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "(z2, (y, z1)) = s").WithArguments("(z2, (y, z1)) = s").WithLocation(21, 9),
+                // (21,25): error CS8350: This combination of arguments to 'Program.Deconstruct(Span<int>, out R2, out R1)' is disallowed because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         (z2, (y, z1)) = s; // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "s").WithArguments("Program.Deconstruct(System.Span<int>, out R2, out R1)", "s").WithLocation(21, 25));
         }
 
         [Theory]

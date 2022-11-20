@@ -584,60 +584,143 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        // Based on NullableWalker.VisitDeconstructionAssignmentOperator().
         public override BoundNode? VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
             base.VisitDeconstructionAssignmentOperator(node);
 
             // PROTOTYPE: Should this substitution surround base.VisitDeconstructionAssignmentOperator(node) above?
             // PROTOTYPE: Do we need this placeholder substitution even if we have a deconstruction assignment within a Get, Check, Val, Ref call?
+            var left = node.Left;
             var right = node.Right;
-            var conversion = right.Conversion;
-            Debug.Assert(conversion.Kind == ConversionKind.Deconstruction);
-            var deconstructionInfo = conversion.DeconstructionInfo;
-            if (deconstructionInfo.Invocation is BoundCall deconstruct)
-            {
-                var placeholders = ArrayBuilder<(BoundDeconstructValuePlaceholder, uint)>.GetInstance();
-                getPlaceholders(node, placeholders);
-                foreach (var (placeholder, valEscapeScope) in placeholders)
-                {
-                    AddPlaceholder(placeholder, valEscapeScope);
-                }
-                // PROTOTYPE: Handle nested deconstruction. See NullableWalker for instance.
-                CheckInvocationArgMixing(
-                    right.Syntax,
-                    deconstruct.Method,
-                    deconstruct.ReceiverOpt,
-                    deconstruct.Method.Parameters,
-                    deconstruct.Arguments,
-                    deconstruct.ArgumentRefKindsOpt,
-                    deconstruct.ArgsToParamsOpt,
-                    _localScopeDepth,
-                    _diagnostics);
-                foreach (var (placeholder, _) in placeholders)
-                {
-                    RemovePlaceholder(placeholder);
-                }
-                placeholders.Free();
-            }
+            var variables = GetDeconstructionAssignmentVariables(left); // PROTOTYPE: Can we avoid creating nested ArrayBuilder<> instances, and instead recurse through node.Left in VisitDeconstructionArguments()?
+            // PROTOTYPE: Remove placeholders added (perhaps recursively) in VisitDeconstructionArguments().
+            VisitDeconstructionArguments(variables, right.Syntax, right.Conversion, right.Operand);
+            variables.FreeAll(v => v.NestedVariables);
             return null;
+        }
 
-            void getPlaceholders(BoundDeconstructionAssignmentOperator node, ArrayBuilder<(BoundDeconstructValuePlaceholder, uint)> placeholders)
+        private void VisitDeconstructionArguments(ArrayBuilder<DeconstructionVariable> variables, SyntaxNode syntax, Conversion conversion, BoundExpression right)
+        {
+            Debug.Assert(conversion.Kind == ConversionKind.Deconstruction);
+
+            // We only need to visit the right side when deconstruction uses a Deconstruct() method call
+            // (when !DeconstructionInfo.IsDefault), not when the right side is a tuple, because ref structs
+            // cannot be used as tuple type arguments.
+            if (!conversion.DeconstructionInfo.IsDefault)
             {
-                var left = node.Left;
-                var right = node.Right;
-                var conversion = right.Conversion;
-                Debug.Assert(conversion.Kind == ConversionKind.Deconstruction);
+                VisitDeconstructionMethodArguments(variables, syntax, conversion, right);
+            }
+        }
 
-                var deconstructionInfo = conversion.DeconstructionInfo;
-                placeholders.Add((deconstructionInfo.InputPlaceholder, GetValEscape(right.Operand, _localScopeDepth)));
+        private void VisitDeconstructionMethodArguments(ArrayBuilder<DeconstructionVariable> variables, SyntaxNode syntax, Conversion conversion, BoundExpression right)
+        {
+            var invocation = conversion.DeconstructionInfo.Invocation as BoundCall;
+            if (invocation is null)
+            {
+                return;
+            }
 
-                // PROTOTYPE: Handle nested deconstruction. See NullableWalker for instance.
-                var arguments = left.Arguments;
-                for (int i = 0; i < arguments.Length; i++)
+            var deconstructMethod = invocation.Method;
+            if (deconstructMethod is null)
+            {
+                return;
+            }
+
+            AddPlaceholder(conversion.DeconstructionInfo.InputPlaceholder, GetValEscape(right, _localScopeDepth));
+
+            var parameters = deconstructMethod.Parameters; // PROTOTYPE: Remove if not needed.
+            int n = variables.Count;
+            int offset = invocation.InvokedAsExtensionMethod ? 1 : 0;
+            Debug.Assert(parameters.Length - offset == n);
+
+            for (int i = 0; i < n; i++)
+            {
+                var variable = variables[i];
+                var nestedVariables = variable.NestedVariables;
+                var arg = (BoundDeconstructValuePlaceholder)invocation.Arguments[i + offset];
+                uint valEscape = nestedVariables is null
+                    ? GetValEscape(variable.Expression, _localScopeDepth)
+                    : _localScopeDepth;
+                AddPlaceholder(arg, valEscape);
+            }
+
+            CheckInvocationArgMixing(
+                syntax,
+                deconstructMethod,
+                invocation.ReceiverOpt,
+                parameters,
+                invocation.Arguments,
+                invocation.ArgumentRefKindsOpt,
+                invocation.ArgsToParamsOpt,
+                _localScopeDepth,
+                _diagnostics);
+
+            // PROTOTYPE: Remove any placeholders added above.
+
+            for (int i = 0; i < n; i++)
+            {
+                var variable = variables[i];
+                var nestedVariables = variable.NestedVariables;
+                if (nestedVariables != null)
                 {
-                    placeholders.Add((deconstructionInfo.OutputPlaceholders[i], GetValEscape(arguments[i], _localScopeDepth)));
+                    var (placeholder, placeholderConversion) = conversion.DeconstructConversionInfo[i];
+                    var underlyingConversion = BoundNode.GetConversion(placeholderConversion, placeholder);
+                    // PROTOTYPE: Add placeholder for the temporary.
+                    VisitDeconstructionArguments(nestedVariables, syntax, underlyingConversion, right: invocation.Arguments[i + offset]);
                 }
             }
+        }
+
+        private readonly struct DeconstructionVariable
+        {
+            internal readonly BoundExpression Expression;
+            internal readonly uint ValEscape;
+            internal readonly ArrayBuilder<DeconstructionVariable>? NestedVariables;
+
+            internal DeconstructionVariable(BoundExpression expression, uint valEscape, ArrayBuilder<DeconstructionVariable>? nestedVariables)
+            {
+                Expression = expression;
+                ValEscape = valEscape;
+                NestedVariables = nestedVariables;
+            }
+        }
+
+        private ArrayBuilder<DeconstructionVariable> GetDeconstructionAssignmentVariables(BoundTupleExpression tuple)
+        {
+            var arguments = tuple.Arguments;
+            var builder = ArrayBuilder<DeconstructionVariable>.GetInstance(arguments.Length);
+            foreach (var arg in arguments)
+            {
+                builder.Add(getDeconstructionAssignmentVariable(arg));
+            }
+            return builder;
+
+            DeconstructionVariable getDeconstructionAssignmentVariable(BoundExpression expr)
+            {
+                return expr is BoundTupleExpression tuple
+                    ? new DeconstructionVariable(expr, valEscape: uint.MaxValue, GetDeconstructionAssignmentVariables(tuple))
+                    : new DeconstructionVariable(expr, GetValEscape(expr, _localScopeDepth), null);
+            }
+        }
+
+        private static ImmutableArray<BoundExpression> GetDeconstructionRightParts(BoundExpression expr)
+        {
+            switch (expr)
+            {
+                case BoundTupleExpression tuple:
+                    return tuple.Arguments;
+                case BoundConversion conv:
+                    switch (conv.ConversionKind)
+                    {
+                        case ConversionKind.Identity:
+                        case ConversionKind.ImplicitTupleLiteral:
+                            return GetDeconstructionRightParts(conv.Operand);
+                    }
+                    break;
+            }
+
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode? VisitForEachStatement(BoundForEachStatement node)
