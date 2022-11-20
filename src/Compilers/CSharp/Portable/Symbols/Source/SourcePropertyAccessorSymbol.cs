@@ -169,6 +169,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation, diagnostics, location);
 
             this.CheckModifiers(location, hasBody: true, isAutoPropertyOrExpressionBodied: true, diagnostics: diagnostics);
+
+            if (syntax != null)
+            {
+                var messageId = property.IsIndexer ? MessageID.IDS_FeatureExpressionBodiedIndexer : MessageID.IDS_FeatureExpressionBodiedProperty;
+                messageId.CheckFeatureAvailability(diagnostics, syntax, syntax.ArrowToken.GetLocation());
+            }
         }
 
 #nullable enable
@@ -242,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // These values may not be final, but we need to have something set here in the
             // event that we need to find the overridden accessor.
-            _lazyParameters = ComputeParameters(diagnostics);
+            _lazyParameters = ComputeParameters();
             _lazyReturnType = ComputeReturnType(diagnostics);
             _lazyRefCustomModifiers = ImmutableArray<CustomModifier>.Empty;
 
@@ -724,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private ImmutableArray<ParameterSymbol> ComputeParameters(BindingDiagnosticBag diagnostics)
+        private ImmutableArray<ParameterSymbol> ComputeParameters()
         {
             bool isGetMethod = this.MethodKind == MethodKind.PropertyGet;
             var propertyParameters = _property.Parameters;

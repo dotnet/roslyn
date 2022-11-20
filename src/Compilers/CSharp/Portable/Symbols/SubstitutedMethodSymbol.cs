@@ -237,7 +237,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-
         public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get

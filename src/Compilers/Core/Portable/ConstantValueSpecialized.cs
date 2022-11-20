@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -57,6 +58,10 @@ namespace Microsoft.CodeAnalysis
             internal override string GetValueToDisplay()
             {
                 return "bad";
+            }
+            public override string ToString(string? format, IFormatProvider? provider)
+            {
+                return GetValueToDisplay();
             }
         }
 
@@ -118,6 +123,11 @@ namespace Microsoft.CodeAnalysis
             internal override string GetValueToDisplay()
             {
                 return ((object)this == (object)Uninitialized) ? "unset" : "null";
+            }
+
+            public override string ToString(string? format, IFormatProvider? provider)
+            {
+                return GetValueToDisplay();
             }
         }
 
@@ -200,6 +210,19 @@ namespace Microsoft.CodeAnalysis
             internal override string GetValueToDisplay()
             {
                 return (_value == null) ? "null" : string.Format("\"{0}\"", _value);
+            }
+
+            public override string ToString(string? format, IFormatProvider? provider)
+            {
+                int formatLength = RopeValue.Length;
+                if (format is not null && int.TryParse(format, out var len))
+                {
+                    formatLength = len;
+                }
+
+                return formatLength < RopeValue.Length ?
+                    @$"""{RopeValue.ToString(Math.Max(formatLength - 3, 0))}...""" :
+                    @$"""{RopeValue}""";
             }
         }
 
@@ -414,6 +437,11 @@ namespace Microsoft.CodeAnalysis
             {
                 get { return true; }
             }
+
+            public override string ToString(string? format, IFormatProvider? provider)
+            {
+                return $"default({GetPrimitiveTypeName()})";
+            }
         }
 
         private sealed class ConstantValueDecimalZero : ConstantValueDefault
@@ -548,6 +576,54 @@ namespace Microsoft.CodeAnalysis
             }
 
             public override decimal DecimalValue
+            {
+                get
+                {
+                    return 1;
+                }
+            }
+
+            public override int Int32Value
+            {
+                get
+                {
+                    return 1;
+                }
+            }
+
+            public override uint UInt32Value
+            {
+                get
+                {
+                    return 1;
+                }
+            }
+
+            public override long Int64Value
+            {
+                get
+                {
+                    return 1;
+                }
+            }
+
+            public override ulong UInt64Value
+            {
+                get
+                {
+                    return 1;
+                }
+            }
+
+            public override short Int16Value
+            {
+                get
+                {
+                    return 1;
+                }
+            }
+
+            public override ushort UInt16Value
             {
                 get
                 {
@@ -852,6 +928,7 @@ namespace Microsoft.CodeAnalysis
             {
                 return base.Equals(other) && _value.Equals(other.DoubleValue);
             }
+
         }
 
         private sealed class ConstantValueSingle : ConstantValueDiscriminated

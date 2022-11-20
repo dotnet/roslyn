@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                     {
                         // Gets the associated span from the snapshot span and creates the IntraTextAdornmentTag from the data
                         // tags. Only dealing with the dataTagSpans if the count is 1 because we do not see a multi-buffer case
-                        // occuring
+                        // occurring
                         var dataTagSpans = tag.Span.GetSpans(snapshot);
                         if (dataTagSpans.Count == 1)
                         {

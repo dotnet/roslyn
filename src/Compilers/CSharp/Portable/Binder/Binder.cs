@@ -433,7 +433,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-
         /// <summary>
         /// Returns true if the binder is binding top-level script code.
         /// </summary>

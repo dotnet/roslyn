@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Step two: If we have a params array, build the array and fill in the argument.
             if (expanded)
             {
-                BoundExpression array = BuildParamsArray(syntax, indexer, argsToParamsOpt, rewrittenArguments, parameters, actualArguments[actualArguments.Length - 1]);
+                BoundExpression array = BuildParamsArray(syntax, argsToParamsOpt, rewrittenArguments, parameters, actualArguments[actualArguments.Length - 1]);
                 BoundAssignmentOperator storeToTemp;
                 var boundTemp = _factory.StoreToTemp(array, out storeToTemp);
                 stores.Add(storeToTemp);
