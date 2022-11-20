@@ -10819,6 +10819,35 @@ logged = 1
 ");
 
             verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<<Main>$>g__test|0_0",
+@"
+{
+  // Code size       47 (0x2f)
+  .maxstack  5
+  .locals init (StructLogger& V_0,
+                DummyHandler V_1)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldloca.s   V_1
+  IL_0006:  ldc.i4.4
+  IL_0007:  ldc.i4.1
+  IL_0008:  ldloc.0
+  IL_0009:  ldobj      ""StructLogger""
+  IL_000e:  call       ""DummyHandler..ctor(int, int, StructLogger)""
+  IL_0013:  ldloca.s   V_1
+  IL_0015:  ldstr      ""log:""
+  IL_001a:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  ldc.i4.0
+  IL_0022:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_0027:  ldloc.1
+  IL_0028:  call       ""void StructLogger.Log(DummyHandler)""
+  IL_002d:  ldarg.0
+  IL_002e:  ret
+}
+");
         }
 
         [Fact]
@@ -10875,6 +10904,34 @@ logged = 1
 ");
 
             verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<<Main>$>g__test|0_0",
+@"
+{
+  // Code size       45 (0x2d)
+  .maxstack  5
+  .locals init (StructLogger& V_0,
+                DummyHandler V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  ldc.i4.4
+  IL_0006:  ldc.i4.1
+  IL_0007:  ldloc.0
+  IL_0008:  ldobj      ""StructLogger""
+  IL_000d:  call       ""DummyHandler..ctor(int, int, StructLogger)""
+  IL_0012:  ldloca.s   V_1
+  IL_0014:  ldstr      ""log:""
+  IL_0019:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_001e:  ldloca.s   V_1
+  IL_0020:  ldc.i4.0
+  IL_0021:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_0026:  ldloc.1
+  IL_0027:  call       ""void StructLogger.Log(DummyHandler)""
+  IL_002c:  ret
+}
+");
         }
 
         [Fact]
@@ -10968,6 +11025,128 @@ logged = 4
 ");
 
             verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<<Main>$>g__test1|0_0<T>",
+@"
+{
+  // Code size       58 (0x3a)
+  .maxstack  5
+  .locals init (T& V_0,
+                DummyHandler V_1)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldloca.s   V_1
+  IL_0006:  ldc.i4.4
+  IL_0007:  ldc.i4.1
+  IL_0008:  ldloc.0
+  IL_0009:  ldobj      ""T""
+  IL_000e:  box        ""T""
+  IL_0013:  call       ""DummyHandler..ctor(int, int, ILogger)""
+  IL_0018:  ldloca.s   V_1
+  IL_001a:  ldstr      ""log:""
+  IL_001f:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_0024:  ldloca.s   V_1
+  IL_0026:  ldc.i4.m1
+  IL_0027:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_002c:  ldloc.1
+  IL_002d:  constrained. ""T""
+  IL_0033:  callvirt   ""void ILogger.Log(DummyHandler)""
+  IL_0038:  ldarg.0
+  IL_0039:  ret
+}
+");
+
+            verifier.VerifyIL("Program.<<Main>$>g__test2|0_1<T>",
+@"
+{
+  // Code size       59 (0x3b)
+  .maxstack  5
+  .locals init (T& V_0,
+                DummyHandler V_1)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldloca.s   V_1
+  IL_0006:  ldc.i4.4
+  IL_0007:  ldc.i4.1
+  IL_0008:  ldloc.0
+  IL_0009:  ldobj      ""T""
+  IL_000e:  box        ""T""
+  IL_0013:  call       ""DummyHandler..ctor(int, int, ILogger)""
+  IL_0018:  ldloca.s   V_1
+  IL_001a:  ldstr      ""log:""
+  IL_001f:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_0024:  ldloca.s   V_1
+  IL_0026:  ldc.i4.s   -2
+  IL_0028:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_002d:  ldloc.1
+  IL_002e:  constrained. ""T""
+  IL_0034:  callvirt   ""void ILogger.Log(DummyHandler)""
+  IL_0039:  ldarg.0
+  IL_003a:  ret
+}
+");
+
+            verifier.VerifyIL("Program.<<Main>$>g__test3|0_2<T>",
+@"
+{
+  // Code size       57 (0x39)
+  .maxstack  5
+  .locals init (T& V_0,
+                DummyHandler V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  ldc.i4.4
+  IL_0006:  ldc.i4.1
+  IL_0007:  ldloc.0
+  IL_0008:  ldobj      ""T""
+  IL_000d:  box        ""T""
+  IL_0012:  call       ""DummyHandler..ctor(int, int, ILogger)""
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  ldstr      ""log:""
+  IL_001e:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_0023:  ldloca.s   V_1
+  IL_0025:  ldc.i4.s   -3
+  IL_0027:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_002c:  ldloc.1
+  IL_002d:  constrained. ""T""
+  IL_0033:  callvirt   ""void ILogger.Log(DummyHandler)""
+  IL_0038:  ret
+}
+");
+
+            verifier.VerifyIL("Program.<<Main>$>g__test4|0_3<T>",
+@"
+{
+  // Code size       57 (0x39)
+  .maxstack  5
+  .locals init (T& V_0,
+                DummyHandler V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  ldc.i4.4
+  IL_0006:  ldc.i4.1
+  IL_0007:  ldloc.0
+  IL_0008:  ldobj      ""T""
+  IL_000d:  box        ""T""
+  IL_0012:  call       ""DummyHandler..ctor(int, int, ILogger)""
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  ldstr      ""log:""
+  IL_001e:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_0023:  ldloca.s   V_1
+  IL_0025:  ldc.i4.s   -4
+  IL_0027:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_002c:  ldloc.1
+  IL_002d:  constrained. ""T""
+  IL_0033:  callvirt   ""void ILogger.Log(DummyHandler)""
+  IL_0038:  ret
+}
+");
         }
 
         [Fact]
@@ -11070,6 +11249,87 @@ logged = 4
 ", verify: Verification.Skipped);
 
             verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<<Main>$>g__test3|0_0<T>",
+@"
+{
+  // Code size       79 (0x4f)
+  .maxstack  4
+  .locals init (T& V_0,
+                DummyHandler V_1,
+                DummyHandler V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ref T Program.<<Main>$>g__get3|0_2<T>(ref T)""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  ldc.i4.4
+  IL_000a:  ldc.i4.1
+  IL_000b:  ldloc.0
+  IL_000c:  ldobj      ""T""
+  IL_0011:  box        ""T""
+  IL_0016:  call       ""DummyHandler..ctor(int, int, ILogger)""
+  IL_001b:  ldloca.s   V_2
+  IL_001d:  ldstr      ""log:""
+  IL_0022:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_0027:  ldloca.s   V_2
+  IL_0029:  ldc.i4.s   -3
+  IL_002b:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_0030:  ldloc.2
+  IL_0031:  stloc.1
+  IL_0032:  ldloc.0
+  IL_0033:  ldloc.1
+  IL_0034:  ldloc.0
+  IL_0035:  ldloc.1
+  IL_0036:  constrained. ""T""
+  IL_003c:  callvirt   ""int ILogger.this[DummyHandler].get""
+  IL_0041:  ldc.i4.1
+  IL_0042:  add
+  IL_0043:  constrained. ""T""
+  IL_0049:  callvirt   ""void ILogger.this[DummyHandler].set""
+  IL_004e:  ret
+}
+");
+
+            verifier.VerifyIL("Program.<<Main>$>g__test4|0_1<T>",
+@"
+{
+  // Code size       79 (0x4f)
+  .maxstack  4
+  .locals init (T& V_0,
+                DummyHandler V_1,
+                DummyHandler V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ref T Program.<<Main>$>g__get4|0_3<T>(ref T)""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  ldc.i4.4
+  IL_000a:  ldc.i4.1
+  IL_000b:  ldloc.0
+  IL_000c:  ldobj      ""T""
+  IL_0011:  box        ""T""
+  IL_0016:  call       ""DummyHandler..ctor(int, int, ILogger)""
+  IL_001b:  ldloca.s   V_2
+  IL_001d:  ldstr      ""log:""
+  IL_0022:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_0027:  ldloca.s   V_2
+  IL_0029:  ldc.i4.s   -4
+  IL_002b:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_0030:  ldloc.2
+  IL_0031:  stloc.1
+  IL_0032:  ldloc.0
+  IL_0033:  ldloc.1
+  IL_0034:  ldloc.0
+  IL_0035:  ldloc.1
+  IL_0036:  constrained. ""T""
+  IL_003c:  callvirt   ""int ILogger.this[DummyHandler].get""
+  IL_0041:  ldc.i4.1
+  IL_0042:  add
+  IL_0043:  constrained. ""T""
+  IL_0049:  callvirt   ""void ILogger.this[DummyHandler].set""
+  IL_004e:  ret
+}
+
+");
         }
 
         [Fact]
@@ -11155,7 +11415,7 @@ logged = 2
         }
 
         [Fact]
-        public void StructReceiver_Lvalue_08()
+        public void StructReceiver_Lvalue_07()
         {
             var code = @"
 using System;
