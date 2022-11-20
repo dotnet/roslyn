@@ -2827,8 +2827,8 @@ class Program
         var d = /*<bind>*/new Dictionary<object, object>()
         {
             {""s"", 1 },
-        /*</bind>*/var x = 1;
-    }
+        var x = 1;
+    }/*</bind>*/
 }
 ";
             string expectedOperationTree = @"
@@ -2837,59 +2837,47 @@ IObjectCreationOperation (Constructor: System.Collections.Generic.Dictionary<Sys
   Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.Dictionary<System.Object, System.Object>, IsInvalid) (Syntax: '{ ... }')
       Initializers(3):
-          IInvocationOperation ( void System.Collections.Generic.Dictionary<System.Object, System.Object>.Add(System.Object key, System.Object value)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '{""s"", 1 }')
-            Instance Receiver:
-              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.Dictionary<System.Object, System.Object>, IsImplicit) (Syntax: 'Dictionary< ... ct, object>')
-            Arguments(2):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: key) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '""s""')
-                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '""s""')
-                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
-                      ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""s"") (Syntax: '""s""')
-                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '1')
-                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '1')
-                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
-                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'var')
-            Children(1):
-                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'var')
-                  Children(0)
-          IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '= 1')
-            Children(1):
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '= 1')
-                  Left:
-                    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
-                      Children(0)
-                  Right:
-                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '{""s"", 1 }')
+            Children(2):
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""s"", IsInvalid) (Syntax: '""s""')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'var')
+            Children(0)
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'x = 1')
+            Left:
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'x')
+                Children(1):
+                    IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'x')
+                      Children(1):
+                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.Dictionary<System.Object, System.Object>, IsImplicit) (Syntax: 'Dictionary< ... ct, object>')
+            Right:
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // (10,24): error CS1003: Syntax error, ',' expected
-                //         /*</bind>*/var x = 1;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(10, 24),
-                // (10,26): error CS1525: Invalid expression term '='
-                //         /*</bind>*/var x = 1;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(10, 26),
-                // (10,29): error CS1003: Syntax error, ',' expected
-                //         /*</bind>*/var x = 1;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(10, 29),
+                // (10,13): error CS1003: Syntax error, ',' expected
+                //         var x = 1;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(10, 13),
+                // (10,18): error CS1003: Syntax error, ',' expected
+                //         var x = 1;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(10, 18),
                 // (11,6): error CS1002: ; expected
-                //     }
+                //     }/*</bind>*/
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(11, 6),
                 // (12,2): error CS1513: } expected
                 // }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(12, 2),
-                // (10,20): error CS0103: The name 'var' does not exist in the current context
-                //         /*</bind>*/var x = 1;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(10, 20),
-                // (10,26): error CS0747: Invalid initializer member declarator
-                //         /*</bind>*/var x = 1;
-                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "= 1").WithLocation(10, 26)
+                // (9,13): error CS0747: Invalid initializer member declarator
+                //             {"s", 1 },
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, @"{""s"", 1 }").WithLocation(9, 13),
+                // (10,9): error CS0103: The name 'var' does not exist in the current context
+                //         var x = 1;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(10, 9),
+                // (10,9): error CS0747: Invalid initializer member declarator
+                //         var x = 1;
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "var").WithLocation(10, 9),
+                // (10,13): error CS0117: 'Dictionary<object, object>' does not contain a definition for 'x'
+                //         var x = 1;
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "x").WithArguments("System.Collections.Generic.Dictionary<object, object>", "x").WithLocation(10, 13)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -2921,25 +2909,25 @@ IInvalidOperation (OperationKind.Invalid, Type: List<System.Int32>, IsInvalid) (
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1513: } expected
+                // (6,39): error CS1513: } expected
                 //         /*<bind>*/new List<int>() { { { 1 } }/*</bind>*/ };
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "{").WithLocation(6, 39),
-                // CS1003: Syntax error, ',' expected
+                // (6,39): error CS1003: Syntax error, ',' expected
                 //         /*<bind>*/new List<int>() { { { 1 } }/*</bind>*/ };
                 Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(6, 39),
-                // CS1002: ; expected
+                // (6,58): error CS1002: ; expected
                 //         /*<bind>*/new List<int>() { { { 1 } }/*</bind>*/ };
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(6, 58),
-                // CS1597: Semicolon after method or accessor block is not valid
+                // (6,59): error CS1597: Semicolon after method or accessor block is not valid
                 //         /*<bind>*/new List<int>() { { { 1 } }/*</bind>*/ };
                 Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(6, 59),
-                // CS1022: Type or namespace definition, or end-of-file expected
+                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1),
-                // CS0246: The type or namespace name 'List<>' could not be found (are you missing a using directive or an assembly reference?)
+                // (6,23): error CS0246: The type or namespace name 'List<>' could not be found (are you missing a using directive or an assembly reference?)
                 //         /*<bind>*/new List<int>() { { { 1 } }/*</bind>*/ };
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "List<int>").WithArguments("List<>").WithLocation(6, 23),
-                // CS1920: Element initializer cannot be empty
+                // (6,37): error CS1920: Element initializer cannot be empty
                 //         /*<bind>*/new List<int>() { { { 1 } }/*</bind>*/ };
                 Diagnostic(ErrorCode.ERR_EmptyElementInitializer, "{ ").WithLocation(6, 37)
             };
@@ -3144,11 +3132,11 @@ class A : IEnumerable
             string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation, Type: A, IsInvalid) (Syntax: 'new A { 5,  ...  { 1, 2 } }')
   Arguments(0)
-  Initializer: 
+  Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: A, IsInvalid) (Syntax: '{ 5, { 1, 2, { 1, 2 } }')
       Initializers(3):
           IInvocationOperation ( void A.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '5')
-            Instance Receiver: 
+            Instance Receiver:
               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'A')
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '5')
@@ -3162,7 +3150,7 @@ IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation,
                 IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
                   Children(0)
           IInvocationOperation ( void A.Add(System.Int32 i, System.Int32 j)) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '{ 1, 2 }')
-            Instance Receiver: 
+            Instance Receiver:
               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'A')
             Arguments(2):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '1')
@@ -3184,15 +3172,18 @@ IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation,
                 // (9,46): error CS1003: Syntax error, ',' expected
                 //         var a = /*<bind>*/new A { 5, { 1, 2, { 1, 2 } }/*</bind>*/, 3 };
                 Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(9, 46),
-                // (9,55): error CS1002: ; expected
+                // (9,69): error CS1001: Identifier expected
                 //         var a = /*<bind>*/new A { 5, { 1, 2, { 1, 2 } }/*</bind>*/, 3 };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(9, 55),
-                // (9,67): error CS1519: Invalid token ',' in class, record, struct, or interface member declaration
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "3").WithLocation(9, 69),
+                // (9,69): error CS1002: ; expected
                 //         var a = /*<bind>*/new A { 5, { 1, 2, { 1, 2 } }/*</bind>*/, 3 };
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ",").WithArguments(",").WithLocation(9, 67),
-                // (10,5): error CS1022: Type or namespace definition, or end-of-file expected
-                //     }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(10, 5),
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "3").WithLocation(9, 69),
+                // (9,71): error CS1002: ; expected
+                //         var a = /*<bind>*/new A { 5, { 1, 2, { 1, 2 } }/*</bind>*/, 3 };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(9, 71),
+                // (9,72): error CS1597: Semicolon after method or accessor block is not valid
+                //         var a = /*<bind>*/new A { 5, { 1, 2, { 1, 2 } }/*</bind>*/, 3 };
+                Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(9, 72),
                 // (11,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(11, 1)

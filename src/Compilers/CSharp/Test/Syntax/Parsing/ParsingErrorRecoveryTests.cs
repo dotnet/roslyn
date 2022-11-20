@@ -4453,8 +4453,12 @@ class C
             Assert.NotEqual(default, ds.Declaration.Variables[0].Initializer.EqualsToken);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.AnonymousObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[0].Code);
+            var errors = file.Errors();
+            Assert.Equal(4, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[0].Code); //; is not valid
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code); //, was expected instead
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[2].Code); //new {} is missing trailing ;
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[3].Code); //class c missing }
         }
 
         [Fact]
@@ -4568,8 +4572,12 @@ class C
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.AnonymousObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[0].Code);
+            var errors = file.Errors();
+            Assert.Equal(4, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[0].Code); //; is not valid
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code); //, was expected instead
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[2].Code); //new { a = b,} is missing trailing ;
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[3].Code); //class c missing }
         }
 
         [Fact]
@@ -5305,8 +5313,11 @@ class C
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
             var errors = file.Errors();
-            Assert.Equal(1, errors.Length);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, errors[0].Code);
+            Assert.Equal(4, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[0].Code); //; is not valid
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code); //, was expected instead
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[2].Code); //new C { } is missing trailing ;
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[3].Code); //class c missing }
         }
 
         [Fact]

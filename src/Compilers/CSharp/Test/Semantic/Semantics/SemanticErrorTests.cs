@@ -2818,6 +2818,9 @@ D d = {;}
                 // D d = {;}
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"D d = {;}
 ").WithLocation(3, 1),
+                // (3,8): error CS1525: Invalid expression term ';'
+                // D d = {;}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(3, 8),
                 // (3,8): error CS1003: Syntax error, ',' expected
                 // D d = {;}
                 Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(3, 8),
