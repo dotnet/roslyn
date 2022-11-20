@@ -12859,15 +12859,13 @@ tryAgain:
                                 : this.EatToken(SyntaxKind.CommaToken);
                             list.AddSeparator(commaToken);
 
-                            // check for exit case after legal trailing comma OR non-member after comma
+                            // check for exit case after legal trailing comma
                             if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
                             {
                                 break;
                             }
 
-                            
-                            list.Add(this.ParseObjectOrCollectionInitializerMember(ref isObjectInitializer));
-                            
+                            list.Add(this.ParseObjectOrCollectionInitializerMember(ref isObjectInitializer));                            
                             continue;
                         }
                         else if (this.SkipBadInitializerListTokens(ref startToken, list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
@@ -12921,7 +12919,6 @@ tryAgain:
         private PostSkipAction SkipBadInitializerListTokens<T>(ref SyntaxToken startToken, SeparatedSyntaxListBuilder<T> list, SyntaxKind expected)
             where T : CSharpSyntaxNode
         {
-            bool openBraceIsMissing = startToken.IsMissing;
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref startToken, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleExpression(),
                 p => p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator(),
@@ -13030,7 +13027,7 @@ tryAgain:
                                 ? this.EatTokenAsKind(SyntaxKind.CommaToken)
                                 : this.EatToken(SyntaxKind.CommaToken);
                             list.AddSeparator(commaToken);
-                            if (this.CurrentToken.Kind is SyntaxKind.CloseBraceToken or SyntaxKind.VarKeyword)
+                            if (this.CurrentToken.Kind is SyntaxKind.CloseBraceToken)
                             {
                                 closeBraceError = MakeError(this.CurrentToken, ErrorCode.ERR_ExpressionExpected);
                                 break;
