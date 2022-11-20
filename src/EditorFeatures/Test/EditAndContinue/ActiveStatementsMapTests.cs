@@ -18,6 +18,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
+    using static ActiveStatementTestHelpers;
+
     [UseExportProvider]
     public class ActiveStatementsMapTests
     {
@@ -232,6 +234,56 @@ class C
 
             SourceFileSpan Span(int startLine, int startColumn, int endLine, int endColumn)
                 => new("a.cs", new(new(startLine, startColumn), new(endLine, endColumn)));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NonRemappableRegionOrdering(bool reverse)
+        {
+            var source1 =
+@"class C
+{
+    static void M()
+    {
+        try 
+        {
+        }
+        <ER:0.0>catch
+        {
+
+
+
+            <AS:0>M();</AS:0>
+        }</ER:0.0>
+    }
+}";
+            var unmappedActiveStatements = GetUnmappedActiveStatementsCSharp(
+                new[] { source1 },
+                flags: new[] { ActiveStatementFlags.LeafFrame });
+
+            var debugInfos = ActiveStatementsDescription.GetActiveStatementDebugInfos(
+                unmappedActiveStatements,
+                methodRowIds: new[] { 1 },
+                methodVersions: new[] { 1 },
+                ilOffsets: new[] { 1 });
+
+            var exceptionRegions = unmappedActiveStatements[0].ExceptionRegions;
+
+            var mapping1 = new NonRemappableRegion(oldSpan: exceptionRegions.Spans[0], newSpan: exceptionRegions.Spans[0].AddLineDelta(+3), isExceptionRegion: true);
+            var mapping2 = new NonRemappableRegion(oldSpan: exceptionRegions.Spans[0], newSpan: unmappedActiveStatements[0].Statement.FileSpan, isExceptionRegion: false);
+
+            // Emulate move of the catch block by +3 lines while the active statement remains in the same line.
+            // The order should not matter.
+            var remapping = ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty.Add(
+                debugInfos[0].ActiveInstruction.Method,
+                reverse ? ImmutableArray.Create(mapping1, mapping2) : ImmutableArray.Create(mapping2, mapping1));
+
+            var map = ActiveStatementsMap.Create(debugInfos, remapping);
+
+            var activeStatement = map.DocumentPathMap[unmappedActiveStatements[0].Statement.FilePath][0];
+
+            // Span shouldn't be mapped because the only non-remappable region mapping is an exception region, not an active statement:
+            Assert.Equal(unmappedActiveStatements[0].Statement.Span, activeStatement.FileSpan.Span);
         }
     }
 }

@@ -128,21 +128,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 }).ToImmutableArray();
         }
 
-        internal static ImmutableArray<ManagedActiveStatementDebugInfo> GetActiveStatementDebugInfos(
+        internal static ImmutableArray<UnmappedActiveStatement> GetUnmappedActiveStatements(
            Func<string, string, SyntaxTree> syntaxTreeFactory,
            string[] markedSources,
            string[]? filePaths = null,
            string? extension = null,
-           int[]? methodRowIds = null,
-           Guid[]? modules = null,
-           int[]? methodVersions = null,
-           int[]? ilOffsets = null,
            ActiveStatementFlags[]? flags = null)
         {
-            var moduleId = new Guid("00000000-0000-0000-0000-000000000001");
             var map = new Dictionary<string, List<ActiveStatement>>();
 
-            var activeStatements = new ArrayBuilder<ActiveStatement>();
+            var activeStatements = new ArrayBuilder<UnmappedActiveStatement>();
 
             var sourceIndex = 0;
             foreach (var markedSource in markedSources)
@@ -151,13 +146,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 var tree = syntaxTreeFactory(ClearTags(markedSource), documentName);
                 var statements = CreateActiveStatementMapFromMarkers(markedSource, tree, flags, map);
 
-                activeStatements.AddRange(statements.Where(s => s.Statement != null).Select(s => s.Statement));
+                activeStatements.AddRange(statements);
                 sourceIndex++;
             }
 
-            activeStatements.Sort((x, y) => x.Ordinal.CompareTo(y.Ordinal));
+            activeStatements.Sort((x, y) => x.Statement.Ordinal.CompareTo(y.Statement.Ordinal));
+            return activeStatements.ToImmutable();
+        }
 
-            return activeStatements.SelectAsArray(statement =>
+        internal static ImmutableArray<ManagedActiveStatementDebugInfo> GetActiveStatementDebugInfos(
+           ImmutableArray<UnmappedActiveStatement> activeStatements,
+           int[]? methodRowIds = null,
+           Guid[]? modules = null,
+           int[]? methodVersions = null,
+           int[]? ilOffsets = null)
+        {
+            var moduleId = new Guid("00000000-0000-0000-0000-000000000001");
+
+            return activeStatements.Select(s => s.Statement).SelectAsArray(statement =>
                 new ManagedActiveStatementDebugInfo(
                     new ManagedInstructionId(
                         new ManagedMethodId(
