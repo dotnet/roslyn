@@ -2870,7 +2870,7 @@ class Program{
             await AutoFormatOnMarkerAsync(
                 code,
                 expected,
-                SyntaxKind.IdentifierToken,
+                SyntaxKind.CommaToken,
                 SyntaxKind.OpenBraceToken);
         }
 
