@@ -4580,127 +4580,259 @@ class C
         public void SemicolonSeparatorInArrayInitializer()
         {
             var source = """
-        class Program
-        {
-            static void Main()
-            {
-                F();
-                var a = new[] { 1; 2 };
-            }
-            static object F()
-            {
-                return null;
-            }
-        }
-        """;
+                class Program
+                {
+                    static void Main()
+                    {
+                        F();
+                        var a = new[] { 1; 2 };
+                    }
+                    static object F()
+                    {
+                        return null;
+                    }
+                }
+            """;
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,26): error CS1003: Syntax error, ',' expected
+                // (6,30): error CS1003: Syntax error, ',' expected
                 //         var a = new[] { 1; 2 };
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 26));
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 30));
         }
 
         [Fact]
         public void SemicolonSeparatorInArrayInitializer2()
         {
             var source = """
-        class Program
-        {
-            static void Main()
-            {
-                F();
-                var a = new[] { 1; 2; };
-            }
-            static object F()
-            {
-                return null;
-            }
-        }
-        """;
+                class Program
+                {
+                    static void Main()
+                    {
+                        F();
+                        var a = new[] { 1; 2; };
+                    }
+                    static object F()
+                    {
+                        return null;
+                    }
+                }
+            """;
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,26): error CS1003: Syntax error, ',' expected
+                // (6,30): error CS1003: Syntax error, ',' expected
                 //         var a = new[] { 1; 2; };
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 26),
-                // (6,29): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 30),
+                // (6,33): error CS1003: Syntax error, ',' expected
                 //         var a = new[] { 1; 2; };
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 29));
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 33));
         }
 
         [Fact]
         public void SemicolonSeparatorInObjectInitializer()
         {
             var source = """
-        class Program
-        {
-            static void Main()
-            {
-                F();
-                var o = new { A = 1; B = 2 };
-            }
-            static object F()
-            {
-                return null;
-            }
-        }
-        """;
+                class Program
+                {
+                    static void Main()
+                    {
+                        F();
+                        var o = new { A = 1; B = 2 };
+                    }
+                    static object F()
+                    {
+                        return null;
+                    }
+                }
+            """;
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,28): error CS1003: Syntax error, ',' expected
+                // (6,32): error CS1003: Syntax error, ',' expected
                 //         var o = new { A = 1; B = 2 };
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 28));
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 32));
         }
 
         [Fact]
         public void SemicolonSeparatorInObjectInitializer2()
         {
             var source = """
-        class Program
-        {
-            static void Main()
-            {
-                F();
-                var o = new { A = 1; B = 2; };
-            }
-            static object F()
-            {
-                return null;
-            }
-        }
-        """;
+                class Program
+                {
+                    static void Main()
+                    {
+                        F();
+                        var o = new { A = 1; B = 2; };
+                    }
+                    static object F()
+                    {
+                        return null;
+                    }
+                }
+            """;
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,28): error CS1003: Syntax error, ',' expected
-                //         var o = new { A = 1; B = 2; };
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 28),
-                // (6,35): error CS1003: Syntax error, ',' expected
-                //         var o = new { A = 1; B = 2; };
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 35));
+                // (6,32): error CS1003: Syntax error, ',' expected
+                //             var o = new { A = 1; B = 2; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 32),
+                // (6,39): error CS1003: Syntax error, ',' expected
+                //             var o = new { A = 1; B = 2; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 39));
         }
 
         [Fact]
-        public void SemicolonSeparatorInDictionaryInitializer()
+        public void SemicolonSeparatorInDictionaryIndexerInitializer()
         {
             var source = """
-        using System.Collections.Generic;
-        class Program
-        {
-            static void Main()
-            {
-                F();
-                var a = new Dictionary<int, int> { [0] = 0; [1] = 1 };
-            }
-            static object F()
-            {
-                return null;
-            }
-        }
-        """;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        F();
+                        var a = new Dictionary<int, int> { [0] = 0; [1] = 1 };
+                    }
+                    static object F()
+                    {
+                        return null;
+                    }
+                }
+            """;
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,51): error CS1003: Syntax error, ',' expected
+                // (7,55): error CS1003: Syntax error, ',' expected
                 //         var a = new Dictionary<int, int> { [0] = 0; [1] = 1 };
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(7, 51));
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(7, 55));
+        }
+
+        [Fact]
+        public void SemicolonSeparatorInDictionaryIndexerInitializer2()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        F();
+                        var a = new Dictionary<int, int> { [0] = 0; [1] = 1; };
+                    }
+                    static object F()
+                    {
+                        return null;
+                    }
+                }
+            """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,55): error CS1003: Syntax error, ',' expected
+                //         var a = new Dictionary<int, int> { [0] = 0; [1] = 1; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(7, 55),
+                // (7,64): error CS1003: Syntax error, ',' expected
+                //         var a = new Dictionary<int, int> { [0] = 0; [1] = 1; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(7, 64));
+        }
+
+        [Fact]
+        public void SemicolonSeparatorInDictionaryComplexInitializer()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        F();
+                        var a = new Dictionary<int, int> { {0, 0}; {1, 1} };
+                    }
+                    static object F()
+                    {
+                        return null;
+                    }
+                }
+            """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,54): error CS1003: Syntax error, ',' expected
+                //             var a = new Dictionary<int, int> { {0, 0}; {1, 1} };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(7, 54));
+        }
+
+        [Fact]
+        public void SemicolonSeparatorInDictionaryComplexInitializer2()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        F();
+                        var a = new Dictionary<int, int> { {0, 0}; {1, 1}; };
+                    }
+                    static object F()
+                    {
+                        return null;
+                    }
+                }
+            """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,54): error CS1003: Syntax error, ',' expected
+                //             var a = new Dictionary<int, int> { {0, 0}; {1, 1}; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(7, 54),
+                // (7,62): error CS1003: Syntax error, ',' expected
+                //             var a = new Dictionary<int, int> { {0, 0}; {1, 1}; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(7, 62));
+        }
+
+        [Fact]
+        public void SemicolonSeparatorInSwitchExpression()
+        {
+            var source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        F();
+                        var a = 0 switch { 1 => true; _ => false };
+                    }
+                    static object F()
+                    {
+                        return null;
+                    }
+                }
+            """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,41): error CS1003: Syntax error, ',' expected
+                //             var a = 0 switch { 1 => true; _ => false };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 41));
+        }
+
+        [Fact]
+        public void SemicolonSeparatorInSwitchExpression2()
+        {
+            var source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        F();
+                        var a = 0 switch { 1 => true; _ => false; };
+                    }
+                    static object F()
+                    {
+                        return null;
+                    }
+                }
+            """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,41): error CS1003: Syntax error, ',' expected
+                //             var a = 0 switch { 1 => true; _ => false; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 41),
+                // (6,53): error CS1003: Syntax error, ',' expected
+                //             var a = 0 switch { 1 => true; _ => false; };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 53));
         }
 
         [Fact]
