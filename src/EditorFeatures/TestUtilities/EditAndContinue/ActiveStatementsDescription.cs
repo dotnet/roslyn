@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 var tree = syntaxTreeFactory(ClearTags(markedSource), documentName);
                 var statements = CreateActiveStatementMapFromMarkers(markedSource, tree, flags, map);
 
-                activeStatements.AddRange(statements);
+                activeStatements.AddRange(statements.Where(s => s.Statement != null));
                 sourceIndex++;
             }
 
