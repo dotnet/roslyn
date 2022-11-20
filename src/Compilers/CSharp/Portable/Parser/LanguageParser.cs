@@ -12577,8 +12577,7 @@ tryAgain:
                         {
                             break;
                         }
-                        else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleExpression()
-                            || this.CurrentToken.Kind == SyntaxKind.SemicolonToken && !this.IsEndOfInitializer(ref openBrace, () => IsPossibleExpression()))
+                        else if (this.IsValidInitializerToken(ref openBrace, IsPossibleExpression))
                         {
                             var commaToken = this.CurrentToken.Kind == SyntaxKind.SemicolonToken
                                 ? this.EatTokenAsKind(SyntaxKind.CommaToken)
@@ -12853,18 +12852,19 @@ tryAgain:
                         {
                             break;
                         }
-                        else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsInitializerMember()
-                            || this.CurrentToken.Kind == SyntaxKind.SemicolonToken && !this.IsEndOfInitializer(ref startToken, () => IsInitializerMember()))
+                        else if (this.IsValidInitializerToken(ref startToken, IsInitializerMember))
                         {
                             list.AddSeparator(this.EatTokenAsKind(SyntaxKind.CommaToken));
 
-                            // check for exit case after legal trailing comma
+                            // check for exit case after legal trailing comma OR non-member after comma
                             if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
                             {
                                 break;
                             }
 
+                            
                             list.Add(this.ParseObjectOrCollectionInitializerMember(ref isObjectInitializer));
+                            
                             continue;
                         }
                         else if (this.SkipBadInitializerListTokens(ref startToken, list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
@@ -12925,70 +12925,36 @@ tryAgain:
                 expected);
         }
 
-        private bool IsEndOfInitializer(ref SyntaxToken startToken, Func<bool> isInitializerMemberFn)
+        private bool IsValidInitializerToken(ref SyntaxToken startToken, Func<bool> isInitializerMemberFn)
         {
-            // the current token ends the initializer when it is:
-            // 1. a close brace
-            // 2. another type of terminator
-            if (startToken.IsMissing || CurrentToken.Kind != SyntaxKind.SemicolonToken)
+            // The token is not valid if
+            // 1. the initializer was never started
+            if (startToken.IsMissing)
             {
-                return CurrentToken.Kind == SyntaxKind.CloseBraceToken || IsTerminator();
+                return false;
+            }
+            // The token is valid if it is
+            // 1. a separator
+            // 2. a member
+            if (this.CurrentToken.Kind == SyntaxKind.CommaToken || isInitializerMemberFn())
+            {
+                return true;
             }
 
-            // When encountering a semicolon in an itializer body, the user may have mistakenly intended it as a separator.
+            // When encountering a semicolon in an initializer body, the user may have mistakenly intended it as a separator.
+            if (this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
+            {
+                return false;
+            }
             // Seek ahead and check if the semicolon is being followed by:
             // 1. a closing brace - the semicolon is not the end, the closing brace is the end
-            // 2. another variable intializer - not the end yet
+            // 2. another member - not the end yet
             var resetPoint = GetResetPoint();
             EatToken();
             bool initializerContinues = CurrentToken.Kind is SyntaxKind.CloseBraceToken || isInitializerMemberFn();
             Reset(ref resetPoint);
             Release(ref resetPoint);
-            return !initializerContinues;
-        }
-
-        private bool IsEndOfComplexElementInitializer(bool openBraceIsMissing)
-        {
-            // the current token ends the initializer when it is:
-            // 1. a close brace
-            // 2. another type of terminator
-            if (openBraceIsMissing || CurrentToken.Kind != SyntaxKind.SemicolonToken)
-            {
-                return CurrentToken.Kind == SyntaxKind.CloseBraceToken || IsTerminator();
-            }
-
-            // When encountering a semicolon in an itializer body, the user may have mistakenly intended it as a separator.
-            // Seek ahead and check if the semicolon is being followed by:
-            // 1. a closing brace - the semicolon is not the end, the closing brace is the end
-            // 2. another member - not the end yet
-            var resetPoint = GetResetPoint();
-            EatToken();
-            bool initializerContinues = CurrentToken.Kind is SyntaxKind.CloseBraceToken || IsPossibleExpression();
-            Reset(ref resetPoint);
-            Release(ref resetPoint);
-            return !initializerContinues;
-        }
-
-        private bool IsEndOfArrayInitializer(bool openBraceIsMissing)
-        {
-            // the current token ends the initializer when it is:
-            // 1. a close brace
-            // 2. another type of terminator
-            if (openBraceIsMissing || CurrentToken.Kind != SyntaxKind.SemicolonToken)
-            {
-                return CurrentToken.Kind == SyntaxKind.CloseBraceToken || IsTerminator();
-            }
-
-            // When encountering a semicolon in an itializer body, the user may have mistakenly intended it as a separator.
-            // Seek ahead and check if the semicolon is being followed by:
-            // 1. a closing brace - the semicolon is not the end, the closing brace is the end
-            // 2. another member - not the end yet
-            var resetPoint = GetResetPoint();
-            EatToken();
-            bool initializerContinues = CurrentToken.Kind is SyntaxKind.CloseBraceToken || IsPossibleVariableInitializer();
-            Reset(ref resetPoint);
-            Release(ref resetPoint);
-            return !initializerContinues;
+            return initializerContinues;
         }
 
         private ExpressionSyntax ParseObjectInitializerNamedAssignment()
@@ -13062,14 +13028,13 @@ tryAgain:
                         {
                             break;
                         }
-                        else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleExpression()
-                            || this.CurrentToken.Kind == SyntaxKind.SemicolonToken && !this.IsEndOfInitializer(ref openBrace, () => IsPossibleExpression()))
+                        else if (this.IsValidInitializerToken(ref openBrace, IsPossibleExpression))
                         {
                             var commaToken = this.CurrentToken.Kind == SyntaxKind.SemicolonToken
                                 ? this.EatTokenAsKind(SyntaxKind.CommaToken)
                                 : this.EatToken(SyntaxKind.CommaToken);
                             list.AddSeparator(commaToken);
-                            if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
+                            if (this.CurrentToken.Kind is SyntaxKind.CloseBraceToken or SyntaxKind.VarKeyword)
                             {
                                 closeBraceError = MakeError(this.CurrentToken, ErrorCode.ERR_ExpressionExpected);
                                 break;
@@ -13163,7 +13128,7 @@ tryAgain:
                             {
                                 break;
                             }
-                            else if (this.IsPossibleVariableInitializer() || this.CurrentToken.Kind == SyntaxKind.CommaToken || !this.IsEndOfInitializer(ref openBrace, IsPossibleVariableInitializer))
+                            else if (this.IsValidInitializerToken(ref openBrace, IsPossibleVariableInitializer))
                             {
                                 var commaToken = this.CurrentToken.Kind == SyntaxKind.SemicolonToken
                                     ? this.EatTokenAsKind(SyntaxKind.CommaToken)
