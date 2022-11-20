@@ -2829,8 +2829,15 @@ $"  ///  </summary>{Environment.NewLine}" +
         public void TestNormalizeTabs()
         {
             var code = "class c{void m(){}}";
-            var expected = "class c\r\n{\r\n\tvoid m()\r\n\t{\r\n\t}\r\n}";
-            var actual = SyntaxFactory.ParseCompilationUnit(code).NormalizeWhitespace(indentation: "\t").ToFullString();
+            var expected = """
+                class c
+                {
+                	void m()
+                	{
+                	}
+                }
+                """;
+            var actual = SyntaxFactory.ParseCompilationUnit(code).NormalizeWhitespace(indentation: "	").ToFullString();
             Assert.Equal(expected, actual);
         }
 
