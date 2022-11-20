@@ -2554,11 +2554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestNormalizeComments()
         {
-            TestNormalizeToken(
-                "a//b", """
-                a //b
-
-                """);
+            TestNormalizeToken("a//b", "a //b\r\n");
             TestNormalizeToken("a/*b*/", "a /*b*/");
             TestNormalizeToken("""
                 //a
@@ -2890,21 +2886,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var tree = SyntaxFactory.ParseSyntaxTree(code);
-            TestNormalize(tree.GetCompilationUnitRoot(), """
-                class c1
-                {
-
-                """ +
-// The normalizer doesn't change line endings in comments,
-// see https://github.com/dotnet/roslyn/issues/8536
+            TestNormalize(tree.GetCompilationUnitRoot(),
+"class c1\r\n" +
+"{\r\n"
++ // The normalizer doesn't change line endings in comments,
+  // see https://github.com/dotnet/roslyn/issues/8536
 $"  ///<summary>{Environment.NewLine}" +
 $"  /// A documentation comment{Environment.NewLine}" +
-$"  ///</summary>{Environment.NewLine}" + """
-    void goo()
-    {
-    }
-  }
-  """);
+$"  ///</summary>{Environment.NewLine}" +
+"  void goo()\r\n" +
+"  {\r\n" +
+"  }\r\n" +
+"}");
         }
 
         [Fact]
@@ -2922,21 +2915,17 @@ $"  ///</summary>{Environment.NewLine}" + """
                 }
                 """;
             var tree = SyntaxFactory.ParseSyntaxTree(code);
-            TestNormalize(tree.GetCompilationUnitRoot(), """
-                class c1
-                {
-
-                """ +
-// The normalizer doesn't change line endings in comments,
-// see https://github.com/dotnet/roslyn/issues/8536
+            TestNormalize(tree.GetCompilationUnitRoot(),
+"class c1\r\n" +
+"{\r\n" + // The normalizer doesn't change line endings in comments,
+          // see https://github.com/dotnet/roslyn/issues/8536
 $"  ///  <summary>{Environment.NewLine}" +
 $"  ///  A documentation comment{Environment.NewLine}" +
-$"  ///  </summary>{Environment.NewLine}" + """
-    void goo()
-    {
-    }
-  }
-  """);
+$"  ///  </summary>{Environment.NewLine}" +
+"  void goo()\r\n" +
+"  {\r\n" +
+"  }\r\n" +
+"}");
         }
 
         [Fact]
@@ -2952,15 +2941,8 @@ $"  ///  </summary>{Environment.NewLine}" + """
         public void TestNormalizeTabs()
         {
             var code = "class c{void m(){}}";
-            var expected = """
-                class c
-                {
-                	void m()
-                	{
-                	}
-                }
-                """;
-            var actual = SyntaxFactory.ParseCompilationUnit(code).NormalizeWhitespace(indentation: "	").ToFullString();
+            var expected = "class c\r\n{\r\n\tvoid m()\r\n\t{\r\n\t}\r\n}";
+            var actual = SyntaxFactory.ParseCompilationUnit(code).NormalizeWhitespace(indentation: "\t").ToFullString();
             Assert.Equal(expected, actual);
         }
 
