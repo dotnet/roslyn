@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.ModuleVersionIdString:
                     Debug.Assert(used);
-                    EmitModuleVersionIdStringLoad((BoundModuleVersionIdString)expression);
+                    EmitModuleVersionIdStringLoad();
                     break;
 
                 case BoundKind.InstrumentationPayloadRoot:
@@ -519,7 +519,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             _builder.EmitBranch(ILOpCode.Br, doneLabel);
 
-
             // ===== WHEN NOT NULL 
             if (nullCheckOnCopy)
             {
@@ -729,7 +728,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitPseudoVariableValue(BoundPseudoVariable expression, bool used)
         {
-            EmitExpression(expression.EmitExpressions.GetValue(expression, _diagnostics), used);
+            EmitExpression(expression.EmitExpressions.GetValue(expression, _diagnostics.DiagnosticBag), used);
         }
 
         private void EmitSequencePointExpression(BoundSequencePointExpression node, bool used)
@@ -995,7 +994,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                _builder.EmitArrayElementLoad(_module.Translate((ArrayTypeSymbol)arrayAccess.Expression.Type), arrayAccess.Expression.Syntax, _diagnostics);
+                _builder.EmitArrayElementLoad(_module.Translate((ArrayTypeSymbol)arrayAccess.Expression.Type), arrayAccess.Expression.Syntax, _diagnostics.DiagnosticBag);
             }
 
             EmitPopIfUnused(used);
@@ -1261,7 +1260,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // I do not know how to hit this, since value__ is not bindable in C#, but Dev12 has code to handle this
             return type.IsEnumType();
         }
-
 
         private static int ParameterSlot(BoundParameter parameter)
         {
@@ -1934,7 +1932,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                _builder.EmitArrayCreation(_module.Translate(arrayType), expression.Syntax, _diagnostics);
+                _builder.EmitArrayCreation(_module.Translate(arrayType), expression.Syntax, _diagnostics.DiagnosticBag);
             }
 
             if (expression.InitializerOpt != null)
@@ -2752,7 +2750,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                _builder.EmitArrayElementStore(_module.Translate(arrayType), syntaxNode, _diagnostics);
+                _builder.EmitArrayElementStore(_module.Translate(arrayType), syntaxNode, _diagnostics.DiagnosticBag);
             }
         }
 
@@ -3111,10 +3109,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitModuleVersionIdToken(BoundModuleVersionId node)
         {
-            _builder.EmitToken(_module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics);
+            _builder.EmitToken(_module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag);
         }
 
-        private void EmitModuleVersionIdStringLoad(BoundModuleVersionIdString node)
+        private void EmitModuleVersionIdStringLoad()
         {
             _builder.EmitOpCode(ILOpCode.Ldstr);
             _builder.EmitModuleVersionIdStringToken();
@@ -3134,7 +3132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitInstrumentationPayloadRootToken(BoundInstrumentationPayloadRoot node)
         {
-            _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics);
+            _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag);
         }
 
         private void EmitSourceDocumentIndex(BoundSourceDocumentIndex node)

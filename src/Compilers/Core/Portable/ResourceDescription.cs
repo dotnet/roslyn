@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis
             get { return FileName == null; }
         }
 
-        internal Cci.ManagedResource ToManagedResource(CommonPEModuleBuilder moduleBeingBuilt)
+        internal Cci.ManagedResource ToManagedResource()
         {
             return new Cci.ManagedResource(ResourceName, IsPublic, IsEmbedded ? DataProvider : null, IsEmbedded ? null : this, offset: 0);
         }

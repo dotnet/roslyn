@@ -12,6 +12,11 @@
         <target state="translated">Aggiunge le parentesi graffe all'istruzione '{0}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Blank_line_not_allowed_after_conditional_expression_token">
+        <source>Blank line not allowed after conditional expression token</source>
+        <target state="new">Blank line not allowed after conditional expression token</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Blank_line_not_allowed_after_constructor_initializer_colon">
         <source>Blank line not allowed after constructor initializer colon</source>
         <target state="translated">Non sono consentite righe vuote dopo i due punti dell'inizializzatore del costruttore</target>

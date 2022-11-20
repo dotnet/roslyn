@@ -1119,7 +1119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             switch (typeSymbol.Kind)
             {
                 case SymbolKind.DynamicType:
-                    return Translate((DynamicTypeSymbol)typeSymbol, syntaxNodeOpt, diagnostics);
+                    return Translate(syntaxNodeOpt, diagnostics);
 
                 case SymbolKind.ArrayType:
                     return Translate((ArrayTypeSymbol)typeSymbol);
@@ -1486,7 +1486,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         internal Cci.ITypeReference Translate(
-            DynamicTypeSymbol symbol,
             SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics)
         {

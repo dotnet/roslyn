@@ -49,10 +49,9 @@ public class Cls
 }";
             var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             compilation.VerifyDiagnostics(
-                // (6,29): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
+                // (6,21): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
                 //         Test2(Test1(out int x1), x1);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "x1").WithArguments("out variable declaration", "7.0").WithLocation(6, 29)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "out").WithArguments("out variable declaration", "7.0").WithLocation(6, 21));
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -82,22 +81,21 @@ public class Cls
 }";
             var compilation = CreateCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             compilation.VerifyDiagnostics(
-                // (6,22): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
-                //         Test(out int x1);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "x1").WithArguments("out variable declaration", "7.0").WithLocation(6, 22),
-                // (11,33): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
-                //         var x = new Cls(out int x2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "x2").WithArguments("out variable declaration", "7.0").WithLocation(11, 33),
                 // (6,9): error CS0103: The name 'Test' does not exist in the current context
                 //         Test(out int x1);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Test").WithArguments("Test").WithLocation(6, 9),
+                // (6,14): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
+                //         Test(out int x1);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "out").WithArguments("out variable declaration", "7.0").WithLocation(6, 14),
+                // (11,25): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
+                //         var x = new Cls(out int x2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "out").WithArguments("out variable declaration", "7.0").WithLocation(11, 25),
                 // (11,21): error CS1729: 'Cls' does not contain a constructor that takes 1 arguments
                 //         var x = new Cls(out int x2);
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Cls").WithArguments("Cls", "1").WithLocation(11, 21),
                 // (11,29): error CS0165: Use of unassigned local variable 'x2'
                 //         var x = new Cls(out int x2);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x2").WithArguments("x2").WithLocation(11, 29)
-                );
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x2").WithArguments("x2").WithLocation(11, 29));
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -2144,7 +2142,6 @@ class Test : System.Attribute
             VerifyNotInScope(model, x7Ref[1]);
             VerifyNotInScope(model, x7Ref[2]);
         }
-
 
         [Fact]
         public void Scope_Attribute_03()
@@ -15215,7 +15212,6 @@ public class X
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(15, 9)
                 );
 
-
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -17052,7 +17048,6 @@ public class X
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(15, 9)
                 );
 
-
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -17929,7 +17924,6 @@ public class Cls
 
             Assert.Equal("a=System.Int32", model.GetAliasInfo(x1Decl.Type).ToTestDisplayString());
         }
-
 
         [Fact]
         public void GetAliasInfo_02()
@@ -32487,7 +32481,6 @@ class H
 
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
-
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -32515,7 +32508,6 @@ class H
 ";
 
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
-
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -32545,7 +32537,6 @@ class H
 
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
-
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -32571,7 +32562,6 @@ class H
 ";
 
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
-
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -34162,7 +34152,6 @@ class Test : System.Attribute
             VerifyModelForOutVar(model, x2Decl[0], x2Ref[1]);
             VerifyModelForOutVarInNotExecutableCode(model, x2Decl[1], x2Ref[0]);
         }
-
 
         [Fact]
         public void Scope_InvalidArrayDimensions01()
@@ -36321,7 +36310,6 @@ public class MyAttribute : System.Attribute
             symbolInfo = speculativeModel.GetSymbolInfo(invocation);
             Assert.Equal("System.String C.M2(out System.Int32 x)", symbolInfo.Symbol.ToTestDisplayString());
         }
-
 
         [Fact]
         [WorkItem(60801, "https://github.com/dotnet/roslyn/issues/60801")]

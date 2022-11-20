@@ -98,7 +98,7 @@ namespace Microsoft.Cci
             }
 
             int methodToken = MetadataTokens.GetToken(methodHandle);
-            OpenMethod(methodToken, methodBody.MethodDefinition);
+            OpenMethod(methodToken);
 
             if (emitAllDebugInfo)
             {
@@ -623,7 +623,7 @@ namespace Microsoft.Cci
             return documentIndex;
         }
 
-        private void OpenMethod(int methodToken, IMethodDefinition method)
+        private void OpenMethod(int methodToken)
         {
             _symWriter.OpenMethod(methodToken);
 

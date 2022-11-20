@@ -4,13 +4,14 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
     internal interface IRazorLanguageServerFactoryWrapper
     {
-        IRazorLanguageServerTarget CreateLanguageServer(JsonRpc jsonRpc, IRazorCapabilitiesProvider capabilitiesProvider);
+        IRazorLanguageServerTarget CreateLanguageServer(JsonRpc jsonRpc, IRazorCapabilitiesProvider capabilitiesProvider, HostServices hostServices);
 
         DocumentInfo CreateDocumentInfo(
             DocumentId id,

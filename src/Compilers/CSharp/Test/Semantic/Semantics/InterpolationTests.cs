@@ -1169,7 +1169,6 @@ class App{
 #endif
                 ;
 
-
             var comp = CreateCompilation(text, targetFramework: framework,
                     parseOptions: parseOptions, options: compOptions);
             comp.VerifyDiagnostics();
@@ -1272,7 +1271,6 @@ class App{
                 "Before {X} After"
 #endif
                 ;
-
 
             var comp = CreateCompilation(text, targetFramework: framework,
                     parseOptions: parseOptions, options: compOptions);
@@ -3939,7 +3937,6 @@ class MyException : Exception
             var verifier = CompileAndVerify(new[] { source, interpolatedStringBuilder }, targetFramework: TargetFramework.NetCoreApp, expectedOutput: @"
 Starting try
 Caught");
-
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
@@ -7665,7 +7662,6 @@ literal:text
                 //     public static void M([InterpolatedStringHandlerArgumentAttribute("i")] CustomHandler c, int i) => Console.WriteLine(c.ToString());
                 Diagnostic(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, @"InterpolatedStringHandlerArgumentAttribute(""i"")").WithArguments("i", "c").WithLocation(6, 27)
 
-
             );
 
             verifyIL(verifier);
@@ -9914,7 +9910,6 @@ internal ref struct DummyHandler
 }
 ";
 
-
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 Creating DummyHandler from StructLogger#1
@@ -10016,7 +10011,6 @@ internal ref struct DummyHandler
     public void AppendFormatted<T>(T t) => _builder?.Append(t);
 }
 ";
-
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
@@ -10163,7 +10157,6 @@ internal ref struct DummyHandler
 }
 ";
 
-
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 Creating DummyHandler from StructLogger#1
@@ -10263,7 +10256,6 @@ internal ref struct DummyHandler
 }
 ";
 
-
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 Creating DummyHandler from StructLogger#1
@@ -10362,7 +10354,6 @@ internal ref struct DummyHandler
 }
 ";
 
-
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (7,9): error CS1510: A ref or out value must be an assignable variable
@@ -10416,7 +10407,6 @@ internal ref struct DummyHandler
     public void AppendFormatted<T>(T t) => _builder?.Append(t);
 }
 ";
-
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
@@ -10517,7 +10507,6 @@ internal ref struct DummyHandler
 }
 ";
 
-
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 Creating DummyHandler from ClassLogger#1
@@ -10617,7 +10606,6 @@ internal ref struct DummyHandler
 }
 ";
 
-
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 Creating DummyHandler from ClassLogger#1
@@ -10715,7 +10703,6 @@ internal ref struct DummyHandler
     public void AppendFormatted<T>(T t) => _builder?.Append(t);
 }
 ";
-
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
@@ -15177,47 +15164,44 @@ format:
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       91 (0x5b)
-  .maxstack  4
+  // Code size       89 (0x59)
+  .maxstack  5
   .locals init (CustomHandler V_0, //c1
                 CustomHandler V_1, //c2
-                CustomHandler V_2,
-                CustomHandler V_3)
-  IL_0000:  ldloca.s   V_3
+                CustomHandler V_2)
+  IL_0000:  ldloca.s   V_2
   IL_0002:  ldc.i4.0
   IL_0003:  ldc.i4.1
   IL_0004:  call       ""CustomHandler..ctor(int, int)""
-  IL_0009:  ldloca.s   V_3
+  IL_0009:  ldloca.s   V_2
   IL_000b:  ldc.i4.1
   IL_000c:  box        ""int""
   IL_0011:  ldc.i4.0
   IL_0012:  ldnull
   IL_0013:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
-  IL_0018:  ldloc.3
-  IL_0019:  stloc.2
-  IL_001a:  ldloca.s   V_3
-  IL_001c:  ldc.i4.0
-  IL_001d:  ldc.i4.1
-  IL_001e:  call       ""CustomHandler..ctor(int, int)""
-  IL_0023:  ldloca.s   V_3
-  IL_0025:  ldc.i4.2
-  IL_0026:  box        ""int""
-  IL_002b:  ldc.i4.0
-  IL_002c:  ldnull
-  IL_002d:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
-  IL_0032:  ldloc.3
-  IL_0033:  ldloc.2
-  IL_0034:  stloc.0
-  IL_0035:  stloc.1
-  IL_0036:  ldloca.s   V_0
-  IL_0038:  constrained. ""CustomHandler""
-  IL_003e:  callvirt   ""string object.ToString()""
-  IL_0043:  call       ""void System.Console.Write(string)""
-  IL_0048:  ldloca.s   V_1
-  IL_004a:  constrained. ""CustomHandler""
-  IL_0050:  callvirt   ""string object.ToString()""
-  IL_0055:  call       ""void System.Console.WriteLine(string)""
-  IL_005a:  ret
+  IL_0018:  ldloc.2
+  IL_0019:  ldloca.s   V_2
+  IL_001b:  ldc.i4.0
+  IL_001c:  ldc.i4.1
+  IL_001d:  call       ""CustomHandler..ctor(int, int)""
+  IL_0022:  ldloca.s   V_2
+  IL_0024:  ldc.i4.2
+  IL_0025:  box        ""int""
+  IL_002a:  ldc.i4.0
+  IL_002b:  ldnull
+  IL_002c:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0031:  ldloc.2
+  IL_0032:  stloc.1
+  IL_0033:  stloc.0
+  IL_0034:  ldloca.s   V_0
+  IL_0036:  constrained. ""CustomHandler""
+  IL_003c:  callvirt   ""string object.ToString()""
+  IL_0041:  call       ""void System.Console.Write(string)""
+  IL_0046:  ldloca.s   V_1
+  IL_0048:  constrained. ""CustomHandler""
+  IL_004e:  callvirt   ""string object.ToString()""
+  IL_0053:  call       ""void System.Console.WriteLine(string)""
+  IL_0058:  ret
 }
 ");
         }
@@ -15286,7 +15270,6 @@ format:
 }
 ");
         }
-
 
         [Theory, WorkItem(55609, "https://github.com/dotnet/roslyn/issues/55609")]
         [InlineData(@"$""{h1}{h2}""")]
@@ -16295,7 +16278,6 @@ class C
         return $""hello + {other}"";
     }
 }";
-
 
             CreateCompilation(text, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
                 // (7,16): error CS8026: Feature 'interpolated strings' is not available in C# 5. Please use language version 6 or greater.

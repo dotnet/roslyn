@@ -82,6 +82,11 @@
         <target state="translated">탐색에 항상 기본 기호 서버 사용</target>
         <note />
       </trans-unit>
+      <trans-unit id="Analyze_source_generated_files">
+        <source>Analyze source generated files</source>
+        <target state="new">Analyze source generated files</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzer_Defaults">
         <source>Analyzer Defaults</source>
         <target state="translated">분석기 기본값</target>

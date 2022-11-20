@@ -175,7 +175,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bodyBuilder.Add(F.Assignment(F.InstanceField(initialThreadIdField), managedThreadId));
                 }
 
-
                 bodyBuilder.Add(F.Return());
                 F.CloseMethod(F.Block(bodyBuilder.ToImmutableAndFree()));
                 bodyBuilder = null;

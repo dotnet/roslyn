@@ -171,9 +171,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 // Note: we don't call ToOtherMethod in the local case because doing so would produce
                 // a new LocalSymbol that would not be ReferenceEquals to the one in this.LocalsForBinding.
                 var oldDisplayClassInstanceFromLocal = oldDisplayClassInstance as DisplayClassInstanceFromLocal;
-                var newDisplayClassInstance = (oldDisplayClassInstanceFromLocal == null) ?
-                    oldDisplayClassInstance.ToOtherMethod(this, this.TypeMap) :
-                    new DisplayClassInstanceFromLocal((EELocalSymbol)localsMap[oldDisplayClassInstanceFromLocal.Local]);
+                var newDisplayClassInstance = (oldDisplayClassInstanceFromLocal == null)
+                    ? oldDisplayClassInstance.ToOtherMethod(this, this.TypeMap)
+                    : new DisplayClassInstanceFromLocal((EELocalSymbol)localsMap[oldDisplayClassInstanceFromLocal.Local]);
 
                 variable = variable.SubstituteFields(newDisplayClassInstance, this.TypeMap);
                 displayClassVariables.Add(pair.Key, variable);
@@ -482,7 +482,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     // Rewrite local declaration statement.
                     body = (BoundStatement)LocalDeclarationRewriter.Rewrite(
                         compilation,
-                        _container,
                         declaredLocals,
                         body,
                         declaredLocalsArray,
@@ -501,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     }
 
                     // Rewrite references to placeholder "locals".
-                    body = (BoundStatement)PlaceholderLocalRewriter.Rewrite(compilation, _container, declaredLocals, body, diagnostics.DiagnosticBag);
+                    body = (BoundStatement)PlaceholderLocalRewriter.Rewrite(compilation, declaredLocals, body, diagnostics.DiagnosticBag);
 
                     if (diagnostics.HasAnyErrors())
                     {

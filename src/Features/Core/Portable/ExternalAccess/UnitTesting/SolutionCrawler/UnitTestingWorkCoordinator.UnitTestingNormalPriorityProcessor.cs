@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         IAsynchronousOperationListener listener,
                         UnitTestingIncrementalAnalyzerProcessor processor,
                         Lazy<ImmutableArray<IUnitTestingIncrementalAnalyzer>> lazyAnalyzers,
-                        IGlobalOperationNotificationService globalOperationNotificationService,
+                        IGlobalOperationNotificationService? globalOperationNotificationService,
                         TimeSpan backOffTimeSpan,
                         CancellationToken shutdownToken)
                         : base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpan, shutdownToken)

@@ -891,7 +891,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-
         ''' <summary>
         ''' Given a type declaration, get the corresponding type symbol.
         ''' </summary>
