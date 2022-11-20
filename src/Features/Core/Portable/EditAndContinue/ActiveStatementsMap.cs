@@ -139,9 +139,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // Map active statement spans in non-remappable regions to the latest source locations.
             if (remapping.TryGetValue(instructionId.Method, out var regionsInMethod))
             {
+                // Note that active statement spans can be nested. For example,
+                // [|var x = y switch { 1 => 0, _ => [|1|] };|]
+
                 foreach (var region in regionsInMethod)
                 {
-                    if (region.OldSpan.Span.Contains(activeSpan) && activeStatementInfo.DocumentName == region.OldSpan.Path)
+                    if (!region.IsExceptionRegion &&
+                        region.OldSpan.Span == activeSpan &&
+                        activeStatementInfo.DocumentName == region.OldSpan.Path)
                     {
                         newSpan = region.NewSpan.Span;
                         return true;
