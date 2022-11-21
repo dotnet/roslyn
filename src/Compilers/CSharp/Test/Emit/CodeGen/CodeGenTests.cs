@@ -26739,12 +26739,13 @@ class Program
 }
 ";
 
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"
+            // Wrong output on some frameworks
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe/*, expectedOutput: @"
 Position get for item '1'
 Position set for item '1'
 Position get for item '2'
 Position set for item '2'
-").VerifyDiagnostics();
+"*/).VerifyDiagnostics();
 
             // Wrong IL
             verifier.VerifyIL("Program.Shift1<T>",
@@ -26946,12 +26947,13 @@ class Program
 }
 ";
 
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"
+            // Wrong output on some frameworks
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe/*, expectedOutput: @"
 Position get for item '1'
 Position set for item '1'
 Position get for item '2'
 Position set for item '2'
-").VerifyDiagnostics();
+"*/).VerifyDiagnostics();
 
             // Wrong IL
             verifier.VerifyIL("Program.Shift1<T>",
@@ -27593,13 +27595,13 @@ class Program
     }
 }
 ";
-            // Wrong output
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"
+            // Wrong output and framework dependent
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe/*, expectedOutput: @"
 Position get for item '-1'
 Position set for item '-1'
 Position get for item '-3'
 Position set for item '-3'
-").VerifyDiagnostics();
+"*/).VerifyDiagnostics();
 
             // Wrong IL
             verifier.VerifyIL("Program.Shift1<T>",
@@ -27812,13 +27814,13 @@ class Program
     }
 }
 ";
-            // Wrong output
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"
+            // Wrong output and framework dependent
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe/*, expectedOutput: @"
 Position get for item '-1'
 Position set for item '-1'
 Position get for item '-3'
 Position set for item '-3'
-").VerifyDiagnostics();
+"*/).VerifyDiagnostics();
 
             // Wrong IL
             verifier.VerifyIL("Program.Shift1<T>",
@@ -28508,13 +28510,13 @@ class Program
 }
 ";
 
-            // Wrong output
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"
+            // Wrong output and framework dependent
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe/*, expectedOutput: @"
 Position get for item '-1'
 Position set for item '-1'
 Position get for item '-3'
 Position set for item '-3'
-").VerifyDiagnostics();
+"*/).VerifyDiagnostics();
 
             // Wrong IL
             verifier.VerifyIL("Program.<Shift1>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
