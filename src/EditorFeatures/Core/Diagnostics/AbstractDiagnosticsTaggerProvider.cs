@@ -24,6 +24,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         : ITaggerProvider, IRawDiagnosticsTaggerProviderCallback<TTag>
         where TTag : ITag
     {
+        /// <summary>
+        /// Underlying diagnostic tagger responsible for the syntax/semantic and compiler/analyzer split.
+        /// </summary>
         private readonly ImmutableArray<RawDiagnosticsTaggerProvider<TTag>> _rawDiagnosticsTaggerProviders;
 
         protected readonly IGlobalOptionService GlobalOptions;
