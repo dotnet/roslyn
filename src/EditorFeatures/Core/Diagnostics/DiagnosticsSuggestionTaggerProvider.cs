@@ -37,11 +37,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DiagnosticsSuggestionTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
-            IDiagnosticAnalyzerService analyzerService,
             IGlobalOptionService globalOptions,
             [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listenerProvider)
+            : base(threadingContext, diagnosticService, globalOptions, visibilityTracker, listenerProvider)
         {
         }
 
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 PredefinedErrorTypeNames.HintedSuggestion,
                 CreateToolTipContent(workspace, diagnostic));
 
-        protected override SnapshotSpan AdjustSnapshotSpan(SnapshotSpan snapshotSpan)
+        protected override SnapshotSpan AdjustSnapshotSpan(SnapshotSpan snapshotSpan, int minimumLength)
         {
             // We always want suggestion tags to be two characters long.
             return AdjustSnapshotSpan(snapshotSpan, minimumLength: 2, maximumLength: 2);
