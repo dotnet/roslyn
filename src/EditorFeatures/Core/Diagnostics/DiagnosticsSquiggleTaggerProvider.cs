@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
         }
 
-        protected internal override bool SupportsDignosticMode(DiagnosticMode mode)
+        protected internal override bool SupportsDiagnosticMode(DiagnosticMode mode)
         {
             // We only support push diagnostics.  When pull diagnostics are on, squiggles are handled by the lsp client.
             return mode == DiagnosticMode.Push;
