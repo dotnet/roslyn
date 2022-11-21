@@ -26,14 +26,11 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal enum RawDiagnosticType
-    {
-        Compiler = 1 << 0,
-        Analyzer = 1 << 1,
-        Syntax = 1 << 2,
-        Semantic = 1 << 3,
-    }
-
+    /// <summary>
+    /// Callback a particular <see cref="RawDiagnosticsTaggerProvider{TTag}"/> needs to perform some work.  This
+    /// callback behaves the same regardless of the particular <see cref="RawDiagnosticTaggerConfiguration"/> the tagger
+    /// is computing tags for.
+    /// </summary>
     internal interface IRawDiagnosticsTaggerProviderCallback<TTag> where TTag : ITag
     {
         ImmutableArray<IOption> Options { get; }
@@ -56,10 +53,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         ITagSpan<TTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data);
     }
 
+    /// <summary>
+    /// Low level tagger responsible for producing specific diagnostics tags for some particular <see
+    /// cref="RawDiagnosticTaggerConfiguration"/>.
+    /// </summary>
     internal sealed class RawDiagnosticsTaggerProvider<TTag> : AsynchronousTaggerProvider<TTag>
         where TTag : ITag
     {
-        private readonly RawDiagnosticType _diagnosticType;
+        private readonly RawDiagnosticTaggerConfiguration _configuration;
         private readonly IDiagnosticService _diagnosticService;
         private readonly IDiagnosticAnalyzerService _analyzerService;
 
@@ -68,8 +69,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         protected override ImmutableArray<IOption> Options => _callback.Options;
 
         public RawDiagnosticsTaggerProvider(
-            IRawDiagnosticsTaggerProviderCallback<TTag> callback,
-            RawDiagnosticType diagnosticType,
+            IRawDiagnosticsTaggerProviderCallback<TTag> configuration,
+            RawDiagnosticTaggerConfiguration diagnosticType,
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
             IDiagnosticAnalyzerService analyzerService,
@@ -78,8 +79,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IAsynchronousOperationListener listener)
             : base(threadingContext, globalOptions, visibilityTracker, listener)
         {
-            _callback = callback;
-            _diagnosticType = diagnosticType;
+            _callback = configuration;
+            _configuration = diagnosticType;
             _diagnosticService = diagnosticService;
             _analyzerService = analyzerService;
         }

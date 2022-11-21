@@ -42,14 +42,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             GlobalOptions = globalOptions;
 
             _rawDiagnosticsTaggerProviders = ImmutableArray.Create(
-                CreateRawDiagnosticsTaggerProvider(RawDiagnosticType.Syntax | RawDiagnosticType.Compiler),
-                CreateRawDiagnosticsTaggerProvider(RawDiagnosticType.Syntax | RawDiagnosticType.Analyzer),
-                CreateRawDiagnosticsTaggerProvider(RawDiagnosticType.Semantic | RawDiagnosticType.Compiler),
-                CreateRawDiagnosticsTaggerProvider(RawDiagnosticType.Semantic | RawDiagnosticType.Analyzer));
+                CreateRawDiagnosticsTaggerProvider(RawDiagnosticTaggerConfiguration.Syntax | RawDiagnosticTaggerConfiguration.Compiler),
+                CreateRawDiagnosticsTaggerProvider(RawDiagnosticTaggerConfiguration.Syntax | RawDiagnosticTaggerConfiguration.Analyzer),
+                CreateRawDiagnosticsTaggerProvider(RawDiagnosticTaggerConfiguration.Semantic | RawDiagnosticTaggerConfiguration.Compiler),
+                CreateRawDiagnosticsTaggerProvider(RawDiagnosticTaggerConfiguration.Semantic | RawDiagnosticTaggerConfiguration.Analyzer));
 
             return;
 
-            RawDiagnosticsTaggerProvider<TTag> CreateRawDiagnosticsTaggerProvider(RawDiagnosticType diagnosticType)
+            RawDiagnosticsTaggerProvider<TTag> CreateRawDiagnosticsTaggerProvider(RawDiagnosticTaggerConfiguration diagnosticType)
             {
                 return new RawDiagnosticsTaggerProvider<TTag>(
                     this,
