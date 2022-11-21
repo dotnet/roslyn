@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
         /// Many callbacks into the diagnostics analyzers are driven in the <see cref="AnalyzerDriver"/>
         /// by compilation events added to the <see cref="Compilation.EventQueue"/>. For these callbacks to be executed,
         /// the analyzer driver host needs to force complete the events in the relevant part of the compilation,
-        /// i.e. relevant tree(s) or entire compilation. This force complete operation is incurs a performance cost,
+        /// i.e. relevant tree(s) or entire compilation. This force complete operation incurs a performance cost,
         /// which can be avoided if the analyzer(s) to be executed do not register any actions which are driven by
         /// compilation events.
         /// Note that <see cref="CompilationStartedEvent"/> is an exception as it is *always* generated as soon as the
