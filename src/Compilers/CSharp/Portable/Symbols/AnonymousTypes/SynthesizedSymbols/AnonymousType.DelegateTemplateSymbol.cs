@@ -18,10 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private readonly ImmutableArray<Symbol> _members;
 
             /// <summary>
-            /// True if any of the delegate parameter types or return type are
-            /// fixed types rather than type parameters.
+            /// True if name of the delegate has to be generated during compilation (&lt;&gt;f__AnonymousDelegate0, 1, ...)
+            /// instead of being fully determined from delegate type (&lt;&gt;A, &lt;&gt;F).
             /// </summary>
-            internal readonly bool HasFixedTypes;
+            internal readonly bool HasIndexedName;
 
             /// <summary>
             /// A delegate type where the parameter types and return type
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(refKinds.IsNull || parameterCount == refKinds.Capacity - (voidReturnTypeOpt is { } ? 0 : 1));
 
-                HasFixedTypes = false;
+                HasIndexedName = false;
                 TypeParameters = CreateTypeParameters(this, parameterCount, returnsVoid: voidReturnTypeOpt is { });
                 NameAndIndex = new NameAndIndex(name, index: 0);
 
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(SmallestLocation != null);
                 Debug.Assert(SmallestLocation != Location.None);
 
-                HasFixedTypes = true; // TODO: Remove.
+                HasIndexedName = true;
                 TypeParameters = CreateTypeParameters(
                     this,
                     parameterCount: typeDescr.Fields.Length - 1,
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(SmallestLocation != null);
                 Debug.Assert(SmallestLocation != Location.None);
 
-                HasFixedTypes = true;
+                HasIndexedName = true;
 
                 TypeMap typeMap;
                 int typeParameterCount = typeParametersToSubstitute.Length;
