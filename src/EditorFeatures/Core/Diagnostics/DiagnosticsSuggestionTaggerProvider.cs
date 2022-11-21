@@ -28,10 +28,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal sealed partial class DiagnosticsSuggestionTaggerProvider :
         AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
     {
+<<<<<<< HEAD
         private static readonly IEnumerable<Option2<bool>> s_tagSourceOptions =
             ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles);
 
         public sealed override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
+=======
+        protected override ImmutableArray<IOption> Options { get; } =
+            ImmutableArray.Create<IOption>(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles);
+>>>>>>> taggerOptions
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

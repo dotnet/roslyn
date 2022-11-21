@@ -36,7 +36,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
     internal interface IRawDiagnosticsTaggerProviderCallback<TTag> where TTag : ITag
     {
-        IEnumerable<Option2<bool>> Options { get; }
+        ImmutableArray<IOption> Options { get; }
+        ImmutableArray<IOption> FeatureOptions { get; }
         bool IsEnabled { get; }
         bool SupportsDiagnosticMode(DiagnosticMode mode);
         bool IncludeDiagnostic(DiagnosticData data);
@@ -104,6 +105,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
                 TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, _diagnosticService),
                 TaggerEventSources.OnTextChanged(subjectBuffer));
+        }
+
+
+        protected sealed override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
+        {
+            // OnTextChanged is added for diagnostics in source generated files: it's possible that the analyzer driver
+            // executed on content which was produced by a source generator but is not yet reflected in an open text
+            // buffer for that generated file. In this case, we need to update the tags after the buffer updates (which
+            // triggers a text changed event) to ensure diagnostics are positioned correctly.
+
+            var eventSources = new List<ITaggerEventSource>()
+            {
+                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
+                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
+                TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, _diagnosticService),
+                TaggerEventSources.OnTextChanged(subjectBuffer),
+            };
+
+            foreach (var option in this.FeatureOptions)
+                eventSources.Add(TaggerEventSources.OnGlobalOptionChanged(this.GlobalOptions, option));
+
+            return TaggerEventSources.Compose(eventSources);
         }
 
         protected sealed override Task ProduceTagsAsync(

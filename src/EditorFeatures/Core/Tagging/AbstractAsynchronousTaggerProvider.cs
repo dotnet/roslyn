@@ -4,10 +4,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 #if DEBUG
 using System.Diagnostics;
 #endif
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -63,13 +65,19 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         protected virtual SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
 
         /// <summary>
-        /// Global options controlling if the tagger should tag or not.
-        /// 
-        /// An empty enumerable can be returned to indicate that this tagger should 
-        /// run unconditionally.
+        /// Global options controlling if the tagger should tag or not.  These correspond to user facing options to
+        /// completely disable a feature or not.
+        /// <para>
+        /// An empty enumerable can be returned to indicate that this tagger should run unconditionally.</para>
         /// </summary>
-        protected virtual IEnumerable<Option2<bool>> Options => SpecializedCollections.EmptyEnumerable<Option2<bool>>();
-        protected virtual IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.EmptyEnumerable<PerLanguageOption2<bool>>();
+        /// <remarks>All values must either be an <see cref="Option2{T}"/> or a <see cref="PerLanguageOption2{T}"/>.</remarks>
+        protected virtual ImmutableArray<IOption> Options => ImmutableArray<IOption>.Empty;
+
+        /// <summary>
+        /// Options controlling the feature that should be used to determine if the feature should recompute tags.
+        /// These generally correspond to user facing options to change how a feature behaves if it is running.
+        /// </summary>
+        protected virtual ImmutableArray<IOption> FeatureOptions => ImmutableArray<IOption>.Empty;
 
         protected virtual bool ComputeInitialTagsSynchronously(ITextBuffer subjectBuffer) => false;
 
@@ -117,6 +125,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             GlobalOptions = globalOptions;
             AsyncListener = asyncListener;
             _visibilityTracker = visibilityTracker;
+
+            Contract.ThrowIfTrue(this.Options.Any(o => o is not Option2<bool> and not PerLanguageOption2<bool>), "All options must be Option2<bool> or PerLanguageOption2<bool>");
+            Contract.ThrowIfTrue(this.FeatureOptions.Any(o => o is not Option2<bool> and not PerLanguageOption2<bool>), "All feature options must be Option2<bool> or PerLanguageOption2<bool>");
 
 #if DEBUG
             StackTrace = new StackTrace().ToString();
