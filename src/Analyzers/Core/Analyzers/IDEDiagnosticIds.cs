@@ -205,5 +205,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string ConsecutiveStatementPlacementDiagnosticId = "IDE2003";
         public const string ConstructorInitializerPlacementDiagnosticId = "IDE2004";
         public const string ConditionalExpressionPlacementDiagnosticId = "IDE2005";
+        public const string ArrowExpressionClausePlacementDiagnosticId = "IDE2006";
     }
 }
