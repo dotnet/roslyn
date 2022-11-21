@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
         }
 
-        public override ImmutableArray<IOption> Options { get; } =
-            ImmutableArray.Create<IOption>(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles);
+        public override ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(InternalFeatureOnOffOptions.Squiggles);
 
         public sealed override bool SupportsDiagnosticMode(DiagnosticMode mode)
         {

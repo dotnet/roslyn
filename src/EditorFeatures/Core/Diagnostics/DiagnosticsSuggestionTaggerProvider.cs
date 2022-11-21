@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
         }
 
-        public sealed override ImmutableArray<IOption> Options { get; } =
-            ImmutableArray.Create<IOption>(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles);
+        public sealed override ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(InternalFeatureOnOffOptions.Squiggles);
 
         public sealed override bool IncludeDiagnostic(DiagnosticData diagnostic)
             => diagnostic.Severity == DiagnosticSeverity.Info;
