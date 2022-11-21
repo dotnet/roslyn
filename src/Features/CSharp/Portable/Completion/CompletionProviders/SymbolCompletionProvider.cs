@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -227,13 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
             else if (symbol is INamedTypeSymbol or IAliasSymbol { Target: INamedTypeSymbol })
             {
-                var namedTypeSymbol = symbol.Kind switch
-                {
-                    SymbolKind.NamedType => (INamedTypeSymbol)symbol,
-                    SymbolKind.Alias => (INamedTypeSymbol)((IAliasSymbol)symbol).Target,
-                    _ => throw ExceptionUtilities.Unreachable(),
-                };
-
+                var namedTypeSymbol = symbol is INamedTypeSymbol ? (INamedTypeSymbol)symbol : (INamedTypeSymbol)((IAliasSymbol)symbol).Target;
                 // If this is a type symbol/alias symbol, also consider appending parenthesis when later, it is committed by using special characters,
                 // and the type is used as constructor
                 if (context.IsObjectCreationTypeContext && CompletionUtilities.IsConstructorAccessibleAtPosition(completionContext.Position, namedTypeSymbol, context.SemanticModel))
