@@ -41,6 +41,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         bool SupportsDiagnosticMode(DiagnosticMode mode);
         bool IncludeDiagnostic(DiagnosticData data);
 
+        bool TagEquals(TTag tag1, TTag tag2);
+
         /// <summary>
         /// Get the <see cref="DiagnosticDataLocation"/> that should have the tag applied to it.
         /// In most cases, this is the <see cref="DiagnosticData.DataLocation"/> but overrides can change it (e.g. unnecessary classifications).
@@ -86,7 +88,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// When we hear about a new event cancel the costly work we're doing and compute against the latest snapshot.
         /// </summary>
-        protected override bool CancelOnNewWork => true;
+        protected sealed override bool CancelOnNewWork => true;
+
+        protected sealed override bool TagEquals(TTag tag1, TTag tag2)
+            => _callback.TagEquals(tag1, tag2);
 
         protected sealed override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
         {
@@ -101,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 TaggerEventSources.OnTextChanged(subjectBuffer));
         }
 
-        protected override Task ProduceTagsAsync(
+        protected sealed override Task ProduceTagsAsync(
             TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition, CancellationToken cancellationToken)
         {
             return ProduceTagsAsync(context, spanToTag, cancellationToken);
@@ -161,7 +166,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         foreach (var diagnosticSpan in diagnosticSpans)
                         {
                             if (diagnosticSpan.IntersectsWith(requestedSpan) && !IsSuppressed(suppressedDiagnosticsSpans, diagnosticSpan))
-                                context.AddTag(new TagSpan<DiagnosticDataTag>(diagnosticSpan, new DiagnosticDataTag(workspace, diagnosticData)));
+                            {
+                                var tagSpan = _callback.CreateTagSpan(workspace, diagnosticSpan, diagnosticData);
+                                if (tagSpan != null)
+                                    context.AddTag(tagSpan);
+                            }
                         }
                     }
                 }

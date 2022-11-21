@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static readonly IEnumerable<Option2<bool>> s_tagSourceOptions =
             ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles);
 
-        public override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
+        public sealed override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -46,26 +46,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
         }
 
-        public override bool IncludeDiagnostic(DiagnosticData diagnostic)
+        public sealed override bool IncludeDiagnostic(DiagnosticData diagnostic)
             => diagnostic.Severity == DiagnosticSeverity.Info;
 
-        public override bool SupportsDiagnosticMode(DiagnosticMode mode)
+        public sealed override bool SupportsDiagnosticMode(DiagnosticMode mode)
         {
             // We only support push diagnostics.  When pull diagnostics are on, ellipses suggestions are handled by the
             // lsp client.
             return mode == DiagnosticMode.Push;
         }
 
-        protected override IErrorTag CreateTag(Workspace workspace, DiagnosticData diagnostic)
+        protected sealed override IErrorTag CreateTag(Workspace workspace, DiagnosticData diagnostic)
             => new RoslynErrorTag(PredefinedErrorTypeNames.HintedSuggestion, workspace, diagnostic);
 
-        protected override SnapshotSpan AdjustSnapshotSpan(SnapshotSpan snapshotSpan)
+        protected sealed override SnapshotSpan AdjustSnapshotSpan(SnapshotSpan snapshotSpan)
         {
             // We always want suggestion tags to be two characters long.
             return AdjustSnapshotSpan(snapshotSpan, minimumLength: 2, maximumLength: 2);
         }
 
-        protected override bool TagEquals(IErrorTag tag1, IErrorTag tag2)
+        public sealed override bool TagEquals(IErrorTag tag1, IErrorTag tag2)
         {
             Contract.ThrowIfFalse(tag1 is RoslynErrorTag);
             Contract.ThrowIfFalse(tag2 is RoslynErrorTag);

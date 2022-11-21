@@ -62,6 +62,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract bool IsEnabled { get; }
         public abstract bool SupportsDiagnosticMode(DiagnosticMode mode);
         public abstract bool IncludeDiagnostic(DiagnosticData data);
+
+        public abstract bool TagEquals(TTag tag1, TTag tag2);
         public abstract ITagSpan<TTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data);
 
         /// <summary>
@@ -75,52 +77,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         #endregion
 
-        public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
+        public ITagger<T>? CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
             using var _ = ArrayBuilder<ITagger<TTag>>.GetInstance(out var taggers);
             foreach (var tagProvider in _rawDiagnosticsTaggerProviders)
-                taggers.Add(tagProvider.CreateTagger<TTag>(buffer));
+                taggers.AddIfNotNull(tagProvider.CreateTagger<TTag>(buffer));
 
-            return new AggregateTagger(this, taggers.ToImmutable()) as ITagger<T>;
-        }
-
-        private sealed class AggregateTagger : ITagger<TTag>
-        {
-            private readonly AbstractDiagnosticsTaggerProvider<TTag> _taggerProvider;
-            private readonly ImmutableArray<ITagger<TTag>> _taggers;
-
-            public AggregateTagger(
-                AbstractDiagnosticsTaggerProvider<TTag> taggerProvider,
-                ImmutableArray<ITagger<TTag>> taggers)
+            var tagger = new AggregateTagger(this, taggers.ToImmutable());
+            if (tagger is not ITagger<T> genericTagger)
             {
-                _taggerProvider = taggerProvider;
-                _taggers = taggers;
+                tagger.Dispose();
+                return null;
             }
 
-            public event EventHandler<SnapshotSpanEventArgs> TagsChanged
-            {
-                add
-                {
-                    foreach (var tagger in _taggers)
-                        tagger.TagsChanged += value;
-                }
-
-                remove
-                {
-                    foreach (var tagger in _taggers)
-                        tagger.TagsChanged -= value;
-                }
-            }
-
-            public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
-            {
-                using var _ = ArrayBuilder<ITagSpan<TTag>>.GetInstance(out var result);
-
-                foreach (var tagger in _taggers)
-                    result.AddRange(tagger.GetTags(spans));
-
-                return result.ToImmutable();
-            }
+            return genericTagger;
         }
     }
 }
