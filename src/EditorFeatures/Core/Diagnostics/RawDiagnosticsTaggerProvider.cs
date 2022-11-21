@@ -28,10 +28,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal sealed class DiagnosticDataTag : ITag
     {
+        public readonly Workspace Workspace;
         public readonly DiagnosticData DiagnosticData;
 
-        public DiagnosticDataTag(DiagnosticData diagnosticData)
+        public DiagnosticDataTag(Workspace workspace, DiagnosticData diagnosticData)
         {
+            Workspace = workspace;
             DiagnosticData = diagnosticData;
         }
     }
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         protected override IEnumerable<Option2<bool>> Options => _callback.Options;
 
         public RawDiagnosticsTaggerProvider(
-            IRawDiagnosticsTaggerProviderCallback  callback,
+            IRawDiagnosticsTaggerProviderCallback callback,
             RawDiagnosticType diagnosticType,
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
@@ -168,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         foreach (var diagnosticSpan in diagnosticSpans)
                         {
                             if (diagnosticSpan.IntersectsWith(requestedSpan) && !IsSuppressed(suppressedDiagnosticsSpans, diagnosticSpan))
-                                context.AddTag(new TagSpan<DiagnosticDataTag>(diagnosticSpan, new DiagnosticDataTag(diagnosticData)));
+                                context.AddTag(new TagSpan<DiagnosticDataTag>(diagnosticSpan, new DiagnosticDataTag(workspace, diagnosticData)));
                         }
                     }
                 }

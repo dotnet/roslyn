@@ -82,15 +82,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var tagProvider in _rawDiagnosticsTaggerProviders)
                 taggers.Add(tagProvider.CreateTagger<DiagnosticDataTag>(buffer));
 
-            return new AggregateTagger<T>(taggers.ToImmutable());
+            return new AggregateTagger(this, taggers.ToImmutable()) as ITagger<T>;
         }
 
-        private sealed class AggregateTagger<T> : ITagger<T> where T : ITag
+        private sealed class AggregateTagger : ITagger<TTag>
         {
+            private readonly AbstractDiagnosticsTaggerProvider<TTag> _taggerProvider;
             private readonly ImmutableArray<ITagger<DiagnosticDataTag>> _taggers;
 
-            public AggregateTagger(ImmutableArray<ITagger<DiagnosticDataTag>> taggers)
+            public AggregateTagger(
+                AbstractDiagnosticsTaggerProvider<TTag> taggerProvider,
+                ImmutableArray<ITagger<DiagnosticDataTag>> taggers)
             {
+                _taggerProvider = taggerProvider;
                 _taggers = taggers;
             }
 
@@ -109,12 +113,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            public IEnumerable<ITagSpan<T>> GetTags(NormalizedSnapshotSpanCollection spans)
+            public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
             {
-                using var _ = ArrayBuilder<ITagSpan<T>>.GetInstance(out var result);
+                using var _ = ArrayBuilder<ITagSpan<TTag>>.GetInstance(out var result);
 
                 foreach (var tagger in _taggers)
-                    result.AddRange(tagger.GetTags(spans));
+                {
+                    foreach (var tagSpan in tagger.GetTags(spans))
+                        result.AddIfNotNull(_taggerProvider.CreateTagSpan(tagSpan.Tag.Workspace, tagSpan.Span, tagSpan.Tag.DiagnosticData));
+                }
 
                 return result.ToImmutable();
             }
