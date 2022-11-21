@@ -2554,23 +2554,139 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestNormalizeComments()
         {
-            TestNormalizeToken("a//b", "a //b\r\n");
+            TestNormalizeToken(
+                "a//b", """
+                a //b
+
+                """);
             TestNormalizeToken("a/*b*/", "a /*b*/");
-            TestNormalizeToken("//a\r\nb", "//a\r\nb");
+            TestNormalizeToken("""
+                //a
+                b
+                """, """
+                //a
+                b
+                """);
             TestNormalizeExpression("a/*b*/+c", "a /*b*/ + c");
-            TestNormalizeExpression("/*a*/b", "/*a*/\r\nb");
-            TestNormalizeExpression("/*a\r\n*/b", "/*a\r\n*/\r\nb");
-            TestNormalizeStatement("{/*a*/b}", "{ /*a*/\r\n  b\r\n}");
-            TestNormalizeStatement("{\r\na//b\r\n}", "{\r\n  a //b\r\n}");
-            TestNormalizeStatement("{\r\n//a\r\n}", "{\r\n//a\r\n}");
-            TestNormalizeStatement("{\r\n//a\r\nb}", "{\r\n  //a\r\n  b\r\n}");
-            TestNormalizeStatement("{\r\n/*a*/b}", "{\r\n  /*a*/\r\n  b\r\n}");
-            TestNormalizeStatement("{\r\n/// <goo/>\r\na}", "{\r\n  /// <goo/>\r\n  a\r\n}");
-            TestNormalizeStatement("{\r\n///<goo/>\r\na}", "{\r\n  ///<goo/>\r\n  a\r\n}");
-            TestNormalizeStatement("{\r\n/// <goo>\r\n/// </goo>\r\na}", "{\r\n  /// <goo>\r\n  /// </goo>\r\n  a\r\n}");
-            TestNormalizeToken("/// <goo>\r\n/// </goo>\r\na", "/// <goo>\r\n/// </goo>\r\na");
-            TestNormalizeStatement("{\r\n/*** <goo/> ***/\r\na}", "{\r\n  /*** <goo/> ***/\r\n  a\r\n}");
-            TestNormalizeStatement("{\r\n/*** <goo/>\r\n ***/\r\na}", "{\r\n  /*** <goo/>\r\n ***/\r\n  a\r\n}");
+            TestNormalizeExpression(
+                "/*a*/b", """
+                /*a*/
+                b
+                """);
+            TestNormalizeExpression("""
+                /*a
+                */b
+                """, """
+                /*a
+                */
+                b
+                """);
+            TestNormalizeStatement(
+                "{/*a*/b}", """
+                { /*a*/
+                  b
+                }
+                """);
+            TestNormalizeStatement("""
+                {
+                a//b
+                }
+                """, """
+                {
+                  a //b
+                }
+                """);
+            TestNormalizeStatement("""
+                {
+                //a
+                }
+                """, """
+                {
+                //a
+                }
+                """);
+            TestNormalizeStatement("""
+                {
+                //a
+                b}
+                """, """
+                {
+                  //a
+                  b
+                }
+                """);
+            TestNormalizeStatement("""
+                {
+                /*a*/b}
+                """, """
+                {
+                  /*a*/
+                  b
+                }
+                """);
+            TestNormalizeStatement("""
+                {
+                /// <goo/>
+                a}
+                """, """
+                {
+                  /// <goo/>
+                  a
+                }
+                """);
+            TestNormalizeStatement("""
+                {
+                ///<goo/>
+                a}
+                """, """
+                {
+                  ///<goo/>
+                  a
+                }
+                """);
+            TestNormalizeStatement("""
+                {
+                /// <goo>
+                /// </goo>
+                a}
+                """, """
+                {
+                  /// <goo>
+                  /// </goo>
+                  a
+                }
+                """);
+            TestNormalizeToken("""
+                /// <goo>
+                /// </goo>
+                a
+                """, """
+                /// <goo>
+                /// </goo>
+                a
+                """);
+            TestNormalizeStatement("""
+                {
+                /*** <goo/> ***/
+                a}
+                """, """
+                {
+                  /*** <goo/> ***/
+                  a
+                }
+                """);
+            TestNormalizeStatement("""
+                {
+                /*** <goo/>
+                 ***/
+                a}
+                """, """
+                {
+                  /*** <goo/>
+                 ***/
+                  a
+                }
+                """);
         }
 
         private static void TestNormalizeToken(string text, string expected)
