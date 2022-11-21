@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.GetCurrentWriter().WriteUInt32(token);
         }
 
-        internal void EmitToken(Cci.IReference value, SyntaxNode syntaxNode, DiagnosticBag diagnostics, bool encodeAsRawToken = false)
+        internal void EmitToken(Cci.IReference value, SyntaxNode? syntaxNode, DiagnosticBag diagnostics, bool encodeAsRawToken = false)
         {
             uint token = module?.GetFakeSymbolTokenForIL(value, syntaxNode, diagnostics) ?? 0xFFFF;
             // Setting the high bit indicates that the token value is to be interpreted literally rather than as a handle.
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.GetCurrentWriter().WriteUInt32(token);
         }
 
-        internal void EmitToken(Cci.ISignature value, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        internal void EmitToken(Cci.ISignature value, SyntaxNode? syntaxNode, DiagnosticBag diagnostics)
         {
             uint token = module?.GetFakeSymbolTokenForIL(value, syntaxNode, diagnostics) ?? 0xFFFF;
             this.GetCurrentWriter().WriteUInt32(token);
@@ -433,13 +433,25 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal void EmitLoad(LocalOrParameter localOrParameter)
         {
-            if (localOrParameter.Local != null)
+            if (localOrParameter.Local is { } local)
             {
-                EmitLocalLoad(localOrParameter.Local);
+                EmitLocalLoad(local);
             }
             else
             {
                 EmitLoadArgumentOpcode(localOrParameter.ParameterIndex);
+            }
+        }
+
+        internal void EmitLoadAddress(LocalOrParameter localOrParameter)
+        {
+            if (localOrParameter.Local is { } local)
+            {
+                EmitLocalAddress(local);
+            }
+            else
+            {
+                EmitLoadArgumentAddrOpcode(localOrParameter.ParameterIndex);
             }
         }
 

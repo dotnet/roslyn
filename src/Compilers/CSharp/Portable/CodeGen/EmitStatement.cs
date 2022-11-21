@@ -477,7 +477,7 @@ oneMoreTime:
                             return;
                     }
 
-                    // none of above. 
+                    // none of above.
                     // then it is regular binary expression - Or, And, Xor ...
                     goto default;
 
@@ -598,11 +598,11 @@ oneMoreTime:
             _builder.EmitBranch(ILOpCode.Br, boundGotoStatement.Label);
         }
 
-        // used by HandleReturn method which tries to inject 
+        // used by HandleReturn method which tries to inject
         // indirect ret sequence as a last statement in the block
         // that is the last statement of the current method
         // NOTE: it is important that there is no code after this "ret"
-        //       it is desirable, for debug purposes, that this ret is emitted inside top level { } 
+        //       it is desirable, for debug purposes, that this ret is emitted inside top level { }
         private bool IsLastBlockInMethod(BoundBlock block)
         {
             if (_boundBody == block)
@@ -610,7 +610,7 @@ oneMoreTime:
                 return true;
             }
 
-            //sometimes top level node is a statement list containing 
+            //sometimes top level node is a statement list containing
             //epilogue and then a block. If we are having that block, it will do.
             var list = _boundBody as BoundStatementList;
             if (list != null && list.Statements.LastOrDefault() == block)
@@ -711,7 +711,7 @@ oneMoreTime:
         private bool ShouldUseIndirectReturn()
         {
             // If the method/lambda body is a block we define a sequence point for the closing brace of the body
-            // and associate it with the ret instruction. If there is a return statement we need to store the value 
+            // and associate it with the ret instruction. If there is a return statement we need to store the value
             // to a long-lived synthesized local since a sequence point requires an empty evaluation stack.
             //
             // The emitted pattern is:
@@ -745,7 +745,7 @@ oneMoreTime:
             }
             else
             {
-                // NOTE: passing "ReadOnlyStrict" here. 
+                // NOTE: passing "ReadOnlyStrict" here.
                 //       we should never return an address of a copy
                 var unexpectedTemp = this.EmitAddress(expressionOpt, this._method.RefKind == RefKind.RefReadOnly ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
                 Debug.Assert(unexpectedTemp == null, "ref-returning a temp?");
@@ -859,7 +859,7 @@ oneMoreTime:
                 // }
                 // finallyBlock;
                 //
-                // This is where the second copy of finallyBlock is emitted. 
+                // This is where the second copy of finallyBlock is emitted.
                 if (statement.PreferFaultHandler)
                 {
                     var finallyClone = FinallyCloner.MakeFinallyClone(statement);
@@ -874,7 +874,7 @@ oneMoreTime:
         }
 
         /// <remarks>
-        /// The interesting part in the following method is the support for exception filters. 
+        /// The interesting part in the following method is the support for exception filters.
         /// === Example:
         ///
         /// try
@@ -890,7 +890,7 @@ oneMoreTime:
         ///
         /// Try
         ///     TryBlock
-        /// Filter 
+        /// Filter
         ///     var tmp = Pop() as {ExceptionType}
         ///     if (tmp == null)
         ///     {
@@ -907,7 +907,7 @@ oneMoreTime:
         ///     variable ex can be used here
         ///     Handler
         /// EndCatch
-        /// 
+        ///
         /// When evaluating `Condition` requires additional statements be executed first, those
         /// statements are stored in `catchBlock.ExceptionFilterPrologueOpt` and emitted before the condition.
         /// </remarks>
@@ -930,12 +930,12 @@ oneMoreTime:
 
                 RecordAsyncCatchHandlerOffset(catchBlock);
 
-                // Dev12 inserts the sequence point on catch clause without a filter, just before 
+                // Dev12 inserts the sequence point on catch clause without a filter, just before
                 // the exception object is assigned to the variable.
-                // 
-                // Also in Dev12 the exception variable scope span starts right after the stloc instruction and 
+                //
+                // Also in Dev12 the exception variable scope span starts right after the stloc instruction and
                 // ends right before leave instruction. So when stopped at the sequence point Dev12 inserts,
-                // the exception variable is not visible. 
+                // the exception variable is not visible.
                 if (_emitPdbSequencePoints)
                 {
                     var syntax = catchBlock.Syntax as CatchClauseSyntax;
@@ -963,7 +963,7 @@ oneMoreTime:
 
                 RecordAsyncCatchHandlerOffset(catchBlock);
 
-                // Filtering starts with simulating regular catch through a 
+                // Filtering starts with simulating regular catch through a
                 // type check. If this is not our type then we are done.
                 var typeCheckPassedLabel = new object();
                 typeCheckFailedLabel = new object();
@@ -999,7 +999,7 @@ oneMoreTime:
             if (exceptionSourceOpt != null)
             {
                 // here we have our exception on the stack in a form of a reference type (O)
-                // it means that we have to "unbox" it before storing to the local 
+                // it means that we have to "unbox" it before storing to the local
                 // if exception's type is a generic type parameter.
                 if (!exceptionSourceOpt.Type.IsVerifierReference())
                 {
@@ -1118,20 +1118,20 @@ oneMoreTime:
             EmitSwitchHeader(
                 dispatch.Expression,
                 dispatch.Cases.Select(p => new KeyValuePair<ConstantValue, object>(p.value, p.label)).ToArray(),
-                dispatch.DefaultLabel);
+                dispatch.DefaultLabel,
+                dispatch.LengthBasedStringSwitchDataOpt);
         }
 
         private void EmitSwitchHeader(
             BoundExpression expression,
             KeyValuePair<ConstantValue, object>[] switchCaseLabels,
-            LabelSymbol fallThroughLabel)
+            LabelSymbol fallThroughLabel,
+            LengthBasedStringSwitchData lengthBasedSwitchStringJumpTableOpt)
         {
             Debug.Assert(expression.ConstantValue == null);
             Debug.Assert((object)expression.Type != null &&
                 (expression.Type.IsValidV6SwitchGoverningType() || expression.Type.IsSpanOrReadOnlySpanChar()));
             Debug.Assert(switchCaseLabels.Length > 0);
-
-            Debug.Assert(switchCaseLabels != null);
 
             LocalDefinition temp = null;
             LocalOrParameter key;
@@ -1180,10 +1180,20 @@ oneMoreTime:
                     break;
             }
 
+            Debug.Assert(lengthBasedSwitchStringJumpTableOpt is null ||
+                expression.Type.SpecialType == SpecialType.System_String || expression.Type.IsSpanOrReadOnlySpanChar());
+
             // Emit switch jump table
             if (expression.Type.SpecialType == SpecialType.System_String || expression.Type.IsSpanOrReadOnlySpanChar())
             {
-                this.EmitStringSwitchJumpTable(switchCaseLabels, fallThroughLabel, key, expression.Syntax, expression.Type);
+                if (lengthBasedSwitchStringJumpTableOpt is null)
+                {
+                    this.EmitStringSwitchJumpTable(switchCaseLabels, fallThroughLabel, key, expression.Syntax, expression.Type);
+                }
+                else
+                {
+                    this.EmitLengthBasedStringSwitchJumpTable(lengthBasedSwitchStringJumpTableOpt, fallThroughLabel, key, expression.Syntax, expression.Type);
+                }
             }
             else
             {
@@ -1201,6 +1211,146 @@ oneMoreTime:
                 FreeLocals(sequence);
             }
         }
+
+#nullable enable
+        private void EmitLengthBasedStringSwitchJumpTable(
+            LengthBasedStringSwitchData lengthBasedSwitchData,
+            LabelSymbol fallThroughLabel,
+            LocalOrParameter keyTemp,
+            SyntaxNode syntaxNode,
+            TypeSymbol keyType)
+        {
+            // For the LengthJumpTable, emit:
+            //   if (keyTemp is null)
+            //     goto nullCaseLabel; OR goto fallThroughLabel;
+            //
+            //   var lengthTmp = keyTemp.Length;
+            //   switch dispatch on lengthTemp using fallThroughLabel and cases:
+            //     lengthConstant -> corresponding label (may be the label to a CharJumpTable, or to a StringJumpTable in 1-length scenario, or in 0-length scenario, a final case label)
+            //
+            //   var charTemp;
+            //
+            // For each CharJumpTable, emit:
+            //   label for CharJumpTable:
+            //   charTemp = keyTemp[selectedCharPosition];
+            //   switch dispatch on charTemp using fallThroughLabel and cases:
+            //     charConstant -> corresponding label (may be the label for a StringJumpTable or, in 1-length scenario, a final case label)
+            //
+            // For each StringJumpTable label, emit:
+            //   label for StringJumpTable:
+            //   switch dispatch on keyTemp using fallThroughLabel and cases:
+            //     stringConstant -> corresponding label
+
+            bool isSpan = keyType.IsSpanChar();
+            bool isReadOnlySpan = keyType.IsReadOnlySpanChar();
+            bool isSpanOrReadOnlySpan = isSpan || isReadOnlySpan;
+            var indexerRef = GetIndexerRef(syntaxNode, keyType, isReadOnlySpan, isSpanOrReadOnlySpan);
+            var lengthMethodRef = GetLengthMethodRef(syntaxNode, keyType, isReadOnlySpan, isSpanOrReadOnlySpan);
+            Debug.Assert(indexerRef is not null);
+            Debug.Assert(lengthMethodRef is not null);
+
+            emitLengthDispatch(lengthBasedSwitchData, keyTemp, fallThroughLabel, syntaxNode);
+            emitCharDispatches(lengthBasedSwitchData, keyTemp, fallThroughLabel, syntaxNode);
+            emitFinalDispatches(lengthBasedSwitchData, keyTemp, keyType, fallThroughLabel, syntaxNode);
+
+            return;
+
+            void emitLengthDispatch(LengthBasedStringSwitchData lengthBasedSwitchInfo, LocalOrParameter keyTemp, LabelSymbol fallThroughLabel, SyntaxNode syntaxNode)
+            {
+                if (!isSpanOrReadOnlySpan)
+                {
+                    // if (keyTemp is null)
+                    //   goto nullCaseLabel; OR goto fallThroughLabel;
+                    _builder.EmitLoad(keyTemp);
+                    _builder.EmitBranch(ILOpCode.Brfalse, lengthBasedSwitchInfo._lengthJumpTable.nullCaseLabel ?? fallThroughLabel, ILOpCode.Brtrue);
+                }
+
+                // var stringLength = keyTemp.Length;
+                var int32Type = Binder.GetSpecialType(_module.Compilation, SpecialType.System_Int32, syntaxNode, _diagnostics);
+                var stringLength = AllocateTemp(int32Type, syntaxNode);
+                if (isSpanOrReadOnlySpan)
+                {
+                    _builder.EmitLoadAddress(keyTemp);
+                }
+                else
+                {
+                    _builder.EmitLoad(keyTemp);
+                }
+                _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
+                emitMethodRef(lengthMethodRef);
+                _builder.EmitLocalStore(stringLength);
+
+                // switch dispatch on lengthTemp using fallThroughLabel and cases:
+                //   lengthConstant -> corresponding label
+                _builder.EmitIntegerSwitchJumpTable(
+                    lengthBasedSwitchInfo._lengthJumpTable.lengthCaseLabels.Select(p => new KeyValuePair<ConstantValue, object>(p.value, p.label)).ToArray(),
+                    fallThroughLabel, stringLength, int32Type.PrimitiveTypeCode);
+
+                FreeTemp(stringLength);
+            }
+
+            void emitCharDispatches(LengthBasedStringSwitchData lengthBasedSwitchInfo, LocalOrParameter keyTemp, LabelSymbol fallThroughLabel, SyntaxNode syntaxNode)
+            {
+                var charType = Binder.GetSpecialType(_module.Compilation, SpecialType.System_Char, syntaxNode, _diagnostics);
+                var charTemp = AllocateTemp(charType, syntaxNode);
+
+                foreach (var charJumpTable in lengthBasedSwitchInfo._charJumpTables)
+                {
+                    // label for CharJumpTable:
+                    _builder.MarkLabel(charJumpTable.label);
+
+                    //   charTemp = keyTemp[selectedCharPosition];
+                    if (isSpanOrReadOnlySpan)
+                    {
+                        _builder.EmitLoadAddress(keyTemp);
+                    }
+                    else
+                    {
+                        _builder.EmitLoad(keyTemp);
+                    }
+                    _builder.EmitIntConstant(charJumpTable.selectedCharPosition);
+                    _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -1);
+                    emitMethodRef(indexerRef);
+                    if (isSpanOrReadOnlySpan)
+                    {
+                        _builder.EmitOpCode(ILOpCode.Ldind_u2);
+                    }
+                    _builder.EmitLocalStore(charTemp);
+
+                    // switch dispatch on charTemp using fallThroughLabel and cases:
+                    //   charConstant -> corresponding label
+                    _builder.EmitIntegerSwitchJumpTable(
+                        charJumpTable.charCaseLabels.Select(p => new KeyValuePair<ConstantValue, object>(p.value, p.label)).ToArray(),
+                        fallThroughLabel, charTemp, charType.PrimitiveTypeCode);
+                }
+
+                FreeTemp(charTemp);
+            }
+
+            void emitFinalDispatches(LengthBasedStringSwitchData lengthBasedSwitchInfo, LocalOrParameter keyTemp, TypeSymbol keyType, LabelSymbol fallThroughLabel, SyntaxNode syntaxNode)
+            {
+                foreach (var stringJumpTable in lengthBasedSwitchInfo._stringJumpTables)
+                {
+                    // label for StringJumpTable:
+                    _builder.MarkLabel(stringJumpTable.label);
+
+                    // switch dispatch on keyTemp using fallThroughLabel and cases:
+                    //   stringConstant -> corresponding label
+                    EmitStringSwitchJumpTable(
+                        stringJumpTable.stringCaseLabels.Select(p => new KeyValuePair<ConstantValue, object>(p.value, p.label)).ToArray(),
+                        fallThroughLabel, keyTemp, syntaxNode, keyType);
+                }
+            }
+
+            void emitMethodRef(Microsoft.Cci.IMethodReference lengthMethodRef)
+            {
+                var diag = DiagnosticBag.GetInstance();
+                _builder.EmitToken(lengthMethodRef, syntaxNode: null, diag);
+                Debug.Assert(diag.IsEmptyWithoutResolution);
+                diag.Free();
+            }
+        }
+#nullable disable
 
         private void EmitStringSwitchJumpTable(
             KeyValuePair<ConstantValue, object>[] switchCaseLabels,
@@ -1251,7 +1401,6 @@ oneMoreTime:
             }
 
             Cci.IMethodReference stringEqualityMethodRef = null;
-            Cci.IMethodReference lengthMethodRef = null;
 
             Cci.IMethodReference sequenceEqualsMethodRef = null;
             Cci.IMethodReference asSpanMethodRef = null;
@@ -1271,28 +1420,15 @@ oneMoreTime:
                 var asSpanMethod = (MethodSymbol)Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_MemoryExtensions__AsSpan_String, _diagnostics, syntax: syntaxNode);
                 Debug.Assert(asSpanMethod != null && !asSpanMethod.HasUseSiteError);
                 asSpanMethodRef = _module.Translate(asSpanMethod, null, _diagnostics.DiagnosticBag);
-
-                var spanTLengthMethod = (MethodSymbol)Binder.GetWellKnownTypeMember(_module.Compilation,
-                    (isReadOnlySpan
-                    ? WellKnownMember.System_ReadOnlySpan_T__get_Length
-                    : WellKnownMember.System_Span_T__get_Length),
-                    _diagnostics, syntax: syntaxNode);
-                Debug.Assert(spanTLengthMethod != null && !spanTLengthMethod.HasUseSiteError);
-                var spanCharLengthMethod = spanTLengthMethod.AsMember((NamedTypeSymbol)keyType);
-                lengthMethodRef = _module.Translate(spanCharLengthMethod, null, _diagnostics.DiagnosticBag);
             }
             else
             {
                 var stringEqualityMethod = _module.Compilation.GetSpecialTypeMember(SpecialMember.System_String__op_Equality) as MethodSymbol;
                 Debug.Assert(stringEqualityMethod != null && !stringEqualityMethod.HasUseSiteError);
                 stringEqualityMethodRef = _module.Translate(stringEqualityMethod, syntaxNode, _diagnostics.DiagnosticBag);
-
-                var stringLengthMethod = _module.Compilation.GetSpecialTypeMember(SpecialMember.System_String__Length) as MethodSymbol;
-                if (stringLengthMethod != null && !stringLengthMethod.HasUseSiteError)
-                {
-                    lengthMethodRef = _module.Translate(stringLengthMethod, syntaxNode, _diagnostics.DiagnosticBag);
-                }
             }
+
+            Microsoft.Cci.IMethodReference lengthMethodRef = GetLengthMethodRef(syntaxNode, keyType, isReadOnlySpan, isSpanOrReadOnlySpan);
 
             SwitchStringJumpTableEmitter.EmitStringCompareAndBranch emitStringCondBranchDelegate =
                 (keyArg, stringConstant, targetLabel) =>
@@ -1315,14 +1451,7 @@ oneMoreTime:
                         if (isSpanOrReadOnlySpan)
                         {
                             // The caller ensures that the key is not byref, and is not a stack local
-                            if (keyArg.Local is { } local)
-                            {
-                                _builder.EmitLocalAddress(local);
-                            }
-                            else
-                            {
-                                _builder.EmitLoadArgumentAddrOpcode(keyArg.ParameterIndex);
-                            }
+                            _builder.EmitLoadAddress(keyArg);
                         }
                         else
                         {
@@ -1368,6 +1497,58 @@ oneMoreTime:
                 FreeTemp(keyHash);
             }
         }
+
+#nullable enable
+        private Microsoft.Cci.IMethodReference? GetLengthMethodRef(SyntaxNode syntaxNode, TypeSymbol keyType, bool isReadOnlySpan, bool isSpanOrReadOnlySpan)
+        {
+            if (isSpanOrReadOnlySpan)
+            {
+                var spanTLengthMethod = (MethodSymbol)Binder.GetWellKnownTypeMember(_module.Compilation,
+                    (isReadOnlySpan ? WellKnownMember.System_ReadOnlySpan_T__get_Length : WellKnownMember.System_Span_T__get_Length),
+                    _diagnostics, syntax: syntaxNode);
+
+                Debug.Assert(spanTLengthMethod != null && !spanTLengthMethod.HasUseSiteError);
+                var spanCharLengthMethod = spanTLengthMethod.AsMember((NamedTypeSymbol)keyType);
+                return _module.Translate(spanCharLengthMethod, null, _diagnostics.DiagnosticBag);
+            }
+            else
+            {
+                var stringLengthMethod = _module.Compilation.GetSpecialTypeMember(SpecialMember.System_String__Length) as MethodSymbol;
+                if (stringLengthMethod != null && !stringLengthMethod.HasUseSiteError)
+                {
+                    return _module.Translate(stringLengthMethod, syntaxNode, _diagnostics.DiagnosticBag);
+                }
+            }
+
+            return null;
+        }
+
+        private Microsoft.Cci.IMethodReference? GetIndexerRef(SyntaxNode syntaxNode, TypeSymbol keyType, bool isReadOnlySpan, bool isSpanOrReadOnlySpan)
+        {
+            if (isSpanOrReadOnlySpan)
+            {
+                var spanTIndexerMethod = (MethodSymbol)Binder.GetWellKnownTypeMember(_module.Compilation,
+                    (isReadOnlySpan ? WellKnownMember.System_ReadOnlySpan_T__get_Item : WellKnownMember.System_Span_T__get_Item),
+                    _diagnostics, syntax: syntaxNode);
+
+                if (spanTIndexerMethod != null && !spanTIndexerMethod.HasUseSiteError)
+                {
+                    var spanCharLengthMethod = spanTIndexerMethod.AsMember((NamedTypeSymbol)keyType);
+                    return _module.Translate(spanCharLengthMethod, null, _diagnostics.DiagnosticBag);
+                }
+            }
+            else
+            {
+                var stringCharsIndexer = _module.Compilation.GetSpecialTypeMember(SpecialMember.System_String__Chars) as MethodSymbol;
+                if (stringCharsIndexer != null && !stringCharsIndexer.HasUseSiteError)
+                {
+                    return _module.Translate(stringCharsIndexer, syntaxNode, _diagnostics.DiagnosticBag);
+                }
+            }
+
+            return null;
+        }
+#nullable disable
 
         /// <summary>
         /// Delegate to emit string compare call and conditional branch based on the compare result.
@@ -1632,7 +1813,7 @@ oneMoreTime:
             private FinallyCloner() { }
 
             /// <summary>
-            /// The argument is BoundTryStatement (and not a BoundBlock) specifically 
+            /// The argument is BoundTryStatement (and not a BoundBlock) specifically
             /// to support only Finally blocks where it is guaranteed to not have incoming or leaving branches.
             /// </summary>
             public static BoundBlock MakeFinallyClone(BoundTryStatement node)
@@ -1680,7 +1861,32 @@ oneMoreTime:
                     casesBuilder.Add((value, GetLabelClone(label)));
                 }
 
-                return node.Update(expression, casesBuilder.ToImmutableAndFree(), defaultClone);
+                var lengthBasedSwitchData = node.LengthBasedStringSwitchDataOpt;
+                if (lengthBasedSwitchData is not null)
+                {
+                    Debug.Assert(false, "This is unreachable at the moment");
+
+                    var oldLengthJumpTable = lengthBasedSwitchData._lengthJumpTable;
+                    var lengthJumpTable = new LengthBasedStringSwitchData.LengthJumpTable(
+                        oldLengthJumpTable.nullCaseLabel is { } oldNullCaseLabel ? GetLabelClone(oldNullCaseLabel) : null,
+                        cloneCases(oldLengthJumpTable.lengthCaseLabels));
+
+                    var charJumpTables = lengthBasedSwitchData._charJumpTables
+                        .SelectAsArray(t => new LengthBasedStringSwitchData.CharJumpTable(GetLabelClone(t.label), t.selectedCharPosition, cloneCases(t.charCaseLabels)));
+
+                    var oldSringJumpTables = lengthBasedSwitchData._stringJumpTables;
+                    var stringJumpTables = lengthBasedSwitchData._stringJumpTables
+                        .SelectAsArray(t => new LengthBasedStringSwitchData.StringJumpTable(GetLabelClone(t.label), cloneCases(t.stringCaseLabels)));
+
+                    lengthBasedSwitchData = new LengthBasedStringSwitchData(lengthJumpTable, charJumpTables, stringJumpTables);
+                }
+
+                return node.Update(expression, casesBuilder.ToImmutableAndFree(), defaultClone, lengthBasedSwitchData);
+
+                ImmutableArray<(ConstantValue value, LabelSymbol label)> cloneCases(ImmutableArray<(ConstantValue value, LabelSymbol label)> cases)
+                {
+                    return cases.SelectAsArray(c => (c.value, (LabelSymbol)GetLabelClone(c.label)));
+                }
             }
 
             public override BoundNode VisitExpressionStatement(BoundExpressionStatement node)

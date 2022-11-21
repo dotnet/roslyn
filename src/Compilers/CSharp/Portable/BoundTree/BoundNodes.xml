@@ -1144,6 +1144,7 @@
     <Field Name="Expression" Type="BoundExpression" Null="disallow" />
     <Field Name="Cases" Type="ImmutableArray&lt;(ConstantValue value, LabelSymbol label)&gt;" />
     <Field Name="DefaultLabel" Type="LabelSymbol" Null="disallow" />
+    <Field Name="LengthBasedStringSwitchDataOpt" Type="LengthBasedStringSwitchData?" />
   </Node>
 
   <Node Name="BoundIfStatement" Base="BoundStatement">

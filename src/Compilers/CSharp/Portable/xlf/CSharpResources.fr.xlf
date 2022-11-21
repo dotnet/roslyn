@@ -1707,6 +1707,11 @@
         <target state="translated">Remplacement du générateur de méthode asynchrone</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_DisableLengthBasedSwitch">
+        <source>disable-length-based switch</source>
+        <target state="new">disable-length-based switch</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureAutoDefaultStructs">
         <source>auto default struct fields</source>
         <target state="translated">champs de struct par défaut automatique</target>
