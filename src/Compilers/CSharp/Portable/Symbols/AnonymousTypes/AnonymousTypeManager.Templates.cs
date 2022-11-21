@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // If all parameter types and return type are valid type arguments, construct
             // the delegate type from a generic template. Otherwise, use a non-generic template.
             bool useUpdatedEscapeRules = Compilation.SourceModule.UseUpdatedEscapeRules;
-            if (allValidTypeArguments(useUpdatedEscapeRules, typeDescr, out var needsUniqueName))
+            if (allValidTypeArguments(useUpdatedEscapeRules, typeDescr, out var needsIndexedName))
             {
                 var fields = typeDescr.Fields;
                 Debug.Assert(fields.All(f => hasDefaultScope(useUpdatedEscapeRules, f)));
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var typeArguments = typeArgumentsBuilder.ToImmutableAndFree();
 
                 // Delegate type cannot be fully serialized to its name (e.g., it has default parameter values).
-                if (needsUniqueName)
+                if (needsIndexedName)
                 {
                     // Replace field types (where type parameters will be) by placeholders.
                     var genericFieldTypeBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(fields.Length);
@@ -269,20 +269,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     template.Construct(typeParameters);
             }
 
-            static bool allValidTypeArguments(bool useUpdatedEscapeRules, AnonymousTypeDescriptor typeDescr, out bool needsUniqueName)
+            static bool allValidTypeArguments(bool useUpdatedEscapeRules, AnonymousTypeDescriptor typeDescr, out bool needsIndexedName)
             {
-                needsUniqueName = false;
+                needsIndexedName = false;
                 var fields = typeDescr.Fields;
                 int n = fields.Length;
                 for (int i = 0; i < n - 1; i++)
                 {
-                    if (!isValidTypeArgument(useUpdatedEscapeRules, fields[i], ref needsUniqueName))
+                    if (!isValidTypeArgument(useUpdatedEscapeRules, fields[i], ref needsIndexedName))
                     {
                         return false;
                     }
                 }
                 var returnParameter = fields[n - 1];
-                return returnParameter.Type.IsVoidType() || isValidTypeArgument(useUpdatedEscapeRules, returnParameter, ref needsUniqueName);
+                return returnParameter.Type.IsVoidType() || isValidTypeArgument(useUpdatedEscapeRules, returnParameter, ref needsIndexedName);
             }
 
             static bool hasDefaultScope(bool useUpdatedEscapeRules, AnonymousTypeField field)
@@ -295,9 +295,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 };
             }
 
-            static bool isValidTypeArgument(bool useUpdatedEscapeRules, AnonymousTypeField field, ref bool needsUniqueName)
+            static bool isValidTypeArgument(bool useUpdatedEscapeRules, AnonymousTypeField field, ref bool needsIndexedName)
             {
-                needsUniqueName = needsUniqueName || field.IsParams || field.DefaultValue is not null;
+                needsIndexedName = needsIndexedName || field.IsParams || field.DefaultValue is not null;
                 return hasDefaultScope(useUpdatedEscapeRules, field) &&
                     field.Type is { } type &&
                     !type.IsPointerOrFunctionPointer() &&
@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var template in anonymousDelegates.Values)
                 {
-                    if (ReferenceEquals(template.Manager, this) && template.HasFixedTypes)
+                    if (ReferenceEquals(template.Manager, this) && template.HasIndexedName)
                     {
                         builder.Add(template);
                     }
@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var template in delegates.Values)
                 {
-                    if (ReferenceEquals(template.Manager, this) && !template.HasFixedTypes)
+                    if (ReferenceEquals(template.Manager, this) && !template.HasIndexedName)
                     {
                         builder.Add(template);
                     }
