@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.ForEachCast;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -30,11 +31,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Base type for all taggers that interact with the <see cref="IDiagnosticAnalyzerService"/> and produce tags for
     /// the diagnostics with different UI presentations.
     /// </summary>
-    internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : AsynchronousTaggerProvider<TTag>
+    internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
+        : ITagger<TTag>, IRawDiagnosticsTaggerProviderCallback
         where TTag : ITag
     {
-        private readonly IDiagnosticService _diagnosticService;
-        private readonly IDiagnosticAnalyzerService _analyzerService;
+        private readonly ImmutableArray<RawDiagnosticsTaggerProvider> _rawDiagnosticsTaggers;
 
         protected AbstractDiagnosticsTaggerProvider(
             IThreadingContext threadingContext,
@@ -45,14 +46,45 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IAsynchronousOperationListener listener)
             : base(threadingContext, globalOptions, visibilityTracker, listener)
         {
-            _diagnosticService = diagnosticService;
-            _analyzerService = analyzerService;
+            _rawDiagnosticsTaggers = ImmutableArray.Create(
+                CreateRawDiagnosticsTaggerProvider(RawDiagnosticType.Syntax | RawDiagnosticType.Compiler),
+                CreateRawDiagnosticsTaggerProvider(RawDiagnosticType.Syntax | RawDiagnosticType.Analyzer),
+                CreateRawDiagnosticsTaggerProvider(RawDiagnosticType.Semantic | RawDiagnosticType.Compiler),
+                CreateRawDiagnosticsTaggerProvider(RawDiagnosticType.Semantic | RawDiagnosticType.Analyzer));
+
+            return;
+
+            RawDiagnosticsTaggerProvider CreateRawDiagnosticsTaggerProvider(RawDiagnosticType diagnosticType)
+            {
+                return new RawDiagnosticsTaggerProvider(
+                    this,
+                    diagnosticType,
+                    threadingContext,
+                    _diagnosticService,
+                    _analyzerService,
+                    globalOptions,
+                    visibilityTracker,
+                    listener);
+            }
         }
 
-        protected internal abstract bool IsEnabled { get; }
-        protected internal abstract bool SupportsDiagnosticMode(DiagnosticMode mode);
-        protected internal abstract bool IncludeDiagnostic(DiagnosticData data);
-        protected internal abstract ITagSpan<TTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data);
+        #region IRawDiagnosticsTaggerProviderCallback
+
+        public abstract bool IsEnabled { get; }
+        public abstract bool SupportsDiagnosticMode(DiagnosticMode mode);
+        public abstract bool IncludeDiagnostic(DiagnosticData data);
+        public abstract ITagSpan<TTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data);
+
+        /// <summary>
+        /// Get the <see cref="DiagnosticDataLocation"/> that should have the tag applied to it.
+        /// In most cases, this is the <see cref="DiagnosticData.DataLocation"/> but overrides can change it (e.g. unnecessary classifications).
+        /// </summary>
+        /// <param name="diagnosticData">the diagnostic containing the location(s).</param>
+        /// <returns>an array of locations that should have the tag applied.</returns>
+        public virtual ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
+            => diagnosticData.DataLocation is not null ? ImmutableArray.Create(diagnosticData.DataLocation) : ImmutableArray<DiagnosticDataLocation>.Empty;
+
+        #endregion
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.Short;
         protected override TaggerDelay AddedTagNotificationDelay => TaggerDelay.OnIdle;
@@ -70,17 +102,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 TaggerEventSources.OnTextChanged(subjectBuffer));
         }
 
-        /// <summary>
-        /// Get the <see cref="DiagnosticDataLocation"/> that should have the tag applied to it.
-        /// In most cases, this is the <see cref="DiagnosticData.DataLocation"/> but overrides can change it (e.g. unnecessary classifications).
-        /// </summary>
-        /// <param name="diagnosticData">the diagnostic containing the location(s).</param>
-        /// <returns>an array of locations that should have the tag applied.</returns>
-        protected internal virtual ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
-            => diagnosticData.DataLocation is not null ? ImmutableArray.Create(diagnosticData.DataLocation) : ImmutableArray<DiagnosticDataLocation>.Empty;
-
         protected override Task ProduceTagsAsync(
-            TaggerContext<DiagnosticDataTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition, CancellationToken cancellationToken)
+            TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition, CancellationToken cancellationToken)
         {
             return ProduceTagsAsync(context, spanToTag, cancellationToken);
         }
@@ -88,6 +111,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private async Task ProduceTagsAsync(
             TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, CancellationToken cancellationToken)
         {
+            foreach (var tagger in _rawDiagnosticsTaggers)
+            {
+                await Raw
+            }
+
             if (!this.IsEnabled)
                 return;
 
