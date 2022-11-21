@@ -3,25 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Shared.Preview;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Editor.Tagging;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.ForEachCast;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -32,10 +21,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// the diagnostics with different UI presentations.
     /// </summary>
     internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
-        : ITagger<TTag>, IRawDiagnosticsTaggerProviderCallback
+        : ITaggerProvider, IRawDiagnosticsTaggerProviderCallback
         where TTag : ITag
     {
-        private readonly ImmutableArray<RawDiagnosticsTaggerProvider> _rawDiagnosticsTaggers;
+        private readonly ImmutableArray<RawDiagnosticsTaggerProvider> _rawDiagnosticsTaggerProviders;
 
         protected AbstractDiagnosticsTaggerProvider(
             IThreadingContext threadingContext,
@@ -44,9 +33,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IGlobalOptionService globalOptions,
             ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListener listener)
-            : base(threadingContext, globalOptions, visibilityTracker, listener)
         {
-            _rawDiagnosticsTaggers = ImmutableArray.Create(
+            _rawDiagnosticsTaggerProviders = ImmutableArray.Create(
                 CreateRawDiagnosticsTaggerProvider(RawDiagnosticType.Syntax | RawDiagnosticType.Compiler),
                 CreateRawDiagnosticsTaggerProvider(RawDiagnosticType.Syntax | RawDiagnosticType.Analyzer),
                 CreateRawDiagnosticsTaggerProvider(RawDiagnosticType.Semantic | RawDiagnosticType.Compiler),
@@ -60,20 +48,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     this,
                     diagnosticType,
                     threadingContext,
-                    _diagnosticService,
-                    _analyzerService,
+                    diagnosticService,
+                    analyzerService,
                     globalOptions,
                     visibilityTracker,
                     listener);
             }
         }
 
+        protected abstract ITagSpan<TTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data);
+
         #region IRawDiagnosticsTaggerProviderCallback
 
+        public abstract IEnumerable<Option2<bool>> Options { get; }
         public abstract bool IsEnabled { get; }
         public abstract bool SupportsDiagnosticMode(DiagnosticMode mode);
         public abstract bool IncludeDiagnostic(DiagnosticData data);
-        public abstract ITagSpan<TTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data);
 
         /// <summary>
         /// Get the <see cref="DiagnosticDataLocation"/> that should have the tag applied to it.
@@ -86,106 +76,48 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         #endregion
 
-        protected override TaggerDelay EventChangeDelay => TaggerDelay.Short;
-        protected override TaggerDelay AddedTagNotificationDelay => TaggerDelay.OnIdle;
-
-        protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
+        public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
-            // OnTextChanged is added for diagnostics in source generated files: it's possible that the analyzer driver
-            // executed on content which was produced by a source generator but is not yet reflected in an open text
-            // buffer for that generated file. In this case, we need to update the tags after the buffer updates (which
-            // triggers a text changed event) to ensure diagnostics are positioned correctly.
-            return TaggerEventSources.Compose(
-                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
-                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
-                TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, _diagnosticService),
-                TaggerEventSources.OnTextChanged(subjectBuffer));
+            using var _ = ArrayBuilder<ITagger<DiagnosticDataTag>>.GetInstance(out var taggers);
+            foreach (var tagProvider in _rawDiagnosticsTaggerProviders)
+                taggers.Add(tagProvider.CreateTagger<DiagnosticDataTag>(buffer));
+
+            return new AggregateTagger<T>(taggers.ToImmutable());
         }
 
-        protected override Task ProduceTagsAsync(
-            TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition, CancellationToken cancellationToken)
+        private sealed class AggregateTagger<T> : ITagger<T> where T : ITag
         {
-            return ProduceTagsAsync(context, spanToTag, cancellationToken);
-        }
+            private readonly ImmutableArray<ITagger<DiagnosticDataTag>> _taggers;
 
-        private async Task ProduceTagsAsync(
-            TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, CancellationToken cancellationToken)
-        {
-            foreach (var tagger in _rawDiagnosticsTaggers)
+            public AggregateTagger(ImmutableArray<ITagger<DiagnosticDataTag>> taggers)
             {
-                await Raw
+                _taggers = taggers;
             }
 
-            if (!this.IsEnabled)
-                return;
-
-            var diagnosticMode = GlobalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
-            if (!SupportsDiagnosticMode(diagnosticMode))
-                return;
-
-            var document = spanToTag.Document;
-            if (document == null)
-                return;
-
-            var snapshot = spanToTag.SnapshotSpan.Snapshot;
-
-            var workspace = document.Project.Solution.Workspace;
-
-            // See if we've marked any spans as those we want to suppress diagnostics for.
-            // This can happen for buffers used in the preview workspace where some feature
-            // is generating code that it doesn't want errors shown for.
-            var buffer = snapshot.TextBuffer;
-            var suppressedDiagnosticsSpans = (NormalizedSnapshotSpanCollection?)null;
-            buffer?.Properties.TryGetProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, out suppressedDiagnosticsSpans);
-
-            var sourceText = snapshot.AsText();
-
-            try
+            public event EventHandler<SnapshotSpanEventArgs> TagsChanged
             {
-                var diagnostics = await _analyzerService.GetDiagnosticsForSpanAsync(
-                    document, range: null, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                var requestedSpan = spanToTag.SnapshotSpan;
-
-                foreach (var diagnosticData in diagnostics)
+                add
                 {
-                    if (this.IncludeDiagnostic(diagnosticData))
-                    {
-                        // We're going to be retrieving the diagnostics against the last time the engine
-                        // computed them against this document *id*.  That might have been a different
-                        // version of the document vs what we're looking at now.  But that's ok:
-                        // 
-                        // 1) GetExistingOrCalculatedTextSpan will ensure that the diagnostics spans are
-                        //    contained within 'editorSnapshot'.
-                        // 2) We'll eventually hear about an update to the diagnostics for this document
-                        //    for whatever edits happened between the last time and this current snapshot.
-                        //    So we'll eventually reach a point where the diagnostics exactly match the
-                        //    editorSnapshot.
+                    foreach (var tagger in _taggers)
+                        tagger.TagsChanged += value;
+                }
 
-                        var diagnosticSpans = this.GetLocationsToTag(diagnosticData)
-                            .Select(loc => loc.UnmappedFileSpan.GetClampedTextSpan(sourceText).ToSnapshotSpan(snapshot));
-                        foreach (var diagnosticSpan in diagnosticSpans)
-                        {
-                            if (diagnosticSpan.IntersectsWith(requestedSpan) && !IsSuppressed(suppressedDiagnosticsSpans, diagnosticSpan))
-                            {
-                                var tagSpan = this.CreateTagSpan(workspace, diagnosticSpan, diagnosticData);
-                                if (tagSpan != null)
-                                    context.AddTag(tagSpan);
-                            }
-                        }
-                    }
+                remove
+                {
+                    foreach (var tagger in _taggers)
+                        tagger.TagsChanged -= value;
                 }
             }
-            catch (ArgumentOutOfRangeException ex) when (FatalError.ReportAndCatch(ex))
+
+            public IEnumerable<ITagSpan<T>> GetTags(NormalizedSnapshotSpanCollection spans)
             {
-                // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=428328&_a=edit&triage=false
-                // explicitly report NFW to find out what is causing us for out of range. stop crashing on such
-                // occasions
-                return;
+                using var _ = ArrayBuilder<ITagSpan<T>>.GetInstance(out var result);
+
+                foreach (var tagger in _taggers)
+                    result.AddRange(tagger.GetTags(spans));
+
+                return result.ToImmutable();
             }
         }
-
-        private static bool IsSuppressed(NormalizedSnapshotSpanCollection? suppressedSpans, SnapshotSpan span)
-            => suppressedSpans != null && suppressedSpans.IntersectsWith(span);
     }
 }

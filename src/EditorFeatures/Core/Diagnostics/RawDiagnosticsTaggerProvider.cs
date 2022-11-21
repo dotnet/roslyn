@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -45,10 +46,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
     internal interface IRawDiagnosticsTaggerProviderCallback
     {
+        IEnumerable<Option2<bool>> Options { get; }
         bool IsEnabled { get; }
         bool SupportsDiagnosticMode(DiagnosticMode mode);
         bool IncludeDiagnostic(DiagnosticData data);
-        ITagSpan<DiagnosticDataTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data);
 
         /// <summary>
         /// Get the <see cref="DiagnosticDataLocation"/> that should have the tag applied to it.
@@ -67,8 +68,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private readonly IRawDiagnosticsTaggerProviderCallback _callback;
 
+        protected override IEnumerable<Option2<bool>> Options => _callback.Options;
+
         public RawDiagnosticsTaggerProvider(
-            IRawDiagnosticsTaggerProviderCallback callback,
+            IRawDiagnosticsTaggerProviderCallback  callback,
             RawDiagnosticType diagnosticType,
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
@@ -165,11 +168,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         foreach (var diagnosticSpan in diagnosticSpans)
                         {
                             if (diagnosticSpan.IntersectsWith(requestedSpan) && !IsSuppressed(suppressedDiagnosticsSpans, diagnosticSpan))
-                            {
-                                var tagSpan = _callback.CreateTagSpan(workspace, diagnosticSpan, diagnosticData);
-                                if (tagSpan != null)
-                                    context.AddTag(tagSpan);
-                            }
+                                context.AddTag(new TagSpan<DiagnosticDataTag>(diagnosticSpan, new DiagnosticDataTag(diagnosticData)));
                         }
                     }
                 }
