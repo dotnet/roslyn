@@ -27,33 +27,6 @@ using Microsoft.VisualStudio.Text.Tagging;
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
-    /// Callback a particular <see cref="RawDiagnosticsTaggerProvider{TTag}"/> needs to perform some work.  This
-    /// callback behaves the same regardless of the particular <see cref="RawDiagnosticTaggerConfiguration"/> the tagger
-    /// is computing tags for.
-    /// </summary>
-    internal interface IRawDiagnosticsTaggerProviderCallback<TTag> where TTag : ITag
-    {
-        ImmutableArray<IOption> Options { get; }
-        ImmutableArray<IOption> FeatureOptions { get; }
-
-        bool IsEnabled { get; }
-        bool SupportsDiagnosticMode(DiagnosticMode mode);
-        bool IncludeDiagnostic(DiagnosticData data);
-
-        bool TagEquals(TTag tag1, TTag tag2);
-
-        /// <summary>
-        /// Get the <see cref="DiagnosticDataLocation"/> that should have the tag applied to it.
-        /// In most cases, this is the <see cref="DiagnosticData.DataLocation"/> but overrides can change it (e.g. unnecessary classifications).
-        /// </summary>
-        /// <param name="diagnosticData">the diagnostic containing the location(s).</param>
-        /// <returns>an array of locations that should have the tag applied.</returns>
-        ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData);
-
-        ITagSpan<TTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data);
-    }
-
-    /// <summary>
     /// Low level tagger responsible for producing specific diagnostics tags for some particular <see
     /// cref="RawDiagnosticTaggerConfiguration"/>.
     /// </summary>
