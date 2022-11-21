@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public sealed override bool IsEnabled => true;
 
-        protected sealed override ITagSpan<TTag>? CreateTagSpan(
+        public override ITagSpan<TTag>? CreateTagSpan(
             Workspace workspace, SnapshotSpan span, DiagnosticData data)
         {
             var errorTag = CreateTag(workspace, data);

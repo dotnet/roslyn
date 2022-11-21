@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// the diagnostics with different UI presentations.
     /// </summary>
     internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
-        : ITaggerProvider, IRawDiagnosticsTaggerProviderCallback
+        : ITaggerProvider, IRawDiagnosticsTaggerProviderCallback<TTag>
         where TTag : ITag
     {
-        private readonly ImmutableArray<RawDiagnosticsTaggerProvider> _rawDiagnosticsTaggerProviders;
+        private readonly ImmutableArray<RawDiagnosticsTaggerProvider<TTag>> _rawDiagnosticsTaggerProviders;
 
         protected AbstractDiagnosticsTaggerProvider(
             IThreadingContext threadingContext,
@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return;
 
-            RawDiagnosticsTaggerProvider CreateRawDiagnosticsTaggerProvider(RawDiagnosticType diagnosticType)
+            RawDiagnosticsTaggerProvider<TTag> CreateRawDiagnosticsTaggerProvider(RawDiagnosticType diagnosticType)
             {
-                return new RawDiagnosticsTaggerProvider(
+                return new RawDiagnosticsTaggerProvider<TTag>(
                     this,
                     diagnosticType,
                     threadingContext,
@@ -56,14 +56,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        protected abstract ITagSpan<TTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data);
-
         #region IRawDiagnosticsTaggerProviderCallback
 
         public abstract IEnumerable<Option2<bool>> Options { get; }
         public abstract bool IsEnabled { get; }
         public abstract bool SupportsDiagnosticMode(DiagnosticMode mode);
         public abstract bool IncludeDiagnostic(DiagnosticData data);
+        public abstract ITagSpan<TTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data);
 
         /// <summary>
         /// Get the <see cref="DiagnosticDataLocation"/> that should have the tag applied to it.
@@ -78,9 +77,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
-            using var _ = ArrayBuilder<ITagger<DiagnosticDataTag>>.GetInstance(out var taggers);
+            using var _ = ArrayBuilder<ITagger<TTag>>.GetInstance(out var taggers);
             foreach (var tagProvider in _rawDiagnosticsTaggerProviders)
-                taggers.Add(tagProvider.CreateTagger<DiagnosticDataTag>(buffer));
+                taggers.Add(tagProvider.CreateTagger<TTag>(buffer));
 
             return new AggregateTagger(this, taggers.ToImmutable()) as ITagger<T>;
         }
@@ -88,11 +87,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private sealed class AggregateTagger : ITagger<TTag>
         {
             private readonly AbstractDiagnosticsTaggerProvider<TTag> _taggerProvider;
-            private readonly ImmutableArray<ITagger<DiagnosticDataTag>> _taggers;
+            private readonly ImmutableArray<ITagger<TTag>> _taggers;
 
             public AggregateTagger(
                 AbstractDiagnosticsTaggerProvider<TTag> taggerProvider,
-                ImmutableArray<ITagger<DiagnosticDataTag>> taggers)
+                ImmutableArray<ITagger<TTag>> taggers)
             {
                 _taggerProvider = taggerProvider;
                 _taggers = taggers;
@@ -118,10 +117,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 using var _ = ArrayBuilder<ITagSpan<TTag>>.GetInstance(out var result);
 
                 foreach (var tagger in _taggers)
-                {
-                    foreach (var tagSpan in tagger.GetTags(spans))
-                        result.AddIfNotNull(_taggerProvider.CreateTagSpan(tagSpan.Tag.Workspace, tagSpan.Span, tagSpan.Tag.DiagnosticData));
-                }
+                    result.AddRange(tagger.GetTags(spans));
 
                 return result.ToImmutable();
             }

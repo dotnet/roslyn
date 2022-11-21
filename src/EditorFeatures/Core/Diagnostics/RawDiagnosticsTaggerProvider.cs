@@ -26,18 +26,6 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal sealed class DiagnosticDataTag : ITag
-    {
-        public readonly Workspace Workspace;
-        public readonly DiagnosticData DiagnosticData;
-
-        public DiagnosticDataTag(Workspace workspace, DiagnosticData diagnosticData)
-        {
-            Workspace = workspace;
-            DiagnosticData = diagnosticData;
-        }
-    }
-
     internal enum RawDiagnosticType
     {
         Compiler = 1 << 0,
@@ -46,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         Semantic = 1 << 3,
     }
 
-    internal interface IRawDiagnosticsTaggerProviderCallback
+    internal interface IRawDiagnosticsTaggerProviderCallback<TTag> where TTag : ITag
     {
         IEnumerable<Option2<bool>> Options { get; }
         bool IsEnabled { get; }
@@ -60,20 +48,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnosticData">the diagnostic containing the location(s).</param>
         /// <returns>an array of locations that should have the tag applied.</returns>
         ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData);
+
+        ITagSpan<TTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data);
     }
 
-    internal sealed class RawDiagnosticsTaggerProvider : AsynchronousTaggerProvider<DiagnosticDataTag>
+    internal sealed class RawDiagnosticsTaggerProvider<TTag> : AsynchronousTaggerProvider<TTag>
+        where TTag : ITag
     {
         private readonly RawDiagnosticType _diagnosticType;
         private readonly IDiagnosticService _diagnosticService;
         private readonly IDiagnosticAnalyzerService _analyzerService;
 
-        private readonly IRawDiagnosticsTaggerProviderCallback _callback;
+        private readonly IRawDiagnosticsTaggerProviderCallback<TTag> _callback;
 
         protected override IEnumerable<Option2<bool>> Options => _callback.Options;
 
         public RawDiagnosticsTaggerProvider(
-            IRawDiagnosticsTaggerProviderCallback callback,
+            IRawDiagnosticsTaggerProviderCallback<TTag> callback,
             RawDiagnosticType diagnosticType,
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
@@ -111,13 +102,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         protected override Task ProduceTagsAsync(
-            TaggerContext<DiagnosticDataTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition, CancellationToken cancellationToken)
+            TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition, CancellationToken cancellationToken)
         {
             return ProduceTagsAsync(context, spanToTag, cancellationToken);
         }
 
         private async Task ProduceTagsAsync(
-            TaggerContext<DiagnosticDataTag> context, DocumentSnapshotSpan spanToTag, CancellationToken cancellationToken)
+            TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, CancellationToken cancellationToken)
         {
             if (!_callback.IsEnabled)
                 return;

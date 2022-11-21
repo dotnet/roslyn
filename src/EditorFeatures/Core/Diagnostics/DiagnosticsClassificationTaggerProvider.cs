@@ -99,10 +99,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return base.GetLocationsToTag(diagnosticData);
         }
 
-        #endregion
-
-        protected sealed override ITagSpan<ClassificationTag> CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data)
+        public override ITagSpan<ClassificationTag> CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data)
             => new TagSpan<ClassificationTag>(span, _classificationTag);
+
+        #endregion
 
         protected override bool TagEquals(ClassificationTag tag1, ClassificationTag tag2)
             => tag1.ClassificationType.Classification == tag2.ClassificationType.Classification;
