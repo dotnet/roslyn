@@ -17,7 +17,10 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -134,9 +137,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return s_defaultRules;
         }
 
+        protected override CompletionItem CreateItem(
+            CompletionContext completionContext,
+            string displayText,
+            string displayTextSuffix,
+            string insertionText,
+            ImmutableArray<SymbolAndSelectionInfo> symbols,
+            CSharpSyntaxContext context,
+            SupportedPlatformData? supportedPlatformData)
+        {
+            var item = base.CreateItem(completionContext, displayText, displayTextSuffix, insertionText, symbols, context, supportedPlatformData);
+            var symbol = symbols[0].Symbol;
+            if (symbol is INamedTypeSymbol or IAliasSymbol { Target.IsType: true })
+            {
+                var namedTypeSymbol = symbol.Kind switch
+                {
+                    SymbolKind.NamedType => (INamedTypeSymbol)symbol,
+                    SymbolKind.Alias => (INamedTypeSymbol)((IAliasSymbol)symbol).Target,
+                    _ => throw ExceptionUtilities.Unreachable(),
+                };
+
+                if (CompletionUtilities.IsConstructorAccessibleAtPosition(completionContext.Position, namedTypeSymbol, context.SemanticModel))
+                {
+                    item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item);
+                }
+            }
+
+            return item;
+        }
+
         protected override string GetInsertionText(CompletionItem item, char ch)
         {
-            if (ch is ';' or '.')
+            if (ch is ';' or '.' && SymbolCompletionItem.GetShouldProvideParenthesisCompletion(item))
             {
                 CompletionProvidersLogger.LogCustomizedCommitToAddParenthesis(ch);
                 return SymbolCompletionItem.GetInsertionText(item) + "()";
