@@ -14,6 +14,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
     internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> where TTag : ITag
     {
+        /// <summary>
+        /// Simple tagger that aggregates the underlying syntax/semantic compiler/analyzer taggers and presents them as
+        /// a single event source and source of tags.
+        /// </summary>
         private sealed class AggregateTagger : ITagger<TTag>, IDisposable
         {
             private readonly AbstractDiagnosticsTaggerProvider<TTag> _taggerProvider;
