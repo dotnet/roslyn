@@ -302,9 +302,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
             var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
 
-            var allMembers = codeMemberType == CODEMEMBERTYPE.CODEMEMBERTYPE_EVENTS ?
-                semanticModel.LookupSymbols(position: type.Locations[0].SourceSpan.Start, container: type, name: null) :
-                type.GetMembers();
+            var allMembers = codeMemberType == CODEMEMBERTYPE.CODEMEMBERTYPE_EVENTS
+                ? semanticModel.LookupSymbols(position: type.Locations[0].SourceSpan.Start, container: type, name: null)
+                : type.GetMembers();
 
             var members = allMembers.Where(m => IncludeMember(m, codeMemberType, compilation));
             return members.Select(m => Tuple.Create(m.Name, ConstructMemberId(m)));

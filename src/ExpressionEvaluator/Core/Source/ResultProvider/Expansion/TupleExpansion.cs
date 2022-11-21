@@ -199,9 +199,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     out parentFullName);
             }
             var fieldName = field.FieldInfo.Name;
-            fullName = (parentFullName == null) ?
-                null :
-                fullNameProvider.GetClrMemberName(
+            fullName = (parentFullName == null)
+                ? null
+                : fullNameProvider.GetClrMemberName(
                     inspectionContext,
                     parentFullName,
                     clrType: field.DeclaringTypeAndInfo.ClrType,
