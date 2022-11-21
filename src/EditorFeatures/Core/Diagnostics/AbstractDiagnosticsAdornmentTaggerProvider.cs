@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
         }
 
+        protected abstract TTag? CreateTag(Workspace workspace, DiagnosticData diagnostic);
+
         public sealed override bool IsEnabled => true;
 
         public override ITagSpan<TTag>? CreateTagSpan(
@@ -62,7 +64,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // make sure length is smaller than snapshot.Length which can happen if start == 0
             return new SnapshotSpan(snapshot, start, Math.Min(start + length, snapshot.Length) - start);
         }
-
-        protected abstract TTag? CreateTag(Workspace workspace, DiagnosticData diagnostic);
     }
 }
