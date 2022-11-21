@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static void TestNormalizeExpression(string text, string expected)
         {
-            var node = SyntaxFactory.ParseExpression(text);
+            var node = SyntaxFactory.ParseExpression(text.NormalizeLineEndings());
             var actual = node.NormalizeWhitespace("  ").ToFullString();
             Assert.Equal(expected.NormalizeLineEndings(), actual.NormalizeLineEndings());
         }
@@ -881,7 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static void TestNormalizeStatement(string text, string expected)
         {
-            var node = SyntaxFactory.ParseStatement(text);
+            var node = SyntaxFactory.ParseStatement(text.NormalizeLineEndings());
             var actual = node.NormalizeWhitespace("  ").ToFullString();
             Assert.Equal(expected.NormalizeLineEndings(), actual.NormalizeLineEndings());
         }
@@ -2545,7 +2545,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static void TestNormalizeDeclaration(string text, string expected)
         {
-            var node = SyntaxFactory.ParseCompilationUnit(text);
+            var node = SyntaxFactory.ParseCompilationUnit(text.NormalizeLineEndings());
             Assert.Equal(text.NormalizeLineEndings(), node.ToFullString().NormalizeLineEndings());
             var actual = node.NormalizeWhitespace("  ").ToFullString();
             Assert.Equal(expected.NormalizeLineEndings(), actual.NormalizeLineEndings());
@@ -2691,7 +2691,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static void TestNormalizeToken(string text, string expected)
         {
-            var token = SyntaxFactory.ParseToken(text);
+            var token = SyntaxFactory.ParseToken(text.NormalizeLineEndings());
             var actual = token.NormalizeWhitespace().ToFullString();
             Assert.Equal(expected.NormalizeLineEndings(), actual.NormalizeLineEndings());
         }
@@ -3125,7 +3125,7 @@ $"  ///  </summary>{Environment.NewLine}" +
 
         private static void TestNormalizeTrivia(string text, string expected)
         {
-            var list = SyntaxFactory.ParseLeadingTrivia(text);
+            var list = SyntaxFactory.ParseLeadingTrivia(text.NormalizeLineEndings());
             TestNormalize(list, expected.NormalizeLineEndings());
         }
 
