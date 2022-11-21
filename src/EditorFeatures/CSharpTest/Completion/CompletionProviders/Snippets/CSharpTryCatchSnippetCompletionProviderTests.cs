@@ -68,5 +68,75 @@ catch (Exception e)
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
+
+        [WpfFact]
+        public async Task InsertTryCatchSnippetInConstructorTest()
+        {
+            var markupBeforeCommit =
+@"class Program
+{
+    public Program()
+    {
+        $$
+    }
+}";
+
+            var expectedCodeAfterCommit =
+@"class Program
+{
+    public Program()
+    {
+        try
+        {
+            
+        }
+        catch (Exception e)
+        {
+            $$
+            throw;
+        }
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact]
+        public async Task InsertTryCatchSnippetInLocalFunctionTest()
+        {
+            var markupBeforeCommit =
+@"class Program
+{
+    public void Method()
+    {
+        var x = 5;
+        void LocalMethod()
+        {
+            $$
+        }
+    }
+}";
+
+            var expectedCodeAfterCommit =
+@"class Program
+{
+    public void Method()
+    {
+        var x = 5;
+        void LocalMethod()
+        {
+            try
+            {
+                
+            }
+            catch (Exception e)
+            {
+                $$
+                throw;
+            }
+        }
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
     }
 }
