@@ -2838,7 +2838,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 }
                 """;
             var actual = SyntaxFactory.ParseCompilationUnit(code).NormalizeWhitespace(indentation: "	").ToFullString();
-            Assert.Equal(expected, actual);
+            Assert.Equal(expected.NormalizeLineEndings(), actual);
         }
 
         [Fact, WorkItem(29390, "https://github.com/dotnet/roslyn/issues/29390")]
