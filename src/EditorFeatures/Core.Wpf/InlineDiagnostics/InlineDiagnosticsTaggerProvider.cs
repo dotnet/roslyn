@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             _classificationTypeRegistryService = classificationTypeRegistryService;
         }
 
-        protected internal override bool SupportsDiagnosticMode(DiagnosticMode mode)
+        public sealed override bool SupportsDiagnosticMode(DiagnosticMode mode)
         {
             // We support inline diagnostics in both push and pull (since lsp doesn't support inline diagnostics yet).
             return true;
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineDiagnosticsOptions.Location));
         }
 
-        protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
+        public sealed override bool IncludeDiagnostic(DiagnosticData diagnostic)
         {
             return
                 diagnostic.Severity is DiagnosticSeverity.Warning or DiagnosticSeverity.Error &&
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         /// many in a document to matter.
         /// </para>
         /// </summary>
-        protected override bool TagEquals(InlineDiagnosticsTag tag1, InlineDiagnosticsTag tag2)
+        public sealed override bool TagEquals(InlineDiagnosticsTag tag1, InlineDiagnosticsTag tag2)
             => tag1 == tag2;
     }
 }
