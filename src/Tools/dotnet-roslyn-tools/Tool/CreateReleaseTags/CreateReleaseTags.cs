@@ -2,42 +2,43 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the License.txt file in the project root for more information.
 
-using System.Collections.Immutable;
-using System.Net;
-using System.Text.RegularExpressions;
-using System.Xml.Linq;
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
 using Microsoft.RoslynTools.Authentication;
 using Microsoft.RoslynTools.Products;
 using Microsoft.RoslynTools.Utilities;
+using Microsoft.RoslynTools.VS;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
 using Microsoft.VisualStudio.Services.Common;
 using Newtonsoft.Json.Linq;
+using System.Collections.Immutable;
+using System.Net;
+using System.Text.RegularExpressions;
+using System.Xml.Linq;
 
 namespace Microsoft.RoslynTools.CreateReleaseTags;
 
 internal static class CreateReleaseTags
 {
-    private static Roslyn s_roslynInfo = new();
-    public static async Task<int> CreateReleaseTagsAsync(RoslynToolsSettings settings, ILogger logger)
+    public static async Task<int> CreateReleaseTagsAsync(string productName, RoslynToolsSettings settings, ILogger logger)
     {
         try
         {
             using var devdivConnection = new AzDOConnection(settings.DevDivAzureDevOpsBaseUri, "DevDiv", settings.DevDivAzureDevOpsToken);
             using var dncengConnection = new AzDOConnection(settings.DncEngAzureDevOpsBaseUri, "internal", settings.DncEngAzureDevOpsToken);
 
-            var connections = new[] { devdivConnection, dncengConnection };
+            var product = VSBranchInfo.AllProducts.Single(p => p.Name.Equals(productName, StringComparison.OrdinalIgnoreCase));
 
-            logger.LogInformation("Opening Roslyn repo and gathering tags...");
+            var connections = new[] { dncengConnection, devdivConnection };
 
-            var roslynRepository = new Repository(Environment.CurrentDirectory);
-            var existingTags = roslynRepository.Tags.ToImmutableArray();
+            logger.LogInformation($"Opening {product.Name} repo and gathering tags...");
 
-            var isRoslynRepo = existingTags.Any(tag => tag.FriendlyName == "Visual-Studio-2019-Version-16.11");
-            if (!isRoslynRepo)
+            var repository = new Repository(Environment.CurrentDirectory);
+            var existingTags = repository.Tags.ToImmutableArray();
+
+            if (!repository.Network.Remotes.Any(r => r.Url.Equals(product.RepoBaseUrl, StringComparison.OrdinalIgnoreCase)))
             {
-                logger.LogError("Repo does not appear to be the Roslyn repo. Please fetch tags if tags are not already fetched and try again.");
+                logger.LogError($"Repo does not appear to be the {product.Name} repo. Please fetch tags if tags are not already fetched and try again.");
                 return 1;
             }
 
@@ -47,43 +48,43 @@ internal static class CreateReleaseTags
 
             logger.LogInformation("Tagging releases...");
 
-            foreach (var visualStudioRelease in visualStudioReleases)
+            foreach (var visualStudioRelease in visualStudioReleases.Reverse())
             {
-                var roslynTagName = TryGetRoslynTagName(visualStudioRelease);
+                var tagName = TryGetTagName(visualStudioRelease);
 
-                if (roslynTagName is not null)
+                if (tagName is not null)
                 {
-                    if (!existingTags.Any(t => t.FriendlyName == roslynTagName))
+                    if (!existingTags.Any(t => t.FriendlyName == tagName))
                     {
-                        logger.LogInformation($"Tag '{roslynTagName}' is missing.");
+                        logger.LogInformation($"Tag '{tagName}' is missing.");
 
-                        RoslynBuildInformation? roslynBuild = null;
+                        RoslynBuildInformation? build = null;
                         foreach (var connection in connections)
                         {
-                            roslynBuild = await TryGetRoslynBuildForReleaseAsync(visualStudioRelease, devdivConnection, connection);
+                            build = await TryGetBuildInfoForReleaseAsync(product, visualStudioRelease, devdivConnection, connection);
 
-                            if (roslynBuild is not null)
+                            if (build is not null)
                             {
                                 break;
                             }
                         }
 
-                        if (roslynBuild is not null)
+                        if (build is not null)
                         {
-                            logger.LogInformation($"Tagging {roslynBuild.CommitSha} as '{roslynTagName}'.");
+                            logger.LogInformation($"Tagging {build.CommitSha} as '{tagName}'.");
 
-                            string message = $"Build Branch: {roslynBuild.SourceBranch}\r\nInternal ID: {roslynBuild.BuildId}\r\nInternal VS ID: {visualStudioRelease.BuildId}";
+                            string message = $"Build Branch: {build.SourceBranch}\r\nInternal ID: {build.BuildId}\r\nInternal VS ID: {visualStudioRelease.BuildId}";
 
-                            roslynRepository.ApplyTag(roslynTagName, roslynBuild.CommitSha, new Signature("dotnet bot", "dotnet-bot@microsoft.com", when: visualStudioRelease.CreationTime), message);
+                            repository.ApplyTag(tagName, build.CommitSha, new Signature("dotnet bot", "dotnet-bot@microsoft.com", when: visualStudioRelease.CreationTime), message);
                         }
                         else
                         {
-                            logger.LogWarning($"Unable to find the build for '{roslynTagName}'.");
+                            logger.LogWarning($"Unable to find the build for '{tagName}'.");
                         }
                     }
                     else
                     {
-                        logger.LogInformation($"Tag '{roslynTagName}' already exists.");
+                        logger.LogInformation($"Tag '{tagName}' already exists.");
                     }
                 }
             }
@@ -98,30 +99,55 @@ internal static class CreateReleaseTags
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unable to open Roslyn repo. Please run from you Roslyn repo directory.");
+            logger.LogError(ex, "Unable to open repo. Please run from your repo directory for the product in question.");
         }
 
         return 1;
     }
 
-    private static async Task<RoslynBuildInformation?> TryGetRoslynBuildForReleaseAsync(VisualStudioVersion release, AzDOConnection vsConnection, AzDOConnection connection)
+    private static async Task<RoslynBuildInformation?> TryGetBuildInfoForReleaseAsync(IProduct product, VisualStudioVersion release, AzDOConnection vsConnection, AzDOConnection connection)
     {
         try
         {
-            var (branchName, buildNumber) = await TryGetRoslynBranchAndBuildNumberForReleaseAsync(release, vsConnection);
+            var url = await VisualStudioRepository.GetUrlFromComponentJsonFileAsync(release.CommitSha, GitVersionType.Commit, vsConnection, product.ComponentJsonFileName, product.ComponentName);
+            if (url is null)
+            {
+                return default;
+            }
+
+            // First we try to get the info we want from the build directly, if we can find it
+            var buildNumber = VisualStudioRepository.GetBuildNumberFromUrl(url);
+            var pipelineName = product.GetBuildPipelineName(connection.BuildProjectName);
+            if (pipelineName is not null)
+            {
+                var builds = await connection.TryGetBuildsAsync(pipelineName, buildNumber);
+                if (builds is not null)
+                {
+                    foreach (var build in builds)
+                    {
+                        if (!string.IsNullOrWhiteSpace(build.SourceBranch))
+                        {
+                            return new RoslynBuildInformation(build.SourceVersion, build.SourceBranch, build.BuildNumber);
+                        }
+                    }
+                }
+            }
+
+            // Fallback if we can't get the info from the build, to parse the url or nuspec file
+            var branchName = TryGetRoslynBranchForRelease(url);
             if (string.IsNullOrEmpty(branchName) || string.IsNullOrEmpty(buildNumber))
             {
                 return null;
             }
 
-            var commitSha = await TryGetRoslynCommitShaFromBuildAsync(connection, buildNumber)
+            var commitSha = await TryGetRoslynCommitShaFromBuildAsync(product, connection, buildNumber)
                 ?? await TryGetRoslynCommitShaFromNuspecAsync(vsConnection, release);
             if (string.IsNullOrEmpty(commitSha))
             {
                 return null;
             }
 
-            var buildId = s_roslynInfo.GetBuildPipelineName(connection.BuildProjectName) + "_" + buildNumber;
+            var buildId = product.GetBuildPipelineName(connection.BuildProjectName) + "_" + buildNumber;
 
             return new RoslynBuildInformation(commitSha, branchName, buildId);
         }
@@ -131,46 +157,38 @@ internal static class CreateReleaseTags
         }
     }
 
-    private static async Task<(string branchName, string buildNumber)> TryGetRoslynBranchAndBuildNumberForReleaseAsync(
-        VisualStudioVersion release,
-        AzDOConnection vsConnection)
+    private static string? TryGetRoslynBranchForRelease(string url)
     {
-        var url = await VisualStudioRepository.GetUrlFromComponentJsonFileAsync(release.CommitSha, GitVersionType.Commit, vsConnection, s_roslynInfo.ComponentJsonFileName, s_roslynInfo.ComponentName);
-        if (url is null)
-        {
-            return default;
-        }
-
         try
         {
-            var buildNumber = VisualStudioRepository.GetBuildNumberFromUrl(url);
             var parts = url.Split(';');
             if (parts.Length != 2)
             {
-                return default;
+                return null;
             }
 
             if (!parts[1].EndsWith(".vsman"))
             {
-                return default;
+                return null;
             }
 
             var urlSegments = new Uri(parts[0]).Segments;
             var branchName = string.Join("", urlSegments.SkipWhile(segment => !segment.EndsWith("roslyn/")).Skip(1).TakeWhile(segment => segment.EndsWith("/"))).TrimEnd('/');
 
-            return (branchName, buildNumber);
+            return branchName;
         }
         catch
         {
-            return default;
+            return null;
         }
     }
 
     private static async Task<string?> TryGetRoslynCommitShaFromBuildAsync(
+        IProduct product,
         AzDOConnection buildConnection,
         string buildNumber)
     {
-        var build = (await buildConnection.TryGetBuildsAsync(s_roslynInfo.GetBuildPipelineName(buildConnection.BuildProjectName)!, buildNumber))?.SingleOrDefault();
+        var build = (await buildConnection.TryGetBuildsAsync(product.GetBuildPipelineName(buildConnection.BuildProjectName)!, buildNumber))?.SingleOrDefault();
 
         if (build == null)
         {
@@ -312,7 +330,7 @@ internal static class CreateReleaseTags
         return await gitClient.GetRepositoryAsync("DevDiv", "VS");
     }
 
-    private static string? TryGetRoslynTagName(VisualStudioVersion release)
+    private static string? TryGetTagName(VisualStudioVersion release)
     {
         string tag = "Visual-Studio-";
 
