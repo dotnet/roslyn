@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
-    internal class HighlighterViewTaggerProvider : AsynchronousViewTaggerProvider<KeywordHighlightTag>
+    internal sealed class HighlighterViewTaggerProvider : AsynchronousViewTaggerProvider<KeywordHighlightTag>
     {
         private readonly IHighlightingService _highlightingService;
         private static readonly PooledObjects.ObjectPool<List<TextSpan>> s_listPool = new(() => new List<TextSpan>());
@@ -44,7 +44,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         // highlights if the caret stays within an existing tag.
         protected override TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag;
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveAllTags;
-        protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.KeywordHighlighting);
+
+        protected override ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(FeatureOnOffOptions.KeywordHighlighting);
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
