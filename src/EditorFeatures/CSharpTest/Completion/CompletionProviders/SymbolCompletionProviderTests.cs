@@ -11965,7 +11965,7 @@ class C
         }
 
         [Theory]
-        [WorkItem("51629", "https://github.com/dotnet/roslyn/issues/51629")]
+        [WorkItem(51629, "https://github.com/dotnet/roslyn/issues/51629")]
         [InlineData(';')]
         [InlineData('.')]
         public async Task DoNotCompleteParenthesisIfConstructorIsInaccessible(char commitChar)

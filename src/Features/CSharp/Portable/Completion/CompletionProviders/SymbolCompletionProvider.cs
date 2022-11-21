@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item);
                 }
             }
-            else if (symbol.IsKind(SymbolKind.NamedType) || symbol is IAliasSymbol aliasSymbol && aliasSymbol.Target.IsType)
+            else if (symbol is INamedTypeSymbol or IAliasSymbol { Target: INamedTypeSymbol })
             {
                 var namedTypeSymbol = symbol.Kind switch
                 {

@@ -15,9 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -148,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var item = base.CreateItem(completionContext, displayText, displayTextSuffix, insertionText, symbols, context, supportedPlatformData);
             var symbol = symbols[0].Symbol;
-            if (symbol is INamedTypeSymbol or IAliasSymbol { Target.IsType: true })
+            if (symbol is INamedTypeSymbol or IAliasSymbol { Target: INamedTypeSymbol })
             {
                 var namedTypeSymbol = symbol.Kind switch
                 {
