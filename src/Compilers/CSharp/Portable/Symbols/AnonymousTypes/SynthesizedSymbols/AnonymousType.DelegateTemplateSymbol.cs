@@ -85,6 +85,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return typeParameters.ToImmutableAndFree();
             }
 
+            /// <summary>
+            /// A delegate type where the parameter types and return type
+            /// of the delegate signature are type parameters
+            /// but some information cannot be serialized into its name
+            /// (like default parameter values).
+            /// </summary>
             internal AnonymousDelegateTemplateSymbol(AnonymousTypeManager manager, AnonymousTypeDescriptor typeDescr)
                 : base(manager, typeDescr.Location)
             {
