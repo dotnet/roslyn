@@ -14011,6 +14011,10 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 			int32[] arg2
                 		) runtime managed 
                 	{
+                		.param [2]
+                			.custom instance void [{{s_libPrefix}}]System.ParamArrayAttribute::.ctor() = (
+                				01 00 00 00
+                			)
                 	} // end of method '<>f__AnonymousDelegate0'::Invoke
                 } // end of class <>f__AnonymousDelegate0
                 """);
