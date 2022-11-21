@@ -766,7 +766,9 @@ $$");
         [Theory, WorkItem(21889, "https://github.com/dotnet/roslyn/issues/21889")]
         [InlineData(SourceCodeKind.Regular, true)]
         [InlineData(SourceCodeKind.Regular, false)]
-        [InlineData(SourceCodeKind.Script, true, Skip = "https://github.com/dotnet/roslyn/issues/44630")]
+        // <Metalama> The test should be skipped, but it's not. Uncomment after a merge conflict.
+        // [InlineData(SourceCodeKind.Script, true, Skip = "https://github.com/dotnet/roslyn/issues/44630")]
+        // </Metalama>
         [InlineData(SourceCodeKind.Script, false)]
         public async Task TestInConditionalExpressionTrueBranch(SourceCodeKind sourceCodeKind, bool topLevelStatement)
         {
@@ -780,7 +782,9 @@ ref int x = ref true ? $$", topLevelStatement: topLevelStatement),
         [Theory, WorkItem(21889, "https://github.com/dotnet/roslyn/issues/21889")]
         [InlineData(SourceCodeKind.Regular, true)]
         [InlineData(SourceCodeKind.Regular, false)]
-        [InlineData(SourceCodeKind.Script, true, Skip = "https://github.com/dotnet/roslyn/issues/44630")]
+        // <Metalama> The test should be skipped, but it's not. Uncomment after a merge conflict.
+        // [InlineData(SourceCodeKind.Script, true, Skip = "https://github.com/dotnet/roslyn/issues/44630")]
+        // </Metalama>
         [InlineData(SourceCodeKind.Script, false)]
         public async Task TestInConditionalExpressionFalseBranch(SourceCodeKind sourceCodeKind, bool topLevelStatement)
         {

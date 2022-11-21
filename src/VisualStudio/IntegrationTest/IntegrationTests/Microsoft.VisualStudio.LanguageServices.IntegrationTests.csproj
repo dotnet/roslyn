@@ -5,6 +5,9 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.IntegrationTests</RootNamespace>
     <TargetFramework>net472</TargetFramework>
+    <!-- <Metalama> Tests skipped because they are out of scope of Metalama and the dev machine is not usable while the test are being executed. (New Visual Studio instance is executed interactively for each test.) -->
+    <IsTestProject>false</IsTestProject>
+    <!-- </Metalama> -->
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />

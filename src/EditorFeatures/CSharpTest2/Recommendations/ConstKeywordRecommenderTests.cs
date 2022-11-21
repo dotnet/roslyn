@@ -128,7 +128,11 @@ $$");
 
         [Theory]
         [InlineData(SourceCodeKind.Regular)]
-        [InlineData(SourceCodeKind.Script, Skip = "https://github.com/dotnet/roslyn/issues/9880")]
+
+        // <Metalama> The test should be skipped, but it's not. Uncomment after a merge conflict.
+
+        // [InlineData(SourceCodeKind.Script, Skip = "https://github.com/dotnet/roslyn/issues/9880")]
+        // </Metalama>
         public async Task TestNotBeforeUsing(SourceCodeKind sourceCodeKind)
         {
             await VerifyAbsenceAsync(sourceCodeKind,

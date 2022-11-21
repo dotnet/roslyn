@@ -833,6 +833,7 @@ namespace Microsoft.CodeAnalysis
                     var compilationFactory = this.ProjectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
                     // <Metalama>
                     // Metalama TODO #29156: We have disabled the compilation reusing. We should analyze the behavior and enable it again.
+                    // Search for #29156 to find the affected tests.
                     // if (generatorInfo.DocumentsAreFinal)
                     // {
                     //     // We must have ran generators before, but for some reason had to remake the compilation from scratch.

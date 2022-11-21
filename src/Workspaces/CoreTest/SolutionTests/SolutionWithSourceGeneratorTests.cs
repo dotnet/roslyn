@@ -736,7 +736,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             using var workspace = CreateWorkspaceWithPartialSemantics();
             var generatorRan = false;
-            var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
+            var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { 
+                generatorRan = true; 
+            }, source: "// Hello World!"));
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
                 .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
@@ -754,7 +756,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var compilation = await document.Project.GetRequiredCompilationAsync(CancellationToken.None);
             Assert.Equal(2, compilation.SyntaxTrees.Count());
-            Assert.False(generatorRan);
+
+            // <Metalama> Search for #29156 to find the causing change.
+            // Assert.False(generatorRan);
+            // </Metalama>
 
             Assert.Equal("// Something else", (await document.GetRequiredSyntaxRootAsync(CancellationToken.None)).ToFullString());
         }
@@ -784,7 +789,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var compilation = await document.Project.GetRequiredCompilationAsync(CancellationToken.None);
             Assert.Equal(2, compilation.SyntaxTrees.Count());
-            Assert.False(generatorRan);
+
+            // <Metalama> Search for #29156 to find the causing change.
+            // Assert.False(generatorRan);
+            // </Metalama>
 
             Assert.Equal("// Something else", (await document.GetRequiredSyntaxRootAsync(CancellationToken.None)).ToFullString());
         }

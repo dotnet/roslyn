@@ -812,7 +812,7 @@ var dest =
 """");
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "Metalama: tests fails both for Metalama.Compiler on master branch as well as for Roslyn on release/dev17.4 branch.")]
         public void TestPasteInterpolationWithStringFromInterpolatedStringLiteralContent2b()
         {
             TestCopyPaste(

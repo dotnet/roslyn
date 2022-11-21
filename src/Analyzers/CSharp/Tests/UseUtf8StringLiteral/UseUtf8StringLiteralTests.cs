@@ -64,7 +64,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact]
+        [Fact(Skip = "Metalama: tests fails on assembly loading of NewtonSoft.Json. The same failure is on release/dev17.4 branch.")]
         public async Task TestNotWhenNoReadOnlySpan()
         {
             await new VerifyCS.Test

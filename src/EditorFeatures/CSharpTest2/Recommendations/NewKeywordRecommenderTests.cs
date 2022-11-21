@@ -396,7 +396,9 @@ $$");
 
         [Theory]
         [InlineData(false)]
-        [InlineData(true, Skip = "https://github.com/dotnet/roslyn/issues/44443")]
+        // <Metalama> The test should be skipped, but it's not. Uncomment after a merge conflict.
+        // [InlineData(true, Skip = "https://github.com/dotnet/roslyn/issues/44443")]
+        // </Metalama>
         public async Task TestAfterConditional2(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
