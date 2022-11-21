@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
@@ -17,12 +16,14 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
-    [Export(typeof(IDiagnosticService)), Shared, PartNotDiscoverable]
+    [Export(typeof(IDiagnosticService))]
+    [Shared]
+    [PartNotDiscoverable]
     internal class MockDiagnosticService : IDiagnosticService
     {
         public const string DiagnosticId = "MockId";
 
-        private DiagnosticData? _diagnosticData;
+        private DiagnosticData? _diagnostic;
 
         public event EventHandler<DiagnosticsUpdatedArgs>? DiagnosticsUpdated;
 
@@ -42,7 +43,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.Equal(projectId, GetProjectId(workspace));
             Assert.Equal(documentId, GetDocumentId(workspace));
 
-            return _diagnosticData == null ? ImmutableArray<DiagnosticData>.Empty : ImmutableArray.Create(_diagnosticData);
+            return _diagnostic == null ? ImmutableArray<DiagnosticData>.Empty : ImmutableArray.Create(_diagnostic);
+        }
+
+        public ImmutableArray<DiagnosticBucket> GetPullDiagnosticBuckets(Workspace workspace, ProjectId? projectId, DocumentId? documentId, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
+        {
+            return GetDiagnosticBuckets(workspace, projectId, documentId);
         }
 
         public ImmutableArray<DiagnosticBucket> GetPushDiagnosticBuckets(Workspace workspace, ProjectId? projectId, DocumentId? documentId, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
@@ -55,23 +61,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.Equal(projectId, GetProjectId(workspace));
             Assert.Equal(documentId, GetDocumentId(workspace));
 
-            return _diagnosticData == null
+            return _diagnostic == null
                 ? ImmutableArray<DiagnosticBucket>.Empty
                 : ImmutableArray.Create(new DiagnosticBucket(this, workspace, GetProjectId(workspace), GetDocumentId(workspace)));
         }
 
-        internal void CreateDiagnosticAndFireEvents(Workspace workspace, MockDiagnosticAnalyzerService analyzerService, Location location)
+        internal void CreateDiagnosticAndFireEvents(Workspace workspace, Location location)
         {
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-            _diagnosticData = DiagnosticData.Create(Diagnostic.Create(DiagnosticId, "MockCategory", "MockMessage", DiagnosticSeverity.Error, DiagnosticSeverity.Error, isEnabledByDefault: true, warningLevel: 0,
+            _diagnostic = DiagnosticData.Create(Diagnostic.Create(DiagnosticId, "MockCategory", "MockMessage", DiagnosticSeverity.Error, DiagnosticSeverity.Error, isEnabledByDefault: true, warningLevel: 0,
                 location: location),
                 document);
 
-            analyzerService.Diagnostics = ImmutableArray.Create(_diagnosticData);
             DiagnosticsUpdated?.Invoke(this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
                 this, workspace, workspace.CurrentSolution,
                 GetProjectId(workspace), GetDocumentId(workspace),
-                ImmutableArray.Create(_diagnosticData)));
+                ImmutableArray.Create(_diagnostic)));
         }
 
         private static DocumentId GetDocumentId(Workspace workspace)
