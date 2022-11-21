@@ -1059,13 +1059,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ParameterSymbol? parameter = null;
                 if (!isError)
                 {
+                    int parameterIndex = i + skippedExtensionParameters;
+                    if (parameterIndex < deconstructMethod!.ParameterCount)
+                    {
+                        parameter = deconstructMethod.Parameters[parameterIndex];
+                    }
                     if (subPattern.NameColon != null)
                     {
                         // Check that the given name is the same as the corresponding parameter of the method.
-                        int parameterIndex = i + skippedExtensionParameters;
-                        if (parameterIndex < deconstructMethod!.ParameterCount)
+                        if (parameter is { })
                         {
-                            parameter = deconstructMethod.Parameters[parameterIndex];
                             string name = subPattern.NameColon.Name.Identifier.ValueText;
                             string parameterName = parameter.Name;
                             if (name != parameterName)

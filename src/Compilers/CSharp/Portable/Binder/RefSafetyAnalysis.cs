@@ -429,6 +429,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitDeclarationPattern(node);
         }
 
+        public override BoundNode? VisitPositionalSubpattern(BoundPositionalSubpattern node)
+        {
+            using var _ = new PatternInput(this, getPositionalValEscape(node.Symbol, _patternInputValEscape));
+            return base.VisitPositionalSubpattern(node);
+
+            static uint getPositionalValEscape(Symbol? symbol, uint valEscape)
+            {
+                return symbol?.GetTypeOrReturnType().IsRefLikeType() == true ? valEscape : Binder.CallingMethodScope;
+            }
+        }
+
         public override BoundNode? VisitRecursivePattern(BoundRecursivePattern node)
         {
             SetLocalScopes(node);
