@@ -63,19 +63,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // executed on content which was produced by a source generator but is not yet reflected in an open text
             // buffer for that generated file. In this case, we need to update the tags after the buffer updates (which
             // triggers a text changed event) to ensure diagnostics are positioned correctly.
-
-            var eventSources = new List<ITaggerEventSource>()
-            {
+            return TaggerEventSources.Compose(
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
                 TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
                 TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, _diagnosticService),
-                TaggerEventSources.OnTextChanged(subjectBuffer),
-            };
-
-            foreach (var option in this.FeatureOptions)
-                eventSources.Add(TaggerEventSources.OnGlobalOptionChanged(this.GlobalOptions, option));
-
-            return TaggerEventSources.Compose(eventSources);
+                TaggerEventSources.OnTextChanged(subjectBuffer));
         }
 
         /// <summary>
