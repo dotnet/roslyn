@@ -28,16 +28,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [TagType(typeof(IErrorTag))]
     internal sealed partial class DiagnosticsSquiggleTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
     {
-<<<<<<< HEAD
-        private static readonly IEnumerable<Option2<bool>> s_tagSourceOptions =
-            ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles);
-
-        public sealed override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
-=======
-        protected override ImmutableArray<IOption> Options { get; } =
-            ImmutableArray.Create<IOption>(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles);
->>>>>>> taggerOptions
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DiagnosticsSquiggleTaggerProvider(
@@ -50,6 +40,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             : base(threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listenerProvider)
         {
         }
+
+        public override ImmutableArray<IOption> Options { get; } =
+            ImmutableArray.Create<IOption>(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles);
 
         public sealed override bool SupportsDiagnosticMode(DiagnosticMode mode)
         {

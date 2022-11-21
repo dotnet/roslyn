@@ -37,12 +37,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ClassificationTag _classificationTag;
         private readonly EditorOptionsService _editorOptionsService;
 
-<<<<<<< HEAD
-=======
-        protected override ImmutableArray<IOption> Options { get; } =
-            ImmutableArray.Create<IOption>(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Classification);
-
->>>>>>> taggerOptions
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DiagnosticsClassificationTaggerProvider(
@@ -62,7 +56,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         #region IRawDiagnosticsTaggerProviderCallback
 
-        public sealed override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
+        public sealed override ImmutableArray<IOption> Options { get; } =
+            ImmutableArray.Create<IOption>(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Classification);
 
         // If we are under high contrast mode, the editor ignores classification tags that fade things out,
         // because that reduces contrast. Since the editor will ignore them, there's no reason to produce them.

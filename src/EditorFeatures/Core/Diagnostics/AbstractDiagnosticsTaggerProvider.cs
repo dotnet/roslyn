@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly ImmutableArray<RawDiagnosticsTaggerProvider<TTag>> _rawDiagnosticsTaggerProviders;
 
+        protected readonly IGlobalOptionService GlobalOptions;
+
         protected AbstractDiagnosticsTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
@@ -34,6 +36,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListener listener)
         {
+            GlobalOptions = globalOptions;
+
             _rawDiagnosticsTaggerProviders = ImmutableArray.Create(
                 CreateRawDiagnosticsTaggerProvider(RawDiagnosticType.Syntax | RawDiagnosticType.Compiler),
                 CreateRawDiagnosticsTaggerProvider(RawDiagnosticType.Syntax | RawDiagnosticType.Analyzer),
@@ -58,8 +62,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         #region IRawDiagnosticsTaggerProviderCallback
 
-        public abstract IEnumerable<Option2<bool>> Options { get; }
+        public abstract ImmutableArray<IOption> Options { get; }
+        public virtual ImmutableArray<IOption> FeatureOptions { get; } = ImmutableArray<IOption>.Empty;
+
         public abstract bool IsEnabled { get; }
+
         public abstract bool SupportsDiagnosticMode(DiagnosticMode mode);
         public abstract bool IncludeDiagnostic(DiagnosticData data);
 
