@@ -70,15 +70,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
             var location = diagnostics[0].Location;
             var node = location.FindNode(getInnermostNodeForTie: true, cancellationToken);
             var returnedValue = node is ReturnStatementSyntax returnStatement ? returnStatement.Expression : node;
-            if (returnedValue == null)
+            if (returnedValue is null)
                 return default;
 
             var (declarationTypeToFix, isAsync) = TryGetDeclarationTypeToFix(node);
-            if (declarationTypeToFix == null)
+            if (declarationTypeToFix is null)
                 return default;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var returnedType = semanticModel.GetTypeInfo(returnedValue, cancellationToken).Type;
+
+            // Special case when tuple has elements with unknown type, e.g. `(null, default)`
+            // Need to replace this unknown elements with default `object`s
+            if (returnedType is null &&
+                returnedValue is TupleExpressionSyntax tuple)
+            {
+                returnedType = InferTupleType(tuple, semanticModel, cancellationToken);
+            }
+
             returnedType ??= semanticModel.Compilation.ObjectType;
 
             TypeSyntax fixedDeclaration;
@@ -145,6 +154,35 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
                     _ => default,
                 };
             }
+        }
+
+        private static ITypeSymbol? InferTupleType(TupleExpressionSyntax tuple, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            var compilation = semanticModel.Compilation;
+            var argCount = tuple.Arguments.Count;
+
+            var baseTupleType = compilation.ValueTupleType(argCount);
+            if (baseTupleType is null)
+                return null;
+
+            var inferredTupleTypes = new ITypeSymbol[argCount];
+
+            for (var i = 0; i < argCount; i++)
+            {
+                var argumentExpression = tuple.Arguments[i].Expression;
+                var type = semanticModel.GetTypeInfo(argumentExpression, cancellationToken).Type;
+
+                // Nested tuple with unknown type, e.g. `(string.Empty, (2, null))`
+                if (type is null &&
+                    argumentExpression is TupleExpressionSyntax nestedTuple)
+                {
+                    type = InferTupleType(nestedTuple, semanticModel, cancellationToken);
+                }
+
+                inferredTupleTypes[i] = type is null ? semanticModel.Compilation.ObjectType : type;
+            }
+
+            return baseTupleType.Construct(inferredTupleTypes);
         }
     }
 }

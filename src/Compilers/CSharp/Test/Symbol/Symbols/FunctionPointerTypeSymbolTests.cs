@@ -464,7 +464,6 @@ class C
 
             comp.VerifyDiagnostics();
 
-
             var c = comp.GetTypeByMetadataName("C");
             var m = c.GetMethod("M");
             var parameterTypes = m.Parameters;
@@ -1271,7 +1270,6 @@ class E
             var nestedTypeInfo = model.GetTypeInfo(functionPointerTypeSyntax.ParameterList.Parameters.Single().Type!);
             Assert.Equal("C.D", nestedTypeInfo.Type!.ToTestDisplayString());
             Assert.False(nestedTypeInfo.Type!.IsErrorType());
-
 
             VerifyOperationTreeForNode(comp, model, functionPointerTypeSyntax.Parent, expectedOperationTree: @"
 IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'delegate*<C.D> d')

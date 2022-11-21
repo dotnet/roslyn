@@ -446,6 +446,9 @@ dotnet_diagnostic.IDE0250.severity = %value%
 # IDE0260
 dotnet_diagnostic.IDE0260.severity = %value%
 
+# IDE0270
+dotnet_diagnostic.IDE0270.severity = %value%
+
 # IDE1005
 dotnet_diagnostic.IDE1005.severity = %value%
 
@@ -469,6 +472,9 @@ dotnet_diagnostic.IDE2003.severity = %value%
 
 # IDE2004
 dotnet_diagnostic.IDE2004.severity = %value%
+
+# IDE2005
+dotnet_diagnostic.IDE2005.severity = %value%
 
 # RE0001
 dotnet_diagnostic.RE0001.severity = %value%
@@ -628,8 +634,8 @@ dotnet_diagnostic.IDE0120.severity = %value%
 # IDE0140
 dotnet_diagnostic.IDE0140.severity = %value%
 
-# IDE0260
-dotnet_diagnostic.IDE0260.severity = %value%
+# IDE0270
+dotnet_diagnostic.IDE0270.severity = %value%
 
 # IDE2000
 dotnet_diagnostic.IDE2000.severity = %value%
@@ -1075,7 +1081,10 @@ No editorconfig based code style option
 # IDE0250, PreferReadOnlyStruct
 csharp_style_prefer_readonly_struct = true
 
-# IDE0260, PreferCoalesceExpression
+# IDE0260, PreferPatternMatchingOverAsWithNullCheck
+csharp_style_pattern_matching_over_as_with_null_check = true
+
+# IDE0270, PreferCoalesceExpression
 dotnet_style_coalesce_expression = true
 
 # IDE1005, PreferConditionalDelegateCall
@@ -1101,6 +1110,9 @@ dotnet_style_allow_statement_immediately_after_block_experimental = true
 
 # IDE2004, AllowBlankLineAfterColonInConstructorInitializer
 csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true
+
+# IDE2005, AllowBlankLineAfterTokenInConditionalExpression
+csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental = true
 
 # RE0001
 No editorconfig based code style option
@@ -1302,7 +1314,7 @@ No editorconfig based code style option
 # IDE0140, PreferSimplifiedObjectCreation
 visual_basic_style_prefer_simplified_object_creation = true
 
-# IDE0260, PreferCoalesceExpression
+# IDE0270, PreferCoalesceExpression
 dotnet_style_coalesce_expression = true
 
 # IDE2000, AllowMultipleBlankLines

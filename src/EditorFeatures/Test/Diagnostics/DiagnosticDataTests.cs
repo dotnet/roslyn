@@ -216,5 +216,61 @@ namespace B
             Assert.Equal(location.DocumentId, roundTripLocation.DocumentId);
             Assert.Equal(location.UnmappedFileSpan, roundTripLocation.UnmappedFileSpan);
         }
+
+        [Theory, CombinatorialData]
+        [WorkItem(1676229, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/1676229")]
+        public async Task DiagnosticData_SourceFileAdditionalLocationIsPreserved(bool testDifferentProject, bool testRemovedDocument)
+        {
+            using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures);
+
+            var firstDocument = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp)
+                .AddDocument("test.cs", "class C1 { }", filePath: "test.cs");
+            Document secondDocument;
+            if (testDifferentProject)
+            {
+                secondDocument = firstDocument.Project.Solution.AddProject("TestProject2", "TestProject2", LanguageNames.CSharp)
+                    .AddDocument("test2.cs", "class C2 { }", filePath: "test2.cs");
+            }
+            else
+            {
+                secondDocument = firstDocument.Project.AddDocument("test2.cs", "class C2 { }", filePath: "test2.cs");
+            }
+
+            firstDocument = secondDocument.Project.Solution.GetRequiredDocument(firstDocument.Id);
+
+            var additionalLocation = new DiagnosticDataLocation(
+                new(secondDocument.Name, new(0, 0), new(0, 1)), secondDocument.Id);
+
+            var diagnosticData = new DiagnosticData(
+                id: "test1",
+                category: "Test",
+                message: "test1 message",
+                severity: DiagnosticSeverity.Info,
+                defaultSeverity: DiagnosticSeverity.Info,
+                isEnabledByDefault: true,
+                warningLevel: 1,
+                projectId: firstDocument.Project.Id,
+                customTags: ImmutableArray<string>.Empty,
+                properties: ImmutableDictionary<string, string>.Empty,
+                location: new DiagnosticDataLocation(new FileLinePositionSpan(firstDocument.FilePath, span: default), firstDocument.Id),
+                additionalLocations: ImmutableArray.Create(additionalLocation),
+                language: firstDocument.Project.Language);
+
+            var diagnostic = await diagnosticData.ToDiagnosticAsync(firstDocument.Project, CancellationToken.None);
+
+            if (testRemovedDocument)
+            {
+                firstDocument = firstDocument.Project.Solution
+                    .RemoveDocument(secondDocument.Id)
+                    .GetRequiredDocument(firstDocument.Id);
+            }
+
+            var roundTripDiagnosticData = DiagnosticData.Create(diagnostic, firstDocument);
+
+            var roundTripAdditionalLocation = Assert.Single(roundTripDiagnosticData.AdditionalLocations);
+            var expectedAdditionalDocumentId = !testRemovedDocument ? additionalLocation.DocumentId : null;
+            Assert.Equal(expectedAdditionalDocumentId, roundTripAdditionalLocation.DocumentId);
+            Assert.Equal(additionalLocation.UnmappedFileSpan, roundTripAdditionalLocation.UnmappedFileSpan);
+        }
     }
 }

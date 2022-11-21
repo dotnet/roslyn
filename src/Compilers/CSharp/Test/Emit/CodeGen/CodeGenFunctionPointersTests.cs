@@ -3606,7 +3606,6 @@ class C
                 Diagnostic(ErrorCode.ERR_CannotConvertAddressOfToDelegate, "&M").WithArguments("M", "System.Action").WithLocation(10, 23)
             );
 
-
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
 
@@ -7181,7 +7180,6 @@ unsafe class FunctionPointer
 }
 ", expectedOutput: "local");
 
-
             verifier.VerifyIL("FunctionPointer.Main", @"
 {
   // Code size       12 (0xc)
@@ -7218,7 +7216,6 @@ unsafe class FunctionPointer
     }
 }
 ", expectedOutput: "local");
-
 
             verifier.VerifyIL("FunctionPointer.<Main>g__local|0_0(bool)", @"
 {
@@ -10608,7 +10605,6 @@ public unsafe class C
                     Diagnostic(ErrorCode.ERR_WrongFuncPtrCallingConvention, "M", isSuppressed: false).WithArguments("C.M()", "Unmanaged").WithLocation(16, 72)
                     );
             }
-
 
             comp.VerifyDiagnostics(diagnostics.ToArray());
         }

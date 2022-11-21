@@ -1813,7 +1813,6 @@ option3 = config2
 option2 = config3
 ", "/path/to/.editorconfig"));
 
-
             var options = GetAnalyzerConfigOptions(
                  new[] { "/path/to/file1.cs", "/path/file1.cs", "/file1.cs" },
                  configs);
@@ -1968,7 +1967,6 @@ dotnet_diagnostic.cs000.severity = error
                 configs);
             configs.Free();
 
-
             Assert.Equal(new[] {
                 SyntaxTree.EmptyDiagnosticOptions,
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error))
@@ -2046,7 +2044,6 @@ dotnet_diagnostic.cs000.severity = warning
                 configs);
             configs.Free();
 
-
             Assert.Equal(new[] {
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Suppress)),
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Warn))
@@ -2114,7 +2111,6 @@ root = true
 [*.cs]
 option2 = config3
 ", "/path/to/.editorconfig"));
-
 
             var options = GetAnalyzerConfigOptions(
                  new[] { "/path/to/file1.cs", "/path/file1.cs", "/file1.cs" },
@@ -2535,7 +2531,6 @@ a = b
                 Assert.Empty(options.AnalyzerOptions);
             }
         }
-
 
         [Fact]
         public void CorrectlyMergeGlobalConfigWithEscapedPaths()

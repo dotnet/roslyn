@@ -67,9 +67,9 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 var newCompilationUnit = Rewrite(
                     document, expression, newQualifiedName, document, oldCompilationUnit, allOccurrences, cancellationToken);
 
-                var insertionIndex = isConstant ?
-                    DetermineConstantInsertPosition(oldCompilationUnit.Members, newCompilationUnit.Members) :
-                    DetermineFieldInsertPosition(oldCompilationUnit.Members, newCompilationUnit.Members);
+                var insertionIndex = isConstant
+                    ? DetermineConstantInsertPosition(oldCompilationUnit.Members, newCompilationUnit.Members)
+                    : DetermineFieldInsertPosition(oldCompilationUnit.Members, newCompilationUnit.Members);
 
                 var newRoot = newCompilationUnit.WithMembers(newCompilationUnit.Members.Insert(insertionIndex, newFieldDeclaration));
                 return Task.FromResult(document.Document.WithSyntaxRoot(newRoot));

@@ -1409,9 +1409,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     Debug.Assert(SupportsMove(oldNode));
                     Debug.Assert(SupportsMove(newNode));
 
-                    return oldNode.IsKind(SyntaxKind.LocalFunctionStatement) ?
-                        OneOrMany<(ISymbol?, ISymbol?, EditKind)>.Empty :
-                        OneOrMany.Create((oldSymbol, newSymbol, editKind));
+                    return oldNode.IsKind(SyntaxKind.LocalFunctionStatement)
+                        ? OneOrMany<(ISymbol?, ISymbol?, EditKind)>.Empty
+                        : OneOrMany.Create((oldSymbol, newSymbol, editKind));
             }
 
             return (editKind == EditKind.Delete ? oldSymbol : newSymbol) is null ?
@@ -2652,9 +2652,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     return TextSpan.FromBounds(
                         tryStatement.Catches.First().SpanStart,
-                        (tryStatement.Finally != null) ?
-                            tryStatement.Finally.Span.End :
-                            tryStatement.Catches.Last().Span.End);
+                        (tryStatement.Finally != null)
+                            ? tryStatement.Finally.Span.End
+                            : tryStatement.Catches.Last().Span.End);
 
                 case SyntaxKind.CatchClause:
                     coversAllChildren = true;

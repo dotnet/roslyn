@@ -223,9 +223,9 @@ namespace Microsoft.CodeAnalysis.Simplification
                                     var annotation = new SyntaxAnnotation();
                                     currentNodeOrToken = currentNodeOrToken.WithAdditionalAnnotations(annotation);
 
-                                    var replacedParent = isNode ?
-                                        nodeOrToken.Parent.ReplaceNode(nodeOrToken.AsNode()!, currentNodeOrToken.AsNode()!) :
-                                        nodeOrToken.Parent.ReplaceToken(nodeOrToken.AsToken(), currentNodeOrToken.AsToken());
+                                    var replacedParent = isNode
+                                        ? nodeOrToken.Parent.ReplaceNode(nodeOrToken.AsNode()!, currentNodeOrToken.AsNode()!)
+                                        : nodeOrToken.Parent.ReplaceToken(nodeOrToken.AsToken(), currentNodeOrToken.AsToken());
 
                                     currentNodeOrToken = replacedParent
                                         .ChildNodesAndTokens()

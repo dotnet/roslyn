@@ -1594,16 +1594,15 @@ class C
 ";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             compilation.VerifyEmitDiagnostics(
-                // (8,22): error CS8773: Feature 'extended property patterns' is not available in C# 9.0. Please use language version 10.0 or greater.
-                //         _ = this is (Property.Property: null, Property: null);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Property.Property").WithArguments("extended property patterns", "10.0").WithLocation(8, 22),
                 // (8,22): error CS1001: Identifier expected
                 //         _ = this is (Property.Property: null, Property: null);
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "Property.Property").WithLocation(8, 22),
+                // (8,39): error CS8773: Feature 'extended property patterns' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         _ = this is (Property.Property: null, Property: null);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, ":").WithArguments("extended property patterns", "10.0").WithLocation(8, 39),
                 // (8,47): error CS8517: The name 'Property' does not match the corresponding 'Deconstruct' parameter 'c2'.
                 //         _ = this is (Property.Property: null, Property: null);
-                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMismatch, "Property").WithArguments("Property", "c2").WithLocation(8, 47)
-                );
+                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMismatch, "Property").WithArguments("Property", "c2").WithLocation(8, 47));
         }
 
         [Fact]
