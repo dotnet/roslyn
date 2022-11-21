@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
                 properties: props,
                 isComplexTextEdit: true,
                 inlineDescription: inlineDescription,
-                rules: CompletionItemRules.Default.WithMatchPriority(MatchPriority.Deprioritize))
+                rules: CompletionItemRules.Default)
                 .WithAdditionalFilterTexts(additionalFilterTexts);
         }
 
