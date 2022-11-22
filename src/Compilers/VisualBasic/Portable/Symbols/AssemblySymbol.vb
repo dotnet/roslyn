@@ -433,7 +433,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return GetSpecialType(SpecialTypes.GetTypeFromMetadataName(type))
         End Function
 
-
         ''' <summary>
         ''' Lookup a type within the assembly using its canonical CLR metadata name (names are compared case-sensitively).
         ''' </summary>
@@ -520,7 +519,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(If(Not type?.IsErrorType(), True))
             Return type
         End Function
-
 
         ''' <summary>
         ''' Lookup a top level type within the assembly or one of the assemblies referenced by the primary module, 

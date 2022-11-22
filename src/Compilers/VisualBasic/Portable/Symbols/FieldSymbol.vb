@@ -378,7 +378,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-
         ''' <summary>
         ''' If this is a field representing a tuple element,
         ''' returns the index of the element (zero-based).

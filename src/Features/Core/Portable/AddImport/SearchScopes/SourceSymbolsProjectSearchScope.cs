@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
@@ -36,7 +35,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
                 SymbolFilter filter, SearchQuery searchQuery)
             {
-                var service = _project.Solution.Services.GetService<ISymbolTreeInfoCacheService>();
+                var service = _project.Solution.Services.GetRequiredService<ISymbolTreeInfoCacheService>();
                 var info = await service.TryGetPotentiallyStaleSourceSymbolTreeInfoAsync(_project, CancellationToken).ConfigureAwait(false);
                 if (info == null)
                 {
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 return new AsyncLazy<IAssemblySymbol>(
                     async c =>
                     {
-                        var compilation = await project.GetCompilationAsync(c).ConfigureAwait(false);
+                        var compilation = await project.GetRequiredCompilationAsync(c).ConfigureAwait(false);
                         return compilation.Assembly;
                     }, cacheResult: true);
             }

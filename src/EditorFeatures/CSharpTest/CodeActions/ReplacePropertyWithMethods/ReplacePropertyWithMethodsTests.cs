@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
     [Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
     public class ReplacePropertyWithMethodsTests : AbstractCSharpCodeActionTest
     {
-        private OptionsCollection PreferExpressionBodiedMethods =>
-            new(GetLanguage()) { { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement } };
+        private OptionsCollection PreferExpressionBodiedMethods
+            => new(GetLanguage()) { { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement } };
 
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new ReplacePropertyWithMethodsCodeRefactoringProvider();

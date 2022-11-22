@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Features.Workspaces;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { ".vbx", s_vbLanguageInformation },
         };
 
-        public LspMiscellaneousFilesWorkspace() : base(MefHostServices.DefaultHost, WorkspaceKind.MiscellaneousFiles)
+        public LspMiscellaneousFilesWorkspace(HostServices hostServices) : base(hostServices, WorkspaceKind.MiscellaneousFiles)
         {
         }
 
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 => _fileUri;
 
             // TODO (https://github.com/dotnet/roslyn/issues/63583): Use options.ChecksumAlgorithm 
-            internal override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+            public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
                 => Task.FromResult(TextAndVersion.Create(_sourceText, VersionStamp.Create(), _fileUri));
         }
     }

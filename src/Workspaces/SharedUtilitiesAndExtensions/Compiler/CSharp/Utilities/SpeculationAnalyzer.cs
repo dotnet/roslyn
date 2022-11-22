@@ -131,9 +131,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             if (nodeToSpeculate is TypeSyntax typeNode)
             {
-                var bindingOption = isInNamespaceOrTypeContext ?
-                    SpeculativeBindingOption.BindAsTypeOrNamespace :
-                    SpeculativeBindingOption.BindAsExpression;
+                var bindingOption = isInNamespaceOrTypeContext
+                    ? SpeculativeBindingOption.BindAsTypeOrNamespace
+                    : SpeculativeBindingOption.BindAsExpression;
                 semanticModel.TryGetSpeculativeSemanticModel(position, typeNode, out speculativeModel, bindingOption);
                 return speculativeModel;
             }
@@ -575,9 +575,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         protected override ImmutableArray<ArgumentSyntax> GetArguments(ExpressionSyntax expression)
         {
             var argumentsList = GetArgumentList(expression);
-            return argumentsList != null ?
-                argumentsList.Arguments.AsImmutableOrEmpty() :
-                default;
+            return argumentsList != null
+                ? argumentsList.Arguments.AsImmutableOrEmpty()
+                : default;
         }
 
         private static BaseArgumentListSyntax GetArgumentList(ExpressionSyntax expression)
@@ -819,10 +819,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         protected override bool IsReferenceConversion(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
             => compilation.ClassifyConversion(sourceType, targetType).IsReference;
 
-        protected override Conversion ClassifyConversion(SemanticModel model, ExpressionSyntax expression, ITypeSymbol targetType) =>
-            model.ClassifyConversion(expression, targetType);
+        protected override Conversion ClassifyConversion(SemanticModel model, ExpressionSyntax expression, ITypeSymbol targetType)
+            => model.ClassifyConversion(expression, targetType);
 
-        protected override Conversion ClassifyConversion(SemanticModel model, ITypeSymbol originalType, ITypeSymbol targetType) =>
-            model.Compilation.ClassifyConversion(originalType, targetType);
+        protected override Conversion ClassifyConversion(SemanticModel model, ITypeSymbol originalType, ITypeSymbol targetType)
+            => model.Compilation.ClassifyConversion(originalType, targetType);
     }
 }

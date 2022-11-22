@@ -10,7 +10,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Public Class ScanConditionalTests
 
-
     <Fact>
     Public Sub Scanner_ConditionalSkipEol()
         Dim Str = <text>
@@ -34,7 +33,6 @@ blah
 blah
 #hi
 boo</text>.Value
-
 
         Using s As New InternalSyntax.Scanner(SourceText.From(Str), TestOptions.Regular)
 

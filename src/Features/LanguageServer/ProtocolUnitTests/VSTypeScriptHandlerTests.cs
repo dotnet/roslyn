@@ -110,6 +110,7 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
             servicesProvider, jsonRpc,
             capabilitiesProvider,
             logger,
+            workspace.Services.HostServices,
             ImmutableArray.Create(InternalLanguageNames.TypeScript),
             WellKnownLspServerKinds.RoslynTypeScriptLspServer);
 

@@ -393,6 +393,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                         return true;
                 }
             }
+            else if (token.ValueText is "notnull" or "unmanaged")
+            {
+                if (token.Parent is IdentifierNameSyntax { Parent: TypeConstraintSyntax { Parent: TypeParameterConstraintClauseSyntax } })
+                {
+                    text = Keyword(token.ValueText);
+                    return true;
+                }
+            }
 
             text = null;
             return false;
@@ -487,6 +495,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             if (token.IsKind(SyntaxKind.UsingKeyword) && token.Parent is UsingStatementSyntax or LocalDeclarationStatementSyntax)
             {
                 text = Keyword("using-statement");
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.SwitchKeyword) && token.Parent is SwitchExpressionSyntax)
+            {
+                text = Keyword("switch-expression");
                 return true;
             }
 

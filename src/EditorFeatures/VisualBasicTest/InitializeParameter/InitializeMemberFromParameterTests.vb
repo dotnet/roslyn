@@ -891,6 +891,110 @@ class C
 end class", index:=3)
         End Function
 
+        <Fact, WorkItem(36998, "https://github.com/dotnet/roslyn/issues/36998")>
+        Public Async Function TestInitializeThrowingProperty1() As Task
+            Await TestInRegularAndScript1Async(
+"
+imports System
+
+class C
+    Private ReadOnly property S As String
+        get
+            throw new NotImplementedException
+        end get
+    end property
+
+    public sub new([||]s As String)
+
+    end sub
+end class",
+"
+imports System
+
+class C
+    Private ReadOnly property S As String
+        get
+        end get
+    end property
+
+    public sub new(s As String)
+        Me.S = s
+    end sub
+end class")
+        End Function
+
+        <Fact, WorkItem(36998, "https://github.com/dotnet/roslyn/issues/36998")>
+        Public Async Function TestInitializeThrowingProperty2() As Task
+            Await TestInRegularAndScript1Async(
+"
+imports System
+
+class C
+    Private property S As String
+        get
+            throw new NotImplementedException
+        end get
+        set(value as S)
+            throw new NotImplementedException
+        end set
+    end property
+
+    public sub new([||]s As String)
+
+    end sub
+end class",
+"
+imports System
+
+class C
+    Private property S As String
+        get
+        end get
+        set(value as S)
+        end set
+    end property
+
+    public sub new(s As String)
+        Me.S = s
+    end sub
+end class")
+        End Function
+
+        <Fact, WorkItem(36998, "https://github.com/dotnet/roslyn/issues/36998")>
+        Public Async Function TestInitializeThrowingProperty3() As Task
+            Await TestInRegularAndScript1Async(
+"
+imports System
+
+class C
+    Private ReadOnly property S As String
+        get
+            throw new InvalidOperationException
+        end get
+    end property
+
+    public sub new([||]s As String)
+
+    end sub
+end class",
+"
+imports System
+
+class C
+    Private ReadOnly property S As String
+        get
+            throw new InvalidOperationException
+        end get
+    end property
+
+    Public ReadOnly Property S1 As String
+
+    public sub new(s As String)
+        S1 = s
+    end sub
+end class")
+        End Function
+
         Private ReadOnly Property OmitIfDefault_Warning As TestParameters
             Get
                 Return New TestParameters(options:=[Option](CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption2.Warning))

@@ -28,7 +28,7 @@ class C
     int Y { get; }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -47,7 +47,7 @@ class C
     void Y() { }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -68,7 +68,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -89,7 +89,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -113,7 +113,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -137,7 +137,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -162,7 +162,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -187,7 +187,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -212,7 +212,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -237,7 +237,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -263,7 +263,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -288,7 +288,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -317,7 +317,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -328,7 +328,7 @@ class C
         [Fact]
         public async Task TestBetweenBlockAndStatement1()
         {
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = @"
 class C
@@ -372,7 +372,7 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -383,7 +383,7 @@ class C
         [Fact]
         public async Task TestBetweenSwitchAndStatement1()
         {
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = @"
 class C
@@ -415,7 +415,7 @@ class C
         [Fact]
         public async Task TestBetweenBlockAndStatement2()
         {
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = @"
 class C
@@ -447,7 +447,7 @@ class C
         [Fact]
         public async Task TestBetweenBlockAndStatement3()
         {
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = @"
 class C
@@ -475,7 +475,7 @@ class C
         [Fact]
         public async Task TestBetweenBlockAndStatement4()
         {
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = @"
 class C
@@ -511,7 +511,7 @@ class C
         [Fact]
         public async Task TestFixAll1()
         {
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = @"
 class C
@@ -911,7 +911,7 @@ public class Foo
 }
 ";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
@@ -922,7 +922,7 @@ public class Foo
         [Fact]
         public async Task TestSA1513PositiveCases()
         {
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = @"using System;
 using System.Collections.Generic;

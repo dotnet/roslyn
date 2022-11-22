@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,13 +40,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
     [TagType(typeof(LineSeparatorTag))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
-    internal partial class LineSeparatorTaggerProvider : AsynchronousTaggerProvider<LineSeparatorTag>
+    internal sealed partial class LineSeparatorTaggerProvider : AsynchronousTaggerProvider<LineSeparatorTag>
     {
         private readonly IEditorFormatMap _editorFormatMap;
 
-        protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.LineSeparator);
+        protected sealed override ImmutableArray<IOption> Options { get; } = ImmutableArray<IOption>.Empty;
 
-        private readonly object _lineSeperatorTagGate = new object();
+        private readonly object _lineSeparatorTagGate = new();
         private LineSeparatorTag _lineSeparatorTag;
 
         [ImportingConstructor]
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
 
         private void OnFormatMappingChanged(object sender, FormatItemsEventArgs e)
         {
-            lock (_lineSeperatorTagGate)
+            lock (_lineSeparatorTagGate)
             {
                 _lineSeparatorTag = new LineSeparatorTag(_editorFormatMap);
             }
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
                     return;
 
                 LineSeparatorTag tag;
-                lock (_lineSeperatorTagGate)
+                lock (_lineSeparatorTagGate)
                 {
                     tag = _lineSeparatorTag;
                 }

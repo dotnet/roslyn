@@ -70,9 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 // Do not treat initializer assignment as a side effect since it is
                 // part of an object creation. In short, visit the RHS only.
-                var expr = (initializer.Kind == BoundKind.AssignmentOperator) ?
-                    ((BoundAssignmentOperator)initializer).Right :
-                    initializer;
+                var expr = (initializer.Kind == BoundKind.AssignmentOperator)
+                    ? ((BoundAssignmentOperator)initializer).Right
+                    : initializer;
                 this.Visit(expr);
             }
             return null;

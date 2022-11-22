@@ -1250,11 +1250,32 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             IReadOnlyDictionary<SyntaxNode, EditKind> editMap,
             CancellationToken cancellationToken)
         {
+            if (editKind == EditKind.Reorder &&
+                oldNode is not ParameterSyntax &&
+                newNode is not ParameterSyntax)
+            {
+                // Other than parameters, we don't do any semantic checks for reordering
+                // and we don't need to report them to the compiler either.
+                // Consider: Currently symbol ordering changes are not reflected in metadata (Reflection will report original order).
+
+                // Consider: Reordering of fields is not allowed since it changes the layout of the type.
+                // This ordering should however not matter unless the type has explicit layout so we might want to allow it.
+                // We do not check changes to the order if they occur across multiple documents (the containing type is partial).
+                Debug.Assert(!IsDeclarationWithInitializer(oldNode!) && !IsDeclarationWithInitializer(newNode!));
+                return OneOrMany<(ISymbol?, ISymbol?, EditKind)>.Empty;
+            }
+
             var oldSymbol = (oldNode != null) ? GetSymbolForEdit(oldNode, oldModel!, cancellationToken) : null;
             var newSymbol = (newNode != null) ? GetSymbolForEdit(newNode, newModel, cancellationToken) : null;
 
             switch (editKind)
             {
+                case EditKind.Reorder:
+                    Debug.Assert(oldSymbol is IParameterSymbol);
+                    Debug.Assert(newSymbol is IParameterSymbol);
+
+                    // When parameters are reordered, we issue an update edit for the containing method
+                    return new OneOrMany<(ISymbol?, ISymbol?, EditKind)>((oldSymbol.ContainingSymbol, newSymbol.ContainingSymbol, EditKind.Update));
                 case EditKind.Update:
                     Contract.ThrowIfNull(oldNode);
                     Contract.ThrowIfNull(newNode);
@@ -1388,9 +1409,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     Debug.Assert(SupportsMove(oldNode));
                     Debug.Assert(SupportsMove(newNode));
 
-                    return oldNode.IsKind(SyntaxKind.LocalFunctionStatement) ?
-                        OneOrMany<(ISymbol?, ISymbol?, EditKind)>.Empty :
-                        OneOrMany.Create((oldSymbol, newSymbol, editKind));
+                    return oldNode.IsKind(SyntaxKind.LocalFunctionStatement)
+                        ? OneOrMany<(ISymbol?, ISymbol?, EditKind)>.Empty
+                        : OneOrMany.Create((oldSymbol, newSymbol, editKind));
             }
 
             return (editKind == EditKind.Delete ? oldSymbol : newSymbol) is null ?
@@ -2330,7 +2351,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return;
 
                     case SyntaxKind.TypeParameter:
-                    case SyntaxKind.Parameter:
                         ReportError(RudeEditKind.Move);
                         return;
                 }
@@ -2632,9 +2652,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     return TextSpan.FromBounds(
                         tryStatement.Catches.First().SpanStart,
-                        (tryStatement.Finally != null) ?
-                            tryStatement.Finally.Span.End :
-                            tryStatement.Catches.Last().Span.End);
+                        (tryStatement.Finally != null)
+                            ? tryStatement.Finally.Span.End
+                            : tryStatement.Catches.Last().Span.End);
 
                 case SyntaxKind.CatchClause:
                     coversAllChildren = true;
