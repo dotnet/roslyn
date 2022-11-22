@@ -229,7 +229,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                     // is there any effect on the view?
                     if (viewLines.IntersectsBufferSpan(changedSpan))
                     {
-                        AdornmentLayer.RemoveAdornmentsByTag();
+                        // We add the entire extent of the line as the visual span when adding an adornment,
+                        // so we should remove based on that line.
+                        var line = viewLines.GetTextViewLineContainingBufferPosition(changedSpan.Start);
+                        AdornmentLayer.RemoveAdornmentsByVisualSpan(line.Extent);
                     }
                 }
             }
