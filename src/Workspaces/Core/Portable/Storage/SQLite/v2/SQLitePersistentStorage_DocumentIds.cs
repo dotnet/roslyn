@@ -7,6 +7,7 @@ using System.IO;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 using Microsoft.CodeAnalysis.Storage;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
@@ -29,7 +30,10 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             // what we already have.
             if (!_documentIdToPrimaryKeyMap.TryGetValue(documentKey.Id, out var existingId))
             {
-                var documentFolder = IOUtilities.PerformIO(() => Path.GetDirectoryName(documentKey.FilePath)) ?? documentKey.FilePath;
+                // Store the document as its folder and file name.  The folder is relative to the solution path so that
+                // we're not dependent on file-system location.
+                var documentRelativePath = PathUtilities.GetRelativePath(_solutionDirectory, documentKey.FilePath!);
+                var documentFolder = PathUtilities.GetDirectoryName(documentRelativePath);
 
                 if (TryGetProjectPrimaryKey(connection, documentKey.Project, allowWrite) is not ProjectPrimaryKey projectPrimaryKey ||
                     TryGetStringId(connection, documentFolder, allowWrite) is not int documentFolderId ||

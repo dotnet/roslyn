@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private readonly CancellationTokenSource _shutdownTokenSource = new();
 
         private readonly SolutionKey _solutionKey;
+        private readonly string _solutionDirectory;
+
         private readonly SQLiteConnectionPoolService _connectionPoolService;
         private readonly ReferenceCountedDisposable<SQLiteConnectionPool> _connectionPool;
         private readonly Action _flushInMemoryDataToDisk;
@@ -53,7 +55,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             IPersistentStorageFaultInjector? faultInjector)
             : base(workingFolderPath, solutionKey.FilePath!, databaseFile)
         {
+            Contract.ThrowIfNull(solutionKey.FilePath);
             _solutionKey = solutionKey;
+            _solutionDirectory = PathUtilities.GetDirectoryName(solutionKey.FilePath);
             _connectionPoolService = connectionPoolService;
 
             _solutionAccessor = new SolutionAccessor(this);

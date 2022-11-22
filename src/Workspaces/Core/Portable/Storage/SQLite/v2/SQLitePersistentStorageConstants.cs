@@ -62,9 +62,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         public const string SolutionDataTableName = "SolutionData" + Version;
 
         /// <summary>
-        /// Inside the DB we have a table for data that we want associated with a <see cref="Project"/>.
-        /// The data is keyed off of an integral value produced by combining the ID of the Project and
-        /// the ID of the name of the data (see <see cref="SQLitePersistentStorage.ReadStreamAsync(ProjectKey, Project?, string, Checksum?, CancellationToken)"/>.
+        /// Inside the DB we have a table for data that we want associated with a <see cref="Project"/>. The data is
+        /// keyed off of the path of the project and its name.  That way different TFMs will have different keys.
         ///
         /// The format of the table is:
         ///
@@ -90,7 +89,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         ///  <code>
         ///  DocumentData
         ///  ------------------------------------------------------------------------------------------------------------------------------------------------
-        ///  | ProjectPathId (int) | ProjectNameId (int) | DocumentFolderId (int) | DocumentFolderId (int) | DataNameId (int) | Checksum (blob) | Data (blob) |
+        ///  | ProjectPathId (int) | ProjectNameId (int) | DocumentFolderId (int) | DocumentNameId (int) | DataNameId (int) | Checksum (blob) | Data (blob) |
         ///  ------------------------------------------------------------------------------------------------------------------------------------------------
         ///  | Primary Key                                                                                                    |
         ///  ------------------------------------------------------------------------------------------------------------------

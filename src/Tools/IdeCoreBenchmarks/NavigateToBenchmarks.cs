@@ -157,16 +157,21 @@ namespace IdeCoreBenchmarks
         public async Task RunFullParallelIndexing()
         {
             Console.WriteLine("Attach now");
-            Thread.Sleep(10000);
+            Thread.Sleep(1000);
             Console.WriteLine("Starting indexing");
-            var start = DateTime.Now;
-            var docCount = _workspace.CurrentSolution.Projects.SelectMany(p => p.Documents).Count();
-            Console.WriteLine("Doc count: " + docCount);
-            var tasks = _workspace.CurrentSolution.Projects.SelectMany(p => p.Documents).Select(d => Task.Run(
-                () => SyntaxTreeIndex.GetIndexAsync(d, default))).ToList();
-            await Task.WhenAll(tasks);
-            Console.WriteLine("Solution parallel: " + (DateTime.Now - start));
-            Console.ReadLine();
+
+            var storageService = _workspace.Services.SolutionServices.GetPersistentStorageService();
+            using (var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(_workspace.CurrentSolution), CancellationToken.None))
+            {
+                var start = DateTime.Now;
+                var docCount = _workspace.CurrentSolution.Projects.SelectMany(p => p.Documents).Count();
+                Console.WriteLine("Doc count: " + docCount);
+                var tasks = _workspace.CurrentSolution.Projects.SelectMany(p => p.Documents).Select(d => Task.Run(
+                    () => SyntaxTreeIndex.GetIndexAsync(d, default))).ToList();
+                await Task.WhenAll(tasks);
+                Console.WriteLine("Solution parallel: " + (DateTime.Now - start));
+                Console.ReadLine();
+            }
         }
 
         // [Benchmark]

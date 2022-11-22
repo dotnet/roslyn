@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Concurrent;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 using Microsoft.CodeAnalysis.Storage;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
@@ -27,9 +29,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             // what we already have.
             if (!_projectIdToPrimaryKeyMap.TryGetValue(projectKey.Id, out var existingId))
             {
+                // Store the project as its folder and project name.  The folder is relative to the solution path so
+                // that we're not dependent on file-system location.
+                var projectRelativePath = PathUtilities.GetRelativePath(_solutionDirectory, projectKey.FilePath!);
+
                 // Key the project off both its path and name.  That way we work properly
                 // in host and test scenarios.
-                if (TryGetStringId(connection, projectKey.FilePath, allowWrite) is not int projectPathId ||
+                if (TryGetStringId(connection, projectRelativePath, allowWrite) is not int projectPathId ||
                     TryGetStringId(connection, projectKey.Name, allowWrite) is not int projectNameId)
                 {
                     return null;
