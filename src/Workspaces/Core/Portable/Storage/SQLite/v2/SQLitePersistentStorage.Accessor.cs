@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         {
             protected readonly SQLitePersistentStorage Storage;
 
+            private readonly ImmutableArray<(string name, string type)> _primaryKeys;
+
             // Cache the statement strings we want to execute per accessor.  This way we avoid
             // allocating these strings each time we execute a command.  We also cache the prepared
             // statements (at the connection level) we make for each of these strings.  That way we
@@ -49,29 +51,23 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             public Accessor(
                 SQLitePersistentStorage storage,
-                ImmutableArray<string> primaryKeyNames)
+                ImmutableArray<(string name, string type)> primaryKeys)
             {
                 var main = Database.Main.GetName();
                 var writeCache = Database.WriteCache.GetName();
 
-                var dataTableName = this.Table switch
-                {
-                    Table.Solution => SolutionDataTableName,
-                    Table.Project => ProjectDataTableName,
-                    Table.Document => DocumentDataTableName,
-                    _ => throw ExceptionUtilities.UnexpectedValue(this.Table),
-                };
-
+                var dataTableName = this.TableName;
                 Storage = storage;
+                _primaryKeys = primaryKeys;
 
                 // "X" = ? and "Y" = ? and "Z" = ?
-                var whereClause = string.Join(" and ", primaryKeyNames.Select(id => $@"""{id}"" = ?"));
+                var whereClause = string.Join(" and ", primaryKeys.Select(k => $@"{Quote(k.name)} = ?"));
 
                 _select_rowid_from_main_table_where_0 = $"select rowid from {main}.{dataTableName} where {whereClause}";
                 _select_rowid_from_writecache_table_where_0 = $"select rowid from {writeCache}.{dataTableName} where {whereClause}";
 
-                var allColumnNames = primaryKeyNames.Add(ChecksumColumnName).Add(DataColumnName);
-                var quotedColumnNames = string.Join(",", allColumnNames.Select(n => $@"""{n}"""));
+                var allColumnNames = primaryKeys.Select(t => t.name).Concat(ChecksumColumnName).Concat(DataColumnName);
+                var quotedColumnNames = string.Join(",", allColumnNames.Select(Quote));
                 var questions = string.Join(",", allColumnNames.Select(n => "?"));
 
                 _insert_or_replace_into_writecache_table_values_0_1_2 = $@"insert or replace into {writeCache}.{dataTableName}({quotedColumnNames}) values ({questions})";
@@ -79,7 +75,19 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 _insert_or_replace_into_main_table_select_star_from_writecache_table = $"insert or replace into {main}.{dataTableName} select * from {writeCache}.{dataTableName};";
             }
 
+            private static string Quote(string name)
+                => $@"""{name}""";
+
             protected abstract Table Table { get; }
+
+            private string TableName
+                => this.Table switch
+                {
+                    Table.Solution => SolutionDataTableName,
+                    Table.Project => ProjectDataTableName,
+                    Table.Document => DocumentDataTableName,
+                    _ => throw ExceptionUtilities.UnexpectedValue(this.Table),
+                };
 
             /// <summary>
             /// Gets the internal sqlite db-id (effectively the row-id for the doc or proj table, or just the string-id
@@ -100,6 +108,25 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             protected abstract int BindParameters(SqlStatement statement, TDatabaseId dataId);
             protected abstract TWriteQueueKey GetWriteQueueKey(TKey key);
             protected abstract bool TryGetRowId(SqlConnection connection, Database database, TDatabaseId dataId, out long rowId);
+
+            public void CreateTable(SqlConnection connection, Database database)
+            {
+                var dbName = database.GetName();
+
+                var primaryKeyColumns = _primaryKeys.Select(k => $@"{Quote(k.name)} {k.type} not null");
+                var primaryKeyNames = _primaryKeys.Select(k => Quote(k.name));
+
+                var command = $"""
+                    create table if not exists {dbName}.{this.TableName}(
+                        {string.Join(", ", primaryKeyColumns)},
+                        "{ChecksumColumnName}" blob,
+                        "{DataColumnName}" blob,
+                        primary key({string.Join(", ", primaryKeyNames)})
+                    )
+                    """;
+
+                connection.ExecuteCommand(command);
+            }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
             public Task<bool> ChecksumMatchesAsync(TKey key, Checksum checksum, CancellationToken cancellationToken)

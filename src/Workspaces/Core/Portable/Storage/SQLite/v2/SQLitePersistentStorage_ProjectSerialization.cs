@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         {
             public ProjectAccessor(SQLitePersistentStorage storage)
                 : base(storage, ImmutableArray.Create(
-                    ProjectPathIdColumnName,
-                    ProjectNameIdColumnName,
-                    DataNameIdColumnName))
+                    (ProjectPathIdColumnName, "integer"),
+                    (ProjectNameIdColumnName, "integer"),
+                    (DataNameIdColumnName, "integer")))
             {
             }
 

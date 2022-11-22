@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 d["Message"] = exception.Message;
             });
 
-        private static void Initialize(SqlConnection connection, CancellationToken cancellationToken)
+        private void Initialize(SqlConnection connection, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
             {
@@ -185,41 +185,11 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
 
             return;
 
-            static void EnsureTables(SqlConnection connection, Database database)
+            void EnsureTables(SqlConnection connection, Database database)
             {
-                var dbName = database.GetName();
-                connection.ExecuteCommand($"""
-                    create table if not exists {dbName}.{SolutionDataTableName}(
-                        "{SolutionDataIdColumnName}" varchar not null,
-                        "{ChecksumColumnName}" blob,
-                        "{DataColumnName}" blob,
-                        primary key("{SolutionDataIdColumnName}")
-                    )
-                    """);
-
-                connection.ExecuteCommand($"""
-                    create table if not exists {dbName}.{ProjectDataTableName}(
-                        "{ProjectPathIdColumnName}" integer not null,
-                        "{ProjectNameIdColumnName}" integer not null,
-                        "{DataNameIdColumnName}" integer not null,
-                        "{ChecksumColumnName}" blob,
-                        "{DataColumnName}" blob,
-                        primary key("{ProjectPathIdColumnName}", "{ProjectNameIdColumnName}", "{DataNameIdColumnName}")
-                    )
-                    """);
-
-                connection.ExecuteCommand($"""
-                    create table if not exists {dbName}.{DocumentDataTableName}(
-                        "{ProjectPathIdColumnName}" integer not null,
-                        "{ProjectNameIdColumnName}" integer not null,
-                        "{DocumentPathIdColumnName}" integer not null,
-                        "{DocumentNameIdColumnName}" integer not null,
-                        "{DataNameIdColumnName}" integer not null,
-                        "{ChecksumColumnName}" blob,
-                        "{DataColumnName}" blob,
-                        primary key("{ProjectPathIdColumnName}", "{ProjectNameIdColumnName}", "{DocumentPathIdColumnName}", "{DocumentNameIdColumnName}", "{DataNameIdColumnName}")
-                    )
-                    """);
+                _solutionAccessor.CreateTable(connection, database);
+                _projectAccessor.CreateTable(connection, database);
+                _documentAccessor.CreateTable(connection, database);
             }
         }
     }
