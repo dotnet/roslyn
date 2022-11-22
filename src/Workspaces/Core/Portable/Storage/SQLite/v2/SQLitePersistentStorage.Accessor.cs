@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             /// <summary>
             /// Returns the number of parameters bound.
             /// </summary>
-            protected abstract int BindParameters(SqlStatement statement, TDatabaseId dataId);
+            protected abstract void BindPrimaryKeyParameters(SqlStatement statement, TDatabaseId dataId);
             protected abstract TWriteQueueKey GetWriteQueueKey(TKey key);
             protected abstract bool TryGetRowId(SqlConnection connection, Database database, TDatabaseId dataId, out long rowId);
 
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
                 var statement = resettableStatement.Statement;
 
-                BindParameters(statement, dataId);
+                BindPrimaryKeyParameters(statement, dataId);
 
                 var stepResult = statement.Step();
                 if (stepResult == Result.ROW)
@@ -396,10 +396,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 {
                     var statement = resettableStatement.Statement;
 
+                    BindPrimaryKeyParameters(statement, dataId);
+
                     // Binding indices are 1 based.
-                    var parameterCount = BindParameters(statement, dataId);
-                    statement.BindBlobParameter(parameterIndex: parameterCount + 1, checksumBytes);
-                    statement.BindBlobParameter(parameterIndex: parameterCount + 2, dataBytes);
+                    statement.BindBlobParameter(parameterIndex: _primaryKeys.Length + 1, checksumBytes);
+                    statement.BindBlobParameter(parameterIndex: _primaryKeys.Length + 2, dataBytes);
 
                     statement.Step();
                 }

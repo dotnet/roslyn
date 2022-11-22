@@ -55,11 +55,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 return GetActualRowIdFromDatabase(connection, database, dataId, out rowId);
             }
 
-            protected override int BindParameters(SqlStatement statement, string dataId)
-            {
-                statement.BindStringParameter(parameterIndex: 1, value: dataId);
-                return 1;
-            }
+            protected override void BindPrimaryKeyParameters(SqlStatement statement, string dataId)
+                => statement.BindStringParameter(parameterIndex: 1, value: dataId);
         }
     }
 }

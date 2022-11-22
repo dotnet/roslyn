@@ -51,15 +51,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             protected override bool TryGetDatabaseId(SqlConnection connection, (ProjectKey projectKey, string name) key, bool allowWrite, out (ProjectPrimaryKey projectKeyId, int dataNameId) dataId)
                 => Storage.TryGetProjectDataId(connection, key.projectKey, key.name, allowWrite, out dataId);
 
-            protected override int BindParameters(SqlStatement statement, (ProjectPrimaryKey projectKeyId, int dataNameId) dataId)
+            protected override void BindPrimaryKeyParameters(SqlStatement statement, (ProjectPrimaryKey projectKeyId, int dataNameId) dataId)
             {
                 var ((projectPathId, projectNameId), dataNameId) = dataId;
 
                 statement.BindInt64Parameter(parameterIndex: 1, projectPathId);
                 statement.BindInt64Parameter(parameterIndex: 2, projectNameId);
                 statement.BindInt64Parameter(parameterIndex: 3, dataNameId);
-
-                return 3;
             }
 
             protected override bool TryGetRowId(SqlConnection connection, Database database, (ProjectPrimaryKey projectKeyId, int dataNameId) dataId, out long rowId)

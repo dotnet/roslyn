@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             protected override bool TryGetDatabaseId(SqlConnection connection, (DocumentKey documentKey, string name) key, bool allowWrite, out (DocumentPrimaryKey documentkeyId, int dataNameId) dataId)
                 => Storage.TryGetDocumentDataId(connection, key.documentKey, key.name, allowWrite, out dataId);
 
-            protected override int BindParameters(SqlStatement statement, (DocumentPrimaryKey documentkeyId, int dataNameId) dataId)
+            protected override void BindPrimaryKeyParameters(SqlStatement statement, (DocumentPrimaryKey documentkeyId, int dataNameId) dataId)
             {
                 var (((projectPathId, projectNameId), documentPathId, documentNameId), dataNameId) = dataId;
 
@@ -62,8 +62,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 statement.BindInt64Parameter(parameterIndex: 3, documentPathId);
                 statement.BindInt64Parameter(parameterIndex: 4, documentNameId);
                 statement.BindInt64Parameter(parameterIndex: 5, dataNameId);
-
-                return 5;
             }
 
             protected override bool TryGetRowId(SqlConnection connection, Database database, (DocumentPrimaryKey documentkeyId, int dataNameId) dataId, out long rowId)
