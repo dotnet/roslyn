@@ -32,11 +32,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             {
                 // Store the document as its folder and file name.  The folder is relative to the solution path so that
                 // we're not dependent on file-system location.
-                var documentFolder = PathUtilities.GetDirectoryName(PathUtilities.GetRelativePath(_solutionDirectory, documentKey.FilePath!));
-                documentFolder = string.IsNullOrEmpty(documentFolder) ? documentKey.FilePath : documentFolder;
 
                 if (TryGetProjectPrimaryKey(connection, documentKey.Project, allowWrite) is not ProjectPrimaryKey projectPrimaryKey ||
-                    TryGetStringId(connection, documentFolder, allowWrite) is not int documentFolderId ||
+                    TryGetStringId(connection, GetDocumentFolder(), allowWrite) is not int documentFolderId ||
                     TryGetStringId(connection, documentKey.Name, allowWrite) is not int documentNameId)
                 {
                     return null;
@@ -48,6 +46,15 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
 
             return existingId;
+
+            string? GetDocumentFolder()
+            {
+                if (documentKey.FilePath is null)
+                    return null;
+
+                var documentFolder = PathUtilities.GetDirectoryName(PathUtilities.GetRelativePath(_solutionDirectory, documentKey.FilePath));
+                return documentFolder == "" ? documentKey.FilePath : documentFolder;
+            }
         }
     }
 }
