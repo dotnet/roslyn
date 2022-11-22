@@ -23,12 +23,14 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         public override Task<bool> WriteStreamAsync(string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
             => _solutionAccessor.WriteStreamAsync(name, stream, checksum, cancellationToken);
 
+        private readonly record struct SolutionPrimaryKey(string Data);
+
         /// <summary>
         /// <see cref="Accessor{TKey, TWriteQueueKey, TDatabaseId}"/> responsible for storing and 
         /// retrieving data from <see cref="SolutionDataTableName"/>.  Note that with the Solution 
         /// table there is no need for key->id translation.  i.e. the key acts as the ID itself.
         /// </summary>
-        private class SolutionAccessor : Accessor<string, string, (string key, bool unused)>
+        private class SolutionAccessor : Accessor<string, string, SolutionPrimaryKey>
         {
             public SolutionAccessor(SQLitePersistentStorage storage)
                 : base(storage, ImmutableArray.Create((SolutionDataIdColumnName, "varchar")))
@@ -41,11 +43,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 => key;
 
             // For the SolutionDataTable the key itself acts as the data-id.
-            protected override (string key, bool unused)? TryGetDatabaseId(SqlConnection connection, string key, bool allowWrite)
-                => (key, unused: false);
+            protected override SolutionPrimaryKey? TryGetDatabaseId(SqlConnection connection, string key, bool allowWrite)
+                => new(key);
 
-            protected override void BindPrimaryKeyParameters(SqlStatement statement, (string key, bool unused) dataId)
-                => statement.BindStringParameter(parameterIndex: 1, value: dataId.key);
+            protected override void BindPrimaryKeyParameters(SqlStatement statement, SolutionPrimaryKey dataId)
+                => statement.BindStringParameter(parameterIndex: 1, value: dataId.Data);
         }
     }
 }
