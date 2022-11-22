@@ -110,5 +110,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         public const string SQLiteIntegerType = "integer";
         public const string SQLiteVarCharType = "varchar";
+        public const string SQLiteBlobType = "blob";
     }
 }

@@ -29,7 +29,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         {
             protected readonly SQLitePersistentStorage Storage;
 
-            private readonly ImmutableArray<(string name, string type)> _primaryKeys;
+            private readonly ImmutableArray<(string name, string type)> _primaryKeyColumns;
+            private readonly ImmutableArray<(string name, string type)> _allColumns;
 
             // Cache the statement strings we want to execute per accessor.  This way we avoid allocating these strings
             // each time we execute a command.  We also cache the prepared statements (at the connection level) we make
@@ -50,7 +51,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 params (string name, string type)[] primaryKeysArray)
             {
                 Storage = storage;
-                _primaryKeys = primaryKeysArray.ToImmutableArray();
+                _primaryKeyColumns = primaryKeysArray.ToImmutableArray();
+                _allColumns = _primaryKeyColumns.Add((ChecksumColumnName, SQLiteBlobType)).Add((DataColumnName, SQLiteBlobType));
 
                 var writeCache = Database.WriteCache.GetName();
 
@@ -61,11 +63,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 _select_rowid_from_main_table_where_0primarykey = GetSelectRowIdQuery(Database.Main);
                 _select_rowid_from_writecache_table_where_0primarykey = GetSelectRowIdQuery(Database.WriteCache);
 
-                var allColumnNames = _primaryKeys.Select(t => t.name).Concat(ChecksumColumnName).Concat(DataColumnName);
-
                 _insert_or_replace_into_writecache_table_values_0primarykey_1checksum_2data = $"""
                     insert or replace into {writeCache}.{TableName}
-                    ({string.Join(",", allColumnNames)}) values ({string.Join(",", allColumnNames.Select(n => "?"))})
+                    ({string.Join(",", _allColumns.Select(c => c.name))}) values ({string.Join(",", _allColumns.Select(n => "?"))})
                     """;
 
                 return;
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 {
                     return $"""
                         select rowid from {database.GetName()}.{TableName} where
-                        {string.Join(" and ", _primaryKeys.Select(k => $"{k.name} = ?"))}
+                        {string.Join(" and ", _primaryKeyColumns.Select(k => $"{k.name} = ?"))}
                         """;
                 }
             }
@@ -109,10 +109,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 // This is only executed once per process, so we don't bother trying to cache this string.
                 connection.ExecuteCommand($"""
                     create table if not exists {database.GetName()}.{this.TableName}(
-                        {string.Join(",", _primaryKeys.Select(k => $"{k.name} {k.type} not null"))},
-                        {ChecksumColumnName} blob,
-                        {DataColumnName} blob,
-                        primary key({string.Join(",", _primaryKeys.Select(k => k.name))})
+                        {string.Join(",", _allColumns.Select(k => $"{k.name} {k.type} not null"))},
+                        primary key({string.Join(",", _primaryKeyColumns.Select(k => k.name))})
                     )
                     """);
             }
@@ -358,8 +356,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     BindPrimaryKeyParameters(statement, dataId);
 
                     // Binding indices are 1 based.
-                    statement.BindBlobParameter(parameterIndex: _primaryKeys.Length + 1, checksumBytes);
-                    statement.BindBlobParameter(parameterIndex: _primaryKeys.Length + 2, dataBytes);
+                    statement.BindBlobParameter(parameterIndex: _primaryKeyColumns.Length + 1, checksumBytes);
+                    statement.BindBlobParameter(parameterIndex: _primaryKeyColumns.Length + 2, dataBytes);
 
                     statement.Step();
                 }
