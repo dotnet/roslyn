@@ -50,6 +50,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\VisualBasicSimplifyLinqExpressionTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyObjectCreation\SimplifyObjectCreationTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\UseAutoPropertyTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForIfNullStatementCheckTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForNullableTernaryConditionalCheckTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForTernaryConditionalCheckTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\UseCollectionInitializerTests.vb" />

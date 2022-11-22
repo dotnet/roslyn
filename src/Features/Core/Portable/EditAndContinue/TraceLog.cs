@@ -108,8 +108,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Args = args;
             }
 
-            internal string GetDebuggerDisplay() =>
-                (MessageFormat == null) ? "" : string.Format(MessageFormat, Args?.Select(a => a.GetDebuggerDisplay()).ToArray() ?? Array.Empty<object>());
+            internal string GetDebuggerDisplay()
+                => (MessageFormat == null) ? "" : string.Format(MessageFormat, Args?.Select(a => a.GetDebuggerDisplay()).ToArray() ?? Array.Empty<object>());
         }
 
         private readonly Entry[] _log;

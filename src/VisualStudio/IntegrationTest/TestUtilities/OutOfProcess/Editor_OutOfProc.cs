@@ -224,8 +224,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void NavigateToSendKeys(params object[] keys)
             => _editorInProc.SendKeysToNavigateTo(keys);
 
-        public ClassifiedToken[] GetLightbulbPreviewClassification(string menuText) =>
-            _editorInProc.GetLightbulbPreviewClassifications(menuText);
+        public ClassifiedToken[] GetLightbulbPreviewClassification(string menuText)
+            => _editorInProc.GetLightbulbPreviewClassifications(menuText);
 
         public void SetUseSuggestionMode(bool value)
         {
