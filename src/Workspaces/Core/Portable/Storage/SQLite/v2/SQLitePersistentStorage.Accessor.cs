@@ -13,9 +13,6 @@ using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
-#if DEBUG
-#endif
-
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
     using static SQLitePersistentStorageConstants;
