@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 // Store the project as its folder and project name.  The folder is relative to the solution path so
                 // that we're not dependent on file-system location.
                 var projectRelativePath = PathUtilities.GetRelativePath(_solutionDirectory, projectKey.FilePath!);
+                projectRelativePath = string.IsNullOrEmpty(projectRelativePath) ? projectKey.FilePath : projectRelativePath;
 
                 // Key the project off both its path and name.  That way we work properly
                 // in host and test scenarios.
