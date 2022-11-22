@@ -26,9 +26,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         {
             var documentId = TryGetDocumentId(connection, documentKey, allowWrite);
             var nameId = TryGetStringId(connection, name, allowWrite);
-            return documentId == null || nameId == null
-                ? null
-                : (documentId.Value, nameId.Value);
+            return documentId == null || nameId == null ? null : (documentId.Value, nameId.Value);
         }
 
         private DocumentPrimaryKey? TryGetDocumentId(SqlConnection connection, DocumentKey document, bool allowWrite)
@@ -50,19 +48,15 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         private DocumentPrimaryKey? TryGetDocumentIdFromDatabase(SqlConnection connection, DocumentKey document, bool allowWrite)
         {
-            var projectId = TryGetProjectId(connection, document.Project, allowWrite);
-            if (projectId == null)
-                return null;
-
             // Key the document off its project id, and its path and name.  That way we work properly
             // in host and test scenarios.
+            var projectId = TryGetProjectId(connection, document.Project, allowWrite);
             var documentPathId = TryGetStringId(connection, document.FilePath, allowWrite);
             var documentNameId = TryGetStringId(connection, document.Name, allowWrite);
 
-            if (documentPathId == null || documentNameId == null)
-                return null;
-
-            return new DocumentPrimaryKey(projectId.Value, documentPathId.Value, documentNameId.Value);
+            return projectId == null || documentPathId == null || documentNameId == null
+                ? null
+                : new DocumentPrimaryKey(projectId.Value, documentPathId.Value, documentNameId.Value);
         }
     }
 }

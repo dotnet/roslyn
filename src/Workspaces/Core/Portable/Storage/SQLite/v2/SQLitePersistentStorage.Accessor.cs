@@ -81,15 +81,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             protected abstract Table Table { get; }
 
-            private string TableName
-                => this.Table switch
-                {
-                    Table.Solution => SolutionDataTableName,
-                    Table.Project => ProjectDataTableName,
-                    Table.Document => DocumentDataTableName,
-                    _ => throw ExceptionUtilities.UnexpectedValue(this.Table),
-                };
-
             /// <summary>
             /// Gets the internal sqlite db-id (effectively the row-id for the doc or proj table, or just the string-id
             /// for the solution table) for the provided caller key.  This db-id will be looked up and returned if a
@@ -103,6 +94,15 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             /// </param>
             protected abstract TDatabaseId? TryGetDatabaseId(SqlConnection connection, TKey key, bool allowWrite);
             protected abstract void BindPrimaryKeyParameters(SqlStatement statement, TDatabaseId dataId);
+
+            private string TableName
+                => this.Table switch
+                {
+                    Table.Solution => SolutionDataTableName,
+                    Table.Project => ProjectDataTableName,
+                    Table.Document => DocumentDataTableName,
+                    _ => throw ExceptionUtilities.UnexpectedValue(this.Table),
+                };
 
             public void CreateTable(SqlConnection connection, Database database)
             {

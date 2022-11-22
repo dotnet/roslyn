@@ -26,9 +26,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         {
             var projectId = TryGetProjectId(connection, project, allowWrite);
             var nameId = TryGetStringId(connection, name, allowWrite);
-            return projectId == null || nameId == null
-                ? null
-                : (projectId.Value, nameId.Value);
+            return projectId == null || nameId == null ? null : (projectId.Value, nameId.Value);
         }
 
         private ProjectPrimaryKey? TryGetProjectId(SqlConnection connection, ProjectKey project, bool allowWrite)
@@ -55,10 +53,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             var projectPathId = TryGetStringId(connection, project.FilePath, allowWrite);
             var projectNameId = TryGetStringId(connection, project.Name, allowWrite);
 
-            if (projectPathId == null || projectNameId == null)
-                return null;
-
-            return new ProjectPrimaryKey(projectPathId.Value, projectNameId.Value);
+            return projectPathId == null || projectNameId == null ? null : new ProjectPrimaryKey(projectPathId.Value, projectNameId.Value);
         }
     }
 }
