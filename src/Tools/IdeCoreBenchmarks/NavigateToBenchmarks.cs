@@ -27,7 +27,7 @@ using Microsoft.CodeAnalysis.Storage;
 
 namespace IdeCoreBenchmarks
 {
-    // [GcServer(true)]
+    [GcServer(true)]
     [MemoryDiagnoser]
     [SimpleJob(launchCount: 1, warmupCount: 0, targetCount: 0, invocationCount: 1, id: "QuickJob")]
     public class NavigateToBenchmarks
@@ -43,7 +43,7 @@ namespace IdeCoreBenchmarks
         }
 
         [IterationSetup]
-        public void IterationSetup() => LoadSolutionAsync().Wait();
+        public void IterationSetup() => LoadSolution();
 
         private void RestoreCompilerSolution()
         {
@@ -64,7 +64,7 @@ namespace IdeCoreBenchmarks
             MSBuildLocator.RegisterInstance(msBuildInstance);
         }
 
-        private async Task LoadSolutionAsync()
+        private void LoadSolution()
         {
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
             _solutionPath = Path.Combine(roslynRoot, @"Roslyn.sln");
@@ -93,17 +93,14 @@ namespace IdeCoreBenchmarks
 
             var solution = _workspace.OpenSolutionAsync(_solutionPath, progress: null, CancellationToken.None).Result;
             Console.WriteLine("Finished opening roslyn: " + (DateTime.Now - start));
+            var docCount = _workspace.CurrentSolution.Projects.SelectMany(p => p.Documents).Count();
+            Console.WriteLine("Doc count: " + docCount);
 
             // Force a storage instance to be created.  This makes it simple to go examine it prior to any operations we
             // perform, including seeing how big the initial string table is.
             var storageService = _workspace.Services.SolutionServices.GetPersistentStorageService();
             if (storageService == null)
                 throw new ArgumentException("Couldn't get storage service");
-
-            using (var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(_workspace.CurrentSolution), CancellationToken.None))
-            {
-                Console.WriteLine("Successfully got persistent storage instance");
-            }
         }
 
         [IterationCleanup]
@@ -163,15 +160,15 @@ namespace IdeCoreBenchmarks
             var storageService = _workspace.Services.SolutionServices.GetPersistentStorageService();
             using (var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(_workspace.CurrentSolution), CancellationToken.None))
             {
+                Console.WriteLine("Successfully got persistent storage instance");
                 var start = DateTime.Now;
-                var docCount = _workspace.CurrentSolution.Projects.SelectMany(p => p.Documents).Count();
-                Console.WriteLine("Doc count: " + docCount);
                 var tasks = _workspace.CurrentSolution.Projects.SelectMany(p => p.Documents).Select(d => Task.Run(
                     () => SyntaxTreeIndex.GetIndexAsync(d, default))).ToList();
                 await Task.WhenAll(tasks);
                 Console.WriteLine("Solution parallel: " + (DateTime.Now - start));
-                Console.ReadLine();
             }
+            Console.WriteLine("DB flushed");
+            Console.ReadLine();
         }
 
         // [Benchmark]
