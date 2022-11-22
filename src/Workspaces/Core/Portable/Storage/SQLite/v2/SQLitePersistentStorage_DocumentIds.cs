@@ -33,17 +33,18 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         {
             // First see if we've cached the ID for this value locally.  If so, just return
             // what we already have.
-            if (_documentIdToIdMap.TryGetValue(document.Id, out var existingId))
-                return existingId;
-
-            var id = TryGetDocumentIdFromDatabase(connection, document, allowWrite);
-            if (id != null)
+            if (!_documentIdToIdMap.TryGetValue(document.Id, out var existingId))
             {
+                var id = TryGetDocumentIdFromDatabase(connection, document, allowWrite);
+                if (id == null)
+                    return null;
+
                 // Cache the value locally so we don't need to go back to the DB in the future.
-                _documentIdToIdMap.TryAdd(document.Id, id.Value);
+                existingId = id.Value;
+                _documentIdToIdMap.TryAdd(document.Id, existingId);
             }
 
-            return id;
+            return existingId;
         }
 
         private DocumentPrimaryKey? TryGetDocumentIdFromDatabase(SqlConnection connection, DocumentKey document, bool allowWrite)

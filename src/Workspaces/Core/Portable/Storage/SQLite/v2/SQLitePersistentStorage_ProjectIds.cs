@@ -33,17 +33,18 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         {
             // First see if we've cached the ID for this value locally.  If so, just return
             // what we already have.
-            if (_projectIdToIdMap.TryGetValue(project.Id, out var existingId))
-                return existingId;
-
-            var id = TryGetProjectIdFromDatabase(connection, project, allowWrite);
-            if (id != null)
+            if (!_projectIdToIdMap.TryGetValue(project.Id, out var existingId))
             {
+                var id = TryGetProjectIdFromDatabase(connection, project, allowWrite);
+                if (id == null)
+                    return null;
+
                 // Cache the value locally so we don't need to go back to the DB in the future.
-                _projectIdToIdMap.TryAdd(project.Id, id.Value);
+                existingId = id.Value;
+                _projectIdToIdMap.TryAdd(project.Id, existingId);
             }
 
-            return id;
+            return existingId;
         }
 
         private ProjectPrimaryKey? TryGetProjectIdFromDatabase(SqlConnection connection, ProjectKey project, bool allowWrite)
