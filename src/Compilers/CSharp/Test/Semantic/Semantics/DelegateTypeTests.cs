@@ -13928,7 +13928,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
         }
 
         [Fact]
-        public void ParamsArray_MissingParamArrayAttribute()
+        public void ParamsArray_MissingParamArrayAttribute_Lambda()
         {
             var source = """
                 var lam = (params int[] xs) => xs.Length;
@@ -13939,6 +13939,40 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 // (1,25): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
                 // var lam = (params int[] xs) => xs.Length;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "xs").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(1, 25));
+        }
+
+        [Fact]
+        public void ParamsArray_MissingParamArrayAttribute_Method()
+        {
+            var source = """
+                class C
+                {
+                    static void M(params int[] xs) { }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_ParamArrayAttribute);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
+                //     static void M(params int[] xs) { }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "params int[] xs").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(3, 19));
+        }
+
+        [Fact]
+        public void ParamsArray_MissingParamArrayAttribute_Property()
+        {
+            var source = """
+                class C
+                {
+                    int this[params int[] xs] { get => throw null; set => throw null; }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_ParamArrayAttribute);
+            comp.VerifyDiagnostics(
+                // (3,14): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
+                //     int this[params int[] xs] { get => throw null; set => throw null; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "params int[] xs").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(3, 14));
         }
 
         [Fact]
