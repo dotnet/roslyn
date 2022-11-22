@@ -13995,13 +13995,22 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 """).VerifyDiagnostics();
         }
 
-        [Fact]
-        public void ParamsArray_SynthesizedDelegateIL()
+        [Theory]
+        [InlineData("(int x, params int[] ys) => { }", "")]
+        [InlineData("M", "static void M(int x, params int[] ys) { }")]
+        public void ParamsArray_SynthesizedDelegateIL(string variable, string method)
         {
-            var source = """
-                static void Report(object obj) => System.Console.WriteLine(obj.GetType());
-                var lam = (int x, params int[] ys) => { };
-                Report(lam);
+            var source = $$"""
+                class C
+                {
+                    static void Report(object obj) => System.Console.WriteLine(obj.GetType());
+                    static void Main()
+                    {
+                        var m = {{variable}};
+                        Report(m);
+                    }
+                    {{method}}
+                }
                 """;
             var verifier = CompileAndVerify(source, expectedOutput: "<>f__AnonymousDelegate0").VerifyDiagnostics();
             verifier.VerifyTypeIL("<>f__AnonymousDelegate0", $$"""
@@ -14031,6 +14040,117 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
                 			)
                 	} // end of method '<>f__AnonymousDelegate0'::Invoke
                 } // end of class <>f__AnonymousDelegate0
+                """);
+        }
+
+        [Fact]
+        public void ParamsArray_SynthesizedMethodIL_Lambda()
+        {
+            var source = """
+                var lam = (int x, params int[] ys) => { };
+                System.Console.WriteLine(lam.Method.DeclaringType!.Name);
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "<>c").VerifyDiagnostics();
+            verifier.VerifyTypeIL("<>c", $$"""
+                .class nested private auto ansi sealed serializable beforefieldinit '<>c'
+                	extends [{{s_libPrefix}}]System.Object
+                {
+                	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Fields
+                	.field public static initonly class Program/'<>c' '<>9'
+                	.field public static class '<>f__AnonymousDelegate0' '<>9__0_0'
+                	// Methods
+                	.method private hidebysig specialname rtspecialname static 
+                		void .cctor () cil managed 
+                	{
+                		// Method begins at RVA 0x20a4
+                		// Code size 11 (0xb)
+                		.maxstack 8
+                		IL_0000: newobj instance void Program/'<>c'::.ctor()
+                		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+                		IL_000a: ret
+                	} // end of method '<>c'::.cctor
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor () cil managed 
+                	{
+                		// Method begins at RVA 0x209c
+                		// Code size 7 (0x7)
+                		.maxstack 8
+                		IL_0000: ldarg.0
+                		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
+                		IL_0006: ret
+                	} // end of method '<>c'::.ctor
+                	.method assembly hidebysig 
+                		instance void '<<Main>$>b__0_0' (
+                			int32 x,
+                			int32[] ys
+                		) cil managed 
+                	{
+                		// Method begins at RVA 0x20b0
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		IL_0000: ret
+                	} // end of method '<>c'::'<<Main>$>b__0_0'
+                } // end of class <>c
+                """);
+        }
+
+        [Fact]
+        public void ParamsArray_SynthesizedMethodIL_LocalFunction()
+        {
+            var source = """
+                class C
+                {
+                    public static void M()
+                    {
+                        void local(int x, params int[] ys) { }
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source).VerifyDiagnostics(
+                // (5,14): warning CS8321: The local function 'local' is declared but never used
+                //         void local(int x, params int[] ys) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(5, 14));
+            verifier.VerifyTypeIL("C", $$"""
+                .class private auto ansi beforefieldinit C
+                	extends [{{s_libPrefix}}]System.Object
+                {
+                	// Methods
+                	.method public hidebysig static 
+                		void M () cil managed 
+                	{
+                		// Method begins at RVA 0x2067
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		IL_0000: ret
+                	} // end of method C::M
+                	.method public hidebysig specialname rtspecialname 
+                		instance void .ctor () cil managed 
+                	{
+                		// Method begins at RVA 0x2069
+                		// Code size 7 (0x7)
+                		.maxstack 8
+                		IL_0000: ldarg.0
+                		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
+                		IL_0006: ret
+                	} // end of method C::.ctor
+                	.method assembly hidebysig static 
+                		void '<M>g__local|0_0' (
+                			int32 x,
+                			int32[] ys
+                		) cil managed 
+                	{
+                		.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                			01 00 00 00
+                		)
+                		// Method begins at RVA 0x2067
+                		// Code size 1 (0x1)
+                		.maxstack 8
+                		IL_0000: ret
+                	} // end of method C::'<M>g__local|0_0'
+                } // end of class C
                 """);
         }
 
