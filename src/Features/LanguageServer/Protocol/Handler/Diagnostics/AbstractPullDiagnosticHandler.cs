@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     // Defines an identifier used by the client for merging diagnostics across projects. We want diagnostics
                     // to be merged from separate projects if they have the same code, filepath, range, and message.
                     //
-                    // Note: LSP pull diagnostics only operates on unmapped locations.  So the code here and below only accesses OriginalFilePath
+                    // Note: LSP pull diagnostics only operates on unmapped locations.
                     diagnostic.Identifier = (diagnostic.Code, diagnosticData.DataLocation.UnmappedFileSpan.Path, diagnostic.Range, diagnostic.Message)
                         .GetHashCode().ToString();
                 }

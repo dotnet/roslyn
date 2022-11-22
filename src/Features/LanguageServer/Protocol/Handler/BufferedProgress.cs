@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public static T[]? GetFlattenedValues<T>(this BufferedProgress<T[]> progress)
         {
-            return progress.GetValues()?.SelectMany(v => v).ToArray();
+            return progress.GetValues()?.Flatten().ToArray();
         }
     }
 }
