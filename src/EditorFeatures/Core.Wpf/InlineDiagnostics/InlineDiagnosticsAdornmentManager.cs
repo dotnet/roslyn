@@ -208,36 +208,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             }
         }
 
-        protected override void UpdateSpans_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection, bool removeOldTags)
+        protected override void RemoveAdornment(IWpfTextViewLineCollection viewLines, SnapshotSpan changedSpan)
         {
-            Contract.ThrowIfNull(changedSpanCollection);
-
-            // this method should only run on UI thread as we do WPF here.
-            Contract.ThrowIfFalse(TextView.VisualElement.Dispatcher.CheckAccess());
-
-            var viewLines = TextView.TextViewLines;
-            if (viewLines == null || viewLines.Count == 0)
-            {
-                return; // nothing to draw on
-            }
-
-            // removing is a separate pass from adding so that new stuff is not removed.
-            if (removeOldTags)
-            {
-                foreach (var changedSpan in changedSpanCollection)
-                {
-                    // is there any effect on the view?
-                    if (viewLines.IntersectsBufferSpan(changedSpan))
-                    {
-                        // We add the entire extent of the line as the visual span when adding an adornment,
-                        // so we should remove based on that line.
-                        var line = viewLines.GetTextViewLineContainingBufferPosition(changedSpan.Start);
-                        AdornmentLayer.RemoveAdornmentsByVisualSpan(line.Extent);
-                    }
-                }
-            }
-
-            AddAdornmentsToAdornmentLayer_CallOnlyOnUIThread(changedSpanCollection);
+            // We add the entire extent of the line as the visual span when adding an adornment,
+            // so we should remove based on that line.
+            var line = viewLines.GetTextViewLineContainingBufferPosition(changedSpan.Start);
+            AdornmentLayer.RemoveAdornmentsByVisualSpan(line.Extent);
         }
     }
 }

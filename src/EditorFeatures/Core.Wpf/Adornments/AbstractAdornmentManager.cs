@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
             }
         }
 
-        protected virtual void UpdateSpans_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection, bool removeOldTags)
+        protected void UpdateSpans_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection, bool removeOldTags)
         {
             Contract.ThrowIfNull(changedSpanCollection);
 
@@ -244,12 +244,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
                     // is there any effect on the view?
                     if (viewLines.IntersectsBufferSpan(changedSpan))
                     {
-                        AdornmentLayer.RemoveAdornmentsByVisualSpan(changedSpan);
+                        RemoveAdornment(viewLines, changedSpan);
                     }
                 }
             }
 
             AddAdornmentsToAdornmentLayer_CallOnlyOnUIThread(changedSpanCollection);
+        }
+
+        /// <summary>
+        /// Removes the adornment based on the changed span. 
+        /// Needs special logic for InlineDiagnostics since the span added is different.
+        /// </summary>
+        protected virtual void RemoveAdornment(IWpfTextViewLineCollection viewLines, SnapshotSpan changedSpan)
+        {
+            AdornmentLayer.RemoveAdornmentsByVisualSpan(changedSpan);
         }
 
         protected bool ShouldDrawTag(SnapshotSpan snapshotSpan, IMappingTagSpan<T> mappingTagSpan, out IWpfTextViewLine viewLine)
