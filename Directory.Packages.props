@@ -15,6 +15,7 @@
   <ItemGroup>
     <PackageVersion Include="CSharpIsNullAnalyzer" Version="0.1.329" />
     <PackageVersion Include="DotNetAnalyzers.DocumentationAnalyzers" Version="1.0.0-beta.59" />
+    <PackageVersion Include="Microsoft.Net.Compilers.Toolset" Version="4.4.0" />
     <PackageVersion Include="Nerdbank.GitVersioning" Version="3.5.119" />
     <PackageVersion Include="Nullable" Version="1.3.1" />
     <PackageVersion Include="StyleCop.Analyzers.Unstable" Version="1.2.0.435" />
@@ -25,6 +26,7 @@
   <ItemGroup>
     <PackageReference Include="CSharpIsNullAnalyzer" PrivateAssets="all" />
     <PackageReference Include="DotNetAnalyzers.DocumentationAnalyzers" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Net.Compilers.Toolset" PrivateAssets="all" />
     <PackageReference Include="Nerdbank.GitVersioning" PrivateAssets="all" />
     <PackageReference Include="Nullable" PrivateAssets="all" />
     <PackageReference Include="StyleCop.Analyzers.Unstable" PrivateAssets="all" />
