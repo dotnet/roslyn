@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             protected override SolutionPrimaryKey? TryGetDatabaseKey(SqlConnection connection, SolutionKey key, bool allowWrite)
                 => new SolutionPrimaryKey();
 
-            protected override void BindPrimaryKeyParameters(SqlStatement statement, SolutionPrimaryKey dataId)
+            protected override void BindAccessorSpecificPrimaryKeyParameters(SqlStatement statement, SolutionPrimaryKey dataId)
             {
                 // nothing to do.  A solution row just needs the id of the data-name (which the caller handles).
             }

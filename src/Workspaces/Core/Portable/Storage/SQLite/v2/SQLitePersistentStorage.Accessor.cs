@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             /// langword="false"/> then failing to find the key will result in <see langword="false"/> being returned.
             /// </param>
             protected abstract TDatabaseKey? TryGetDatabaseKey(SqlConnection connection, TKey key, bool allowWrite);
-            protected abstract void BindPrimaryKeyParameters(SqlStatement statement, TDatabaseKey dataId);
+            protected abstract void BindAccessorSpecificPrimaryKeyParameters(SqlStatement statement, TDatabaseKey dataId);
 
             private string TableName
                 => this.Table switch
@@ -315,6 +315,15 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 return storedChecksum.HasValue && checksum == storedChecksum.Value;
             }
 
+            private void BindPrimaryKey(SqlStatement statement, TDatabaseKey dataId, int dataNameId)
+            {
+                // This binds all but the dataNameId primary key parameter.
+                BindAccessorSpecificPrimaryKeyParameters(statement, dataId);
+                // The data name id parameter is the last in _primaryKeyColumns. So we pass _primaryKeyColumns.Length as
+                // the parameter index as it is 1s based.
+                statement.BindInt64Parameter(parameterIndex: _primaryKeyColumns.Length, dataNameId);
+            }
+
             private bool TryGetActualRowIdFromDatabase(SqlConnection connection, Database database, TDatabaseKey dataId, int dataNameId, out long rowId)
             {
                 // See https://sqlite.org/autoinc.html
@@ -331,11 +340,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
                 var statement = resettableStatement.Statement;
 
-                // This binds all but the dataNameId primary key parameter.
-                BindPrimaryKeyParameters(statement, dataId);
-                // The data name id parameter is the last in _primaryKeyColumns. So we pass _primaryKeyColumns.Length as
-                // the parameter index as it is 1s based.
-                statement.BindInt64Parameter(parameterIndex: _primaryKeyColumns.Length, dataNameId);
+                BindPrimaryKey(statement, dataId, dataNameId);
 
                 var stepResult = statement.Step();
                 if (stepResult == Result.ROW)
@@ -363,10 +368,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 {
                     var statement = resettableStatement.Statement;
 
-                    BindPrimaryKeyParameters(statement, dataId);
-
-                    // Binding indices are 1 based.
-                    statement.BindInt64Parameter(parameterIndex: _primaryKeyColumns.Length, dataNameId);
+                    BindPrimaryKey(statement, dataId, dataNameId);
                     statement.BindBlobParameter(parameterIndex: _primaryKeyColumns.Length + 1, checksumBytes);
                     statement.BindBlobParameter(parameterIndex: _primaryKeyColumns.Length + 2, dataBytes);
 

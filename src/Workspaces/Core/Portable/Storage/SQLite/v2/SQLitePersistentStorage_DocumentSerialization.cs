@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             protected override DocumentPrimaryKey? TryGetDatabaseKey(SqlConnection connection, DocumentKey key, bool allowWrite)
                 => Storage.TryGetDocumentPrimaryKey(connection, key, allowWrite);
 
-            protected override void BindPrimaryKeyParameters(SqlStatement statement, DocumentPrimaryKey primaryKey)
+            protected override void BindAccessorSpecificPrimaryKeyParameters(SqlStatement statement, DocumentPrimaryKey primaryKey)
             {
                 var ((projectPathId, projectNameId), documentPathId) = primaryKey;
 

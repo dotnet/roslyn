@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             protected override ProjectPrimaryKey? TryGetDatabaseKey(SqlConnection connection, ProjectKey projectKey, bool allowWrite)
                 => Storage.TryGetProjectPrimaryKey(connection, projectKey, allowWrite);
 
-            protected override void BindPrimaryKeyParameters(SqlStatement statement, ProjectPrimaryKey primaryKey)
+            protected override void BindAccessorSpecificPrimaryKeyParameters(SqlStatement statement, ProjectPrimaryKey primaryKey)
             {
                 statement.BindInt64Parameter(parameterIndex: 1, primaryKey.ProjectPathId);
                 statement.BindInt64Parameter(parameterIndex: 2, primaryKey.ProjectNameId);
