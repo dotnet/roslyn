@@ -13942,6 +13942,20 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
         }
 
         [Fact]
+        public void ParamsArray_MissingParamArrayAttribute_Lambda_ExplicitDelegateType()
+        {
+            var source = """
+                System.Func<int[], int> lam = (params int[] xs) => xs.Length;
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_ParamArrayAttribute);
+            comp.VerifyDiagnostics(
+                // (1,45): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // System.Func<int[], int> lam = (params int[] xs) => xs.Length;
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(1, 45));
+        }
+
+        [Fact]
         public void ParamsArray_MissingParamArrayAttribute_Method()
         {
             var source = """
