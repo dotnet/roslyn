@@ -207,5 +207,34 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                     removedCallback: delegate { graphicsResult.Dispose(); });
             }
         }
+
+        protected override void UpdateSpans_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection, bool removeOldTags)
+        {
+            Contract.ThrowIfNull(changedSpanCollection);
+
+            // this method should only run on UI thread as we do WPF here.
+            Contract.ThrowIfFalse(TextView.VisualElement.Dispatcher.CheckAccess());
+
+            var viewLines = TextView.TextViewLines;
+            if (viewLines == null || viewLines.Count == 0)
+            {
+                return; // nothing to draw on
+            }
+
+            // removing is a separate pass from adding so that new stuff is not removed.
+            if (removeOldTags)
+            {
+                foreach (var changedSpan in changedSpanCollection)
+                {
+                    // is there any effect on the view?
+                    if (viewLines.IntersectsBufferSpan(changedSpan))
+                    {
+                        AdornmentLayer.RemoveAdornmentsByTag();
+                    }
+                }
+            }
+
+            AddAdornmentsToAdornmentLayer_CallOnlyOnUIThread(changedSpanCollection);
+        }
     }
 }

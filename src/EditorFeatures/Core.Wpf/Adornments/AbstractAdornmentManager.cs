@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
             }
         }
 
-        protected void UpdateSpans_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection, bool removeOldTags)
+        protected virtual void UpdateSpans_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection, bool removeOldTags)
         {
             Contract.ThrowIfNull(changedSpanCollection);
 
