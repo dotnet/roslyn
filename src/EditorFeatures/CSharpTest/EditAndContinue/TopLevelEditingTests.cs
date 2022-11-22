@@ -17947,10 +17947,22 @@ Console.WriteLine(""Hello"");
         }
 
         [Fact]
-        public void TopLevelStatements_StackAlloc()
+        public void TopLevelStatements_StackAllocInUnsafeBlock()
         {
             var src1 = @"unsafe { var x = stackalloc int[3]; System.Console.Write(1); }";
             var src2 = @"unsafe { var x = stackalloc int[3]; System.Console.Write(2); }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", CSharpFeaturesResources.global_statement));
+        }
+
+        [Fact]
+        public void TopLevelStatements_StackAllocInTopBlock()
+        {
+            var src1 = @"{ var x = stackalloc int[3]; System.Console.Write(1); }";
+            var src2 = @"{ var x = stackalloc int[3]; System.Console.Write(2); }";
 
             var edits = GetTopEdits(src1, src2);
 
