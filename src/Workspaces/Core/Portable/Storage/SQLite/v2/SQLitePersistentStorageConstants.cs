@@ -50,10 +50,14 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         ///
         /// The format of the table is:
         ///
+        ///  <code>
         ///  SolutionData
-        ///  -------------------------------------------------------------------------
-        ///  | SolutionDataId (primary key, varchar) | Checksum (blob) | Data (blob) |
-        ///  -------------------------------------------------------------------------
+        ///  ----------------------------------------------------
+        ///  | DataNameId (int) | Checksum (blob) | Data (blob) |
+        ///  ----------------------------------------------------
+        ///  | Primary Key      |
+        ///  --------------------
+        ///  </code>
         /// </summary>
         public const string SolutionDataTableName = "SolutionData" + Version;
 
@@ -62,18 +66,16 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// The data is keyed off of an integral value produced by combining the ID of the Project and
         /// the ID of the name of the data (see <see cref="SQLitePersistentStorage.ReadStreamAsync(ProjectKey, Project?, string, Checksum?, CancellationToken)"/>.
         ///
-        /// This gives a very efficient integral key, and means that the we only have to store a
-        /// single mapping from stream name to ID in the string table.
-        ///
         /// The format of the table is:
         ///
+        ///  <code>
         ///  ProjectData
         ///  ------------------------------------------------------------------------------------------------
         ///  | ProjectPathId (int) | ProjectNameId (int) | DataNameId (int) | Checksum (blob) | Data (blob) |
         ///  ------------------------------------------------------------------------------------------------
         ///  | Primary Key                                                  |
         ///  ----------------------------------------------------------------
-        ///  
+        ///  </code>
         /// </summary>
         public const string ProjectDataTableName = "ProjectData" + Version;
 
@@ -82,29 +84,26 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// The data is keyed off of an integral value produced by combining the ID of the Document and
         /// the ID of the name of the data (see <see cref="SQLitePersistentStorage.ReadStreamAsync(DocumentKey, Document?, string, Checksum?, CancellationToken)"/>.
         ///
-        /// This gives a very efficient integral key, and means that the we only have to store a
-        /// single mapping from stream name to ID in the string table.
-        ///
         /// The format of the table is:
         ///
+        ///  <code>
         ///  DocumentData
-        ///  ----------------------------------------------------------------------------------------------------------------------------------------------
-        ///  | ProjectPathId (int) | ProjectNameId (int) | DocumentPathId (int) | DocumentNameId (int) | DataNameId (int) | Checksum (blob) | Data (blob) |
-        ///  ----------------------------------------------------------------------------------------------------------------------------------------------
-        ///  | Primary Key                                                                                                |
-        ///  --------------------------------------------------------------------------------------------------------------
+        ///  -----------------------------------------------------------------------------------------------------------------------
+        ///  | ProjectPathId (int) | ProjectNameId (int) | DocumentPathId (int) | DataNameId (int) | Checksum (blob) | Data (blob) |
+        ///  -----------------------------------------------------------------------------------------------------------------------
+        ///  | Primary Key                                                                         |
+        ///  ---------------------------------------------------------------------------------------
+        ///  </code>
         /// </summary>
         public const string DocumentDataTableName = "DocumentData" + Version;
 
         public const string StringDataIdColumnName = "StringDataId";
-        public const string SolutionDataIdColumnName = "SolutionDataId";
 
         public const string ProjectPathIdColumnName = "ProjectPathId";
         public const string ProjectNameIdColumnName = "ProjectNameId";
         public const string DocumentPathIdColumnName = "DocumentPathId";
-        public const string DocumentNameIdColumnName = "DocumentNameId";
-        public const string DataNameIdColumnName = "DataNameId";
 
+        public const string DataNameIdColumnName = "DataNameId";
         public const string ChecksumColumnName = "Checksum";
         public const string DataColumnName = "Data";
 

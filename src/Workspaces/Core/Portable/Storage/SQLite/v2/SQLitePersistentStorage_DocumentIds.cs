@@ -29,12 +29,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             {
                 var projectPrimaryKey = TryGetProjectPrimaryKey(connection, documentKey.Project, allowWrite);
                 var documentPathId = TryGetStringId(connection, documentKey.FilePath, allowWrite);
-                var documentNameId = TryGetStringId(connection, documentKey.Name, allowWrite);
-                if (projectPrimaryKey == null || documentPathId == null || documentNameId == null)
+                if (projectPrimaryKey == null || documentPathId == null)
                     return null;
 
                 // Cache the value locally so we don't need to go back to the DB in the future.
-                existingId = new DocumentPrimaryKey(projectPrimaryKey.Value, documentPathId.Value, documentNameId.Value);
+                existingId = new DocumentPrimaryKey(projectPrimaryKey.Value, documentPathId.Value);
                 _documentIdToIdMap.TryAdd(documentKey.Id, existingId);
             }
 
