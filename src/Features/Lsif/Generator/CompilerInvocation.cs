@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
                 if (splitCommandLine[i].StartsWith(RuleSetSwitch, StringComparison.Ordinal))
                 {
-                    var rulesetPath = splitCommandLine[i].Substring(RuleSetSwitch.Length);
+                    var rulesetPath = splitCommandLine[i][RuleSetSwitch.Length..];
 
                     var quoted = rulesetPath.Length > 2 &&
                         rulesetPath.StartsWith("\"", StringComparison.Ordinal) &&
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
                     if (quoted)
                     {
-                        rulesetPath = rulesetPath.Substring(1, rulesetPath.Length - 2);
+                        rulesetPath = rulesetPath[1..^1];
                     }
 
                     rulesetPath = mapPath(rulesetPath);
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     {
                         // Trim off any leading \, which would happen if you have a path like C:\Directory\\File.cs with a double slash, and happen to be
                         // mapping C:\Directory somewhere.
-                        var relativePath = unmappedPath.Substring(fromWithDirectorySuffix.Length).TrimStart('\\');
+                        var relativePath = unmappedPath[fromWithDirectorySuffix.Length..].TrimStart('\\');
 
                         return Path.Combine(AddDirectorySuffixIfMissing(potentialPathMapping.To), relativePath);
                     }

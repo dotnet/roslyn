@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
                 else
                 {
-                    return name.Substring(position + 1);
+                    return name[(position + 1)..];
                 }
             }
 

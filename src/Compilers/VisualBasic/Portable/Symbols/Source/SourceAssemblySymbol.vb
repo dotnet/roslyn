@@ -120,7 +120,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-
         Public Overrides ReadOnly Property IsInteractive As Boolean
             Get
                 Return _compilation.IsSubmission
@@ -1753,7 +1752,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 emittedName = MetadataTypeName.FromFullName(matchedName, emittedName.UseCLSCompliantNameArityEncoding, emittedName.ForcedArity)
                             End If
 
-                            Return forwardedToAssemblies.FirstSymbol.LookupTopLevelMetadataTypeWithCycleDetection(emittedName, visitedAssemblies, digThroughForwardedTypes:=True)
+                            Return forwardedToAssemblies.FirstSymbol.LookupDeclaredOrForwardedTopLevelMetadataType(emittedName, visitedAssemblies)
                         End If
                     End If
                 Next

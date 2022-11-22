@@ -18,6 +18,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
+    using static ActiveStatementTestHelpers;
+
     [UseExportProvider]
     public class ActiveStatementsMapTests
     {
@@ -179,15 +181,15 @@ class C
 {
     void F()
     {
-        G(() =>
+        G(x => x switch
         {
-            Console.WriteLine(1);
+            _ => 0,
         });
     }
 
-    static void F(Action a)
+    static void G(Func<int, int> a)
     {
-        a();
+        a(1);
     }
 }";
 
@@ -207,24 +209,24 @@ class C
                 => new(new(new(moduleId, token++, version: 1), ilOffset: 0), "a.cs", new SourceSpan(startLine, startColumn, endLine, endColumn), ActiveStatementFlags.NonLeafFrame);
 
             var debugInfos = ImmutableArray.Create(
-                CreateInfo(9, 0, 9, 34),                               // Console.WriteLine(1)
-                CreateInfo(7, 0, 10, 12),                              // Lambda
-                CreateInfo(15, 0, 15, 13)                              // a()
+                CreateInfo(9, 17, 9, 18),                              // 0
+                CreateInfo(7, 16, 10, 9),                              // x switch { ... }
+                CreateInfo(15, 8, 15, 13)                              // a()
             );
 
             var remapping = ImmutableDictionary.CreateBuilder<ManagedMethodId, ImmutableArray<NonRemappableRegion>>();
 
-            CreateRegion(0, Span(9, 0, 10, 34), Span(9, 0, 9, 34));    // Current active statement doesn't move
-            CreateRegion(1, Span(7, 0, 10, 12), Span(7, 0, 15, 12));   // Insert 5 lines inside the lambda
-            CreateRegion(2, Span(15, 0, 15, 13), Span(20, 0, 20, 13)); // a() call moves down 5 lines
+            CreateRegion(0, Span(9, 17, 9, 18), Span(9, 17, 9, 18));    // Current active statement doesn't move
+            CreateRegion(1, Span(7, 16, 10, 9), Span(7, 16, 15, 9));    // Insert 5 lines inside the switch
+            CreateRegion(2, Span(15, 8, 15, 13), Span(20, 8, 20, 13));  // a() call moves down 5 lines
 
             var map = ActiveStatementsMap.Create(debugInfos, remapping.ToImmutable());
 
             AssertEx.Equal(new[]
             {
-                "(7,0)-(15,12)",
-                "(9,0)-(9,34)",
-                "(20,0)-(20,13)"
+                "(7,16)-(15,9)",
+                "(9,17)-(9,18)",
+                "(20,8)-(20,13)"
             }, map.DocumentPathMap["a.cs"].OrderBy(s => s.Span.Start.Line).Select(s => $"{s.Span}"));
 
             void CreateRegion(int ordinal, SourceFileSpan oldSpan, SourceFileSpan newSpan)
@@ -232,6 +234,96 @@ class C
 
             SourceFileSpan Span(int startLine, int startColumn, int endLine, int endColumn)
                 => new("a.cs", new(new(startLine, startColumn), new(endLine, endColumn)));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NonRemappableRegionOrdering(bool reverse)
+        {
+            var source1 =
+@"class C
+{
+    static void M()
+    {
+        try 
+        {
+        }
+        <ER:0.0>catch
+        {
+
+
+
+            <AS:0>M();</AS:0>
+        }</ER:0.0>
+    }
+}";
+            var unmappedActiveStatements = GetUnmappedActiveStatementsCSharp(
+                new[] { source1 },
+                flags: new[] { ActiveStatementFlags.LeafFrame });
+
+            var debugInfos = ActiveStatementsDescription.GetActiveStatementDebugInfos(
+                unmappedActiveStatements,
+                methodRowIds: new[] { 1 },
+                methodVersions: new[] { 1 },
+                ilOffsets: new[] { 1 });
+
+            var exceptionRegions = unmappedActiveStatements[0].ExceptionRegions;
+
+            // Emulate move of the catch block by +3 lines while the active statement remains in the same line.
+            var mapping1 = new NonRemappableRegion(oldSpan: exceptionRegions.Spans[0], newSpan: exceptionRegions.Spans[0].AddLineDelta(+3), isExceptionRegion: true);
+            var mapping2 = new NonRemappableRegion(oldSpan: unmappedActiveStatements[0].Statement.FileSpan, newSpan: unmappedActiveStatements[0].Statement.FileSpan, isExceptionRegion: false);
+
+            // The order should not matter.
+            var remapping = ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty.Add(
+                debugInfos[0].ActiveInstruction.Method,
+                reverse ? ImmutableArray.Create(mapping1, mapping2) : ImmutableArray.Create(mapping2, mapping1));
+
+            var map = ActiveStatementsMap.Create(debugInfos, remapping);
+
+            var activeStatement = map.DocumentPathMap[unmappedActiveStatements[0].Statement.FilePath][0];
+
+            // Span shouldn't be mapped because the only non-remappable region mapping is an exception region, not an active statement:
+            Assert.Equal(unmappedActiveStatements[0].Statement.Span, activeStatement.FileSpan.Span);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void SubSpan(bool reverse)
+        {
+            var source1 =
+@"class C
+{
+    static void M()
+    {
+        <AS:0>var x = y switch { 1 => 0, _ => <AS:1>1</AS:1> };</AS:0>
+    }
+}";
+            var unmappedActiveStatements = GetUnmappedActiveStatementsCSharp(
+                new[] { source1 },
+                flags: new[] { ActiveStatementFlags.LeafFrame, ActiveStatementFlags.LeafFrame });
+
+            var debugInfos = ActiveStatementsDescription.GetActiveStatementDebugInfos(
+                unmappedActiveStatements,
+                methodRowIds: new[] { 1, 1 },
+                methodVersions: new[] { 1, 1 },
+                ilOffsets: new[] { 1, 10 });
+
+            // Emulate move of both active statements by +1 line.
+            var mapping1 = new NonRemappableRegion(oldSpan: unmappedActiveStatements[0].Statement.FileSpan, newSpan: unmappedActiveStatements[0].Statement.FileSpan.AddLineDelta(+1), isExceptionRegion: false);
+            var mapping2 = new NonRemappableRegion(oldSpan: unmappedActiveStatements[1].Statement.FileSpan, newSpan: unmappedActiveStatements[1].Statement.FileSpan.AddLineDelta(+1), isExceptionRegion: false);
+
+            // The order should not matter.
+            var remapping = ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty.Add(
+                debugInfos[0].ActiveInstruction.Method,
+                reverse ? ImmutableArray.Create(mapping1, mapping2) : ImmutableArray.Create(mapping2, mapping1));
+
+            var map = ActiveStatementsMap.Create(debugInfos, remapping);
+
+            var newActiveStatements = map.DocumentPathMap[unmappedActiveStatements[0].Statement.FilePath];
+
+            // Span shouldn't be mapped because the only non-remappable region mapping is an exception region, not an active statement:
+            Assert.Equal(unmappedActiveStatements[0].Statement.Span.AddLineDelta(+1), newActiveStatements[0].FileSpan.Span);
+            Assert.Equal(unmappedActiveStatements[1].Statement.Span.AddLineDelta(+1), newActiveStatements[1].FileSpan.Span);
         }
     }
 }

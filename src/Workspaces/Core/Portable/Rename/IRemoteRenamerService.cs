@@ -345,6 +345,8 @@ namespace Microsoft.CodeAnalysis.Rename
                 new SuccessfulConflictResolution(
                     DehydrateSymbolToReplacementMap(OldSolution, SymbolToReplacementTextValid, cancellationToken),
                     _renamedDocuments,
+                    // ReplacementTextValid,
+                    // _renamedDocument.Value,
                     DocumentIds,
                     RelatedLocations,
                     documentTextChanges,

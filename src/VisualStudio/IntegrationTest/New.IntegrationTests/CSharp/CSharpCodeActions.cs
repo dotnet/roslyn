@@ -4,11 +4,15 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -250,7 +254,7 @@ csharp_style_expression_bodied_properties = true:warning
                 HangMitigatingCancellationToken);
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CodeActionAsync(
-                "Use expression body for properties",
+                "Use expression body for property",
                 applyFix: true,
                 fixAllScope: FixAllScope.Project,
                 cancellationToken: HangMitigatingCancellationToken);
@@ -277,7 +281,7 @@ csharp_style_expression_bodied_properties = true:warning
                 HangMitigatingCancellationToken);
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CodeActionAsync(
-                "Use block body for properties",
+                "Use block body for property",
                 applyFix: true,
                 fixAllScope: FixAllScope.Project,
                 cancellationToken: HangMitigatingCancellationToken);
@@ -522,7 +526,7 @@ public class P2 { }", HangMitigatingCancellationToken);
                     "Generate nested class 'Stream'",
                     "Generate new type...",
                     "Remove unused variable",
-                    "Suppress or Configure issues",
+                    "Suppress or configure issues",
                     "Suppress CS0168",
                     "in Source",
                     "Configure CS0168 severity",
@@ -581,7 +585,7 @@ namespace NS
                 "Generate nested class 'Foober'",
                 "Generate new type...",
                 "Goober - using N;",
-                "Suppress or Configure issues",
+                "Suppress or configure issues",
                 "Suppress CS0168",
                 "in Source",
                 "Configure CS0168 severity",
@@ -623,7 +627,7 @@ class Program
                 "Introduce local constant for all occurrences of '2'",
                 "Extract method",
                 generateImplicitTitle,
-                "Suppress or Configure issues",
+                "Suppress or configure issues",
                 "Suppress CS0612",
                 "in Source",
                 "Configure CS0612 severity",
@@ -706,7 +710,7 @@ public class Program
                 "Introduce local",
                     "Introduce local for 'new Program()'",
                     "Introduce local for all occurrences of 'new Program()'",
-                "Suppress or Configure issues",
+                "Suppress or configure issues",
                     "Configure IDE0008 code style",
                         "csharp__style__var__elsewhere",
                             "true",
@@ -792,7 +796,7 @@ class C
                 var expectedItems = new[]
                 {
                     "Remove unused variable",
-                    "Suppress or Configure issues",
+                    "Suppress or configure issues",
                         "Suppress CS0168",
                             "in Source",
                         "Configure CS0168 severity",
@@ -1412,11 +1416,44 @@ public class Program
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             var expectedItems = new[]
             {
-                "Use expression body for methods",
+                "Use expression body for method",
                 "Extract base class...",
             };
 
             await TestServices.EditorVerifier.CodeActionsAsync(expectedItems, ensureExpectedItemsAreOrdered: true, cancellationToken: HangMitigatingCancellationToken);
+        }
+
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/64567")]
+        public async Task TestNonSourceDocumentRefactoring()
+        {
+            var markup = @"$$# Editorconfig File";
+            var expectedText = @"# Editorconfig File
+# Refactored";
+
+            await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddAnalyzerReferenceAsync(ProjectName, typeof(NonSourceFileRefactoring).Assembly.Location, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddFileAsync(ProjectName, ".editorconfig", contents: "", open: true, HangMitigatingCancellationToken);
+
+            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> _);
+            await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
+                new[]
+                {
+                    FeatureAttribute.Workspace,
+                    FeatureAttribute.SolutionCrawlerLegacy,
+                    FeatureAttribute.DiagnosticService,
+                    FeatureAttribute.ErrorSquiggles
+                },
+                HangMitigatingCancellationToken);
+
+            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+
+            await TestServices.EditorVerifier.CodeActionAsync(
+                nameof(NonSourceFileRefactoring),
+                applyFix: true,
+                cancellationToken: HangMitigatingCancellationToken);
+
+            AssertEx.EqualOrDiff(expectedText, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
         }
     }
 }

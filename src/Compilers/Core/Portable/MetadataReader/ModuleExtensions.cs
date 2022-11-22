@@ -16,27 +16,6 @@ namespace Microsoft.CodeAnalysis
         private const string VTableGapMethodNamePrefix = "_VtblGap";
 
         /// <summary>
-        /// Returns true if the nested type should be imported. 
-        /// </summary>
-        public static bool ShouldImportNestedType(this PEModule module, TypeDefinitionHandle typeDef)
-        {
-            // Currently, it appears that we must import ALL types, even private ones,
-            // in order to maintain language semantics. This is because a class may implement
-            // private interfaces, and we use the interfaces (even if inaccessible) to determine
-            // conversions. For example:
-            //
-            // public class A: IEnumerable<A.X>
-            // { 
-            //    private class X: ICloneable {}
-            // }
-            //
-            // Code compiling against A can convert A to IEnumerable<ICloneable>. Knowing this requires
-            // importing the type A.X.
-
-            return true;
-        }
-
-        /// <summary>
         /// Returns true if the field should be imported. Visibility
         /// and the value of <paramref name="importOptions"/> are considered
         /// </summary>

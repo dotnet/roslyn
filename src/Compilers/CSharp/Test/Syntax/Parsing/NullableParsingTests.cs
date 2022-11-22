@@ -734,12 +734,102 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void DeclarationPattern_Array()
+        {
+            var test = "switch (e) { case T[] t: break; }";
+
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // switch (e) { case T[] t: break; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "switch (e) { case T[] t: break; }").WithArguments("top-level statements", "9.0").WithLocation(1, 1),
+                // (1,9): error CS0103: The name 'e' does not exist in the current context
+                // switch (e) { case T[] t: break; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(1, 9),
+                // (1,19): error CS0246: The type or namespace name 'T' could not be found (are you missing a using directive or an assembly reference?)
+                // switch (e) { case T[] t: break; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("T").WithLocation(1, 19));
+
+            UsingStatement(test, options: TestOptions.Regular8);
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.DeclarationPattern);
+                        {
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "T");
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.SingleVariableDesignation);
+                            {
+                                N(SyntaxKind.IdentifierToken, "t");
+                            }
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void DeclarationPattern_NullableArray()
         {
-            UsingStatement("switch (e) { case T[]? t: break; }", options: TestOptions.Regular8,
+            var test = "switch (e) { case T[]? t: break; }";
+
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // switch (e) { case T[]? t: break; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "switch (e) { case T[]? t: break; }").WithArguments("top-level statements", "9.0").WithLocation(1, 1),
+                // (1,9): error CS0103: The name 'e' does not exist in the current context
+                // switch (e) { case T[]? t: break; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(1, 9),
                 // (1,19): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // switch (e) { case T[]? t: break; }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "T[]").WithArguments("type pattern", "9.0").WithLocation(1, 19),
+                // (1,19): error CS0246: The type or namespace name 'T' could not be found (are you missing a using directive or an assembly reference?)
+                // switch (e) { case T[]? t: break; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("T").WithLocation(1, 19),
+                // (1,22): error CS1003: Syntax error, ':' expected
+                // switch (e) { case T[]? t: break; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(":").WithLocation(1, 22),
+                // (1,22): error CS1513: } expected
+                // switch (e) { case T[]? t: break; }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "?").WithLocation(1, 22),
+                // (1,24): warning CS0164: This label has not been referenced
+                // switch (e) { case T[]? t: break; }
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "t").WithLocation(1, 24));
+
+            UsingStatement(test, options: TestOptions.Regular8,
                 // (1,22): error CS1003: Syntax error, ':' expected
                 // switch (e) { case T[]? t: break; }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(":").WithLocation(1, 22),

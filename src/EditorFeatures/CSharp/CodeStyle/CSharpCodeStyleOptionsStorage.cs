@@ -34,6 +34,8 @@ internal static class CSharpCodeStyleOptionsStorage
             PreferNullCheckOverTypeCheck = globalOptions.GetOption(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck),
             AllowBlankLinesBetweenConsecutiveBraces = globalOptions.GetOption(CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces),
             AllowBlankLineAfterColonInConstructorInitializer = globalOptions.GetOption(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer),
+            AllowBlankLineAfterTokenInConditionalExpression = globalOptions.GetOption(CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression),
+            AllowBlankLineAfterTokenInArrowExpressionClause = globalOptions.GetOption(CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause),
             PreferConditionalDelegateCall = globalOptions.GetOption(CSharpCodeStyleOptions.PreferConditionalDelegateCall),
             PreferSwitchExpression = globalOptions.GetOption(CSharpCodeStyleOptions.PreferSwitchExpression),
             PreferPatternMatching = globalOptions.GetOption(CSharpCodeStyleOptions.PreferPatternMatching),

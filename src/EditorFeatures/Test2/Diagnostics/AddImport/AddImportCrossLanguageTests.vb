@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.Tags
 Imports Microsoft.CodeAnalysis.VisualBasic.AddImport
 Imports Roslyn.Utilities
+Imports Microsoft.CodeAnalysis.CodeActions
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
     <Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
@@ -266,7 +267,8 @@ namespace CSAssembly2
 
             Await TestAsync(
                 input, expected, codeActionIndex:=0, addedReference:="CSAssembly1",
-                glyphTags:=WellKnownTagArrays.CSharpProject, onAfterWorkspaceCreated:=AddressOf WaitForSymbolTreeInfoCache)
+                glyphTags:=WellKnownTagArrays.CSharpProject.Add(CodeAction.RequiresNonDocumentChange),
+                onAfterWorkspaceCreated:=AddressOf WaitForSymbolTreeInfoCache)
         End Function
 
         <Fact, WorkItem(12169, "https://github.com/dotnet/roslyn/issues/12169")>
@@ -353,7 +355,8 @@ namespace CSAssembly2
 
             Await TestAsync(
                 input, expected, codeActionIndex:=0, addedReference:="CSAssembly1",
-                glyphTags:=WellKnownTagArrays.CSharpProject, onAfterWorkspaceCreated:=AddressOf WaitForSymbolTreeInfoCache)
+                glyphTags:=WellKnownTagArrays.CSharpProject.Add(CodeAction.RequiresNonDocumentChange),
+                onAfterWorkspaceCreated:=AddressOf WaitForSymbolTreeInfoCache)
         End Function
 
         <WpfFact>
@@ -399,7 +402,7 @@ namespace CSAssembly2
                 </text>.Value.Trim()
 
             Await TestAsync(input, expected, codeActionIndex:=0, addedReference:="NewName",
-                            glyphTags:=WellKnownTagArrays.CSharpProject,
+                            glyphTags:=WellKnownTagArrays.CSharpProject.Add(CodeAction.RequiresNonDocumentChange),
                             onAfterWorkspaceCreated:=
                             Async Function(workspace As TestWorkspace)
                                 Dim project = workspace.CurrentSolution.Projects.Single(Function(p) p.AssemblyName = "CSAssembly1")
@@ -445,7 +448,8 @@ End Namespace
 
             Await TestAsync(
                 input, expected, codeActionIndex:=0, addedReference:="VBAssembly1",
-                glyphTags:=WellKnownTagArrays.VisualBasicProject, onAfterWorkspaceCreated:=AddressOf WaitForSymbolTreeInfoCache)
+                glyphTags:=WellKnownTagArrays.VisualBasicProject.Add(CodeAction.RequiresNonDocumentChange),
+                onAfterWorkspaceCreated:=AddressOf WaitForSymbolTreeInfoCache)
         End Function
 
         Private Async Function WaitForSymbolTreeInfoCache(workspace As TestWorkspace) As Task
@@ -522,7 +526,8 @@ namespace A
                     </Project>
                 </Workspace>
 
-            Await TestAsync(input, addedReference:="CSAssembly2", glyphTags:=WellKnownTagArrays.CSharpProject,
+            Await TestAsync(input, addedReference:="CSAssembly2",
+                            glyphTags:=WellKnownTagArrays.CSharpProject.Add(CodeAction.RequiresNonDocumentChange),
                             onAfterWorkspaceCreated:=AddressOf WaitForSymbolTreeInfoCache)
         End Function
 

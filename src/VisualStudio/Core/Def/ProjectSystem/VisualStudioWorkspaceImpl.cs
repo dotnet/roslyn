@@ -50,6 +50,7 @@ using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider
 using OleInterop = Microsoft.VisualStudio.OLE.Interop;
 using Task = System.Threading.Tasks.Task;
 using Solution = Microsoft.CodeAnalysis.Solution;
+using Microsoft.CodeAnalysis.Notification;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -167,8 +168,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     this,
                     exportProvider.GetExportedValue<IDiagnosticAnalyzerService>(),
                     exportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>(),
+                    exportProvider.GetExportedValue<IGlobalOperationNotificationService>(),
                     exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
-                    _threadingContext), isThreadSafe: true);
+                    _threadingContext),
+                isThreadSafe: true);
 
             _workspaceListener = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();
         }

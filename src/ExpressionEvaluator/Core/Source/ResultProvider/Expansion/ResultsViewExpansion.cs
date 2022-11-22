@@ -229,9 +229,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Debug.Assert(parent != null);
             var proxyTypeAndInfo = new TypeAndCustomInfo(_proxyValue.Type);
             var fullName = parent.ChildFullNamePrefix;
-            var childFullNamePrefix = (fullName == null) ?
-                null :
-                fullNameProvider.GetClrObjectCreationExpression(
+            var childFullNamePrefix = (fullName == null)
+                ? null
+                : fullNameProvider.GetClrObjectCreationExpression(
                     inspectionContext,
                     proxyTypeAndInfo.ClrType,
                     proxyTypeAndInfo.Info,

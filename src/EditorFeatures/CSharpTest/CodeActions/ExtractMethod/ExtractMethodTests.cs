@@ -3375,6 +3375,47 @@ class C
     }
 }");
 
+        [Fact, WorkItem(38127, "https://github.com/dotnet/roslyn/issues/38127")]
+        public Task TestNestedNullability_Async()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    private Task<string> DoSomethingAsync() => Task.FromResult("""");
+
+    public Task<string?> async M()
+    {
+        [|string? x = await DoSomethingAsync();|]
+        x = null;
+        return x;
+    }
+}",
+@"#nullable enable
+
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    private Task<string> DoSomethingAsync() => Task.FromResult("""");
+
+    public Task<string?> async M()
+    {
+        string? x = await {|Rename:NewMethod|}();
+        x = null;
+        return x;
+    }
+
+    private async Task<string> NewMethod()
+    {
+        return await DoSomethingAsync();
+    }
+}");
+
         [Fact]
         public async Task EnsureStaticLocalFunctionOptionHasNoEffect()
         {
@@ -4677,5 +4718,85 @@ class Program
     }
 }");
         }
+
+        [Fact]
+        public Task ExtractMethod_InsideBaseInitializer()
+        => TestInRegularAndScript1Async(
+            """
+            class Base
+            {
+                private readonly int _x;
+                public Base(int x)
+                {
+                    _x = x;
+                }
+            }
+
+            class C : Base
+            {
+                public C(int y)
+                    : base([|y + 1|])
+                {
+                }
+            }
+            """,
+            """
+            class Base
+            {
+                private readonly int _x;
+                public Base(int x)
+                {
+                    _x = x;
+                }
+            }
+
+            class C : Base
+            {
+                public C(int y)
+                    : base({|Rename:NewMethod|}(y))
+                {
+                }
+
+                private static int NewMethod(int y)
+                {
+                    return y + 1;
+                }
+            }
+            """);
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/65221")]
+        public Task ExtractMethod_InsideThisInitializer()
+        => TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                public C(int y)
+                    : this(y, [|y + 1|])
+                {
+                }
+
+                public C(int x, int y)
+                {
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public C(int y)
+                    : this(y, {|Rename:NewMethod|}(y))
+                {
+                }
+
+                private static NewMethod(int y)
+                {
+                    return y + 1;
+                }
+            
+                public C(int x, int y)
+                {
+                }
+            }
+            """);
     }
 }

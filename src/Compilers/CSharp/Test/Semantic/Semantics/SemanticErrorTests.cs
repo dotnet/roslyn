@@ -2462,7 +2462,6 @@ public class P {
                     Diagnostic(ErrorCode.ERR_BadSKknown, "a").WithArguments("a", "variable", "type").WithLocation(7, 16));
         }
 
-
         [Fact]
         public void CS0118ERR_BadSKknown_CheckedUnchecked()
         {
@@ -6015,7 +6014,6 @@ public class B<V> : A<EG<dynamic>> where V : EG<object>
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
-
         [Fact]
         public void CS0160ERR_UnreachableCatch_TypeParameter_Dynamic2()
         {
@@ -7482,7 +7480,6 @@ unsafe public class MyClass
                 //       j = i[1,2];   // CS0196
                 Diagnostic(ErrorCode.ERR_PtrIndexSingle, "i[1,2]"));
 
-
             var tree = compilation.SyntaxTrees.Single();
             var node = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().First();
 
@@ -8812,7 +8809,6 @@ class TestClass
     Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "P1").WithArguments("TestClass.P1").WithLocation(7, 24)
                 );
         }
-
 
         [Fact]
         public void CS0242ERR_VoidError()
@@ -18829,7 +18825,6 @@ class C
     Diagnostic(ErrorCode.WRN_UnreferencedEvent, "B").WithArguments("A.C.B"));
         }
 
-
         [Fact, WorkItem(539630, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539630")]
         public void CS0162WRN_UnreachableCode01()
         {
@@ -23930,13 +23925,12 @@ class Program
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
-                // (14,18): error CS8026: Feature 'null propagation operator' is not available in C# 5. Please use language version 6 or greater.
+                // (14,23): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
                 //         var x1 = p.P1 ?.ToString;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "p.P1 ?.ToString").WithArguments("null propagating operator", "6").WithLocation(14, 18),
-                // (14,24): error CS8977: 'method group' cannot be made nullable.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "?").WithArguments("null propagating operator", "6").WithLocation(14, 23),
+                // (14,24): error CS8978: 'method group' cannot be made nullable.
                 //         var x1 = p.P1 ?.ToString;
-                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".ToString").WithArguments("method group").WithLocation(14, 24)
-                );
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".ToString").WithArguments("method group").WithLocation(14, 24));
         }
 
         [Fact]
@@ -23965,7 +23959,6 @@ class Program
                 Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".ToString").WithArguments("method group").WithLocation(14, 24)
                 );
         }
-
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -24355,10 +24348,9 @@ class Program
             CreateCompilationWithMscorlib45(text,
                 new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef },
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
-    // (8,46): error CS8026: Feature 'dictionary initializer' is not available in C# 5. Please use language version 6 or greater.
-    //         var s = new Dictionary<int, int> () {[1] = 2};
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "[1] = 2").WithArguments("dictionary initializer", "6").WithLocation(8, 46)
-               );
+                    // (8,46): error CS8026: Feature 'dictionary initializer' is not available in C# 5. Please use language version 6 or greater.
+                    //         var s = new Dictionary<int, int> () {[1] = 2};
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "[").WithArguments("dictionary initializer", "6").WithLocation(8, 46));
         }
 
         [Fact]

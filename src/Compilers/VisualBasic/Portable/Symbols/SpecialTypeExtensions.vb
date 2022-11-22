@@ -135,7 +135,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Select
         End Function
 
-
         <Extension>
         Public Function TypeToIndex(type As SpecialType) As Integer?
             Dim result As Integer

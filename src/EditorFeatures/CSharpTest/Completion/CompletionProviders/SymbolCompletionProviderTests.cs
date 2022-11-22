@@ -1534,16 +1534,84 @@ class CL<T> where T : A, $$", @"Test");
             => await VerifyItemExistsAsync(@"class c { void M() { string goo; $$", "goo");
 
         [Fact]
-        public async Task Parameters()
+        public async Task Parameters_01()
             => await VerifyItemExistsAsync(@"class c { void M(string args) { $$", "args");
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/55969")]
+        [Theory]
+        [InlineData("a")]
+        [InlineData("ar")]
+        [InlineData("arg")]
+        [InlineData("args")]
+        public async Task Parameters_02(string prefix)
+        {
+            await VerifyItemExistsAsync(prefix + "$$", "args", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [Theory]
+        [InlineData("a")]
+        [InlineData("ar")]
+        [InlineData("arg")]
+        [InlineData("args")]
+        public async Task Parameters_03(string prefix)
+        {
+            await VerifyItemIsAbsentAsync(prefix + "$$", "args", sourceCodeKind: SourceCodeKind.Script);
+        }
+
+        [Theory]
+        [InlineData("a")]
+        [InlineData("ar")]
+        [InlineData("arg")]
+        [InlineData("args")]
+        public async Task Parameters_04(string prefix)
+        {
+            await VerifyItemExistsAsync(prefix + @"$$
+Systen.Console.WriteLine();
+", "args", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [Theory]
+        [InlineData("a")]
+        [InlineData("ar")]
+        [InlineData("arg")]
+        [InlineData("args")]
+        public async Task Parameters_05(string prefix)
+        {
+            await VerifyItemExistsAsync(@"
+Systen.Console.WriteLine();
+" + prefix + "$$", "args", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [Theory]
+        [InlineData("a")]
+        [InlineData("ar")]
+        [InlineData("arg")]
+        [InlineData("args")]
+        public async Task Parameters_06(string prefix)
+        {
+            await VerifyItemExistsAsync(@"
+Systen.Console.WriteLine();
+" + prefix + @"$$
+Systen.Console.WriteLine();
+", "args", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [Theory]
+        [InlineData("a")]
+        [InlineData("ar")]
+        [InlineData("arg")]
+        [InlineData("args")]
+        public async Task Parameters_07(string prefix)
+        {
+            await VerifyItemExistsAsync("call(" + prefix + "$$)", "args", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(55969, "https://github.com/dotnet/roslyn/issues/55969")]
         public async Task Parameters_TopLevelStatement_1()
-            => await VerifyItemExistsAsync(@"$$", "args", sourceCodeKind: SourceCodeKind.Regular);
+            => await VerifyItemIsAbsentAsync(@"$$", "args", sourceCodeKind: SourceCodeKind.Regular);
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/55969")]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(55969, "https://github.com/dotnet/roslyn/issues/55969")]
         public async Task Parameters_TopLevelStatement_2()
@@ -1552,11 +1620,11 @@ class CL<T> where T : A, $$", @"Test");
 Console.WriteLine();
 $$", "args", sourceCodeKind: SourceCodeKind.Regular);
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/55969")]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(55969, "https://github.com/dotnet/roslyn/issues/55969")]
         public async Task Parameters_TopLevelStatement_3()
-            => await VerifyItemExistsAsync(
+            => await VerifyItemIsAbsentAsync(
                 @"using System;
 $$", "args", sourceCodeKind: SourceCodeKind.Regular);
 

@@ -47,7 +47,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected readonly Mock<ICompletionSession> MockCompletionSession;
 
         protected bool? ShowTargetTypedCompletionFilter { get; set; }
-        protected bool? TypeImportCompletionFeatureFlag { get; set; }
         protected bool? ShowImportCompletionItemsOptionValue { get; set; }
         protected bool? ForceExpandedCompletionIndexCreation { get; set; }
         protected bool? HideAdvancedMembers { get; set; }
@@ -69,9 +68,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             if (ShowTargetTypedCompletionFilter.HasValue)
                 options = options with { TargetTypedCompletionFilter = ShowTargetTypedCompletionFilter.Value };
 
-            if (TypeImportCompletionFeatureFlag.HasValue)
-                options = options with { TypeImportCompletion = TypeImportCompletionFeatureFlag.Value };
-
             if (ShowImportCompletionItemsOptionValue.HasValue)
                 options = options with { ShowItemsFromUnimportedNamespaces = ShowImportCompletionItemsOptionValue.Value };
 
@@ -85,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 options = options with { ShowNameSuggestions = ShowNameSuggestions.Value };
 
             if (ShowNewSnippetExperience.HasValue)
-                options = options with { ShowNewSnippetExperience = ShowNewSnippetExperience.Value };
+                options = options with { ShowNewSnippetExperienceUserOption = ShowNewSnippetExperience.Value };
 
             return options;
         }
@@ -656,11 +652,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 <Workspace>
     <Project Language=""{0}"" CommonReferences=""true"" AssemblyName=""Project1"">
         <Document FilePath=""SourceDocument"">{1}</Document>
-        <MetadataReferenceFromSource Language=""{2}"" CommonReferences=""true"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"">
+        <MetadataReferenceFromSource Language=""{2}"" CommonReferences=""true"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"" {4}>
             <Document FilePath=""ReferencedDocument"">{3}</Document>
         </MetadataReferenceFromSource>
     </Project>
-</Workspace>", sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(metadataReferenceCode));
+</Workspace>", sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(metadataReferenceCode), GetLanguageVersionAttribute(referencedLanguage));
         }
 
         protected async Task VerifyItemWithAliasedMetadataReferencesAsync(string markup, string metadataAlias, string expectedItem, int expectedSymbols,
@@ -671,18 +667,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             await VerifyItemWithReferenceWorkerAsync(xmlString, expectedItem, expectedSymbols);
         }
 
+        private static string GetLanguageVersionAttribute(string languageName)
+        {
+            return languageName == LanguageNames.CSharp ? @"LanguageVersion = ""preview""" : string.Empty;
+        }
+
         protected static string CreateMarkupForProjectWithAliasedMetadataReference(string markup, string metadataAlias, string referencedCode, string sourceLanguage, string referencedLanguage, bool hasGlobalAlias = true)
         {
             var aliases = hasGlobalAlias ? $"{metadataAlias},{MetadataReferenceProperties.GlobalAlias}" : $"{metadataAlias}";
             return string.Format(@"
 <Workspace>
-    <Project Language=""{0}"" CommonReferences=""true"" AssemblyName=""Project1"">
-        <Document FilePath=""SourceDocument"">{1}</Document>
-        <MetadataReferenceFromSource Language=""{2}"" CommonReferences=""true"" Aliases=""{3}"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"">
-            <Document FilePath=""ReferencedDocument"">{4}</Document>
+    <Project Language=""{0}"" CommonReferences=""true"" AssemblyName=""Project1"" {1}>
+        <Document FilePath=""SourceDocument"">{2}</Document>
+        <MetadataReferenceFromSource Language=""{3}"" CommonReferences=""true"" Aliases=""{4}"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"" {5}>
+            <Document FilePath=""ReferencedDocument"">{6}</Document>
         </MetadataReferenceFromSource>
     </Project>
-</Workspace>", sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(aliases), SecurityElement.Escape(referencedCode));
+</Workspace>", sourceLanguage, GetLanguageVersionAttribute(sourceLanguage), SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(aliases), GetLanguageVersionAttribute(referencedLanguage), SecurityElement.Escape(referencedCode));
         }
 
         protected async Task VerifyItemWithProjectReferenceAsync(string markup, string referencedCode, string expectedItem, int expectedSymbols, string sourceLanguage, string referencedLanguage)
@@ -711,15 +712,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         {
             return string.Format(@"
 <Workspace>
-    <Project Language=""{0}"" CommonReferences=""true"" AssemblyName=""Project1"">
+    <Project Language=""{0}"" CommonReferences=""true"" AssemblyName=""Project1"" {1}>
         <ProjectReference>ReferencedProject</ProjectReference>
-        <Document FilePath=""SourceDocument"">{1}</Document>
+        <Document FilePath=""SourceDocument"">{2}</Document>
     </Project>
-    <Project Language=""{2}"" CommonReferences=""true"" AssemblyName=""ReferencedProject"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"">
-        <Document FilePath=""ReferencedDocument"">{3}</Document>
+    <Project Language=""{3}"" CommonReferences=""true"" AssemblyName=""ReferencedProject"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"" {4}>
+        <Document FilePath=""ReferencedDocument"">{5}</Document>
     </Project>
     
-</Workspace>", sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(referencedCode));
+</Workspace>", sourceLanguage, GetLanguageVersionAttribute(sourceLanguage), SecurityElement.Escape(markup), referencedLanguage, GetLanguageVersionAttribute(referencedLanguage), SecurityElement.Escape(referencedCode));
         }
 
         protected static string CreateMarkupForProjectWithMultupleProjectReferences(string sourceText, string sourceLanguage, string referencedLanguage, string[] referencedTexts)
@@ -791,11 +792,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         {
             return string.Format(@"
 <Workspace>
-    <Project Language=""{0}"" CommonReferences=""true"" Name=""ProjectName"">
+    <Project Language=""{0}"" CommonReferences=""true"" Name=""ProjectName"" {5}>
         <Document FilePath=""{3}"">{1}</Document>
         <Document FilePath=""{4}"">{2}</Document>
     </Project>    
-</Workspace>", sourceLanguage, SecurityElement.Escape(sourceCode), SecurityElement.Escape(referencedCode), sourceFileName, referencedFileName);
+</Workspace>", sourceLanguage, SecurityElement.Escape(sourceCode), SecurityElement.Escape(referencedCode), sourceFileName, referencedFileName, GetLanguageVersionAttribute(sourceLanguage));
         }
 
         private async Task VerifyItemWithReferenceWorkerAsync(
@@ -921,7 +922,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string displayTextSuffix, string displayTextPrefix, string inlineDescription = null,
             bool? isComplexTextEdit = null, List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null, CompletionOptions options = null, bool skipSpeculation = false)
         {
-            code = code.Substring(0, position) + insertText + code.Substring(position);
+            code = code[..position] + insertText + code[position..];
             position += insertText.Length;
 
             await BaseVerifyWorkerAsync(code, position,
@@ -961,7 +962,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 return;
             }
 
-            code = code.Substring(startIndex: 0, length: position) + insertText;
+            code = code[..position] + insertText;
             position += insertText.Length;
 
             await BaseVerifyWorkerAsync(

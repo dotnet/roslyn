@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -19,6 +20,7 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 using Task = System.Threading.Tasks.Task;
@@ -38,6 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly IAsynchronousOperationListener _asyncOperationListener;
 
             private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
+            private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
 
             #region Fields read/written to from multiple threads to track files that need to be checked
 
@@ -75,6 +78,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly MultiDictionary<string, IReferenceCountedDisposable<ICacheEntry<IVsHierarchy, HierarchyEventSink>>> _watchedHierarchiesForDocumentMoniker
                 = new();
 
+            /// <summary>
+            /// Boolean flag to indicate if any <see cref="TextDocument"/> has been opened in the workspace.
+            /// </summary>
+            private bool _anyDocumentOpened;
+
             #endregion
 
             /// <summary>
@@ -96,6 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _asyncOperationListener = componentModel.GetService<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.Workspace);
                 _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(workspace._threadingContext,
                     componentModel.GetService<IVsEditorAdaptersFactoryService>(), runningDocumentTable, this);
+                _editorOptionsFactoryService = componentModel.GetService<IEditorOptionsFactoryService>();
             }
 
             void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? _)
@@ -172,6 +181,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             {
                                 Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
                                 w.OnAnalyzerConfigDocumentOpened(documentId, textContainer, isCurrentContext);
+                            }
+
+                            if (!_anyDocumentOpened)
+                            {
+                                // First document opened in the workspace.
+                                // We enable quick actions from SuggestedActionsSourceProvider via an editor option.
+                                // NOTE: We need to be on the UI thread to enable the editor option.
+                                _foregroundAffinitization.AssertIsForeground();
+                                SuggestedActionsSourceProvider.Enable(_editorOptionsFactoryService);
+                                _anyDocumentOpened = true;
                             }
                         }
                     }

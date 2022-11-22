@@ -127,13 +127,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var getMethod = indexer.GetOwnOrInheritedGetMethod();
                 Debug.Assert(getMethod is not null);
 
-                ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
+                ArrayBuilder<LocalSymbol>? temps = null;
+                ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                    ref rewrittenReceiver,
+                    captureReceiverForMultipleInvocations: false,
                     arguments,
                     indexer,
                     argsToParamsOpt,
                     argumentRefKindsOpt,
-                    ref rewrittenReceiver!,
-                    out ArrayBuilder<LocalSymbol>? temps);
+                    storesOpt: null,
+                    ref temps);
 
                 rewrittenArguments = MakeArguments(
                     syntax,
@@ -296,13 +299,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (isLeftOfAssignment && indexerAccess.Indexer.RefKind == RefKind.None)
                 {
-                    ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
+                    ArrayBuilder<LocalSymbol>? temps = null;
+                    ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                        ref receiver,
+                        captureReceiverForMultipleInvocations: false,
                         indexerAccess.Arguments,
                         indexerAccess.Indexer,
                         indexerAccess.ArgsToParamsOpt,
                         indexerAccess.ArgumentRefKindsOpt,
-                        ref receiver,
-                        out ArrayBuilder<LocalSymbol>? temps);
+                        storesOpt: null,
+                        ref temps);
 
                     if (temps is not null)
                     {

@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
                     string? suffix = null;
                     var prefix = isRenamableAccessor
-                        ? newToken.ValueText.Substring(0, newToken.ValueText.IndexOf('_') + 1)
+                        ? newToken.ValueText[..(newToken.ValueText.IndexOf('_') + 1)]
                         : null;
 
                     if (symbols.Length == 1)
@@ -703,7 +703,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     {
                         SyntaxKind.StringLiteralToken => SyntaxFactory.Literal,
                         SyntaxKind.InterpolatedStringTextToken => (leadingTrivia, text, value, trailingTrivia) => SyntaxFactory.Token(newToken.LeadingTrivia, SyntaxKind.InterpolatedStringTextToken, text, value, newToken.TrailingTrivia),
-                        _ => throw ExceptionUtilities.Unreachable,
+                        _ => throw ExceptionUtilities.Unreachable(),
                     };
 
                     return RenameInStringLiteral(
@@ -750,7 +750,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 bool replacementTextValid)
             {
                 var parent = oldToken.Parent!;
-                var currentNewIdentifier = isVerbatim ? replacementText.Substring(1) : replacementText;
+                var currentNewIdentifier = isVerbatim ? replacementText[1..] : replacementText;
                 var oldIdentifier = newToken.ValueText;
                 var isAttributeName = SyntaxFacts.IsAttributeName(parent);
 
@@ -1198,7 +1198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         {
             if (replacementText.EndsWith("Attribute", StringComparison.Ordinal) && replacementText.Length > 9)
             {
-                var conflict = replacementText.Substring(0, replacementText.Length - 9);
+                var conflict = replacementText[..^9];
                 if (!possibleNameConflicts.Contains(conflict))
                 {
                     possibleNameConflicts.Add(conflict);

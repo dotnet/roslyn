@@ -123,7 +123,7 @@ namespace N
   {
     using H;
     using G;
-  } 
+  }
 }
 
 namespace N3
@@ -141,7 +141,7 @@ namespace N3
   {
     using N;
     using M;
-  } 
+  }
 }";
 
             var final =
@@ -163,7 +163,7 @@ namespace N
   {
     using G;
     using H;
-  } 
+  }
 }
 
 namespace N3
@@ -181,7 +181,7 @@ namespace N3
   {
     using M;
     using N;
-  } 
+  }
 }";
             await CheckAsync(initial, final);
         }

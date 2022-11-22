@@ -1115,7 +1115,7 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(10)')
     Initializer:
         null
 ";
-            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net50);
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.NetCoreApp);
         }
 
         [Fact]

@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var placeholder = collectionInitializer.Placeholder;
                         AddPlaceholderReplacement(placeholder, rewrittenReceiver);
-                        AddCollectionInitializers(ref dynamicSiteInitializers, result, rewrittenReceiver, collectionInitializer.Initializers);
+                        AddCollectionInitializers(result, rewrittenReceiver, collectionInitializer.Initializers);
                         RemovePlaceholderReplacement(placeholder);
                     }
                     return;
@@ -75,12 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.CollectionInitializerExpression:
                     var result = ArrayBuilder<BoundExpression>.GetInstance();
-                    ArrayBuilder<BoundExpression>? dynamicSiteInitializers = null;
-                    AddCollectionInitializers(ref dynamicSiteInitializers, result, null, ((BoundCollectionInitializerExpression)initializerExpression).Initializers);
-
-                    // dynamic sites not allowed in ET:
-                    Debug.Assert(dynamicSiteInitializers == null);
-
+                    AddCollectionInitializers(result, null, ((BoundCollectionInitializerExpression)initializerExpression).Initializers);
                     return result.ToImmutableAndFree();
 
                 default:
@@ -91,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Rewrite collection initializer add method calls:
         // 2) new List<int> { 1 };
         //                    ~
-        private void AddCollectionInitializers(ref ArrayBuilder<BoundExpression>? dynamicSiteInitializers, ArrayBuilder<BoundExpression> result, BoundExpression? rewrittenReceiver, ImmutableArray<BoundExpression> initializers)
+        private void AddCollectionInitializers(ArrayBuilder<BoundExpression> result, BoundExpression? rewrittenReceiver, ImmutableArray<BoundExpression> initializers)
         {
             Debug.Assert(rewrittenReceiver is { } || _inExpressionLambda);
 
@@ -178,13 +173,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // The receiver for a collection initializer is already a temp, so we don't need to preserve any additional temp stores beyond this method.
-            ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
+            ArrayBuilder<LocalSymbol>? temps = null;
+            ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                ref rewrittenReceiver,
+                captureReceiverForMultipleInvocations: false,
                 initializer.Arguments,
                 addMethod,
                 initializer.ArgsToParamsOpt,
                 argumentRefKindsOpt,
-                ref rewrittenReceiver,
-                out ArrayBuilder<LocalSymbol>? temps);
+                storesOpt: null,
+                ref temps);
             rewrittenArguments = MakeArguments(syntax, rewrittenArguments, addMethod, initializer.Expanded, initializer.ArgsToParamsOpt, ref argumentRefKindsOpt, ref temps);
 
             var rewrittenType = VisitType(initializer.Type);
@@ -215,7 +213,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var originalReceiver = rewrittenReceiver;
-            var rewrittenArguments = VisitArguments(node.Arguments, node.MemberSymbol, node.ArgsToParamsOpt, node.ArgumentRefKindsOpt, ref rewrittenReceiver, out ArrayBuilder<LocalSymbol>? constructionTemps);
+            ArrayBuilder<LocalSymbol>? constructionTemps = null;
+            var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(ref rewrittenReceiver, captureReceiverForMultipleInvocations: false, node.Arguments, node.MemberSymbol, node.ArgsToParamsOpt, node.ArgumentRefKindsOpt,
+                storesOpt: null, ref constructionTemps);
 
             if (constructionTemps != null)
             {
