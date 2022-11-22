@@ -13350,8 +13350,10 @@ class Program
         [InlineData("string", @"""a string""", "a string")]
         [InlineData("C", "null", "")]
         [InlineData("C", "default(C)", "")]
+        [InlineData("C", "default", "")]
         [InlineData("S", "new S()", "Program+S")]
         [InlineData("S", "default(S)", "Program+S")]
+        [InlineData("S", "default", "Program+S")]
         public void LambdaDefaultParameter_AllConstantValueTypes(string parameterType, string defaultValue = "0", string expectedOutput = "0")
         {
             var source = $$"""
