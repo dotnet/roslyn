@@ -27,8 +27,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             var documentId = TryGetDocumentId(connection, documentKey, allowWrite);
             var nameId = TryGetStringId(connection, name, allowWrite);
             return documentId == null || nameId == null
-                ?
-                null
+                ? null
                 : (documentId.Value, nameId.Value);
         }
 
