@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbolInfo.GetAnySymbol().ConvertToType(semanticModel.Compilation);
         }
 
-        private static ISymbol? MapSymbol(ISymbol symbol, ITypeSymbol? type)
+        private static ISymbol? MapSymbol(ISymbol? symbol, ITypeSymbol? type)
         {
             if (symbol.IsConstructor() && symbol.ContainingType.IsAnonymousType)
             {
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (symbol.IsFunctionValue() &&
                 symbol.ContainingSymbol is IMethodSymbol method)
             {
-                if (method?.AssociatedSymbol != null)
+                if (method.AssociatedSymbol != null)
                 {
                     return method.AssociatedSymbol;
                 }

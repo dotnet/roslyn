@@ -139,19 +139,39 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     foreach (var documentsByProject in documentsGroupedByTopologicallySortedProjectId)
                     {
                         var documentIdsThatGetsAnnotatedAndRenamed = new HashSet<DocumentId>(documentsByProject);
-                        var projectId = documentsByProject.Key;
-                        var cacheService = _baseSolution.Services.GetService<IProjectCacheHostService>();
-                        using (cacheService?.EnableCaching(documentsByProject.Key))
+                        // Rename is going to be in 5 phases.
+                        // 1st phase - Does a simple token replacement
+                        // If the 1st phase results in conflict then we perform then:
+                        //      2nd phase is to expand and simplify only the reference locations with conflicts
+                        //      3rd phase is to expand and simplify all the conflict locations (both reference and non-reference)
+                        // If there are unresolved Conflicts after the 3rd phase then in 4th phase, 
+                        //      We complexify and resolve locations that were resolvable and for the other locations we perform the normal token replacement like the first the phase.
+                        // If the OptionSet has RenameFile to true, we rename files with the type declaration
+                        for (var phase = 0; phase < 4; phase++)
                         {
-                            // Rename is going to be in 5 phases.
-                            // 1st phase - Does a simple token replacement
-                            // If the 1st phase results in conflict then we perform then:
-                            //      2nd phase is to expand and simplify only the reference locations with conflicts
-                            //      3rd phase is to expand and simplify all the conflict locations (both reference and non-reference)
-                            // If there are unresolved Conflicts after the 3rd phase then in 4th phase, 
-                            //      We complexify and resolve locations that were resolvable and for the other locations we perform the normal token replacement like the first the phase.
-                            // If the OptionSet has RenameFile to true, we rename files with the type declaration
-                            for (var phase = 0; phase < 4; phase++)
+                            // Step 1:
+                            // The rename process and annotation for the bookkeeping is performed in one-step
+                            // The Process in short is,
+                            // 1. If renaming a token which is no conflict then replace the token and make a map of the oldspan to the newspan
+                            // 2. If we encounter a node that has to be expanded( because there was a conflict in previous phase), we expand it.
+                            //    If the node happens to contain a token that needs to be renamed then we annotate it and rename it after expansion else just expand and proceed
+                            // 3. Through the whole process we maintain a map of the oldspan to newspan. In case of expansion & rename, we map the expanded node and the renamed token
+                            conflictResolution.UpdateCurrentSolution(await AnnotateAndRename_WorkerAsync(
+                                baseSolution,
+                                conflictResolution.CurrentSolution,
+                                documentIdsThatGetsAnnotatedAndRenamed,
+                                _renameLocationSet.Locations,
+                                renamedSpansTracker,
+                                _replacementTextValid).ConfigureAwait(false));
+
+                            // Step 2: Check for conflicts in the renamed solution
+                            var foundResolvableConflicts = await IdentifyConflictsAsync(
+                                documentIdsForConflictResolution: documentIdsThatGetsAnnotatedAndRenamed,
+                                allDocumentIdsInProject: documentsByProject,
+                                projectId: documentsByProject.Key,
+                                conflictResolution: conflictResolution).ConfigureAwait(false);
+
+                            if (!foundResolvableConflicts || phase == 3)
                             {
                                 // Step 1:
                                 // The rename process and annotation for the bookkeeping is performed in one-step
@@ -237,6 +257,12 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                 intermediateSolution, documentsByProject, _renameAnnotations, _cancellationToken).ConfigureAwait(false);
                             conflictResolution.UpdateCurrentSolution(intermediateSolution);
                         }
+
+                        // Step 3: Simplify the project
+                        conflictResolution.UpdateCurrentSolution(await renamedSpansTracker.SimplifyAsync(conflictResolution.CurrentSolution, documentsByProject, _replacementTextValid, _renameAnnotations, FallbackOptions, _cancellationToken).ConfigureAwait(false));
+                        intermediateSolution = await conflictResolution.RemoveAllRenameAnnotationsAsync(
+                            intermediateSolution, documentsByProject, _renameAnnotations, _cancellationToken).ConfigureAwait(false);
+                        conflictResolution.UpdateCurrentSolution(intermediateSolution);
                     }
 
                     // This rename could break implicit references of this symbol (e.g. rename MoveNext on a collection like type in a 

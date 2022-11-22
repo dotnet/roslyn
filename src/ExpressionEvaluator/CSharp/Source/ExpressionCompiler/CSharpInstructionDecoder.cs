@@ -36,9 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override void AppendFullName(StringBuilder builder, MethodSymbol method)
         {
-            var displayFormat = (method.MethodKind == MethodKind.PropertyGet || method.MethodKind == MethodKind.PropertySet) ?
-                s_propertyDisplayFormat :
-                DisplayFormat;
+            var displayFormat = (method.MethodKind == MethodKind.PropertyGet || method.MethodKind == MethodKind.PropertySet)
+                ? s_propertyDisplayFormat
+                : DisplayFormat;
 
             var parts = method.ToDisplayParts(displayFormat);
             var numParts = parts.Length;

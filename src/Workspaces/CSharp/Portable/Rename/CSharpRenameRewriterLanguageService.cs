@@ -332,8 +332,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     var symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, _semanticModel, _solution.Services, _cancellationToken);
 
                     string? suffix = null;
-                    var prefix = isRenamableAccessor
-                        ? newToken.ValueText.Substring(0, newToken.ValueText.IndexOf('_') + 1)
+                    var prefix = isRenameLocation && _renameLocations[token.Span].IsRenamableAccessor
+                        ? newToken.ValueText[..(newToken.ValueText.IndexOf('_') + 1)]
                         : null;
 
                     if (symbols.Length == 1)
@@ -750,7 +750,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 bool replacementTextValid)
             {
                 var parent = oldToken.Parent!;
+<<<<<<< HEAD
                 var currentNewIdentifier = isVerbatim ? replacementText.Substring(1) : replacementText;
+=======
+                var currentNewIdentifier = _isVerbatim ? _replacementText[1..] : _replacementText;
+>>>>>>> upstream/main
                 var oldIdentifier = newToken.ValueText;
                 var isAttributeName = SyntaxFacts.IsAttributeName(parent);
 
@@ -1198,7 +1202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         {
             if (replacementText.EndsWith("Attribute", StringComparison.Ordinal) && replacementText.Length > 9)
             {
-                var conflict = replacementText.Substring(0, replacementText.Length - 9);
+                var conflict = replacementText[..^9];
                 if (!possibleNameConflicts.Contains(conflict))
                 {
                     possibleNameConflicts.Add(conflict);

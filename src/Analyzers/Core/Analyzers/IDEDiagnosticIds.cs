@@ -183,6 +183,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string MakeStructReadOnlyDiagnosticId = "IDE0250";
 
+        public const string UsePatternMatchingAsAndMemberAccessId = "IDE0260";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";
@@ -202,5 +204,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string ConsecutiveBracePlacementDiagnosticId = "IDE2002";
         public const string ConsecutiveStatementPlacementDiagnosticId = "IDE2003";
         public const string ConstructorInitializerPlacementDiagnosticId = "IDE2004";
+        public const string ConditionalExpressionPlacementDiagnosticId = "IDE2005";
+        public const string ArrowExpressionClausePlacementDiagnosticId = "IDE2006";
     }
 }

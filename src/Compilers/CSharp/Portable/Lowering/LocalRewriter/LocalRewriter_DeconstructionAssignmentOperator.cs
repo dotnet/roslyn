@@ -77,6 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var temps = ArrayBuilder<LocalSymbol>.GetInstance();
             var effects = DeconstructionSideEffects.GetInstance();
             BoundExpression? returnValue = ApplyDeconstructionConversion(lhsTargets, right, conversion, temps, effects, isUsed, inInit: true);
+            reverseAssignmentsToTargetsIfApplicable();
+
             effects.Consolidate();
 
             if (!isUsed)
@@ -102,6 +104,97 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return _factory.Sequence(temps.ToImmutableAndFree(), effects.ToImmutableAndFree(), returnValue);
+            }
+
+            // Optimize a deconstruction assignment by reversing the order that we store to the final variables.
+            void reverseAssignmentsToTargetsIfApplicable()
+            {
+                PooledHashSet<Symbol>? visitedSymbols = null;
+
+                Debug.Assert(right is not ({ Kind: BoundKind.TupleLiteral } or BoundConversion { Operand.Kind: BoundKind.TupleLiteral }));
+                // Here are the general requirements for performing the optimization:
+                if (// - the RHS is a tuple literal (which means the temps produced for this assignment are for the tuple elements, which could turn into push-pops into the destination variables)
+                    right is { Kind: BoundKind.ConvertedTupleLiteral } or BoundConversion { Operand.Kind: BoundKind.ConvertedTupleLiteral }
+
+                    // - at least one element in the RHS is actually stored to a temp. i.e. it is not a constant expression.
+                    && effects.init.Any()
+
+                    // - all variables on the LHS are unique, by-value, and are locals or parameters.
+                    //     - Note that this could be expanded into fields of non-nullable value types at some point, but we decided not to invest in that at this time.
+                    && canReorderTargetAssignments(lhsTargets, ref visitedSymbols))
+                {
+                    // Consider a deconstruction assignment like the following:
+                    // (a, b, c) = (x, y, z);
+
+                    // (x, y, z) are evaluated into temps, then the temps are stored to the targets:
+                    // temp1 = x;
+                    // temp2 = y;
+                    // temp3 = z;
+                    // a = temp1;
+                    // b = temp2;
+                    // c = temp3;
+
+                    // As an optimization, ensure that assignments from temps to targets happen in the reverse order of effects:
+                    // temp1 = x;
+                    // temp2 = y;
+                    // temp3 = z;
+                    // c = temp3;
+                    // b = temp2;
+                    // a = temp1;
+
+                    // This makes it more likely that the stack optimizer pass will be able to eliminate the temps and replace them with stack push/pops.
+                    effects.assignments.ReverseContents();
+                }
+
+                visitedSymbols?.Free();
+            }
+
+            static bool canReorderTargetAssignments(ArrayBuilder<Binder.DeconstructionVariable> targets, ref PooledHashSet<Symbol>? visitedSymbols)
+            {
+                // If we know all targets refer to distinct variables, then we can reorder the assignments.
+                // We avoid doing this in any cases where aliasing could occur, e.g.:
+                // var y = 1;
+                // ref var x = ref y;
+                // (x, y) = (a, b);
+
+                foreach (var target in targets)
+                {
+                    Debug.Assert(target is { Single: not null, NestedVariables: null } or { Single: null, NestedVariables: not null });
+                    if (target.Single is { } single)
+                    {
+                        Symbol? symbol;
+                        switch (single)
+                        {
+                            case BoundLocal { LocalSymbol: { RefKind: RefKind.None } localSymbol }:
+                                symbol = localSymbol;
+                                break;
+                            case BoundParameter { ParameterSymbol: { RefKind: RefKind.None } parameterSymbol }:
+                                symbol = parameterSymbol;
+                                break;
+                            case BoundDiscardExpression:
+                                // we don't care in what order we assign to these.
+                                continue;
+                            default:
+                                // This deconstruction assigns to a target which is not sufficiently simple.
+                                // We can't verify that the deconstruction does not use any aliases to variables.
+                                return false;
+                        }
+
+                        visitedSymbols ??= PooledHashSet<Symbol>.GetInstance();
+                        if (!visitedSymbols.Add(symbol))
+                        {
+                            // This deconstruction writes to the same target multiple times, e.g:
+                            // (x, x) = (a, b);
+                            return false;
+                        }
+                    }
+                    else if (!canReorderTargetAssignments(target.NestedVariables!, ref visitedSymbols))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
             }
         }
 

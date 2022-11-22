@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -12,45 +11,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class LambdaParameterSymbol : SourceComplexParameterSymbolBase
     {
         private readonly SyntaxList<AttributeListSyntax> _attributeLists;
-        private readonly DeclarationScope? _effectiveScope;
 
         public LambdaParameterSymbol(
            LambdaSymbol owner,
+           SyntaxReference? syntaxRef,
            SyntaxList<AttributeListSyntax> attributeLists,
            TypeWithAnnotations parameterType,
            int ordinal,
            RefKind refKind,
-           DeclarationScope? declaredScope,
-           DeclarationScope? effectiveScope,
+           DeclarationScope scope,
            string name,
            bool isDiscard,
+           bool isParams,
            ImmutableArray<Location> locations)
-           : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef: null, isParams: false, isExtensionMethodThis: false, scope: declaredScope)
+           : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, isParams, isExtensionMethodThis: false, scope)
         {
-            Debug.Assert(declaredScope.HasValue != effectiveScope.HasValue);
             _attributeLists = attributeLists;
-            _effectiveScope = effectiveScope;
             IsDiscard = isDiscard;
         }
 
         public override bool IsDiscard { get; }
-
-        internal override DeclarationScope EffectiveScope => _effectiveScope ?? base.EffectiveScope;
-
-        internal override bool IsMetadataOptional
-        {
-            get { return false; }
-        }
-
-        public override bool IsParams
-        {
-            get { return false; }
-        }
-
-        internal override bool HasDefaultArgumentSyntax
-        {
-            get { return false; }
-        }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {

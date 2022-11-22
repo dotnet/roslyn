@@ -23,7 +23,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
             ' So if the test fails we should fix the product bug that is causing the failure
             ' as opposed to 'fixing' the test by updating the benchmark code.
 
-
             ' If you absolutely need to change the benchmark code - PLEASE SHOOT A MAIL TO SHYAM (GNAMBOO)
             ' so that he can apply the same changes to the copy of this benchmark code that is used in the perf test.
             CompileAndVerify(<compilation>

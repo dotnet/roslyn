@@ -12,7 +12,6 @@ internal static class WorkspaceConfigurationOptionsStorage
     public static WorkspaceConfigurationOptions GetWorkspaceConfigurationOptions(this IGlobalOptionService globalOptions)
         => new(
             CacheStorage: globalOptions.GetOption(CloudCacheFeatureFlag) ? StorageDatabase.CloudCache : globalOptions.GetOption(Database),
-            DisableProjectCacheService: globalOptions.GetOption(DisableProjectCacheService),
             EnableOpeningSourceGeneratedFiles: globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspace) ??
                                                globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag),
             DisableCloneWhenProducingSkeletonReferences: globalOptions.GetOption(DisableCloneWhenProducingSkeletonReferences));
@@ -25,13 +24,17 @@ internal static class WorkspaceConfigurationOptionsStorage
         "FeatureManager/Storage", "CloudCacheFeatureFlag", WorkspaceConfigurationOptions.Default.CacheStorage == StorageDatabase.CloudCache,
         new FeatureFlagStorageLocation("Roslyn.CloudCache3"));
 
-    public static readonly Option2<bool> DisableProjectCacheService = new(
-        "WorkspaceConfigurationOptions", nameof(DisableProjectCacheService), WorkspaceConfigurationOptions.Default.DisableProjectCacheService,
-        new FeatureFlagStorageLocation("Roslyn.DisableProjectCacheService"));
-
     public static readonly Option2<bool> DisableCloneWhenProducingSkeletonReferences = new(
         "WorkspaceConfigurationOptions", "DisableCloneWhenProducingSkeletonReferences", WorkspaceConfigurationOptions.Default.DisableCloneWhenProducingSkeletonReferences,
         new FeatureFlagStorageLocation("Roslyn.DisableCloneWhenProducingSkeletonReferences"));
+
+    public static readonly Option2<bool> DisableReferenceManagerRecoverableMetadata = new(
+        "WorkspaceConfigurationOptions", "DisableReferenceManagerRecoverableMetadata", WorkspaceConfigurationOptions.Default.DisableReferenceManagerRecoverableMetadata,
+        new FeatureFlagStorageLocation("Roslyn.DisableReferenceManagerRecoverableMetadata"));
+
+    public static readonly Option2<bool> DisableBackgroundCompilation = new(
+        "WorkspaceConfigurationOptions", "DisableBackgroundCompilation", WorkspaceConfigurationOptions.Default.DisableBackgroundCompilation,
+        new FeatureFlagStorageLocation("Roslyn.DisableBackgroundCompilation"));
 
     /// <summary>
     /// This option allows the user to enable this. We are putting this behind a feature flag for now since we could have extensions

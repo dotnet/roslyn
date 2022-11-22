@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 Dim codeAction = codeActions(codeActionIndex)
 
                 If Not glyphTags.IsDefault Then
-                    Assert.Equal(glyphTags, codeAction.Tags)
+                    AssertEx.SetEqual(glyphTags, codeAction.Tags)
                 End If
 
                 Dim oldSolution = workspace.CurrentSolution

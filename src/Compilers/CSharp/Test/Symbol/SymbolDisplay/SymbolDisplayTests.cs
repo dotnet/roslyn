@@ -2922,7 +2922,6 @@ class classAttribute : System.Attribute { }
                 "classAttribute",
                 SymbolDisplayPartKind.ClassName);
 
-
             TestSymbolDescription(text, findSymbol,
                 new SymbolDisplayFormat(miscellaneousOptions: SymbolDisplayMiscellaneousOptions.RemoveAttributeSuffix),
                 "classAttribute",
@@ -6597,7 +6596,6 @@ enum E : long
                 SymbolDisplayPartKind.NumericLiteral);
         }
 
-
         [Fact]
         public void TestRefStructs()
         {
@@ -7587,7 +7585,6 @@ class C
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.ClassName);
         }
-
 
         [Fact]
         public void StructConstructorDeclaration()

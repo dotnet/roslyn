@@ -252,9 +252,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         [InlineData(LanguageNames.VisualBasic)]
         public async Task TestChecksumAlgorithm_NonDefault(string language)
         {
-            var files = language == LanguageNames.CSharp ?
-                GetSimpleCSharpSolutionFiles().WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.WithChecksumAlgorithm) :
-                GetSimpleVisualBasicSolutionFiles().WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", Resources.ProjectFiles.VisualBasic.WithChecksumAlgorithm);
+            var files = language == LanguageNames.CSharp
+                ? GetSimpleCSharpSolutionFiles().WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.WithChecksumAlgorithm)
+                : GetSimpleVisualBasicSolutionFiles().WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", Resources.ProjectFiles.VisualBasic.WithChecksumAlgorithm);
 
             CreateFiles(files);
             var solutionFilePath = GetSolutionFileName("TestSolution.sln");
@@ -2817,9 +2817,6 @@ class C1
 
             var compilation = document.GetObjectReference(static d => d.GetSemanticModelAsync(CancellationToken.None).Result);
             Assert.NotNull(compilation);
-
-            // MSBuildWorkspace doesn't have a cache service
-            Assert.Null(workspace.UseReference(static w => w.CurrentSolution.Services.GetService<IProjectCacheHostService>()));
 
             document.ReleaseStrongReference();
             project.ReleaseStrongReference();

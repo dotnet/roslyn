@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         protected internal override bool IsEnabled
             => !_editorOptionsService.Factory.GlobalOptions.GetOptionValue(DefaultTextViewHostOptions.IsInContrastModeId);
 
-        protected internal override bool SupportsDignosticMode(DiagnosticMode mode)
+        protected internal override bool SupportsDiagnosticMode(DiagnosticMode mode)
         {
             // We only support push diagnostics.  When pull diagnostics are on, diagnostic fading is handled by the lsp client.
             return mode == DiagnosticMode.Push;
@@ -99,5 +99,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Default to the base implementation for the diagnostic data
             return base.GetLocationsToTag(diagnosticData);
         }
+
+        protected override bool TagEquals(ClassificationTag tag1, ClassificationTag tag2)
+            => tag1.ClassificationType.Classification == tag2.ClassificationType.Classification;
     }
 }

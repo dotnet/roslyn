@@ -1188,7 +1188,7 @@ namespace Roslyn.Test.PdbUtilities
         {
             string result = token.ToString("X8");
             if (maskToken)
-                result = result.Substring(0, 2) + "xxxxxx";
+                result = result[..2] + "xxxxxx";
             return "0x" + result;
         }
 
@@ -1223,7 +1223,7 @@ namespace Roslyn.Test.PdbUtilities
                         dir.streams[module.stream].Read(reader, bits);
                         if (module.moduleName == "TokenSourceLineInfo")
                         {
-                            LoadTokenToSourceInfo(bits, module, names, dir, nameIndex, reader, tokenToSourceMapping);
+                            LoadTokenToSourceInfo(bits, module, names, tokenToSourceMapping);
                         }
                     }
                 }
@@ -1287,8 +1287,7 @@ namespace Roslyn.Test.PdbUtilities
             new Guid(unchecked((int)0xc6ea3fc9), 0x59b3, 0x49d6, 0xbc, 0x25, 0x09, 0x02, 0xbb, 0xab, 0xb4, 0x60);
 
         private static void LoadTokenToSourceInfo(
-            BitAccess bits, DbiModuleInfo module, IntHashTable names, MsfDirectory dir,
-            Dictionary<string, int> nameIndex, PdbReader reader, Dictionary<uint, PdbTokenLine> tokenToSourceMapping)
+            BitAccess bits, DbiModuleInfo module, IntHashTable names, Dictionary<uint, PdbTokenLine> tokenToSourceMapping)
         {
             bits.Position = 0;
             bits.ReadInt32(out var sig);
@@ -1357,7 +1356,7 @@ namespace Roslyn.Test.PdbUtilities
 
             bits.Position = module.cbSyms + module.cbOldLines;
             int limit = module.cbSyms + module.cbOldLines + module.cbLines;
-            IntHashTable sourceFiles = ReadSourceFileInfo(bits, (uint)limit, names, dir, nameIndex, reader);
+            IntHashTable sourceFiles = ReadSourceFileInfo(bits, (uint)limit, names);
             foreach (var tokenLine in tokenToSourceMapping.Values)
             {
                 tokenLine.sourceFile = (PdbSource)sourceFiles[(int)tokenLine.file_id];
@@ -1366,9 +1365,7 @@ namespace Roslyn.Test.PdbUtilities
 
         private static readonly Guid s_symDocumentTypeGuid = new Guid("{5a869d0b-6611-11d3-bd2a-0000f80849bd}");
 
-        private static IntHashTable ReadSourceFileInfo(
-            BitAccess bits, uint limit, IntHashTable names, MsfDirectory dir,
-            Dictionary<string, int> nameIndex, PdbReader reader)
+        private static IntHashTable ReadSourceFileInfo(BitAccess bits, uint limit, IntHashTable names)
         {
             IntHashTable checks = new IntHashTable();
 

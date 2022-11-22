@@ -35,7 +35,6 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
         End Get
     End Property
 
-
 #Region "Helpers"
 
     Public Sub New()

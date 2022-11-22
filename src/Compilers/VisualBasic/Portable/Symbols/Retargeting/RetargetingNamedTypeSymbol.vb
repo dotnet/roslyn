@@ -491,7 +491,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         End Property
 
         Friend Overrides Function LookupMetadataType(ByRef emittedTypeName As MetadataTypeName) As NamedTypeSymbol
-            Return RetargetingTranslator.Retarget(_underlyingType.LookupMetadataType(emittedTypeName), RetargetOptions.RetargetPrimitiveTypesByName)
+            Dim underlying As NamedTypeSymbol = _underlyingType.LookupMetadataType(emittedTypeName)
+
+            If underlying Is Nothing Then
+                Return Nothing
+            End If
+
+            Debug.Assert(Not underlying.IsErrorType())
+            Return RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByName)
         End Function
 
         Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
