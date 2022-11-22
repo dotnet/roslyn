@@ -35,12 +35,12 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             (DocumentPrimaryKey documentkeyId, int dataNameId)>
         {
             public DocumentAccessor(SQLitePersistentStorage storage)
-                : base(storage, ImmutableArray.Create(
-                    (ProjectPathIdColumnName, SQLiteIntegerType),
-                    (ProjectNameIdColumnName, SQLiteIntegerType),
-                    (DocumentPathIdColumnName, SQLiteIntegerType),
-                    (DocumentNameIdColumnName, SQLiteIntegerType),
-                    (DataNameIdColumnName, SQLiteIntegerType)))
+                : base(storage,
+                      (ProjectPathIdColumnName, SQLiteIntegerType),
+                      (ProjectNameIdColumnName, SQLiteIntegerType),
+                      (DocumentPathIdColumnName, SQLiteIntegerType),
+                      (DocumentNameIdColumnName, SQLiteIntegerType),
+                      (DataNameIdColumnName, SQLiteIntegerType))
             {
             }
 

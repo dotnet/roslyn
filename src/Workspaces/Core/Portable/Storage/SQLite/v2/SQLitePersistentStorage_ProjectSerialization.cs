@@ -35,10 +35,10 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             (ProjectPrimaryKey projectKeyId, int dataNameId)>
         {
             public ProjectAccessor(SQLitePersistentStorage storage)
-                : base(storage, ImmutableArray.Create(
-                    (ProjectPathIdColumnName, "integer"),
-                    (ProjectNameIdColumnName, "integer"),
-                    (DataNameIdColumnName, "integer")))
+                : base(storage,
+                      (ProjectPathIdColumnName, SQLiteIntegerType),
+                      (ProjectNameIdColumnName, SQLiteIntegerType),
+                      (DataNameIdColumnName, SQLiteIntegerType))
             {
             }
 

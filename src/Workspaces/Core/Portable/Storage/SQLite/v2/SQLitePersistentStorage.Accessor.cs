@@ -48,22 +48,22 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             public Accessor(
                 SQLitePersistentStorage storage,
-                ImmutableArray<(string name, string type)> primaryKeys)
+                params (string name, string type)[] primaryKeysArray)
             {
                 Storage = storage;
-                _primaryKeys = primaryKeys;
+                _primaryKeys = primaryKeysArray.ToImmutableArray();
 
                 var main = Database.Main.GetName();
                 var writeCache = Database.WriteCache.GetName();
 
                 // "X" = ? and "Y" = ? and "Z" = ?
-                var whereClause = string.Join(" and ", primaryKeys.Select(k => $@"{k.name} = ?"));
+                var whereClause = string.Join(" and ", _primaryKeys.Select(k => $@"{k.name} = ?"));
 
                 var dataTableName = this.TableName;
                 _select_rowid_from_main_table_where_0 = $"select rowid from {main}.{dataTableName} where {whereClause}";
                 _select_rowid_from_writecache_table_where_0 = $"select rowid from {writeCache}.{dataTableName} where {whereClause}";
 
-                var allColumnNames = primaryKeys.Select(t => t.name).Concat(ChecksumColumnName).Concat(DataColumnName);
+                var allColumnNames = _primaryKeys.Select(t => t.name).Concat(ChecksumColumnName).Concat(DataColumnName);
 
                 _insert_or_replace_into_writecache_table_values_0_1_2 = $@"insert or replace into {writeCache}.{dataTableName}
                     ({string.Join(",", allColumnNames)})
