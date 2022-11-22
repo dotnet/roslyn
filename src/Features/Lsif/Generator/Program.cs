@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             var solutionLoadStopwatch = Stopwatch.StartNew();
 
-            var msbuildWorkspace = MSBuildWorkspace.Create(MefHostServices.Create(Generator.MefCompositionAssemblies));
+            var msbuildWorkspace = MSBuildWorkspace.Create(await Composition.CreateHostServicesAsync());
             msbuildWorkspace.WorkspaceFailed += (s, e) => logFile.WriteLine("Error while loading: " + e.Diagnostic.Message);
 
             var solution = await openAsync(msbuildWorkspace);

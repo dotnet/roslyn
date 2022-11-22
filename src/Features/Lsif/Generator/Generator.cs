@@ -28,8 +28,6 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 {
     internal sealed class Generator
     {
-        public static readonly ImmutableArray<Assembly> MefCompositionAssemblies = MSBuildMefHostServices.DefaultAssemblies.Add(typeof(RoslynLanguageServer).Assembly);
-
         // LSIF generator capabilities. See https://github.com/microsoft/lsif-node/blob/main/protocol/src/protocol.ts#L925 for details.
         private const bool HoverProvider = true;
         private const bool DeclarationProvider = false;

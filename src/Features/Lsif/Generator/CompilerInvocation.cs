@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             // We will use a Workspace to simplify the creation of the compilation, but will be careful not to return the Workspace instance from this class.
             // We will still provide the language services which are used by the generator itself, but we don't tie it to a Workspace object so we can
             // run this as an in-proc source generator if one day desired.
-            var workspace = new AdhocWorkspace(MefHostServices.Create(Generator.MefCompositionAssemblies));
+            var workspace = new AdhocWorkspace(await Composition.CreateHostServicesAsync());
 
             var languageName = GetLanguageName(invocationInfo);
             var languageServices = workspace.Services.GetLanguageServices(languageName).LanguageServices;

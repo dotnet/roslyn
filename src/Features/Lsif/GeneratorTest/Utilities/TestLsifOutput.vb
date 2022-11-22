@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
         ''' <summary>
         ''' A MEF composition that matches the exact same MEF composition that will be used in the actual LSIF tool.
         ''' </summary>
-        Public Shared ReadOnly TestComposition As TestComposition = TestComposition.Empty.AddAssemblies(Generator.MefCompositionAssemblies)
+        Public Shared ReadOnly TestComposition As TestComposition = TestComposition.Empty.AddAssemblies(Composition.MefCompositionAssemblies)
 
         Public Sub New(testLsifJsonWriter As TestLsifJsonWriter, workspace As TestWorkspace)
             _testLsifJsonWriter = testLsifJsonWriter
