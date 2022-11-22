@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             /// langword="false"/> then failing to find the key will result in <see langword="false"/> being returned.
             /// </param>
             protected abstract TDatabaseKey? TryGetDatabaseKey(SqlConnection connection, TKey key, bool allowWrite);
-            protected abstract void BindAccessorSpecificPrimaryKeyParameters(SqlStatement statement, TDatabaseKey dataId);
+            protected abstract void BindAccessorSpecificPrimaryKeyParameters(SqlStatement statement, TDatabaseKey databaseKey);
 
             private string TableName
                 => this.Table switch
@@ -201,14 +201,14 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
                 return default;
 
-                Optional<T> ReadColumnHelper(SqlConnection connection, Database database, TDatabaseKey dataId, int dataNameID)
+                Optional<T> ReadColumnHelper(SqlConnection connection, Database database, TDatabaseKey databaseKey, int dataNameID)
                 {
                     // Note: it's possible that someone may write to this row between when we get the row ID
                     // above and now.  That's fine.  We'll just read the new bytes that have been written to
                     // this location.  Note that only the data for a row in our system can change, the ID will
                     // always stay the same, and the data will always be valid for our ID.  So there is no
                     // safety issue here.
-                    return TryGetActualRowIdFromDatabase(connection, database, dataId, dataNameID, out var writeCacheRowId)
+                    return TryGetActualRowIdFromDatabase(connection, database, databaseKey, dataNameID, out var writeCacheRowId)
                         ? readColumn(data, connection, database, writeCacheRowId)
                         : default;
                 }
@@ -315,16 +315,16 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 return storedChecksum.HasValue && checksum == storedChecksum.Value;
             }
 
-            private void BindPrimaryKey(SqlStatement statement, TDatabaseKey dataId, int dataNameId)
+            private void BindPrimaryKey(SqlStatement statement, TDatabaseKey databaseKey, int dataNameId)
             {
                 // This binds all but the dataNameId primary key parameter.
-                BindAccessorSpecificPrimaryKeyParameters(statement, dataId);
+                BindAccessorSpecificPrimaryKeyParameters(statement, databaseKey);
                 // The data name id parameter is the last in _primaryKeyColumns. So we pass _primaryKeyColumns.Length as
                 // the parameter index as it is 1s based.
                 statement.BindInt64Parameter(parameterIndex: _primaryKeyColumns.Length, dataNameId);
             }
 
-            private bool TryGetActualRowIdFromDatabase(SqlConnection connection, Database database, TDatabaseKey dataId, int dataNameId, out long rowId)
+            private bool TryGetActualRowIdFromDatabase(SqlConnection connection, Database database, TDatabaseKey databaseKey, int dataNameId, out long rowId)
             {
                 // See https://sqlite.org/autoinc.html
                 // > In SQLite, table rows normally have a 64-bit signed integer ROWID which is
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
                 var statement = resettableStatement.Statement;
 
-                BindPrimaryKey(statement, dataId, dataNameId);
+                BindPrimaryKey(statement, databaseKey, dataNameId);
 
                 var stepResult = statement.Step();
                 if (stepResult == Result.ROW)
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             private void InsertOrReplaceBlobIntoWriteCache(
                 SqlConnection connection,
-                TDatabaseKey dataId,
+                TDatabaseKey databaseKey,
                 int dataNameId,
                 ReadOnlySpan<byte> checksumBytes,
                 ReadOnlySpan<byte> dataBytes)
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     var statement = resettableStatement.Statement;
 
                     // Binding indices are 1 based.
-                    BindPrimaryKey(statement, dataId, dataNameId);
+                    BindPrimaryKey(statement, databaseKey, dataNameId);
                     statement.BindBlobParameter(parameterIndex: _primaryKeyColumns.Length + 1, checksumBytes);
                     statement.BindBlobParameter(parameterIndex: _primaryKeyColumns.Length + 2, dataBytes);
 
