@@ -71,13 +71,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 return;
 
                 string GetSelectRowIdQuery(Database database)
-                {
-                    return $"""
+                    => $"""
                         select rowid from {database.GetName()}.{TableName} where
                         {string.Join(" and ", _primaryKeyColumns.Select(k => $"{k.name} = ?"))}
                         limit 1
                         """;
-                }
             }
 
             protected abstract Table Table { get; }
