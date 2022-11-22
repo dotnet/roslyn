@@ -80,13 +80,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.GetCurrentWriter().WriteUInt32((module?.GetSourceDocumentIndexForIL(document) ?? 0xFFFF) | Cci.MetadataWriter.SourceDocumentIndex);
         }
 
-        internal void EmitArrayBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        internal void EmitArrayBlockInitializer(ImmutableArray<byte> data, ushort alignment, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             // get helpers
             var initializeArray = module.GetInitArrayHelper();
 
-            // map a field to the block (that makes it addressable via a token)
-            var field = module.GetFieldForData(data, syntaxNode, diagnostics);
+            // map a field to the block (that makes it addressable via a token).
+            var field = module.GetFieldForData(data, alignment, syntaxNode, diagnostics);
 
             // emit call to the helper
             EmitOpCode(ILOpCode.Dup);       //array
@@ -109,7 +109,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
             else
             {
-                var field = module.GetFieldForData(data, syntaxNode, diagnostics);
+                // alignment==1 as there's no special need for alignment (.pack) here.
+                var field = module.GetFieldForData(data, alignment: 1, syntaxNode, diagnostics);
 
                 EmitOpCode(ILOpCode.Dup);
                 EmitOpCode(ILOpCode.Ldsflda);
@@ -122,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal void EmitArrayBlockFieldRef(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             // map a field to the block (that makes it addressable)
-            var field = module.GetFieldForData(data, syntaxNode, diagnostics);
+            var field = module.GetFieldForData(data, alignment: 1, syntaxNode, diagnostics);
 
             EmitOpCode(ILOpCode.Ldsflda);
             EmitToken(field, syntaxNode, diagnostics);

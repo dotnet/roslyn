@@ -1996,7 +1996,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
 
                 // ReadOnlySpan may just refer to the blob, if possible.
-                if (TryEmitReadonlySpanAsBlobWrapper(expression, used, inPlace: false))
+                if (TryEmitReadonlySpanAsBlobWrapper(expression, used, inPlaceTarget: null, out _))
                 {
                     return;
                 }
@@ -2015,14 +2015,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private bool TryEmitReadonlySpanAsBlobWrapper(BoundObjectCreationExpression expression, bool used, bool inPlace)
+        private bool TryEmitReadonlySpanAsBlobWrapper(BoundObjectCreationExpression expression, bool used, BoundExpression inPlaceTarget, out bool avoidInPlace)
         {
             int argumentsLength = expression.Arguments.Length;
+            avoidInPlace = false;
             return ((argumentsLength == 1 &&
                      expression.Constructor.OriginalDefinition == (object)this._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array)) ||
                     (argumentsLength == 3 &&
                      expression.Constructor.OriginalDefinition == (object)this._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length))) &&
-                   TryEmitReadonlySpanAsBlobWrapper((NamedTypeSymbol)expression.Type, expression.Arguments[0], used, inPlace,
+                   TryEmitReadonlySpanAsBlobWrapper((NamedTypeSymbol)expression.Type, expression.Arguments[0], used, inPlaceTarget, out avoidInPlace,
                            start: argumentsLength == 3 ? expression.Arguments[1] : null,
                            length: argumentsLength == 3 ? expression.Arguments[2] : null);
         }
@@ -2186,9 +2187,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                     // ctor can possibly see its own assignments indirectly if there are ref parameters or __arglist
                     if (System.Linq.ImmutableArrayExtensions.All(ctor.Parameters, p => p.RefKind == RefKind.None) &&
-                        !ctor.IsVararg)
+                        !ctor.IsVararg &&
+                        TryInPlaceCtorCall(left, objCreation, used))
                     {
-                        InPlaceCtorCall(left, objCreation, used);
                         return true;
                     }
                 }
@@ -2239,22 +2240,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void InPlaceCtorCall(BoundExpression target, BoundObjectCreationExpression objCreation, bool used)
+        private bool TryInPlaceCtorCall(BoundExpression target, BoundObjectCreationExpression objCreation, bool used)
         {
             Debug.Assert(TargetIsNotOnHeap(target), "in-place construction target should not be on heap");
 
+            // ReadOnlySpan may just refer to the blob, if possible.
+            if (TryEmitReadonlySpanAsBlobWrapper(objCreation, used, target, out bool avoidInPlace))
+            {
+                return true;
+            }
+
+            if (avoidInPlace)
+            {
+                // We can use an ROS wrapper around a blob if we don't initialize in-place.
+                return false;
+            }
+
             var temp = EmitAddress(target, AddressKind.Writeable);
             Debug.Assert(temp == null, "in-place ctor target should not create temps");
-
-            // ReadOnlySpan may just refer to the blob, if possible.
-            if (TryEmitReadonlySpanAsBlobWrapper(objCreation, used, inPlace: true))
-            {
-                if (used)
-                {
-                    EmitExpression(target, used: true);
-                }
-                return;
-            }
 
             var constructor = objCreation.Constructor;
             EmitArguments(objCreation.Arguments, constructor.Parameters, objCreation.ArgumentRefKindsOpt);
@@ -2269,6 +2272,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 EmitExpression(target, used: true);
             }
+
+            return true;
         }
 
         // partial ctor results are not observable when target is not on the heap.

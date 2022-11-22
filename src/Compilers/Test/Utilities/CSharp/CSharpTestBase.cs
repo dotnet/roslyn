@@ -2237,6 +2237,13 @@ namespace System
                 this.Length = arr.Length;
             }
 
+            public Span(T[] arr, int start, int length)
+            {
+                this.arr = new T[length];
+                Array.Copy(arr, start, this.arr, 0, length);
+                this.Length = length;
+            }
+
             public void CopyTo(Span<T> other) { }
 
             /// <summary>Gets an enumerator for this span.</summary>
@@ -2299,6 +2306,13 @@ namespace System
             {
                 this.arr = arr;
                 this.Length = arr.Length;
+            }
+
+            public ReadOnlySpan(T[] arr, int start, int length)
+            {
+                this.arr = new T[length];
+                Array.Copy(arr, start, this.arr, 0, length);
+                this.Length = length;
             }
 
             public void CopyTo(Span<T> other) { }

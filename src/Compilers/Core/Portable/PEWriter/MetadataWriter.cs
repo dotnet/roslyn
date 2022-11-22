@@ -2317,6 +2317,9 @@ namespace Microsoft.Cci
                 }
 
                 int offset = mappedFieldDataWriter.Count;
+                Debug.Assert(offset % ManagedPEBuilder.MappedFieldDataAlignment == 0, "Expected last write to end at alignment boundary");
+                Debug.Assert(ManagedPEBuilder.MappedFieldDataAlignment == 8, "Expected alignment to be 8");
+
                 mappedFieldDataWriter.WriteBytes(fieldDef.MappedData);
                 mappedFieldDataWriter.Align(ManagedPEBuilder.MappedFieldDataAlignment);
 

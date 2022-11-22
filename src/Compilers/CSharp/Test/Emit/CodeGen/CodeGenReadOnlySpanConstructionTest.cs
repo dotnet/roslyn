@@ -5,6 +5,9 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -73,66 +76,70 @@ class Test
 }");
         }
 
-        [Fact]
+        [Theory]
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
-        public void EmptyOrNullArrayConv()
+        [InlineData("byte")]
+        [InlineData("char")]
+        [InlineData("uint")]
+        [InlineData("long")]
+        public void EmptyOrNullArrayConv(string type)
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            var comp = CreateCompilationWithMscorlibAndSpan(@$"
 using System;
 
 class Test
-{
+{{
     public static void Main()
-    {       
-        var s1 = (ReadOnlySpan<byte>)new byte[]{};
-        var s2 = (ReadOnlySpan<byte>)new byte[]{};
+    {{       
+        var s1 = (ReadOnlySpan<{type}>)new {type}[]{{}};
+        var s2 = (ReadOnlySpan<{type}>)new {type}[]{{}};
 
         Console.Write(s1.Length == s2.Length);
 
-        s1 = (ReadOnlySpan<byte>)(byte[])null;
-        s2 = (ReadOnlySpan<byte>)(byte[])null;
+        s1 = (ReadOnlySpan<{type}>)({type}[])null;
+        s2 = (ReadOnlySpan<{type}>)({type}[])null;
 
         Console.Write(s1.Length == s2.Length);
-    }
-}
+    }}
+}}" + (type != "byte" ? RuntimeHelpersCreateSpan : ""), TestOptions.ReleaseExe);
 
-", TestOptions.ReleaseExe);
-
-            CompileAndVerify(comp, expectedOutput: "TrueTrue", verify: Verification.Passes).VerifyIL("Test.Main", @"
-{
+            CompileAndVerify(comp,
+                expectedOutput: type == "byte" ? "TrueTrue" : null,
+                verify: type == "byte" ? Verification.Passes : Verification.Skipped).VerifyIL("Test.Main", @$"
+{{
   // Code size       77 (0x4d)
   .maxstack  2
-  .locals init (System.ReadOnlySpan<byte> V_0, //s1
-                System.ReadOnlySpan<byte> V_1, //s2
-                System.ReadOnlySpan<byte> V_2)
+  .locals init (System.ReadOnlySpan<{type}> V_0, //s1
+                System.ReadOnlySpan<{type}> V_1, //s2
+                System.ReadOnlySpan<{type}> V_2)
   IL_0000:  ldloca.s   V_2
-  IL_0002:  initobj    ""System.ReadOnlySpan<byte>""
+  IL_0002:  initobj    ""System.ReadOnlySpan<{type}>""
   IL_0008:  ldloc.2
   IL_0009:  stloc.0
   IL_000a:  ldloca.s   V_2
-  IL_000c:  initobj    ""System.ReadOnlySpan<byte>""
+  IL_000c:  initobj    ""System.ReadOnlySpan<{type}>""
   IL_0012:  ldloc.2
   IL_0013:  stloc.1
   IL_0014:  ldloca.s   V_0
-  IL_0016:  call       ""int System.ReadOnlySpan<byte>.Length.get""
+  IL_0016:  call       ""int System.ReadOnlySpan<{type}>.Length.get""
   IL_001b:  ldloca.s   V_1
-  IL_001d:  call       ""int System.ReadOnlySpan<byte>.Length.get""
+  IL_001d:  call       ""int System.ReadOnlySpan<{type}>.Length.get""
   IL_0022:  ceq
   IL_0024:  call       ""void System.Console.Write(bool)""
   IL_0029:  ldnull
-  IL_002a:  call       ""System.ReadOnlySpan<byte> System.ReadOnlySpan<byte>.op_Implicit(byte[])""
+  IL_002a:  call       ""System.ReadOnlySpan<{type}> System.ReadOnlySpan<{type}>.op_Implicit({type}[])""
   IL_002f:  stloc.0
   IL_0030:  ldnull
-  IL_0031:  call       ""System.ReadOnlySpan<byte> System.ReadOnlySpan<byte>.op_Implicit(byte[])""
+  IL_0031:  call       ""System.ReadOnlySpan<{type}> System.ReadOnlySpan<{type}>.op_Implicit({type}[])""
   IL_0036:  stloc.1
   IL_0037:  ldloca.s   V_0
-  IL_0039:  call       ""int System.ReadOnlySpan<byte>.Length.get""
+  IL_0039:  call       ""int System.ReadOnlySpan<{type}>.Length.get""
   IL_003e:  ldloca.s   V_1
-  IL_0040:  call       ""int System.ReadOnlySpan<byte>.Length.get""
+  IL_0040:  call       ""int System.ReadOnlySpan<{type}>.Length.get""
   IL_0045:  ceq
   IL_0047:  call       ""void System.Console.Write(bool)""
   IL_004c:  ret
-}");
+}}");
         }
 
         [Fact]
@@ -908,5 +915,296 @@ public class Test
             verifier = CompileAndVerify(compilation, verify: Verification.Skipped);
             verifier.VerifyIL("Test.StaticData.get", expected);
         }
+
+        [Theory]
+        [InlineData(0, true)]
+        [InlineData(1, true)]
+        [InlineData(2, true)]
+        [InlineData(3, false)]
+        public void StaticFieldIsUsedForSpanCreatedFromArrayWithInitializerWithExplicitLength(int length, bool valid)
+        {
+            var csharp = @$"
+using System;
+
+public class Test
+{{
+    public static ReadOnlySpan<byte> StaticData => new ReadOnlySpan<byte>(new byte[] {{ 10, 20 }}, 0, {length});
+}}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseDll);
+            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped);
+            verifier.VerifyIL("Test.StaticData.get", valid ? @$"{{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldsflda    ""short <PrivateImplementationDetails>.C330FA753AC5BE3B8FCB52745062F781CC9E0F4FA981A2BD06FCB969355B9469""
+  IL_0005:  ldc.i4.{length}
+  IL_0006:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
+  IL_000b:  ret
+}}" : @$"{{
+  // Code size       24 (0x18)
+  .maxstack  4
+  IL_0000:  ldc.i4.2
+  IL_0001:  newarr     ""byte""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldc.i4.s   10
+  IL_000a:  stelem.i1
+  IL_000b:  dup
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldc.i4.s   20
+  IL_000f:  stelem.i1
+  IL_0010:  ldc.i4.0
+  IL_0011:  ldc.i4.{length}
+  IL_0012:  newobj     ""System.ReadOnlySpan<byte>..ctor(byte[], int, int)""
+  IL_0017:  ret
+}}");
+        }
+
+        public static IEnumerable<object[]> CreateSpan_NonSize1Type_MemberData()
+        {
+            foreach (bool withCtor in new[] { false, true })
+            {
+                // A primitive can be used for the type of the blob
+                yield return new object[] { withCtor, "ushort", "1", "ldind.u2", "short <PrivateImplementationDetails>.47DC540C94CEB704A23875C11273E16BB0B8A87AED84DE911F2133568115F2542" };
+                yield return new object[] { withCtor, "ushort", "1, 2", "ldind.u2", "int <PrivateImplementationDetails>.7B11C1133330CD161071BF23A0C9B6CE5320A8F3A0F83620035A72BE46DF41042" };
+                yield return new object[] { withCtor, "ushort", "1, 2, 3, 4", "ldind.u2", "long <PrivateImplementationDetails>.EA99F710D9D0B8BA192295C969A63ED7CE8FC5743DA20D2057FA2B6D2C404BFB2" };
+                yield return new object[] { withCtor, "uint", "1", "ldind.u4", "int <PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA4504" };
+                yield return new object[] { withCtor, "uint", "1, 2", "ldind.u4", "long <PrivateImplementationDetails>.34FB5C825DE7CA4AEA6E712F19D439C1DA0C92C37B423936C5F618545CA4FA1F4" };
+                yield return new object[] { withCtor, "ulong", "1", "ldind.i8", "long <PrivateImplementationDetails>.7C9FA136D4413FA6173637E883B6998D32E1D675F88CDDFF9DCBCF331820F4B88" };
+
+                // Require a new type to be synthesized for the blob
+                yield return new object[] { withCtor, "char", "'a', 'b', 'c'", "ldind.u2", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6 <PrivateImplementationDetails>.13E228567E8249FCE53337F25D7970DE3BD68AB2653424C7B8F9FD05E33CAEDF2" };
+                yield return new object[] { withCtor, "int", "1, 2, 3", "ldind.i4", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D4" };
+                yield return new object[] { withCtor, "uint", "1, 2, 3", "ldind.u4", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D4" };
+                yield return new object[] { withCtor, "short", "1, 2, 3", "ldind.i2", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6 <PrivateImplementationDetails>.047DBF5366372631BA7E3E02520E651446B899C96C4B64663BAC378A298A7BF72" };
+                yield return new object[] { withCtor, "ushort", "1, 2, 3", "ldind.u2", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6 <PrivateImplementationDetails>.047DBF5366372631BA7E3E02520E651446B899C96C4B64663BAC378A298A7BF72" };
+                yield return new object[] { withCtor, "long", "1, 2, 3", "ldind.i8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.E2E2033AE7E19D680599D4EB0A1359A2B48EC5BAAC75066C317FBF85159C54EF8" };
+                yield return new object[] { withCtor, "ulong", "1, 2, 3", "ldind.i8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.E2E2033AE7E19D680599D4EB0A1359A2B48EC5BAAC75066C317FBF85159C54EF8" };
+                yield return new object[] { withCtor, "float", "1.0f, 2.0f, 3.0f", "ldind.r4", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.8E628779E6A74EE0B36991C10158F63CAFEC7D340AD4E075592502C8708524DD4" };
+                yield return new object[] { withCtor, "double", "1.0, 2.0, 3.0", "ldind.r8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.A68DE4B5E96A60C8CEB3C7B7EF93461725BDBBFF3516B136585A743B5C0EC6648" };
+                yield return new object[] { withCtor, "MyColor_Int16", "MyColor_Int16.Red, MyColor_Int16.Blue", "ldind.i2", "int <PrivateImplementationDetails>.72034DE8A594B12DE51205FEBA7ADE26899D8425E81EAC7F8C296BF974A51C602" };
+                yield return new object[] { withCtor, "MyColor_UInt16", "MyColor_UInt16.Red, MyColor_UInt16.Blue", "ldind.u2", "int <PrivateImplementationDetails>.72034DE8A594B12DE51205FEBA7ADE26899D8425E81EAC7F8C296BF974A51C602" };
+                yield return new object[] { withCtor, "MyColor_Int32", "MyColor_Int32.Red, MyColor_Int32.Blue", "ldind.i4", "long <PrivateImplementationDetails>.1B03AB083D0FB41E44D480F48D5BBA181C623C0594BDA1AA8EA71A3B67DBF3B14" };
+                yield return new object[] { withCtor, "MyColor_UInt32", "MyColor_UInt32.Red, MyColor_UInt32.Blue", "ldind.u4", "long <PrivateImplementationDetails>.1B03AB083D0FB41E44D480F48D5BBA181C623C0594BDA1AA8EA71A3B67DBF3B14" };
+                yield return new object[] { withCtor, "MyColor_Int64", "MyColor_Int64.Red, MyColor_Int64.Blue", "ldind.i8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.F7548C023E431138B11357593F5CCEB9DD35EB0B0A2041F0B1560212EEB6F13E8" };
+                yield return new object[] { withCtor, "MyColor_UInt64", "MyColor_UInt64.Red, MyColor_UInt64.Blue", "ldind.i8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.F7548C023E431138B11357593F5CCEB9DD35EB0B0A2041F0B1560212EEB6F13E8" };
+            }
+        }
+
+        public static IEnumerable<object[]> CreateSpanIsUsedForSpanOfNonSize1Types_HasCreateSpan_MemberData() =>
+            from row in CreateSpan_NonSize1Type_MemberData()
+            select new object[] { row[0], row[1], row[2], row[4] };
+
+        [Theory]
+        [MemberData(nameof(CreateSpanIsUsedForSpanOfNonSize1Types_HasCreateSpan_MemberData))]
+        public void CreateSpanIsUsedForSpanOfNonSize1Types_HasCreateSpan(bool withCtor, string type, string args, string ldtokenArg)
+        {
+            string csharp = RuntimeHelpersCreateSpan + @"
+public enum MyColor_Byte : byte { Red, Orange, Yellow, Green, Blue }
+public enum MyColor_SByte : sbyte { Red, Orange, Yellow, Green, Blue }
+public enum MyColor_UInt16 : ushort { Red, Orange, Yellow, Green, Blue }
+public enum MyColor_Int16 : short { Red, Orange, Yellow, Green, Blue }
+public enum MyColor_UInt32 : uint { Red, Orange, Yellow, Green, Blue }
+public enum MyColor_Int32 : int { Red, Orange, Yellow, Green, Blue }
+public enum MyColor_UInt64 : ulong { Red, Orange, Yellow, Green, Blue }
+public enum MyColor_Int64 : long { Red, Orange, Yellow, Green, Blue }
+
+public class Test
+{";
+            csharp += withCtor ?
+                $@"    public static System.ReadOnlySpan<{type}> StaticData => new System.ReadOnlySpan<{type}>(new {type}[] {{ {args} }});" :
+                $@"    public static System.ReadOnlySpan<{type}> StaticData => new {type}[] {{ {args} }};";
+            csharp += "}";
+
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, options: TestOptions.UnsafeReleaseDll);
+            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped);
+            verifier.VerifyIL("Test.StaticData.get", @$"{{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldtoken    ""{ldtokenArg}""
+  IL_0005:  call       ""System.ReadOnlySpan<{type}> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<{type}>(System.RuntimeFieldHandle)""
+  IL_000a:  ret
+}}");
+        }
+
+        public static IEnumerable<object[]> CachedArray_NonSize1Type_MemberData()
+        {
+            yield return new object[] { "ushort", "1", 1, "ldind.u2", "short", "<PrivateImplementationDetails>.47DC540C94CEB704A23875C11273E16BB0B8A87AED84DE911F2133568115F2542" };
+            yield return new object[] { "ushort", "1, 2", 2, "ldind.u2", "int", "<PrivateImplementationDetails>.7B11C1133330CD161071BF23A0C9B6CE5320A8F3A0F83620035A72BE46DF41042" };
+            yield return new object[] { "ushort", "1, 2, 3, 4", 4, "ldind.u2", "long", "<PrivateImplementationDetails>.EA99F710D9D0B8BA192295C969A63ED7CE8FC5743DA20D2057FA2B6D2C404BFB2" };
+            yield return new object[] { "uint", "1", 1, "ldind.u4", "int", "<PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA4504" };
+            yield return new object[] { "uint", "1, 2", 2, "ldind.u4", "long", "<PrivateImplementationDetails>.34FB5C825DE7CA4AEA6E712F19D439C1DA0C92C37B423936C5F618545CA4FA1F4" };
+            yield return new object[] { "ulong", "1", 1, "ldind.i8", "long", "<PrivateImplementationDetails>.7C9FA136D4413FA6173637E883B6998D32E1D675F88CDDFF9DCBCF331820F4B88" };
+            yield return new object[] { "char", "'a', 'b', 'c'", 3, "ldind.u2", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6", "<PrivateImplementationDetails>.13E228567E8249FCE53337F25D7970DE3BD68AB2653424C7B8F9FD05E33CAEDF2" };
+            yield return new object[] { "int", "1, 2, 3", 3, "ldind.i4", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12", "<PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D4" };
+            yield return new object[] { "uint", "1, 2, 3", 3, "ldind.u4", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12", "<PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D4" };
+            yield return new object[] { "short", "1, 2, 3", 3, "ldind.i2", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6", "<PrivateImplementationDetails>.047DBF5366372631BA7E3E02520E651446B899C96C4B64663BAC378A298A7BF72" };
+            yield return new object[] { "ushort", "1, 2, 3", 3, "ldind.u2", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6", "<PrivateImplementationDetails>.047DBF5366372631BA7E3E02520E651446B899C96C4B64663BAC378A298A7BF72" };
+            yield return new object[] { "long", "1, 2, 3", 3, "ldind.i8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24", "<PrivateImplementationDetails>.E2E2033AE7E19D680599D4EB0A1359A2B48EC5BAAC75066C317FBF85159C54EF8" };
+            yield return new object[] { "ulong", "1, 2, 3", 3, "ldind.i8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24", "<PrivateImplementationDetails>.E2E2033AE7E19D680599D4EB0A1359A2B48EC5BAAC75066C317FBF85159C54EF8" };
+            yield return new object[] { "float", "1.0f, 2.0f, 3.0f", 3, "ldind.r4", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12", "<PrivateImplementationDetails>.8E628779E6A74EE0B36991C10158F63CAFEC7D340AD4E075592502C8708524DD4" };
+            yield return new object[] { "double", "1.0, 2.0, 3.0", 3, "ldind.r8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24", "<PrivateImplementationDetails>.A68DE4B5E96A60C8CEB3C7B7EF93461725BDBBFF3516B136585A743B5C0EC6648" };
+            yield return new object[] { "MyColor_Int16", "MyColor_Int16.Red, MyColor_Int16.Blue", 2, "ldind.i2", "int", "<PrivateImplementationDetails>.72034DE8A594B12DE51205FEBA7ADE26899D8425E81EAC7F8C296BF974A51C602" };
+            yield return new object[] { "MyColor_UInt16", "MyColor_UInt16.Red, MyColor_UInt16.Blue", 2, "ldind.u2", "int", "<PrivateImplementationDetails>.72034DE8A594B12DE51205FEBA7ADE26899D8425E81EAC7F8C296BF974A51C602" };
+            yield return new object[] { "MyColor_Int32", "MyColor_Int32.Red, MyColor_Int32.Blue", 2, "ldind.i4", "long", "<PrivateImplementationDetails>.1B03AB083D0FB41E44D480F48D5BBA181C623C0594BDA1AA8EA71A3B67DBF3B14" };
+            yield return new object[] { "MyColor_UInt32", "MyColor_UInt32.Red, MyColor_UInt32.Blue", 2, "ldind.u4", "long", "<PrivateImplementationDetails>.1B03AB083D0FB41E44D480F48D5BBA181C623C0594BDA1AA8EA71A3B67DBF3B14" };
+            yield return new object[] { "MyColor_Int64", "MyColor_Int64.Red, MyColor_Int64.Blue", 2, "ldind.i8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16", "<PrivateImplementationDetails>.F7548C023E431138B11357593F5CCEB9DD35EB0B0A2041F0B1560212EEB6F13E8" };
+            yield return new object[] { "MyColor_UInt64", "MyColor_UInt64.Red, MyColor_UInt64.Blue", 2, "ldind.i8", "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16", "<PrivateImplementationDetails>.F7548C023E431138B11357593F5CCEB9DD35EB0B0A2041F0B1560212EEB6F13E8" };
+        }
+
+        [Theory]
+        [MemberData(nameof(CachedArray_NonSize1Type_MemberData))]
+        public void CachedArrayIsUsedForSpanOfNonSize1Types_NoCreateSpan(string type, string args, int length, string ldind, string fieldType, string fieldName)
+        {
+            string csharp = @$"
+public enum MyColor_Byte : byte {{ Red, Orange, Yellow, Green, Blue }}
+public enum MyColor_SByte : sbyte {{ Red, Orange, Yellow, Green, Blue }}
+public enum MyColor_UInt16 : ushort {{ Red, Orange, Yellow, Green, Blue }}
+public enum MyColor_Int16 : short {{ Red, Orange, Yellow, Green, Blue }}
+public enum MyColor_UInt32 : uint {{ Red, Orange, Yellow, Green, Blue }}
+public enum MyColor_Int32 : int {{ Red, Orange, Yellow, Green, Blue }}
+public enum MyColor_UInt64 : ulong {{ Red, Orange, Yellow, Green, Blue }}
+public enum MyColor_Int64 : long {{ Red, Orange, Yellow, Green, Blue }}
+
+public class Test
+{{
+    public static {type} M()
+    {{
+        System.ReadOnlySpan<{type}> s = new {type}[] {{ {args} }};
+        return s[0];
+    }}
+}}";
+
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseDll);
+            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped);
+            verifier.VerifyIL("Test.M", @$"{{
+  // Code size       48 (0x30)
+  .maxstack  3
+  .locals init (System.ReadOnlySpan<{type}> V_0) //s
+  IL_0000:  ldsfld     ""{type}[] {fieldName}_Array""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_0020
+  IL_0008:  pop
+  IL_0009:  ldc.i4.{length}
+  IL_000a:  newarr     ""{type}""
+  IL_000f:  dup
+  IL_0010:  ldtoken    ""{fieldType} {fieldName}""
+  IL_0015:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_001a:  dup
+  IL_001b:  stsfld     ""{type}[] {fieldName}_Array""
+  IL_0020:  newobj     ""System.ReadOnlySpan<{type}>..ctor({type}[])""
+  IL_0025:  stloc.0
+  IL_0026:  ldloca.s   V_0
+  IL_0028:  ldc.i4.0
+  IL_0029:  call       ""ref readonly {type} System.ReadOnlySpan<{type}>.this[int].get""
+  IL_002e:  {ldind}
+  IL_002f:  ret
+}}");
+        }
+
+        [Theory]
+        [InlineData(0, 2)]
+        [InlineData(1, 1)]
+        [InlineData(1, 2)]
+        [InlineData(1, 3)]
+        [InlineData(0, 4)]
+        public void CreateSpanIsNotUsedForSpanOfNonSize1Types_NonFullLength(int start, int length)
+        {
+            var csharp = RuntimeHelpersCreateSpan + @$"
+public class Test
+{{
+    public static System.ReadOnlySpan<char> StaticData => new System.ReadOnlySpan<char>(new char[] {{ 'a', 'b', 'c' }}, {start}, {length});
+}}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseDll);
+            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped);
+            verifier.VerifyIL("Test.StaticData.get", @$"{{
+  // Code size       29 (0x1d)
+  .maxstack  4
+  IL_0000:  ldc.i4.3
+  IL_0001:  newarr     ""char""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldc.i4.s   97
+  IL_000a:  stelem.i2
+  IL_000b:  dup
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldc.i4.s   98
+  IL_000f:  stelem.i2
+  IL_0010:  dup
+  IL_0011:  ldc.i4.2
+  IL_0012:  ldc.i4.s   99
+  IL_0014:  stelem.i2
+  IL_0015:  ldc.i4.{start}
+  IL_0016:  ldc.i4.{length}
+  IL_0017:  newobj     ""System.ReadOnlySpan<char>..ctor(char[], int, int)""
+  IL_001c:  ret
+}}");
+        }
+
+        [Theory]
+        [InlineData("System.IntPtr")]
+        [InlineData("System.UIntPtr")]
+        [InlineData("decimal")]
+        [InlineData("SingleByteField")]
+        [InlineData("object")]
+        [InlineData("string")]
+        public void CreateSpanIsNotUsedForNonSupportedTypes(string type)
+        {
+            var csharp = RuntimeHelpersCreateSpan + $@"
+public struct SingleByteField
+{{
+    public byte Value;
+}}
+
+public class Test
+{{
+    public static System.ReadOnlySpan<{type}> StaticData => new {type}[] {{ default, default, default }};
+}}
+";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, options: TestOptions.UnsafeReleaseDll);
+            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped);
+            verifier.VerifyIL("Test.StaticData.get", @$"{{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldc.i4.3
+  IL_0001:  newarr     ""{type}""
+  IL_0006:  call       ""System.ReadOnlySpan<{type}> System.ReadOnlySpan<{type}>.op_Implicit({type}[])""
+  IL_000b:  ret
+}}");
+        }
+
+        [Theory]
+        [InlineData("byte", 1)]
+        [InlineData("short", 2)]
+        [InlineData("int", 4)]
+        [InlineData("long", 8)]
+        public void Alignment_FieldsAreAlignedAndPackedAccordingToType(string typeName, int expectedAlignment)
+        {
+            string csharp = RuntimeHelpersCreateSpan + $@"
+public class Test
+{{
+    public static System.ReadOnlySpan<{typeName}> Data => new {typeName}[] {{ 1, 2, 3 }};
+}}";
+
+            var compilation = CreateCompilation(csharp, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.UnsafeReleaseDll);
+            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped);
+            verifier.VerifyTypeIL("<PrivateImplementationDetails>", il =>
+            {
+                Assert.Contains($".pack {expectedAlignment}", il);
+
+                Match m = Regex.Match(il, @"\.data cil I_([0-9A-F]*) = bytearray");
+                Assert.True(m.Success, $"Expected regex to match in {il}");
+                Assert.True(long.TryParse(m.Groups[1].Value, NumberStyles.HexNumber, null, out long rva), $"Expected {m.Value} to parse as hex long.");
+                Assert.True(rva % expectedAlignment == 0, $"Expected RVA {rva:X8} to be {expectedAlignment}-byte aligned.");
+            });
+        }
+
+        private const string RuntimeHelpersCreateSpan = @"
+namespace System.Runtime.CompilerServices
+{
+    public static class RuntimeHelpers
+    {
+        public static ReadOnlySpan<T> CreateSpan<T>(RuntimeFieldHandle fldHandle) => default;
+    }
+}";
     }
 }

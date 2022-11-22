@@ -981,14 +981,24 @@ namespace Microsoft.CodeAnalysis.Emit
 
         #region Token Mapping
 
-        Cci.IFieldReference ITokenDeferral.GetFieldForData(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        Cci.IFieldReference ITokenDeferral.GetFieldForData(ImmutableArray<byte> data, ushort alignment, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            Debug.Assert(this.SupportsPrivateImplClass);
+            Debug.Assert(SupportsPrivateImplClass);
 
-            var privateImpl = this.GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
+            var privateImpl = GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
 
             // map a field to the block (that makes it addressable via a token)
-            return privateImpl.CreateDataField(data);
+            return privateImpl.CreateDataField(data, alignment);
+        }
+
+        Cci.IFieldReference ITokenDeferral.GetArrayCachingFieldForData(ImmutableArray<byte> data, ushort alignment, Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(SupportsPrivateImplClass);
+
+            var privateImpl = GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
+
+            // map a field to the block (that makes it addressable via a token)
+            return privateImpl.CreateArrayCachingField(data, alignment, arrayType);
         }
 
         public abstract Cci.IMethodReference GetInitArrayHelper();
