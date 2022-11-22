@@ -35,14 +35,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             (ProjectPrimaryKey projectKeyId, int dataNameId)>
         {
             public ProjectAccessor(SQLitePersistentStorage storage)
-                : base(storage,
+                : base(Table.Project,
+                      storage,
                       (ProjectPathIdColumnName, SQLiteIntegerType),
                       (ProjectNameIdColumnName, SQLiteIntegerType),
                       (DataNameIdColumnName, SQLiteIntegerType))
             {
             }
-
-            protected override Table Table => Table.Project;
 
             protected override (ProjectPrimaryKey projectKeyId, int dataNameId)? TryGetDatabaseId(SqlConnection connection, (ProjectKey projectKey, string name) key, bool allowWrite)
                 => Storage.TryGetProjectDataId(connection, key.projectKey, key.name, allowWrite);

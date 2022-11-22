@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             where TDatabaseId : struct
         {
             protected readonly SQLitePersistentStorage Storage;
+            protected readonly Table Table;
 
             private readonly ImmutableArray<(string name, string type)> _primaryKeyColumns;
             private readonly ImmutableArray<(string name, string type)> _allColumns;
@@ -47,10 +48,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             private readonly string _insert_or_replace_into_writecache_table_values_0primarykey_1checksum_2data;
 
             public Accessor(
+                Table table,
                 SQLitePersistentStorage storage,
                 params (string name, string type)[] primaryKeysArray)
             {
+                Table = table;
                 Storage = storage;
+
                 _primaryKeyColumns = primaryKeysArray.ToImmutableArray();
                 _allColumns = _primaryKeyColumns.Add((ChecksumColumnName, SQLiteBlobType)).Add((DataColumnName, SQLiteBlobType));
 
@@ -77,8 +81,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                         limit 1
                         """;
             }
-
-            protected abstract Table Table { get; }
 
             /// <summary>
             /// Gets the internal sqlite db-id (effectively the row-id for the doc or proj table, or just the string-id

@@ -33,12 +33,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private sealed class SolutionAccessor : Accessor<string, SolutionPrimaryKey>
         {
             public SolutionAccessor(SQLitePersistentStorage storage)
-                : base(storage,
+                : base(Table.Solution,
+                      storage,
                       (SolutionDataIdColumnName, SQLiteVarCharType))
             {
             }
-
-            protected override Table Table => Table.Solution;
 
             // For the SolutionDataTable the key itself acts as the data-id.
             protected override SolutionPrimaryKey? TryGetDatabaseId(SqlConnection connection, string key, bool allowWrite)

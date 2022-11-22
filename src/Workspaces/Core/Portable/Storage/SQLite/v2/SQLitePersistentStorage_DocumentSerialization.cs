@@ -35,7 +35,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             (DocumentPrimaryKey documentkeyId, int dataNameId)>
         {
             public DocumentAccessor(SQLitePersistentStorage storage)
-                : base(storage,
+                : base(Table.Document,
+                      storage,
                       (ProjectPathIdColumnName, SQLiteIntegerType),
                       (ProjectNameIdColumnName, SQLiteIntegerType),
                       (DocumentPathIdColumnName, SQLiteIntegerType),
@@ -43,8 +44,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                       (DataNameIdColumnName, SQLiteIntegerType))
             {
             }
-
-            protected override Table Table => Table.Document;
 
             protected override (DocumentPrimaryKey documentkeyId, int dataNameId)? TryGetDatabaseId(SqlConnection connection, (DocumentKey documentKey, string name) key, bool allowWrite)
                 => Storage.TryGetDocumentDataId(connection, key.documentKey, key.name, allowWrite);
