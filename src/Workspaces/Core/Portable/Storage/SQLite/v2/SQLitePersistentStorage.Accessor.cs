@@ -368,6 +368,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 {
                     var statement = resettableStatement.Statement;
 
+                    // Binding indices are 1 based.
                     BindPrimaryKey(statement, dataId, dataNameId);
                     statement.BindBlobParameter(parameterIndex: _primaryKeyColumns.Length + 1, checksumBytes);
                     statement.BindBlobParameter(parameterIndex: _primaryKeyColumns.Length + 2, dataBytes);
