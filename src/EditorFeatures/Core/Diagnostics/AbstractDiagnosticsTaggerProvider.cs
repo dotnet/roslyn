@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         protected override TaggerDelay EventChangeDelay => TaggerDelay.Short;
         protected override TaggerDelay AddedTagNotificationDelay => TaggerDelay.OnIdle;
 
-        protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
+        protected sealed override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
         {
             // OnTextChanged is added for diagnostics in source generated files: it's possible that the analyzer driver
             // executed on content which was produced by a source generator but is not yet reflected in an open text
