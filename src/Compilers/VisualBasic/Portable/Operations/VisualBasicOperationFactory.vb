@@ -60,7 +60,6 @@ Namespace Microsoft.CodeAnalysis.Operations
             ' by the BoundConversion creation. We should never receive one in this top level create call.
             Debug.Assert(boundNode.Kind <> BoundKind.UserDefinedConversion)
 
-
             Select Case boundNode.Kind
                 Case BoundKind.AssignmentOperator
                     Return CreateBoundAssignmentOperatorOperation(DirectCast(boundNode, BoundAssignmentOperator))
@@ -1695,5 +1694,4 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
     End Class
 End Namespace
-
 

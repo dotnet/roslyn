@@ -2145,7 +2145,6 @@ class Test : System.Attribute
             VerifyNotInScope(model, x7Ref[2]);
         }
 
-
         [Fact]
         public void Scope_Attribute_03()
         {
@@ -15215,7 +15214,6 @@ public class X
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(15, 9)
                 );
 
-
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -17052,7 +17050,6 @@ public class X
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(15, 9)
                 );
 
-
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -17929,7 +17926,6 @@ public class Cls
 
             Assert.Equal("a=System.Int32", model.GetAliasInfo(x1Decl.Type).ToTestDisplayString());
         }
-
 
         [Fact]
         public void GetAliasInfo_02()
@@ -32487,7 +32483,6 @@ class H
 
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
-
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -32515,7 +32510,6 @@ class H
 ";
 
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
-
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -32545,7 +32539,6 @@ class H
 
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
-
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -32571,7 +32564,6 @@ class H
 ";
 
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
-
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -33598,20 +33590,43 @@ class C
             // the scope of an expression variable introduced in the default expression
             // of a lambda parameter is that default expression.
             var compilation = CreateCompilationWithMscorlib45(text);
-            compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_DefaultValueNotAllowed).Verify(
-                // (9,55): error CS0103: The name 'z1' does not exist in the current context
-                //                                             { var t = z1; };
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(9, 55),
-                // (13,55): error CS0103: The name 'z2' does not exist in the current context
-                //                                             { var t = z2; };
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(13, 55),
-                // (15,17): error CS0103: The name 'z1' does not exist in the current context
-                //         int x = z1 + z2;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(15, 17),
-                // (15,22): error CS0103: The name 'z2' does not exist in the current context
-                //         int x = z1 + z2;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(15, 22)
-                );
+            compilation.GetDiagnostics().Verify(
+                    // (7,56): error CS1065: Default values are not valid in this context.
+                    //                                                 bool b = M(M(out int z1), z1), 
+                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(7, 56),
+                    // (7,58): error CS1736: Default parameter value for 'b' must be a compile-time constant
+                    //                                                 bool b = M(M(out int z1), z1), 
+                    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(M(out int z1), z1)").WithArguments("b").WithLocation(7, 58),
+                    // (8,56): error CS1065: Default values are not valid in this context.
+                    //                                                 int s2 = z1) 
+                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(8, 56),
+                    // (8,58): error CS0103: The name 'z1' does not exist in the current context
+                    //                                                 int s2 = z1) 
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(8, 58),
+                    // (9,55): error CS0103: The name 'z1' does not exist in the current context
+                    //                                             { var t = z1; };
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(9, 55),
+                    // (11,56): error CS1065: Default values are not valid in this context.
+                    //                                                 bool b = M(M(out var z2), z2), 
+                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(11, 56),
+                    // (11,58): error CS1736: Default parameter value for 'b' must be a compile-time constant
+                    //                                                 bool b = M(M(out var z2), z2), 
+                    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(M(out var z2), z2)").WithArguments("b").WithLocation(11, 58),
+                    // (12,56): error CS1065: Default values are not valid in this context.
+                    //                                                 int s2 = z2)  
+                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(12, 56),
+                    // (12,58): error CS0103: The name 'z2' does not exist in the current context
+                    //                                                 int s2 = z2)  
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(12, 58),
+                    // (13,55): error CS0103: The name 'z2' does not exist in the current context
+                    //                                             { var t = z2; };
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(13, 55),
+                    // (15,17): error CS0103: The name 'z1' does not exist in the current context
+                    //         int x = z1 + z2;
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(15, 17),
+                    // (15,22): error CS0103: The name 'z2' does not exist in the current context
+                    //         int x = z1 + z2;
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(15, 22));
 
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -34139,7 +34154,6 @@ class Test : System.Attribute
             VerifyModelForOutVar(model, x2Decl[0], x2Ref[1]);
             VerifyModelForOutVarInNotExecutableCode(model, x2Decl[1], x2Ref[0]);
         }
-
 
         [Fact]
         public void Scope_InvalidArrayDimensions01()
@@ -34741,6 +34755,12 @@ class C
                 // (9,22): error CS0103: The name 'z2' does not exist in the current context
                 //         int x = z1 + z2;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(9, 22),
+                // (6,55): error CS0165: Use of unassigned local variable 'z1'
+                //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z1").WithArguments("z1").WithLocation(6, 55),
+                // (7,55): error CS0165: Use of unassigned local variable 'z2'
+                //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z2").WithArguments("z2").WithLocation(7, 55),
                 // (6,14): warning CS8321: The local function 'Local2' is declared but never used
                 //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local2").WithArguments("Local2").WithLocation(6, 14),
@@ -36292,7 +36312,6 @@ public class MyAttribute : System.Attribute
             symbolInfo = speculativeModel.GetSymbolInfo(invocation);
             Assert.Equal("System.String C.M2(out System.Int32 x)", symbolInfo.Symbol.ToTestDisplayString());
         }
-
 
         [Fact]
         [WorkItem(60801, "https://github.com/dotnet/roslyn/issues/60801")]

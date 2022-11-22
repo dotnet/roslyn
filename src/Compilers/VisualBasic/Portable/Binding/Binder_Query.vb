@@ -338,7 +338,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             letSelectorLambdaSymbol.SetQueryLambdaReturnType(letSelector.Type)
             letSelectorLambda.SetWasCompilerGenerated()
 
-
             ' Now bind the [Let] operator call.
             Dim underlyingExpression As BoundExpression
 
@@ -440,7 +439,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 intoBinder = New IntoClauseDisallowGroupReferenceBinder(selectSelectorBinder,
                                                                         groupReference, group.RangeVariables, group.CompoundVariableType,
                                                                         firstSelectSelectorBinder.RangeVariables.Concat(group.RangeVariables))
-
 
                 ' Compound range variable after the first [Let] has shape { [<compound key part1>, ][<compound key part2>, ]<group> }.
                 Dim compoundKeyReferencePart1 As BoundExpression
@@ -721,7 +719,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return bodyType IsNot Nothing AndAlso bodyType.IsErrorType()
         End Function
 
-
         Private Shared Function ShadowsRangeVariableInTheChildScope(
             childScopeBinder As Binder,
             rangeVar As RangeVariableSymbol
@@ -917,7 +914,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return MustProduceFlatCompoundVariable(operatorsEnumerator)
             End Select
         End Function
-
 
         ''' <summary>
         ''' Given result of binding preceding query operators, if any, bind the following From operator.
@@ -1414,7 +1410,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 inner = BindCollectionRangeVariable(join.JoinedVariables(0), False, declaredNames, diagnostics)
             End If
 
-
             For Each additionalJoin As JoinClauseSyntax In join.AdditionalJoins
                 Select Case additionalJoin.Kind
                     Case SyntaxKind.SimpleJoinClause
@@ -1847,7 +1842,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-
         ''' <summary>
         ''' Returns Nothing if items were omitted.
         ''' </summary>
@@ -2157,7 +2151,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return intoLambda
         End Function
 
-
         Private Sub VerifyRangeVariableName(rangeVar As RangeVariableSymbol, identifier As SyntaxToken, diagnostics As BindingDiagnosticBag)
             Debug.Assert(identifier.Parent Is rangeVar.Syntax)
 
@@ -2402,7 +2395,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         boundCallOrBadExpression.Type)
         End Function
 
-
         ''' <summary>
         ''' Given result of binding preceding query operators, the source, bind the following Distinct operator.
         ''' 
@@ -2510,7 +2502,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         ImmutableArray(Of Binder).Empty,
                                         boundCallOrBadExpression.Type)
         End Function
-
 
         ''' <summary>
         ''' Given result of binding preceding query operators, the source, bind the following Order By operator.
@@ -2634,7 +2625,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         ImmutableArray.Create(Of Binder)(keyBinder),
                                         sourceOrPreviousOrdering.Type)
         End Function
-
 
         ''' <summary>
         ''' This is a top level binder used to bind bodies of query lambdas.
@@ -2979,7 +2969,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(Not declaredRangeVariables.IsDefault)
                 Return selector
             End Function
-
 
             ''' <summary>
             ''' Bind body of a lambda representing first Select operator selector for an aggregate clause in context of this binder.
@@ -3530,7 +3519,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return keysAreGood
             End Function
 
-
             Private Function VerifyJoinKeys(
                 outerKey As BoundExpression,
                 outerRangeVariables As ImmutableArray(Of RangeVariableSymbol),
@@ -3680,7 +3668,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return node
                 End Function
             End Class
-
 
             ''' <summary>
             ''' Helper visitor to report query specific errors for an operand of an Equals expression.
@@ -3907,7 +3894,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     rangeVariables = {rangeVar}
                 End If
 
-
                 AssertDeclaredNames(declaredNames, rangeVariables.AsImmutableOrNull())
 
                 declaredRangeVariables = rangeVariables.AsImmutableOrNull()
@@ -3989,7 +3975,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                             ImmutableArray.Create(Of Binder)(aggregationBinder),
                                             boundCallOrBadExpression.Type)
             End Function
-
 
             Public Overrides Sub AddLookupSymbolsInfo(nameSet As LookupSymbolsInfo, options As LookupOptions)
                 If (options And (LookupOptionExtensions.ConsiderationMask Or LookupOptions.MustNotBeInstance)) <> 0 Then
@@ -4323,7 +4308,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return source
         End Function
 
-
         ''' <summary>
         ''' Convert source expression to queryable type by inferring control variable type 
         ''' and applying AsQueryable/AsEnumerable or Cast(Of Object) calls.   
@@ -4422,7 +4406,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert((result Is Nothing) = (controlVariableType Is Nothing))
             Return If(result Is Nothing, source, result)
         End Function
-
 
         ''' <summary>
         ''' Given query operator source, infer control variable type from available
@@ -4558,7 +4541,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return If(controlVariableType.IsErrorType(), Nothing, controlVariableType)
         End Function
 
-
         ''' <summary>
         ''' Return method group or Nothing in case nothing was found.
         ''' Note, returned group might have ResultKind = "Inaccessible".
@@ -4600,7 +4582,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return methodGroup
         End Function
-
 
         Private Function BindQueryOperatorCall(
             node As SyntaxNode,

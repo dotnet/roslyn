@@ -19,10 +19,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             FeatureName, nameof(LspPullDiagnosticsFeatureFlag), defaultValue: false,
             new FeatureFlagStorageLocation("Lsp.PullDiagnostics"));
 
-        public static readonly Option2<bool> IncrementalMemberEditAnalysisFeatureFlag = new(
-            FeatureName, nameof(IncrementalMemberEditAnalysisFeatureFlag), defaultValue: false,
-            new FeatureFlagStorageLocation("Roslyn.IncrementalMemberEditAnalysis"));
-
         public static readonly Option2<bool> LogTelemetryForBackgroundAnalyzerExecution = new(
             FeatureName, nameof(LogTelemetryForBackgroundAnalyzerExecution), defaultValue: false,
             new FeatureFlagStorageLocation($"Roslyn.LogTelemetryForBackgroundAnalyzerExecution"));
