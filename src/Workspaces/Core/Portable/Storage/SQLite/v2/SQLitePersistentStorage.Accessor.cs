@@ -31,20 +31,19 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             private readonly ImmutableArray<(string name, string type)> _primaryKeys;
 
-            // Cache the statement strings we want to execute per accessor.  This way we avoid
-            // allocating these strings each time we execute a command.  We also cache the prepared
-            // statements (at the connection level) we make for each of these strings.  That way we
-            // only incur the parsing cost once. After that, we can use the same prepared statements
-            // and just bind the appropriate values it needs into it.
+            // Cache the statement strings we want to execute per accessor.  This way we avoid allocating these strings
+            // each time we execute a command.  We also cache the prepared statements (at the connection level) we make
+            // for each of these strings.  That way we only incur the parsing cost once. After that, we can use the same
+            // prepared statements and just bind the appropriate values it needs into it.
             //
-            // values like 0, 1, 2 in the name are the `?`s in the sql string that will need to be
+            // Names starting with numbers (like 0primarykey) indicates the `?`s in the sql string that will need to be
             // bound to runtime values appropriately when executed.
 
-            private readonly string _select_rowid_from_main_table_where_0;
-            private readonly string _select_rowid_from_writecache_table_where_0;
-            private readonly string _insert_or_replace_into_writecache_table_values_0_1_2;
             private readonly string _delete_from_writecache_table;
             private readonly string _insert_or_replace_into_main_table_select_star_from_writecache_table;
+            private readonly string _select_rowid_from_main_table_where_0primarykey;
+            private readonly string _select_rowid_from_writecache_table_where_0primarykey;
+            private readonly string _insert_or_replace_into_writecache_table_values_0primarykey_1checksum_2data;
 
             public Accessor(
                 SQLitePersistentStorage storage,
@@ -53,25 +52,31 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 Storage = storage;
                 _primaryKeys = primaryKeysArray.ToImmutableArray();
 
-                var main = Database.Main.GetName();
                 var writeCache = Database.WriteCache.GetName();
 
-                // "X" = ? and "Y" = ? and "Z" = ?
-                var whereClause = string.Join(" and ", _primaryKeys.Select(k => $@"{k.name} = ?"));
+                _delete_from_writecache_table = $"delete from {writeCache}.{TableName};";
+                _insert_or_replace_into_main_table_select_star_from_writecache_table =
+                    $"insert or replace into {Database.Main.GetName()}.{TableName} select * from {writeCache}.{TableName};";
 
-                var dataTableName = this.TableName;
-                _select_rowid_from_main_table_where_0 = $"select rowid from {main}.{dataTableName} where {whereClause}";
-                _select_rowid_from_writecache_table_where_0 = $"select rowid from {writeCache}.{dataTableName} where {whereClause}";
+                _select_rowid_from_main_table_where_0primarykey = GetSelectRowIdQuery(Database.Main);
+                _select_rowid_from_writecache_table_where_0primarykey = GetSelectRowIdQuery(Database.WriteCache);
 
                 var allColumnNames = _primaryKeys.Select(t => t.name).Concat(ChecksumColumnName).Concat(DataColumnName);
 
-                _insert_or_replace_into_writecache_table_values_0_1_2 = $@"insert or replace into {writeCache}.{dataTableName}
-                    ({string.Join(",", allColumnNames)})
-                    values
-                    ({string.Join(",", allColumnNames.Select(n => "?"))})";
+                _insert_or_replace_into_writecache_table_values_0primarykey_1checksum_2data = $"""
+                    insert or replace into {writeCache}.{TableName}
+                    ({string.Join(",", allColumnNames)}) values ({string.Join(",", allColumnNames.Select(n => "?"))})
+                    """;
 
-                _delete_from_writecache_table = $"delete from {writeCache}.{dataTableName};";
-                _insert_or_replace_into_main_table_select_star_from_writecache_table = $"insert or replace into {main}.{dataTableName} select * from {writeCache}.{dataTableName};";
+                return;
+
+                string GetSelectRowIdQuery(Database database)
+                {
+                    return $"""
+                        select rowid from {database.GetName()}.{TableName} where
+                        {string.Join(" and ", _primaryKeys.Select(k => $"{k.name} = ?"))}
+                        """;
+                }
             }
 
             protected abstract Table Table { get; }
@@ -101,12 +106,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             public void CreateTable(SqlConnection connection, Database database)
             {
+                // This is only executed once per process, so we don't bother trying to cache this string.
                 connection.ExecuteCommand($"""
                     create table if not exists {database.GetName()}.{this.TableName}(
-                        {string.Join(", ", _primaryKeys.Select(k => $@"{k.name} {k.type} not null"))},
-                        "{ChecksumColumnName}" blob,
-                        "{DataColumnName}" blob,
-                        primary key({string.Join(", ", _primaryKeys.Select(k => k.name))})
+                        {string.Join(",", _primaryKeys.Select(k => $"{k.name} {k.type} not null"))},
+                        {ChecksumColumnName} blob,
+                        {DataColumnName} blob,
+                        primary key({string.Join(",", _primaryKeys.Select(k => k.name))})
                     )
                     """);
             }
@@ -318,8 +324,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 // of those special names, then the use of that name will refer to the declared column
                 // not to the internal ROWID.
                 using var resettableStatement = connection.GetResettableStatement(database == Database.WriteCache
-                    ? _select_rowid_from_writecache_table_where_0
-                    : _select_rowid_from_main_table_where_0);
+                    ? _select_rowid_from_writecache_table_where_0primarykey
+                    : _select_rowid_from_main_table_where_0primarykey);
 
                 var statement = resettableStatement.Statement;
 
@@ -344,7 +350,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 // We're writing.  This better always be under the exclusive scheduler.
                 Contract.ThrowIfFalse(TaskScheduler.Current == Storage._connectionPoolService.Scheduler.ExclusiveScheduler);
 
-                using (var resettableStatement = connection.GetResettableStatement(_insert_or_replace_into_writecache_table_values_0_1_2))
+                using (var resettableStatement = connection.GetResettableStatement(
+                    _insert_or_replace_into_writecache_table_values_0primarykey_1checksum_2data))
                 {
                     var statement = resettableStatement.Statement;
 
