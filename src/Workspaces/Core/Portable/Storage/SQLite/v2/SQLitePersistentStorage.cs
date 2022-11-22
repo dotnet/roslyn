@@ -216,7 +216,7 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
                         "{DataNameIdColumnName}" integer not null,
                         "{ChecksumColumnName}" blob,
                         "{DataColumnName}" blob,
-                        PRIMARY KEY("{ProjectPathIdColumnName}", "{ProjectNameIdColumnName}", "{DocumentPathIdColumnName}", "{DocumentNameIdColumnName}, "{DataNameIdColumnName}")
+                        PRIMARY KEY("{ProjectPathIdColumnName}", "{ProjectNameIdColumnName}", "{DocumentPathIdColumnName}", "{DocumentNameIdColumnName}", "{DataNameIdColumnName}")
                     )
                     """);
             }
