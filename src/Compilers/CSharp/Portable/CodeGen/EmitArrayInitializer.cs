@@ -400,13 +400,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             var rosPointerCtor = (MethodSymbol?)Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer, _diagnostics, syntax: wrappedExpression.Syntax, isOptional: true);
-            var rosArrayCtor = (MethodSymbol?)Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_ReadOnlySpan_T__ctor_Array, _diagnostics, syntax: wrappedExpression.Syntax, isOptional: true);
-            if (rosPointerCtor is null || rosArrayCtor is null)
+            if (rosPointerCtor is null)
             {
                 return false;
             }
-
-            Debug.Assert(!rosPointerCtor.HasUnsupportedMetadata && !rosArrayCtor.HasUnsupportedMetadata);
+            Debug.Assert(!rosPointerCtor.HasUnsupportedMetadata);
 
             // The purpose of this optimization is to replace a BoundArrayCreation with better code generation.
             // We're looking for an expression like:
@@ -615,6 +613,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // We're dealing with a multi-byte primitive, and CreateSpan was not available.  Get a static field from PrivateImplementationDetails,
             // and use it as a lazily-initialized cache for an array for this data:
             //     new ReadOnlySpan<T>(PrivateImplementationDetails.ArrayField ??= RuntimeHelpers.InitializeArray(new int[Length], PrivateImplementationDetails.DataField));
+
+            var rosArrayCtor = (MethodSymbol?)Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_ReadOnlySpan_T__ctor_Array, _diagnostics, syntax: wrappedExpression.Syntax, isOptional: true);
+            if (rosArrayCtor is null)
+            {
+                // The ReadOnlySpan<T>(T[] array) constructor we need is missing.
+                return false;
+            }
+            Debug.Assert(!rosArrayCtor.HasUnsupportedMetadata);
+
             ushort alignment = (ushort)specialElementType.SizeInBytes();
             var cachingField = _builder.module.GetArrayCachingFieldForData(data, alignment, _module.Translate(arrayType), wrappedExpression.Syntax, _diagnostics.DiagnosticBag!);
             var arrayAvailable = new object();
