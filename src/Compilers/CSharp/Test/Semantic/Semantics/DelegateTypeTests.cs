@@ -13928,6 +13928,20 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
         }
 
         [Fact]
+        public void ParamsArray_MissingParamArrayAttribute()
+        {
+            var source = """
+                var lam = (params int[] xs) => xs.Length;
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_ParamArrayAttribute);
+            comp.VerifyDiagnostics(
+                // (1,25): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
+                // var lam = (params int[] xs) => xs.Length;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "xs").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(1, 25));
+        }
+
+        [Fact]
         public void ParamsArray_SynthesizedTypesMatch()
         {
             var source = """

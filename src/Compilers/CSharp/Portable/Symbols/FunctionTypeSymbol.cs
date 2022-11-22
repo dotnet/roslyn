@@ -37,21 +37,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static readonly NamedTypeSymbol Uninitialized = new UnsupportedMetadataTypeSymbol();
 
         private readonly Binder? _binder;
-        private readonly Func<Binder, BoundExpression, NamedTypeSymbol?>? _calculateDelegate;
+        private readonly BindingDiagnosticBag? _diagnostics;
+        private readonly Func<Binder, BoundExpression, BindingDiagnosticBag, NamedTypeSymbol?>? _calculateDelegate;
 
         private BoundExpression? _expression;
         private NamedTypeSymbol? _lazyDelegateType;
 
-        internal static FunctionTypeSymbol? CreateIfFeatureEnabled(SyntaxNode syntax, Binder binder, Func<Binder, BoundExpression, NamedTypeSymbol?> calculateDelegate)
+        internal static FunctionTypeSymbol? CreateIfFeatureEnabled(SyntaxNode syntax, Binder binder, BindingDiagnosticBag diagnostics, Func<Binder, BoundExpression, BindingDiagnosticBag, NamedTypeSymbol?> calculateDelegate)
         {
             return syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType) ?
-                new FunctionTypeSymbol(binder, calculateDelegate) :
+                new FunctionTypeSymbol(binder, diagnostics, calculateDelegate) :
                 null;
         }
 
-        private FunctionTypeSymbol(Binder binder, Func<Binder, BoundExpression, NamedTypeSymbol?> calculateDelegate)
+        private FunctionTypeSymbol(Binder binder, BindingDiagnosticBag diagnostics, Func<Binder, BoundExpression, BindingDiagnosticBag, NamedTypeSymbol?> calculateDelegate)
         {
             _binder = binder;
+            _diagnostics = diagnostics;
             _calculateDelegate = calculateDelegate;
             _lazyDelegateType = Uninitialized;
         }
@@ -79,10 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object?)_lazyDelegateType == Uninitialized)
             {
                 Debug.Assert(_binder is { });
+                Debug.Assert(_diagnostics is { });
                 Debug.Assert(_calculateDelegate is { });
                 Debug.Assert(_expression is { });
 
-                var delegateType = _calculateDelegate(_binder, _expression);
+                var delegateType = _calculateDelegate(_binder, _expression, _diagnostics);
                 var result = Interlocked.CompareExchange(ref _lazyDelegateType, delegateType, Uninitialized);
 
                 if (_binder.Compilation.TestOnlyCompilationData is InferredDelegateTypeData data &&

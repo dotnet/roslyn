@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static UnboundLambda Create(
             CSharpSyntaxNode syntax,
             Binder binder,
-            bool withDependencies,
+            BindingDiagnosticBag diagnostics,
             RefKind returnRefKind,
             TypeWithAnnotations returnType,
             ImmutableArray<SyntaxList<AttributeListSyntax>> parameterAttributes,
@@ -395,9 +395,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(syntax.IsAnonymousFunction());
             bool hasErrors = !types.IsDefault && types.Any(static t => t.Type?.Kind == SymbolKind.ErrorType);
 
-            var functionType = FunctionTypeSymbol.CreateIfFeatureEnabled(syntax, binder, static (binder, expr) => ((UnboundLambda)expr).Data.InferDelegateType());
+            var functionType = FunctionTypeSymbol.CreateIfFeatureEnabled(syntax, binder, diagnostics, static (binder, expr, diagnostics) => ((UnboundLambda)expr).Data.InferDelegateType(diagnostics));
             var data = new PlainUnboundLambdaState(binder, returnRefKind, returnType, parameterAttributes, names, discardsOpt, types, refKinds, declaredScopes, defaultValues, syntaxList, isAsync: isAsync, isStatic: isStatic, hasParamsArray: hasParamsArray, includeCache: true);
-            var lambda = new UnboundLambda(syntax, data, functionType, withDependencies, hasErrors: hasErrors);
+            var lambda = new UnboundLambda(syntax, data, functionType, withDependencies: diagnostics.AccumulatesDependencies, hasErrors: hasErrors);
             data.SetUnboundLambda(lambda);
             functionType?.SetExpression(lambda.WithNoCache());
 
@@ -642,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (parameterRefKinds, parameterScopesBuilder, parameterTypes, getEffectiveScopeFromSymbol);
         }
 
-        internal NamedTypeSymbol? InferDelegateType()
+        internal NamedTypeSymbol? InferDelegateType(BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(Binder.ContainingMemberOrLambda is { });
 
@@ -710,6 +710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Binder.GetMethodGroupOrLambdaDelegateType(
                 _unboundLambda.Syntax,
                 lambdaSymbol,
+                diagnostics,
                 parameterScopesBuilder.ToImmutableAndFree(),
                 returnRefKind,
                 returnType);

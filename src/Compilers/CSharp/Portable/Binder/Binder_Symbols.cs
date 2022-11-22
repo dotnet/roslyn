@@ -1359,6 +1359,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         lookupResult,
                         methodGroupFlags,
                         this,
+                        diagnostics,
                         hasErrors);
 
                 case SymbolKind.Property:

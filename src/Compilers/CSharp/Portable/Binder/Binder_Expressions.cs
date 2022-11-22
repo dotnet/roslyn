@@ -6781,7 +6781,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         lookupResult.Symbols.All(s => s.Kind == SymbolKind.Method) ? lookupResult.Symbols.SelectAsArray(s_toMethodSymbolFunc) : ImmutableArray<MethodSymbol>.Empty,
                         lookupResult,
                         flags,
-                        this);
+                        this,
+                        diagnostics);
 
                     if (!boundMethodGroup.HasErrors && typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
                     {
@@ -8945,7 +8946,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        internal NamedTypeSymbol? GetMethodGroupDelegateType(BoundMethodGroup node)
+        internal NamedTypeSymbol? GetMethodGroupDelegateType(BoundMethodGroup node, BindingDiagnosticBag diagnostics)
         {
             var method = GetUniqueSignatureFromMethodGroup(node);
             if (method is null)
@@ -8953,7 +8954,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            return GetMethodGroupOrLambdaDelegateType(node.Syntax, method);
+            return GetMethodGroupOrLambdaDelegateType(node.Syntax, method, diagnostics);
         }
 
         /// <summary>
@@ -9037,6 +9038,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal NamedTypeSymbol? GetMethodGroupOrLambdaDelegateType(
             SyntaxNode syntax,
             MethodSymbol methodSymbol,
+            BindingDiagnosticBag diagnostics,
             ImmutableArray<DeclarationScope>? parameterScopesOverride = null,
             RefKind? returnRefKindOverride = null,
             TypeWithAnnotations? returnTypeOverride = null)
@@ -9108,6 +9110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var location = syntax.Location;
             for (int i = 0; i < parameterTypes.Length; i++)
             {
+                var isParams = hasParamsArray && i == parameterTypes.Length - 1;
                 fieldsBuilder.Add(
                     new AnonymousTypeField(
                         name: "",
@@ -9116,8 +9119,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parameterRefKinds.IsDefault ? RefKind.None : parameterRefKinds[i],
                         parameterScopes.IsDefault ? DeclarationScope.Unscoped : parameterScopes[i],
                         parameterDefaultValues.IsDefault ? null : parameterDefaultValues[i],
-                        isParams: hasParamsArray && i == parameterTypes.Length - 1)
+                        isParams: isParams)
                     );
+
+                if (isParams)
+                {
+                    ReportUseSiteDiagnosticForSynthesizedAttribute(Compilation,
+                        WellKnownMember.System_ParamArrayAttribute__ctor,
+                        diagnostics,
+                        parameters[i].Locations is [var loc, ..] ? loc : syntax.GetLocation());
+                }
             }
             fieldsBuilder.Add(new AnonymousTypeField(name: "", location, returnType, returnRefKind, DeclarationScope.Unscoped));
 
