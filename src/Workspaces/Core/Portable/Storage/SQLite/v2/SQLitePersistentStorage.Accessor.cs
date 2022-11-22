@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// logic around cancellation/pooling/error-handling/etc, while still hitting different
         /// db tables.
         /// </summary>
-        private abstract class Accessor<TKey, TDatabaseId>
-            where TDatabaseId : struct
+        private abstract class Accessor<TKey, TDatabaseKey>
+            where TDatabaseKey : struct
         {
             protected readonly SQLitePersistentStorage Storage;
             protected readonly Table Table;
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 Table = table;
                 Storage = storage;
 
-                _primaryKeyColumns = primaryKeysArray.ToImmutableArray();
+                _primaryKeyColumns = primaryKeysArray.ToImmutableArray().Add((DataNameIdColumnName, SQLiteIntegerType));
                 _allColumns = _primaryKeyColumns.Add((ChecksumColumnName, SQLiteBlobType)).Add((DataColumnName, SQLiteBlobType));
 
                 var writeCache = Database.WriteCache.GetName();
@@ -93,8 +93,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             /// being generated and stored for this component key when it currently does not exist.  If <see
             /// langword="false"/> then failing to find the key will result in <see langword="false"/> being returned.
             /// </param>
-            protected abstract TDatabaseId? TryGetDatabaseId(SqlConnection connection, TKey key, bool allowWrite);
-            protected abstract void BindPrimaryKeyParameters(SqlStatement statement, TDatabaseId dataId);
+            protected abstract TDatabaseKey? TryGetDatabaseKey(SqlConnection connection, TKey key, bool allowWrite);
+            protected abstract void BindPrimaryKeyParameters(SqlStatement statement, TDatabaseKey dataId);
 
             private string TableName
                 => this.Table switch
@@ -117,15 +117,16 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-            public Task<bool> ChecksumMatchesAsync(TKey key, Checksum checksum, CancellationToken cancellationToken)
+            public Task<bool> ChecksumMatchesAsync(TKey key, string name, Checksum checksum, CancellationToken cancellationToken)
                 => Storage.PerformReadAsync(
-                    static t => t.self.ChecksumMatches(t.key, t.checksum, t.cancellationToken),
-                    (self: this, key, checksum, cancellationToken), cancellationToken);
+                    static t => t.self.ChecksumMatches(t.key, t.name, t.checksum, t.cancellationToken),
+                    (self: this, name, key, checksum, cancellationToken), cancellationToken);
 
-            private bool ChecksumMatches(TKey key, Checksum checksum, CancellationToken cancellationToken)
+            private bool ChecksumMatches(TKey key, string name, Checksum checksum, CancellationToken cancellationToken)
             {
                 var optional = ReadColumn(
                     key,
+                    name,
                     static (self, connection, database, rowId) => self.ReadChecksum(connection, database, rowId),
                     this,
                     cancellationToken);
@@ -133,16 +134,17 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-            public Task<Stream?> ReadStreamAsync(TKey key, Checksum? checksum, CancellationToken cancellationToken)
+            public Task<Stream?> ReadStreamAsync(TKey key, string name, Checksum? checksum, CancellationToken cancellationToken)
                 => Storage.PerformReadAsync(
-                    static t => t.self.ReadStream(t.key, t.checksum, t.cancellationToken),
-                    (self: this, key, checksum, cancellationToken), cancellationToken);
+                    static t => t.self.ReadStream(t.key, t.name, t.checksum, t.cancellationToken),
+                    (self: this, key, name, checksum, cancellationToken), cancellationToken);
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-            private Stream? ReadStream(TKey key, Checksum? checksum, CancellationToken cancellationToken)
+            private Stream? ReadStream(TKey key, string name, Checksum? checksum, CancellationToken cancellationToken)
             {
                 var optional = ReadColumn(
                     key,
+                    name,
                     static (t, connection, database, rowId) => t.self.ReadDataBlob(connection, database, rowId, t.checksum),
                     (self: this, checksum),
                     cancellationToken);
@@ -153,6 +155,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             private Optional<T> ReadColumn<T, TData>(
                 TKey key,
+                string name,
                 Func<TData, SqlConnection, Database, long, Optional<T>> readColumn,
                 TData data,
                 CancellationToken cancellationToken)
@@ -173,19 +176,19 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     // data that either exists in the DB or not.  If it doesn't exist in the DB, then it's fine to fail
                     // to map from the key to a DB id (since there's nothing to lookup anyways).  And if it does exist
                     // in the db then finding the ID would succeed (without writing) and we could continue.
-                    var dataId = TryGetDatabaseId(connection, key, allowWrite: false);
-                    if (dataId != null)
+                    if (TryGetDatabaseKey(connection, key, allowWrite: false) is TDatabaseKey databaseKey &&
+                        Storage.TryGetStringId(connection, name, allowWrite: false) is int dataNameId)
                     {
                         try
                         {
                             // First, try to see if there was a write to this key in our in-memory db.
                             // If it wasn't in the in-memory write-cache.  Check the full on-disk file.
 
-                            var optional = ReadColumnHelper(connection, Database.WriteCache, dataId.Value);
+                            var optional = ReadColumnHelper(connection, Database.WriteCache, databaseKey, dataNameId);
                             if (optional.HasValue)
                                 return optional;
 
-                            optional = ReadColumnHelper(connection, Database.Main, dataId.Value);
+                            optional = ReadColumnHelper(connection, Database.Main, databaseKey, dataNameId);
                             if (optional.HasValue)
                                 return optional;
                         }
@@ -198,25 +201,25 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
                 return default;
 
-                Optional<T> ReadColumnHelper(SqlConnection connection, Database database, TDatabaseId dataId)
+                Optional<T> ReadColumnHelper(SqlConnection connection, Database database, TDatabaseKey dataId, int dataNameID)
                 {
                     // Note: it's possible that someone may write to this row between when we get the row ID
                     // above and now.  That's fine.  We'll just read the new bytes that have been written to
                     // this location.  Note that only the data for a row in our system can change, the ID will
                     // always stay the same, and the data will always be valid for our ID.  So there is no
                     // safety issue here.
-                    return TryGetActualRowIdFromDatabase(connection, database, dataId, out var writeCacheRowId)
+                    return TryGetActualRowIdFromDatabase(connection, database, dataId, dataNameID, out var writeCacheRowId)
                         ? readColumn(data, connection, database, writeCacheRowId)
                         : default;
                 }
             }
 
-            public Task<bool> WriteStreamAsync(TKey key, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
+            public Task<bool> WriteStreamAsync(TKey key, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
                 => Storage.PerformWriteAsync(
-                    static t => t.self.WriteStream(t.key, t.stream, t.checksum, t.cancellationToken),
-                    (self: this, key, stream, checksum, cancellationToken), cancellationToken);
+                    static t => t.self.WriteStream(t.key, t.name, t.stream, t.checksum, t.cancellationToken),
+                    (self: this, key, name, stream, checksum, cancellationToken), cancellationToken);
 
-            private bool WriteStream(TKey key, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
+            private bool WriteStream(TKey key, string dataName, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
             {
                 // We're writing.  This better always be under the exclusive scheduler.
                 Contract.ThrowIfFalse(TaskScheduler.Current == Storage._connectionPoolService.Scheduler.ExclusiveScheduler);
@@ -230,8 +233,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     // Determine the appropriate data-id to store this stream at.  We already are running
                     // with an exclusive write lock on the DB, so it's safe for us to write the data id to 
                     // the db on this connection if we need to.
-                    var dataId = TryGetDatabaseId(connection, key, allowWrite: true);
-                    if (dataId != null)
+                    if (TryGetDatabaseKey(connection, key, allowWrite: true) is TDatabaseKey databaseKey &&
+                        Storage.TryGetStringId(connection, dataName, allowWrite: true) is int dataNameId)
                     {
                         checksum ??= Checksum.Null;
                         Span<byte> checksumBytes = stackalloc byte[Checksum.HashSize];
@@ -242,7 +245,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                         // Write the information into the in-memory write-cache.  Later on a background task
                         // will move it from the in-memory cache to the on-disk db in a bulk transaction.
                         InsertOrReplaceBlobIntoWriteCache(
-                            connection, dataId.Value,
+                            connection, databaseKey, dataNameId,
                             checksumBytes,
                             new ReadOnlySpan<byte>(dataBytes, 0, dataLength));
 
@@ -312,7 +315,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 return storedChecksum.HasValue && checksum == storedChecksum.Value;
             }
 
-            private bool TryGetActualRowIdFromDatabase(SqlConnection connection, Database database, TDatabaseId dataId, out long rowId)
+            private bool TryGetActualRowIdFromDatabase(SqlConnection connection, Database database, TDatabaseKey dataId, int dataNameId, out long rowId)
             {
                 // See https://sqlite.org/autoinc.html
                 // > In SQLite, table rows normally have a 64-bit signed integer ROWID which is
@@ -328,7 +331,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
                 var statement = resettableStatement.Statement;
 
+                // This binds all but the dataNameId primary key parameter.
                 BindPrimaryKeyParameters(statement, dataId);
+                // The data name id parameter is the last in _primaryKeyColumns. So we pass _primaryKeyColumns.Length as
+                // the parameter index as it is 1s based.
+                statement.BindInt64Parameter(parameterIndex: _primaryKeyColumns.Length, dataNameId);
 
                 var stepResult = statement.Step();
                 if (stepResult == Result.ROW)
@@ -342,7 +349,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
 
             private void InsertOrReplaceBlobIntoWriteCache(
-                SqlConnection connection, TDatabaseId dataId,
+                SqlConnection connection,
+                TDatabaseKey dataId,
+                int dataNameId,
                 ReadOnlySpan<byte> checksumBytes,
                 ReadOnlySpan<byte> dataBytes)
             {
@@ -357,6 +366,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     BindPrimaryKeyParameters(statement, dataId);
 
                     // Binding indices are 1 based.
+                    statement.BindInt64Parameter(parameterIndex: _primaryKeyColumns.Length, dataNameId);
                     statement.BindBlobParameter(parameterIndex: _primaryKeyColumns.Length + 1, checksumBytes);
                     statement.BindBlobParameter(parameterIndex: _primaryKeyColumns.Length + 2, dataBytes);
 

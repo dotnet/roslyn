@@ -21,43 +21,24 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// Given a document, and the name of a stream to read/write, gets the integral DB ID to 
         /// use to find the data inside the DocumentData table.
         /// </summary>
-        private (DocumentPrimaryKey documentkeyId, int dataNameId)? TryGetDocumentDataId(
-            SqlConnection connection, DocumentKey documentKey, string name, bool allowWrite)
-        {
-            var documentId = TryGetDocumentId(connection, documentKey, allowWrite);
-            var nameId = TryGetStringId(connection, name, allowWrite);
-            return documentId == null || nameId == null ? null : (documentId.Value, nameId.Value);
-        }
-
-        private DocumentPrimaryKey? TryGetDocumentId(SqlConnection connection, DocumentKey document, bool allowWrite)
+        private DocumentPrimaryKey? TryGetDocumentPrimaryKey(SqlConnection connection, DocumentKey documentKey, bool allowWrite)
         {
             // First see if we've cached the ID for this value locally.  If so, just return
             // what we already have.
-            if (!_documentIdToIdMap.TryGetValue(document.Id, out var existingId))
+            if (!_documentIdToIdMap.TryGetValue(documentKey.Id, out var existingId))
             {
-                var id = TryGetDocumentIdFromDatabase(connection, document, allowWrite);
-                if (id == null)
+                var projectPrimaryKey = TryGetProjectPrimaryKey(connection, documentKey.Project, allowWrite);
+                var documentPathId = TryGetStringId(connection, documentKey.FilePath, allowWrite);
+                var documentNameId = TryGetStringId(connection, documentKey.Name, allowWrite);
+                if (projectPrimaryKey == null || documentPathId == null || documentNameId == null)
                     return null;
 
                 // Cache the value locally so we don't need to go back to the DB in the future.
-                existingId = id.Value;
-                _documentIdToIdMap.TryAdd(document.Id, existingId);
+                existingId = new DocumentPrimaryKey(projectPrimaryKey.Value, documentPathId.Value, documentNameId.Value);
+                _documentIdToIdMap.TryAdd(documentKey.Id, existingId);
             }
 
             return existingId;
-        }
-
-        private DocumentPrimaryKey? TryGetDocumentIdFromDatabase(SqlConnection connection, DocumentKey document, bool allowWrite)
-        {
-            // Key the document off its project id, and its path and name.  That way we work properly
-            // in host and test scenarios.
-            var projectId = TryGetProjectId(connection, document.Project, allowWrite);
-            var documentPathId = TryGetStringId(connection, document.FilePath, allowWrite);
-            var documentNameId = TryGetStringId(connection, document.Name, allowWrite);
-
-            return projectId == null || documentPathId == null || documentNameId == null
-                ? null
-                : new DocumentPrimaryKey(projectId.Value, documentPathId.Value, documentNameId.Value);
         }
     }
 }

@@ -21,40 +21,25 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// Given a project, and the name of a stream to read/write, gets the integral DB ID to 
         /// use to find the data inside the ProjectData table.
         /// </summary>
-        private (ProjectPrimaryKey projectKeyId, int dataNameId)? TryGetProjectDataId(
-            SqlConnection connection, ProjectKey project, string name, bool allowWrite)
-        {
-            var projectId = TryGetProjectId(connection, project, allowWrite);
-            var nameId = TryGetStringId(connection, name, allowWrite);
-            return projectId == null || nameId == null ? null : (projectId.Value, nameId.Value);
-        }
-
-        private ProjectPrimaryKey? TryGetProjectId(SqlConnection connection, ProjectKey project, bool allowWrite)
+        private ProjectPrimaryKey? TryGetProjectPrimaryKey(SqlConnection connection, ProjectKey projectKey, bool allowWrite)
         {
             // First see if we've cached the ID for this value locally.  If so, just return
             // what we already have.
-            if (!_projectIdToIdMap.TryGetValue(project.Id, out var existingId))
+            if (!_projectIdToIdMap.TryGetValue(projectKey.Id, out var existingId))
             {
-                var id = TryGetProjectIdFromDatabase(connection, project, allowWrite);
-                if (id == null)
+                // Key the project off both its path and name.  That way we work properly
+                // in host and test scenarios.
+                var projectPathId = TryGetStringId(connection, projectKey.FilePath, allowWrite);
+                var projectNameId = TryGetStringId(connection, projectKey.Name, allowWrite);
+                if (projectPathId == null || projectNameId == null)
                     return null;
 
                 // Cache the value locally so we don't need to go back to the DB in the future.
-                existingId = id.Value;
-                _projectIdToIdMap.TryAdd(project.Id, existingId);
+                existingId = new ProjectPrimaryKey(projectPathId.Value, projectNameId.Value);
+                _projectIdToIdMap.TryAdd(projectKey.Id, existingId);
             }
 
             return existingId;
-        }
-
-        private ProjectPrimaryKey? TryGetProjectIdFromDatabase(SqlConnection connection, ProjectKey project, bool allowWrite)
-        {
-            // Key the project off both its path and name.  That way we work properly
-            // in host and test scenarios.
-            var projectPathId = TryGetStringId(connection, project.FilePath, allowWrite);
-            var projectNameId = TryGetStringId(connection, project.Name, allowWrite);
-
-            return projectPathId == null || projectNameId == null ? null : new ProjectPrimaryKey(projectPathId.Value, projectNameId.Value);
         }
     }
 }

@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
     {
         private readonly CancellationTokenSource _shutdownTokenSource = new();
 
+        private readonly SolutionKey _solutionKey;
         private readonly SQLiteConnectionPoolService _connectionPoolService;
         private readonly ReferenceCountedDisposable<SQLiteConnectionPool> _connectionPool;
         private readonly Action _flushInMemoryDataToDisk;
@@ -45,13 +46,14 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         private SQLitePersistentStorage(
             SQLiteConnectionPoolService connectionPoolService,
+            SolutionKey solutionKey,
             string workingFolderPath,
-            string solutionFilePath,
             string databaseFile,
             IAsynchronousOperationListener asyncListener,
             IPersistentStorageFaultInjector? faultInjector)
-            : base(workingFolderPath, solutionFilePath, databaseFile)
+            : base(workingFolderPath, solutionKey.FilePath!, databaseFile)
         {
+            _solutionKey = solutionKey;
             _connectionPoolService = connectionPoolService;
 
             _solutionAccessor = new SolutionAccessor(this);
@@ -77,14 +79,14 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         public static SQLitePersistentStorage? TryCreate(
             SQLiteConnectionPoolService connectionPoolService,
+            SolutionKey solutionKey,
             string workingFolderPath,
-            string solutionFilePath,
             string databaseFile,
             IAsynchronousOperationListener asyncListener,
             IPersistentStorageFaultInjector? faultInjector)
         {
             var sqlStorage = new SQLitePersistentStorage(
-                connectionPoolService, workingFolderPath, solutionFilePath, databaseFile, asyncListener, faultInjector);
+                connectionPoolService, solutionKey, workingFolderPath, databaseFile, asyncListener, faultInjector);
             if (sqlStorage._connectionPool is null)
             {
                 // The connection pool failed to initialize
