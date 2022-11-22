@@ -102,7 +102,7 @@ namespace IdeCoreBenchmarks
 
             using (var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(_workspace.CurrentSolution), CancellationToken.None))
             {
-                Console.WriteLine("Sucessfully got persistent storage instance");
+                Console.WriteLine("Successfully got persistent storage instance");
             }
         }
 
@@ -113,7 +113,7 @@ namespace IdeCoreBenchmarks
             _workspace = null;
         }
 
-        [Benchmark]
+        // [Benchmark]
         public async Task RunSerialIndexing()
         {
             Console.WriteLine("start profiling now");
@@ -130,20 +130,6 @@ namespace IdeCoreBenchmarks
             }
             Console.WriteLine("Serial: " + (DateTime.Now - start));
             Console.ReadLine();
-        }
-
-#pragma warning disable IDE0051 // Remove unused private members
-        private static async Task WalkTree(Document document)
-#pragma warning restore IDE0051 // Remove unused private members
-        {
-            var root = await document.GetSyntaxRootAsync();
-            if (root != null)
-            {
-                foreach (var child in root.DescendantNodesAndTokensAndSelf())
-                {
-
-                }
-            }
         }
 
         // [Benchmark]
@@ -167,17 +153,20 @@ namespace IdeCoreBenchmarks
             Console.ReadLine();
         }
 
-        //  [Benchmark]
+        [Benchmark]
         public async Task RunFullParallelIndexing()
         {
             Console.WriteLine("Attach now");
-            Console.ReadLine();
+            Thread.Sleep(10000);
             Console.WriteLine("Starting indexing");
             var start = DateTime.Now;
+            var docCount = _workspace.CurrentSolution.Projects.SelectMany(p => p.Documents).Count();
+            Console.WriteLine("Doc count: " + docCount);
             var tasks = _workspace.CurrentSolution.Projects.SelectMany(p => p.Documents).Select(d => Task.Run(
                 () => SyntaxTreeIndex.GetIndexAsync(d, default))).ToList();
             await Task.WhenAll(tasks);
             Console.WriteLine("Solution parallel: " + (DateTime.Now - start));
+            Console.ReadLine();
         }
 
         // [Benchmark]
