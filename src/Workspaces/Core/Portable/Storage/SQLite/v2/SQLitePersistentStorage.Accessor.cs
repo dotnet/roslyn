@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
 #if DEBUG
-using System.Diagnostics;
 #endif
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
