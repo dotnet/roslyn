@@ -54,30 +54,29 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 SQLitePersistentStorage storage,
                 ImmutableArray<(string name, string type)> primaryKeys)
             {
-                var main = Database.Main.GetName();
-                var writeCache = Database.WriteCache.GetName();
-
-                var dataTableName = this.TableName;
                 Storage = storage;
                 _primaryKeys = primaryKeys;
 
-                // "X" = ? and "Y" = ? and "Z" = ?
-                var whereClause = string.Join(" and ", primaryKeys.Select(k => $@"{Quote(k.name)} = ?"));
+                var main = Database.Main.GetName();
+                var writeCache = Database.WriteCache.GetName();
 
+                // "X" = ? and "Y" = ? and "Z" = ?
+                var whereClause = string.Join(" and ", primaryKeys.Select(k => $@"{k.name} = ?"));
+
+                var dataTableName = this.TableName;
                 _select_rowid_from_main_table_where_0 = $"select rowid from {main}.{dataTableName} where {whereClause}";
                 _select_rowid_from_writecache_table_where_0 = $"select rowid from {writeCache}.{dataTableName} where {whereClause}";
 
                 var allColumnNames = primaryKeys.Select(t => t.name).Concat(ChecksumColumnName).Concat(DataColumnName);
-                var quotedColumnNames = string.Join(",", allColumnNames.Select(Quote));
-                var questions = string.Join(",", allColumnNames.Select(n => "?"));
 
-                _insert_or_replace_into_writecache_table_values_0_1_2 = $@"insert or replace into {writeCache}.{dataTableName}({quotedColumnNames}) values ({questions})";
+                _insert_or_replace_into_writecache_table_values_0_1_2 = $@"insert or replace into {writeCache}.{dataTableName}
+                    ({string.Join(",", allColumnNames)})
+                    values
+                    ({string.Join(",", allColumnNames.Select(n => "?"))})";
+
                 _delete_from_writecache_table = $"delete from {writeCache}.{dataTableName};";
                 _insert_or_replace_into_main_table_select_star_from_writecache_table = $"insert or replace into {main}.{dataTableName} select * from {writeCache}.{dataTableName};";
             }
-
-            private static string Quote(string name)
-                => $@"""{name}""";
 
             protected abstract Table Table { get; }
 
@@ -107,21 +106,14 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             public void CreateTable(SqlConnection connection, Database database)
             {
-                var dbName = database.GetName();
-
-                var primaryKeyColumns = _primaryKeys.Select(k => $@"{Quote(k.name)} {k.type} not null");
-                var primaryKeyNames = _primaryKeys.Select(k => Quote(k.name));
-
-                var command = $"""
-                    create table if not exists {dbName}.{this.TableName}(
-                        {string.Join(", ", primaryKeyColumns)},
+                connection.ExecuteCommand($"""
+                    create table if not exists {database.GetName()}.{this.TableName}(
+                        {string.Join(", ", _primaryKeys.Select(k => $@"{k.name} {k.type} not null"))},
                         "{ChecksumColumnName}" blob,
                         "{DataColumnName}" blob,
-                        primary key({string.Join(", ", primaryKeyNames)})
+                        primary key({string.Join(", ", _primaryKeys.Select(k => k.name))})
                     )
-                    """;
-
-                connection.ExecuteCommand(command);
+                    """);
             }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
