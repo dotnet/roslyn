@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item);
                 }
             }
-            else if (shouldProvideParenthesisCompletion(symbol, out var includeDotCommitCharacter))
+            else if (ShouldProvideParenthesisCompletion(symbol, out var includeDotCommitCharacter))
             {
                 // If this is a type symbol/alias symbol, also consider appending parenthesis when later, it is committed by using special characters,
                 // and the type is used as constructor
@@ -235,16 +235,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             return item;
 
-            static bool shouldProvideParenthesisCompletion(ISymbol? symbol, out bool includeDotCommitCharacter)
+            static bool ShouldProvideParenthesisCompletion(ISymbol? symbol, out bool includeDotCommitCharacter)
             {
                 ITypeSymbol? typeSymbol;
-                if (symbol.IsKind(SymbolKind.NamedType))
+                if (symbol is INamedTypeSymbol namedType)
                 {
-                    typeSymbol = (ITypeSymbol)symbol;
+                    typeSymbol = namedType;
                 }
-                else if (symbol is IAliasSymbol aliasSymbol && aliasSymbol.Target.IsType)
+                else if (symbol is IAliasSymbol { Target: ITypeSymbol target })
                 {
-                    typeSymbol = (ITypeSymbol)aliasSymbol.Target;
+                    typeSymbol = target;
                 }
                 else
                 {
