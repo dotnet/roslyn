@@ -80,19 +80,20 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         public const string ProjectDataTableName = "ProjectData" + Version;
 
         /// <summary>
-        /// Inside the DB we have a table for data that we want associated with a <see cref="Document"/>.
-        /// The data is keyed off of an integral value produced by combining the ID of the Document and
-        /// the ID of the name of the data (see <see cref="SQLitePersistentStorage.ReadStreamAsync(DocumentKey, Document?, string, Checksum?, CancellationToken)"/>.
+        /// Inside the DB we have a table for data that we want associated with a <see cref="Document"/>. The data is
+        /// keyed off the project information, and the folder and name of the document itself.  This allows the majority
+        /// of the key to be shared (project path/name, and folder name) with other documents, and only having the doc
+        /// name portion be distinct.  Different TFM flavors will also share everything but the project name.
         ///
         /// The format of the table is:
         ///
         ///  <code>
         ///  DocumentData
         ///  ------------------------------------------------------------------------------------------------------------------------------------------------
-        ///  | ProjectPathId (int) | ProjectNameId (int) | DocumentFolderId (int) | DocumentNameId (int) | DataNameId (int) | Checksum (blob) | Data (blob) |
+        ///  | ProjectPathId (int) | ProjectNameId (int) | DocumentFolderId (int) | DocumentFolderId (int) | DataNameId (int) | Checksum (blob) | Data (blob) |
         ///  ------------------------------------------------------------------------------------------------------------------------------------------------
-        ///  | Primary Key                                                                                                  |
-        ///  ----------------------------------------------------------------------------------------------------------------
+        ///  | Primary Key                                                                                                    |
+        ///  ------------------------------------------------------------------------------------------------------------------
         ///  </code>
         /// </summary>
         public const string DocumentDataTableName = "DocumentData" + Version;
