@@ -18503,6 +18503,42 @@ public class B
                 });
         }
 
+        [Fact]
+        public void TopLevelStatements_BlockReorder()
+        {
+            var src1 = @"
+{ int a; }
+{ int b; }
+";
+            var src2 = @"
+{ int b; }
+{ int a; }
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Reorder [{ int b; }]@14 -> @2");
+
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$")));
+        }
+
+        [Fact]
+        public void TopLevelStatements_Reorder()
+        {
+            var src1 = @"
+System.Console.Write(1);
+System.Console.Write(2);
+";
+            var src2 = @"
+System.Console.Write(2);
+System.Console.Write(1);
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Reorder [System.Console.Write(2);]@28 -> @2");
+
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$")));
+        }
+
         #endregion
     }
 }
