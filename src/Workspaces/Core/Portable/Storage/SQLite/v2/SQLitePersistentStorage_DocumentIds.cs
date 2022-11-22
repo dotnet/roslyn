@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Concurrent;
+using System.IO;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 using Microsoft.CodeAnalysis.Storage;
 
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// Kept locally so we don't have to hit the DB for the common case of trying to determine the 
         /// DB id for a document.
         /// </summary>
-        private readonly ConcurrentDictionary<DocumentId, DocumentPrimaryKey> _documentIdToIdMap = new();
+        private readonly ConcurrentDictionary<DocumentId, DocumentPrimaryKey> _documentIdToPrimaryKeyMap = new();
 
         /// <summary>
         /// Given a document, and the name of a stream to read/write, gets the integral DB ID to 
@@ -25,16 +27,20 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         {
             // First see if we've cached the ID for this value locally.  If so, just return
             // what we already have.
-            if (!_documentIdToIdMap.TryGetValue(documentKey.Id, out var existingId))
+            if (!_documentIdToPrimaryKeyMap.TryGetValue(documentKey.Id, out var existingId))
             {
-                var projectPrimaryKey = TryGetProjectPrimaryKey(connection, documentKey.Project, allowWrite);
-                var documentPathId = TryGetStringId(connection, documentKey.FilePath, allowWrite);
-                if (projectPrimaryKey == null || documentPathId == null)
+                var documentFolder = IOUtilities.PerformIO(() => Path.GetDirectoryName(documentKey.FilePath)) ?? documentKey.FilePath;
+
+                if (TryGetProjectPrimaryKey(connection, documentKey.Project, allowWrite) is not ProjectPrimaryKey projectPrimaryKey ||
+                    TryGetStringId(connection, documentFolder, allowWrite) is not int documentFolderId ||
+                    TryGetStringId(connection, documentKey.Name, allowWrite) is not int documentNameId)
+                {
                     return null;
+                }
 
                 // Cache the value locally so we don't need to go back to the DB in the future.
-                existingId = new DocumentPrimaryKey(projectPrimaryKey.Value, documentPathId.Value);
-                _documentIdToIdMap.TryAdd(documentKey.Id, existingId);
+                existingId = new DocumentPrimaryKey(projectPrimaryKey, documentFolderId, documentNameId);
+                _documentIdToPrimaryKeyMap.TryAdd(documentKey.Id, existingId);
             }
 
             return existingId;

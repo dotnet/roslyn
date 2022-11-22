@@ -88,11 +88,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         ///
         ///  <code>
         ///  DocumentData
-        ///  -----------------------------------------------------------------------------------------------------------------------
-        ///  | ProjectPathId (int) | ProjectNameId (int) | DocumentPathId (int) | DataNameId (int) | Checksum (blob) | Data (blob) |
-        ///  -----------------------------------------------------------------------------------------------------------------------
-        ///  | Primary Key                                                                         |
-        ///  ---------------------------------------------------------------------------------------
+        ///  ------------------------------------------------------------------------------------------------------------------------------------------------
+        ///  | ProjectPathId (int) | ProjectNameId (int) | DocumentFolderId (int) | DocumentNameId (int) | DataNameId (int) | Checksum (blob) | Data (blob) |
+        ///  ------------------------------------------------------------------------------------------------------------------------------------------------
+        ///  | Primary Key                                                                                                  |
+        ///  ----------------------------------------------------------------------------------------------------------------
         ///  </code>
         /// </summary>
         public const string DocumentDataTableName = "DocumentData" + Version;
@@ -101,7 +101,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         public const string ProjectPathIdColumnName = "ProjectPathId";
         public const string ProjectNameIdColumnName = "ProjectNameId";
-        public const string DocumentPathIdColumnName = "DocumentPathId";
+        public const string DocumentFolderIdColumnName = "DocumentFolderId";
+        public const string DocumentNameIdColumnName = "DocumentNameId";
 
         public const string DataNameIdColumnName = "DataNameId";
         public const string ChecksumColumnName = "Checksum";

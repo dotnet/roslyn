@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// Kept locally so we don't have to hit the DB for the common case of trying to determine the 
         /// DB id for a project.
         /// </summary>
-        private readonly ConcurrentDictionary<ProjectId, ProjectPrimaryKey> _projectIdToIdMap = new();
+        private readonly ConcurrentDictionary<ProjectId, ProjectPrimaryKey> _projectIdToPrimaryKeyMap = new();
 
         /// <summary>
         /// Given a project, and the name of a stream to read/write, gets the integral DB ID to 
@@ -25,18 +25,19 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         {
             // First see if we've cached the ID for this value locally.  If so, just return
             // what we already have.
-            if (!_projectIdToIdMap.TryGetValue(projectKey.Id, out var existingId))
+            if (!_projectIdToPrimaryKeyMap.TryGetValue(projectKey.Id, out var existingId))
             {
                 // Key the project off both its path and name.  That way we work properly
                 // in host and test scenarios.
-                var projectPathId = TryGetStringId(connection, projectKey.FilePath, allowWrite);
-                var projectNameId = TryGetStringId(connection, projectKey.Name, allowWrite);
-                if (projectPathId == null || projectNameId == null)
+                if (TryGetStringId(connection, projectKey.FilePath, allowWrite) is not int projectPathId ||
+                    TryGetStringId(connection, projectKey.Name, allowWrite) is not int projectNameId)
+                {
                     return null;
+                }
 
                 // Cache the value locally so we don't need to go back to the DB in the future.
-                existingId = new ProjectPrimaryKey(projectPathId.Value, projectNameId.Value);
-                _projectIdToIdMap.TryAdd(projectKey.Id, existingId);
+                existingId = new ProjectPrimaryKey(projectPathId, projectNameId);
+                _projectIdToPrimaryKeyMap.TryAdd(projectKey.Id, existingId);
             }
 
             return existingId;

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         protected override Task<bool> WriteStreamAsync(DocumentKey documentKey, Document? document, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
             => _documentAccessor.WriteStreamAsync(documentKey, name, stream, checksum, cancellationToken);
 
-        private readonly record struct DocumentPrimaryKey(ProjectPrimaryKey ProjectPrimaryKey, int DocumentPathId);
+        private readonly record struct DocumentPrimaryKey(ProjectPrimaryKey ProjectPrimaryKey, int DocumentFolderId, int DocumentNameId);
 
         /// <summary>
         /// <see cref="Accessor{TKey, TDatabaseId}"/> responsible for storing and 
@@ -37,7 +37,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                       storage,
                       (ProjectPathIdColumnName, SQLiteIntegerType),
                       (ProjectNameIdColumnName, SQLiteIntegerType),
-                      (DocumentPathIdColumnName, SQLiteIntegerType))
+                      (DocumentFolderIdColumnName, SQLiteIntegerType),
+                      (DocumentNameIdColumnName, SQLiteIntegerType))
             {
             }
 
@@ -46,11 +47,12 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             protected override void BindAccessorSpecificPrimaryKeyParameters(SqlStatement statement, DocumentPrimaryKey primaryKey)
             {
-                var ((projectPathId, projectNameId), documentPathId) = primaryKey;
+                var ((projectPathId, projectNameId), documentFolderId, documentNameId) = primaryKey;
 
                 statement.BindInt64Parameter(parameterIndex: 1, projectPathId);
                 statement.BindInt64Parameter(parameterIndex: 2, projectNameId);
-                statement.BindInt64Parameter(parameterIndex: 3, documentPathId);
+                statement.BindInt64Parameter(parameterIndex: 3, documentFolderId);
+                statement.BindInt64Parameter(parameterIndex: 4, documentNameId);
             }
         }
     }
