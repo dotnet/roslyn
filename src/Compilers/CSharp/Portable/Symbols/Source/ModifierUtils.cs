@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static class ModifierUtils
     {
-        internal static DeclarationModifiers MakeAndCheckNontypeMemberModifiers(
+        internal static DeclarationModifiers MakeAndCheckNonTypeMemberModifiers(
             bool isOrdinaryMethod,
             bool isForInterfaceMember,
             SyntaxTokenList modifiers,
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics,
             out bool modifierErrors)
         {
-            var result = modifiers.ToDeclarationModifiers(diagnostics.DiagnosticBag ?? new DiagnosticBag(), isOrdinaryMethod: isOrdinaryMethod);
+            var result = modifiers.ToDeclarationModifiers(isForTypeDeclaration: false, diagnostics.DiagnosticBag ?? new DiagnosticBag(), isOrdinaryMethod: isOrdinaryMethod);
             result = CheckModifiers(isForTypeDeclaration: false, isForInterfaceMember, result, allowedModifiers, errorLocation, diagnostics, modifiers, out modifierErrors);
 
             if ((result & DeclarationModifiers.AccessibilityMask) == 0)
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public static DeclarationModifiers ToDeclarationModifiers(
-            this SyntaxTokenList modifiers, DiagnosticBag diagnostics, bool isOrdinaryMethod = false)
+            this SyntaxTokenList modifiers, bool isForTypeDeclaration, DiagnosticBag diagnostics, bool isOrdinaryMethod = false)
         {
             var result = DeclarationModifiers.None;
             bool seenNoDuplicates = true;
@@ -402,14 +402,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ref seenNoDuplicates,
                     diagnostics);
 
-                if (one == DeclarationModifiers.Partial && i < modifiers.Count - 1)
+                if (one == DeclarationModifiers.Partial)
                 {
-                    // There was a bug where we allowed `partial async` at the end of modifiers on methods. We keep this behavior for backcompat.
-                    if (!(isOrdinaryMethod && i == modifiers.Count - 2 && ToDeclarationModifier(modifiers[i + 1].ContextualKind()) == DeclarationModifiers.Async))
+                    var messageId = isForTypeDeclaration ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod;
+                    messageId.CheckFeatureAvailability(diagnostics, modifier.Parent, modifier.GetLocation());
+
+                    if (i < modifiers.Count - 1)
                     {
-                        diagnostics.Add(
-                            ErrorCode.ERR_PartialMisplaced,
-                            modifier.GetLocation());
+                        // There was a bug where we allowed `partial async` at the end of modifiers on methods. We keep this behavior for backcompat.
+                        if (!(isOrdinaryMethod && i == modifiers.Count - 2 && ToDeclarationModifier(modifiers[i + 1].ContextualKind()) == DeclarationModifiers.Async))
+                        {
+                            diagnostics.Add(
+                                ErrorCode.ERR_PartialMisplaced,
+                                modifier.GetLocation());
+                        }
                     }
                 }
 

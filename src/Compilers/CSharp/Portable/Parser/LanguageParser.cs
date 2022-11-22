@@ -1181,8 +1181,6 @@ tryAgain:
                         {
                             // Standard legal cases.
                             modTok = ConvertToKeyword(this.EatToken());
-                            modTok = CheckFeatureAvailability(modTok,
-                                isPartialType ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod);
                         }
                         else if (nextToken.Kind == SyntaxKind.NamespaceKeyword)
                         {

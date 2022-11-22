@@ -5531,10 +5531,13 @@ partial class C
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp1));
-            tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
+            tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyDiagnostics();
+            CreateCompilation(text, parseOptions: TestOptions.Regular1).VerifyDiagnostics(
                 // (2,1): error CS8022: Feature 'partial types' is not available in C# 1. Please use language version 2 or greater.
                 // partial class C
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion1, "partial").WithArguments("partial types", "2"));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion1, "partial").WithArguments("partial types", "2").WithLocation(2, 1));
         }
 
         [Fact]
@@ -5550,10 +5553,37 @@ class C
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
-            tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
+            tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular5).VerifyDiagnostics(
+                // (4,17): error CS0759: No defining declaration found for implementing declaration of partial method 'C.Goo()'
+                //     partial int Goo() { }
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "Goo").WithArguments("C.Goo()").WithLocation(4, 17),
+                // (4,17): error CS0751: A partial method must be declared within a partial type
+                //     partial int Goo() { }
+                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "Goo").WithLocation(4, 17),
+                // (4,17): error CS8796: Partial method 'C.Goo()' must have accessibility modifiers because it has a non-void return type.
+                //     partial int Goo() { }
+                Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "Goo").WithArguments("C.Goo()").WithLocation(4, 17),
+                // (4,17): error CS0161: 'C.Goo()': not all code paths return a value
+                //     partial int Goo() { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Goo").WithArguments("C.Goo()").WithLocation(4, 17));
+            CreateCompilation(text, parseOptions: TestOptions.Regular2).VerifyDiagnostics(
                 // (4,5): error CS8023: Feature 'partial method' is not available in C# 2. Please use language version 3 or greater.
                 //     partial int Goo() { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "partial").WithArguments("partial method", "3"));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "partial").WithArguments("partial method", "3").WithLocation(4, 5),
+                // (4,17): error CS0759: No defining declaration found for implementing declaration of partial method 'C.Goo()'
+                //     partial int Goo() { }
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "Goo").WithArguments("C.Goo()").WithLocation(4, 17),
+                // (4,17): error CS0751: A partial method must be declared within a partial type
+                //     partial int Goo() { }
+                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "Goo").WithLocation(4, 17),
+                // (4,17): error CS8796: Partial method 'C.Goo()' must have accessibility modifiers because it has a non-void return type.
+                //     partial int Goo() { }
+                Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "Goo").WithArguments("C.Goo()").WithLocation(4, 17),
+                // (4,17): error CS0161: 'C.Goo()': not all code paths return a value
+                //     partial int Goo() { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Goo").WithArguments("C.Goo()").WithLocation(4, 17));
         }
 
         [Fact]
