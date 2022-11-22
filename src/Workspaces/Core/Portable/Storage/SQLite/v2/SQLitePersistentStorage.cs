@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         // cached query strings
 
-        private readonly string _insert_into_string_table_values_0 = $@"insert into {StringInfoTableName}(""{DataColumnName}"") values (?)";
-        private readonly string _select_star_from_string_table_where_0_limit_one = $@"select * from {StringInfoTableName} where (""{DataColumnName}"" = ?) limit 1";
+        private readonly string _insert_into_string_table_values_0 = $"insert into {StringInfoTableName}({DataColumnName}) values (?)";
+        private readonly string _select_star_from_string_table_where_0_limit_one = $"select * from {StringInfoTableName} where ({DataColumnName} = ?) limit 1";
 
         private SQLitePersistentStorage(
             SQLiteConnectionPoolService connectionPoolService,

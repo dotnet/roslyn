@@ -75,6 +75,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     return $"""
                         select rowid from {database.GetName()}.{TableName} where
                         {string.Join(" and ", _primaryKeyColumns.Select(k => $"{k.name} = ?"))}
+                        limit 1
                         """;
                 }
             }
