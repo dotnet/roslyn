@@ -54,6 +54,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         /// </summary>        
         protected abstract void AddAdornmentsToAdornmentLayer_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection);
 
+        /// <summary>
+        /// This is where we decide what adornments should be removed based on the changedSpan.
+        /// </summary>
+        protected abstract void RemoveAdornment(IWpfTextViewLineCollection viewLines, SnapshotSpan changedSpan);
+
         internal AbstractAdornmentManager(
             IThreadingContext threadingContext,
             IWpfTextView textView,
@@ -250,15 +255,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
             }
 
             AddAdornmentsToAdornmentLayer_CallOnlyOnUIThread(changedSpanCollection);
-        }
-
-        /// <summary>
-        /// Removes the adornment based on the changed span. 
-        /// Needs special logic for InlineDiagnostics since the span added is different.
-        /// </summary>
-        protected virtual void RemoveAdornment(IWpfTextViewLineCollection viewLines, SnapshotSpan changedSpan)
-        {
-            AdornmentLayer.RemoveAdornmentsByVisualSpan(changedSpan);
         }
 
         protected bool ShouldDrawTag(SnapshotSpan snapshotSpan, IMappingTagSpan<T> mappingTagSpan, out IWpfTextViewLine viewLine)
